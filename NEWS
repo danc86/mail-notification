@@ -1,3 +1,22 @@
+1.0					November 25, 2004
+
+	* Some minor IMAP issues have been fixed
+	* Some IMAP servers did not properly support the IDLE
+	  extension, so it can now be disabled in the mailbox
+	  properties
+	* If the POP3 or IMAP password is left blank, it will now be
+	  prompted only if needed
+	* When MIME support was disabled, the Sylpheed backend was not
+	  considering unread messages as new: fixed
+
+	* Updated translations:
+		* Serbian (Filip Miletic)
+		* German (Hendrik Brandt)
+		* Portuguese (Duarte Henriques)
+
+	* New translations:
+		* Polish (Tomasz Sarota-Raczek)
+
 0.99					November 15, 2004
 
 	* The IMAP capabilities sent in a PREAUTH, AUTHENTICATE or
@@ -25,7 +44,7 @@
 	  file: fixed
 
 	* Updated translations:
-		* serbian (Filip Miletic)
+		* Serbian (Filip Miletic)
 
 0.8.0					October 31, 2004
 
@@ -61,9 +80,9 @@
 	* Minor fixes and cleanups
 
 	* Updated translations:
-		* serbian (Filip Miletic)
-		* german (Hendrik Brandt)
-		* portuguese (Duarte Henriques)
+		* Serbian (Filip Miletic)
+		* German (Hendrik Brandt)
+		* Portuguese (Duarte Henriques)
 
 0.7.0					October 6, 2004
 
@@ -91,9 +110,9 @@
 	  ignored: fixed (Julio M. Merino Vidal)
 	* A few minor issues have been fixed
 	* Some cleanups have been performed
-	* The german translations have been updated (Hendrik Brandt)
-	* Added serbian translations (Filip Miletic)
-	* Added bulgarian translations (Vladimir Petkov)
+	* The German translations have been updated (Hendrik Brandt)
+	* Added Serbian translations (Filip Miletic)
+	* Added Bulgarian translations (Vladimir Petkov)
 
 0.6.2					September 9, 2004
 
@@ -114,8 +133,8 @@
 	* Fixed a typo in the MD5 code which prevented builds on some
 	  platforms (reported by Andy Shaw)
 	* Automatic mailboxes were also polled: fixed
-	* Added german translations (Hendrik Brandt)
-	* Added portuguese translations (Duarte Henriques)
+	* Added German translations (Hendrik Brandt)
+	* Added Portuguese translations (Duarte Henriques)
 	* A few minor issues have been fixed
 	* Some cleanups have been performed
 	* Now requires GNOME version 2.6 or superior
@@ -163,7 +182,7 @@
 	  address rather than as a hostname
 	* Now uses intltool
 	* The manual has been improved
-	* Added russian translations for the .desktop file (submitted
+	* Added Russian translations for the .desktop file (submitted
 	  by Dan Korostelev)
 	* The output of ./configure has been cleaned up
 	* ChangeLog files were not being accurately maintained and are
@@ -231,7 +250,7 @@
 	* Is now a GNOME application
 	* Added a graphical user interface (preferences dialog and
 	  popup menu)
-	* Internationalization has been performed, and a french
+	* Internationalization has been performed, and a French
 	  translation is already available
 	* Switched to Autoconf 2.57 and Automake 1.7.5
 

@@ -68,6 +68,13 @@ typedef struct
 				 MNClientSessionPrivate   *private);
   void      (*post_read)	(MNClientSession          *session,
 				 MNClientSessionPrivate   *private);
+
+#ifdef WITH_SASL
+  const char *	(*sasl_get_username)	(MNClientSession	*session,
+					 MNClientSessionPrivate	*priv);
+  const char *	(*sasl_get_password)	(MNClientSession	*session,
+					 MNClientSessionPrivate	*priv);
+#endif /* WITH_SASL */
 } MNClientSessionCallbacks;
 
 gboolean mn_client_session_run (MNClientSessionState *states,
@@ -77,8 +84,6 @@ gboolean mn_client_session_run (MNClientSessionState *states,
 #endif
 				const char *hostname,
 				int port,
-				const char *username,
-				const char *password,
 				MNClientSessionPrivate *private,
 				GError **err);
 

@@ -16,9 +16,9 @@ extern "C" {
 
 #line 18 "mn-gmail-mailbox-private.h"
 struct _MNGmailMailboxPrivate {
-#line 64 "mn-gmail-mailbox.gob"
-	GHashTable * cookies;
 #line 65 "mn-gmail-mailbox.gob"
+	GHashTable * cookies;
+#line 66 "mn-gmail-mailbox.gob"
 	gboolean logged_in;
 #line 24 "mn-gmail-mailbox-private.h"
 };

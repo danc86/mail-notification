@@ -8,10 +8,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mail-notification 0.99\n"
+"Project-Id-Version: mail-notification 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-11-15 16:03+0100\n"
-"PO-Revision-Date: 2004-11-15 16:11+0100\n"
+"POT-Creation-Date: 2004-11-25 01:43+0100\n"
+"PO-Revision-Date: 2004-11-25 01:40+0100\n"
 "Last-Translator: Jean-Yves Lefort <jylefort@brutele.be>\n"
 "Language-Team: Jean-Yves Lefort <jylefort@brutele.be>\n"
 "MIME-Version: 1.0\n"
@@ -388,14 +388,7 @@ msgstr "Jean-Yves Lefort <jylefort@brutele.be>"
 msgid "<span style=\"italic\">autodetect</span>"
 msgstr "<span style=\"italic\">autodétecter</span>"
 
-#. translator: example output: Enter your password for POP3 mailbox jylefort@localhost.
-#: src/mn-authenticated-mailbox.gob:77
-#, c-format
-msgid "Enter your password for %s mailbox %s."
-msgstr "Entrez votre mot de passe pour la boîte aux lettres %s %s."
-
-#. translator: example output: ... into POP3 mailbox jylefort@localhost ...
-#: src/mn-authenticated-mailbox.gob:98
+#: src/mn-authenticated-mailbox.gob:80
 #, c-format
 msgid ""
 "Mail Notification was unable to log into %s mailbox %s, possibly because the "
@@ -409,7 +402,12 @@ msgstr ""
 "\n"
 "Veuillez à nouveau saisir votre mot de passe."
 
-#: src/mn-authenticated-mailbox.gob:164
+#: src/mn-authenticated-mailbox.gob:81
+#, c-format
+msgid "Enter your password for %s mailbox %s."
+msgstr "Entrez votre mot de passe pour la boîte aux lettres %s %s."
+
+#: src/mn-authenticated-mailbox.gob:132
 #, c-format
 msgid ""
 "<span weight=\"bold\" size=\"larger\">Mail Notification requires a password</"
@@ -442,85 +440,85 @@ msgstr "Sélectionnez un Fichier ou Dossier"
 msgid "Whether the image is blinking or not"
 msgstr "Si l'image clignote ou pas"
 
-#: src/mn-client-session.c:229
+#: src/mn-client-session.c:220
 #, c-format
 msgid "resolving %s"
 msgstr "résolution de %s en cours"
 
-#: src/mn-client-session.c:239
+#: src/mn-client-session.c:230
 #, c-format
 msgid "unable to resolve %s: %s"
 msgstr "impossible de résoudre %s: %s"
 
-#: src/mn-client-session.c:276
+#: src/mn-client-session.c:267
 #, c-format
 msgid "%s: unsupported address family"
 msgstr "%s: famille d'adresse non prise en charge"
 
-#: src/mn-client-session.c:283
+#: src/mn-client-session.c:274
 #, c-format
 msgid "%s: unable to create socket: %s"
 msgstr "%s: impossible de créer un socket: %s"
 
-#: src/mn-client-session.c:287
+#: src/mn-client-session.c:278
 #, c-format
 msgid "connecting to %s (%s) port %i"
 msgstr "connection à %s (%s) port %i en cours"
 
-#: src/mn-client-session.c:290
+#: src/mn-client-session.c:281
 #, c-format
 msgid "unable to connect: %s"
 msgstr "impossible de se connecter: %s"
 
-#: src/mn-client-session.c:295
+#: src/mn-client-session.c:286
 msgid "connected successfully"
 msgstr "connecté avec succès"
 
 #. if reached, we couldn't find a working address
-#: src/mn-client-session.c:301
+#: src/mn-client-session.c:292
 #, c-format
 msgid "unable to connect to %s"
 msgstr "impossible de se connecter à %s"
 
-#: src/mn-client-session.c:317
+#: src/mn-client-session.c:308
 #, c-format
 msgid "unable to initialize the OpenSSL library: %s"
 msgstr "impossible d'initialiser la bibliothèque OpenSSL: %s"
 
-#: src/mn-client-session.c:325
+#: src/mn-client-session.c:316
 #, c-format
 msgid "unable to create a SSL/TLS object: %s"
 msgstr "impossible de créer un objet SSL/TLS: %s"
 
-#: src/mn-client-session.c:331
+#: src/mn-client-session.c:322
 #, c-format
 msgid "unable to set the SSL/TLS file descriptor: %s"
 msgstr "impossible de spécifier le descripteur de fichier SSL/TLS: %s"
 
-#: src/mn-client-session.c:337
+#: src/mn-client-session.c:328
 #, c-format
 msgid "unable to perform the SSL/TLS handshake: %s"
 msgstr "impossible d'accomplir la négociation SSL/TLS: %s"
 
-#: src/mn-client-session.c:343
+#: src/mn-client-session.c:334
 msgid "untrusted server"
 msgstr "serveur non fiable"
 
-#: src/mn-client-session.c:347
+#: src/mn-client-session.c:338
 #, c-format
 msgid "a SSL/TLS layer is now active (%s, %s %i-bit)"
 msgstr "une couche SSL/TLS est maintenant active (%s, %s %i-bit)"
 
-#: src/mn-client-session.c:394
+#: src/mn-client-session.c:385
 #, c-format
 msgid "%s, fingerprint: %s"
 msgstr "%s, empreinte digitale: %s"
 
-#: src/mn-client-session.c:423
+#: src/mn-client-session.c:414
 msgid "missing certificate"
 msgstr "certificat manquant"
 
-#: src/mn-client-session.c:449
+#: src/mn-client-session.c:440
 #, c-format
 msgid ""
 "Mail Notification was unable to trust \"%s\" (%s). It is possible that "
@@ -539,113 +537,113 @@ msgstr ""
 "vous êtes connecté à \"%s\". Si vous choisissez de vous connecter au "
 "serveur, ce message ne sera plus affiché."
 
-#: src/mn-client-session.c:466
+#: src/mn-client-session.c:457
 msgid "Connect to untrusted server?"
 msgstr "Se connecter au serveur non fiable?"
 
-#: src/mn-client-session.c:471
+#: src/mn-client-session.c:462
 msgid "Co_nnect"
 msgstr "Se co_nnecter"
 
-#: src/mn-client-session.c:527
+#: src/mn-client-session.c:518
 #, c-format
 msgid "response \"%s\" is not valid in current context"
 msgstr "la réponse \"%s\" n'est pas valable dans le contexte actuel"
 
-#: src/mn-client-session.c:553
+#: src/mn-client-session.c:544
 #, c-format
 msgid "unable to parse response \"%s\""
 msgstr "impossible d'interpréter la réponse \"%s\""
 
-#: src/mn-client-session.c:601 src/mn-client-session.c:608
+#: src/mn-client-session.c:592 src/mn-client-session.c:599
 #, c-format
 msgid "unable to read from server: %s"
 msgstr "impossible de lire depuis le serveur: %s"
 
-#: src/mn-client-session.c:606
+#: src/mn-client-session.c:597
 msgid "unable to read from server: EOF"
 msgstr "impossible de lire depuis le serveur: EOF"
 
-#: src/mn-client-session.c:618
+#: src/mn-client-session.c:609
 #, c-format
 msgid "unable to decode data using SASL: %s"
 msgstr "impossible de décoder les données en utilisant SASL: %s"
 
-#: src/mn-client-session.c:755
+#: src/mn-client-session.c:746
 #, c-format
 msgid "unable to encode data using SASL: %s"
 msgstr "impossible d'encoder les données en utilisant SASL: %s"
 
-#: src/mn-client-session.c:786 src/mn-client-session.c:793
+#: src/mn-client-session.c:777 src/mn-client-session.c:784
 #, c-format
 msgid "unable to write to server: %s"
 msgstr "impossible d'écrire vers le serveur: %s"
 
-#: src/mn-client-session.c:791
+#: src/mn-client-session.c:782
 msgid "unable to write to server: EOF"
 msgstr "impossible d'écrire vers le serveur: EOF"
 
-#: src/mn-client-session.c:823
+#: src/mn-client-session.c:814
 #, c-format
 msgid "unable to encode Base64: %s"
 msgstr "impossible d'encoder en Base64: %s"
 
-#: src/mn-client-session.c:927
+#: src/mn-client-session.c:925
 #, c-format
 msgid "unable to initialize the SASL library: %s"
 msgstr "impossible d'initialiser la bibliothèque SASL: %s"
 
-#: src/mn-client-session.c:936
+#: src/mn-client-session.c:934
 #, c-format
 msgid "unable to retrieve local address of socket: %s"
 msgstr "impossible d'obtenir l'adresse locale du socket: %s"
 
-#: src/mn-client-session.c:942
+#: src/mn-client-session.c:940
 #, c-format
 msgid "unable to retrieve remote address of socket: %s"
 msgstr "impossible d'obtenir l'adresse distante du socket: %s"
 
-#: src/mn-client-session.c:976
+#: src/mn-client-session.c:974
 #, c-format
 msgid "warning: unable to set SASL security properties: %s"
 msgstr ""
 "avertissement: impossible de spécifier les propriétés de sécurité SASL: %s"
 
-#: src/mn-client-session.c:1015
+#: src/mn-client-session.c:998
 msgid ""
 "unable to start SASL authentication: SASL asked for something we did not know"
 msgstr ""
 "impossible de démarrer l'authentification SASL: SASL a demandé quelque chose "
 "que nous ne connaissions pas"
 
-#: src/mn-client-session.c:1019
+#: src/mn-client-session.c:1017
 #, c-format
 msgid "unable to start SASL authentication: %s"
 msgstr "impossible de démarrer l'authentification SASL: %s"
 
-#: src/mn-client-session.c:1023
+#: src/mn-client-session.c:1021
 #, c-format
 msgid "unable to create a SASL connection: %s"
 msgstr "impossible de créer une connection SASL: %s"
 
-#: src/mn-client-session.c:1073
+#: src/mn-client-session.c:1058
 msgid "SASL asked for something we did not know, aborting SASL authentication"
 msgstr ""
 "SASL a demandé quelque chose que nous ne connaissions pas, annulation de "
 "l'authentification SASL"
 
-#: src/mn-client-session.c:1077
+#: src/mn-client-session.c:1075
 #, c-format
 msgid "%s, aborting SASL authentication"
 msgstr "%s, annulation de l'authentification SASL"
 
 #. compliance error
-#: src/mn-client-session.c:1082
+#: src/mn-client-session.c:1080
 #, c-format
 msgid "unable to decode Base64 input from server: %s"
 msgstr "impossible de décoder l'entrée Base64 du serveur: %s"
 
-#: src/mn-client-session.c:1085
+#: src/mn-client-session.c:1083
 msgid ""
 "the server sent a SASL challenge, but there was a pending initial SASL "
 "client response"
@@ -653,7 +651,7 @@ msgstr ""
 "le serveur a envoyé un défi SASL, mais il y avait une réponse client SASL "
 "initiale en attente"
 
-#: src/mn-client-session.c:1099
+#: src/mn-client-session.c:1097
 msgid ""
 "the server did not send a SASL challenge, but there was no pending initial "
 "SASL client response"
@@ -661,19 +659,19 @@ msgstr ""
 "le serveur n'a pas envoyé de défi SASL, mais il n'y avait pas de réponse "
 "client SASL initiale en attente"
 
-#: src/mn-client-session.c:1124
+#: src/mn-client-session.c:1122
 #, c-format
 msgid "a SASL security layer of strength factor %i is now active"
 msgstr ""
 "une couche de sécurité SASL de facteur de force %i est maintenant active"
 
 #. a security layer is active but we can't retrieve maxoutbuf -> fatal
-#: src/mn-client-session.c:1129
+#: src/mn-client-session.c:1127
 #, c-format
 msgid "unable to get SASL_MAXOUTBUF property: %s"
 msgstr "impossible d'obtenir la propriété SASL_MAXOUTBUF: %s"
 
-#: src/mn-client-session.c:1135
+#: src/mn-client-session.c:1133
 #, c-format
 msgid "warning: unable to get SASL_SSF property: %s"
 msgstr "avertissement: impossible d'obtenir la propriété SASL_SSF: %s"
@@ -703,33 +701,33 @@ msgstr ""
 "Votre mot de passe Gmail (si laissé vide, le mot de passe vous sera demandé "
 "en temps utile)"
 
-#: src/mn-gmail-mailbox.gob:81
+#: src/mn-gmail-mailbox.gob:82
 msgid "libsoup has not been compiled with SSL/TLS support"
 msgstr "libsoup n'a pas été compilé avec le support SSL/TLS"
 
-#: src/mn-gmail-mailbox.gob:123
+#: src/mn-gmail-mailbox.gob:160
 #, c-format
 msgid "unable to parse URI \"%s\""
 msgstr "impossible d'interpréter l'URI \"%s\""
 
-#: src/mn-gmail-mailbox.gob:177
+#: src/mn-gmail-mailbox.gob:214
 #, c-format
 msgid "unable to transfer data: %s"
 msgstr "impossible de transférer des données: %s"
 
-#: src/mn-gmail-mailbox.gob:298
+#: src/mn-gmail-mailbox.gob:335
 msgid "logging in"
 msgstr "ouverture de session en cours"
 
-#: src/mn-gmail-mailbox.gob:376
+#: src/mn-gmail-mailbox.gob:413
 msgid "login failed"
 msgstr "l'ouverture de session a échoué"
 
-#: src/mn-gmail-mailbox.gob:451
+#: src/mn-gmail-mailbox.gob:488
 msgid "searching for unread mail"
 msgstr "recherche du courrier non lu"
 
-#: src/mn-gmail-mailbox.gob:490
+#: src/mn-gmail-mailbox.gob:527
 msgid "unable to parse Gmail data"
 msgstr "impossible d'interpréter les données Gmail"
 
@@ -758,27 +756,31 @@ msgstr "impossible de dire la position de %s: %s"
 msgid "unable to close %s: %s"
 msgstr "impossible de fermer %s: %s"
 
-#: src/mn-imap-mailbox-properties.gob:93
+#: src/mn-imap-mailbox-properties.gob:94
 msgid "Mailbox:"
 msgstr "Boîte aux lettres:"
 
-#: src/mn-imap-mailbox-properties.gob:97
+#: src/mn-imap-mailbox-properties.gob:98
 msgid "in_box"
 msgstr "_boîte de réception"
 
-#: src/mn-imap-mailbox-properties.gob:108
+#: src/mn-imap-mailbox-properties.gob:109
 msgid "oth_er:"
 msgstr "autr_e:"
 
-#: src/mn-imap-mailbox-properties.gob:123
+#: src/mn-imap-mailbox-properties.gob:121
+msgid "U_se idle mode if possible"
+msgstr "Utili_ser le mode idle si possible"
+
+#: src/mn-imap-mailbox-properties.gob:129
 msgid "The hostname or IP address of the IMAP server"
 msgstr "Le nom d'hôte ou adresse IP du serveur IMAP"
 
-#: src/mn-imap-mailbox-properties.gob:124
+#: src/mn-imap-mailbox-properties.gob:130
 msgid "Your username on the IMAP server"
 msgstr "Votre nom d'utilisateur sur le serveur IMAP"
 
-#: src/mn-imap-mailbox-properties.gob:125
+#: src/mn-imap-mailbox-properties.gob:131
 msgid ""
 "Your password on the IMAP server (if left blank, you will be prompted for "
 "the password when needed)"
@@ -786,61 +788,65 @@ msgstr ""
 "Votre mot de passe sur le serveur IMAP (si laissé vide, le mot de passe vous "
 "sera demandé en temps utile)"
 
-#: src/mn-imap-mailbox-properties.gob:126
-#: src/mn-imap-mailbox-properties.gob:127
+#: src/mn-imap-mailbox-properties.gob:132
+#: src/mn-imap-mailbox-properties.gob:133
 msgid "The port number of the IMAP server"
 msgstr "Le numéro de port du serveur IMAP"
 
-#: src/mn-imap-mailbox-properties.gob:128
+#: src/mn-imap-mailbox-properties.gob:134
 msgid "The mailbox name"
 msgstr "Le nom de la boîte aux lettres"
 
-#: src/mn-imap-mailbox.gob:165 src/mn-pop3-mailbox.gob:142
+#: src/mn-imap-mailbox-properties.gob:135
+msgid "If possible, whether to use idle mode or not"
+msgstr "Si possible, si le mode idle doit être utilisé ou pas"
+
+#: src/mn-imap-mailbox.gob:166 src/mn-pop3-mailbox.gob:143
 msgid "SSL/TLS support has not been compiled in"
 msgstr "le support SSL/TLS n'a pas été inclus lors de la compilation"
 
-#: src/mn-imap-mailbox.gob:244
+#: src/mn-imap-mailbox.gob:246
 msgid "server did not send capabilities"
 msgstr "le serveur n'a pas envoyé ses possibilités"
 
-#: src/mn-imap-mailbox.gob:390
+#: src/mn-imap-mailbox.gob:418
 msgid "server advertised LOGINDISABLED, not using LOGIN authentication"
 msgstr ""
 "le serveur a annoncé LOGINDISABLED, pas d'utilisation de l'authentification "
 "LOGIN"
 
-#: src/mn-imap-mailbox.gob:391
+#: src/mn-imap-mailbox.gob:419
 msgid "unable to login"
 msgstr "impossible d'ouvrir la session"
 
 #. compliance error
-#: src/mn-imap-mailbox.gob:538
+#: src/mn-imap-mailbox.gob:571
 msgid "server did not send search results"
 msgstr "le serveur n'a pas envoyé les résultats de la recherche"
 
 #. compliance error
-#: src/mn-imap-mailbox.gob:618
+#: src/mn-imap-mailbox.gob:651
 msgid "server did not send all the messages we requested"
 msgstr "le serveur n'a pas envoyé tous les messages que nous avons demandé"
 
-#: src/mn-imap-mailbox.gob:667
+#: src/mn-imap-mailbox.gob:700
 msgid "unable to fetch message"
 msgstr "impossible d'obtenir le message"
 
 #. compliance error
-#: src/mn-imap-mailbox.gob:785
+#: src/mn-imap-mailbox.gob:818
 msgid "server did not send status"
 msgstr "le serveur n'a pas envoyé de statut"
 
-#: src/mn-imap-mailbox.gob:1057 src/mn-pop3-mailbox.gob:922
+#: src/mn-imap-mailbox.gob:1096 src/mn-pop3-mailbox.gob:972
 msgid "unknown server error"
 msgstr "erreur serveur inconnue"
 
-#: src/mn-imap-mailbox.gob:1147 src/mn-pop3-mailbox.gob:226
+#: src/mn-imap-mailbox.gob:1198 src/mn-pop3-mailbox.gob:227
 msgid "server does not support in-band SSL/TLS"
 msgstr "le serveur ne supporte pas le mode SSL/TLS interne"
 
-#: src/mn-imap-mailbox.gob:1168 src/mn-pop3-mailbox.gob:841
+#: src/mn-imap-mailbox.gob:1217 src/mn-pop3-mailbox.gob:885
 msgid ""
 "a SASL authentication mechanism was selected but SASL support has not been "
 "compiled in"
@@ -848,16 +854,16 @@ msgstr ""
 "un mécanisme d'authentification SASL a été sélectionné mais le support SASL "
 "n'a pas été inclus lors de la compilation"
 
-#: src/mn-imap-mailbox.gob:1176 src/mn-pop3-mailbox.gob:853
+#: src/mn-imap-mailbox.gob:1225 src/mn-pop3-mailbox.gob:897
 #, c-format
 msgid "unknown authentication mechanism \"%s\""
 msgstr "mécanisme d'authentification inconnu \"%s\""
 
-#: src/mn-imap-mailbox.gob:1194
+#: src/mn-imap-mailbox.gob:1246
 msgid "falling back to IMAP LOGIN authentication"
 msgstr "rétrogradation vers l'authentification IMAP LOGIN"
 
-#: src/mn-imap-mailbox.gob:1199 src/mn-pop3-mailbox.gob:888
+#: src/mn-imap-mailbox.gob:1257 src/mn-pop3-mailbox.gob:938
 msgid "authentication failed"
 msgstr "l'authentification a échoué"
 
@@ -1291,30 +1297,30 @@ msgstr ""
 msgid "The port number of the POP3 server"
 msgstr "Le numéro de port du serveur POP3"
 
-#: src/mn-pop3-mailbox.gob:272
+#: src/mn-pop3-mailbox.gob:273
 msgid "invalid arguments for the LOGIN-DELAY capability"
 msgstr "arguments invalides pour la possibilité LOGIN-DELAY"
 
-#: src/mn-pop3-mailbox.gob:556
+#: src/mn-pop3-mailbox.gob:590
 msgid "unknown error"
 msgstr "erreur inconnue"
 
-#: src/mn-pop3-mailbox.gob:690
+#: src/mn-pop3-mailbox.gob:729
 #, c-format
 msgid "honouring LOGIN-DELAY, sleeping for %i second"
 msgid_plural "honouring LOGIN-DELAY, sleeping for %i seconds"
 msgstr[0] "attente de %i seconde afin d'obéir à LOGIN-DELAY"
 msgstr[1] "attente de %i secondes afin d'obéir à LOGIN-DELAY"
 
-#: src/mn-pop3-mailbox.gob:849
+#: src/mn-pop3-mailbox.gob:893
 msgid "server does not support APOP authentication"
 msgstr "le serveur ne supporte pas l'authentification APOP"
 
-#: src/mn-pop3-mailbox.gob:877
+#: src/mn-pop3-mailbox.gob:922
 msgid "falling back to APOP authentication"
 msgstr "rétrogradation vers l'authentification APOP"
 
-#: src/mn-pop3-mailbox.gob:882
+#: src/mn-pop3-mailbox.gob:927
 msgid "falling back to USER/PASS authentication"
 msgstr "rétrogradation vers l'authentification USER/PASS"
 
@@ -1382,17 +1388,17 @@ msgstr "Sélectionner _Tout"
 msgid "_Mail Summary"
 msgstr "_Aperçu du Courrier"
 
-#: src/mn-sylpheed-mailbox.gob:122
+#: src/mn-sylpheed-mailbox.gob:119
 #, c-format
 msgid "unable to open folder: %s"
 msgstr "impossible d'ouvrir le dossier: %s"
 
-#: src/mn-sylpheed-mailbox.gob:180
+#: src/mn-sylpheed-mailbox.gob:165
 #, c-format
 msgid "unable to close folder: %s"
 msgstr "impossible de fermer le dossier: %s"
 
-#: src/mn-sylpheed-mailbox.gob:183
+#: src/mn-sylpheed-mailbox.gob:168
 #, c-format
 msgid "error while reading folder: %s"
 msgstr "erreur lors de la lecture du dossier: %s"

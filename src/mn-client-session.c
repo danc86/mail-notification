@@ -57,8 +57,6 @@ struct _MNClientSession
   MNClientSessionCallbacks	*callbacks;
   char				*hostname;
   int				port;
-  char				*username;
-  char				*password;
   int				s;
   MNClientSessionState		*state;
   char				*error;
@@ -115,7 +113,8 @@ static int mn_client_session_write_base64 (MNClientSession *session,
 					   const char *buf,
 					   unsigned int len);
 static gboolean mn_client_session_sasl_fill_interact (MNClientSession *session,
-						      sasl_interact_t *interact);
+						      sasl_interact_t *interact,
+						      const char *unknown_notice);
 static char *mn_client_session_sasl_get_ip_port (const struct sockaddr *addr);
 #endif /* WITH_SASL */
 
@@ -129,8 +128,6 @@ mn_client_session_run (MNClientSessionState *states,
 #endif
 		       const char *hostname,
 		       int port,
-		       const char *username,
-		       const char *password,
 		       MNClientSessionPrivate *private,
 		       GError **err)
 {
@@ -143,16 +140,12 @@ mn_client_session_run (MNClientSessionState *states,
   g_return_val_if_fail(callbacks->response_new != NULL, FALSE);
   g_return_val_if_fail(callbacks->response_free != NULL, FALSE);
   g_return_val_if_fail(hostname != NULL, FALSE);
-  g_return_val_if_fail(username != NULL, FALSE);
-  g_return_val_if_fail(password != NULL, FALSE);
 
   memset(&session, 0, sizeof(session));
   session.states = states;
   session.callbacks = callbacks;
   session.hostname = g_strdup(hostname);
   session.port = port;
-  session.username = g_strdup(username);
-  session.password = g_strdup(password);
   session.private = private;
 
   addrinfo = mn_client_session_resolve(&session);
@@ -182,8 +175,6 @@ mn_client_session_run (MNClientSessionState *states,
   
  end:
   g_free(session.hostname);
-  g_free(session.username);
-  g_free(session.password);
   if (session.s >= 0)
     while (close(session.s) < 0 && errno == EINTR);
 #ifdef WITH_SSL
@@ -831,7 +822,8 @@ mn_client_session_write_base64 (MNClientSession *session,
 
 static gboolean
 mn_client_session_sasl_fill_interact (MNClientSession *session,
-				      sasl_interact_t *interact)
+				      sasl_interact_t *interact,
+				      const char *unknown_notice)
 {
   sasl_interact_t *i;
 
@@ -840,18 +832,22 @@ mn_client_session_sasl_fill_interact (MNClientSession *session,
 
   for (i = interact; i->id; i++)
     {
-      const char *data = NULL;
+      const char *data;
 
       switch (i->id)
 	{
 	case SASL_CB_USER:
 	case SASL_CB_AUTHNAME:
-	  data = session->username;
+	  data = session->callbacks->sasl_get_username(session, session->private);
 	  break;
 	  
 	case SASL_CB_PASS:
-	  data = session->password;
+	  data = session->callbacks->sasl_get_password(session, session->private);
 	  break;
+
+	default:
+	  data = NULL;
+	  mn_client_session_notice(session, unknown_notice);
 	};
 
       if (data)
@@ -918,6 +914,8 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
   char *remote_ip_port = NULL;
 
   g_return_val_if_fail(session != NULL, 0);
+  g_return_val_if_fail(session->callbacks->sasl_get_username != NULL, FALSE);
+  g_return_val_if_fail(session->callbacks->sasl_get_password != NULL, FALSE);
   g_return_val_if_fail(service != NULL, 0);
   g_return_val_if_fail(mechanisms != NULL, 0);
 
@@ -997,7 +995,7 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
 
 	  if (result == SASL_INTERACT)
 	    {
-	      if (! mn_client_session_sasl_fill_interact(session, interact))
+	      if (! mn_client_session_sasl_fill_interact(session, interact, _("unable to start SASL authentication: SASL asked for something we did not know")))
 		break;
 	    }
 	}
@@ -1012,7 +1010,7 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
 	  return TRUE;
 
 	case SASL_INTERACT:
-	  mn_client_session_notice(session, _("unable to start SASL authentication: SASL asked for something we did not know"));
+	  /* could not fill interaction, nop */
 	  break;
 
 	default:
@@ -1057,7 +1055,7 @@ mn_client_session_sasl_authentication_step (MNClientSession *session,
 		  
 		  if (result == SASL_INTERACT)
 		    {
-		      if (! mn_client_session_sasl_fill_interact(session, interact))
+		      if (! mn_client_session_sasl_fill_interact(session, interact, _("SASL asked for something we did not know, aborting SASL authentication")))
 			break;
 		    }
 		}
@@ -1070,7 +1068,7 @@ mn_client_session_sasl_authentication_step (MNClientSession *session,
 		  return mn_client_session_write_base64(session, session->sasl_clientout, session->sasl_clientoutlen);
 		  
 		case SASL_INTERACT:
-		  mn_client_session_notice(session, _("SASL asked for something we did not know, aborting SASL authentication"));
+		  /* could not fill interaction, abort */
 		  return mn_client_session_write(session, "*");
 		  
 		default:

@@ -23,15 +23,6 @@ requires 2.0.10
 #include "mn-mailbox.h"
 %}
 
-%h{
-  typedef enum
-  {
-    MN_AUTHENTICATED_MAILBOX_OK,
-    MN_AUTHENTICATED_MAILBOX_ERROR_AUTHENTICATION,
-    MN_AUTHENTICATED_MAILBOX_ERROR_OTHER
-  } MNAuthenticatedMailboxResult;
-%}
-
 %{
 #include "config.h"
 #include <glib/gi18n.h>
@@ -42,19 +33,18 @@ requires 2.0.10
 
 class MN:Authenticated:Mailbox from MN:Mailbox
 {
-  public char *password = NULL destroywith g_free;
-  private GtkWidget *authentication_dialog;
-
-  virtual private MNAuthenticatedMailboxResult
-    impl_authenticated_check (self, GError **err);
+  protected char *password = NULL destroywith g_free;
+  protected gboolean cancelled;
+  private gboolean authentication_failed;
+  private GtkWidget *dialog;
 
   override (MN:Mailbox) void
     removed (MN:Mailbox *mailbox (check null type))
   {
     Self *self = SELF(mailbox);
 
-    if (selfp->authentication_dialog)
-      gtk_dialog_response(GTK_DIALOG(selfp->authentication_dialog), GTK_RESPONSE_CANCEL);
+    if (selfp->dialog)
+      gtk_dialog_response(GTK_DIALOG(selfp->dialog), GTK_RESPONSE_CANCEL);
 
     PARENT_HANDLER(mailbox);
   }
@@ -63,64 +53,42 @@ class MN:Authenticated:Mailbox from MN:Mailbox
     impl_check (MN:Mailbox *mailbox (check null type))
   {
     Self *self = SELF(mailbox);
-    GError *err = NULL;
-    MNAuthenticatedMailboxResult result;
-
+    selfp->authentication_failed = FALSE;
+  }
+  
+  protected void
+    authentication_failed (self)
+  {
+    g_free(self->password);
+    self->password = NULL;
+    selfp->authentication_failed = TRUE;
+  }
+  
+  protected void
+    fill_password (self)
+  {
+    self->cancelled = FALSE;
     if (! self->password)
       {
-  	if (mailbox->uri->password)
-	  self->password = g_strdup(mailbox->uri->password);
-	else
+	self->password = g_strdup(MN_MAILBOX(self)->uri->password);
+	if (! self->password)
 	  {
 	    GDK_THREADS_ENTER();
-	    /* translator: example output: Enter your password for POP3 mailbox jylefort@localhost. */
-	    self->password = self_password_prompt(self, _("Enter your password for %s mailbox %s."),
-						  MN_MAILBOX_GET_CLASS(mailbox)->format,
-						  mn_mailbox_get_name(mailbox));
+
+	    self->password = self_password_prompt(self,
+						  selfp->authentication_failed
+						  ? _("Mail Notification was unable to log into %s mailbox %s, possibly because the password you have entered is invalid.\n\nPlease re-enter your password.")
+						  : _("Enter your password for %s mailbox %s."),
+						  MN_MAILBOX_GET_CLASS(self)->format,
+						  mn_mailbox_get_name(MN_MAILBOX(self)));
+
+	    if (! self->password)
+	      self->cancelled = TRUE;
+	    
 	    gdk_flush();
 	    GDK_THREADS_LEAVE();
-
-	    if (! self->password) /* cancelled */
-	      goto end;
 	  }
       }
-
-    result = SELF_GET_CLASS(self)->impl_authenticated_check(self, &err);
-
-    if (! mailbox->uri->password)
-      while (result == MN_AUTHENTICATED_MAILBOX_ERROR_AUTHENTICATION)
-	{
-	  g_clear_error(&err);
-	  g_free(self->password);
-
-	  GDK_THREADS_ENTER();
-	  /* translator: example output: ... into POP3 mailbox jylefort@localhost ... */
-	  self->password = self_password_prompt(self, _("Mail Notification was unable to log into %s mailbox %s, possibly because the password you have entered is invalid.\n\nPlease re-enter your password."),
-						MN_MAILBOX_GET_CLASS(mailbox)->format,
-						mn_mailbox_get_name(mailbox));
-	  gdk_flush();
-	  GDK_THREADS_LEAVE();
-
-	  if (! self->password)	/* cancelled */
-	    goto end;
-
-	  result = SELF_GET_CLASS(self)->impl_authenticated_check(self, &err);
-	}
-
-    if (result != MN_AUTHENTICATED_MAILBOX_OK)
-      {
-  	GDK_THREADS_ENTER();
-	mn_mailbox_set_error(mailbox, "%s", err->message);
-	gdk_flush();
-	GDK_THREADS_LEAVE();
-	g_error_free(err);
-      }
-    
-  end:
-    GDK_THREADS_ENTER();
-    mn_mailbox_end_check(mailbox);
-    gdk_flush();
-    GDK_THREADS_LEAVE();
   }
   
   private char *
@@ -137,10 +105,10 @@ class MN:Authenticated:Mailbox from MN:Mailbox
     char *markup;
     char *password = NULL;
 
-    g_return_val_if_fail(selfp->authentication_dialog == NULL, NULL);
+    g_return_val_if_fail(selfp->dialog == NULL, NULL);
 
     mn_create_interface("authentication",
-			"dialog", &selfp->authentication_dialog,
+			"dialog", &selfp->dialog,
 			"label", &label,
 			"username_label", &username_label,
 			"username_entry", &username_entry,
@@ -148,9 +116,9 @@ class MN:Authenticated:Mailbox from MN:Mailbox
 			"password_entry", &password_entry,
 			NULL);
 
-    eel_add_weak_pointer(&selfp->authentication_dialog);
+    eel_add_weak_pointer(&selfp->dialog);
 
-    gtk_dialog_set_default_response(GTK_DIALOG(selfp->authentication_dialog), GTK_RESPONSE_OK);
+    gtk_dialog_set_default_response(GTK_DIALOG(selfp->dialog), GTK_RESPONSE_OK);
 
     size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
     gtk_size_group_add_widget(size_group, username_label);
@@ -172,10 +140,10 @@ class MN:Authenticated:Mailbox from MN:Mailbox
 
     gtk_entry_set_text(GTK_ENTRY(username_entry), MN_MAILBOX(self)->uri->username);
 
-    if (gtk_dialog_run(GTK_DIALOG(selfp->authentication_dialog)) == GTK_RESPONSE_OK)
+    if (gtk_dialog_run(GTK_DIALOG(selfp->dialog)) == GTK_RESPONSE_OK)
       password = g_strdup(gtk_entry_get_text(GTK_ENTRY(password_entry)));
 
-    gtk_widget_destroy(selfp->authentication_dialog);
+    gtk_widget_destroy(selfp->dialog);
 
     return password;
   }

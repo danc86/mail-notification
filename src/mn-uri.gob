@@ -515,7 +515,11 @@ class MN:URI from G:Object
     self->hostname = g_strdup(hostname);
     self->port = port;
     if (stls)
-      self->queries = g_strsplit("STLS", " ", 0);
+      {
+	self->queries = g_new(char *, 2);
+	self->queries[0] = g_strdup("STLS");
+	self->queries[1] = NULL;
+      }
     
     self_post_init(self);
     return self;
@@ -529,9 +533,11 @@ class MN:URI from G:Object
 	      const char *authmech,
 	      const char *hostname (check null),
 	      int port,
-	      const char *mailbox (check null))
+	      const char *mailbox (check null),
+	      gboolean disable_idle)
   {
     Self *self;
+    GSList *queries = NULL;
 
     self = GET_NEW;
 
@@ -543,7 +549,21 @@ class MN:URI from G:Object
     self->port = port;
     self->path = g_strdup(mailbox);
     if (starttls)
-      self->queries = g_strsplit("STARTTLS", " ", 0);
+      queries = g_slist_append(queries, "STARTTLS");
+    if (disable_idle)
+      queries = g_slist_append(queries, "noidle");
+
+    if (queries)
+      {
+	int i = 0;
+	GSList *l;
+
+	self->queries = g_new(char *, g_slist_length(queries) + 1);
+	MN_LIST_FOREACH(l, queries)
+	  self->queries[i++] = g_strdup(l->data);
+	self->queries[i] = NULL;
+	g_slist_free(queries);
+      }
     
     self_post_init(self);
     return self;

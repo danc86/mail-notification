@@ -16,7 +16,9 @@ struct _MNIMAPMailboxPropertiesPrivate {
 	GtkWidget * other_radio;
 #line 69 "mn-imap-mailbox-properties.gob"
 	GtkWidget * mailbox_entry;
-#line 20 "mn-imap-mailbox-properties-private.h"
+#line 70 "mn-imap-mailbox-properties.gob"
+	GtkWidget * idle_check;
+#line 22 "mn-imap-mailbox-properties-private.h"
 };
 
 #ifdef __cplusplus

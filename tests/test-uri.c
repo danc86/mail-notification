@@ -123,7 +123,7 @@ main (int argc, char **argv)
   const char *hostnames[] = { NULL, "hostname", "[::1]" };
   int ports[] = { -1, 110, 995, 143, 993, 555 };
   const char *paths[] = { NULL, "INBOX", "foo-path" };
-  const char *queries[] = { NULL, "STARTTLS", "STLS", "foo-query" };
+  const char *queries[] = { NULL, "STARTTLS", "STLS", "foo-query", "noidle" };
   int n_uri = 0;
   int n_canonical = 0;
   

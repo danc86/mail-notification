@@ -511,7 +511,7 @@ mn_display_help (GtkWindow *parent, const char *link_id)
 
   if (! gnome_help_display("mail-notification.xml", link_id, &err))
     {
-      mn_error_dialog(parent, NULL, _("Unable to display help"), "%s", err->message);
+      mn_error_dialog(parent, NULL, NULL, _("Unable to display help"), "%s", err->message);
       g_error_free(err);
     }
 }

@@ -15,15 +15,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-
-  typedef enum
-  {
-    MN_AUTHENTICATED_MAILBOX_OK,
-    MN_AUTHENTICATED_MAILBOX_ERROR_AUTHENTICATION,
-    MN_AUTHENTICATED_MAILBOX_ERROR_OTHER
-  } MNAuthenticatedMailboxResult;
-
-
 /*
  * Type checking and casting macros
  */
@@ -47,9 +38,9 @@ typedef struct _MNAuthenticatedMailbox MNAuthenticatedMailbox;
 #endif
 struct _MNAuthenticatedMailbox {
 	MNMailbox __parent__;
-	/*< public >*/
-	char * password;
 	/*< private >*/
+	char * password; /* protected */
+	gboolean cancelled; /* protected */
 	MNAuthenticatedMailboxPrivate *_priv;
 };
 
@@ -59,7 +50,6 @@ struct _MNAuthenticatedMailbox {
 typedef struct _MNAuthenticatedMailboxClass MNAuthenticatedMailboxClass;
 struct _MNAuthenticatedMailboxClass {
 	MNMailboxClass __parent__;
-	MNAuthenticatedMailboxResult (* impl_authenticated_check) (MNAuthenticatedMailbox * self, GError ** err);
 };
 
 

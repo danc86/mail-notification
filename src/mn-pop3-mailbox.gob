@@ -41,6 +41,7 @@ requires 2.0.10
 #include <libgnomevfs/gnome-vfs-utils.h>
 #include <eel/eel.h>
 #include "mn-mailbox-private.h"
+#include "mn-authenticated-mailbox-private.h"
 #include "mn-client-session.h"
 #include "mn-util.h"
 #include "mn-md5.h"
@@ -78,27 +79,27 @@ requires 2.0.10
 
   struct _MNClientSessionPrivate
   {
-    MNMailbox		*mailbox;
-    MNPOP3Mailbox	*self;
-    MNClientSession	*session;
-    gboolean		in_list;
-    char		*apop_timestamp;
-    GSList		*auth_mechanisms;
+    MNMailbox			*mailbox;
+    MNAuthenticatedMailbox	*authenticated_mailbox;
+    MNPOP3Mailbox		*self;
+    MNClientSession		*session;
+    gboolean			in_list;
+    char			*apop_timestamp;
+    GSList			*auth_mechanisms;
 #ifdef WITH_SSL
-    gboolean		stls_supported;
-    gboolean		stls_completed;
+    gboolean			stls_supported;
+    gboolean			stls_completed;
 #endif
 #ifdef WITH_SASL
-    const char		*sasl_mechanism;
+    const char			*sasl_mechanism;
 #endif
-    gboolean		authentication_failed;
-    gboolean		authenticated;
-    gboolean		login_delay_user;
+    gboolean			authenticated;
+    gboolean			login_delay_user;
 #ifdef WITH_MIME
-    GSList		*message_numbers;
-    GSList		*current_message_number;
-    GSList		*messages;
-    GString		*current_message;
+    GSList			*message_numbers;
+    GSList			*current_message_number;
+    GSList			*messages;
+    GString			*current_message;
 #endif
   };
 
@@ -314,6 +315,29 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 #endif /* WITH_SSL */
   }
   
+  private const char *
+    sasl_get_username_cb (MNClientSession *session (check null),
+			  MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_SASL
+    return priv->mailbox->uri->username;
+#else
+    g_return_val_if_reached(NULL);
+#endif /* WITH_SASL */
+  }
+
+  private const char *
+    sasl_get_password_cb (MNClientSession *session (check null),
+			  MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_SASL
+    mn_authenticated_mailbox_fill_password(priv->authenticated_mailbox);
+    return priv->authenticated_mailbox->password;
+#else
+    g_return_val_if_reached(NULL);
+#endif /* WITH_SASL */
+  }
+
   private int
     enter_auth_cb (MNClientSession *session (check null),
 		   MNClientSessionPrivate *priv (check null))
@@ -324,10 +348,12 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 						    priv->auth_mechanisms,
 						    priv->mailbox->uri->authmech,
 						    &priv->sasl_mechanism,
-					  /* [1] */ TRUE))
+						    TRUE /* [1] */))
       return mn_client_session_write(session, "AUTH %s", priv->sasl_mechanism);
     else
-      return self_session_authenticate_fallback(priv, FALSE);
+      return priv->authenticated_mailbox->cancelled
+	? STATE_QUIT
+	: self_session_authenticate_fallback(priv, FALSE, FALSE);
 
     /*
      * [1] http://www.ietf.org/internet-drafts/draft-siemborski-rfc1734bis-03.txt
@@ -353,7 +379,9 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 	  : MN_CLIENT_SESSION_RESULT_END;
 	
       case RESPONSE_ERR:
-	return self_session_authenticate_fallback(priv, FALSE);
+	return priv->authenticated_mailbox->cancelled
+	  ? STATE_QUIT
+	  : self_session_authenticate_fallback(priv, FALSE, FALSE);
 	
       case RESPONSE_CONTINUATION:
 	return mn_client_session_sasl_authentication_step(session, response->arguments);
@@ -374,10 +402,14 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
     char buf[33];
   
     g_return_val_if_fail(priv->apop_timestamp != NULL, 0);
-    
+
+    mn_authenticated_mailbox_fill_password(priv->authenticated_mailbox);
+    if (! priv->authenticated_mailbox->password)
+      return STATE_QUIT;
+
     mn_md5_init(&context);
     mn_md5_update(&context, priv->apop_timestamp, strlen(priv->apop_timestamp));
-    mn_md5_update(&context, MN_AUTHENTICATED_MAILBOX(priv->self)->password, strlen(MN_AUTHENTICATED_MAILBOX(priv->self)->password));
+    mn_md5_update(&context, priv->authenticated_mailbox->password, strlen(priv->authenticated_mailbox->password));
     mn_md5_end(&context, buf);
 
     return mn_client_session_write(session, "APOP %s %s", priv->mailbox->uri->username, buf);
@@ -394,7 +426,7 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 	return self_session_authenticated(priv);
 	
       case RESPONSE_ERR:
-	return self_session_authenticate_fallback(priv, TRUE);
+	return self_session_authenticate_fallback(priv, TRUE, FALSE);
 
       default:
 	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
@@ -419,7 +451,6 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 	return STATE_PASS;
 
       case RESPONSE_ERR:
-	priv->authentication_failed = TRUE;
 	return RESULT_ERROR_QUIT;
 
       default:
@@ -431,7 +462,11 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
     enter_pass_cb (MNClientSession *session (check null),
 		   MNClientSessionPrivate *priv (check null))
   {
-    return mn_client_session_write(session, "PASS %s", MN_AUTHENTICATED_MAILBOX(priv->self)->password);
+    mn_authenticated_mailbox_fill_password(priv->authenticated_mailbox);
+    if (! priv->authenticated_mailbox->password)
+      return STATE_QUIT;
+
+    return mn_client_session_write(session, "PASS %s", priv->authenticated_mailbox->password);
   }
 
   private int
@@ -445,8 +480,7 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 	return self_session_authenticated(priv);
 
       case RESPONSE_ERR:
-	priv->authentication_failed = TRUE;
-	return RESULT_ERROR_QUIT;
+	return self_session_authenticate_fallback(priv, TRUE, TRUE);
 
       default:
 	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
@@ -635,12 +669,10 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
       }
   }
   
-  override (MN:Authenticated:Mailbox) MNAuthenticatedMailboxResult
-    impl_authenticated_check (MN:Authenticated:Mailbox *authenticated_mailbox (check null type),
-			      GError **err)
+  override (MN:Mailbox) void
+    impl_check (MN:Mailbox *mailbox (check null type))
   {
-    MNMailbox *mailbox = MN_MAILBOX(authenticated_mailbox);
-    Self *self = SELF(authenticated_mailbox);
+    Self *self = SELF(mailbox);
     MNClientSessionState states[] = {
       { STATE_GREETING,		NULL,			self_handle_greeting_cb },
       { STATE_CAPA,		self_enter_capa_cb,	self_handle_capa_cb },
@@ -669,10 +701,17 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
       self_response_free_cb,
       self_custom_handler_cb,
       NULL,			/* pre_read */
-      NULL			/* post_read */
+      NULL,			/* post_read */
+#ifdef WITH_SASL
+      self_sasl_get_username_cb,
+      self_sasl_get_password_cb,
+#endif
     };
     MNClientSessionPrivate priv;
     gboolean status;
+    GError *err = NULL;
+
+    PARENT_HANDLER(mailbox);
 
     if (selfp->login_delay && selfp->authentication_timer)
       {
@@ -697,6 +736,7 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
   
     memset(&priv, 0, sizeof(priv));
     priv.mailbox = mailbox;
+    priv.authenticated_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
     priv.self = self;
 
     status = mn_client_session_run(states,
@@ -706,10 +746,20 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 #endif
 				   mailbox->uri->hostname,
 				   mailbox->uri->port,
-				   mailbox->uri->username,
-				   MN_AUTHENTICATED_MAILBOX(self)->password,
 				   &priv,
-				   err);
+				   &err);
+
+    GDK_THREADS_ENTER();
+
+    if (! status)
+      {
+	mn_mailbox_set_error(mailbox, "%s", err->message);
+	g_error_free(err);
+      }
+    mn_mailbox_end_check(mailbox);
+
+    gdk_flush();
+    GDK_THREADS_LEAVE();
 
     g_free(priv.apop_timestamp);
     eel_g_slist_free_deep(priv.auth_mechanisms);
@@ -719,12 +769,6 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
     if (priv.current_message)
       g_string_free(priv.current_message, TRUE);
 #endif
-
-    return status
-      ? MN_AUTHENTICATED_MAILBOX_OK
-      : (priv.authentication_failed
-	 ? MN_AUTHENTICATED_MAILBOX_ERROR_AUTHENTICATION
-	 : MN_AUTHENTICATED_MAILBOX_ERROR_OTHER);
   }
   
   private void
@@ -868,7 +912,8 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
   
   private int
     session_authenticate_fallback (MNClientSessionPrivate *priv (check null),
-				   gboolean tried_apop)
+				   gboolean tried_apop,
+				   gboolean tried_pass)
   {
     if (! priv->mailbox->uri->authmech)
       {
@@ -877,15 +922,20 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 	    mn_client_session_notice(priv->session, _("falling back to APOP authentication"));
 	    return STATE_APOP;
 	  }
-	else
+	else if (! tried_pass)
 	  {
 	    mn_client_session_notice(priv->session, _("falling back to USER/PASS authentication"));
 	    return STATE_USER;
 	  }
       }
 
-    priv->authentication_failed = TRUE;
-    return mn_client_session_error(priv->session, _("authentication failed"));
+    if (! priv->mailbox->uri->password)
+      {
+	mn_authenticated_mailbox_authentication_failed(priv->authenticated_mailbox);
+	return self_session_authenticate(priv);
+      }
+    else
+      return mn_client_session_error(priv->session, _("authentication failed"));
   }
   
   private int

@@ -38,6 +38,7 @@ requires 2.0.10
 #include <glib/gi18n.h>
 #include <eel/eel.h>
 #include "mn-mailbox-private.h"
+#include "mn-authenticated-mailbox-private.h"
 #include "mn-util.h"
 #include "mn-stock.h"
 #include "mn-sgml-ref.h"
@@ -89,28 +90,64 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
     return MN_URI_IS_GMAIL(uri);
   }
 
-  override (MN:Authenticated:Mailbox) MNAuthenticatedMailboxResult
-    impl_authenticated_check (MN:Authenticated:Mailbox *authenticated_mailbox (check null type),
-			      GError **err)
+  override (MN:Mailbox) void
+    impl_check (MN:Mailbox *mailbox (check null type))
   {
-    Self *self = SELF(authenticated_mailbox);
+    MNAuthenticatedMailbox *authenticated_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
+    Self *self = SELF(mailbox);
     SoupSession *session;
-    gboolean authentication_failed;
-    MNAuthenticatedMailboxResult result;
+    gboolean status = TRUE;
+    GError *err = NULL;
+
+    PARENT_HANDLER(mailbox);
 
     session = mn_soup_session_sync_new();
 
     if (! selfp->logged_in)
-      selfp->logged_in = self_login(self, session, &authentication_failed, err);
+      while (TRUE)
+	{
+	  gboolean authentication_failed;
 
-    if (selfp->logged_in)
-      result = self_check(self, session, err) ? MN_AUTHENTICATED_MAILBOX_OK : MN_AUTHENTICATED_MAILBOX_ERROR_OTHER;
-    else
-      result = authentication_failed ? MN_AUTHENTICATED_MAILBOX_ERROR_AUTHENTICATION : MN_AUTHENTICATED_MAILBOX_ERROR_OTHER;
+	  mn_authenticated_mailbox_fill_password(authenticated_mailbox);
+	  if (! authenticated_mailbox->password)
+	    break;
+	    
+	  if (self_login(self, session, &authentication_failed, &err))
+	    {
+	      selfp->logged_in = TRUE;
+	      break;
+	    }
+	  else
+	    {
+	      if (authentication_failed && ! mailbox->uri->password)
+		{
+		  mn_authenticated_mailbox_authentication_failed(authenticated_mailbox);
+		  g_clear_error(&err);
+		}
+	      else
+		{
+		  status = FALSE;
+		  break;
+		}
+	    }
+	}
+	    
+    if (selfp->logged_in && ! self_check(self, session, &err))
+      status = FALSE;
     
     g_object_unref(session);
 
-    return result;
+    GDK_THREADS_ENTER();
+
+    if (! status)
+      {
+	mn_mailbox_set_error(mailbox, "%s", err->message);
+	g_error_free(err);
+      }
+    mn_mailbox_end_check(mailbox);
+
+    gdk_flush();
+    GDK_THREADS_LEAVE();
   }
   
   private SoupUri *

@@ -112,7 +112,8 @@ MNURI * 	mn_uri_new_imap	(gboolean ssl,
 					const char * authmech,
 					const char * hostname,
 					int port,
-					const char * mailbox);
+					const char * mailbox,
+					gboolean disable_idle);
 MNURI * 	mn_uri_new_gmail	(const char * username,
 					const char * password);
 

@@ -67,6 +67,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
   private GtkWidget *inbox_radio;
   private GtkWidget *other_radio;
   private GtkWidget *mailbox_entry;
+  private GtkWidget *idle_check;
 
   class_init (class)
   {
@@ -117,6 +118,11 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
     gtk_box_pack_start(GTK_BOX(pi->details_vbox), hbox, FALSE, FALSE, 0);
     gtk_widget_show_all(hbox);
     
+    selfp->idle_check = gtk_check_button_new_with_mnemonic(_("U_se idle mode if possible"));
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->idle_check), TRUE);
+    gtk_box_pack_start(GTK_BOX(pi->details_vbox), selfp->idle_check, FALSE, FALSE, 0);
+    gtk_widget_show(selfp->idle_check);
+
     mn_auth_combo_box_append(MN_AUTH_COMBO_BOX(pi->auth_combo), "+LOGIN", "IMAP LOGIN");
 
     mn_gtk_tooltips_set_tips(pi->tooltips,
@@ -126,6 +132,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
 			     pi->port_spin[0], _("The port number of the IMAP server"),
 			     pi->port_spin[1], _("The port number of the IMAP server"),
 			     selfp->mailbox_entry, _("The mailbox name"),
+			     selfp->idle_check, _("If possible, whether to use idle mode or not"),
 			     NULL);
 
     g_signal_connect(selfp->inbox_radio, "toggled", G_CALLBACK(self_radio_toggled_h), self);
@@ -169,6 +176,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
 	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->other_radio), TRUE);
 	    gtk_entry_set_text(GTK_ENTRY(selfp->mailbox_entry), uri->path);
 	  }
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->idle_check), ! mn_uri_has_query(uri, "noidle"));
 
 	return TRUE;
       }
@@ -188,6 +196,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
     const char *hostname;
     int port;
     const char *mailbox = NULL;
+    gboolean noidle;
     MNURI *uri;
 
     mn_pi_mailbox_properties_get_contents(MN_PI_MAILBOX_PROPERTIES(properties),
@@ -202,8 +211,9 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
     mailbox = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->inbox_radio))
       ? "INBOX"
       : gtk_entry_get_text(GTK_ENTRY(selfp->mailbox_entry));
+    noidle = ! gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->idle_check));
 
-    uri = mn_uri_new_imap(ssl, inband_ssl, username, password, authmech, hostname, port, mailbox);
+    uri = mn_uri_new_imap(ssl, inband_ssl, username, password, authmech, hostname, port, mailbox, noidle);
     g_free(authmech);
 
     return uri;

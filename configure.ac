@@ -1,4 +1,4 @@
-AC_INIT(mail-notification, 0.99, jylefort@brutele.be)
+AC_INIT(mail-notification, 1.0, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mn-main.c)
 
 AC_PREREQ(2.59)
@@ -32,7 +32,7 @@ GETTEXT_PACKAGE=AC_PACKAGE_NAME
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", [Define to the gettext package name])
 AC_SUBST(GETTEXT_PACKAGE)
 
-ALL_LINGUAS="bg de fr pt ru sr sr@Latn"
+ALL_LINGUAS="bg de fr pl pt ru sr sr@Latn"
 AM_GLIB_GNU_GETTEXT
 
 AC_PROG_INTLTOOL

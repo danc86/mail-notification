@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "0.99">
-  <!ENTITY manrevision "2.9">
-  <!ENTITY date "Monday, November 15, 2004">
+  <!ENTITY appversion "1.0">
+  <!ENTITY manrevision "2.10">
+  <!ENTITY date "Thursday, November 25, 2004">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,7 +26,7 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.79 2004/11/15 15:03:17 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.82 2004/11/25 00:35:55 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (c) 2004 Jean-Yves Lefort -->
@@ -125,6 +125,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.9</revnumber>
+	<date>Monday, November 15, 2004</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -893,6 +904,28 @@
 		</para>
 	      </listitem>
 	    </varlistentry>
+	    <varlistentry>
+	      <term><guilabel>Use idle mode if possible</guilabel></term>
+	      <listitem>
+		<para>
+		  If this option is enabled and the &imap; server supports
+		  the IDLE extension (as defined by <ulink url="http://www.ietf.org/rfc/rfc2177.txt" type="http">RFC 2177</ulink>),
+		  &app; will stay connected to the server and provide <link linkend="immediate-notification">immediate notification</link> of changes.
+		</para>
+		<note>
+		  <para>
+		    Some &imap; server programs (most notably, Pine
+		    imapd) are known to have a broken implementation
+		    of the IDLE extension.
+		  </para>
+		  <para>
+		    If &app; does not detect changes to an &imap;
+		    mailbox, disabling this option might fix the
+		    problem.
+		  </para>
+		</note>
+	      </listitem>
+	    </varlistentry>
 	  </variablelist>
 	</listitem>
       </varlistentry>
@@ -1298,6 +1331,7 @@ widget "*" style "mn-icons"</programlisting>
 	<listitem><para>Filip Miletic</para></listitem>
 	<listitem><para>Phil Nelson</para></listitem>
 	<listitem><para>Vladimir Petkov</para></listitem>
+	<listitem><para>Tomasz Sarota-Raczek</para></listitem>
 	<listitem><para>Edwin Shin</para></listitem>
       </itemizedlist>
     </sect2>

@@ -872,16 +872,16 @@ mn_g_object_connect (gpointer object,
       handler = g_new(SignalHandler, 1);
       handler->instance = instance;
 
-      if (! strncmp(signal_spec, "signal::", 8))
+      if (g_str_has_prefix(signal_spec, "signal::"))
 	handler->id = g_signal_connect(instance, signal_spec + 8, callback, data);
-      else if (! strncmp(signal_spec, "swapped_signal", 16)
-	       || ! strncmp(signal_spec, "swapped-signal", 16))
+      else if (g_str_has_prefix(signal_spec, "swapped_signal")
+	       || g_str_has_prefix(signal_spec, "swapped-signal"))
 	handler->id = g_signal_connect_swapped(instance, signal_spec + 16, callback, data);
-      else if (! strncmp(signal_spec, "signal_after::", 14)
-	       || ! strncmp(signal_spec, "signal-after::", 14))
+      else if (g_str_has_prefix(signal_spec, "signal_after::")
+	       || g_str_has_prefix(signal_spec, "signal-after::"))
 	handler->id = g_signal_connect_after(instance, signal_spec + 14, callback, data);
-      else if (! strncmp(signal_spec, "swapped_signal_after::", 22)
-	       || ! strncmp(signal_spec, "swapped-signal-after::", 22))
+      else if (g_str_has_prefix(signal_spec, "swapped_signal_after::")
+	       || g_str_has_prefix(signal_spec, "swapped-signal-after::"))
 	handler->id = g_signal_connect_data(instance, signal_spec + 22, callback, data, NULL, G_CONNECT_AFTER | G_CONNECT_SWAPPED);
       else
 	g_critical(_("invalid signal specification \"%s\""), signal_spec);

@@ -46,6 +46,7 @@ class MN:Shell from G:Object
   public MNMailboxes *mailboxes = {mn_mailboxes_new()} unrefwith g_object_unref;
   private MNMailIcon *icon;
   private GtkWidget *about;
+  private int n_new;
 
   init (self)
   {
@@ -61,6 +62,7 @@ class MN:Shell from G:Object
 		     "swapped-signal::notify::must-poll", self_update_sensitivity, self,
 		     "swapped-signal::list-changed", self_update_icon, self,
 		     "swapped-signal::has-new-changed", self_update_icon, self,
+		     "swapped-signal::messages-changed", self_update_icon, self,
 		     "swapped-signal::error-changed", self_update_icon, self,
 		     NULL);
 
@@ -83,23 +85,7 @@ class MN:Shell from G:Object
       {
 	gnome_triggers_do(_("You have new mail."), NULL, "mail-notification", "new-mail", NULL);
 	if (eel_gconf_get_boolean(MN_CONF_COMMANDS_NEW_MAIL_ENABLED))
-	  {
-	    char *command;
-		
-	    command = eel_gconf_get_string(MN_CONF_COMMANDS_NEW_MAIL_COMMAND);
-	    if (command)
-	      {
-		if (gnome_execute_shell(NULL, command) < 0)
-		  mn_error_dialog(NULL,
-				  NULL,
-				  NULL,
-				  _("A command error has occurred in Mail Notification"),
-				  _("Unable to execute new mail command: %s."),
-				  g_strerror(errno));
-		    
-		g_free(command);
-	      }
-	  }
+	  self_execute_command(MN_CONF_COMMANDS_NEW_MAIL_COMMAND);
       }
   }
   
@@ -238,10 +224,17 @@ class MN:Shell from G:Object
 	    
 	    if (mn_mailbox_get_has_new(mailbox))
 	      {
+		int n_messages;
+
 		n_new++;
+
 		if (*new_string->str)
 		  g_string_append_c(new_string, '\n');
 		g_string_append_printf(new_string, "    %s", name);
+
+		n_messages = g_slist_length(mn_mailbox_get_messages(mailbox));
+		if (n_messages > 0)
+		  g_string_append_printf(new_string, " (%i)", n_messages);
 	      }
 	    
 	    if (error)
@@ -292,6 +285,11 @@ class MN:Shell from G:Object
 	g_string_free(new_string, TRUE);
 	g_string_free(error_string, TRUE);
 	g_string_free(unsupported_string, TRUE);
+	
+	if (selfp->n_new > 0 && n_new == 0 && eel_gconf_get_boolean(MN_CONF_COMMANDS_MAIL_READ_ENABLED))
+	  self_execute_command(MN_CONF_COMMANDS_MAIL_READ_COMMAND);
+
+	selfp->n_new = n_new;
       }
     
     if (show || blink)
@@ -307,6 +305,27 @@ class MN:Shell from G:Object
       g_string_free(tooltip, TRUE);
   }
 
+  private void
+    execute_command (const char *conf_key (check null))
+  {
+    char *command;
+
+    command = eel_gconf_get_string(conf_key);
+    if (command)
+      {
+	if (gnome_execute_shell(NULL, command) < 0)
+	  mn_error_dialog(NULL,
+			  NULL,
+			  NULL,
+			  _("A command error has occurred in Mail Notification"),
+			  _("Unable to execute \"%s\": %s."),
+			  command,
+			  g_strerror(errno));
+	
+	g_free(command);
+      }
+  }
+  
   public MNShell *
     new (void)
   {

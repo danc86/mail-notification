@@ -25,7 +25,7 @@ requires 2.0.10
 
 %{
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 
 #define VFS_CALL(stream, expr, fail_format, fail_retval)		\
   {									\

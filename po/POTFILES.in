@@ -9,6 +9,7 @@ src/eggtrayicon.c
 src/eggtrayicon.h
 src/mn-about-dialog.gob
 src/mn-auth-combo-box.gob
+src/mn-authenticated-mailbox.gob
 src/mn-autodetect-mailbox-properties.gob
 src/mn-automation.gob
 src/mn-blinking-image.gob
@@ -72,6 +73,7 @@ src/mn-util.c
 src/mn-util.h
 src/mn-vfs.c
 src/mn-vfs.h
+ui/authentication.glade
 ui/mailbox-properties.glade
 ui/properties.glade
 ui/summary-dialog.glade

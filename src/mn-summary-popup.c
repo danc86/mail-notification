@@ -17,7 +17,7 @@
  */
 
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include <eel/eel.h>
 #include "mn-summary.h"
 #include "mn-util.h"
@@ -326,7 +326,8 @@ static gboolean
 mn_summary_popup_timeout_cb (gpointer data)
 {
   GDK_THREADS_ENTER();
-  gtk_widget_destroy(popup.popup);
+  if (popup.popup)
+    gtk_widget_destroy(popup.popup);
   GDK_THREADS_LEAVE();
   
   return FALSE;			/* remove timeout */

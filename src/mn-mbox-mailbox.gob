@@ -27,7 +27,7 @@ requires 2.0.10
 %{
 #include "config.h"
 #include <string.h>
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include <gdk/gdk.h>
 #include "mn-mailbox-private.h"
 #include "mn-vfs.h"
@@ -113,7 +113,7 @@ class MN:mbox:Mailbox from MN:Mailbox
   }
 
   override (MN:Mailbox) void
-    impl_threaded_check (MN:Mailbox *mailbox (check null type))
+    impl_check (MN:Mailbox *mailbox (check null type))
   {
     Self *self = SELF(mailbox);
     gboolean check = TRUE;
@@ -199,13 +199,13 @@ class MN:mbox:Mailbox from MN:Mailbox
 		      break;
 		    in_header = FALSE;
 		  }
-		else if (! strncmp(line, "From ", 5))
+		else if (g_str_has_prefix(line, "From "))
 		  {
 		    in_header = TRUE;
 		    seen = FALSE;
 		  }
 		else if (in_header
-			 && ! strncmp(line, "Status:", 7)
+			 && g_str_has_prefix(line, "Status:")
 			 && (strchr(line, 'O') || strchr(line, 'R')))
 		  seen = TRUE;
 	      }

@@ -30,7 +30,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <glib.h>
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include <eel/eel-alert-dialog.h>
 #ifdef WITH_SSL
 #include <openssl/err.h>

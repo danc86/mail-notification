@@ -17,7 +17,7 @@
  */
 
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <eel/eel.h>
 #include "mn-conf.h"
@@ -38,6 +38,8 @@ typedef struct
   GtkWidget		*blink_check;
   GtkWidget		*command_new_mail_check;
   GtkWidget		*command_new_mail_entry;
+  GtkWidget		*command_mail_read_check;
+  GtkWidget		*command_mail_read_entry;
 
   /* mailboxes tab */
   GtkWidget		*delay_label;
@@ -113,6 +115,8 @@ mn_properties_display (void)
 		      "blink_check", &properties.blink_check,
 		      "command_new_mail_check", &properties.command_new_mail_check,
 		      "command_new_mail_entry", &properties.command_new_mail_entry,
+		      "command_mail_read_check", &properties.command_mail_read_check,
+		      "command_mail_read_entry", &properties.command_mail_read_entry,
 		      "delay_label", &properties.delay_label,
 		      "minutes_spin", &properties.minutes_spin,
 		      "seconds_spin", &properties.seconds_spin,
@@ -148,6 +152,11 @@ mn_properties_display (void)
   mn_setup_dnd(properties.scrolled);
 
   size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+  gtk_size_group_add_widget(size_group, properties.command_new_mail_check);
+  gtk_size_group_add_widget(size_group, properties.command_mail_read_check);
+  g_object_unref(size_group);
+  
+  size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
   gtk_size_group_add_widget(size_group, properties.summary_autoclose_check);
   gtk_size_group_add_widget(size_group, properties.summary_position_label);
   gtk_size_group_add_widget(size_group, properties.summary_horizontal_offset_label);
@@ -173,17 +182,19 @@ mn_properties_display (void)
   g_object_unref(position_store);
   
   mn_conf_link(properties.dialog, MN_CONF_PROPERTIES_DIALOG,
+	       properties.blink_check, MN_CONF_BLINK_ON_ERRORS,
+	       properties.command_new_mail_check, MN_CONF_COMMANDS_NEW_MAIL_ENABLED,
+	       properties.command_new_mail_entry, MN_CONF_COMMANDS_NEW_MAIL_COMMAND,
+	       properties.command_mail_read_check, MN_CONF_COMMANDS_MAIL_READ_ENABLED,
+	       properties.command_mail_read_entry, MN_CONF_COMMANDS_MAIL_READ_COMMAND,
 	       properties.minutes_spin, MN_CONF_DELAY_MINUTES,
 	       properties.seconds_spin, MN_CONF_DELAY_SECONDS,
-	       properties.blink_check, MN_CONF_BLINK_ON_ERRORS,
 	       properties.summary_enable_check, MN_CONF_MAIL_SUMMARY_POPUP_ENABLE,
 	       properties.summary_autoclose_check, MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE,
 	       properties.summary_minutes_spin, MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_MINUTES,
 	       properties.summary_seconds_spin, MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_SECONDS,
 	       properties.summary_horizontal_offset_spin, MN_CONF_MAIL_SUMMARY_POPUP_HORIZONTAL_OFFSET,
 	       properties.summary_vertical_offset_spin, MN_CONF_MAIL_SUMMARY_POPUP_VERTICAL_OFFSET,
-	       properties.command_new_mail_check, MN_CONF_COMMANDS_NEW_MAIL_ENABLED,
-	       properties.command_new_mail_entry, MN_CONF_COMMANDS_NEW_MAIL_COMMAND,
 	       NULL);
   mn_conf_link_combo_box_to_string(GTK_COMBO_BOX(properties.summary_position_combo),
 				   POSITION_COLUMN_NICK,
@@ -254,6 +265,7 @@ static void
 mn_properties_update_sensitivity (void)
 {
   gboolean command_new_mail_enabled;
+  gboolean command_mail_read_enabled;
   gboolean must_poll;
   GtkTreeSelection *selection;
   gboolean has_selection;
@@ -261,7 +273,10 @@ mn_properties_update_sensitivity (void)
   gboolean summary_autoclose_enabled = FALSE;
 
   command_new_mail_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(properties.command_new_mail_check));
+  command_mail_read_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(properties.command_mail_read_check));
+
   gtk_widget_set_sensitive(properties.command_new_mail_entry, command_new_mail_enabled);
+  gtk_widget_set_sensitive(properties.command_mail_read_entry, command_mail_read_enabled);
 
   must_poll = mn_mailboxes_get_must_poll(mn_shell->mailboxes);
   gtk_widget_set_sensitive(properties.minutes_spin, must_poll);

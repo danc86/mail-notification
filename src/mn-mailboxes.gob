@@ -23,7 +23,7 @@ requires 2.0.10
 %}
 %{
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include <eel/eel.h>
 #include "mn-conf.h"
 #include "mn-util.h"
@@ -69,6 +69,16 @@ class MN:Mailboxes from G:Object
   signal first private NONE (OBJECT)
     void mailbox_removed (self, MN:Mailbox *mailbox (check null type))
   {
+    /* disconnect signals */
+    g_object_disconnect(mailbox,
+			"any_signal", self_notify_has_new_h, self,
+			"any_signal", self_messages_changed_h, self,
+			"any_signal", self_notify_error_h, self,
+			NULL);
+
+    /* emit the "removed" signal on the mailbox */
+    mn_mailbox_removed(mailbox);
+
     /* has-new, messages and error have possibly changed */
     self_has_new_changed(self);
     self_messages_changed(self, FALSE);
@@ -95,7 +105,7 @@ class MN:Mailboxes from G:Object
    * @self: the object which received the signal
    *
    * This signal gets emitted whenever the global has-new state has
-   * possibly changed, eitheir because one of the mailboxes has-new
+   * possibly changed, either because one of the mailboxes has-new
    * property has changed, or because a mailbox has been removed from
    * the list.
    **/
@@ -123,7 +133,7 @@ class MN:Mailboxes from G:Object
    * @self: the object which received the signal
    *
    * This signal gets emitted whenever the global error state has
-   * possibly changed, eitheir because one of the mailboxes error
+   * possibly changed, either because one of the mailboxes error
    * property has changed, or because a mailbox has been removed from
    * the list.
    **/

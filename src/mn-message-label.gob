@@ -24,7 +24,7 @@ requires 2.0.10
 %}
 %{
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include "mn-util.h"
 %}
 
@@ -149,20 +149,25 @@ class MN:Message:Label from Gtk:Label
 
     if (delay < 60)
       str = g_strdup_printf(ngettext("%i second ago", "%i seconds ago", delay), delay);
-    else if (delay < 3600)
+    else if (delay < 60 * 60)
       {
 	int minutes = delay / 60;
 	str = g_strdup_printf(ngettext("%i minute ago", "%i minutes ago", minutes), minutes);
       }
-    else if (delay < 86400)
+    else if (delay < 60 * 60 * 24)
       {
-	int hours = delay / 3600;
+	int hours = delay / (60 * 60);
 	str = g_strdup_printf(ngettext("%i hour ago", "%i hours ago", hours), hours);
+      }
+    else if (delay < 60 * 60 * 24 * 7)
+      {
+	int days = delay / (60 * 60 * 24);
+	str = g_strdup_printf(ngettext("%i day ago", "%i days ago", days), days);
       }
     else
       {
-	int days = delay / 86400;
-	str = g_strdup_printf(ngettext("%i day ago", "%i days ago", days), days);
+	int weeks = delay / (60 * 60 * 24 * 7);
+	str = g_strdup_printf(ngettext("%i week ago", "%i weeks ago", weeks), weeks);
       }
 
     return str;

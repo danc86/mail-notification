@@ -23,7 +23,7 @@ requires 2.0.10
 %}
 %{
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-util.h"
 #include "mn-auth-combo-box.h"
@@ -38,19 +38,18 @@ class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
       MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
       gboolean complete;
       const char *username;
-      const char *password;
       const char *hostname;
       
       mn_pi_mailbox_properties_get_contents(pi,
 					    NULL,
 					    NULL,
 					    &username,
-					    &password,
+					    NULL,
 					    NULL,
 					    &hostname,
 					    NULL);
 
-      complete = *username && *password && *hostname;
+      complete = *username && *hostname;
 #ifndef WITH_SSL
       if (complete)
 	complete = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[0]));
@@ -85,7 +84,7 @@ class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
     mn_tooltips_set_tips(pi->tooltips,
 			 pi->hostname_entry, _("The hostname or IP address of the POP3 server"),
 			 pi->username_entry, _("Your username on the POP3 server"),
-			 pi->password_entry, _("Your password on the POP3 server"),
+			 pi->password_entry, _("Your password on the POP3 server (if left blank, you will be prompted for the password when needed)"),
 			 pi->port_spin[0], _("The port number of the POP3 server"),
 			 pi->port_spin[1], _("The port number of the POP3 server"),
 			 NULL);

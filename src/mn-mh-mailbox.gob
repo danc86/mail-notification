@@ -25,7 +25,7 @@ requires 2.0.10
 #include "config.h"
 #include <stdio.h>
 #include <string.h>
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include <gdk/gdk.h>
 #include "mn-mailbox-private.h"
 #include "mn-vfs.h"
@@ -99,7 +99,7 @@ class MN:MH:Mailbox from MN:Mailbox
   }
   
   override (MN:Mailbox) void
-    impl_threaded_check (MN:Mailbox *self (check null type))
+    impl_check (MN:Mailbox *self (check null type))
   {
     GnomeVFSURI *sequences_uri;
     GnomeVFSResult result;
@@ -120,7 +120,7 @@ class MN:MH:Mailbox from MN:Mailbox
 #endif
 
 	while ((result = mn_vfs_read_line(&context, handle, &line)) == GNOME_VFS_OK)
-	  if (! strncmp(line, "unseen: ", 8))
+	  if (g_str_has_prefix(line, "unseen: "))
 	    {
 	      int first;
 #ifdef WITH_MIME

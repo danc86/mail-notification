@@ -17,7 +17,7 @@
  */
 
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include "mn-mailbox-properties-dialog.h"
 #include "mn-mailbox-properties.h"
 #include "mn-autodetect-mailbox-properties.h"

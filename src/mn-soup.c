@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
+#include <glib/gi18n.h>
 #include <eel/eel.h>
 #include <libsoup/soup.h>
 
@@ -124,14 +126,25 @@ mn_soup_build_proxy_uri (void)
 }
 
 SoupSession *
-mn_soup_session_new (void)
+mn_soup_session_sync_new (void)
 {
-  char *proxy_uri;
+  char *proxy_text_uri;
+  SoupUri *proxy_uri = NULL;
   SoupSession *session;
 
-  proxy_uri = mn_soup_build_proxy_uri();
-  session = soup_session_async_new_with_options(SOUP_SESSION_PROXY_URI, proxy_uri, NULL);
-  g_free(proxy_uri);
+  proxy_text_uri = mn_soup_build_proxy_uri();
+  if (proxy_text_uri)
+    {
+      proxy_uri = soup_uri_new(proxy_text_uri);
+      if (! proxy_uri)
+	g_warning(_("unable to parse proxy URI \"%s\""), proxy_text_uri);
+      g_free(proxy_text_uri);
+    }
+
+  session = soup_session_sync_new_with_options(SOUP_SESSION_PROXY_URI, proxy_uri, NULL);
+
+  if (proxy_uri)
+    soup_uri_free(proxy_uri);
 
   return session;
 }

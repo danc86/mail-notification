@@ -23,7 +23,7 @@ requires 2.0.10
 %}
 %{
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 %}
 
 class MN:Blinking:Image from Gtk:Image

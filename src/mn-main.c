@@ -88,10 +88,9 @@ mn_main_list_features (void)
     {
       MNMailboxClass *class;
       
-      class = g_type_class_peek(mn_mailbox_types[i]);
-      g_return_if_fail(class != NULL);
-
+      class = g_type_class_ref(mn_mailbox_types[i]);
       ADD_FEATURE(backends, class->format);
+      g_type_class_unref(class);
     }
 
   g_print(_("Compiled-in mailbox backends: %s\n"), backends->str);
@@ -273,6 +272,8 @@ main (int argc, char **argv)
 		     GNOME_PROGRAM_STANDARD_PROPERTIES,
 		     GNOME_PARAM_POPT_TABLE, popt_options,
 		     NULL);
+
+  mn_mailbox_init_types();
 
   if (arg_list_features)
     {

@@ -26,25 +26,25 @@ extern "C" {
 
 #line 28 "mn-mailbox-private.h"
 struct _MNMailboxPrivate {
-#line 143 "mn-mailbox.gob"
+#line 140 "mn-mailbox.gob"
 	char * name;
-#line 147 "mn-mailbox.gob"
+#line 144 "mn-mailbox.gob"
 	gboolean automatic;
-#line 152 "mn-mailbox.gob"
+#line 149 "mn-mailbox.gob"
 	gboolean has_new;
-#line 157 "mn-mailbox.gob"
+#line 154 "mn-mailbox.gob"
 	GSList * messages;
-#line 211 "mn-mailbox.gob"
+#line 208 "mn-mailbox.gob"
 	char * error;
-#line 231 "mn-mailbox.gob"
+#line 228 "mn-mailbox.gob"
 	GnomeVFSMonitorHandle * monitor_handle;
-#line 232 "mn-mailbox.gob"
+#line 229 "mn-mailbox.gob"
 	char * monitor_uri;
-#line 233 "mn-mailbox.gob"
+#line 230 "mn-mailbox.gob"
 	MNMailboxMonitorEventType monitor_events;
-#line 235 "mn-mailbox.gob"
+#line 232 "mn-mailbox.gob"
 	gboolean checking;
-#line 365 "mn-mailbox.gob"
+#line 363 "mn-mailbox.gob"
 	char * init_error;
 #line 50 "mn-mailbox-private.h"
 };

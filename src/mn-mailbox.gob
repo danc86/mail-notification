@@ -44,15 +44,14 @@ requires 2.0.10
   extern GType mn_mailbox_types[MN_MAILBOX_N_TYPES + 1];
 
 #define MN_MAILBOX_CAN_CHECK(self) \
-  (MN_MAILBOX_GET_CLASS((self))->impl_check != NULL \
-   || MN_MAILBOX_GET_CLASS((self))->impl_threaded_check != NULL)
+  (MN_MAILBOX_GET_CLASS((self))->impl_check != NULL)
 #define MN_MAILBOX_MUST_POLL(self) \
   (MN_MAILBOX_CAN_CHECK((self)) && ! mn_mailbox_get_automatic((self)))
 %}
   
 %{
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #ifdef WITH_MBOX
 #include "mn-mbox-mailbox.h"
 #endif
@@ -109,25 +108,23 @@ typedef struct
  * GDK_THREADS_ENTER() and GDK_THREADS_LEAVE() where appropriate in
  * the construction phase.
  *
- * Virtual methods called with the GDK lock held:
- *
- *	mn_mailbox_impl_check()
- *
- * Virtual methods called with the GDK lock not held:
- *
- *	mn_mailbox_impl_is()
- *	mn_mailbox_impl_threaded_check()
- *
- * Do not assume anything about the thread from which a virtual method
- * is called. For instance, mn_mailbox_impl_check() may be called both
- * from the thread running the GTK+ main loop and from a separate
- * thread.
+ * Virtual methods are called with the GDK lock not held.
  */
 
 class MN:Mailbox from G:Object
 {
   classwide const char *stock_id;
   classwide const char *format;
+
+  /**
+   * removed:
+   * @self: the object which received the signal
+   *
+   * This signal gets emitted after the mailbox is removed from the
+   * mailboxes list.
+   **/
+  signal NONE (NONE)
+    void removed (self);
 
   public MNURI *uri = NULL unrefwith g_object_unref;
   property OBJECT uri (blurb = _("The mailbox URI"),
@@ -234,7 +231,19 @@ class MN:Mailbox from G:Object
   
   private gboolean checking;
   
-  class_init (class)
+  override (G:Object) void
+    finalize (G:Object *object (check null type))
+  {
+    Self *self = SELF(object);
+
+    if (selfp->monitor_handle)
+      gnome_vfs_monitor_cancel(selfp->monitor_handle);
+
+    PARENT_HANDLER(object);
+  }
+  
+  public void
+    init_types (void)
   {
     int i = 0;
 
@@ -261,18 +270,7 @@ class MN:Mailbox from G:Object
 #endif
     mn_mailbox_types[i] = 0;
   }
-  
-  override (G:Object) void
-    finalize (G:Object *object (check null type))
-  {
-    Self *self = SELF(object);
 
-    if (selfp->monitor_handle)
-      gnome_vfs_monitor_cancel(selfp->monitor_handle);
-
-    PARENT_HANDLER(object);
-  }
-  
   /**
    * new_async:
    * @uri: location of the mailbox
@@ -489,8 +487,6 @@ class MN:Mailbox from G:Object
     impl_is (self, MNURI *uri);
   virtual private void
     impl_check (self);
-  virtual private void
-    impl_threaded_check (self);
   
   public void
     check (self)
@@ -503,10 +499,7 @@ class MN:Mailbox from G:Object
 	selfp->checking = TRUE;
 	self_set_error(self, NULL);
 
-	if (SELF_GET_CLASS(self)->impl_threaded_check)
-	  mn_thread_create((GThreadFunc) SELF_GET_CLASS(self)->impl_threaded_check, self);
-	else
-	  SELF_GET_CLASS(self)->impl_check(self);
+	mn_thread_create((GThreadFunc) SELF_GET_CLASS(self)->impl_check, self);
       }
   }
   
@@ -524,16 +517,12 @@ class MN:Mailbox from G:Object
   {
     va_list args;
     char *notice;
-    char *prefixed_notice;
     
     va_start(args, format);
     notice = g_strdup_vprintf(format, args);
     va_end(args);
 
-    prefixed_notice = g_strdup_printf("%s: %s", self->uri->text, notice);
+    mn_info("%s: %s", self->uri->text, notice);
     g_free(notice);
-    
-    mn_info("%s", prefixed_notice);
-    g_free(prefixed_notice);
   }
 }

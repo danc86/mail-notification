@@ -1,4 +1,4 @@
-AC_INIT(mail-notification, 0.7.0, jylefort@brutele.be)
+AC_INIT(mail-notification, 0.7.1, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mn-main.c)
 
 AC_PREREQ(2.59)
@@ -50,6 +50,9 @@ fi
 
 # timegm() is non-standard, define HAVE_TIMEGM if it is present
 AC_CHECK_FUNCS(timegm)
+
+# see if "struct tm" is defined in sys/time.h
+AC_STRUCT_TM
 
 ### mandatory libraries and programs
 
@@ -111,7 +114,7 @@ if MN_FEATURE_ENABLED(mime) &&
 fi
 
 if MN_FEATURE_ENABLED(mime); then
-	PKG_CHECK_MODULES(GMIME, [gmime-2.0],, [MN_FEATURE_DISABLE(mime, [GMime not found])])
+	PKG_CHECK_MODULES(GMIME, [gmime-2.0 >= 2.1.0],, [MN_FEATURE_DISABLE(mime, [GMime not found])])
 fi
 
 ### Automake conditionals
@@ -122,6 +125,7 @@ AM_CONDITIONAL(WITH_MAILDIR, [MN_FEATURE_ENABLED(maildir)])
 AM_CONDITIONAL(WITH_POP3, [MN_FEATURE_ENABLED(pop3)])
 AM_CONDITIONAL(WITH_IMAP, [MN_FEATURE_ENABLED(imap)])
 AM_CONDITIONAL(WITH_POP3_OR_IMAP, [MN_FEATURE_ENABLED(pop3) || MN_FEATURE_ENABLED(imap)])
+AM_CONDITIONAL(WITH_POP3_OR_IMAP_OR_GMAIL, [MN_FEATURE_ENABLED(pop3) || MN_FEATURE_ENABLED(imap) || MN_FEATURE_ENABLED(gmail)])
 AM_CONDITIONAL(WITH_SSL, [MN_FEATURE_ENABLED(ssl)])
 AM_CONDITIONAL(WITH_SASL, [MN_FEATURE_ENABLED(sasl)])
 AM_CONDITIONAL(WITH_SYLPHEED, [MN_FEATURE_ENABLED(sylpheed)])

@@ -1,0 +1,195 @@
+/* 
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.10
+
+%headertop{
+#include <gtk/gtk.h>
+#include "mn-mailbox.h"
+%}
+
+%h{
+  typedef enum
+  {
+    MN_AUTHENTICATED_MAILBOX_OK,
+    MN_AUTHENTICATED_MAILBOX_ERROR_AUTHENTICATION,
+    MN_AUTHENTICATED_MAILBOX_ERROR_OTHER
+  } MNAuthenticatedMailboxResult;
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include <eel/eel.h>
+#include "mn-mailbox-private.h"
+#include "mn-util.h"
+%}
+
+class MN:Authenticated:Mailbox from MN:Mailbox
+{
+  public char *password = NULL destroywith g_free;
+  private GtkWidget *authentication_dialog;
+
+  virtual private MNAuthenticatedMailboxResult
+    impl_authenticated_check (self, GError **err);
+
+  override (MN:Mailbox) void
+    removed (MN:Mailbox *mailbox (check null type))
+  {
+    Self *self = SELF(mailbox);
+
+    if (selfp->authentication_dialog)
+      gtk_dialog_response(GTK_DIALOG(selfp->authentication_dialog), GTK_RESPONSE_CANCEL);
+
+    PARENT_HANDLER(mailbox);
+  }
+
+  override (MN:Mailbox) void
+    impl_check (MN:Mailbox *mailbox (check null type))
+  {
+    Self *self = SELF(mailbox);
+    GError *err = NULL;
+    MNAuthenticatedMailboxResult result;
+
+    if (! self->password)
+      {
+  	if (mailbox->uri->password)
+	  self->password = g_strdup(mailbox->uri->password);
+	else
+	  {
+	    GDK_THREADS_ENTER();
+	    /* translator: example output: Enter your password for POP3 mailbox jylefort@localhost. */
+	    self->password = self_password_prompt(self, _("Enter your password for %s mailbox %s."),
+						  MN_MAILBOX_GET_CLASS(mailbox)->format,
+						  mn_mailbox_get_name(mailbox));
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+
+	    if (! self->password) /* cancelled */
+	      goto end;
+	  }
+      }
+
+    result = SELF_GET_CLASS(self)->impl_authenticated_check(self, &err);
+
+    if (! mailbox->uri->password)
+      while (result == MN_AUTHENTICATED_MAILBOX_ERROR_AUTHENTICATION)
+	{
+	  g_clear_error(&err);
+	  g_free(self->password);
+
+	  GDK_THREADS_ENTER();
+	  /* translator: example output: ... into POP3 mailbox jylefort@localhost ... */
+	  self->password = self_password_prompt(self, _("Mail Notification was unable to log into %s mailbox %s, possibly because the password you have entered is invalid.\n\nPlease re-enter your password."),
+						MN_MAILBOX_GET_CLASS(mailbox)->format,
+						mn_mailbox_get_name(mailbox));
+	  gdk_flush();
+	  GDK_THREADS_LEAVE();
+
+	  if (! self->password)	/* cancelled */
+	    goto end;
+
+	  result = SELF_GET_CLASS(self)->impl_authenticated_check(self, &err);
+	}
+
+    if (result != MN_AUTHENTICATED_MAILBOX_OK)
+      {
+  	GDK_THREADS_ENTER();
+	mn_mailbox_set_error(mailbox, "%s", err->message);
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+	g_error_free(err);
+      }
+    
+  end:
+    GDK_THREADS_ENTER();
+    mn_mailbox_end_check(mailbox);
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+  }
+  
+  private char *
+    password_prompt (self, const char *format (check null), ...)
+  {
+    GtkWidget *label;
+    GtkWidget *username_label;
+    GtkWidget *username_entry;
+    GtkWidget *password_label;
+    GtkWidget *password_entry;
+    GtkSizeGroup *size_group;
+    va_list args;
+    char *prompt;
+    char *markup;
+    char *password = NULL;
+
+    g_return_val_if_fail(selfp->authentication_dialog == NULL, NULL);
+
+    mn_create_interface("authentication",
+			"dialog", &selfp->authentication_dialog,
+			"label", &label,
+			"username_label", &username_label,
+			"username_entry", &username_entry,
+			"password_label", &password_label,
+			"password_entry", &password_entry,
+			NULL);
+
+    eel_add_weak_pointer(&selfp->authentication_dialog);
+
+    gtk_dialog_set_default_response(GTK_DIALOG(selfp->authentication_dialog), GTK_RESPONSE_OK);
+
+    size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+    gtk_size_group_add_widget(size_group, username_label);
+    gtk_size_group_add_widget(size_group, password_label);
+    g_object_unref(size_group);
+
+    va_start(args, format);
+    prompt = g_strdup_vprintf(format, args);
+    va_end(args);
+
+    markup = g_markup_printf_escaped(_("<span weight=\"bold\" size=\"larger\">Mail Notification requires a password</span>\n"
+				       "\n"
+				       "%s"),
+				     prompt);
+    g_free(prompt);
+
+    gtk_label_set_markup(GTK_LABEL(label), markup);
+    g_free(markup);
+
+    gtk_entry_set_text(GTK_ENTRY(username_entry), MN_MAILBOX(self)->uri->username);
+
+    if (gtk_dialog_run(GTK_DIALOG(selfp->authentication_dialog)) == GTK_RESPONSE_OK)
+      password = g_strdup(gtk_entry_get_text(GTK_ENTRY(password_entry)));
+
+    gtk_widget_destroy(selfp->authentication_dialog);
+
+    return password;
+  }
+
+  /* libglade callbacks */
+
+  public void
+    password_prompt_changed_h (gpointer user_data,
+			       GtkEditable *editable)
+  {
+    GtkDialog *dialog = user_data;
+    const char *password;
+
+    password = gtk_entry_get_text(GTK_ENTRY(editable));
+    gtk_dialog_set_response_sensitive(dialog, GTK_RESPONSE_OK, *password != 0);
+  }
+}

@@ -35,7 +35,7 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 subdir = ui
-DIST_COMMON = $(dist_ui_DATA) $(srcdir)/Makefile.am \
+DIST_COMMON = $(am__dist_ui_DATA_DIST) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/openssl.m4 \
@@ -48,6 +48,9 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 SOURCES =
 DIST_SOURCES =
+am__dist_ui_DATA_DIST = authentication.glade mailbox-properties.glade \
+	properties.glade summary-dialog.glade summary-popup.glade \
+	welcome.glade
 am__installdirs = "$(DESTDIR)$(uidir)"
 dist_uiDATA_INSTALL = $(INSTALL_DATA)
 DATA = $(dist_ui_DATA)
@@ -169,6 +172,8 @@ WITH_MIME_FALSE = @WITH_MIME_FALSE@
 WITH_MIME_TRUE = @WITH_MIME_TRUE@
 WITH_POP3_FALSE = @WITH_POP3_FALSE@
 WITH_POP3_OR_IMAP_FALSE = @WITH_POP3_OR_IMAP_FALSE@
+WITH_POP3_OR_IMAP_OR_GMAIL_FALSE = @WITH_POP3_OR_IMAP_OR_GMAIL_FALSE@
+WITH_POP3_OR_IMAP_OR_GMAIL_TRUE = @WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@
 WITH_POP3_OR_IMAP_TRUE = @WITH_POP3_OR_IMAP_TRUE@
 WITH_POP3_TRUE = @WITH_POP3_TRUE@
 WITH_REGRESSION_TESTS_FALSE = @WITH_REGRESSION_TESTS_FALSE@
@@ -208,8 +213,10 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 uidir = $(pkgdatadir)/ui
+@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@authentication_interfaces = authentication.glade
+@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@authentication_projects = authentication.gladep
 interfaces = \
-	$(mail_summary_interfaces)		\
+	$(authentication_interfaces)		\
 	mailbox-properties.glade		\
 	properties.glade			\
 	summary-dialog.glade			\
@@ -217,7 +224,7 @@ interfaces = \
 	welcome.glade
 
 projects = \
-	$(mail_summary_projects)		\
+	$(authentication_projects)		\
 	mailbox-properties.gladep		\
 	properties.gladep			\
 	summary-dialog.gladep			\

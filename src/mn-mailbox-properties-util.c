@@ -18,7 +18,7 @@
 
 #include "config.h"
 #include <stdarg.h>
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include "mn-mailbox-properties-util.h"
 #include "mn-auth-combo-box.h"

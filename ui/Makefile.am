@@ -1,7 +1,12 @@
 uidir = $(pkgdatadir)/ui
 
+if WITH_POP3_OR_IMAP_OR_GMAIL
+authentication_interfaces = authentication.glade
+authentication_projects = authentication.gladep
+endif
+
 interfaces =					\
-	$(mail_summary_interfaces)		\
+	$(authentication_interfaces)		\
 	mailbox-properties.glade		\
 	properties.glade			\
 	summary-dialog.glade			\
@@ -9,7 +14,7 @@ interfaces =					\
 	welcome.glade
 
 projects =					\
-	$(mail_summary_projects)		\
+	$(authentication_projects)		\
 	mailbox-properties.gladep		\
 	properties.gladep			\
 	summary-dialog.gladep			\

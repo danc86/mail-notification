@@ -65,6 +65,15 @@ pi_gob_built_sources = \
 	mn-pi-mailbox-properties.h
 endif
 
+if WITH_POP3_OR_IMAP_OR_GMAIL
+authenticated_mailbox_gob_sources = \
+	mn-authenticated-mailbox.gob
+authenticated_mailbox_gob_built_sources = \
+	mn-authenticated-mailbox-private.h	\
+	mn-authenticated-mailbox.c		\
+	mn-authenticated-mailbox.h
+endif
+
 if WITH_SYLPHEED
 sylpheed_gob_sources = mn-sylpheed-mailbox.gob
 sylpheed_gob_built_sources = \
@@ -126,6 +135,7 @@ gob_sources = \
 	$(maildir_gob_sources)			\
 	$(pop3_gob_sources)			\
 	$(imap_gob_sources)			\
+	$(authenticated_mailbox_gob_sources)	\
 	$(pi_gob_sources)			\
 	$(sylpheed_gob_sources)			\
 	$(gmail_gob_sources)			\
@@ -151,6 +161,7 @@ gob_built_sources = \
 	$(maildir_gob_built_sources)			\
 	$(pop3_gob_built_sources)			\
 	$(imap_gob_built_sources)			\
+	$(authenticated_mailbox_gob_built_sources)	\
 	$(pi_gob_built_sources)				\
 	$(sylpheed_gob_built_sources)			\
 	$(gmail_gob_built_sources)			\

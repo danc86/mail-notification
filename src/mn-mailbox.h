@@ -22,8 +22,7 @@ extern "C" {
   extern GType mn_mailbox_types[MN_MAILBOX_N_TYPES + 1];
 
 #define MN_MAILBOX_CAN_CHECK(self) \
-  (MN_MAILBOX_GET_CLASS((self))->impl_check != NULL \
-   || MN_MAILBOX_GET_CLASS((self))->impl_threaded_check != NULL)
+  (MN_MAILBOX_GET_CLASS((self))->impl_check != NULL)
 #define MN_MAILBOX_MUST_POLL(self) \
   (MN_MAILBOX_CAN_CHECK((self)) && ! mn_mailbox_get_automatic((self)))
 
@@ -63,10 +62,10 @@ struct _MNMailbox {
 typedef struct _MNMailboxClass MNMailboxClass;
 struct _MNMailboxClass {
 	GObjectClass __parent__;
+	/*signal*/void (* removed) (MNMailbox * self);
 	/*signal*/void (* messages_changed) (MNMailbox * self, gboolean has_new);
 	gboolean (* impl_is) (MNMailbox * self, MNURI * uri);
 	void (* impl_check) (MNMailbox * self);
-	void (* impl_threaded_check) (MNMailbox * self);
 	const char * stock_id;
 	const char * format;
 };
@@ -76,6 +75,7 @@ struct _MNMailboxClass {
  * Public methods
  */
 GType	mn_mailbox_get_type	(void);
+void 	mn_mailbox_removed	(MNMailbox * self);
 const char * 	mn_mailbox_get_name	(MNMailbox * self);
 gboolean 	mn_mailbox_get_automatic	(MNMailbox * self);
 void 	mn_mailbox_set_automatic	(MNMailbox * self,
@@ -87,6 +87,7 @@ gpointer 	mn_mailbox_get_messages	(MNMailbox * self);
 void 	mn_mailbox_set_messages	(MNMailbox * self,
 					gpointer val);
 const char * 	mn_mailbox_get_error	(MNMailbox * self);
+void 	mn_mailbox_init_types	(void);
 void 	mn_mailbox_new_async	(MNURI * uri,
 					gpointer callback,
 					gpointer user_data);
@@ -96,10 +97,16 @@ void 	mn_mailbox_check	(MNMailbox * self);
  * Signal connection wrapper macros
  */
 #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+#define mn_mailbox_connect__removed(object,func,data)	g_signal_connect(MN_MAILBOX(__extension__ ({MNMailbox *___object = (object); ___object; })),"removed",(GCallback) __extension__ ({void (* ___removed) (MNMailbox * ___fake___self, gpointer ___data ) = (func); ___removed; }), (data))
+#define mn_mailbox_connect_after__removed(object,func,data)	g_signal_connect_after(MN_MAILBOX(__extension__ ({MNMailbox *___object = (object); ___object; })),"removed",(GCallback) __extension__ ({void (* ___removed) (MNMailbox * ___fake___self, gpointer ___data ) = (func); ___removed; }), (data))
+#define mn_mailbox_connect_data__removed(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAILBOX(__extension__ ({MNMailbox *___object = (object); ___object; })),"removed",(GCallback) __extension__ ({void (* ___removed) (MNMailbox * ___fake___self, gpointer ___data ) = (func); ___removed; }), (data), (destroy_data), (GConnectFlags)(flags))
 #define mn_mailbox_connect__messages_changed(object,func,data)	g_signal_connect(MN_MAILBOX(__extension__ ({MNMailbox *___object = (object); ___object; })),"messages_changed",(GCallback) __extension__ ({void (* ___messages_changed) (MNMailbox * ___fake___self, gboolean ___fake___has_new, gpointer ___data ) = (func); ___messages_changed; }), (data))
 #define mn_mailbox_connect_after__messages_changed(object,func,data)	g_signal_connect_after(MN_MAILBOX(__extension__ ({MNMailbox *___object = (object); ___object; })),"messages_changed",(GCallback) __extension__ ({void (* ___messages_changed) (MNMailbox * ___fake___self, gboolean ___fake___has_new, gpointer ___data ) = (func); ___messages_changed; }), (data))
 #define mn_mailbox_connect_data__messages_changed(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAILBOX(__extension__ ({MNMailbox *___object = (object); ___object; })),"messages_changed",(GCallback) __extension__ ({void (* ___messages_changed) (MNMailbox * ___fake___self, gboolean ___fake___has_new, gpointer ___data ) = (func); ___messages_changed; }), (data), (destroy_data), (GConnectFlags)(flags))
 #else /* __GNUC__ && !__STRICT_ANSI__ */
+#define mn_mailbox_connect__removed(object,func,data)	g_signal_connect(MN_MAILBOX(object),"removed",(GCallback)(func),(data))
+#define mn_mailbox_connect_after__removed(object,func,data)	g_signal_connect_after(MN_MAILBOX(object),"removed",(GCallback)(func),(data))
+#define mn_mailbox_connect_data__removed(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAILBOX(object),"removed",(GCallback)(func),(data),(destroy_data),(GConnectFlags)(flags))
 #define mn_mailbox_connect__messages_changed(object,func,data)	g_signal_connect(MN_MAILBOX(object),"messages_changed",(GCallback)(func),(data))
 #define mn_mailbox_connect_after__messages_changed(object,func,data)	g_signal_connect_after(MN_MAILBOX(object),"messages_changed",(GCallback)(func),(data))
 #define mn_mailbox_connect_data__messages_changed(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAILBOX(object),"messages_changed",(GCallback)(func),(data),(destroy_data),(GConnectFlags)(flags))

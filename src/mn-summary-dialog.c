@@ -17,7 +17,7 @@
  */
 
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include <eel/eel.h>
 #include "mn-util.h"
 #include "mn-shell.h"

@@ -12,11 +12,11 @@ extern "C" {
 struct _MNGmailMailboxPropertiesPrivate {
 #line 37 "mn-gmail-mailbox-properties.gob"
 	GtkSizeGroup * size_group;
-#line 52 "mn-gmail-mailbox-properties.gob"
+#line 50 "mn-gmail-mailbox-properties.gob"
 	GtkWidget * username_entry;
-#line 53 "mn-gmail-mailbox-properties.gob"
+#line 51 "mn-gmail-mailbox-properties.gob"
 	GtkWidget * password_entry;
-#line 54 "mn-gmail-mailbox-properties.gob"
+#line 52 "mn-gmail-mailbox-properties.gob"
 	GtkTooltips * tooltips;
 #line 22 "mn-gmail-mailbox-properties-private.h"
 };

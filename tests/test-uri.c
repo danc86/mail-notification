@@ -22,6 +22,7 @@
 
 static char *
 build_uri (const char *scheme,
+	   const char *password,
 	   const char *authmech,
 	   const char *hostname,
 	   int port,
@@ -31,8 +32,10 @@ build_uri (const char *scheme,
   GString *uri;
 
   uri = g_string_new(scheme);
-  g_string_append(uri, "://username:password");
+  g_string_append(uri, "://username");
 
+  if (password)
+    g_string_append_printf(uri, ":%s", password);
   if (authmech)
     g_string_append_printf(uri, ";AUTH=%s", authmech);
   if (hostname)
@@ -49,6 +52,7 @@ build_uri (const char *scheme,
 
 static char *
 build_canonical_uri (const char *scheme,
+		     const char *password,
 		     const char *authmech,
 		     const char *hostname,
 		     int port,
@@ -87,6 +91,7 @@ build_canonical_uri (const char *scheme,
     default_path = "INBOX";
 
   return build_uri(scheme,
+		   password,
 		   authmech,
 		   hostname,
 		   port != default_port ? port : -1,
@@ -111,8 +116,9 @@ main (int argc, char **argv)
 #define FOR(iterator, var) \
   for (iterator = 0; iterator < G_N_ELEMENTS(var); iterator++)
 
-  int a, b, c, d, e, f;
+  int a, b, c, d, e, f, g;
   const char *schemes[] = { "pop", "pops", "imap", "imaps", "gmail" };
+  const char *passwords[] = { NULL, "password" };
   const char *authmechs[] = { NULL, "CRAM-MD5" };
   const char *hostnames[] = { NULL, "hostname", "[::1]" };
   int ports[] = { -1, 110, 995, 143, 993, 555 };
@@ -124,11 +130,12 @@ main (int argc, char **argv)
   g_type_init();
 
   FOR(a, schemes)
-    FOR(b, authmechs)
-    FOR(c, hostnames)
-    FOR(d, ports)
-    FOR(e, paths)
-    FOR(f, queries)
+    FOR(b, passwords)
+    FOR(c, authmechs)
+    FOR(d, hostnames)
+    FOR(e, ports)
+    FOR(f, paths)
+    FOR(g, queries)
   {
     char *uri;
     char *canonical_uri;
@@ -136,8 +143,8 @@ main (int argc, char **argv)
 
     n_uri++;
 
-    uri = build_uri(schemes[a], authmechs[b], hostnames[c], ports[d], paths[e], queries[f]);
-    canonical_uri = build_canonical_uri(schemes[a], authmechs[b], hostnames[c], ports[d], paths[e], queries[f]);
+    uri = build_uri(schemes[a], passwords[b], authmechs[c], hostnames[d], ports[e], paths[f], queries[g]);
+    canonical_uri = build_canonical_uri(schemes[a], passwords[b], authmechs[c], hostnames[d], ports[e], paths[f], queries[g]);
 
     obj = mn_uri_new(uri);
     if (canonical_uri)

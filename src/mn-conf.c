@@ -203,7 +203,7 @@ mn_conf_link (GtkWidget *widget, ...)
 	  char *str;
 
 	  str = eel_gconf_get_string(key);
-	  gtk_entry_set_text(GTK_ENTRY(widget), str ? str : "");
+	  gtk_entry_set_text(GTK_ENTRY(widget), MN_POINTER_TO_STRING(str));
 	  g_free(str);
 
 	  signal_name = "changed";
@@ -417,7 +417,7 @@ mn_conf_link_entry_notify_cb (GConfClient *client,
   GDK_THREADS_ENTER();
   if (value)
     str = gconf_value_get_string(value);
-  gtk_entry_set_text(entry_widget, str ? str : "");
+  gtk_entry_set_text(entry_widget, MN_POINTER_TO_STRING(str));
   GDK_THREADS_LEAVE();
 }
 

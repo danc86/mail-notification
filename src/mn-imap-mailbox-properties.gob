@@ -23,7 +23,7 @@ requires 2.0.10
 %}
 %{
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-util.h"
 #include "mn-pi-mailbox-properties-private.h"
@@ -39,7 +39,6 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
       MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
       gboolean complete;
       const char *username;
-      const char *password;
       const char *hostname;
       gboolean other_active;
       const char *mailbox;
@@ -48,7 +47,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
 					    NULL,
 					    NULL,
 					    &username,
-					    &password,
+					    NULL,
 					    NULL,
 					    &hostname,
 					    NULL);
@@ -56,7 +55,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
       other_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->other_radio));
       mailbox = gtk_entry_get_text(GTK_ENTRY(selfp->mailbox_entry));
 
-      complete = *username && *password && *hostname && (! other_active || *mailbox);
+      complete = *username && *hostname && (! other_active || *mailbox);
 #ifndef WITH_SSL
       if (complete)
 	complete = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[0]));
@@ -123,7 +122,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
     mn_tooltips_set_tips(pi->tooltips,
 			 pi->hostname_entry, _("The hostname or IP address of the IMAP server"),
 			 pi->username_entry, _("Your username on the IMAP server"),
-			 pi->password_entry, _("Your password on the IMAP server"),
+			 pi->password_entry, _("Your password on the IMAP server (if left blank, you will be prompted for the password when needed)"),
 			 pi->port_spin[0], _("The port number of the IMAP server"),
 			 pi->port_spin[1], _("The port number of the IMAP server"),
 			 selfp->mailbox_entry, _("The mailbox name"),

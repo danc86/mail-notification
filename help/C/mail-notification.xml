@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "0.7.0">
-  <!ENTITY manrevision "2.5">
-  <!ENTITY date "Wednesday, October 6, 2004">
+  <!ENTITY appversion "0.7.1">
+  <!ENTITY manrevision "2.6">
+  <!ENTITY date "Monday, October 25, 2004">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,7 +26,7 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.56 2004/10/06 17:25:39 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.66 2004/10/25 13:21:59 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (c) 2004 Jean-Yves Lefort -->
@@ -125,6 +125,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.5</revnumber>
+	<date>Wednesday, October 6, 2004</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -273,9 +284,7 @@
 	      <varlistentry>
 		<term>--enable-info</term>
 		<listitem>
-		  <para>
-		    Enable informational output
-		  </para>
+		  <para>Enable informational output</para>
 		  <warning>
 		    <title>Security</title>
 		    <para>
@@ -319,7 +328,16 @@
 
 	      <varlistentry>
 		<term>--report</term>
-		<listitem><para>Report the mail status</para></listitem>
+		<listitem>
+		  <para>Report the mail status</para>
+		  <warning>
+		    <title>Security</title>
+		    <para>
+		      The output of --report may contain mailbox
+		      passwords.
+		    </para>
+		  </warning>
+		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
@@ -361,10 +379,31 @@
 	</screenshot>
       </figure>
       <para>
-	Additionally, if the <link linkend="enable-mail-summary-popup">Enable mail summary popup</link>
-	setting is enabled, an overview of new and unread messages is
-	displayed.
+	Additionally:
       </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    the <guilabel>Mail Notification</guilabel> > <guilabel>New Mail</guilabel>
+	    GNOME sound event is emitted (you can configure the sound
+	    to be played from the GNOME sound preferences)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    if a command to be executed when new mail arrives is set in
+	    the <link linkend="commands">Commands</link> properties,
+	    that command is executed
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    if the <link linkend="enable-mail-summary-popup">Enable mail summary popup</link>
+	    setting is enabled, an overview of new and unread messages is
+	    displayed
+	  </para>
+	</listitem>
+      </itemizedlist>
       <para>
 	If an error is detected, the icon blinks (unless the
 	<link linkend="blink-on-errors">Blink on errors</link> setting is disabled).
@@ -412,30 +451,38 @@
       <title>General</title>
       <variablelist>
 	<varlistentry>
-	  <term><guilabel>Start Mail Notification on GNOME login</guilabel></term>
+	  <term><guilabel>General</guilabel></term>
 	  <listitem>
-	    <para>
-	      If this option is enabled, &app; will be started along
-	      with your GNOME session.
-	    </para>
+	    <variablelist>
+	      <varlistentry>
+		<term><guilabel>Start Mail Notification on GNOME login</guilabel></term>
+		<listitem>
+		  <para>
+		    If this option is enabled, &app; will be started along
+		    with your GNOME session.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry id="blink-on-errors">
+		<term><guilabel>Blink on errors</guilabel></term>
+		<listitem>
+		  <para>
+		    If this option is enabled, &app; will show the status
+		    icon and make it blink on errors. Disabling this option
+		    is useful if some of your mailboxes are not permanently
+		    accessible.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
 	  </listitem>
 	</varlistentry>
-	<varlistentry id="blink-on-errors">
-	  <term><guilabel>Blink on errors</guilabel></term>
+	<varlistentry id="commands">
+	  <term><guilabel>Commands</guilabel></term>
 	  <listitem>
 	    <para>
-	      If this option is enabled, &app; will show the status
-	      icon and make it blink on errors. Disabling this option
-	      is useful if some of your mailboxes are not permanently
-	      accessible.
-	    </para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term><guilabel>Run a command when new mail arrives:</guilabel></term>
-	  <listitem>
-	    <para>
-	      This is the command to execute when new mail arrives.
+	      You can configure commands to be executed <guilabel>when new mail arrives</guilabel>
+	      and <guilabel>when all mail is read</guilabel>.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -510,7 +557,7 @@
 		</listitem>
 	      </varlistentry>
 	      <varlistentry>
-		<term><guilabel>Automatically close after:</guilabel></term>
+		<term><guilabel>Automatically close after</guilabel></term>
 		<listitem>
 		  <para>
 		    Whether to automatically close the mail summary
@@ -531,7 +578,7 @@
 	  <listitem>
 	    <variablelist>
 	      <varlistentry>
-		<term><guilabel>Position:</guilabel></term>
+		<term><guilabel>Position</guilabel></term>
 		<listitem>
 		  <para>
 		    The location of the mail summary popup on the
@@ -540,7 +587,7 @@
 		</listitem>
 	      </varlistentry>
 	      <varlistentry>
-		<term><guilabel>Horizontal offset:</guilabel></term>
+		<term><guilabel>Horizontal offset</guilabel></term>
 		<listitem>
 		  <para>
 		    The number of pixels to leave between the left or
@@ -550,7 +597,7 @@
 		</listitem>
 	      </varlistentry>
 	      <varlistentry>
-		<term><guilabel>Vertical offset:</guilabel></term>
+		<term><guilabel>Vertical offset</guilabel></term>
 		<listitem>
 		  <para>
 		    The number of pixels to leave between the top or
@@ -626,8 +673,8 @@
 		  &imap; server.
 		  <note>
 		    <para>
-		      Symbolic names aswell as IPv4 and IPv6 addresses
-		      are supported.
+		      Symbolic names as well as IPv4 and IPv6
+		      addresses are supported.
 		    </para>
 		  </note>
 		</para>
@@ -646,12 +693,15 @@
 	      <listitem>
 		<para>
 		  This is your password on the &pop3; or &imap; server.
+		  The password will be stored to disk unless it is
+		  left blank (in such case, a password prompt will
+		  appear when needed).
 		</para>
 		<warning>
 		  <title>Security</title>
 		  <para>
 		    To avoid sending your password over the network in
-		    clear text, you must eitheir use a SSL/TLS
+		    clear text, you must either use a SSL/TLS
 		    connection or select a secure authentication
 		    mechanism. See below for more details.
 		  </para>
@@ -684,7 +734,7 @@
 		  <para>
 		    The security considerations listed below do not
 		    apply if you select <guilabel>SSL/TLS</guilabel>
-		    (eitheir <guilabel>in-band</guilabel> or
+		    (either <guilabel>in-band</guilabel> or
 		    <guilabel>on separate port</guilabel>).
 		  </para>
 		  <!-- simplified on purpose: actually, a weak SSL/TLS -->
@@ -758,6 +808,9 @@
 	      <listitem>
 		<para>
 		  This is your password on &gmail;.
+		  The password will be stored to disk unless it is
+		  left blank (in such case, a password prompt will
+		  appear when needed).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -1005,7 +1058,7 @@ endif</programlisting>
 	<glossterm>Maildir</glossterm>
 	<glossdef>
 	  <para>
-	    A mailbox format popularized by the <ulink url="http://www.qmail.org" type="http">qmail</ulink> mail transfer agent.
+	    A mailbox format popularised by the <ulink url="http://www.qmail.org" type="http">qmail</ulink> mail transfer agent.
 	    Messages are stored in a structure of directories for reliability.
 	  </para>
 	</glossdef>
@@ -1025,7 +1078,7 @@ endif</programlisting>
 	<glossterm>MH</glossterm>
 	<glossdef>
 	  <para>
-	    A mailbox format popularized by the
+	    A mailbox format popularised by the
 	    <ulink url="http://www.ics.uci.edu/~mh" type="http">MH</ulink> mail user agent.
 	    Messages are stored as separate files for flexibility and performance.
 	  </para>
@@ -1125,7 +1178,7 @@ endif</programlisting>
 	<glossdef>
 	  <para>
 	    A <quote>compact string of characters for identifying an
-	      abtract or physical resource</quote>, as defined
+	      abstract or physical resource</quote>, as defined
 	    by <ulink url="http://www.ietf.org/rfc/rfc2396.txt" type="http">RFC 2396</ulink>.
 	  </para>
 	</glossdef>

@@ -20,7 +20,9 @@ struct _MNShellPrivate {
 	MNMailIcon * icon;
 #line 48 "mn-shell.gob"
 	GtkWidget * about;
-#line 24 "mn-shell-private.h"
+#line 49 "mn-shell.gob"
+	int n_new;
+#line 26 "mn-shell-private.h"
 };
 
 #ifdef __cplusplus

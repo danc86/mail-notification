@@ -118,4 +118,7 @@ gpointer	mn_g_object_connect		(gpointer	object,
 						 const char	*signal_spec,
 						 ...);
 
+#define MN_STRING_TO_POINTER(str)	((*str) ? (str) : NULL)
+#define MN_POINTER_TO_STRING(ptr)	((ptr) ? (ptr) : "")
+
 #endif /* _MN_UTIL_H */

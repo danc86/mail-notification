@@ -44,6 +44,27 @@
       </locale>
     </schema>
     <schema>
+      <key>/schemas/apps/mail-notification/commands/mail-read/enabled</key>
+      <applyto>/apps/mail-notification/commands/mail-read/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Run a command when all mail is read</short>
+	<long>Whether to run a command when all mail is read or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/commands/mail-read/command</key>
+      <applyto>/apps/mail-notification/commands/mail-read/command</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <locale name="C">
+        <short>Mail read command</short>
+	<long>The command to run when all mail is read.</long>
+      </locale>
+    </schema>
+    <schema>
       <key>/schemas/apps/mail-notification/mailboxes</key>
       <applyto>/apps/mail-notification/mailboxes</applyto>
       <owner>mail-notification</owner>

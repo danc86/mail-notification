@@ -1,7 +1,19 @@
 * Check the SSL certificate's hostname against the hostname we used
   (RFC 3501, section 11.1)
-* Add a Gmail "Mailbox" option similar to the IMAP one (or if that is
-  not feasible, a checkbutton "Only check inbox").
-* Add a per-mailbox check delay setting (probably GConf only, as that
-  feature is seldomly needed)
+
 * See if we can add an Evolution data server mailbox backend
+
+* Add an option to display only the mail that is new since the last
+  time the mail summary popup was closed
+
+* Allow to customize the double-click action:
+
+	When double-clicked:	(o) Display the Mail Summary
+				( ) Display the Properties
+				( ) Run a command: [sylpheed         ]
+
+* Allow to monitor multiple IMAP folders per IMAP mailbox
+
+* In the IMAP mailbox properties, add a "Browse" button next to the
+  folder entry (it will connect to the IMAP server and retrieve the
+  list of folders)

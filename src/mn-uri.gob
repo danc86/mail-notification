@@ -61,7 +61,7 @@ requires 2.0.10
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include <libgnomevfs/gnome-vfs-utils.h>
 #include <eel/eel.h>
 #include "mn-util.h"
@@ -94,7 +94,7 @@ class MN:URI from G:Object
   
   public char *scheme = NULL destroywith g_free;
   public char *username = NULL destroywith g_free; /* if scheme is defined, always defined */
-  public char *password = NULL destroywith g_free; /* if scheme is defined, always defined */
+  public char *password = NULL destroywith g_free;
   public char *authmech = NULL destroywith g_free;
   public char *hostname = NULL destroywith g_free;
   public int port = -1;
@@ -195,6 +195,7 @@ class MN:URI from G:Object
       char path_buf[buflen];
       char queries_buf[buflen];
       gboolean has_location = FALSE;
+      gboolean has_password = FALSE;
       gboolean has_authmech = FALSE;
       gboolean has_port = FALSE;
       gboolean has_path = FALSE;
@@ -221,17 +222,31 @@ class MN:URI from G:Object
        * For backward compatibility with previous versions of Mail
        * Notification, we also support ;auth= (in lowercase).
        */
+      
       pat = g_strdup_printf("%%%i[^:]:%%%i[^;];%%*1[aA]%%*1[uU]%%*1[tT]%%*1[hH]=%%%is", len, len, len);
       n = sscanf(auth_buf, pat, username_buf, password_buf, authmech_buf);
       g_free(pat);
 
       if (n >= 2)
 	{
+	  has_password = TRUE;
 	  if (n == 3)
 	    has_authmech = TRUE;
 	}
       else
-	return;			/* unparsable */
+	{
+	  pat = g_strdup_printf("%%%i[^;];%%*1[aA]%%*1[uU]%%*1[tT]%%*1[hH]=%%%is", len, len);
+	  n = sscanf(auth_buf, pat, username_buf, authmech_buf);
+	  g_free(pat);
+
+	  if (n >= 1)
+	    {
+	      if (n == 2)
+		has_authmech = TRUE;
+	    }
+	  else
+	    return;		/* unparsable */
+	}
 
       if (has_location)
 	{
@@ -278,7 +293,8 @@ class MN:URI from G:Object
 
       self->scheme = gnome_vfs_unescape_string(scheme_buf, NULL);
       self->username = gnome_vfs_unescape_string(username_buf, NULL);
-      self->password = gnome_vfs_unescape_string(password_buf, NULL);
+      if (has_password)
+	self->password = gnome_vfs_unescape_string(password_buf, NULL);
       if (has_authmech)
 	self->authmech = gnome_vfs_unescape_string(authmech_buf, NULL);
       if (has_location)
@@ -320,7 +336,6 @@ class MN:URI from G:Object
 	int i;
 	
 	g_return_if_fail(self->username != NULL);
-	g_return_if_fail(self->password != NULL);
 
 	escaped = gnome_vfs_escape_string(self->scheme);
 	string = g_string_new(escaped);
@@ -330,9 +345,12 @@ class MN:URI from G:Object
 	g_string_append_printf(string, "://%s", escaped);
 	g_free(escaped);
 
-	escaped = gnome_vfs_escape_string(self->password);
-	g_string_append_printf(string, ":%s", escaped);
-	g_free(escaped);
+	if (self->password)
+	  {
+	    escaped = gnome_vfs_escape_string(self->password);
+	    g_string_append_printf(string, ":%s", escaped);
+	    g_free(escaped);
+	  }
 
 	if (self->authmech)
 	  {
@@ -404,8 +422,15 @@ class MN:URI from G:Object
 	else
 	  self->human_readable = gnome_vfs_uri_to_string(self->vfs, GNOME_VFS_URI_HIDE_PASSWORD);
       }
-    else if (MN_URI_IS_POP(self) || MN_URI_IS_IMAP(self))
+    else if (MN_URI_IS_POP(self))
       self->human_readable = g_strdup_printf("%s@%s", self->username, self->hostname);
+    else if (MN_URI_IS_IMAP(self))
+      {
+	const char *default_path = self_get_default_path(self->scheme);
+	self->human_readable = (self->path && (! default_path || strcmp(self->path, default_path)))
+	  ? g_strdup_printf("%s@%s/%s", self->username, self->hostname, self->path)
+	  : g_strdup_printf("%s@%s", self->username, self->hostname);
+      }
     else if (MN_URI_IS_GMAIL(self))
       self->human_readable = g_strdup_printf("%s@gmail.com", self->username);
     else
@@ -456,7 +481,7 @@ class MN:URI from G:Object
     char *scheme;
 
     self = GET_NEW;
-    self->text = ! strncmp(text_uri, "pop3:", 5) /* also handle obsolete pop3 locators */
+    self->text = g_str_has_prefix(text_uri, "pop3:") /* also handle obsolete pop3 locators */
       ? g_strconcat("pop://", text_uri + 5, NULL)
       : g_strdup(text_uri);
 
@@ -474,7 +499,7 @@ class MN:URI from G:Object
     new_pop (gboolean ssl,
 	     gboolean stls,
 	     const char *username (check null),
-	     const char *password (check null),
+	     const char *password,
 	     const char *authmech,
 	     const char *hostname (check null),
 	     int port)
@@ -500,7 +525,7 @@ class MN:URI from G:Object
     new_imap (gboolean ssl,
 	      gboolean starttls,
 	      const char *username (check null),
-	      const char *password (check null),
+	      const char *password,
 	      const char *authmech,
 	      const char *hostname (check null),
 	      int port,
@@ -526,7 +551,7 @@ class MN:URI from G:Object
 
   public MNURI *
     new_gmail (const char *username (check null),
-	       const char *password (check null))
+	       const char *password)
   {
     Self *self;
 

@@ -25,7 +25,7 @@ requires 2.0.10
 
 %{
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include "mn-util.h"
 %}
 
@@ -47,60 +47,64 @@ class MN:Message from G:Object
 
   /* always set */
   public char *id destroywith g_free;
-  property STRING id (flags = CONSTRUCT_ONLY)
-    set
-    {
-      const char *id = g_value_get_string(VAL);
-
-      g_return_if_fail(self->id == NULL);
-      if (id)
-	self->id = g_strdup(id);
-      else
-	{
-	  static int unique = 0;
-
-	  /*
-	   * Generate an unique identifier (we don't need it do be a
-	   * compliant Message-Id).
-	   */
-	  self->id = g_strdup_printf("%i", g_atomic_int_exchange_and_add(&unique, 1));
-	}
-    }
-    get
-    {
-      g_value_set_string(VAL, self->id);
-    };
+  property STRING id (flags = CONSTRUCT_ONLY, link);
   
   /* always set */
   public char *from destroywith g_free;
-  property STRING from (flags = CONSTRUCT_ONLY)
-    set
-    {
-      const char *from = g_value_get_string(VAL);
-
-      g_return_if_fail(self->from == NULL);
-      self->from = g_strdup(from ? from : _("Unknown"));
-    }
-    get
-    {
-      g_value_set_string(VAL, self->from);
-    };
+  property STRING from (flags = CONSTRUCT_ONLY, link);
 
   /* always set */
   public char *subject destroywith g_free;
-  property STRING subject (flags = CONSTRUCT_ONLY)
-    set
-    {
-      const char *subject = g_value_get_string(VAL);
+  property STRING subject (flags = CONSTRUCT_ONLY, link);
 
-      g_return_if_fail(self->subject == NULL);
-      self->subject = g_strdup(subject ? subject : "");
-    }
-    get
-    {
-      g_value_set_string(VAL, self->subject);
-    };
+  override (G:Object) GObject *
+    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    Self *self;
 
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    self = SELF(object);
+
+    if (! self->id)
+      {
+	GString *id;
+
+	/*
+	 * An ID should (not mandatory):
+	 *
+	 *	- be unique in a single mailbox
+	 *	- persist across checks if the message does not change
+	 */
+
+	id = g_string_new(NULL);
+
+	if (self->sent_time)
+	  g_string_append_printf(id, ":sent-time:%u:", self->sent_time);
+	if (self->from)
+	  g_string_append_printf(id, ":from:%s:", self->from);
+	if (self->subject)
+	  g_string_append_printf(id, ":subject:%s:", self->subject);
+
+	if (! *id->str)
+	  {
+	    static int unique = 0;
+	    g_string_append_printf(id, "%i", g_atomic_int_exchange_and_add(&unique, 1));
+	  }
+
+	self->id = g_string_free(id, FALSE);
+      }
+
+    /* these must be filled after we have processed the id */
+
+    if (! self->from)
+      self->from = g_strdup(_("Unknown"));
+    if (! self->subject)
+      self->subject = g_strdup("");
+
+    return object;
+  }
+  
   public MNMessage *
     new (MN:URI *mailbox_uri (check null type),
 	 const char *error,

@@ -4,7 +4,7 @@
 #include <glib-object.h>
 
 
-#include "mn-mailbox.h"
+#include "mn-authenticated-mailbox.h"
 
 #ifndef __MN_IMAP_MAILBOX_H__
 #define __MN_IMAP_MAILBOX_H__
@@ -33,7 +33,7 @@ extern "C" {
 typedef struct _MNIMAPMailbox MNIMAPMailbox;
 #endif
 struct _MNIMAPMailbox {
-	MNMailbox __parent__;
+	MNAuthenticatedMailbox __parent__;
 };
 
 /*
@@ -41,7 +41,7 @@ struct _MNIMAPMailbox {
  */
 typedef struct _MNIMAPMailboxClass MNIMAPMailboxClass;
 struct _MNIMAPMailboxClass {
-	MNMailboxClass __parent__;
+	MNAuthenticatedMailboxClass __parent__;
 };
 
 

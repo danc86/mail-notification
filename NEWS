@@ -1,3 +1,26 @@
+0.7.1					25 October 2004
+
+	* Gmail fixes:
+		* does not crash when a GNOME proxy is set
+		* handles starred and labelled messages
+		* ignores non-inbox messages
+		* messages were considered unseen on each check and
+		  the mail summary was always popped up: fixed
+
+	* The POP3/IMAP/Gmail password can now be left blank (in such
+	  case, it will be prompted when needed and not be saved to
+	  permanent storage)
+	* A command can now be executed when all mail has been read
+	* The user interface now displays the IMAP folder name (unless
+	  it is inbox)
+	* The tooltip now displays message counts
+	* Minor fixes and cleanups
+
+	* Updated translations:
+		* serbian (Filip Miletic)
+		* german (Hendrik Brandt)
+		* portuguese (Duarte Henriques)
+
 0.7.0					06 October 2004
 
 	* Binaries compiled with GCC 3.4.x were crashing in various
@@ -13,7 +36,7 @@
 	  superior)
 	* Double-clicking on the icon now displays the mail summary
 	  (the double-clicked command has been removed)
-	* The "new mail" command is now executed everytime a mailbox
+	* The "new mail" command is now executed every time a mailbox
 	  receives one or more new messages
 	* Tracks the latest Gmail change (reported by Vincent Noel)
 	* Gmail support now requires libsoup version 2.2 or superior

@@ -21,6 +21,6 @@
 
 #include <libsoup/soup.h>
 
-SoupSession *mn_soup_session_new (void);
+SoupSession *mn_soup_session_sync_new (void);
 
 #endif /* _MN_SOUP_H */

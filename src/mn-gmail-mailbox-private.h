@@ -16,13 +16,11 @@ extern "C" {
 
 #line 18 "mn-gmail-mailbox-private.h"
 struct _MNGmailMailboxPrivate {
-#line 47 "mn-gmail-mailbox.gob"
-	SoupSession * session;
-#line 48 "mn-gmail-mailbox.gob"
+#line 46 "mn-gmail-mailbox.gob"
 	GHashTable * cookies;
-#line 49 "mn-gmail-mailbox.gob"
+#line 47 "mn-gmail-mailbox.gob"
 	gboolean logged_in;
-#line 26 "mn-gmail-mailbox-private.h"
+#line 24 "mn-gmail-mailbox-private.h"
 };
 
 #ifdef __cplusplus

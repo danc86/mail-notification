@@ -21,7 +21,7 @@
 
 #include "config.h"
 #include <string.h>
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 
 #include "eggtrayicon.h"
 
@@ -362,18 +362,6 @@ egg_tray_icon_realize (GtkWidget *widget)
   /* Add a root window filter so that we get changes on MANAGER */
   gdk_window_add_filter (root_window,
 			 egg_tray_icon_manager_filter, icon);
-}
-
-EggTrayIcon *
-egg_tray_icon_new_for_xscreen (Screen *xscreen, const char *name)
-{
-  GdkDisplay *display;
-  GdkScreen *screen;
-
-  display = gdk_x11_lookup_xdisplay (DisplayOfScreen (xscreen));
-  screen = gdk_display_get_screen (display, XScreenNumberOfScreen (xscreen));
-
-  return egg_tray_icon_new_for_screen (screen, name);
 }
 
 EggTrayIcon *

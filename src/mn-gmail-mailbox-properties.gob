@@ -23,7 +23,7 @@ requires 2.0.10
 %}
 %{
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-util.h"
 #include "mn-util.h"
@@ -41,12 +41,10 @@ class MN:Gmail:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties
     get
     {
       const char *username;
-      const char *password;
 
       username = gtk_entry_get_text(GTK_ENTRY(selfp->username_entry));
-      password = gtk_entry_get_text(GTK_ENTRY(selfp->password_entry));
       
-      g_value_set_boolean(VAL, *username && *password);
+      g_value_set_boolean(VAL, *username != 0);
     };
       
   private GtkWidget *username_entry;
@@ -77,7 +75,7 @@ class MN:Gmail:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties
 
     mn_tooltips_set_tips(selfp->tooltips,
 			 selfp->username_entry, _("Your Gmail username"),
-			 selfp->password_entry, _("Your Gmail password"),
+			 selfp->password_entry, _("Your Gmail password (if left blank, you will be prompted for the password when needed)"),
 			 NULL);
 
     mn_mailbox_properties_link_entries(GTK_ENTRY(selfp->username_entry),
@@ -85,7 +83,6 @@ class MN:Gmail:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties
 				       NULL);
 
     g_signal_connect(selfp->username_entry, "changed", G_CALLBACK(self_entry_changed_h), self);
-    g_signal_connect(selfp->password_entry, "changed", G_CALLBACK(self_entry_changed_h), self);
     
     return object;
   }
@@ -105,7 +102,7 @@ class MN:Gmail:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties
     if (MN_URI_IS_GMAIL(uri))
       {
 	gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->username_entry), uri->username);
-	gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->password_entry), uri->password);
+	gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->password_entry), MN_POINTER_TO_STRING(uri->password));
 
 	return TRUE;
       }
@@ -122,6 +119,6 @@ class MN:Gmail:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties
     username = gtk_entry_get_text(GTK_ENTRY(SELF(self)->_priv->username_entry));
     password = gtk_entry_get_text(GTK_ENTRY(SELF(self)->_priv->password_entry));
 
-    return mn_uri_new_gmail(username, password);
+    return mn_uri_new_gmail(username, MN_STRING_TO_POINTER(password));
   }
 }

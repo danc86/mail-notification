@@ -19,7 +19,7 @@
 requires 2.0.10
 
 %headertop{
-#include "mn-mailbox.h"
+#include "mn-authenticated-mailbox.h"
 %}
 
 %privateheader{
@@ -30,21 +30,19 @@ requires 2.0.10
 #include "config.h"
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <time.h>
-#include <glib/gi18n-lib.h>
+#ifdef TM_IN_SYS_TIME
+#include <sys/time.h>
+#endif
+#include <glib/gi18n.h>
 #include "mn-mailbox-private.h"
 #include "mn-util.h"
 #include "mn-stock.h"
 #include "mn-sgml-ref.h"
-
-#define MESSAGE_IS_ERROR(message) \
-  (! SOUP_STATUS_IS_SUCCESSFUL((message)->status_code))
 %}
 
-class MN:Gmail:Mailbox from MN:Mailbox
+class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 {
-  private SoupSession *session;
   private GHashTable *cookies destroywith g_hash_table_destroy;
   private gboolean logged_in;
 
@@ -73,60 +71,72 @@ class MN:Gmail:Mailbox from MN:Mailbox
     return MN_URI_IS_GMAIL(uri);
   }
 
-  override (MN:Mailbox) void
-    impl_check (MN:Mailbox *mailbox (check null type))
+  override (MN:Authenticated:Mailbox) MNAuthenticatedMailboxResult
+    impl_authenticated_check (MN:Authenticated:Mailbox *authenticated_mailbox (check null type),
+			      GError **err)
   {
-    Self *self = SELF(mailbox);
+    Self *self = SELF(authenticated_mailbox);
+    SoupSession *session;
+    gboolean authentication_failed;
+    MNAuthenticatedMailboxResult result;
 
-    selfp->session = mn_soup_session_new();
+    session = mn_soup_session_sync_new();
+
+    if (! selfp->logged_in)
+      selfp->logged_in = self_login(self, session, &authentication_failed, err);
+
     if (selfp->logged_in)
-      self_check_internal(self);
+      result = self_check(self, session, err) ? MN_AUTHENTICATED_MAILBOX_OK : MN_AUTHENTICATED_MAILBOX_ERROR_OTHER;
     else
-      self_login(self);
+      result = authentication_failed ? MN_AUTHENTICATED_MAILBOX_ERROR_AUTHENTICATION : MN_AUTHENTICATED_MAILBOX_ERROR_OTHER;
+    
+    g_object_unref(session);
+
+    return result;
   }
   
-  private void
-    end_check (self)
+  private SoupUri *
+    soup_uri_new (const char *text_uri (check null), GError **err)
   {
-    g_object_unref(selfp->session);
-    mn_mailbox_end_check(MN_MAILBOX(self));
+    SoupUri *uri;
+
+    uri = soup_uri_new(text_uri);
+    if (! uri)
+      g_set_error(err, 0, 0, _("unable to parse URI \"%s\""), text_uri);
+
+    return uri;
   }
   
-  private gboolean
+  private char *
     get (self,
-	 const char *uri_string (check null),
-	 SoupMessageCallbackFn callback (check null))
+	 Soup:Session *session (check null type),
+	 const char *text_uri (check null),
+	 GError **err)
+  {
+    SoupUri *uri;
+    char *body;
+
+    uri = self_soup_uri_new(text_uri, err);
+    if (! uri)
+      return NULL;
+
+    body = self_get_from_uri(self, session, uri, err);
+    soup_uri_free(uri);
+
+    return body;
+  }
+  
+  private char *
+    get_from_uri (self,
+		  Soup:Session *session (check null type),
+		  SoupUri *uri (check null),
+		  GError **err)
   {
     SoupMessage *message;
-
-    message = soup_message_new(SOUP_METHOD_GET, uri_string);
-    if (message)
-      {
-	self_get_from_message(self, soup_message_new(SOUP_METHOD_GET, uri_string), callback);
-	return TRUE;
-      }
-    else
-      {
-	mn_mailbox_notice(MN_MAILBOX(self), _("unable to parse URI \"%s\""), uri_string);
-	return FALSE;
-      }
-  }
-  
-  private void
-    get_from_uri (self,
-		  SoupUri *uri (check null),
-		  SoupMessageCallbackFn callback (check null))
-  {
-    self_get_from_message(self, soup_message_new_from_uri(SOUP_METHOD_GET, uri), callback);
-  }
-  
-  private void
-    get_from_message (self,
-		      Soup:Message *message (check null type),
-		      SoupMessageCallbackFn callback (check null))
-  {
     char *cookie;
+    char *body = NULL;
 
+    message = soup_message_new_from_uri(SOUP_METHOD_GET, uri);
     soup_message_add_header(message->request_headers, "User-Agent", "Mail Notification");
 
     cookie = self_build_cookie(self);
@@ -137,8 +147,20 @@ class MN:Gmail:Mailbox from MN:Mailbox
       }
     
     self_dump_request(self, message);
-    soup_session_queue_message(selfp->session, message, callback, self);
-    /* message will be unreffed by libsoup after invoking the callback */
+    soup_session_send_message(session, message);
+
+    if (SOUP_STATUS_IS_SUCCESSFUL(message->status_code))
+      {
+	body = g_strndup(message->response.body, message->response.length);
+	self_dump_response(self, message, body);
+	self_update_cookies(self, message);
+      }
+    else
+      g_set_error(err, 0, 0, _("unable to transfer data: %s"), message->reason_phrase);
+
+    g_object_unref(message);
+    
+    return body;
   }
   
   private void
@@ -168,18 +190,16 @@ class MN:Gmail:Mailbox from MN:Mailbox
   }
   
   private void
-    dump_response (self, Soup:Message *message (check null type))
+    dump_response (self,
+		   Soup:Message *message (check null type),
+		   const char *body (check null))
   {
-    char *body;
     char **lines;
     int i;
     
     soup_message_foreach_header(message->response_headers, self_dump_response_cb, self);
 
-    body = g_strndup(message->response.body, message->response.length);
     lines = g_strsplit(body, "\n", 0);
-    g_free(body);
-
     for (i = 0; lines[i]; i++)
       mn_mailbox_notice(MN_MAILBOX(self), "< %s", lines[i]);
     g_strfreev(lines);
@@ -240,185 +260,105 @@ class MN:Gmail:Mailbox from MN:Mailbox
     return token;
   }
 
-  private void
-    login (self)
+  private gboolean
+    login (self,
+	   Soup:Session *session (check null type),
+	   gboolean *authentication_failed (check null),
+	   GError **err)
   {
-    char *uri;
+    char *text_uri;
     char *escaped_username;
     char *escaped_password;
-    gboolean status;
+    char *body;
+    char *next_location;
+    char *query;
+    SoupUri *uri;
+    gboolean success;
 
-    g_return_if_fail(selfp->logged_in == FALSE);
+    g_return_val_if_fail(selfp->logged_in == FALSE, FALSE);
+    
+    mn_mailbox_notice(MN_MAILBOX(self), _("logging in"));
+    *authentication_failed = FALSE;
 
     if (selfp->cookies)
       g_hash_table_destroy(selfp->cookies);
     selfp->cookies = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
-	
-    mn_mailbox_notice(MN_MAILBOX(self), _("logging in"));
 
 #define EXTRA_CHARS ";/?:@&=+$,"/* taken from RFC 2396 2.2 */
     escaped_username = soup_uri_encode(MN_MAILBOX(self)->uri->username, EXTRA_CHARS);
-    escaped_password = soup_uri_encode(MN_MAILBOX(self)->uri->password, EXTRA_CHARS);
-    uri = g_strdup_printf("https://www.google.com/accounts/ServiceLoginBoxAuth?service=mail&continue=http://gmail.google.com/gmail&Email=%s&Passwd=%s", escaped_username, escaped_password);
+    escaped_password = soup_uri_encode(MN_AUTHENTICATED_MAILBOX(self)->password, EXTRA_CHARS);
+    text_uri = g_strdup_printf("https://www.google.com/accounts/ServiceLoginBoxAuth?service=mail&continue=http://gmail.google.com/gmail&Email=%s&Passwd=%s", escaped_username, escaped_password);
     g_free(escaped_username);
     g_free(escaped_password);
 
-    status = self_get(self, uri, self_login_cb1);
-    g_free(uri);
+    body = self_get(self, session, text_uri, err);
+    g_free(text_uri);
 
-    if (! status)
+    if (! body)
+      return FALSE;
+
+    next_location = self_get_token(body, "top.location = \"", "\"", FALSE, FALSE);
+    g_free(body);
+
+    if (! next_location)
       {
-	mn_mailbox_set_error(MN_MAILBOX(self), _("login failed"));
-	self_end_check(self);
+	*authentication_failed = TRUE;
+	goto failed;
       }
-  }
-  
-  private void
-    login_cb1 (Soup:Message *message (check null type),
-	       gpointer user_data (check null))
-  {
-    Self *self = user_data;
 
-    if (MESSAGE_IS_ERROR(message))
-      mn_mailbox_set_error(MN_MAILBOX(self), _("unable to transfer data: %s"), message->reason_phrase);
-    else
+    /*
+     * The following kludges work around
+     * http://bugzilla.ximian.com/show_bug.cgi?id=66516.
+     *
+     * FIXME: remove it and bump libsoup version requirement when the
+     * bug is fixed.
+     */
+
+    query = strchr(next_location, '?');
+    if (query)
+      *query = 0;
+
+    text_uri = g_strdup_printf("https://www.google.com/accounts/%s", next_location);
+    g_free(next_location);
+
+    uri = self_soup_uri_new(text_uri, err);
+    g_free(text_uri);
+
+    if (! uri)
+      return FALSE;
+
+    if (query)
       {
-	char *body;
-	char *next_location;
-
-	self_dump_response(self, message);
-	self_update_cookies(self, message);
-
-	body = g_strndup(message->response.body, message->response.length);
- 	next_location = self_get_token(body, "top.location = \"", "\"", FALSE, FALSE);
-	g_free(body);
-
-	if (next_location)
-	  {
-	    char *query;	/* pointer into next_location */
-	    char *uri;
-	    SoupUri *suri;
-	    gboolean status;
-
-	    /*
-	     * The following kludges work around http://bugzilla.ximian.com/show_bug.cgi?id=66516.
-	     * FIXME: remove it and bump libsoup version requirement
-	     * when the bug is fixed.
-	     */
-
-	    query = strchr(next_location, '?');
-	    if (query)
-	      *query = 0;
-
-	    uri = g_strdup_printf("https://www.google.com/accounts/%s", next_location);
-	    suri = soup_uri_new(uri);
-
-	    if (suri)
-	      {
-		if (query)
-		  {
-		    suri->query = g_strdup(query + 1);
-		    suri->broken_encoding = TRUE;
-		  }
-
-		self_get_from_uri(self, suri, self_login_cb2);
-		soup_uri_free(suri);
-		
-		status = TRUE;
-	      }
-	    else
-	      {
-		mn_mailbox_notice(MN_MAILBOX(self), _("unable to parse URI \"%s\""), uri);
-		status = FALSE;
-	      }
-
-	    g_free(uri);
-	    g_free(next_location);
-	    
-	    if (status)
-	      return;
-	  }
-
-	mn_mailbox_set_error(MN_MAILBOX(self), _("login failed"));
+	uri->query = g_strdup(query + 1);
+	uri->broken_encoding = TRUE;
       }
+
+    body = self_get_from_uri(self, session, uri, err);
+    soup_uri_free(uri);
+
+    if (! body)
+      return FALSE;
+
+    next_location = self_get_token(body, "location.replace(\"", "\")", FALSE, FALSE);
+    g_free(body);
+
+    if (! next_location)
+      goto failed;
+
+    body = self_get(self, session, next_location, err);
+    g_free(next_location);
+
+    success = strstr(body, "frame name=js src=/gmail") != NULL;
+    g_free(body);
+
+    if (success)
+      return TRUE;
     
-    /* if this point is reached, an error occurred */
-    self_end_check(self);
+  failed:
+    g_set_error(err, 0, 0, _("login failed"));
+    return FALSE;
   }
   
-  private void
-    login_cb2 (Soup:Message *message (check null type),
-	       gpointer user_data (check null))
-  {
-    Self *self = user_data;
-
-    if (MESSAGE_IS_ERROR(message))
-      mn_mailbox_set_error(MN_MAILBOX(self), _("unable to transfer data: %s"), message->reason_phrase);
-    else
-      {
-	char *body;
-	char *next_location;
-
-	self_dump_response(self, message);
-	self_update_cookies(self, message);
-	
-	body = g_strndup(message->response.body, message->response.length);
-	next_location = self_get_token(body, "location.replace(\"", "\")", FALSE, FALSE);
-	g_free(body);
-
-	if (next_location)
-	  {
-	    gboolean status;
-
-	    status = self_get(self, next_location, self_login_cb3);
-	    g_free(next_location);
-
-	    if (status)
-	      return;
-	  }
-
-	mn_mailbox_set_error(MN_MAILBOX(self), _("login failed"));
-      }
-
-    /* if this point is reached, an error occurred */
-    self_end_check(self);
-  }
-  
-  private void
-    login_cb3 (Soup:Message *message (check null type),
-	       gpointer user_data (check null))
-  {
-    Self *self = user_data;
-
-    if (MESSAGE_IS_ERROR(message))
-      mn_mailbox_set_error(MN_MAILBOX(self), _("unable to transfer data: %s"), message->reason_phrase);
-    else
-      {
-	char *body;
-	char *token;
-
-	self_dump_response(self, message);
-	self_update_cookies(self, message);
-
-	body = g_strndup(message->response.body, message->response.length);
-	token = strstr(body, "frame name=js src=/gmail");
-	
-	if (token)
-	  {
-	    selfp->logged_in = TRUE;
-	    mn_mailbox_notice(MN_MAILBOX(self), _("successfully logged in"));
-	    self_check_internal(self);
-	    
-	    return;
-	  }
-
-	mn_mailbox_set_error(MN_MAILBOX(self), _("login failed"));
-      }
-
-    /* if this point is reached, an error occurred */
-    self_end_check(self);
-  }
-
   private void
     update_cookies (self, Soup:Message *message (check null type))
   {
@@ -481,136 +421,118 @@ class MN:Gmail:Mailbox from MN:Mailbox
     g_string_append_printf(cookie, "%s=%s", (const char *) key, (const char *) value);
   }
   
-  private void
-    check_internal (self)
+  private gboolean
+    check (self, Soup:Session *session (check null type), GError **err)
   {
-    mn_mailbox_notice(MN_MAILBOX(self), _("searching for unread mail"));
-
-    if (! self_get(self, "https://gmail.google.com/gmail?search=adv&as_subset=unread&view=tl&start=0", self_check_internal_cb))
-      {
-	mn_mailbox_set_error(MN_MAILBOX(self), _("unable to search for unread mail"));
-	self_end_check(self);
-      }
-  }
-
-  private void
-    check_internal_cb (Soup:Message *message (check null type),
-		       gpointer user_data)
-  {
-    Self *self = user_data;
-
-    if (MESSAGE_IS_ERROR(message))
-      mn_mailbox_set_error(MN_MAILBOX(self), _("unable to transfer data: %s"), message->reason_phrase);
-    else
-      {
-	self_dump_response(self, message);
-	self_parse_unread(self, message);
-      }
-
-    self_end_check(self);
-  }
-
-  private void
-    parse_unread (self, Soup:Message *message (check null type))
-  {
-    MNMailbox *mailbox = MN_MAILBOX(self);
-    int count = -1;
-    GSList *messages = NULL;
     char *body;
     char *results;
-  
-    body = g_strndup(message->response.body, message->response.length);
+    gboolean status = FALSE;
+
+    g_return_val_if_fail(selfp->logged_in == TRUE, FALSE);
+
+    mn_mailbox_notice(MN_MAILBOX(self), _("searching for unread mail"));
+
+    body = self_get(self, session, "https://gmail.google.com/gmail?search=adv&as_subset=unread&view=tl&start=0", err);
+    if (! body)
+      return FALSE;
 
     results = strstr(body, "Search results for: is:unread\",\"");
     if (results)
       {
-	char *count_str;
-	
-	count_str = self_get_token(results + 32, ",", ",", FALSE, FALSE);
-	if (count_str)
+	GSList *messages = NULL;
+	char *p = strstr(results + 32, ",1,");
+
+	while (p)
 	  {
-	    if (mn_str_isnumeric(count_str))
-	      count = atoi(count_str);
-	    g_free(count_str);
-	  }
-      }
+	    char *inbox_marker;
+	    char *next_p;
 
-    if (count != -1)
-      {
-	char *p = results + 32;
+	    /*
+	     * FIXME: we should parse the list instead of using field
+	     * separator matching (this breaks if a separator is
+	     * present in a field value).
+	     */
 
-	while (p && (p = strstr(p, ",1,0")))
-	  {
-	    char *date;
-	    char *sender_email;
-	    char *sender_name;
-	    char *subject;
+	    p += 3;		/* skip ,1, */
+	    inbox_marker = strstr(p, ",[\"^i\"");
+	    next_p = strstr(p, ",1,");
 
-	    time_t sent_time = 0;
-	    char *from = NULL;
-	    char *expanded_subject = NULL;
-	    
-	    date = self_get_token(p, "\\<b\\>", "\\</b\\>", FALSE, FALSE);
-	    sender_email = self_get_token(p, "<span id=\\'_user_", "\\'", FALSE, FALSE);
-	    sender_name = self_get_token(p, "\\'\\>\\<b\\>", "\\</b\\>", FALSE, FALSE);
-	    subject = self_get_token(p, ";\",\"\\<b\\>", "\\</b\\>", FALSE, FALSE);
-
-	    if (date)
+	    if (inbox_marker && (! next_p || inbox_marker < next_p)) /* msg from inbox */
 	      {
-		sent_time = self_parse_date(date);
-		g_free(date);
-	      }
+		char *date;
+		char *sender_email;
+		char *sender_name;
+		char *subject;
+
+		time_t sent_time = 0;
+		char *from = NULL;
+		char *expanded_subject = NULL;
+
+		date = self_get_token(p, "\\<b\\>", "\\</b\\>", FALSE, FALSE);
+		sender_email = self_get_token(p, "<span id=\\'_user_", "\\'", FALSE, FALSE);
+		sender_name = self_get_token(p, "\\'\\>\\<b\\>", "\\</b\\>", FALSE, FALSE);
+		subject = self_get_token(p, ";\",\"\\<b\\>", "\\</b\\>", FALSE, FALSE);
+
+		if (date)
+		  {
+		    sent_time = self_parse_date(date);
+		    g_free(date);
+		  }
 		
-	    if (sender_name && sender_email)
-	      {
-		char *tmp;
-
-		tmp = g_strdup_printf("%s <%s>", sender_name, sender_email);
-		from = mn_sgml_ref_expand(tmp);
-		g_free(tmp);
-	      }
-	    else if (sender_name)
-	      from = mn_sgml_ref_expand(sender_name);
-	    else if (sender_email)
-	      from = mn_sgml_ref_expand(sender_email);
-
-	    g_free(sender_email);
-	    g_free(sender_name);
-
-	    if (subject)
-	      {
-		if (strcmp(subject, "(no subject)"))
-		  expanded_subject = mn_sgml_ref_expand(subject);
-		g_free(subject);
+		if (sender_name && sender_email)
+		  {
+		    char *tmp;
+		    
+		    tmp = g_strdup_printf("%s <%s>", sender_name, sender_email);
+		    from = mn_sgml_ref_expand(tmp);
+		    g_free(tmp);
+		  }
+		else if (sender_name)
+		  from = mn_sgml_ref_expand(sender_name);
+		else if (sender_email)
+		  from = mn_sgml_ref_expand(sender_email);
+		
+		g_free(sender_email);
+		g_free(sender_name);
+		
+		if (subject)
+		  {
+		    if (strcmp(subject, "(no subject)"))
+		      expanded_subject = mn_sgml_ref_expand(subject);
+		    g_free(subject);
+		  }
+	    
+		messages = g_slist_append(messages, mn_message_new(MN_MAILBOX(self)->uri,
+								   NULL,
+								   sent_time,
+								   NULL,
+								   from,
+								   expanded_subject));
+		
+		g_free(from);
+		g_free(expanded_subject);
 	      }
 	    
-	    messages = g_slist_append(messages, mn_message_new(mailbox->uri,
-							       NULL,
-							       sent_time,
-							       NULL,
-							       from,
-							       expanded_subject));
-
-	    g_free(from);
-	    g_free(expanded_subject);
-
-	    p = strstr(p, "[\"^i\"]");
+	    p = next_p;
 	  }
+
+	GDK_THREADS_ENTER();
+	mn_mailbox_set_has_new(MN_MAILBOX(self), messages != NULL);
+	mn_mailbox_set_messages(MN_MAILBOX(self), messages);
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+
+	mn_g_object_slist_free(messages);
+	status = TRUE;
       }
+    else
+      g_set_error(err, 0, 0, _("unable to parse Gmail data"));
 
     g_free(body);
 
-    if (count == -1)
-      mn_mailbox_set_error(mailbox, _("unable to parse Gmail data"));
-    else
-      {
-	mn_mailbox_set_has_new(mailbox, count != 0);
-	mn_mailbox_set_messages(mailbox, messages);
-      }
-
-    mn_g_object_slist_free(messages);
+    return status;
   }
-
+  
   private time_t
     parse_date (const char *date (check null))
   {

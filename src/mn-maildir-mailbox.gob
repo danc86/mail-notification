@@ -23,7 +23,7 @@ requires 2.0.10
 %}
 %{
 #include "config.h"
-#include <glib/gi18n-lib.h>
+#include <glib/gi18n.h>
 #include "mn-mailbox-private.h"
 #include "mn-vfs.h"
 #include "mn-util.h"
@@ -97,7 +97,7 @@ class MN:Maildir:Mailbox from MN:Mailbox
   }
   
   override (MN:Mailbox) void
-    impl_threaded_check (MN:Mailbox *self (check null type))
+    impl_check (MN:Mailbox *self (check null type))
   {
     GnomeVFSURI *new_uri;
     GnomeVFSResult result;

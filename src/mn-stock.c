@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 static const GtkStockItem items[] = {
   { MN_STOCK_SELECT_ALL, N_("Select _All"), 0, 0, NULL },
-  { MN_STOCK_MAIL_SUMMARY, N_("_Mail Summary"), 0, 0, NULL }
+  { MN_STOCK_LEAVE_FULLSCREEN, N_("Leave Fullscreen"), 0, 0, NULL }
 };
 
 /*** implementation **********************************************************/
@@ -39,17 +39,21 @@ mn_stock_init (void)
     const char	*stock_id;
     const char	*filename;
     const char	*icon_name;
+    const char	*source_stock_id;
   } icons[] = {
-    { MN_STOCK_MAIL,		NULL, "stock_mail"		},
-    { MN_STOCK_LOCAL,		NULL, "stock_folder"		},
-    { MN_STOCK_REMOTE,		NULL, "stock_internet"		},
-    { MN_STOCK_UNSUPPORTED,	"unsupported.png", NULL		},
+    { MN_STOCK_MAIL,			NULL, "stock_mail" },
+    { MN_STOCK_LOCAL,			NULL, "stock_folder" },
+    { MN_STOCK_REMOTE,			NULL, "stock_internet" },
+    { MN_STOCK_UNSUPPORTED,		MN_IMAGE_FILE(UIDIR, "unsupported.png") },
 #ifdef WITH_GMAIL
-    { MN_STOCK_GMAIL,		"gmail.png", NULL		},
+    { MN_STOCK_GMAIL,			MN_IMAGE_FILE(UIDIR, "gmail.png") },
 #endif
-    { MN_STOCK_SYSTEM_MAILBOX,	NULL, "gnome-system"		},
-    { MN_STOCK_SELECT_ALL,	NULL, "stock_select-all"	},
-    { MN_STOCK_MAIL_SUMMARY,	"mail-notification.png", NULL	}
+    { MN_STOCK_SYSTEM_MAILBOX,		NULL, "gnome-system" },
+    { MN_STOCK_SELECT_ALL,		NULL, "stock_select-all" },
+    { MN_STOCK_MAIL_SUMMARY,		MN_IMAGE_FILE(GNOMEPIXMAPSDIR, "mail-notification.png") },
+    { MN_STOCK_MAIL_READER,		MN_IMAGE_FILE(GNOMEPIXMAPSDIR, "mail-notification.png") },
+    { MN_STOCK_MAIN_WINDOW,		MN_IMAGE_FILE(UIDIR, "main-window.png") },
+    { MN_STOCK_LEAVE_FULLSCREEN,	NULL, NULL, GTK_STOCK_QUIT }
   };
   GtkIconFactory *factory;
   GtkIconTheme *icon_theme;
@@ -68,8 +72,13 @@ mn_stock_init (void)
 	  GdkPixbuf *pixbuf;
 	  
 	  pixbuf = mn_pixbuf_new(icons[i].filename);
-	  icon_set = gtk_icon_set_new_from_pixbuf(pixbuf);
-	  g_object_unref(pixbuf);
+	  if (pixbuf)
+	    {
+	      icon_set = gtk_icon_set_new_from_pixbuf(pixbuf);
+	      g_object_unref(pixbuf);
+	    }
+	  else
+	    icon_set = gtk_icon_set_new();
 	}
       else if (icons[i].icon_name)
 	{
@@ -80,6 +89,11 @@ mn_stock_init (void)
 	  gtk_icon_source_set_icon_name(icon_source, icons[i].icon_name);
 	  gtk_icon_set_add_source(icon_set, icon_source);
 	  gtk_icon_source_free(icon_source);
+	}
+      else if (icons[i].source_stock_id)
+	{
+	  icon_set = gtk_icon_factory_lookup_default(icons[i].source_stock_id);
+	  gtk_icon_set_ref(icon_set);
 	}
       else
 	g_return_if_reached();

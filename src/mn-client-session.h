@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,9 @@ typedef struct
 typedef struct
 {
   void      (*notice)		(MNClientSession	  *session,
+				 const char		  *str,
+				 MNClientSessionPrivate	  *private);
+  void      (*warning)		(MNClientSession	  *session,
 				 const char		  *str,
 				 MNClientSessionPrivate	  *private);
 
@@ -114,6 +117,9 @@ int mn_client_session_sasl_get_ssf (MNClientSession *session);
 void mn_client_session_notice (MNClientSession *session,
 			       const char *format,
 			       ...) G_GNUC_PRINTF(2, 3);
+void mn_client_session_warning (MNClientSession *session,
+				const char *format,
+				...);
 int mn_client_session_error (MNClientSession *session,
 			     const char *format,
 			     ...) G_GNUC_PRINTF(2, 3);

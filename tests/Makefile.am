@@ -1,4 +1,5 @@
 tests = \
+	test-sgml-ref.stamp			\
 	test-uri.stamp				\
 	test-vfs-read-line1-smallblock.output	\
 	test-vfs-read-line1-largeblock.output	\
@@ -6,10 +7,15 @@ tests = \
 	test-vfs-read-line2-largeblock.output
 
 noinst_PROGRAMS = \
+	test-sgml-ref			\
 	test-uri			\
 	test-vfs-read-line-smallblock	\
 	test-vfs-read-line-largeblock
 noinst_DATA = $(tests)
+
+test_sgml_ref_SOURCES = \
+	$(top_srcdir)/src/mn-sgml-ref.c	\
+	test-sgml-ref.c
 
 test_uri_SOURCES = \
 	$(top_srcdir)/src/mn-uri.c	\
@@ -33,6 +39,10 @@ AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	-DMN_REGRESSION_TEST
+
+test-sgml-ref.stamp: test-sgml-ref
+	./test-sgml-ref
+	@touch test-sgml-ref.stamp
 
 test-uri.stamp: test-uri
 	./test-uri

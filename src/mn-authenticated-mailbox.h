@@ -40,6 +40,7 @@ struct _MNAuthenticatedMailbox {
 	MNMailbox __parent__;
 	/*< private >*/
 	char * password; /* protected */
+	gboolean prompted; /* protected */
 	gboolean cancelled; /* protected */
 	MNAuthenticatedMailboxPrivate *_priv;
 };

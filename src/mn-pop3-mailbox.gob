@@ -8,7 +8,7 @@
  *	- RFC 1734
  *	- RFC 2595
  *
- * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,9 +45,7 @@ requires 2.0.10
 #include "mn-client-session.h"
 #include "mn-util.h"
 #include "mn-md5.h"
-#ifdef WITH_MIME
 #include "mn-message-mime.h"
-#endif
 
   enum
   {
@@ -62,12 +60,8 @@ requires 2.0.10
     STATE_APOP,
     STATE_USER,
     STATE_PASS,
-#ifdef WITH_MIME
     STATE_LIST,
     STATE_RETR,
-#else /* WITH_MIME */
-    STATE_STAT,
-#endif
     STATE_QUIT
   };
 
@@ -84,6 +78,7 @@ requires 2.0.10
     MNPOP3Mailbox		*self;
     MNClientSession		*session;
     gboolean			in_list;
+    gboolean			in_retr;
     char			*apop_timestamp;
     GSList			*auth_mechanisms;
 #ifdef WITH_SSL
@@ -95,12 +90,10 @@ requires 2.0.10
 #endif
     gboolean			authenticated;
     gboolean			login_delay_user;
-#ifdef WITH_MIME
     GSList			*message_numbers;
     GSList			*current_message_number;
     GSList			*messages;
     GString			*current_message;
-#endif
   };
 
   typedef enum
@@ -130,7 +123,7 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
   }
 
   override (G:Object) GObject *
-    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
   {
     GObject *object;
     MNMailbox *mailbox;
@@ -195,7 +188,7 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 		    MNClientSessionResponse *response (check null),
 		    MNClientSessionPrivate *priv (check null))
   {
-    self_handle_list_response(priv, response);
+    self_handle_list_response(priv, response, FALSE);
 
     switch (response->type)
       {
@@ -213,7 +206,7 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
       case RESPONSE_ERR:
       case RESPONSE_LIST_END:
 	if (priv->authenticated)
-	  return self_session_check_mail(priv);
+	  return STATE_LIST;
 
 #ifdef WITH_SSL
 	if (MN_URI_IS_INBAND_SSL(priv->mailbox->uri)
@@ -491,11 +484,7 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
     enter_list_cb (MNClientSession *session (check null),
 		   MNClientSessionPrivate *priv (check null))
   {
-#ifdef WITH_MIME
     return mn_client_session_write(session, "LIST");
-#else
-    g_return_val_if_reached(0);
-#endif
   }
 
   private int
@@ -503,8 +492,7 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 		    MNClientSessionResponse *response (check null),
 		    MNClientSessionPrivate *priv (check null))
   {
-#ifdef WITH_MIME
-    self_handle_list_response(priv, response);
+    self_handle_list_response(priv, response, FALSE);
 
     switch (response->type)
       {
@@ -533,31 +521,23 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
       default:
 	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
       }
-#else /* WITH_MIME */
-    g_return_val_if_reached(0);
-#endif
   }
   
   private int
     enter_retr_cb (MNClientSession *session (check null),
 		   MNClientSessionPrivate *priv (check null))
   {
-#ifdef WITH_MIME
     if (priv->current_message_number)
       return mn_client_session_write(session, "RETR %i", GPOINTER_TO_INT(priv->current_message_number->data));
     else
       {
 	GDK_THREADS_ENTER();
-	mn_mailbox_set_has_new(priv->mailbox, priv->messages != NULL);
 	mn_mailbox_set_messages(priv->mailbox, priv->messages);
 	gdk_flush();
 	GDK_THREADS_LEAVE();
 	
 	return STATE_QUIT;
       }
-#else
-    g_return_val_if_reached(0);
-#endif
   }
 
   private int
@@ -565,8 +545,7 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 		    MNClientSessionResponse *response (check null),
 		    MNClientSessionPrivate *priv (check null))
   {
-#ifdef WITH_MIME
-    self_handle_list_response(priv, response);
+    self_handle_list_response(priv, response, TRUE);
 
     switch (response->type)
       {
@@ -598,57 +577,8 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
       default:
 	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
       }
-#else
-    g_return_val_if_reached(0);
-#endif
   }
   
-  private int
-    enter_stat_cb (MNClientSession *session (check null),
-		   MNClientSessionPrivate *priv (check null))
-  {
-#ifndef WITH_MIME
-    return mn_client_session_write(session, "STAT");
-#else
-    g_return_val_if_reached(0);
-#endif
-  }
-
-  private int
-    handle_stat_cb (MNClientSession *session (check null),
-		    MNClientSessionResponse *response (check null),
-		    MNClientSessionPrivate *priv (check null))
-  {
-#ifndef WITH_MIME
-    switch (response->type)
-      {
-      case RESPONSE_OK:
-	{
-	  int count;
-	  int size;
-	  
-	  if (response->arguments && sscanf(response->arguments, "%d %d", &count, &size) == 2)
-	    {
-	      GDK_THREADS_ENTER();
-	      mn_mailbox_set_has_new(priv->mailbox, count != 0);
-	      gdk_flush();
-	      GDK_THREADS_LEAVE();
-	      
-	      return STATE_QUIT;
-	    }
-	  else			/* compliance error */
-	    return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
-	}
-	break;
-	
-      case RESPONSE_ERR:	return RESULT_ERROR_QUIT;
-      default:			return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
-      }
-#else /* ! WITH_MIME */
-    g_return_val_if_reached(0);
-#endif
-  }
-
   private int
     enter_quit_cb (MNClientSession *session (check null),
 		   MNClientSessionPrivate *priv (check null))
@@ -685,18 +615,15 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
       { STATE_APOP,		self_enter_apop_cb,	self_handle_apop_cb },
       { STATE_USER,		self_enter_user_cb,	self_handle_user_cb },
       { STATE_PASS,		self_enter_pass_cb,	self_handle_pass_cb },
-#ifdef WITH_MIME
       { STATE_LIST,		self_enter_list_cb,	self_handle_list_cb },
       { STATE_RETR,		self_enter_retr_cb,	self_handle_retr_cb },
-#else /* WITH_MIME */
-      { STATE_STAT,		self_enter_stat_cb,	self_handle_stat_cb },
-#endif
       { STATE_QUIT,		self_enter_quit_cb,	self_handle_quit_cb },
       
       MN_CLIENT_SESSION_STATES_END
     };
     MNClientSessionCallbacks callbacks = {
       self_notice_cb,
+      self_warning_cb,
       self_response_new_cb,
       self_response_free_cb,
       self_custom_handler_cb,
@@ -763,12 +690,10 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 
     g_free(priv.apop_timestamp);
     eel_g_slist_free_deep(priv.auth_mechanisms);
-#ifdef WITH_MIME
     g_slist_free(priv.message_numbers);
     mn_g_object_slist_free(priv.messages);
     if (priv.current_message)
       g_string_free(priv.current_message, TRUE);
-#endif
   }
   
   private void
@@ -779,6 +704,14 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
     mn_mailbox_notice(priv->mailbox, "%s", str);
   }
 
+  private void
+    warning_cb (MNClientSession *session (check null),
+		const char *str (check null),
+		MNClientSessionPrivate *priv (check null))
+  {
+    mn_mailbox_warning(priv->mailbox, "%s", str);
+  }
+
   private MNClientSessionResponse *
     response_new_cb (MNClientSession *session (check null),
 		     const char *input (check null),
@@ -786,54 +719,73 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
   {
     MNClientSessionResponse *response = NULL;
 
-    if (priv->in_list)
+    /*
+     * About character set handling:
+     *
+     * RFC 1939 3 specifies that "keywords and arguments consist of
+     * printable ASCII characters", however that refers to
+     * commands. Nothing is said about responses.
+     *
+     * We need responses to be valid UTF-8, because they might end up
+     * showing up in the UI (for instance, through
+     * session_set_error_from_arguments()).
+     *
+     * However, RETR multiline responses do not need to (and must not)
+     * be validated: most servers send them in whatever charset the
+     * original message is, and our mn-message-mime implementation
+     * handles that.
+     */
+    if (priv->in_retr || g_utf8_validate(input, -1, NULL))
       {
-	response = g_new0(MNClientSessionResponse, 1);
-	if (! strcmp(input, "."))
-	  response->type = RESPONSE_LIST_END;
-	else if (g_str_has_prefix(input, ".."))
-	  {
-	    response->type = RESPONSE_LIST_ITEM;
-	    response->arguments = g_strdup(input + 1); /* skip the initial dot */
-	  }
-	else
-	  {
-	    response->type = RESPONSE_LIST_ITEM;
-	    response->arguments = g_strdup(input);
-	  }
-      }
-    else
-      {
-	if (g_str_has_prefix(input, "+ "))
+	if (priv->in_list)
 	  {
 	    response = g_new0(MNClientSessionResponse, 1);
-	    response->type = RESPONSE_CONTINUATION;
-	    response->arguments = g_strdup(input + 2);
+	    if (! strcmp(input, "."))
+	      response->type = RESPONSE_LIST_END;
+	    else if (g_str_has_prefix(input, ".."))
+	      {
+		response->type = RESPONSE_LIST_ITEM;
+		response->arguments = g_strdup(input + 1); /* skip the initial dot */
+	      }
+	    else
+	      {
+		response->type = RESPONSE_LIST_ITEM;
+		response->arguments = g_strdup(input);
+	      }
 	  }
 	else
 	  {
-	    ResponseType type;
-	    int after_status = 0;
-	    
-	    if (g_str_has_prefix(input, "+OK"))
+	    if (g_str_has_prefix(input, "+ "))
 	      {
-		type = RESPONSE_OK;
-		after_status = 3;
+		response = g_new0(MNClientSessionResponse, 1);
+		response->type = RESPONSE_CONTINUATION;
+		response->arguments = g_strdup(input + 2);
 	      }
-	    else if (g_str_has_prefix(input, "-ERR"))
+	    else
 	      {
-		type = RESPONSE_ERR;
-		after_status = 4;
-	      }
-	    
-	    if (after_status)
-	      {
-		if (input[after_status] == 0 || input[after_status] == ' ')
+		ResponseType type;
+		int after_status = 0;
+		
+		if (g_str_has_prefix(input, "+OK"))
 		  {
-		    response = g_new0(MNClientSessionResponse, 1);
-		    response->type = type;
-		    if (input[after_status] == ' ')
-		      response->arguments = g_strdup(input + after_status + 1);
+		    type = RESPONSE_OK;
+		    after_status = 3;
+		  }
+		else if (g_str_has_prefix(input, "-ERR"))
+		  {
+		    type = RESPONSE_ERR;
+		    after_status = 4;
+		  }
+		
+		if (after_status)
+		  {
+		    if (input[after_status] == 0 || input[after_status] == ' ')
+		      {
+			response = g_new0(MNClientSessionResponse, 1);
+			response->type = type;
+			if (input[after_status] == ' ')
+			  response->arguments = g_strdup(input + after_status + 1);
+		      }
 		  }
 	      }
 	  }
@@ -882,19 +834,29 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 #ifdef WITH_SASL
 	    return STATE_AUTH;
 #else
-	    return mn_client_session_error(priv->session, _("a SASL authentication mechanism was selected but SASL support has not been compiled in"));
+	    mn_client_session_error(priv->session, _("a SASL authentication mechanism was selected but SASL support has not been compiled in"));
+	    return STATE_QUIT;
 #endif /* WITH_SASL */
 	  }
 	else
 	  {
 	    if (! strcmp(priv->mailbox->uri->authmech, "+APOP"))
-	      return priv->apop_timestamp
-		? STATE_APOP
-		: mn_client_session_error(priv->session, _("server does not support APOP authentication"));
+	      {
+		if (priv->apop_timestamp)
+		  return STATE_APOP;
+		else
+		  {
+		    mn_client_session_error(priv->session, _("server does not support APOP authentication"));
+		    return STATE_QUIT;
+		  }
+	      }
 	    else if (! strcmp(priv->mailbox->uri->authmech, "+USERPASS"))
 	      return STATE_USER;
 	    else
-	      return mn_client_session_error(priv->session, _("unknown authentication mechanism \"%s\""), priv->mailbox->uri->authmech);
+	      {
+		mn_client_session_error(priv->session, _("unknown authentication mechanism \"%s\""), priv->mailbox->uri->authmech);
+		return STATE_QUIT;
+	      }
 	  }
       }
     else
@@ -929,13 +891,16 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 	  }
       }
 
-    if (! priv->mailbox->uri->password)
+    if (! priv->mailbox->uri->password && priv->authenticated_mailbox->prompted)
       {
 	mn_authenticated_mailbox_authentication_failed(priv->authenticated_mailbox);
 	return self_session_authenticate(priv);
       }
     else
-      return mn_client_session_error(priv->session, _("authentication failed"));
+      {
+	mn_client_session_error(priv->session, _("authentication failed"));
+	return STATE_QUIT;
+      }
   }
   
   private int
@@ -949,19 +914,9 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 	else
 	  priv->self->_priv->authentication_timer = g_timer_new();
       }
-    return priv->login_delay_user ? STATE_CAPA : self_session_check_mail(priv);
+    return priv->login_delay_user ? STATE_CAPA : STATE_LIST;
   }
 
-  private int
-    session_check_mail (MNClientSessionPrivate *priv (check null))
-  {
-#ifdef WITH_MIME
-    return STATE_LIST;
-#else
-    return STATE_STAT;
-#endif
-  }
-  
   private void
     session_set_error_from_arguments (MNClientSessionPrivate *priv (check null),
 				      MNClientSessionResponse *response (check null))
@@ -974,12 +929,14 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 
   private void
     handle_list_response (MNClientSessionPrivate *priv (check null),
-			  MNClientSessionResponse *response (check null))
+			  MNClientSessionResponse *response (check null),
+			  gboolean retr)
   {
     switch (response->type)
       {
       case RESPONSE_OK:
 	priv->in_list = TRUE;
+	priv->in_retr = retr;
 	break;
 
       case RESPONSE_LIST_ITEM:	/* nop */
@@ -987,6 +944,7 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 
       default:
 	priv->in_list = FALSE;
+	priv->in_retr = FALSE;
 	break;
       }
   }

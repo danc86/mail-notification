@@ -51,7 +51,6 @@ struct _MNMailboxesClass {
 	/*signal*/void (* mailbox_changed) (MNMailboxes * self, MNMailbox * mailbox);
 	/*signal*/void (* mailbox_removed) (MNMailboxes * self, MNMailbox * mailbox);
 	/*signal*/void (* list_changed) (MNMailboxes * self);
-	/*signal*/void (* has_new_changed) (MNMailboxes * self);
 	/*signal*/void (* messages_changed) (MNMailboxes * self, gboolean has_new);
 	/*signal*/void (* error_changed) (MNMailboxes * self);
 };
@@ -69,8 +68,6 @@ GSList * 	mn_mailboxes_find	(MNMailboxes * self,
 					const char * text_uri);
 GSList * 	mn_mailboxes_find_uri	(MNMailboxes * self,
 					MNURI * uri);
-GSList * 	mn_mailboxes_conf_find	(GSList * gconf_mailboxes,
-					const char * text_uri);
 GSList * 	mn_mailboxes_conf_find_uri	(GSList * gconf_mailboxes,
 					MNURI * uri);
 MNMailboxes * 	mn_mailboxes_new	(void);
@@ -91,9 +88,6 @@ MNMailboxes * 	mn_mailboxes_new	(void);
 #define mn_mailboxes_connect__list_changed(object,func,data)	g_signal_connect(MN_MAILBOXES(__extension__ ({MNMailboxes *___object = (object); ___object; })),"list_changed",(GCallback) __extension__ ({void (* ___list_changed) (MNMailboxes * ___fake___self, gpointer ___data ) = (func); ___list_changed; }), (data))
 #define mn_mailboxes_connect_after__list_changed(object,func,data)	g_signal_connect_after(MN_MAILBOXES(__extension__ ({MNMailboxes *___object = (object); ___object; })),"list_changed",(GCallback) __extension__ ({void (* ___list_changed) (MNMailboxes * ___fake___self, gpointer ___data ) = (func); ___list_changed; }), (data))
 #define mn_mailboxes_connect_data__list_changed(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAILBOXES(__extension__ ({MNMailboxes *___object = (object); ___object; })),"list_changed",(GCallback) __extension__ ({void (* ___list_changed) (MNMailboxes * ___fake___self, gpointer ___data ) = (func); ___list_changed; }), (data), (destroy_data), (GConnectFlags)(flags))
-#define mn_mailboxes_connect__has_new_changed(object,func,data)	g_signal_connect(MN_MAILBOXES(__extension__ ({MNMailboxes *___object = (object); ___object; })),"has_new_changed",(GCallback) __extension__ ({void (* ___has_new_changed) (MNMailboxes * ___fake___self, gpointer ___data ) = (func); ___has_new_changed; }), (data))
-#define mn_mailboxes_connect_after__has_new_changed(object,func,data)	g_signal_connect_after(MN_MAILBOXES(__extension__ ({MNMailboxes *___object = (object); ___object; })),"has_new_changed",(GCallback) __extension__ ({void (* ___has_new_changed) (MNMailboxes * ___fake___self, gpointer ___data ) = (func); ___has_new_changed; }), (data))
-#define mn_mailboxes_connect_data__has_new_changed(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAILBOXES(__extension__ ({MNMailboxes *___object = (object); ___object; })),"has_new_changed",(GCallback) __extension__ ({void (* ___has_new_changed) (MNMailboxes * ___fake___self, gpointer ___data ) = (func); ___has_new_changed; }), (data), (destroy_data), (GConnectFlags)(flags))
 #define mn_mailboxes_connect__messages_changed(object,func,data)	g_signal_connect(MN_MAILBOXES(__extension__ ({MNMailboxes *___object = (object); ___object; })),"messages_changed",(GCallback) __extension__ ({void (* ___messages_changed) (MNMailboxes * ___fake___self, gboolean ___fake___has_new, gpointer ___data ) = (func); ___messages_changed; }), (data))
 #define mn_mailboxes_connect_after__messages_changed(object,func,data)	g_signal_connect_after(MN_MAILBOXES(__extension__ ({MNMailboxes *___object = (object); ___object; })),"messages_changed",(GCallback) __extension__ ({void (* ___messages_changed) (MNMailboxes * ___fake___self, gboolean ___fake___has_new, gpointer ___data ) = (func); ___messages_changed; }), (data))
 #define mn_mailboxes_connect_data__messages_changed(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAILBOXES(__extension__ ({MNMailboxes *___object = (object); ___object; })),"messages_changed",(GCallback) __extension__ ({void (* ___messages_changed) (MNMailboxes * ___fake___self, gboolean ___fake___has_new, gpointer ___data ) = (func); ___messages_changed; }), (data), (destroy_data), (GConnectFlags)(flags))
@@ -113,9 +107,6 @@ MNMailboxes * 	mn_mailboxes_new	(void);
 #define mn_mailboxes_connect__list_changed(object,func,data)	g_signal_connect(MN_MAILBOXES(object),"list_changed",(GCallback)(func),(data))
 #define mn_mailboxes_connect_after__list_changed(object,func,data)	g_signal_connect_after(MN_MAILBOXES(object),"list_changed",(GCallback)(func),(data))
 #define mn_mailboxes_connect_data__list_changed(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAILBOXES(object),"list_changed",(GCallback)(func),(data),(destroy_data),(GConnectFlags)(flags))
-#define mn_mailboxes_connect__has_new_changed(object,func,data)	g_signal_connect(MN_MAILBOXES(object),"has_new_changed",(GCallback)(func),(data))
-#define mn_mailboxes_connect_after__has_new_changed(object,func,data)	g_signal_connect_after(MN_MAILBOXES(object),"has_new_changed",(GCallback)(func),(data))
-#define mn_mailboxes_connect_data__has_new_changed(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAILBOXES(object),"has_new_changed",(GCallback)(func),(data),(destroy_data),(GConnectFlags)(flags))
 #define mn_mailboxes_connect__messages_changed(object,func,data)	g_signal_connect(MN_MAILBOXES(object),"messages_changed",(GCallback)(func),(data))
 #define mn_mailboxes_connect_after__messages_changed(object,func,data)	g_signal_connect_after(MN_MAILBOXES(object),"messages_changed",(GCallback)(func),(data))
 #define mn_mailboxes_connect_data__messages_changed(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAILBOXES(object),"messages_changed",(GCallback)(func),(data),(destroy_data),(GConnectFlags)(flags))

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,10 +31,8 @@ requires 2.0.10
 #include <gdk/gdk.h>
 #include "mn-mailbox-private.h"
 #include "mn-vfs.h"
-#ifdef WITH_MIME
 #include "mn-message-mime.h"
 #include "mn-gmime-stream-vfs.h"
-#endif /* WITH_MIME */
 #include "mn-util.h"
 %}
 
@@ -48,7 +46,7 @@ class MN:mbox:Mailbox from MN:Mailbox
   }
 
   override (G:Object) GObject *
-    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
   {
     GObject *object;
     MNMailbox *self;
@@ -143,7 +141,6 @@ class MN:mbox:Mailbox from MN:Mailbox
 	result = gnome_vfs_open_uri(&handle, mailbox->uri->vfs, GNOME_VFS_OPEN_READ);
 	if (result == GNOME_VFS_OK)
 	  {
-#ifdef WITH_MIME
 	    GMimeStream *stream;
 	    GMimeParser *parser;
 	    GSList *messages = NULL;
@@ -175,54 +172,11 @@ class MN:mbox:Mailbox from MN:Mailbox
 	    gnome_vfs_close(handle);
 	    
 	    GDK_THREADS_ENTER();
-
-	    mn_mailbox_set_has_new(mailbox, messages != NULL);
 	    mn_mailbox_set_messages(mailbox, messages);
-	    
 	    gdk_flush();
 	    GDK_THREADS_LEAVE();
 
 	    mn_g_object_slist_free(messages);
-
-#else /* WITH_MIME */
-
-	    MNVFSReadLineContext *context = NULL;
-	    const char *line;
-	    gboolean in_header = FALSE;
-	    gboolean seen = TRUE;	/* empty mailboxes have no new mail */
-	  
-	    while ((result = mn_vfs_read_line(&context, handle, &line)) == GNOME_VFS_OK)
-	      {
-		if (! *line)
-		  {
-		    if (! seen)
-		      break;
-		    in_header = FALSE;
-		  }
-		else if (g_str_has_prefix(line, "From "))
-		  {
-		    in_header = TRUE;
-		    seen = FALSE;
-		  }
-		else if (in_header
-			 && g_str_has_prefix(line, "Status:")
-			 && (strchr(line, 'O') || strchr(line, 'R')))
-		  seen = TRUE;
-	      }
-	    
-	    mn_vfs_read_line_context_free(context);
-	    gnome_vfs_close(handle);
-
-	    GDK_THREADS_ENTER();
-
-	    if (result == GNOME_VFS_OK || result == GNOME_VFS_ERROR_EOF)
-	      mn_mailbox_set_has_new(mailbox, ! seen);
-	    else
-	      mn_mailbox_set_error(mailbox, _("error while reading mailbox: %s"), gnome_vfs_result_to_string(result));
-
-	    gdk_flush();
-	    GDK_THREADS_LEAVE();
-#endif /* WITH_MIME */
 	  }
 	else
 	  {

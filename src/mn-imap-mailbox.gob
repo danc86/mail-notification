@@ -6,7 +6,7 @@
  *	- RFC 3501
  *	- RFC 2177
  *
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,12 +45,10 @@ requires 2.0.10
 #include "mn-mailbox-private.h"
 #include "mn-authenticated-mailbox-private.h"
 #include "mn-util.h"
-#ifdef WITH_MIME
 #include "mn-message-mime.h"
-#endif
 
 #define HAS_CURRENT_TAG(response, priv)	(! strcmp((response)->tag, (priv)->tag))
-#define IS(response, token)		(! strcmp((response)->response, (token)))
+#define IS(response, token)		(! g_ascii_strcasecmp((response)->response, (token)))
 #define IS_OK(response)			IS(response, "OK")
 #define IS_NO(response)			IS(response, "NO")
 #define IS_BAD(response)		IS(response, "BAD")
@@ -71,11 +69,7 @@ requires 2.0.10
     STATE_LOGIN,
     STATE_EXAMINE,
     STATE_SEARCH,
-#ifdef WITH_MIME
     STATE_FETCH,
-#else /* WITH_MIME */
-    STATE_STATUS,
-#endif
     STATE_IDLE,
     STATE_LOGOUT
   };
@@ -112,12 +106,8 @@ requires 2.0.10
     GSList			*fetch_numbers;
     char			*fetch_set;
 
-#ifdef WITH_MIME
     GSList			*received_numbers;
     GSList			*messages;
-#else /* WITH_MIME */
-    gboolean			status_received;
-#endif
 
 #ifdef WITH_SSL
     gboolean			starttls_completed;
@@ -153,7 +143,7 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
   }
 
   override (G:Object) GObject *
-    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
   {
     GObject *object;
     MNMailbox *mailbox;
@@ -386,7 +376,7 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 		     * CAPABILITY command in this case.
 		     */
 		    return self_handle_capability_code(priv, response) && mn_client_session_sasl_get_ssf(session)
-		      ? self_session_check_mail(priv)
+		      ? STATE_EXAMINE
 		      : STATE_CAPABILITY;
 		  }
 		else
@@ -454,7 +444,7 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 	      {
 		priv->authenticated = TRUE;
 		return self_handle_capability_code(priv, response)
-		  ? self_session_check_mail(priv)
+		  ? STATE_EXAMINE
 		  : STATE_CAPABILITY;
 	      }
 	    else if (IS_NO(response) || IS_BAD(response))
@@ -535,30 +525,11 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 		if (priv->search_received)
 		  {
 		    if (priv->fetch_set)
-		      {
-#ifdef WITH_MIME
-			return STATE_FETCH;
-#else
-			GDK_THREADS_ENTER();
-			mn_mailbox_set_has_new(priv->mailbox, TRUE);
-			gdk_flush();
-			GDK_THREADS_LEAVE();
-
-			/*
-			 * We are here and not in STATE_STATUS because
-			 * the IDLE capability has already been
-			 * tested, so proceed.
-			 */
-			return STATE_IDLE;
-#endif /* WITH_MIME */
-		      }
+		      return STATE_FETCH;
 		    else
 		      {
 			GDK_THREADS_ENTER();
-			mn_mailbox_set_has_new(priv->mailbox, FALSE);
-#ifdef WITH_MIME
 			mn_mailbox_set_messages(priv->mailbox, NULL);
-#endif
 			gdk_flush();
 			GDK_THREADS_LEAVE();
 
@@ -614,7 +585,6 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
     enter_fetch_cb (MNClientSession *session (check null),
 		    MNClientSessionPrivate *priv (check null))
   {
-#ifdef WITH_MIME
     g_return_val_if_fail(priv->fetch_set != NULL, 0);
 
     g_slist_free(priv->received_numbers);
@@ -624,9 +594,6 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
     priv->messages = NULL;
 
     return self_session_write(priv, "FETCH %s BODY[HEADER]", priv->fetch_set);
-#else /* WITH_MIME */
-    g_return_val_if_reached(0);
-#endif
   }
   
   private int
@@ -634,7 +601,6 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 		     MNClientSessionResponse *response (check null),
 		     MNClientSessionPrivate *priv (check null))
   {
-#ifdef WITH_MIME
     if (response->continuation)
       return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
     else if (response->tag)
@@ -651,7 +617,6 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 		    return mn_client_session_error(session, _("server did not send all the messages we requested"));
 		    
 		GDK_THREADS_ENTER();
-		mn_mailbox_set_has_new(priv->mailbox, priv->messages != NULL);
 		mn_mailbox_set_messages(priv->mailbox, priv->messages);
 		gdk_flush();
 		GDK_THREADS_LEAVE();
@@ -668,8 +633,14 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
       }
     else if (mn_str_isnumeric(response->response)
 	     && response->arguments
-	     && g_str_has_prefix(response->arguments, "FETCH (BODY[HEADER]"))
+	     && (mn_ascii_str_case_has_prefix(response->arguments, "FETCH (BODY[HEADER]")
+		 || mn_ascii_str_case_has_prefix(response->arguments, "FETCH (BODY[HEADER "))) /* [1] */
       {
+	/*
+	 * [1] Non-compliant response (see RFC 3501 BNF), sent by Binc
+	 * IMAP and maybe others. We are tolerant.
+	 */
+
 	int n = atoi(response->response);
 
 	if (g_slist_find(priv->fetch_numbers, GINT_TO_POINTER(n)))
@@ -704,9 +675,6 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
       }
 	
     return RESULT_DEFAULT_HANDLER;
-#else /* WITH_MIME */
-    g_return_val_if_reached(0);
-#endif
   }
   
   private int
@@ -781,74 +749,6 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
   }
 
   private int
-    enter_status_cb (MNClientSession *session (check null),
-		     MNClientSessionPrivate *priv (check null))
-  {
-#ifndef WITH_MIME
-    char *quoted_mailbox;
-    int result;
-
-    quoted_mailbox = self_quote(priv->mailbox->uri->path);
-    result = self_session_write(priv, "STATUS %s (UNSEEN)", quoted_mailbox);
-    g_free(quoted_mailbox);
-
-    return result;
-#else /* ! WITH_MIME */
-    g_return_val_if_reached(0);
-#endif
-  }
-  
-  private int
-    handle_status_cb (MNClientSession *session (check null),
-		      MNClientSessionResponse *response (check null),
-		      MNClientSessionPrivate *priv (check null))
-  {
-#ifndef WITH_MIME
-    if (response->continuation)
-      return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
-    else if (response->tag)
-      {
-	if (HAS_CURRENT_TAG(response, priv))
-	  {
-	    if (IS_OK(response))
-	      {
-		if (priv->status_received)
-		  return STATE_LOGOUT;
-		else		/* compliance error */
-		  return mn_client_session_error(session, _("server did not send status"));
-	      }
-	    else if (IS_NO(response) || IS_BAD(response))
-	      return RESULT_ERROR_LOGOUT;
-	    else
-	      return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
-	  }
-      }
-    else if (IS(response, "STATUS"))
-      {
-	int count;
-	
-	if (response->arguments && sscanf(response->arguments, "%*s (UNSEEN %i)", &count) == 1)
-	  {
-	    priv->status_received = TRUE;
-	    
-	    GDK_THREADS_ENTER();
-	    mn_mailbox_set_has_new(priv->mailbox, count != 0);
-	    gdk_flush();
-	    GDK_THREADS_LEAVE();
-	    
-	    return MN_CLIENT_SESSION_RESULT_CONTINUE;
-	  }
-	else
-	  return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
-      }
-    
-    return RESULT_DEFAULT_HANDLER;
-#else /* ! WITH_MIME */
-    g_return_val_if_reached(0);
-#endif
-  }
-
-  private int
     enter_logout_cb (MNClientSession *session (check null),
 		     MNClientSessionPrivate *priv (check null))
   {
@@ -891,11 +791,7 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
       { STATE_LOGIN,		self_enter_login_cb,		self_handle_login_cb },
       { STATE_EXAMINE,		self_enter_examine_cb,		self_handle_examine_cb },
       { STATE_SEARCH,		self_enter_search_cb,		self_handle_search_cb },
-#ifdef WITH_MIME
       { STATE_FETCH,		self_enter_fetch_cb,		self_handle_fetch_cb },
-#else
-      { STATE_STATUS,		self_enter_status_cb,		self_handle_status_cb },
-#endif
       { STATE_IDLE,		self_enter_idle_cb,		self_handle_idle_cb },
       { STATE_LOGOUT,		self_enter_logout_cb,		self_handle_logout_cb },
       
@@ -903,6 +799,7 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
     };
     MNClientSessionCallbacks callbacks = {
       self_notice_cb,
+      self_warning_cb,
       self_response_new_cb,
       self_response_free_cb,
       self_custom_handler_cb,
@@ -942,10 +839,8 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 	g_slist_free(priv.fetch_numbers);
 	g_free(priv.fetch_set);
 
-#ifdef WITH_MIME
 	g_slist_free(priv.received_numbers);
 	mn_g_object_slist_free(priv.messages);
-#endif
       }
     while (status && priv.could_idle && ! REMOVED(self));
 
@@ -971,6 +866,14 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
     mn_mailbox_notice(priv->mailbox, "%s", str);
   }
   
+  private void
+    warning_cb (MNClientSession *session (check null),
+		const char *str (check null),
+		MNClientSessionPrivate *priv (check null))
+  {
+    mn_mailbox_warning(priv->mailbox, "%s", str);
+  }
+
   private MNClientSessionResponse *
     response_new_cb (MNClientSession *session (check null),
 		     const char *input (check null),
@@ -978,47 +881,54 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
   {
     MNClientSessionResponse *response = NULL;
 
-    if (g_str_has_prefix(input, "+ "))
+    /*
+     * RFC 3501 1.2: "Characters are 7-bit US-ASCII unless otherwise
+     * specified."
+     */
+    if (mn_ascii_validate(input))
       {
-	response = g_new0(MNClientSessionResponse, 1);
-	response->continuation = g_strdup(input + 2);
-      }
-    else
-      {
-	char **tokens;
-	
-	tokens = g_strsplit(input, " ", 3);
-	if (tokens[0] && tokens[1])
+	if (g_str_has_prefix(input, "+ "))
 	  {
-	    if (tokens[2] && tokens[2][0] == '[')
+	    response = g_new0(MNClientSessionResponse, 1);
+	    response->continuation = g_strdup(input + 2);
+	  }
+	else
+	  {
+	    char **tokens;
+	    
+	    tokens = g_strsplit(input, " ", 3);
+	    if (tokens[0] && tokens[1])
 	      {
-		char *code_start;
-		char *code_end;
-		
-		code_start = tokens[2] + 1;
-		code_end = strchr(code_start, ']');
-		if (code_end)
+		if (tokens[2] && tokens[2][0] == '[')
+		  {
+		    char *code_start;
+		    char *code_end;
+		    
+		    code_start = tokens[2] + 1;
+		    code_end = strchr(code_start, ']');
+		    if (code_end)
+		      {
+			response = g_new0(MNClientSessionResponse, 1);
+			response->code = g_strndup(code_start, code_end - code_start);
+			response->arguments = code_end[1] ? g_strdup(code_end + 2) : NULL;
+		      }
+		  }
+		else
 		  {
 		    response = g_new0(MNClientSessionResponse, 1);
-		    response->code = g_strndup(code_start, code_end - code_start);
-		    response->arguments = code_end[1] ? g_strdup(code_end + 2) : NULL;
+		    response->arguments = g_strdup(tokens[2]);
+		  }
+		
+		if (response)
+		  {
+		    response->tag = ! strcmp(tokens[0], "*") ? NULL : g_strdup(tokens[0]);
+		    response->response = g_strdup(tokens[1]);
 		  }
 	      }
-	    else
-	      {
-		response = g_new0(MNClientSessionResponse, 1);
-		response->arguments = g_strdup(tokens[2]);
-	      }
-	    
-	    if (response)
-	      {
-		response->tag = ! strcmp(tokens[0], "*") ? NULL : g_strdup(tokens[0]);
-		response->response = g_strdup(tokens[1]);
-	      }
+	    g_strfreev(tokens);
 	  }
-	g_strfreev(tokens);
       }
-    
+	
     return response;
   }
 
@@ -1125,12 +1035,12 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
   {
     if (response->code)
       {
-	if (! strcmp(response->code, "CAPABILITY"))
+	if (! g_ascii_strcasecmp(response->code, "CAPABILITY"))
 	  {
 	    self_session_parse_capabilities(priv, NULL);
 	    return TRUE;
 	  }
-	else if (g_str_has_prefix(response->code, "CAPABILITY "))
+	else if (mn_ascii_str_case_has_prefix(response->code, "CAPABILITY "))
 	  {
 	    self_session_parse_capabilities(priv, response->code + 11);
 	    return TRUE;
@@ -1173,7 +1083,7 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
     g_return_val_if_fail(priv->capabilities != NULL, FALSE);
 
     for (i = 0; priv->capabilities[i]; i++)
-      if (! strcmp(priv->capabilities[i], capability))
+      if (! g_ascii_strcasecmp(priv->capabilities[i], capability))
 	return TRUE;
     
     return FALSE;
@@ -1183,7 +1093,7 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
     session_after_capability (MNClientSessionPrivate *priv (check null))
   {
     if (priv->authenticated)
-      return self_session_check_mail(priv);
+      return STATE_EXAMINE;
     else
       {
 #ifdef WITH_SSL
@@ -1214,7 +1124,8 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 #ifdef WITH_SASL
 	    return STATE_AUTHENTICATE;
 #else
-	    return mn_client_session_error(priv->session, _("a SASL authentication mechanism was selected but SASL support has not been compiled in"));
+	    mn_client_session_error(priv->session, _("a SASL authentication mechanism was selected but SASL support has not been compiled in"));
+	    return STATE_LOGOUT;
 #endif /* WITH_SASL */
 	  }
 	else
@@ -1222,7 +1133,10 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 	    if (! strcmp(priv->mailbox->uri->authmech, "+LOGIN"))
 	      return STATE_LOGIN;
 	    else
-	      return mn_client_session_error(priv->session, _("unknown authentication mechanism \"%s\""), priv->mailbox->uri->authmech);
+	      {
+		mn_client_session_error(priv->session, _("unknown authentication mechanism \"%s\""), priv->mailbox->uri->authmech);
+		return STATE_LOGOUT;
+	      }
 	  }
       }
     else
@@ -1248,25 +1162,16 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 	  }
       }
 
-    if (! priv->mailbox->uri->password)
+    if (! priv->mailbox->uri->password && priv->authenticated_mailbox->prompted)
       {
 	mn_authenticated_mailbox_authentication_failed(priv->authenticated_mailbox);
 	return self_session_authenticate(priv);
       }
     else
-      return mn_client_session_error(priv->session, _("authentication failed"));
-  }
-
-  private int
-    session_check_mail (MNClientSessionPrivate *priv (check null))
-  {
-#ifdef WITH_MIME
-    return STATE_EXAMINE;
-#else
-    return self_session_has_capability(priv, "IDLE") && ! mn_uri_has_query(priv->mailbox->uri, "noidle")
-      ? STATE_EXAMINE
-      : STATE_STATUS;
-#endif /* WITH_MIME */
+      {
+	mn_client_session_error(priv->session, _("authentication failed"));
+	return STATE_LOGOUT;
+      }
   }
 
   /**

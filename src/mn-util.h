@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,8 +50,11 @@ GSList		*mn_g_object_slist_delete_link	(GSList		*list,
 
 gboolean	mn_str_isnumeric		(const char	*str);
 
+#define MN_IMAGE_FILE(path, name)	path G_DIR_SEPARATOR_S name
+#define MN_INTERFACE_FILE(name) 	UIDIR G_DIR_SEPARATOR_S name
+
 GdkPixbuf	*mn_pixbuf_new			(const char	*filename);
-void		mn_create_interface		(const char	*name,
+void		mn_create_interface		(const char	*filename,
 						 ...);
 
 void mn_file_chooser_dialog_allow_select_folder (GtkFileChooserDialog *dialog,
@@ -76,13 +79,6 @@ void		mn_display_help			(GtkWindow	*parent,
 void		mn_thread_create		(GThreadFunc	func,
 						 gpointer	data);
 
-GtkTooltips	*mn_gtk_tooltips_new		(void);
-void		mn_gtk_tooltips_set_tips	(GtkTooltips	*tooltips,
-						 ...);
-
-#define mn_gtk_tooltips_set_tip(tooltips, widget, tip) \
-  gtk_tooltips_set_tip((tooltips), (widget), (tip), NULL)
-
 GtkWidget	*mn_menu_shell_append		(GtkMenuShell	*shell,
 						 const char	*stock_id,
 						 const char	*mnemonic);
@@ -98,29 +94,9 @@ void		mn_error_dialog			(GtkWindow	*parent,
 						 ...) G_GNUC_PRINTF(5, 6);
 void		mn_fatal_error_dialog		(GtkWindow	*parent,
 						 const char	*format,
-						 ...) G_GNUC_PRINTF(2, 3);
+						 ...) G_GNUC_PRINTF(2, 3) G_GNUC_NORETURN;
 
 time_t		mn_time				(void);
-
-typedef enum
-{
-  MN_POSITION_TOP_LEFT,
-  MN_POSITION_TOP_RIGHT,
-  MN_POSITION_BOTTOM_LEFT,
-  MN_POSITION_BOTTOM_RIGHT
-} MNPosition;
-
-GType		mn_position_get_type		(void);
-#define MN_TYPE_POSITION (mn_position_get_type())
-
-typedef enum
-{
-  MN_ACTION_DISPLAY_MAIL_SUMMARY,
-  MN_ACTION_LAUNCH_MAIL_READER
-} MNAction;
-
-GType		mn_action_get_type		(void);
-#define MN_TYPE_ACTION (mn_action_get_type())
 
 gpointer	mn_g_object_connect		(gpointer	object,
 						 gpointer	instance,
@@ -129,7 +105,23 @@ gpointer	mn_g_object_connect		(gpointer	object,
 
 void		mn_execute_command		(const char	*conf_key);
 
-#define MN_STRING_TO_POINTER(str)	((*str) ? (str) : NULL)
-#define MN_POINTER_TO_STRING(ptr)	((ptr) ? (ptr) : "")
+void		mn_gtk_object_ref_and_sink	(GtkObject	*object);
+
+int		mn_utf8_strcasecoll		(const char	*s1,
+						 const char	*s2);
+
+int		mn_dialog_run_nonmodal		(GtkDialog	*dialog);
+
+gboolean	mn_ascii_validate		(const char	*str);
+
+void		mn_source_remove		(unsigned int	*tag);
+
+unsigned int	mn_timeout_add			(const char	*minutes_key,
+						 const char	*seconds_key,
+						 GSourceFunc	function,
+						 gpointer	data);
+
+gboolean	mn_ascii_str_case_has_prefix	(const char	*str,
+						 const char	*prefix);
 
 #endif /* _MN_UTIL_H */

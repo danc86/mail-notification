@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,17 +69,15 @@ class MN:Mailboxes from G:Object
   {
     /* disconnect signals */
     g_object_disconnect(mailbox,
-			"any_signal", self_notify_has_new_h, self,
-			"any_signal", self_messages_changed_h, self,
-			"any_signal", self_notify_error_h, self,
-			"any_signal", self_notify_must_poll_h, self,
+			"any-signal", self_messages_changed_h, self,
+			"any-signal", self_notify_error_h, self,
+			"any-signal", self_notify_must_poll_h, self,
 			NULL);
 
     /* emit the "removed" signal on the mailbox */
     mn_mailbox_removed(mailbox);
 
-    /* has-new, messages and error have possibly changed */
-    self_has_new_changed(self);
+    /* messages and error have possibly changed */
     self_messages_changed(self, FALSE);
     self_error_changed(self);
   }
@@ -100,25 +98,15 @@ class MN:Mailboxes from G:Object
   }
   
   /**
-   * has-new-changed:
-   * @self: the object which received the signal
-   *
-   * This signal gets emitted whenever the global has-new state has
-   * possibly changed, either because one of the mailboxes has-new
-   * property has changed, or because a mailbox has been removed from
-   * the list.
-   **/
-  signal private NONE (NONE)
-    void has_new_changed (self);
-
-  /**
    * messages-changed:
    * @self: the object which received the signal
    * @has_new: whether a new message has been received or not
    *
    * This signal gets emitted whenever a call to
-   * mn_mailboxes_get_messages() would lead to a different list than
-   * before the signal emission.
+   * mn_mailboxes_get_messages() may possibly lead to a different list
+   * than before the signal emission, either because one of the
+   * mailboxes messages property has changed, or because a mailbox has
+   * been removed from the list.
    *
    * Note: messages are only compared by id, therefore two messages
    * having the same id and different data are not considered
@@ -178,7 +166,7 @@ class MN:Mailboxes from G:Object
 
   private void
     notify_delay_cb (GConfClient *client,
-		     guint cnxn_id,
+		     unsigned int cnxn_id,
 		     GConfEntry *entry,
 		     gpointer user_data (check null))
   {
@@ -191,7 +179,7 @@ class MN:Mailboxes from G:Object
 
   private void
     notify_mailboxes_cb (GConfClient *client,
-			 guint cnxn_id,
+			 unsigned int cnxn_id,
 			 GConfEntry *entry,
 			 gpointer user_data (check null))
   {
@@ -272,7 +260,6 @@ class MN:Mailboxes from G:Object
 	  mn_info(_("%s is unsupported: %s"), mn_mailbox_get_name(mailbox), mn_unsupported_mailbox_get_reason(MN_UNSUPPORTED_MAILBOX(mailbox)));
 	
 	g_object_connect(mailbox,
-			 "signal::notify::has-new", self_notify_has_new_h, self,
 			 "signal::messages-changed", self_messages_changed_h, self,
 			 "signal::notify::error", self_notify_error_h, self,
 			 "signal::notify::must-poll", self_notify_must_poll_h, self,
@@ -292,27 +279,17 @@ class MN:Mailboxes from G:Object
   }
 
   private void
-    notify_has_new_h (G:Object *object (check null type),
-		      GParamSpec *pspec (check null),
-		      gpointer user_data (check null))
-  {
-    Self *self = user_data;
-    MNMailbox *mailbox = MN_MAILBOX(object);
-    gboolean has_new;
-
-    has_new = mn_mailbox_get_has_new(mailbox);
-    mn_info(has_new ? _("%s has new mail") : _("%s has no new mail"), mn_mailbox_get_name(mailbox));
-
-    self_has_new_changed(self);
-  }
-
-  private void
     messages_changed_h (MN:Mailbox *mailbox (check null type),
 			gboolean has_new,
 			gpointer user_data (check null))
   {
     Self *self = user_data;
+    int n_messages;
 
+    n_messages = g_slist_length(mn_mailbox_get_messages(mailbox));
+    mn_info(ngettext("%s has %i new message", "%s has %i new messages", n_messages),
+	    mn_mailbox_get_name(mailbox), n_messages);
+    
     self_messages_changed(self, has_new);
   }
   
@@ -346,22 +323,11 @@ class MN:Mailboxes from G:Object
   private void
     install_timeout (self)
   {
-    int minutes;
-    int seconds;
-
-    if (selfp->timeout_id)
-      {
-	g_source_remove(selfp->timeout_id);
-	selfp->timeout_id = 0;
-      }
-    
-    minutes = eel_gconf_get_integer(MN_CONF_DELAY_MINUTES);
-    seconds = eel_gconf_get_integer(MN_CONF_DELAY_SECONDS);
-    
-    if (minutes != 0 || seconds != 0)
-      selfp->timeout_id = g_timeout_add(((minutes * 60) + seconds) * 1000,
-					self_timeout_cb,
-					self);
+    mn_source_remove(&selfp->timeout_id);
+    selfp->timeout_id = mn_timeout_add(MN_CONF_DELAY_MINUTES,
+				       MN_CONF_DELAY_SECONDS,
+				       self_timeout_cb,
+				       self);
   }
 
   private gboolean
@@ -440,19 +406,6 @@ class MN:Mailboxes from G:Object
     MNURI *uri = (MNURI *) b;
 
     return strcmp(mailbox->uri->text, uri->text);
-  }
-
-  public GSList *
-    conf_find (GSList *gconf_mailboxes, const char *text_uri (check null))
-  {
-    MNURI *uri;
-    GSList *elem;
-
-    uri = mn_uri_new(text_uri);
-    elem = self_conf_find_uri(gconf_mailboxes, uri);
-    g_object_unref(uri);
-
-    return elem;
   }
 
   public GSList *

@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<ui>
+  <menubar>
+    <menu action="Mail">
+      <menuitem action="MailMailReader"/>
+      <menuitem action="MailUpdate"/>
+      <separator name="MailSep1"/>
+      <menuitem action="MailClose"/>
+      <menuitem action="MailQuit"/>
+    </menu>
+
+    <menu action="Edit">
+      <menuitem action="EditToolbars"/>
+      <menuitem action="EditPreferences"/>
+    </menu>
+
+    <menu action="View">
+      <menuitem action="ViewToolbars"/>
+      <menuitem action="ViewStatusbar"/>
+      <separator name="ViewSep1"/>
+      <menu action="ViewToolbarsStyle">
+	<menuitem action="ViewToolbarsStyleDesktopDefault"/>
+	<separator name="ViewToolbarsStyleSep1"/>
+	<menuitem action="ViewToolbarsStyleIconsOnly"/>
+	<menuitem action="ViewToolbarsStyleTextOnly"/>
+	<menuitem action="ViewToolbarsStyleTextBelowIcons"/>
+	<menuitem action="ViewToolbarsStyleTextBesideIcons"/>
+      </menu>
+    </menu>
+    
+    <menu action="Help">
+      <menuitem action="HelpContents"/>
+      <menuitem action="HelpAbout"/>
+    </menu>
+  </menubar>
+</ui>

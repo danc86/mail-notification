@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,8 +31,6 @@ static gunichar mn_sgml_ref_get_unichar (const char *ref);
 static gunichar
 mn_sgml_ref_get_unichar (const char *ref)
 {
-  gunichar c = 0;		/* 0 means "invalid reference" */
-
   g_return_val_if_fail(ref != NULL, 0);
 
   if (*ref == '#')
@@ -58,7 +56,7 @@ mn_sgml_ref_get_unichar (const char *ref)
 	  
 	  code = strtoul(nptr, &end, base);
 	  if (*end == 0)	/* could convert */
-	    c = code;
+	    return code;
 	}
     }
   else
@@ -67,62 +65,67 @@ mn_sgml_ref_get_unichar (const char *ref)
 
       for (i = 0; i < G_N_ELEMENTS(entities); i++)
 	if (! strcmp(ref, entities[i].name))
-	  {
-	    c = entities[i].character;
-	    break;
-	  }
+	  return entities[i].character;
     }
   
-  return c;
+  return 0;			/* invalid reference */
 }
 
 /**
  * mn_sgml_ref_expand:
- * @string: a string to expand
+ * @str: a nul-terminated string.
  *
- * Parses @str, expanding every SGML character reference to its
- * Unicode character.
+ * Parses @str, expanding its SGML character references and XHTML
+ * character entities into their Unicode character value.
  *
- * Return value: a newly-allocated UTF-8 string.
+ * Numerical SGML character references as well as XHTML entities are
+ * supported. Unsupported entities will be inserted verbatim into the
+ * result.
+ *
+ * Return value: the expansion of str. The returned string should be
+ * freed when no longer needed.
  **/
 char *
 mn_sgml_ref_expand (const char *str)
 {
   GString *unescaped;
-  char *ampersand;
-  char *start;
+  const char *start;
 
   g_return_val_if_fail(str != NULL, NULL);
 
   unescaped = g_string_new(NULL);
-  start = (char *) str;
 
-  while ((ampersand = strchr(start, '&')))
+  while ((start = strchr(str, '&')))
     {
-      char *semicolon = strchr(ampersand, ';');
+      const char *end;
+      gunichar c;
 
-      if (semicolon)
-	{
-	  char *ref;
-	  gunichar c;
+      end = strpbrk(start + 1, "; &\t\n");
+      if (! end)
+	end = strchr(start + 1, 0);
+      
+      {
+	char ref[end - start];
 
-	  ref = g_strndup(ampersand + 1, semicolon - ampersand - 1);
-	  c = mn_sgml_ref_get_unichar(ref);
-	  g_free(ref);
+	strncpy(ref, start + 1, end - start - 1);
+	ref[end - start - 1] = 0;
 
-	  g_string_append_len(unescaped, start, ampersand - start);
-	  if (c)
-	    g_string_append_unichar(unescaped, c);
-	  else			/* invalid reference, append it raw */
-	    g_string_append_len(unescaped, ampersand, semicolon - ampersand + 1);
+	c = mn_sgml_ref_get_unichar(ref);
+      }
+	
+      if (*end == ';')		/* semicolon is part of entity, skip it */
+	end++;
 
-	  start = semicolon + 1;
-	}
-      else
-	break;
+      g_string_append_len(unescaped, str, start - str);
+      if (c)
+	g_string_append_unichar(unescaped, c);
+      else			/* invalid reference, append it raw */
+	g_string_append_len(unescaped, start, end - start);
+	
+      str = end;
     }
 
-  g_string_append(unescaped, start);
+  g_string_append(unescaped, str);
 
   return g_string_free(unescaped, FALSE);
 }

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,9 +16,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _MN_PROPERTIES_H
-#define _MN_PROPERTIES_H
+#ifndef _MN_ICU_H
+#define _MN_ICU_H
 
-void	mn_properties_display			(void);
+#include <glib.h>
+#include <unicode/utypes.h>
 
-#endif /* _MN_PROPERTIES_H */
+gboolean mn_icu_use (GError **err);
+void mn_icu_unuse (void);
+
+UChar *mn_icu_ustr_new (const char *str);
+
+#endif /* _MN_ICU_H */

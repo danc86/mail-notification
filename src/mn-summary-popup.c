@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,14 +19,13 @@
 #include "config.h"
 #include <glib/gi18n.h>
 #include <eel/eel.h>
-#include "mn-summary.h"
 #include "mn-util.h"
 #include "mn-shell.h"
 #include "mn-conf.h"
 #include "mn-stock.h"
-#include "mn-summary-dialog.h"
+#include "mn-main-window.h"
 #include "mn-summary-popup.h"
-#include "mn-message-box.h"
+#include "mn-message-view.h"
 
 /*** types *******************************************************************/
 
@@ -36,7 +35,7 @@ typedef struct
   GtkWidget	*popup;
   GtkWidget	*image;
   GtkWidget	*title;
-  GtkWidget	*vbox;
+  GtkWidget	*message_view;
   unsigned int	timeout_id;
 
   GSList	*displayed_messages;
@@ -50,12 +49,12 @@ typedef struct
 
 /*** variables ***************************************************************/
 
-static SummaryPopup popup = {
+static SummaryPopup self = {
   FALSE,			/* enabled */
   NULL,				/* popup */
   NULL,				/* image */
   NULL,				/* title */
-  NULL,				/* vbox */
+  NULL,				/* message_view */
   0,				/* timeout_id */
 
   NULL,				/* displayed_messages */
@@ -70,29 +69,33 @@ static SummaryPopup popup = {
 /*** functions ***************************************************************/
     
 static void mn_summary_popup_notify_enable_cb (GConfClient *client,
-					       guint cnxn_id,
+					       unsigned int cnxn_id,
 					       GConfEntry *entry,
 					       gpointer user_data);
 static void mn_summary_popup_notify_autoclose_cb (GConfClient *client,
-						  guint cnxn_id,
+						  unsigned int cnxn_id,
 						  GConfEntry *entry,
 						  gpointer user_data);
 static void mn_summary_popup_notify_delay_cb (GConfClient *client,
-					      guint cnxn_id,
+					      unsigned int cnxn_id,
 					      GConfEntry *entry,
 					      gpointer user_data);
 static void mn_summary_popup_notify_geometry_cb (GConfClient *client,
-						 guint cnxn_id,
+						 unsigned int cnxn_id,
 						 GConfEntry *entry,
 						 gpointer user_data);
-static void mn_summary_popup_notify_title_font_cb (GConfClient *client,
-						   guint cnxn_id,
-						   GConfEntry *entry,
-						   gpointer user_data);
-static void mn_summary_popup_notify_contents_font_cb (GConfClient *client,
-						      guint cnxn_id,
-						      GConfEntry *entry,
-						      gpointer user_data);
+static void mn_summary_popup_notify_fonts_aspect_source_cb (GConfClient *client,
+							    unsigned int cnxn_id,
+							    GConfEntry *entry,
+							    gpointer user_data);
+static void mn_summary_popup_notify_fonts_title_font_cb (GConfClient *client,
+							 unsigned int cnxn_id,
+							 GConfEntry *entry,
+							 gpointer user_data);
+static void mn_summary_popup_notify_fonts_contents_font_cb (GConfClient *client,
+							    unsigned int cnxn_id,
+							    GConfEntry *entry,
+							    gpointer user_data);
 
 static void mn_summary_popup_enable (void);
 static void mn_summary_popup_disable (void);
@@ -108,11 +111,8 @@ static void mn_summary_popup_weak_notify_cb (gpointer data,
 static void mn_summary_popup_set_geometry (void);
 static void mn_summary_popup_set_title_font (void);
 static void mn_summary_popup_set_contents_font (void);
-static void mn_summary_popup_set_contents_font_cb (GtkWidget *widget,
-						   gpointer user_data);
 
 static void mn_summary_popup_install_timeout (void);
-static void mn_summary_popup_remove_timeout (void);
 
 static gboolean mn_summary_popup_timeout_cb (gpointer data);
 
@@ -131,13 +131,14 @@ mn_summary_popup_init (void)
   eel_gconf_notification_add(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_NAMESPACE, mn_summary_popup_notify_delay_cb, NULL);
   eel_gconf_notification_add(MN_CONF_MAIL_SUMMARY_POPUP_POSITION, mn_summary_popup_notify_geometry_cb, NULL);
   eel_gconf_notification_add(MN_CONF_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE, mn_summary_popup_notify_geometry_cb, NULL);
-  eel_gconf_notification_add(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_NAMESPACE, mn_summary_popup_notify_title_font_cb, NULL);
-  eel_gconf_notification_add(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_NAMESPACE, mn_summary_popup_notify_contents_font_cb, NULL);
+  eel_gconf_notification_add(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE, mn_summary_popup_notify_fonts_aspect_source_cb, NULL);
+  eel_gconf_notification_add(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_FONT, mn_summary_popup_notify_fonts_title_font_cb, NULL);
+  eel_gconf_notification_add(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_FONT, mn_summary_popup_notify_fonts_contents_font_cb, NULL);
 }
 
 static void
 mn_summary_popup_notify_enable_cb (GConfClient *client,
-				   guint cnxn_id,
+				   unsigned int cnxn_id,
 				   GConfEntry *entry,
 				   gpointer user_data)
 {
@@ -153,21 +154,21 @@ mn_summary_popup_notify_enable_cb (GConfClient *client,
 
 static void
 mn_summary_popup_notify_autoclose_cb (GConfClient *client,
-				     guint cnxn_id,
+				     unsigned int cnxn_id,
 				     GConfEntry *entry,
 				     gpointer user_data)
 {
   GDK_THREADS_ENTER();
 
-  if (popup.enabled)
+  if (self.enabled)
     {
       if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE))
 	{
-	  if (popup.popup && ! popup.timeout_id)
+	  if (self.popup && ! self.timeout_id)
 	    mn_summary_popup_install_timeout();
 	}
       else
-	mn_summary_popup_remove_timeout();
+	mn_source_remove(&self.timeout_id);
     }
 
   GDK_THREADS_LEAVE();
@@ -175,15 +176,15 @@ mn_summary_popup_notify_autoclose_cb (GConfClient *client,
 
 static void
 mn_summary_popup_notify_delay_cb (GConfClient *client,
-				  guint cnxn_id,
+				  unsigned int cnxn_id,
 				  GConfEntry *entry,
 				  gpointer user_data)
 {
   GDK_THREADS_ENTER();
 
-  if (popup.enabled && popup.popup && eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE))
+  if (self.enabled && self.popup && eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE))
     {
-      mn_summary_popup_remove_timeout();
+      mn_source_remove(&self.timeout_id);
       mn_summary_popup_install_timeout();
     }
 
@@ -192,43 +193,60 @@ mn_summary_popup_notify_delay_cb (GConfClient *client,
 
 static void
 mn_summary_popup_notify_geometry_cb (GConfClient *client,
-				     guint cnxn_id,
+				     unsigned int cnxn_id,
 				     GConfEntry *entry,
 				     gpointer user_data)
 {
   GDK_THREADS_ENTER();
 
-  popup.position = -1;		/* invalidate the position */
+  self.position = -1;		/* invalidate the position */
 
-  if (popup.enabled && popup.popup)
+  if (self.enabled && self.popup)
     mn_summary_popup_set_geometry();
 
   GDK_THREADS_LEAVE();
 }
 
 static void
-mn_summary_popup_notify_title_font_cb (GConfClient *client,
-				       guint cnxn_id,
-				       GConfEntry *entry,
-				       gpointer user_data)
+mn_summary_popup_notify_fonts_aspect_source_cb (GConfClient *client,
+						unsigned int cnxn_id,
+						GConfEntry *entry,
+						gpointer user_data)
 {
   GDK_THREADS_ENTER();
 
-  if (popup.enabled && popup.popup)
+  if (self.enabled && self.popup)
+    {
+      mn_summary_popup_set_title_font();
+      mn_summary_popup_set_contents_font();
+    }
+
+  GDK_THREADS_LEAVE();
+}
+
+static void
+mn_summary_popup_notify_fonts_title_font_cb (GConfClient *client,
+					     unsigned int cnxn_id,
+					     GConfEntry *entry,
+					     gpointer user_data)
+{
+  GDK_THREADS_ENTER();
+
+  if (self.enabled && self.popup)
     mn_summary_popup_set_title_font();
 
   GDK_THREADS_LEAVE();
 }
 
 static void
-mn_summary_popup_notify_contents_font_cb (GConfClient *client,
-					  guint cnxn_id,
-					  GConfEntry *entry,
-					  gpointer user_data)
+mn_summary_popup_notify_fonts_contents_font_cb (GConfClient *client,
+						unsigned int cnxn_id,
+						GConfEntry *entry,
+						gpointer user_data)
 {
   GDK_THREADS_ENTER();
 
-  if (popup.enabled && popup.popup)
+  if (self.enabled && self.popup)
     mn_summary_popup_set_contents_font();
 
   GDK_THREADS_LEAVE();
@@ -237,9 +255,9 @@ mn_summary_popup_notify_contents_font_cb (GConfClient *client,
 static void
 mn_summary_popup_enable (void)
 {
-  if (! popup.enabled)
+  if (! self.enabled)
     {
-      popup.enabled = TRUE;
+      self.enabled = TRUE;
       g_signal_connect(mn_shell->mailboxes, "messages-changed", G_CALLBACK(mn_summary_popup_messages_changed_h), NULL);
     }
 }
@@ -247,9 +265,9 @@ mn_summary_popup_enable (void)
 static void
 mn_summary_popup_disable (void)
 {
-  if (popup.enabled)
+  if (self.enabled)
     {
-      popup.enabled = FALSE;
+      self.enabled = FALSE;
       g_signal_handlers_disconnect_by_func(mn_shell->mailboxes, mn_summary_popup_messages_changed_h, NULL);
       mn_summary_popup_destroy();
     }
@@ -266,21 +284,21 @@ mn_summary_popup_messages_changed_h (MNMailboxes *mailboxes,
 static void
 mn_summary_popup_update (gboolean has_new)
 {
-  if (! mn_summary_dialog_is_displayed() && (popup.popup || has_new))
+  if (! mn_main_window_is_displayed() && (self.popup || has_new))
     {
       GSList *l;
 
-      mn_g_object_slist_free(popup.displayed_messages);
-      popup.displayed_messages = mn_mailboxes_get_messages(mn_shell->mailboxes);
+      mn_g_object_slist_free(self.displayed_messages);
+      self.displayed_messages = mn_mailboxes_get_messages(mn_shell->mailboxes);
 
     loop1:
-      MN_LIST_FOREACH(l, popup.previous_messages)
+      MN_LIST_FOREACH(l, self.previous_messages)
         {
 	  MNMessage *message = l->data;
 
-	  if (! mn_message_slist_find_by_id(popup.displayed_messages, message))
+	  if (! mn_message_slist_find_by_id(self.displayed_messages, message))
 	    {
-	      popup.previous_messages = mn_g_object_slist_delete_link(popup.previous_messages, l);
+	      self.previous_messages = mn_g_object_slist_delete_link(self.previous_messages, l);
 	      goto loop1;
 	    }
 	}
@@ -288,31 +306,31 @@ mn_summary_popup_update (gboolean has_new)
       if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_ONLY_RECENT))
 	{
 	loop2:
-	  MN_LIST_FOREACH(l, popup.displayed_messages)
+	  MN_LIST_FOREACH(l, self.displayed_messages)
 	    {
 	      MNMessage *message = l->data;
 	    
-	      if (mn_message_slist_find_by_id(popup.previous_messages, message))
+	      if (mn_message_slist_find_by_id(self.previous_messages, message))
 		{
-		  popup.displayed_messages = mn_g_object_slist_delete_link(popup.displayed_messages, l);
+		  self.displayed_messages = mn_g_object_slist_delete_link(self.displayed_messages, l);
 		  goto loop2;
 		}
 	    }
 	}
 
-      if (popup.displayed_messages)
+      if (self.displayed_messages)
 	{
-	  if (! popup.popup)
+	  if (! self.popup)
 	    {
-	      mn_create_interface("summary-popup",
-				  "mn-mail-summary-popup", &popup.popup,
-				  "image", &popup.image,
-				  "mn-mail-summary-popup-title", &popup.title,
-				  "vbox", &popup.vbox,
+	      mn_create_interface(MN_INTERFACE_FILE("summary-popup.glade"),
+				  "mn-mail-summary-popup", &self.popup,
+				  "image", &self.image,
+				  "mn-mail-summary-popup-title", &self.title,
+				  "mn-message-view", &self.message_view,
 				  NULL);
 
-	      eel_add_weak_pointer(&popup.popup);
-	      g_object_weak_ref(G_OBJECT(popup.popup), mn_summary_popup_weak_notify_cb, NULL);
+	      eel_add_weak_pointer(&self.popup);
+	      g_object_weak_ref(G_OBJECT(self.popup), mn_summary_popup_weak_notify_cb, NULL);
 
 	      /*
 	       * The popup must:
@@ -336,28 +354,28 @@ mn_summary_popup_update (gboolean has_new)
 	       * http://bugzilla.gnome.org/show_bug.cgi?id=154593).
 	       */
 
-	      gtk_window_stick(GTK_WINDOW(popup.popup));
-	      gtk_window_set_keep_above(GTK_WINDOW(popup.popup), TRUE);
-	      gtk_window_set_accept_focus(GTK_WINDOW(popup.popup), FALSE);
+	      gtk_window_stick(GTK_WINDOW(self.popup));
+	      gtk_window_set_keep_above(GTK_WINDOW(self.popup), TRUE);
+	      gtk_window_set_accept_focus(GTK_WINDOW(self.popup), FALSE);
 	      
-	      gtk_widget_realize(popup.popup);
-	      gdk_window_set_decorations(popup.popup->window, GDK_DECOR_BORDER);
+	      gtk_widget_realize(self.popup);
+	      gdk_window_set_decorations(self.popup->window, GDK_DECOR_BORDER);
 	      
-	      gtk_image_set_from_stock(GTK_IMAGE(popup.image), MN_STOCK_MAIL_SUMMARY, -1);
+	      gtk_image_set_from_stock(GTK_IMAGE(self.image), MN_STOCK_MAIL_SUMMARY, -1);
 
 	      mn_summary_popup_set_title_font();
-	      mn_summary_popup_set_contents_font();
 	    }
 	  
-	  mn_summary_update(GTK_VBOX(popup.vbox), popup.displayed_messages, FALSE);
+	  mn_message_view_set_messages(MN_MESSAGE_VIEW(self.message_view), self.displayed_messages);
+	  mn_summary_popup_set_contents_font();
 	  mn_summary_popup_set_geometry();
-	  gtk_widget_show(popup.popup);
+	  gtk_widget_show(self.popup);
 
 	  /* we only reset the timeout if there is new mail */
 	  
 	  if (has_new && eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE))
 	    {
-	      mn_summary_popup_remove_timeout();
+	      mn_source_remove(&self.timeout_id);
 	      mn_summary_popup_install_timeout();
 	    }
 
@@ -372,10 +390,10 @@ mn_summary_popup_update (gboolean has_new)
 static void
 mn_summary_popup_weak_notify_cb (gpointer data, GObject *former_object)
 {
-  mn_summary_popup_remove_timeout();
+  mn_source_remove(&self.timeout_id);
 
-  popup.previous_messages = g_slist_concat(popup.previous_messages, popup.displayed_messages);
-  popup.displayed_messages = NULL;
+  self.previous_messages = g_slist_concat(self.previous_messages, self.displayed_messages);
+  self.displayed_messages = NULL;
 }
 
 static void
@@ -396,28 +414,28 @@ mn_summary_popup_set_geometry (void)
   int y;
   gboolean reshow;
 
-  g_return_if_fail(popup.popup != NULL);
+  g_return_if_fail(self.popup != NULL);
 
-  if (popup.position == -1)
+  if (self.position == -1)
     {
-      popup.position = mn_conf_get_enum_value(MN_TYPE_POSITION, MN_CONF_MAIL_SUMMARY_POPUP_POSITION);
-      popup.horizontal_offset = eel_gconf_get_integer(MN_CONF_MAIL_SUMMARY_POPUP_HORIZONTAL_OFFSET);
-      popup.vertical_offset = eel_gconf_get_integer(MN_CONF_MAIL_SUMMARY_POPUP_VERTICAL_OFFSET);
+      self.position = mn_conf_get_enum_value(MN_TYPE_POSITION, MN_CONF_MAIL_SUMMARY_POPUP_POSITION);
+      self.horizontal_offset = eel_gconf_get_integer(MN_CONF_MAIL_SUMMARY_POPUP_HORIZONTAL_OFFSET);
+      self.vertical_offset = eel_gconf_get_integer(MN_CONF_MAIL_SUMMARY_POPUP_VERTICAL_OFFSET);
     }
 
-  gtk_window_get_size(GTK_WINDOW(popup.popup), &popup_width, &popup_height);
+  gtk_window_get_size(GTK_WINDOW(self.popup), &popup_width, &popup_height);
   screen_width = gdk_screen_width();
   screen_height = gdk_screen_height();
 
-  g_return_if_fail(popup.position >= 0 && popup.position < G_N_ELEMENTS(gravity_mapping));
-  gravity = gravity_mapping[popup.position];
+  g_return_if_fail(self.position >= 0 && self.position < G_N_ELEMENTS(gravity_mapping));
+  gravity = gravity_mapping[self.position];
 
   x = (gravity == GDK_GRAVITY_NORTH_WEST || gravity == GDK_GRAVITY_SOUTH_WEST)
-    ? popup.horizontal_offset
-    : screen_width - popup_width - popup.horizontal_offset;
+    ? self.horizontal_offset
+    : screen_width - popup_width - self.horizontal_offset;
   y = (gravity == GDK_GRAVITY_NORTH_WEST || gravity == GDK_GRAVITY_NORTH_EAST)
-    ? popup.vertical_offset
-    : screen_height - popup_height - popup.vertical_offset;
+    ? self.vertical_offset
+    : screen_height - popup_height - self.vertical_offset;
 
   /*
    * If the gravity changes, the gtk_window_move() call will misplace
@@ -425,22 +443,22 @@ mn_summary_popup_set_geometry (void)
    *
    * A workaround is to hide and reshow the window.
    */
-  if (gravity != popup.gravity)
+  if (gravity != self.gravity)
     {
-      popup.gravity = gravity;
+      self.gravity = gravity;
       reshow = TRUE;
     }
   else
     reshow = FALSE;
   
   if (reshow)
-    gtk_widget_hide(popup.popup);
+    gtk_widget_hide(self.popup);
 
-  gtk_window_set_gravity(GTK_WINDOW(popup.popup), gravity);
-  gtk_window_move(GTK_WINDOW(popup.popup), x, y);
+  gtk_window_set_gravity(GTK_WINDOW(self.popup), gravity);
+  gtk_window_move(GTK_WINDOW(self.popup), x, y);
 
   if (reshow)
-    gtk_widget_show(popup.popup);
+    gtk_widget_show(self.popup);
 }
 
 static void
@@ -448,7 +466,7 @@ mn_summary_popup_set_title_font (void)
 {
   PangoFontDescription *font_desc = NULL;
 
-  if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED))
+  if (mn_conf_get_enum_value(MN_TYPE_ASPECT_SOURCE, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE) == MN_ASPECT_SOURCE_CUSTOM)
     {
       char *str;
 
@@ -460,7 +478,7 @@ mn_summary_popup_set_title_font (void)
 	}
     }
 
-  gtk_widget_modify_font(popup.title, font_desc);
+  gtk_widget_modify_font(self.title, font_desc);
   if (font_desc)
     pango_font_description_free(font_desc);
 }
@@ -470,7 +488,7 @@ mn_summary_popup_set_contents_font (void)
 {
   PangoFontDescription *font_desc = NULL;
 
-  if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED))
+  if (mn_conf_get_enum_value(MN_TYPE_ASPECT_SOURCE, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE) == MN_ASPECT_SOURCE_CUSTOM)
     {
       char *str;
 
@@ -482,63 +500,27 @@ mn_summary_popup_set_contents_font (void)
 	}
     }
 
-  gtk_container_foreach(GTK_CONTAINER(popup.vbox), mn_summary_popup_set_contents_font_cb, font_desc);
+  gtk_widget_modify_font(GTK_WIDGET(self.message_view), font_desc);
   if (font_desc)
     pango_font_description_free(font_desc);
-}
-
-static void
-mn_summary_popup_set_contents_font_cb (GtkWidget *widget, gpointer user_data)
-{
-  PangoFontDescription *font_desc = user_data;
-
-  if (MN_IS_MESSAGE_BOX(widget))
-    {
-      GSList *labels;
-      GSList *l;
-
-      labels = mn_message_box_get_labels(MN_MESSAGE_BOX(widget));
-      MN_LIST_FOREACH(l, labels)
-	gtk_widget_modify_font(l->data, font_desc);
-    }
-  else if (GTK_IS_LABEL(widget))
-    gtk_widget_modify_font(widget, font_desc);
-  else
-    g_return_if_reached();
 }
 
 void
 mn_summary_popup_destroy (void)
 {
-  if (popup.popup)
-    gtk_widget_destroy(popup.popup);
+  if (self.popup)
+    gtk_widget_destroy(self.popup);
 }
 
 static void
 mn_summary_popup_install_timeout (void)
 {
-  int minutes;
-  int seconds;
+  g_return_if_fail(self.timeout_id == 0);
 
-  g_return_if_fail(popup.timeout_id == 0);
-
-  minutes = eel_gconf_get_integer(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_MINUTES);
-  seconds = eel_gconf_get_integer(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_SECONDS);
-
-  if (minutes != 0 || seconds != 0)
-    popup.timeout_id = g_timeout_add(((minutes * 60) + seconds) * 1000,
-				     mn_summary_popup_timeout_cb,
-				     NULL);
-}
-
-static void
-mn_summary_popup_remove_timeout (void)
-{
-  if (popup.timeout_id)
-    {
-      g_source_remove(popup.timeout_id);
-      popup.timeout_id = 0;
-    }
+  self.timeout_id = mn_timeout_add(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_MINUTES,
+				   MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_SECONDS,
+				   mn_summary_popup_timeout_cb,
+				   NULL);
 }
 
 static gboolean
@@ -558,7 +540,18 @@ mn_summary_popup_button_press_event_h (GtkWidget *widget,
 				       GdkEventButton *button,
 				       gpointer user_data)
 {
-  gtk_widget_destroy(popup.popup);
+  gtk_widget_destroy(self.popup);
 
   return TRUE;			/* do not propagate event */
+}
+
+GtkWidget *
+mn_summary_popup_message_view_new_cb (void)
+{
+  GtkWidget *view;
+
+  view = mn_message_view_new(TRUE, FALSE);
+  gtk_widget_show(view);
+
+  return view;
 }

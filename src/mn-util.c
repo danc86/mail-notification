@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,12 @@ typedef struct
   gpointer		instance;
   unsigned long		id;
 } SignalHandler;
+
+typedef struct
+{
+  GMainLoop	*loop;
+  int		response;
+} RunNonmodalInfo;
   
 /*** functions ***************************************************************/
 
@@ -77,6 +83,16 @@ static void mn_error_dialog_real_response_h (GtkDialog *dialog,
 
 static void mn_g_object_connect_weak_notify_cb (gpointer data,
 						GObject *former_object);
+
+static void mn_dialog_run_nonmodal_unmap_h (GtkWidget *widget,
+					    gpointer user_data);
+static void mn_dialog_run_nonmodal_response_h (GtkDialog *dialog,
+					       int response,
+					       gpointer user_data);
+static gboolean mn_dialog_run_nonmodal_delete_event_h (GtkWidget *widget,
+						       GdkEvent *event,
+						       gpointer user_data);
+static void mn_dialog_run_nonmodal_shutdown_loop (RunNonmodalInfo *info);
 
 /*** implementation **********************************************************/
 
@@ -218,16 +234,12 @@ mn_str_isnumeric (const char *str)
 GdkPixbuf *
 mn_pixbuf_new (const char *filename)
 {
-  char *pathname;
   GdkPixbuf *pixbuf;
   GError *err = NULL;
 
   g_return_val_if_fail(filename != NULL, NULL);
 
-  pathname = g_build_filename(UIDIR, filename, NULL);
-  pixbuf = gdk_pixbuf_new_from_file(pathname, &err);
-  g_free(pathname);
-
+  pixbuf = gdk_pixbuf_new_from_file(filename, &err);
   if (! pixbuf)
     {
       g_warning(_("error loading image: %s"), err->message);
@@ -238,27 +250,20 @@ mn_pixbuf_new (const char *filename)
 }
 
 void
-mn_create_interface (const char *name, ...)
+mn_create_interface (const char *filename, ...)
 {
-  char *filename;
-  char *pathname;
   GladeXML *xml;
   va_list args;
   const char *widget_name;
 
-  g_return_if_fail(name != NULL);
+  g_return_if_fail(filename != NULL);
 
-  filename = g_strconcat(name, ".glade", NULL);
-  pathname = g_build_filename(UIDIR, filename, NULL);
-  g_free(filename);
-
-  xml = glade_xml_new(pathname, NULL, NULL);
-  g_free(pathname);
-
+  xml = glade_xml_new(filename, NULL, NULL);
   g_return_if_fail(xml != NULL);
+
   glade_xml_signal_autoconnect(xml);
 
-  va_start(args, name);
+  va_start(args, filename);
   while ((widget_name = va_arg(args, const char *)))
     {
       GtkWidget **widget;
@@ -268,7 +273,7 @@ mn_create_interface (const char *name, ...)
 
       *widget = glade_xml_get_widget(xml, widget_name);
       if (! *widget)
-	g_critical(_("widget \"%s\" not found in interface \"%s\""), widget_name, name);
+	g_critical(_("widget \"%s\" not found in interface \"%s\""), widget_name, filename);
     }
   va_end(args);
   
@@ -531,63 +536,6 @@ mn_thread_create (GThreadFunc func, gpointer data)
 }
 
 /**
- * mn_gtk_tooltips_new:
- *
- * Creates and sinks a #GtkTooltips object.
- *
- * Return value: the new #GtkTooltips object (sunk and with a
- *               reference count of 1).
- **/
-GtkTooltips *
-mn_gtk_tooltips_new (void)
-{
-  GtkTooltips *tooltips;
-
-  tooltips = gtk_tooltips_new();
-  g_object_ref(tooltips);
-  gtk_object_sink(GTK_OBJECT(tooltips));
-
-  return tooltips;
-}
-
-/**
- * mn_gtk_tooltips_set_tips:
- * @tooltips: a #GtkTooltips object
- * @...: a %NULL-terminated list of widget-tip pairs
- *
- * Sets the tooltips of several widgets at once.
- *
- * <example>
- * mn_gtk_tooltips_set_tips(tooltips,
- *                          button, "Click here to proceed",
- *                          entry, "Your username",
- *                          NULL);
- * </example>
- **/
-void
-mn_gtk_tooltips_set_tips (GtkTooltips *tooltips, ...)
-{
-  va_list args;
-  GtkWidget *widget;
-
-  g_return_if_fail(GTK_IS_TOOLTIPS(tooltips));
-  
-  va_start(args, tooltips);
-  while ((widget = va_arg(args, GtkWidget *)))
-    {
-      const char *tip;
-
-      g_return_if_fail(GTK_IS_WIDGET(widget));
-
-      tip = va_arg(args, const char *);
-      g_return_if_fail(tip != NULL);
-
-      mn_gtk_tooltips_set_tip(tooltips, widget, tip);
-    }
-  va_end(args);
-}
-
-/**
  * mn_menu_shell_append:
  * @shell: the #GtkMenuShell to append to
  * @stock_id: the stock ID of the item or %NULL
@@ -621,33 +569,6 @@ mn_menu_shell_append (GtkMenuShell *shell,
 
   item = mn_menu_item_new(stock_id, mnemonic);
   gtk_menu_shell_append(shell, item);
-  gtk_widget_show(item);
-  
-  return item;
-}
-
-/**
- * mn_menu_shell_prepend:
- * @shell: the #GtkMenuShell to prepend to
- * @stock_id: the stock ID of the item or %NULL
- * @mnemonic: the mnemonic of the item or %NULL
- *
- * Same as mn_menu_shell_append(), but prepends the item instead of
- * appending it.
- *
- * Return value: the new menu item.
- **/
-GtkWidget *
-mn_menu_shell_prepend (GtkMenuShell *shell,
-		       const char *stock_id,
-		       const char *mnemonic)
-{
-  GtkWidget *item;
-
-  g_return_val_if_fail(GTK_IS_MENU_SHELL(shell), NULL);
-
-  item = mn_menu_item_new(stock_id, mnemonic);
-  gtk_menu_shell_prepend(shell, item);
   gtk_widget_show(item);
   
   return item;
@@ -709,7 +630,7 @@ mn_error_dialog_real (GtkWindow *parent,
 
       gtk_box_pack_end(GTK_BOX(GTK_DIALOG(dialog)->vbox), alignment, FALSE, FALSE, 0);
 
-      mn_conf_link(check, not_again_key, NULL);
+      mn_conf_link(check, not_again_key, "active", NULL);
     }
   
   if (help_link_id != NULL)
@@ -780,7 +701,7 @@ mn_fatal_error_dialog (GtkWindow *parent, const char *format, ...)
   va_list args;
   char *secondary;
 
-  g_return_if_fail(format != NULL);
+  g_assert(format != NULL);
 
   va_start(args, format);
   secondary = g_strdup_vprintf(format, args);
@@ -805,46 +726,6 @@ mn_time (void)
     }
 
   return t;
-}
-
-GType
-mn_position_get_type (void)
-{
-  static GType type = 0;
-
-  if (type == 0)
-    {
-      static const GEnumValue values[] = {
-	{ MN_POSITION_TOP_LEFT, "MN_POSITION_TOP_LEFT", "top-left" },
-	{ MN_POSITION_TOP_RIGHT, "MN_POSITION_TOP_RIGHT", "top-right" },
-	{ MN_POSITION_BOTTOM_LEFT, "MN_POSITION_BOTTOM_LEFT", "bottom-left" },
-	{ MN_POSITION_BOTTOM_RIGHT, "MN_POSITION_BOTTOM_RIGHT", "bottom-right" },
-	{ 0, NULL, NULL }
-      };
-
-      type = g_enum_register_static("MNPosition", values);
-    }
-
-  return type;
-}
-
-GType
-mn_action_get_type (void)
-{
-  static GType type = 0;
-
-  if (type == 0)
-    {
-      static const GEnumValue values[] = {
-	{ MN_ACTION_DISPLAY_MAIL_SUMMARY, "MN_ACTION_DISPLAY_MAIL_SUMMARY", "display-mail-summary" },
-	{ MN_ACTION_LAUNCH_MAIL_READER, "MN_ACTION_LAUNCH_MAIL_READER", "launch-mail-reader" },
-	{ 0, NULL, NULL }
-      };
-
-      type = g_enum_register_static("MNAction", values);
-    }
-
-  return type;
 }
 
 /**
@@ -936,16 +817,185 @@ mn_execute_command (const char *conf_key)
   g_return_if_fail(conf_key != NULL);
 
   command = eel_gconf_get_string(conf_key);
-  if (command)
+  g_return_if_fail(command != NULL && *command != 0);
+
+  if (gnome_execute_shell(NULL, command) < 0)
+    mn_error_dialog(NULL,
+		    NULL,
+		    NULL,
+		    _("A command error has occurred in Mail Notification"),
+		    _("Unable to execute \"%s\": %s."),
+		    command,
+		    g_strerror(errno));
+  g_free(command);
+}
+
+void
+mn_gtk_object_ref_and_sink (GtkObject *object)
+{
+  g_return_if_fail(GTK_IS_OBJECT(object));
+  
+  g_object_ref(object);
+  gtk_object_sink(object);
+}
+
+int
+mn_utf8_strcasecoll (const char *s1, const char *s2)
+{
+  char *folded_s1;
+  char *folded_s2;
+  int coll;
+
+  g_return_val_if_fail(s1 != NULL, 0);
+  g_return_val_if_fail(s2 != NULL, 0);
+
+  folded_s1 = g_utf8_casefold(s1, -1);
+  folded_s2 = g_utf8_casefold(s2, -1);
+
+  coll = g_utf8_collate(folded_s1, folded_s2);
+
+  g_free(folded_s1);
+  g_free(folded_s2);
+
+  return coll;
+}
+
+int
+mn_dialog_run_nonmodal (GtkDialog *dialog)
+{
+  RunNonmodalInfo info = { NULL, GTK_RESPONSE_NONE };
+  
+  g_return_val_if_fail(GTK_IS_DIALOG(dialog), -1);
+
+  g_object_ref(dialog);
+
+  if (! GTK_WIDGET_VISIBLE(dialog))
+    gtk_widget_show(GTK_WIDGET(dialog));
+
+  g_object_connect(dialog,
+		   "signal::unmap", mn_dialog_run_nonmodal_unmap_h, &info,
+		   "signal::response", mn_dialog_run_nonmodal_response_h, &info,
+		   "signal::delete-event", mn_dialog_run_nonmodal_delete_event_h, &info,
+		   NULL);
+
+  info.loop = g_main_loop_new(NULL, FALSE);
+
+  GDK_THREADS_LEAVE();
+  g_main_loop_run(info.loop);
+  GDK_THREADS_ENTER();
+
+  g_main_loop_unref(info.loop);
+
+  g_object_disconnect(dialog,
+		      "any-signal", mn_dialog_run_nonmodal_unmap_h, &info,
+		      "any-signal", mn_dialog_run_nonmodal_response_h, &info,
+		      "any-signal", mn_dialog_run_nonmodal_delete_event_h, &info,
+		      NULL);
+
+  g_object_unref(dialog);
+
+  return info.response;
+}
+
+static void
+mn_dialog_run_nonmodal_unmap_h (GtkWidget *widget, gpointer user_data)
+{
+  RunNonmodalInfo *info = user_data;
+
+  mn_dialog_run_nonmodal_shutdown_loop(info);
+}
+
+static void
+mn_dialog_run_nonmodal_response_h (GtkDialog *dialog,
+				   int response,
+				   gpointer user_data)
+{
+  RunNonmodalInfo *info = user_data;
+
+  info->response = response;
+
+  mn_dialog_run_nonmodal_shutdown_loop(info);
+}
+
+static gboolean
+mn_dialog_run_nonmodal_delete_event_h (GtkWidget *widget,
+				       GdkEvent *event,
+				       gpointer user_data)
+{
+  RunNonmodalInfo *info = user_data;
+
+  mn_dialog_run_nonmodal_shutdown_loop(info);
+
+  return TRUE;			/* do not destroy */
+}
+
+static void
+mn_dialog_run_nonmodal_shutdown_loop (RunNonmodalInfo *info)
+{
+  g_return_if_fail(info != NULL);
+
+  if (g_main_loop_is_running(info->loop))
+    g_main_loop_quit(info->loop);
+}
+
+gboolean
+mn_ascii_validate (const char *str)
+{
+  g_return_val_if_fail(str != NULL, FALSE);
+
+  for (; *str; str++)
+    if ((unsigned char) *str > 127)
+      return FALSE;
+
+  return TRUE;
+}
+
+void
+mn_source_remove (unsigned int *tag)
+{
+  g_return_if_fail(tag != NULL);
+
+  if (*tag)
     {
-      if (gnome_execute_shell(NULL, command) < 0)
-	mn_error_dialog(NULL,
-			NULL,
-			NULL,
-			_("A command error has occurred in Mail Notification"),
-			_("Unable to execute \"%s\": %s."),
-			command,
-			g_strerror(errno));
-      g_free(command);
+      g_source_remove(*tag);
+      *tag = 0;
     }
+}
+
+unsigned int
+mn_timeout_add (const char *minutes_key,
+		const char *seconds_key,
+		GSourceFunc function,
+		gpointer data)
+{
+  int minutes;
+  int seconds;
+
+  g_return_val_if_fail(minutes_key != NULL, 0);
+  g_return_val_if_fail(seconds_key != NULL, 0);
+
+  minutes = eel_gconf_get_integer(minutes_key);
+  seconds = eel_gconf_get_integer(seconds_key);
+
+  return minutes != 0 || seconds != 0
+    ? g_timeout_add(((minutes * 60) + seconds) * 1000, function, data)
+    : 0;
+}
+
+gboolean
+mn_ascii_str_case_has_prefix (const char *str, const char *prefix)
+{
+  int str_len;
+  int prefix_len;
+
+  g_return_val_if_fail(str != NULL, FALSE);
+  g_return_val_if_fail(prefix != NULL, FALSE);
+
+  str_len = strlen(str);
+  prefix_len = strlen(prefix);
+
+  if (str_len < prefix_len)
+    return FALSE;
+
+  return g_ascii_strncasecmp(str, prefix, prefix_len) == 0;
 }

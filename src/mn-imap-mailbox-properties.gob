@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ requires 2.0.10
 #include "mn-pi-mailbox-properties-private.h"
 #include "mn-auth-combo-box.h"
 #include "mn-util.h"
+#include "mn-properties-dialog.h"
 %}
 
 class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mailbox:Properties)
@@ -79,7 +80,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
   }
 
   override (G:Object) GObject *
-    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
   {
     GObject *object;
     Self *self;
@@ -125,15 +126,14 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
 
     mn_auth_combo_box_append(MN_AUTH_COMBO_BOX(pi->auth_combo), "+LOGIN", "IMAP LOGIN");
 
-    mn_gtk_tooltips_set_tips(pi->tooltips,
-			     pi->hostname_entry, _("The hostname or IP address of the IMAP server"),
-			     pi->username_entry, _("Your username on the IMAP server"),
-			     pi->password_entry, _("Your password on the IMAP server (if left blank, you will be prompted for the password when needed)"),
-			     pi->port_spin[0], _("The port number of the IMAP server"),
-			     pi->port_spin[1], _("The port number of the IMAP server"),
-			     selfp->mailbox_entry, _("The mailbox name"),
-			     selfp->idle_check, _("If possible, whether to use idle mode or not"),
-			     NULL);
+    mn_properties_dialog_set_tooltips(pi->hostname_entry, _("The hostname or IP address of the IMAP server"),
+				      pi->username_entry, _("Your username on the IMAP server"),
+				      pi->password_entry, _("Your password on the IMAP server (if left blank, you will be prompted for the password when needed)"),
+				      pi->port_spin[0], _("The port number of the IMAP server"),
+				      pi->port_spin[1], _("The port number of the IMAP server"),
+				      selfp->mailbox_entry, _("The mailbox name"),
+				      selfp->idle_check, _("If possible, whether to use idle mode or not"),
+				      NULL);
 
     g_signal_connect(selfp->inbox_radio, "toggled", G_CALLBACK(self_radio_toggled_h), self);
     g_signal_connect(selfp->other_radio, "toggled", G_CALLBACK(self_radio_toggled_h), self);

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,9 @@ requires 2.0.10
 #include "MNAutomation.h"
 %}
 %{
-#include "mn-summary-dialog.h"
+#include "mn-main-window.h"
 #include "mn-summary-popup.h"
-#include "mn-properties.h"
+#include "mn-properties-dialog.h"
 #include "mn-shell.h"
 %}
   
@@ -48,24 +48,24 @@ class MN:Automation from Bonobo:Object (BonoboObject GNOME_MNAutomation)
   }
 
   BonoboObject private void
-    displayMailSummary (PortableServer_Servant servant, CORBA_Environment *env)
+    displayMainWindow (PortableServer_Servant servant, CORBA_Environment *env)
   {
     g_return_if_fail(mn_shell != NULL);
-    mn_summary_dialog_display();
+    mn_main_window_display();
   }
 
   BonoboObject private void
     displayProperties (PortableServer_Servant servant, CORBA_Environment *env)
   {
     g_return_if_fail(mn_shell != NULL);
-    mn_properties_display();
+    mn_properties_dialog_display();
   }
 
   BonoboObject private void
     displayAbout (PortableServer_Servant servant, CORBA_Environment *env)
   {
     g_return_if_fail(mn_shell != NULL);
-    mn_shell_display_about(mn_shell);
+    mn_shell_display_about_dialog(mn_shell);
   }
 
   BonoboObject private void
@@ -73,6 +73,13 @@ class MN:Automation from Bonobo:Object (BonoboObject GNOME_MNAutomation)
   {
     g_return_if_fail(mn_shell != NULL);
     mn_summary_popup_destroy();
+  }
+
+  BonoboObject private void
+    quit (PortableServer_Servant servant, CORBA_Environment *env)
+  {
+    g_return_if_fail(mn_shell != NULL);
+    g_object_unref(mn_shell);
   }
 
   public MNAutomation *

@@ -1,26 +1,26 @@
 uidir = $(pkgdatadir)/ui
 
 if WITH_POP3_OR_IMAP_OR_GMAIL
-authentication_interfaces = authentication.glade
-authentication_projects = authentication.gladep
+authentication_interface = authentication.glade
+authentication_project = authentication.gladep
 endif
 
-interfaces =					\
-	$(authentication_interfaces)		\
+dist_ui_DATA = \
+	$(authentication_interface)		\
+	edit-toolbars.glade			\
 	mailbox-properties.glade		\
+	main.glade				\
+	menus.xml				\
 	properties.glade			\
-	summary-dialog.glade			\
 	summary-popup.glade			\
+	toolbars.xml				\
 	welcome.glade
 
-projects =					\
-	$(authentication_projects)		\
+EXTRA_DIST = \
+	$(authentication_project)		\
+	edit-toolbars.gladep			\
 	mailbox-properties.gladep		\
+	main.gladep				\
 	properties.gladep			\
-	summary-dialog.gladep			\
 	summary-popup.gladep			\
 	welcome.gladep
-
-dist_ui_DATA = $(interfaces)
-
-EXTRA_DIST = $(projects)

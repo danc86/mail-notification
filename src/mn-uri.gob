@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -419,7 +419,8 @@ class MN:URI from G:Object
 	    self->human_readable = g_filename_to_utf8(path, -1, NULL, NULL, NULL);
 	    g_free(path);
 	  }
-	else
+
+	if (! self->human_readable)
 	  self->human_readable = gnome_vfs_uri_to_string(self->vfs, GNOME_VFS_URI_HIDE_PASSWORD);
       }
     else if (MN_URI_IS_POP(self))

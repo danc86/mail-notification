@@ -10,9 +10,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNPOP3MailboxPrivate {
-#line 124 "mn-pop3-mailbox.gob"
+#line 117 "mn-pop3-mailbox.gob"
 	int login_delay;
-#line 125 "mn-pop3-mailbox.gob"
+#line 118 "mn-pop3-mailbox.gob"
 	GTimer * authentication_timer;
 #line 18 "mn-pop3-mailbox-private.h"
 };

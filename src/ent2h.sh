@@ -1,9 +1,9 @@
 #!/bin/sh
 #
 # ent2h.sh - convert one or more SGML entity sets to a C header
-# $Id: ent2h.sh,v 1.1 2004/09/20 02:02:54 jylefort Exp $
+# $Id: ent2h.sh,v 1.2 2005/01/19 01:49:14 jylefort Exp $
 #
-# Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+# Copyright (C) 2004 Jean-Yves Lefort <jylefort@brutele.be>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

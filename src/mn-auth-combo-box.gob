@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,12 +72,13 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
     get
     {
       char *mechanism = NULL;
-      GtkTreeModel *model;
       GtkTreeIter iter;
 
-      model = gtk_combo_box_get_model(GTK_COMBO_BOX(self));
       if (gtk_combo_box_get_active_iter(GTK_COMBO_BOX(self), &iter))
-	gtk_tree_model_get(model, &iter, COLUMN_MECHANISM, &mechanism, -1);
+	{
+	  GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(self));
+	  gtk_tree_model_get(model, &iter, COLUMN_MECHANISM, &mechanism, -1);
+	}
 
       g_value_set_string(VAL, mechanism);
       g_free(mechanism);

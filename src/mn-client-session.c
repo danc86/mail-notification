@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,7 +114,7 @@ static int mn_client_session_write_base64 (MNClientSession *session,
 					   unsigned int len);
 static gboolean mn_client_session_sasl_fill_interact (MNClientSession *session,
 						      sasl_interact_t *interact,
-						      const char *unknown_notice);
+						      const char *unknown_warning);
 static char *mn_client_session_sasl_get_ip_port (const struct sockaddr *addr);
 #endif /* WITH_SASL */
 
@@ -461,7 +461,7 @@ mn_client_session_run_untrusted_dialog (const char *hostname,
   gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
   gtk_dialog_add_button(GTK_DIALOG(dialog), _("Co_nnect"), GTK_RESPONSE_OK);
 			
-  status = gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK;
+  status = mn_dialog_run_nonmodal(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK;
   gtk_widget_destroy(dialog);
   
   gdk_flush();
@@ -638,8 +638,7 @@ mn_client_session_fill_input_buffer (MNClientSession *session)
 gconstpointer
 mn_client_session_read (MNClientSession *session, unsigned int nbytes)
 {
-  GString *printable;
-  int i;
+  char *str;
 
   g_return_val_if_fail(session != NULL, FALSE);
   g_return_val_if_fail(session->input_buffer != NULL, FALSE);
@@ -652,15 +651,11 @@ mn_client_session_read (MNClientSession *session, unsigned int nbytes)
       return FALSE;
 
   session->bytes_to_remove = nbytes;
-
-  printable = g_string_new(NULL);
-  for (i = 0; i < nbytes; i++)
-    if (g_ascii_isprint(session->input_buffer->data[i]))
-      g_string_append_c(printable, session->input_buffer->data[i]);
-    else
-      g_string_append_printf(printable, "<%02X>", (int) session->input_buffer->data[i]);
-  mn_client_session_notice(session, "< %s", printable->str);
-  g_string_free(printable, TRUE);
+  
+  str = g_strndup(session->input_buffer->data, nbytes);
+  /* g_log() escapes unsafe and non UTF-8 characters, so this is safe */
+  mn_client_session_notice(session, "< %s", str);
+  g_free(str);
   
   return session->input_buffer->data;
 }
@@ -698,6 +693,8 @@ mn_client_session_read_line (MNClientSession *session)
   session->bytes_to_remove = terminator - (char *) session->input_buffer->data + 2;
 
   line = session->input_buffer->data;
+
+  /* g_log() escapes unsafe and non UTF-8 characters, so this is safe */
   mn_client_session_notice(session, "< %s", line);
 
   return line;
@@ -823,7 +820,7 @@ mn_client_session_write_base64 (MNClientSession *session,
 static gboolean
 mn_client_session_sasl_fill_interact (MNClientSession *session,
 				      sasl_interact_t *interact,
-				      const char *unknown_notice)
+				      const char *unknown_warning)
 {
   sasl_interact_t *i;
 
@@ -847,7 +844,7 @@ mn_client_session_sasl_fill_interact (MNClientSession *session,
 
 	default:
 	  data = NULL;
-	  mn_client_session_notice(session, unknown_notice);
+	  mn_client_session_warning(session, unknown_warning);
 	};
 
       if (data)
@@ -917,12 +914,12 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
   g_return_val_if_fail(session->callbacks->sasl_get_username != NULL, FALSE);
   g_return_val_if_fail(session->callbacks->sasl_get_password != NULL, FALSE);
   g_return_val_if_fail(service != NULL, 0);
-  g_return_val_if_fail(mechanisms != NULL, 0);
+  g_return_val_if_fail(mechanisms != NULL || forced_mechanism != NULL, 0);
 
   session->sasl_available = mn_sasl_use(&err);
   if (! session->sasl_available)
     {
-      mn_client_session_notice(session, _("unable to initialize the SASL library: %s"), err->message);
+      mn_client_session_warning(session, _("unable to initialize the SASL library: %s"), err->message);
       g_error_free(err);
       return FALSE;
     }
@@ -931,13 +928,13 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
   if (getsockname(session->s, &name, &namelen) >= 0)
     local_ip_port = mn_client_session_sasl_get_ip_port(&name);
   else
-    mn_client_session_notice(session, _("unable to retrieve local address of socket: %s"), g_strerror(errno));
+    mn_client_session_warning(session, _("unable to retrieve local address of socket: %s"), g_strerror(errno));
   
   namelen = sizeof(name);
   if (getpeername(session->s, &name, &namelen) >= 0)
     remote_ip_port = mn_client_session_sasl_get_ip_port(&name);
   else
-    mn_client_session_notice(session, _("unable to retrieve remote address of socket: %s"), g_strerror(errno));
+    mn_client_session_warning(session, _("unable to retrieve remote address of socket: %s"), g_strerror(errno));
 
   result = sasl_client_new(service,
 			   session->hostname,
@@ -971,7 +968,7 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
       security.property_values = NULL;
 
       if (sasl_setprop(session->sasl_conn, SASL_SEC_PROPS, &security) != SASL_OK)
-	mn_client_session_notice(session, _("warning: unable to set SASL security properties: %s"), sasl_errdetail(session->sasl_conn));
+	mn_client_session_warning(session, _("unable to set SASL security properties: %s"), sasl_errdetail(session->sasl_conn));
       
       mechanisms_string = g_string_new(NULL);
       if (forced_mechanism)
@@ -1014,11 +1011,11 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
 	  break;
 
 	default:
-	  mn_client_session_notice(session, _("unable to start SASL authentication: %s"), sasl_errdetail(session->sasl_conn));
+	  mn_client_session_warning(session, _("unable to start SASL authentication: %s"), sasl_errdetail(session->sasl_conn));
 	}
     }
   else
-    mn_client_session_notice(session, _("unable to create a SASL connection: %s"), sasl_errdetail(session->sasl_conn));
+    mn_client_session_warning(session, _("unable to create a SASL connection: %s"), sasl_errdetail(session->sasl_conn));
 
   return FALSE;
 }
@@ -1072,7 +1069,7 @@ mn_client_session_sasl_authentication_step (MNClientSession *session,
 		  return mn_client_session_write(session, "*");
 		  
 		default:
-		  mn_client_session_notice(session, _("%s, aborting SASL authentication"), sasl_errdetail(session->sasl_conn));
+		  mn_client_session_warning(session, _("%s, aborting SASL authentication"), sasl_errdetail(session->sasl_conn));
 		  return mn_client_session_write(session, "*");
 		}
 	    }
@@ -1130,7 +1127,7 @@ mn_client_session_sasl_authentication_done (MNClientSession *session)
 	}
     }
   else
-    mn_client_session_notice(session, _("warning: unable to get SASL_SSF property: %s"), sasl_errdetail(session->sasl_conn));
+    mn_client_session_warning(session, _("warning: unable to get SASL_SSF property: %s"), sasl_errdetail(session->sasl_conn));
 
   return TRUE;
 }
@@ -1162,6 +1159,28 @@ mn_client_session_notice (MNClientSession *session,
       va_end(args);
 
       session->callbacks->notice(session, str, session->private);
+      g_free(str);
+    }
+}
+
+void
+mn_client_session_warning (MNClientSession *session,
+			   const char *format,
+			   ...)
+{
+  g_return_if_fail(session != NULL);
+  g_return_if_fail(format != NULL);
+
+  if (session->callbacks->warning)
+    {
+      va_list args;
+      char *str;
+
+      va_start(args, format);
+      str = g_strdup_vprintf(format, args);
+      va_end(args);
+
+      session->callbacks->warning(session, str, session->private);
       g_free(str);
     }
 }

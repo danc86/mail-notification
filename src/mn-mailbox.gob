@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,9 +96,10 @@ typedef struct
  * MNMailbox API functions must be called with the GDK lock
  * held. Exceptions are:
  *
- *	mn_mailbox_get_types()
- *	mn_mailbox_notice()
+ *	mn_mailbox_init_types()
  *	mn_mailbox_set_init_error()
+ *	mn_mailbox_notice()
+ *	mn_mailbox_warning()
  *
  * (No code can be hooked to these functions through signals or other
  * means, therefore we are sure GDK will never be used from these
@@ -146,11 +147,6 @@ class MN:Mailbox from G:Object
 			      default_value = TRUE,
 			      link,
 			      export);
-
-  private gboolean has_new;
-  property BOOLEAN has_new (blurb = _("Whether the mailbox has new mail or not"),
-			    link,
-			    export);
 
   private GSList *messages destroywith mn_g_object_slist_free;
   property POINTER messages (blurb = _("The list of new and unread MNMessage objects"),
@@ -404,7 +400,7 @@ class MN:Mailbox from G:Object
       }
     else
       {
-	g_warning(_("unable to enable immediate notification for %s: %s"), uri, gnome_vfs_result_to_string(result));
+	self_warning(self, _("unable to enable immediate notification: %s"), gnome_vfs_result_to_string(result));
 
 	if (! eel_gconf_get_boolean(MN_CONF_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_DO_NOT_SHOW))
 	  {
@@ -517,13 +513,27 @@ class MN:Mailbox from G:Object
     notice (self, const char *format (check null), ...)
   {
     va_list args;
-    char *notice;
+    char *message;
     
     va_start(args, format);
-    notice = g_strdup_vprintf(format, args);
+    message = g_strdup_vprintf(format, args);
     va_end(args);
 
-    mn_info("%s: %s", self->uri->text, notice);
-    g_free(notice);
+    mn_info("%s: %s", self->uri->text, message);
+    g_free(message);
+  }
+
+  protected void
+    warning (self, const char *format (check null), ...)
+  {
+    va_list args;
+    char *message;
+
+    va_start(args, format);
+    message = g_strdup_vprintf(format, args);
+    va_end(args);
+
+    g_warning("%s: %s", self->uri->text, message);
+    g_free(message);
   }
 }

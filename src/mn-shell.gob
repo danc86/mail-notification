@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,9 @@
 requires 2.0.10
 
 %headertop{
+#include <gtk/gtk.h>
 #include "mn-mailboxes.h"
+#include "mn-mailbox-properties-dialog.h"
 %}
 %privateheader{
 #include "mn-mail-icon.h"
@@ -29,15 +31,15 @@ requires 2.0.10
 #include <errno.h>
 #include <gnome.h>
 #include <eel/eel.h>
-#include "mn-properties.h"
+#include "mn-properties-dialog.h"
 #include "mn-util.h"
 #include "mn-conf.h"
 #include "mn-mailboxes.h"
 #include "mn-unsupported-mailbox.h"
 #include "mn-about-dialog.h"
-#include "mn-summary.h"
 #include "mn-summary-popup.h"
-#include "mn-summary-dialog.h"
+#include "mn-main-window.h"
+#include "mn-message-view.h"
 
   MNShell *mn_shell = NULL;
 %}
@@ -47,7 +49,8 @@ class MN:Shell from G:Object
   public MNMailboxes *mailboxes = {mn_mailboxes_new()} unrefwith g_object_unref;
   private MNMailIcon *icon;
   private GtkWidget *about;
-  private int n_new;
+  private gboolean has_new;
+  private GSList *mailbox_properties_dialogs;
 
   init (self)
   {
@@ -62,15 +65,13 @@ class MN:Shell from G:Object
     eel_gconf_notification_add(MN_CONF_SUMMARY_TOOLTIP, self_notify_summary_tooltip_cb, self);
 
     g_object_connect(self->mailboxes,
-		     "signal::messages-changed", self_mailboxes_messages_changed_h, self,
+		     "signal::messages-changed", self_messages_changed_h, self,
+		     "signal::mailbox-removed", self_mailbox_removed_h, self,
 		     "swapped-signal::notify::must-poll", self_update_sensitivity, self,
 		     "swapped-signal::list-changed", self_update_tooltip, self,
 		     "swapped-signal::list-changed", self_update_icon, self,
-		     "swapped-signal::has-new-changed", self_update_tooltip, self,
-		     "swapped-signal::has-new-changed", self_update_icon, self,
 		     "swapped-signal::error-changed", self_update_tooltip, self,
 		     "swapped-signal::error-changed", self_update_icon, self,
-		     "swapped-signal::messages-changed", self_update_tooltip, self,
 		     NULL);
 
     mn_summary_popup_init();
@@ -84,16 +85,35 @@ class MN:Shell from G:Object
   }
   
   private void
-    mailboxes_messages_changed_h (MN:Mailboxes *mailboxes (check null type),
-				  gboolean has_new,
-				  gpointer user_data (check null))
+    messages_changed_h (MN:Mailboxes *mailboxes (check null type),
+			gboolean has_new,
+			gpointer user_data (check null))
   {
+    Self *self = user_data;
+
     if (has_new)
       {
 	gnome_triggers_do(_("You have new mail."), NULL, "mail-notification", "new-mail", NULL);
-	if (eel_gconf_get_boolean(MN_CONF_COMMANDS_NEW_MAIL_ENABLED))
+	if (mn_conf_has_command(MN_CONF_COMMANDS_NEW_MAIL_NAMESPACE))
 	  mn_execute_command(MN_CONF_COMMANDS_NEW_MAIL_COMMAND);
       }
+
+    self_update_tooltip(self);
+    self_update_icon(self);
+  }
+
+  private void
+    mailbox_removed_h (MN:Mailboxes *mailboxes (check null type),
+		       MN:Mailbox *mailbox (check null type),
+		       gpointer user_data (check null))
+  {
+    Self *self = user_data;
+    MNMailboxPropertiesDialog *dialog;
+
+    /* destroy the associated properties dialog, if any */
+    dialog = self_get_mailbox_properties_dialog(self, mailbox->uri);
+    if (dialog)
+      gtk_widget_destroy(GTK_WIDGET(dialog));
   }
   
   private void
@@ -103,8 +123,8 @@ class MN:Shell from G:Object
 
     g_object_connect(selfp->icon,
 		     "signal::activate", self_icon_activate_h, self,
+		     "signal::activate-main-window", self_icon_activate_main_window_h, self,
 		     "signal::activate-mail-reader", self_icon_activate_mail_reader_h, self,
-		     "signal::activate-summary", self_icon_activate_summary_h, self,
 		     "signal::activate-update", self_icon_activate_update_h, self,
 		     "signal::activate-properties", self_icon_activate_properties_h, self,
 		     "signal::activate-help", self_icon_activate_help_h, self,
@@ -114,12 +134,13 @@ class MN:Shell from G:Object
 		     NULL);
 		     
     self_update_sensitivity(self);
+    self_update_tooltip(self);
     self_update_icon(self);
   }
 
   private void
     notify_blink_on_errors_cb (GConfClient *client,
-			       guint cnxn_id,
+			       unsigned int cnxn_id,
 			       GConfEntry *entry,
 			       gpointer user_data (check null))
   {
@@ -132,7 +153,7 @@ class MN:Shell from G:Object
   
   private void
     notify_mail_reader_cb (GConfClient *client,
-			   guint cnxn_id,
+			   unsigned int cnxn_id,
 			   GConfEntry *entry,
 			   gpointer user_data (check null))
   {
@@ -145,7 +166,7 @@ class MN:Shell from G:Object
   
   private void
     notify_summary_tooltip_cb (GConfClient *client,
-			       guint cnxn_id,
+			       unsigned int cnxn_id,
 			       GConfEntry *entry,
 			       gpointer user_data (check null))
   {
@@ -160,19 +181,24 @@ class MN:Shell from G:Object
     icon_activate_h (MN:Mail:Icon *icon (check null type),
 		     gpointer user_data (check null))
   {
+    MNShell *self = user_data;
     MNAction action;
 
-    action = mn_conf_get_enum_value(MN_TYPE_ACTION, MN_CONF_DOUBLE_CLICK_ACTION);
+    action = mn_conf_get_enum_value(MN_TYPE_ACTION, MN_CONF_DOUBLE_CLICK_ACTION_2);
 
     switch (action)
       {
-      case MN_ACTION_DISPLAY_MAIL_SUMMARY:
-	mn_summary_dialog_display();
+      case MN_ACTION_DISPLAY_MAIN_WINDOW:
+	mn_main_window_display();
 	break;
 
       case MN_ACTION_LAUNCH_MAIL_READER:
-	if (eel_gconf_get_boolean(MN_CONF_COMMANDS_MAIL_READER_ENABLED))
+	if (mn_conf_has_command(MN_CONF_COMMANDS_MAIL_READER_NAMESPACE))
 	  mn_execute_command(MN_CONF_COMMANDS_MAIL_READER_COMMAND);
+	break;
+
+      case MN_ACTION_UPDATE_MAIL_STATUS:
+	mn_mailboxes_check(self->mailboxes);
 	break;
 
       default:
@@ -181,18 +207,17 @@ class MN:Shell from G:Object
   }
 
   private void
-    icon_activate_summary_h (MN:Mail:Icon *icon (check null type),
-			     gpointer user_data (check null))
+    icon_activate_main_window_h (MN:Mail:Icon *icon (check null type),
+				 gpointer user_data (check null))
   {
-    mn_summary_dialog_display();
+    mn_main_window_display();
   }
   
   private void
     icon_activate_mail_reader_h (MN:Mail:Icon *icon (check null type),
 				 gpointer user_data (check null))
   {
-    if (eel_gconf_get_boolean(MN_CONF_COMMANDS_MAIL_READER_ENABLED))
-      mn_execute_command(MN_CONF_COMMANDS_MAIL_READER_COMMAND);
+    mn_execute_command(MN_CONF_COMMANDS_MAIL_READER_COMMAND);
   }
 
   private void
@@ -207,7 +232,7 @@ class MN:Shell from G:Object
     icon_activate_properties_h (MN:Mail:Icon *icon (check null type),
 				gpointer user_data (check null))
   {
-    mn_properties_display();
+    mn_properties_dialog_display();
   }
   
   private void
@@ -222,7 +247,7 @@ class MN:Shell from G:Object
 			   gpointer user_data (check null))
   {
     Self *self = user_data;
-    self_display_about(self);
+    self_display_about_dialog(self);
   }
   
   private void
@@ -246,51 +271,35 @@ class MN:Shell from G:Object
   private void
     update_sensitivity (self)
   {
-    gboolean mail_reader_sensitive = FALSE;
-
-    if (eel_gconf_get_boolean(MN_CONF_COMMANDS_MAIL_READER_ENABLED))
-      {
-	char *mail_reader;
-
-	mail_reader = eel_gconf_get_string(MN_CONF_COMMANDS_MAIL_READER_COMMAND);
-	if (mail_reader)
-	  {
-	    mail_reader_sensitive = TRUE;
-	    g_free(mail_reader);
-	  }
-      }
-    
-    gtk_widget_set_sensitive(selfp->icon->mail_reader_item, mail_reader_sensitive);
+    gtk_widget_set_sensitive(selfp->icon->mail_reader_item, mn_conf_has_command(MN_CONF_COMMANDS_MAIL_READER_NAMESPACE));
     gtk_widget_set_sensitive(selfp->icon->update_item, mn_mailboxes_get_must_poll(self->mailboxes));
   }
 
   private void
     update_icon (self)
   {
-    GSList *mailboxes;
     GSList *l;
-    int n_new = 0;
+    gboolean has_new = FALSE;
     gboolean blink = FALSE;
 
-    mailboxes = mn_mailboxes_get(self->mailboxes);
-    MN_LIST_FOREACH(l, mailboxes)
+    MN_LIST_FOREACH(l, mn_mailboxes_get(self->mailboxes))
       {
 	MNMailbox *mailbox = l->data;
 
-	if (mn_mailbox_get_has_new(mailbox))
-	  n_new++;
-	if (! blink && (mn_mailbox_get_error(mailbox) || MN_IS_UNSUPPORTED_MAILBOX(mailbox)))
+	if (mn_mailbox_get_messages(mailbox))
+	  has_new = TRUE;
+	if (mn_mailbox_get_error(mailbox) || MN_IS_UNSUPPORTED_MAILBOX(mailbox))
 	  blink = TRUE;
       }
 
+    if (selfp->has_new && ! has_new && mn_conf_has_command(MN_CONF_COMMANDS_MAIL_READ_NAMESPACE))
+      mn_execute_command(MN_CONF_COMMANDS_MAIL_READ_COMMAND);
+    selfp->has_new = has_new;
+    
     if (blink && ! eel_gconf_get_boolean(MN_CONF_BLINK_ON_ERRORS))
       blink = FALSE;
-    
-    if (selfp->n_new > 0 && n_new == 0 && eel_gconf_get_boolean(MN_CONF_COMMANDS_MAIL_READ_ENABLED))
-      mn_execute_command(MN_CONF_COMMANDS_MAIL_READ_COMMAND);
-    selfp->n_new = n_new;
-    
-    if (n_new > 0 || blink)
+
+    if (has_new || blink)
       {
 	mn_blinking_image_set_blinking(MN_BLINKING_IMAGE(selfp->icon->image), blink);
 	gtk_widget_show(GTK_WIDGET(selfp->icon));
@@ -311,61 +320,89 @@ class MN:Shell from G:Object
     if (mailboxes)
       {
 	GSList *l;
-	GString *new_string;
-	GString *error_string;
-	GString *unsupported_string;
-
-	new_string = g_string_new(NULL);
-	error_string = g_string_new(NULL);
-	unsupported_string = g_string_new(NULL);
+	GSList *new_mailboxes = NULL;
+	GSList *error_mailboxes = NULL;
+	GSList *unsupported_mailboxes = NULL;
 
 	MN_LIST_FOREACH(l, mailboxes)
           {
 	    MNMailbox *mailbox = l->data;
-	    const char *name;
-	    const char *error;
-
-	    name = mn_mailbox_get_name(mailbox);
-	    error = mn_mailbox_get_error(mailbox);
 	    
-	    if (mn_mailbox_get_has_new(mailbox))
+	    if (mn_mailbox_get_messages(mailbox))
+	      new_mailboxes = g_slist_append(new_mailboxes, mailbox);
+
+	    if (mn_mailbox_get_error(mailbox))
+	      error_mailboxes = g_slist_append(error_mailboxes, mailbox);
+
+	    if (MN_IS_UNSUPPORTED_MAILBOX(mailbox))
+	      unsupported_mailboxes = g_slist_append(unsupported_mailboxes, mailbox);
+	  }
+
+	if (new_mailboxes)
+	  {
+	    GString *string = g_string_new(NULL);
+
+	    new_mailboxes = g_slist_sort(new_mailboxes, self_new_mailboxes_compare_func);
+	    MN_LIST_FOREACH(l, new_mailboxes)
 	      {
+		MNMailbox *mailbox = l->data;
 		int n_messages;
 
-		if (*new_string->str)
-		  g_string_append_c(new_string, '\n');
-		g_string_append(new_string, name);
+		if (*string->str)
+		  g_string_append_c(string, '\n');
+		g_string_append(string, mn_mailbox_get_name(mailbox));
 		
 		n_messages = g_slist_length(mn_mailbox_get_messages(mailbox));
 		if (n_messages > 0)
-		  g_string_append_printf(new_string, " (%i)", n_messages);
+		  g_string_append_printf(string, " (%i)", n_messages);
 	      }
+	    g_slist_free(new_mailboxes);
 	    
-	    if (error)
-	      {
-		if (*error_string->str)
-		  g_string_append_c(error_string, '\n');
-		g_string_append_printf(error_string, "%s: %s", name, error);
-	      }
-	  
-	    if (MN_IS_UNSUPPORTED_MAILBOX(mailbox))
-	      {
-		if (*unsupported_string->str)
-		  g_string_append_c(unsupported_string, '\n');
-		g_string_append_printf(unsupported_string, "%s: %s", name, mn_unsupported_mailbox_get_reason(MN_UNSUPPORTED_MAILBOX(mailbox)));
-	      }
+	    self_tooltip_text_section_new(GTK_VBOX(vbox), _("Mailboxes Having New Mail"), string->str);
+	    g_string_free(string, TRUE);
 	  }
 
-	if (*new_string->str)
-	  self_tooltip_text_section_new(GTK_VBOX(vbox), _("Mailboxes Having New Mail"), new_string->str);
-	if (*error_string->str)
-	  self_tooltip_text_section_new(GTK_VBOX(vbox), _("Errors"), error_string->str);
-	if (*unsupported_string->str)
-	  self_tooltip_text_section_new(GTK_VBOX(vbox), _("Unsupported Mailboxes"), unsupported_string->str);
+	if (error_mailboxes)
+	  {
+	    GString *string = g_string_new(NULL);
 
-	g_string_free(new_string, TRUE);
-	g_string_free(error_string, TRUE);
-	g_string_free(unsupported_string, TRUE);
+	    error_mailboxes = g_slist_sort(error_mailboxes, self_mailboxes_compare_by_name_func);
+	    MN_LIST_FOREACH(l, error_mailboxes)
+	      {
+		MNMailbox *mailbox = l->data;
+
+		if (*string->str)
+		  g_string_append_c(string, '\n');
+		g_string_append_printf(string, "%s: %s",
+				       mn_mailbox_get_name(mailbox),
+				       mn_mailbox_get_error(mailbox));
+	      }
+	    g_slist_free(error_mailboxes);
+
+	    self_tooltip_text_section_new(GTK_VBOX(vbox), _("Errors"), string->str);
+	    g_string_free(string, TRUE);
+	  }
+	
+	if (unsupported_mailboxes)
+	  {
+	    GString *string = g_string_new(NULL);
+
+	    unsupported_mailboxes = g_slist_sort(unsupported_mailboxes, self_mailboxes_compare_by_name_func);
+	    MN_LIST_FOREACH(l, unsupported_mailboxes)
+	      {
+		MNMailbox *mailbox = l->data;
+
+		if (*string->str)
+		  g_string_append_c(string, '\n');
+		g_string_append_printf(string, "%s: %s",
+				       mn_mailbox_get_name(mailbox),
+				       mn_unsupported_mailbox_get_reason(MN_UNSUPPORTED_MAILBOX(mailbox)));
+	      }
+	    g_slist_free(unsupported_mailboxes);
+	    
+	    self_tooltip_text_section_new(GTK_VBOX(vbox), _("Unsupported Mailboxes"), string->str);
+	    g_string_free(string, TRUE);
+	  }
       }
 
     if (eel_gconf_get_boolean(MN_CONF_SUMMARY_TOOLTIP))
@@ -375,23 +412,69 @@ class MN:Shell from G:Object
 	messages = mn_mailboxes_get_messages(mn_shell->mailboxes);
 	if (messages)
 	  {
-	    GtkWidget *hbox;
-	    GtkWidget *messages_vbox;
+	    GtkWidget *alignment;
+	    GtkWidget *message_view;
 	
-	    hbox = self_tooltip_section_new(GTK_VBOX(vbox), _("Mail Summary"));
+	    alignment = self_tooltip_section_new(GTK_VBOX(vbox), _("Mail Summary"));
 	    
-	    messages_vbox = gtk_vbox_new(FALSE, 0);
-	    gtk_widget_set_name(messages_vbox, "mn-tooltip-section-body");
+	    message_view = mn_message_view_new(TRUE, FALSE);
+	    gtk_widget_set_name(message_view, "mn-message-view");
 	    
-	    mn_summary_update(GTK_VBOX(messages_vbox), messages, FALSE);
+	    mn_message_view_set_messages(MN_MESSAGE_VIEW(message_view), messages);
 	    mn_g_object_slist_free(messages);
 	    
-	    gtk_box_pack_start(GTK_BOX(hbox), messages_vbox, TRUE, TRUE, 0);
+	    gtk_container_add(GTK_CONTAINER(alignment), message_view);
 	  }
       }
 
     gtk_widget_show_all(vbox);
     mn_mail_icon_set_tip_widget(selfp->icon, vbox);
+  }
+  
+  private int
+    new_mailboxes_compare_func (gconstpointer a, gconstpointer b)
+  {
+    MNMailbox *mailbox_a = (MNMailbox *) a;
+    MNMailbox *mailbox_b = (MNMailbox *) b;
+    int cmp;
+
+    /* sort by sent time (descending order) */
+    cmp = self_get_latest_sent_time(mailbox_b) - self_get_latest_sent_time(mailbox_a);
+    /* else sort by number of messages (descending order) */
+    if (cmp == 0)
+      cmp = g_slist_length(mn_mailbox_get_messages(mailbox_b)) - g_slist_length(mn_mailbox_get_messages(mailbox_a));
+    /* else sort by name (ascending order) */
+    if (cmp == 0)
+      cmp = self_mailboxes_compare_by_name_func(a, b);
+
+    return cmp;
+  }
+
+  private time_t
+    get_latest_sent_time (MN:Mailbox *mailbox (check null type))
+  {
+    GSList *l;
+    time_t latest = 0;
+
+    MN_LIST_FOREACH(l, mn_mailbox_get_messages(mailbox))
+      {
+	MNMessage *message = l->data;
+
+	if (message->sent_time > latest)
+	  latest = message->sent_time;
+      }
+
+    return latest;
+  }
+  
+  private int
+    mailboxes_compare_by_name_func (gconstpointer a, gconstpointer b)
+  {
+    MNMailbox *mailbox_a = (MNMailbox *) a;
+    MNMailbox *mailbox_b = (MNMailbox *) b;
+
+    return mn_utf8_strcasecoll(mn_mailbox_get_name(mailbox_a),
+			       mn_mailbox_get_name(mailbox_b));
   }
   
   private GtkWidget *
@@ -400,8 +483,8 @@ class MN:Shell from G:Object
   {
     GtkWidget *child_vbox;
     char *markup;
+    GtkWidget *alignment;
     GtkWidget *label;
-    GtkWidget *hbox;
 
     child_vbox = gtk_vbox_new(FALSE, 6);
 
@@ -415,15 +498,13 @@ class MN:Shell from G:Object
 
     gtk_box_pack_start(GTK_BOX(child_vbox), label, FALSE, FALSE, 0);
 
-    hbox = gtk_hbox_new(FALSE, 0);
+    alignment = gtk_alignment_new(0.5, 0.5, 1.0, 1.0);
+    gtk_alignment_set_padding(GTK_ALIGNMENT(alignment), 0, 0, 12, 0);
 
-    label = gtk_label_new("    ");
-    gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
-
-    gtk_box_pack_start(GTK_BOX(child_vbox), hbox, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(child_vbox), alignment, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), child_vbox, TRUE, TRUE, 0);
 
-    return hbox;
+    return alignment;
   }
   
   private void
@@ -431,16 +512,16 @@ class MN:Shell from G:Object
 			      const char *title (check null),
 			      const char *text (check null))
   {
-    GtkWidget *hbox;
+    GtkWidget *alignment;
     GtkWidget *label;
 
-    hbox = self_tooltip_section_new(GTK_VBOX(vbox), title);
+    alignment = self_tooltip_section_new(GTK_VBOX(vbox), title);
 
     label = gtk_label_new(text);
     gtk_widget_set_name(label, "mn-tooltip-section-body");
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 
-    gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, TRUE, 0);
+    gtk_container_add(GTK_CONTAINER(alignment), label);
   }
   
   public MNShell *
@@ -450,7 +531,7 @@ class MN:Shell from G:Object
   }
 
   public void
-    display_about (self)
+    display_about_dialog (self)
   {
     if (selfp->about)
       {
@@ -460,23 +541,31 @@ class MN:Shell from G:Object
     
     selfp->about = mn_about_dialog_new();
     eel_add_weak_pointer(&selfp->about);
+    
+    mn_main_window_add_transient(GTK_WINDOW(selfp->about));
     gtk_widget_show(GTK_WIDGET(selfp->about));
   }
 
   public void
-    run_welcome (self)
+    display_welcome_dialog (self)
   {
     GtkWidget *dialog;
-    int response;
 
-    mn_create_interface("welcome", "dialog", &dialog, NULL);
+    mn_create_interface(MN_INTERFACE_FILE("welcome.glade"), "dialog", &dialog, NULL);
     gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
 
-    response = gtk_dialog_run(GTK_DIALOG(dialog));
-    gtk_widget_destroy(dialog);
-
+    g_signal_connect(dialog, "response", G_CALLBACK(self_welcome_response_h), NULL);
+    gtk_widget_show(dialog);
+  }
+  
+  private void
+    welcome_response_h (Gtk:Dialog *dialog (check null type),
+			int response,
+			gpointer user_data)
+  {
+    gtk_widget_destroy(GTK_WIDGET(dialog));
     if (response == GTK_RESPONSE_OK)
-      mn_properties_display();
+      mn_properties_dialog_display();
   }
   
   public void
@@ -495,7 +584,7 @@ class MN:Shell from G:Object
 
 	g_string_append_printf(string, "%s\n", mailbox->uri->text);
 
-	if (mn_mailbox_get_has_new(mailbox))
+	if (mn_mailbox_get_messages(mailbox))
 	  g_string_append(string, " has-new\n");
 	if (error)
 	  g_string_append_printf(string, " error %s\n", error);
@@ -506,8 +595,79 @@ class MN:Shell from G:Object
     *report = string->str;
     g_string_free(string, FALSE);
   }
+
+  public void
+    add_mailbox_properties_dialog (self, MN:Mailbox:Properties:Dialog *dialog (check null type))
+  {
+    g_return_if_fail(mn_mailbox_properties_dialog_get_uri(dialog) != NULL);
+
+    selfp->mailbox_properties_dialogs = g_slist_append(selfp->mailbox_properties_dialogs, dialog);
+    g_object_weak_ref(G_OBJECT(dialog), self_mailbox_properties_dialog_weak_notify_cb, self);
+  }
+
+  private void
+    mailbox_properties_dialog_weak_notify_cb (gpointer data (check null),
+					      GObject *former_object)
+  {
+    Self *self = data;
+
+    selfp->mailbox_properties_dialogs = g_slist_remove(selfp->mailbox_properties_dialogs, former_object);
+  }
+
+  public MNMailboxPropertiesDialog *
+    get_mailbox_properties_dialog (self, MN:URI *uri (check null type))
+  {
+    GSList *l;
+
+    MN_LIST_FOREACH(l, selfp->mailbox_properties_dialogs)
+      {
+	MNMailboxPropertiesDialog *dialog = l->data;
+	MNURI *this_uri;
+
+	this_uri = mn_mailbox_properties_dialog_get_uri(dialog);
+	if (! strcmp(this_uri->text, uri->text))
+	  return dialog;
+      }
+
+    return NULL;
+  }
 }
 
 %h{
   extern MNShell *mn_shell;
 %}
+
+/*
+ * These enumerations really belong to mn-enums.gob, but gob does not
+ * allow a class-less input file.
+ */
+
+enum MN_POSITION
+{
+  TOP_LEFT,
+  TOP_RIGHT,
+  BOTTOM_LEFT,
+  BOTTOM_RIGHT
+} MN:Position;
+
+enum MN_ACTION
+{
+  DISPLAY_MAIN_WINDOW,
+  LAUNCH_MAIL_READER,
+  UPDATE_MAIL_STATUS
+} MN:Action;
+
+enum MN_TOOLBAR_STYLE
+{
+  ICONS			= GTK_TOOLBAR_ICONS,
+  TEXT			= GTK_TOOLBAR_TEXT,
+  BOTH			= GTK_TOOLBAR_BOTH,
+  BOTH_HORIZ		= GTK_TOOLBAR_BOTH_HORIZ,
+  DESKTOP_DEFAULT
+} MN:Toolbar:Style;
+
+enum MN_ASPECT_SOURCE
+{
+  THEME,
+  CUSTOM
+} MN:Aspect:Source;

@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "1.0">
-  <!ENTITY manrevision "2.10">
-  <!ENTITY date "Thursday, November 25, 2004">
+  <!ENTITY appversion "1.1">
+  <!ENTITY manrevision "2.11">
+  <!ENTITY date "Sunday, March 6, 2005">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,10 +26,10 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.82 2004/11/25 00:35:55 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.94 2005/03/06 21:37:27 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
-<!-- Copyright (c) 2004 Jean-Yves Lefort -->
+<!-- Copyright (C) 2004, 2005 Jean-Yves Lefort -->
 <!-- All rights reserved. -->
 
 <!-- Redistribution and use in source (SGML DocBook) and 'compiled' -->
@@ -72,6 +72,7 @@
 
     <copyright>
       <year>2004</year>
+      <year>2005</year>
       <holder>Jean-Yves Lefort</holder>
     </copyright>
 <!-- translators: uncomment this:
@@ -125,6 +126,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.10</revnumber>
+	<date>Thursday, November 25, 2004</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -342,12 +354,12 @@
 
 	      <varlistentry>
 		<term>--list-features</term>
-		<listitem><para>List compiled-in features and exit</para></listitem>
+		<listitem><para>List the compiled-in features</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term>--display-mail-summary</term>
-		<listitem><para>Display the mail summary dialog</para></listitem>
+		<term>--display-main-window</term>
+		<listitem><para>Display the main window</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
@@ -386,12 +398,17 @@
 
 	      <varlistentry>
 		<term>--unset-obsolete-configuration</term>
-		<listitem><para>Unset obsolete GConf configuration and exit</para></listitem>
+		<listitem><para>Unset obsolete GConf configuration</para></listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term>--quit</term>
+		<listitem><para>Quit &app;</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
 		<term>--help</term>
-		<listitem><para>Show help and exit</para></listitem>
+		<listitem><para>Show help</para></listitem>
 	      </varlistentry>
 	    </variablelist>
 	  </listitem>
@@ -461,6 +478,99 @@
     </sect2>
   </sect1>
 
+  <sect1 id="main-window">
+    <title>Main Window</title>
+    <para>
+      You can access the main window in the following ways:
+    </para>
+    <variablelist>
+      <varlistentry>
+	<term><guimenu>Applications</guimenu> menu</term>
+	<listitem>
+	  <para>Choose
+	    <menuchoice>
+	      <guisubmenu>Internet</guisubmenu>
+	      <guimenuitem>&app;</guimenuitem>
+	    </menuchoice>.</para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>Command line</term>
+	<listitem>
+	  <para>
+	    Type the following command, then press <keycap>Return</keycap>:
+	  </para>
+	  <para>
+	    <command>mail-notification --display-main-window</command>
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>Mail icon</term>
+	<listitem>
+	  <para>
+	    Right-click on the mail icon and choose
+	    <menuchoice><guimenuitem>Main Window</guimenuitem></menuchoice>.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+	 
+    <para>
+      The main window displays the list of new and unread messages,
+      sorted by sent date in descending order.
+    </para>
+    <para>
+      The main window can also be used to invoke &app; features when
+      the mail icon is hidden.
+    </para>
+
+    <sect2 id="main-window-edit-toolbars">
+      <title>Editing the Main Window Toolbars</title>
+      <para>
+	To edit the main window toolbars, choose
+	<menuchoice> 
+	  <guimenu>Edit</guimenu> 
+	  <guimenuitem>Toolbars</guimenuitem> 
+	</menuchoice>, then:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    To add or remove buttons from your toolbars, drag icons
+	    from and to the editor.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    To reset the toolbars configuration to factory defaults,
+	    click on the <guibutton>Use Default</guibutton> button.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    To add a new toolbar, click on the <guibutton>Add a New
+	    Toolbar</guibutton> button.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    To remove a toolbar, remove all items from it. The toolbar
+	    will then automatically be removed.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Drag buttons to rearrange them either on the same toolbar
+	    or between different toolbars.
+	  </para>
+	</listitem>
+      </itemizedlist>
+    </sect2>
+  </sect1>
+    
   <sect1 id="properties"> 
     <title>Properties</title> 
     <para>To configure &app;, choose
@@ -547,10 +657,10 @@
 	  <listitem>
 	    <para>
 	      You can choose an action to be performed when the mail
-	      icon is double-clicked: <guilabel>display the mail summary dialog</guilabel>
-	      or <guilabel>launch the mail reader</guilabel>.
-	      The latter is only available if a mail reader is
-	      configured in the <link linkend="commands">Commands</link> properties.
+	      icon is double-clicked:
+	      <guilabel>display the main window</guilabel>,
+	      <guilabel>launch the mail reader</guilabel> or
+	      <guilabel>update the mail status</guilabel>.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -575,6 +685,11 @@
 			This delay only applies to mailboxes which do
 			not support <link linkend="immediate-notification">immediate
 			notification</link> of changes.
+		      </para>
+		      <para>
+			If all the mailboxes support <link
+			linkend="immediate-notification">immediate
+			notification</link>, this control is disabled.
 		      </para>
 		    </note>
 		  </para>
@@ -617,8 +732,8 @@
 		    will be displayed when new mail arrives.
 		    <note>
 		      <para>
-			The mail summary popup will not be displayed if the <link linkend="mail-summary">Mail Summary</link>
-			dialog is displayed.
+			The mail summary popup will not be displayed
+			if the <link linkend="main-window">main window</link> is displayed.
 		      </para>
 		    </note>
 		  </para>
@@ -691,30 +806,10 @@
 	  <term><guilabel>Fonts</guilabel></term>
 	  <listitem>
 	    <para>
-	      You can choose to override your default desktop font and
+	      You can choose to override your default theme fonts and
 	      use custom fonts in the mail summary popup. To further
 	      customise the appearance of &app;, see <xref linkend="modifying-appearance"/>.
 	    </para>
-	    <variablelist>
-	      <varlistentry>
-		<term><guilabel>Title font</guilabel></term>
-		<listitem>
-		  <para>
-		    If this option is enabled, the title of the mail
-		    summary popup will use the specified font.
-		  </para>
-		</listitem>
-	      </varlistentry>
-	      <varlistentry>
-		<term><guilabel>Contents font</guilabel></term>
-		<listitem>
-		  <para>
-		    If this option is enabled, the contents of the
-		    mail summary popup will use the specified font.
-		  </para>
-		</listitem>
-	      </varlistentry>
-	    </variablelist>
 	    <note>
 	      <para>
 		The specified fonts are relative to the text
@@ -959,32 +1054,6 @@
     </variablelist>
   </sect1>
 
-  <sect1 id="mail-summary">
-    <title>Mail Summary</title>
-    <para>
-      The <guilabel>Mail Summary</guilabel> dialog can be accessed by
-      double-clicking on the mail icon, or by right-clicking on it and
-      choosing <menuchoice><guimenuitem>Mail Summary</guimenuitem></menuchoice>.
-    </para>
-    <para>
-      The <guilabel>Mail Summary</guilabel> dialog displays the list
-      of new and unread messages, sorted by sent date in descending
-      order.
-    </para>
-    <important>
-      <para>
-	To be able to extract messages from mbox, MH, Maildir, POP3,
-	IMAP and Sylpheed mailboxes, &app; must have been compiled
-	with MIME support.
-      </para>
-      <para>
-	&app; has been compiled with MIME support if
-	<command>mail-notification --list-features</command> lists the
-	MIME feature.
-      </para>
-    </important>
-  </sect1>
-
   <sect1 id="troubleshooting">
     <title>Troubleshooting</title>
     <para>
@@ -1048,7 +1117,7 @@
 	  <term>&pop3; and &gmail; mailboxes:</term>
 	  <listitem>
 	    <para>
-	      Immediate notification is not supported.
+	      Immediate notification is not supported by these mailbox types.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -1163,23 +1232,15 @@ endif</programlisting>
 	      <entry>mn-mail-summary-popup-title</entry>
 	    </row>
 	    <row>
-	      <entry>message box</entry>
-	      <entry>mn-message-box</entry>
-	    </row>
-	    <row>
-	      <entry>message header name</entry>
-	      <entry>name</entry>
-	    </row>
-	    <row>
-	      <entry>message header value</entry>
-	      <entry>value</entry>
+	      <entry>message list</entry>
+	      <entry>mn-message-view</entry>
 	    </row>
 	    <row>
 	      <entry>tooltip section title</entry>
 	      <entry>mn-tooltip-section-title</entry>
 	    </row>
 	    <row>
-	      <entry>tooltip section body</entry>
+	      <entry>tooltip section body (except message list)</entry>
 	      <entry>mn-tooltip-section-body</entry>
 	    </row>
 	  </tbody>
@@ -1227,6 +1288,18 @@ endif</programlisting>
 	      <entry>mail summary</entry>
 	      <entry>mn-mail-summary</entry>
 	    </row>
+	    <row>
+	      <entry>mail reader</entry>
+	      <entry>mn-mail-reader</entry>
+	    </row>
+	    <row>
+	      <entry>main window</entry>
+	      <entry>mn-main-window</entry>
+	    </row>
+	    <row>
+	      <entry>leave fullscreen</entry>
+	      <entry>mn-leave-fullscreen</entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -1260,7 +1333,7 @@ widget "*.mn-mail-summary-popup-title"
   font_name = "Sans 8"
 }
 
-widget "mn-mail-summary-popup.*.mn-message-box.*"
+widget "mn-mail-summary-popup.*.mn-message-view"
   style "mn-mail-summary-popup-messages"</programlisting>
 	<para>
 	  To use a small font for the mail summary tooltip messages:
@@ -1270,18 +1343,8 @@ widget "mn-mail-summary-popup.*.mn-message-box.*"
   font_name = "Sans 8"
 }
 
-widget "gtk-tooltips.*.mn-message-box.*"
+widget "gtk-tooltips.*.mn-message-view"
   style "mn-mail-summary-tooltip-messages"</programlisting>
-	<para>
-	  To use italic for the message header names:
-	</para>
-	<programlisting>style "mn-message-header-name"
-{
-  font_name = "Italic"
-}
-
-widget "*.mn-message-box.*.name"
-  style "mn-message-header-name"</programlisting>
 	<para>
 	  To use some custom icons:
 	</para>
@@ -1308,7 +1371,7 @@ widget "*" style "mn-icons"</programlisting>
     <title>About &app;</title>
     <para> &app; was written by Jean-Yves Lefort
       (<email>jylefort@brutele.be</email>). To find more information about
-      &app;, please visit the
+      &app;, visit the
       <ulink url="http://www.nongnu.org/mailnotify" type="http">Mail Notification web page</ulink>.
     </para>
     
@@ -1330,6 +1393,7 @@ widget "*" style "mn-icons"</programlisting>
 	<listitem><para>Dan Korostelev</para></listitem>
 	<listitem><para>Filip Miletic</para></listitem>
 	<listitem><para>Phil Nelson</para></listitem>
+	<listitem><para>Maurycy Pawłowski-Wieroński</para></listitem>
 	<listitem><para>Vladimir Petkov</para></listitem>
 	<listitem><para>Tomasz Sarota-Raczek</para></listitem>
 	<listitem><para>Edwin Shin</para></listitem>

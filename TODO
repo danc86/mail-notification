@@ -4,3 +4,7 @@
 * See if we can add an Evolution data server mailbox backend
 
 * List the available IMAP folders in the mailbox properties dialog
+
+* Allow to set a different mail reader for each mailbox. Invoking the
+  mail reader action would run the mail reader of the most recent
+  message's mailbox, or fallback to the global mail reader.

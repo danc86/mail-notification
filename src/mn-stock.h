@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,9 @@
 #define MN_STOCK_SYSTEM_MAILBOX		"mn-system-mailbox"
 #define MN_STOCK_SELECT_ALL		"mn-select-all"
 #define MN_STOCK_MAIL_SUMMARY		"mn-mail-summary"
+#define MN_STOCK_MAIL_READER		"mn-mail-reader"
+#define MN_STOCK_MAIN_WINDOW		"mn-main-window"
+#define MN_STOCK_LEAVE_FULLSCREEN	"mn-leave-fullscreen"
 
 void mn_stock_init (void);
 

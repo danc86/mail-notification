@@ -10,19 +10,21 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 24 "mn-shell.gob"
+#line 26 "mn-shell.gob"
 
 #include "mn-mail-icon.h"
 
 #line 18 "mn-shell-private.h"
 struct _MNShellPrivate {
-#line 48 "mn-shell.gob"
-	MNMailIcon * icon;
-#line 49 "mn-shell.gob"
-	GtkWidget * about;
 #line 50 "mn-shell.gob"
-	int n_new;
-#line 26 "mn-shell-private.h"
+	MNMailIcon * icon;
+#line 51 "mn-shell.gob"
+	GtkWidget * about;
+#line 52 "mn-shell.gob"
+	gboolean has_new;
+#line 53 "mn-shell.gob"
+	GSList * mailbox_properties_dialogs;
+#line 28 "mn-shell-private.h"
 };
 
 #ifdef __cplusplus

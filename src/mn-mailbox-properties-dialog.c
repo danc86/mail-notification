@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,6 @@ typedef struct
   GtkWidget				*mailbox_type_combo;
   GtkWidget				*properties_event_box;
   
-  MNMailboxPropertiesDialogMode		mode;
   MNURI					*uri;
   GtkWidget				*apply_button;
   GtkWidget				*accept_button;
@@ -73,27 +72,27 @@ static void mn_mailbox_properties_dialog_set_active_properties (MNMailboxPropert
 static MNMailboxProperties *mn_mailbox_properties_dialog_get_active_properties (MNMailboxPropertiesDialog *dialog);
 static MNMailboxProperties *mn_mailbox_properties_dialog_get_properties_by_type (MNMailboxPropertiesDialog *dialog, GType type);
 
-static void mn_mailbox_properties_dialog_set_uri_internal (MNMailboxPropertiesDialog *dialog, MNURI *uri);
+static void mn_mailbox_properties_dialog_set_uri (MNMailboxPropertiesDialog *dialog, MNURI *uri);
+static void mn_mailbox_properties_dialog_set_contents (MNMailboxPropertiesDialog *dialog);
+
 static void mn_mailbox_properties_dialog_update_sensitivity (MNMailboxPropertiesDialog *dialog);
 
 /*** implementation **********************************************************/
 
 GtkWidget *
-mn_mailbox_properties_dialog_new (GtkWindow *parent,
-				  MNMailboxPropertiesDialogMode mode)
+mn_mailbox_properties_dialog_new (GtkWindow *parent, MNURI *uri)
 {
   MNMailboxPropertiesDialog *dialog;
   Private *private;
   GtkCellRenderer *renderer;
 
   private = g_new0(Private, 1);
-  mn_create_interface("mailbox-properties",
+  mn_create_interface(MN_INTERFACE_FILE("mailbox-properties.glade"),
 		      "dialog", &dialog,
 		      "mailbox_type_label", &private->mailbox_type_label,
 		      "mailbox_type_combo", &private->mailbox_type_combo,
 		      "properties_event_box", &private->properties_event_box,
 		      NULL);
-  private->mode = mode;
 
   g_object_set_data_full(G_OBJECT(dialog),
 			 MN_MAILBOX_PROPERTIES_DIALOG_PRIVATE_KEY,
@@ -103,27 +102,7 @@ mn_mailbox_properties_dialog_new (GtkWindow *parent,
   if (parent)
     gtk_window_set_transient_for(GTK_WINDOW(dialog), parent);
 
-  gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_HELP, GTK_RESPONSE_HELP);
-  if (mode == MN_MAILBOX_PROPERTIES_DIALOG_MODE_ADD)
-    {
-      gtk_window_set_title(GTK_WINDOW(dialog), _("Add a Mailbox"));
-
-      gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
-      private->accept_button = gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_ADD, GTK_RESPONSE_ACCEPT);
-    }
-  else if (mode == MN_MAILBOX_PROPERTIES_DIALOG_MODE_EDIT)
-    {
-      /* title will be set in _set_uri_internal() */
-
-      private->apply_button = gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_APPLY, GTK_RESPONSE_APPLY);
-      gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
-      private->accept_button = gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_OK, GTK_RESPONSE_OK);
-    }
-  else
-    g_return_val_if_reached(NULL);
-  gtk_widget_grab_default(private->accept_button);
-      
-  /* finish the combo box */
+  /* finish the type combo box */
 
   private->store = gtk_list_store_new(N_COLUMNS,
 				      GTK_TYPE_WIDGET,
@@ -149,16 +128,34 @@ mn_mailbox_properties_dialog_new (GtkWindow *parent,
 
   gtk_combo_box_set_model(GTK_COMBO_BOX(private->mailbox_type_combo), GTK_TREE_MODEL(private->store));
 
-  if (mode == MN_MAILBOX_PROPERTIES_DIALOG_MODE_ADD)
+  /* setup the dialog depending on the mode (edit or add) */
+
+  gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_HELP, GTK_RESPONSE_HELP);
+  if (uri)
+    {
+      private->apply_button = gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_APPLY, GTK_RESPONSE_APPLY);
+      gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
+      private->accept_button = gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_OK, GTK_RESPONSE_OK);
+
+      mn_mailbox_properties_dialog_set_uri(dialog, uri);
+      mn_mailbox_properties_dialog_set_contents(dialog);
+    }
+  else
     {
       MNMailboxProperties *properties;
+
+      gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
+      private->accept_button = gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_ADD, GTK_RESPONSE_ACCEPT);
 
       if (! selected_type)
 	selected_type = MN_TYPE_AUTODETECT_MAILBOX_PROPERTIES;
 
       properties = mn_mailbox_properties_dialog_get_properties_by_type(dialog, selected_type);
       mn_mailbox_properties_dialog_set_active_properties(dialog, properties);
+
+      gtk_window_set_title(GTK_WINDOW(dialog), _("Add a Mailbox"));
     }
+  gtk_widget_grab_default(private->accept_button);
 
   return GTK_WIDGET(dialog);
 }
@@ -191,8 +188,7 @@ mn_mailbox_properties_dialog_add_type (MNMailboxPropertiesDialog *dialog,
   properties = g_object_new(properties_type, "size-group", size_group, NULL);
   g_object_unref(size_group);
 
-  g_object_ref(properties);
-  gtk_object_sink(GTK_OBJECT(properties));
+  mn_gtk_object_ref_and_sink(GTK_OBJECT(properties));
 
   gtk_list_store_append(private->store, &iter);
 
@@ -311,14 +307,15 @@ mn_mailbox_properties_dialog_get_properties_by_type (MNMailboxPropertiesDialog *
 }
 
 static void
-mn_mailbox_properties_dialog_set_uri_internal (MNMailboxPropertiesDialog *dialog,
-					       MNURI *uri)
+mn_mailbox_properties_dialog_set_uri (MNMailboxPropertiesDialog *dialog,
+				      MNURI *uri)
 {
   Private *private;
   char *title;
 
   g_return_if_fail(MN_IS_MAILBOX_PROPERTIES_DIALOG(dialog));
   g_return_if_fail(MN_IS_URI(uri));
+
   private = MN_MAILBOX_PROPERTIES_DIALOG_PRIVATE(dialog);
 
   if (private->uri)
@@ -330,9 +327,8 @@ mn_mailbox_properties_dialog_set_uri_internal (MNMailboxPropertiesDialog *dialog
   g_free(title);
 }
 
-void
-mn_mailbox_properties_dialog_set_uri (MNMailboxPropertiesDialog *dialog,
-				      MNURI *uri)
+static void
+mn_mailbox_properties_dialog_set_contents (MNMailboxPropertiesDialog *dialog)
 {
   Private *private;
   gboolean valid;
@@ -341,10 +337,9 @@ mn_mailbox_properties_dialog_set_uri (MNMailboxPropertiesDialog *dialog,
   gboolean found = FALSE;
 
   g_return_if_fail(MN_IS_MAILBOX_PROPERTIES_DIALOG(dialog));
-  private = MN_MAILBOX_PROPERTIES_DIALOG_PRIVATE(dialog);
-  g_return_if_fail(private->uri == NULL);
 
-  mn_mailbox_properties_dialog_set_uri_internal(dialog, uri);
+  private = MN_MAILBOX_PROPERTIES_DIALOG_PRIVATE(dialog);
+  g_return_if_fail(private->uri != NULL);
 
   valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(private->store), &iter);
   while (valid)
@@ -353,7 +348,7 @@ mn_mailbox_properties_dialog_set_uri (MNMailboxPropertiesDialog *dialog,
       g_object_unref(properties);
 
       if (! MN_IS_AUTODETECT_MAILBOX_PROPERTIES(properties)
-	  && mn_mailbox_properties_set_uri(properties, uri))
+	  && mn_mailbox_properties_set_uri(properties, private->uri))
 	{
 	  found = TRUE;
 	  break;
@@ -365,13 +360,24 @@ mn_mailbox_properties_dialog_set_uri (MNMailboxPropertiesDialog *dialog,
   if (! found)
     {
       properties = mn_mailbox_properties_dialog_get_properties_by_type(dialog, MN_TYPE_AUTODETECT_MAILBOX_PROPERTIES);
-      mn_mailbox_properties_set_uri(properties, uri);
+      mn_mailbox_properties_set_uri(properties, private->uri);
     }
   mn_mailbox_properties_dialog_set_active_properties(dialog, properties);
 }
 
 MNURI *
 mn_mailbox_properties_dialog_get_uri (MNMailboxPropertiesDialog *dialog)
+{
+  Private *private;
+
+  g_return_val_if_fail(MN_IS_MAILBOX_PROPERTIES_DIALOG(dialog), NULL);
+  private = MN_MAILBOX_PROPERTIES_DIALOG_PRIVATE(dialog);
+
+  return private->uri;
+}
+
+MNURI *
+mn_mailbox_properties_dialog_get_current_uri (MNMailboxPropertiesDialog *dialog)
 {
   Private *private;
   MNMailboxProperties *properties;
@@ -392,7 +398,7 @@ mn_mailbox_properties_dialog_apply (MNMailboxPropertiesDialog *dialog)
   g_return_if_fail(MN_IS_MAILBOX_PROPERTIES_DIALOG(dialog));
   private = MN_MAILBOX_PROPERTIES_DIALOG_PRIVATE(dialog);
 
-  new_uri = mn_mailbox_properties_dialog_get_uri(dialog);
+  new_uri = mn_mailbox_properties_dialog_get_current_uri(dialog);
   g_return_if_fail(MN_IS_URI(new_uri));
 
   if (strcmp(new_uri->text, private->uri->text))
@@ -412,7 +418,7 @@ mn_mailbox_properties_dialog_apply (MNMailboxPropertiesDialog *dialog)
       eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
       eel_g_slist_free_deep(gconf_mailboxes);
       
-      mn_mailbox_properties_dialog_set_uri_internal(dialog, new_uri);
+      mn_mailbox_properties_dialog_set_uri(dialog, new_uri);
     }
   g_object_unref(new_uri);
 }
@@ -451,7 +457,7 @@ mn_mailbox_properties_dialog_mailbox_type_changed_h (gpointer user_data,
   private = MN_MAILBOX_PROPERTIES_DIALOG_PRIVATE(dialog);
 
   mn_mailbox_properties_dialog_select_properties(dialog);
-  if (private->mode == MN_MAILBOX_PROPERTIES_DIALOG_MODE_ADD)
+  if (! private->uri)		/* mode is add */
     {
       MNMailboxProperties *properties;
       

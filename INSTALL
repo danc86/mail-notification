@@ -11,9 +11,9 @@ Index
 
 0. About this document
 
-	$Id: INSTALL,v 1.14 2004/10/25 13:03:00 jylefort Exp $
+	$Id: INSTALL,v 1.17 2005/03/01 01:43:58 jylefort Exp $
 
-	Copyright (c) 2003, 2004 Jean-Yves Lefort.
+	Copyright (C) 2003-2005 Jean-Yves Lefort.
 
 	This document is part of Mail Notification.
 	It may be distributed under the same terms as Mail Notification.
@@ -30,10 +30,20 @@ Index
 
 	Optional libraries:
 
+		* for mbox, MH, Maildir, POP3, IMAP and Sylpheed support:
+
+		  GMime (version 2.1.0 or superior)
+		  http://spruce.sourceforge.net/gmime/
+
 		* for Gmail support:
 
 		  GNOME (version 2.8.0 or superior)
 		  http://www.gnome.org/
+
+		* for Gmail timestamps support:
+
+		  ICU (version 2.6 or superior)
+		  http://ibm.com/software/globalization/icu/
 
 		* for SSL/TLS support:
 
@@ -44,11 +54,6 @@ Index
 
 		  Cyrus SASL (version 2.0 or superior)
 		  http://asg.web.cmu.edu/sasl/sasl-library.html
-
-		* for MIME support:
-
-		  GMime (version 2.1.0 or superior)
-		  http://spruce.sourceforge.net/gmime/
 
 2. Instructions
 
@@ -83,21 +88,31 @@ Index
 
 		Enable mbox mailbox support.
 
+		Requirements: GMime version 2.1.0 or superior.
+
 	--enable-mh (default: yes)
 
 		Enable MH mailbox support.
+
+		Requirements: GMime version 2.1.0 or superior.
 
 	--enable-maildir (default: yes)
 
 		Enable Maildir mailbox support.
 
+		Requirements: GMime version 2.1.0 or superior.
+
 	--enable-pop3 (default: yes)
 
 		Enable POP3 mailbox support.
 
+		Requirements: GMime version 2.1.0 or superior.
+
 	--enable-imap (default: yes)
 
 		Enable IMAP mailbox support.
+
+		Requirements: GMime version 2.1.0 or superior.
 
 	--enable-ssl (default: yes)
 
@@ -115,7 +130,9 @@ Index
 
 	--enable-sylpheed (default: yes)
 
-		Enable Sylpheed format support.
+		Enable Sylpheed mailbox support.
+
+		Requirements: GMime version 2.1.0 or superior.
 
 	--enable-gmail (default: yes)
 
@@ -123,17 +140,17 @@ Index
 
 		Requirements: GNOME version 2.8.0 or superior.
 
+	--enable-gmail-timestamps (default: yes)
+
+		Enable Gmail timestamps support. If this option is
+		disabled, Mail Notification will not be able to
+		display the timestamps of Gmail messages.
+
+		Requirements: GNOME version 2.8.0 or superior.
+		Applies to: Gmail.
+
 	--enable-ipv6 (default: yes)
 
 		Enable IPv6 support.
 
 		Applies to: POP3, IMAP.
-
-	--enable-mime (default: yes)
-
-		Enable MIME support. If this option is disabled, the
-		mail summary will not be able to display messages of
-		mbox, MH, Maildir, POP3, IMAP and Sylpheed mailboxes.
-
-		Requirements: GMime version 2.0 or superior.
-		Applies to: mbox, MH, Maildir, POP3, IMAP, Sylpheed.

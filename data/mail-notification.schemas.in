@@ -120,28 +120,6 @@
       </locale>
     </schema>
     <schema>
-      <key>/schemas/apps/mail-notification/ui/summary-dialog/height</key>
-      <applyto>/apps/mail-notification/ui/summary-dialog/height</applyto>
-      <owner>mail-notification</owner>
-      <type>int</type>
-      <default>-1</default>
-      <locale name="C">
-        <short>Height of mail summary dialog</short>
-        <long>The height of the mail summary dialog in pixels.</long>
-      </locale>
-    </schema>
-    <schema>
-      <key>/schemas/apps/mail-notification/ui/summary-dialog/width</key>
-      <applyto>/apps/mail-notification/ui/summary-dialog/width</applyto>
-      <owner>mail-notification</owner>
-      <type>int</type>
-      <default>-1</default>
-      <locale name="C">
-        <short>Width of mail summary dialog</short>
-        <long>The width of the mail summary dialog in pixels.</long>
-      </locale>
-    </schema>
-    <schema>
       <key>/schemas/apps/mail-notification/ui/immediate-notification-error-dialog/do-not-show</key>
       <applyto>/apps/mail-notification/ui/immediate-notification-error-dialog/do-not-show</applyto>
       <owner>mail-notification</owner>
@@ -152,6 +130,83 @@
 	<long>Whether to prevent the immediate notification error dialog from being displayed or not.</long>
       </locale>
     </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/ui/main-window/dimensions/height</key>
+      <applyto>/apps/mail-notification/ui/main-window/dimensions/height</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>300</default>
+      <locale name="C">
+        <short>Height of main window</short>
+        <long>The height of the main window in pixels.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/ui/main-window/dimensions/width</key>
+      <applyto>/apps/mail-notification/ui/main-window/dimensions/width</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>400</default>
+      <locale name="C">
+        <short>Width of main window</short>
+        <long>The width of the main window in pixels.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/ui/main-window/view-toolbars</key>
+      <applyto>/apps/mail-notification/ui/main-window/view-toolbars</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>1</default>
+      <locale name="C">
+	<short>View toolbars</short>
+	<long>Whether the toolbars should be visible or not.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/ui/main-window/view-statusbar</key>
+      <applyto>/apps/mail-notification/ui/main-window/view-statusbar</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>1</default>
+      <locale name="C">
+	<short>View statusbar</short>
+	<long>Whether the statusbar should be visible or not.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/ui/main-window/toolbars-style</key>
+      <applyto>/apps/mail-notification/ui/main-window/toolbars-style</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>desktop-default</default>
+      <locale name="C">
+	<short>Toolbars style</short>
+	<long>The style of the toolbars. Must be "desktop-default", "icons", "text", "both" or "both-horiz".</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/ui/main-window/edit-toolbars-dialog/height</key>
+      <applyto>/apps/mail-notification/ui/main-window/edit-toolbars-dialog/height</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>-1</default>
+      <locale name="C">
+        <short>Height of edit toolbars dialog</short>
+        <long>The height of the edit toolbars dialog in pixels.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/ui/main-window/edit-toolbars-dialog/width</key>
+      <applyto>/apps/mail-notification/ui/main-window/edit-toolbars-dialog/width</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>-1</default>
+      <locale name="C">
+        <short>Width of edit toolbars dialog</short>
+        <long>The width of the edit toolbars dialog in pixels.</long>
+      </locale>
+    </schema>
     <schema>
       <key>/schemas/apps/mail-notification/already-run</key>
       <applyto>/apps/mail-notification/already-run</applyto>
@@ -285,16 +340,16 @@
       </locale>
     </schema> 
     <schema>
-      <key>/schemas/apps/mail-notification/mail-summary-popup/fonts/title/enabled</key>
-      <applyto>/apps/mail-notification/mail-summary-popup/fonts/title/enabled</applyto>
+      <key>/schemas/apps/mail-notification/mail-summary-popup/fonts/aspect-source</key>
+      <applyto>/apps/mail-notification/mail-summary-popup/fonts/aspect-source</applyto>
       <owner>mail-notification</owner>
-      <type>bool</type>
-      <default>0</default>
+      <type>string</type>
+      <default>theme</default>
       <locale name="C">
-        <short>Use a custom font for the title of the mail summary popup</short>
-	<long>Whether to use a custom font for the title of the mail summary popup or not.</long>
+        <short>Mail summary popup fonts aspect source</short>
+	<long>The aspect source of the mail summary popup fonts. Must be "theme" or "custom".</long>
       </locale>
-    </schema> 
+    </schema>
     <schema>
       <key>/schemas/apps/mail-notification/mail-summary-popup/fonts/title/font</key>
       <applyto>/apps/mail-notification/mail-summary-popup/fonts/title/font</applyto>
@@ -307,17 +362,6 @@
       </locale>
     </schema>
     <schema>
-      <key>/schemas/apps/mail-notification/mail-summary-popup/fonts/contents/enabled</key>
-      <applyto>/apps/mail-notification/mail-summary-popup/fonts/contents/enabled</applyto>
-      <owner>mail-notification</owner>
-      <type>bool</type>
-      <default>0</default>
-      <locale name="C">
-        <short>Use a custom font for the contents of the mail summary popup</short>
-	<long>Whether to use a custom font for the contents of the mail summary popup or not.</long>
-      </locale>
-    </schema> 
-    <schema>
       <key>/schemas/apps/mail-notification/mail-summary-popup/fonts/contents/font</key>
       <applyto>/apps/mail-notification/mail-summary-popup/fonts/contents/font</applyto>
       <owner>mail-notification</owner>
@@ -329,14 +373,14 @@
       </locale>
     </schema>
     <schema>
-      <key>/schemas/apps/mail-notification/double-click-action</key>
-      <applyto>/apps/mail-notification/double-click-action</applyto>
+      <key>/schemas/apps/mail-notification/double-click-action-2</key>
+      <applyto>/apps/mail-notification/double-click-action-2</applyto>
       <owner>mail-notification</owner>
       <type>string</type>
-      <default>display-mail-summary</default>
+      <default>display-main-window</default>
       <locale name="C">
         <short>Double-click action</short>
-	<long>The action to perform when the icon is double-clicked. Must be "display-mail-summary" or "launch-mail-reader".</long>
+	<long>The action to perform when the icon is double-clicked. Must be "display-main-window", "launch-mail-reader" or "update-mail-status".</long>
       </locale>
     </schema>
     <schema>

@@ -1,12 +1,10 @@
-GNOME_IMAGES = mail-notification.png
-APP_IMAGES = \
-	logo.png		\
-	gmail.png		\
-	mail-notification.png	\
-	unsupported.png
-
 gnome_pixmapsdir = $(datadir)/pixmaps
-dist_gnome_pixmaps_DATA = $(GNOME_IMAGES)
+dist_gnome_pixmaps_DATA = mail-notification.png
 
 app_pixmapsdir = $(pkgdatadir)/ui
-dist_app_pixmaps_DATA = $(APP_IMAGES)
+dist_app_pixmaps_DATA = \
+	gmail.png		\
+	hand-open.png		\
+	logo.png		\
+	main-window.png		\
+	unsupported.png

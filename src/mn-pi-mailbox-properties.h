@@ -39,7 +39,6 @@ struct _MNPIMailboxProperties {
 	GtkWidget * hostname_entry; /* protected */
 	GtkWidget * username_entry; /* protected */
 	GtkWidget * password_entry; /* protected */
-	GtkTooltips * tooltips; /* protected */
 	GtkWidget * details_vbox; /* protected */
 	GtkSizeGroup * details_size_group; /* protected */
 	GtkWidget * conn_radio[3]; /* protected */

@@ -8,3 +8,4 @@ Categories=GNOME;Application;Settings;
 Exec=mail-notification --display-properties
 Terminal=false
 StartupNotify=true
+X-GNOME-DocPath=mail-notification/mail-notification.xml

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,18 +35,10 @@
 typedef GtkDialog MNMailboxPropertiesDialog;
 typedef GtkDialogClass MNMailboxPropertiesDialogClass;
 
-typedef enum
-{
-  MN_MAILBOX_PROPERTIES_DIALOG_MODE_ADD,
-  MN_MAILBOX_PROPERTIES_DIALOG_MODE_EDIT
-} MNMailboxPropertiesDialogMode;
+GtkWidget *mn_mailbox_properties_dialog_new (GtkWindow *parent, MNURI *uri);
 
-GtkWidget *mn_mailbox_properties_dialog_new (GtkWindow *parent,
-					     MNMailboxPropertiesDialogMode mode);
-
-void mn_mailbox_properties_dialog_set_uri (MNMailboxPropertiesDialog *dialog,
-					   MNURI *uri);
 MNURI *mn_mailbox_properties_dialog_get_uri (MNMailboxPropertiesDialog *dialog);
+MNURI *mn_mailbox_properties_dialog_get_current_uri (MNMailboxPropertiesDialog *dialog);
 
 void mn_mailbox_properties_dialog_apply (MNMailboxPropertiesDialog *dialog);
 

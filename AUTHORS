@@ -12,10 +12,16 @@ Contributors:
 	* Filip Miletic <filmil@gmail.com> (Serbian translations)
 	* Vladimir Petkov <vpetkov@i-space.org> (Bulgarian
 	  translations)
-	* Tomasz Sarota-Raczek <tomasz.sarota.raczek@gmail.com>
+	* Tomasz Sarota-Raczek <tomasz.sarota.raczek@gmail.com>,
+	  Maurycy Pawłowski-Wieroński <maurycy@abstrakcja.pl>
 	  (Polish translations)
 
-External art sources:
+External code sources:
+	* libegg (src/egg*)
+
+External art sources (images taken as-is or slightly modified):
 	* Google (gmail.png)
 	* Evolution (mail-notification.png)
 	* GTK+ (unsupported.png)
+	* GNOME Icon Theme (main-window.png)
+	* libegg (hand-open.png)

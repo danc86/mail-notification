@@ -4,7 +4,9 @@
 #include <glib-object.h>
 
 
+#include <gtk/gtk.h>
 #include "mn-mailboxes.h"
+#include "mn-mailbox-properties-dialog.h"
 
 #ifndef __MN_SHELL_H__
 #define __MN_SHELL_H__
@@ -57,13 +59,55 @@ struct _MNShellClass {
  */
 GType	mn_shell_get_type	(void);
 MNShell * 	mn_shell_new	(void);
-void 	mn_shell_display_about	(MNShell * self);
-void 	mn_shell_run_welcome	(MNShell * self);
+void 	mn_shell_display_about_dialog	(MNShell * self);
+void 	mn_shell_display_welcome_dialog	(MNShell * self);
 void 	mn_shell_report	(MNShell * self,
 					char ** report);
+void 	mn_shell_add_mailbox_properties_dialog	(MNShell * self,
+					MNMailboxPropertiesDialog * dialog);
+MNMailboxPropertiesDialog * 	mn_shell_get_mailbox_properties_dialog	(MNShell * self,
+					MNURI * uri);
 
 
   extern MNShell *mn_shell;
+
+
+typedef enum {
+	MN_POSITION_TOP_LEFT,
+	MN_POSITION_TOP_RIGHT,
+	MN_POSITION_BOTTOM_LEFT,
+	MN_POSITION_BOTTOM_RIGHT
+} MNPosition;
+#define MN_TYPE_POSITION mn_position_get_type()
+GType mn_position_get_type (void);
+
+
+typedef enum {
+	MN_ACTION_DISPLAY_MAIN_WINDOW,
+	MN_ACTION_LAUNCH_MAIL_READER,
+	MN_ACTION_UPDATE_MAIL_STATUS
+} MNAction;
+#define MN_TYPE_ACTION mn_action_get_type()
+GType mn_action_get_type (void);
+
+
+typedef enum {
+	MN_TOOLBAR_STYLE_ICONS = GTK_TOOLBAR_ICONS,
+	MN_TOOLBAR_STYLE_TEXT = GTK_TOOLBAR_TEXT,
+	MN_TOOLBAR_STYLE_BOTH = GTK_TOOLBAR_BOTH,
+	MN_TOOLBAR_STYLE_BOTH_HORIZ = GTK_TOOLBAR_BOTH_HORIZ,
+	MN_TOOLBAR_STYLE_DESKTOP_DEFAULT
+} MNToolbarStyle;
+#define MN_TYPE_TOOLBAR_STYLE mn_toolbar_style_get_type()
+GType mn_toolbar_style_get_type (void);
+
+
+typedef enum {
+	MN_ASPECT_SOURCE_THEME,
+	MN_ASPECT_SOURCE_CUSTOM
+} MNAspectSource;
+#define MN_TYPE_ASPECT_SOURCE mn_aspect_source_get_type()
+GType mn_aspect_source_get_type (void);
 
 
 #ifdef __cplusplus

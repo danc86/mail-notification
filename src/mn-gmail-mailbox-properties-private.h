@@ -10,15 +10,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNGmailMailboxPropertiesPrivate {
-#line 37 "mn-gmail-mailbox-properties.gob"
+#line 38 "mn-gmail-mailbox-properties.gob"
 	GtkSizeGroup * size_group;
-#line 50 "mn-gmail-mailbox-properties.gob"
-	GtkWidget * username_entry;
 #line 51 "mn-gmail-mailbox-properties.gob"
-	GtkWidget * password_entry;
+	GtkWidget * username_entry;
 #line 52 "mn-gmail-mailbox-properties.gob"
-	GtkTooltips * tooltips;
-#line 22 "mn-gmail-mailbox-properties-private.h"
+	GtkWidget * password_entry;
+#line 20 "mn-gmail-mailbox-properties-private.h"
 };
 
 #ifdef __cplusplus

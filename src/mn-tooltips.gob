@@ -3,7 +3,7 @@
  * widget as tooltip (heavily based on GtkTooltips)
  *
  * Copyright (C) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,8 +36,8 @@ requires 2.0.10
 %}
 
 %{
-#include "mn-util.h"
 #include <eel/eel.h>
+#include "mn-util.h"
 
 #define TOOLTIPS_DATA			"mn-tooltips-data"
 #define TOOLTIPS_INFO			"mn-tooltips-info"
@@ -221,10 +221,7 @@ class MN:Tooltips from G:Object
 	data->tip_widget = tip_widget;
 
 	if (data->tip_widget)
-	  {
-	    g_object_ref(data->tip_widget);
-	    gtk_object_sink(GTK_OBJECT(data->tip_widget));
-	  }
+	  mn_gtk_object_ref_and_sink(GTK_OBJECT(data->tip_widget));
 
 	self_draw_tips(self);
       }
@@ -241,10 +238,7 @@ class MN:Tooltips from G:Object
 	data->tip_widget = tip_widget;
 
 	if (data->tip_widget)
-	  {
-	    g_object_ref(data->tip_widget);
-	    gtk_object_sink(GTK_OBJECT(data->tip_widget));
-	  }
+	  mn_gtk_object_ref_and_sink(GTK_OBJECT(data->tip_widget));
 
 	selfp->data_list = g_slist_append(selfp->data_list, data);
 	g_signal_connect_after(widget, "event-after", G_CALLBACK(self_event_after_h), data);
@@ -388,11 +382,8 @@ class MN:Tooltips from G:Object
 	  g_get_current_time(&selfp->last_popdown);
 	gtk_widget_hide(selfp->window);
       }
-    if (selfp->timeout_id)
-      {
-	g_source_remove(selfp->timeout_id);
-	selfp->timeout_id = 0;
-      }
+
+    mn_source_remove(&selfp->timeout_id);
   
     selfp->active_data = NULL;
   

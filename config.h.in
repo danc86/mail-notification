@@ -45,9 +45,6 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
-/* Define to 1 if you have the `timegm' function. */
-#undef HAVE_TIMEGM
-
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
@@ -72,14 +69,14 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Define to 1 if your <sys/time.h> declares `struct tm'. */
-#undef TM_IN_SYS_TIME
-
 /* Version number of package */
 #undef VERSION
 
 /* Define to 1 if [gmail] is enabled */
 #undef WITH_GMAIL
+
+/* Define to 1 if [gmail-timestamps] is enabled */
+#undef WITH_GMAIL_TIMESTAMPS
 
 /* Define to 1 if [imap] is enabled */
 #undef WITH_IMAP

@@ -1,3 +1,44 @@
+1.1					March 6, 2005
+
+	* IMAP fixes:
+		* is more tolerant towards uncompliant FETCH responses
+		* ignores case of responses (RFC 3501)
+		* makes sure the server responses are valid ASCII (RFC
+		  3501)
+
+	* Gmail fixes:
+		* properly converts timestamps (requires ICU)
+		* handles timestamps from previous years
+		* displays all the messages of a conversation
+
+	* POP3 and IMAP fixes:
+		* does not loop infinitely when no password is
+		  specified, an authentication mechanism is specified
+		  and authentication fails
+		* does not abort when a SASL authentication mechanism
+		  is specified and the server does not support any
+		  SASL authentication mechanism
+
+	* POP3 and Gmail fixes:
+		* makes sure the server responses are valid UTF-8
+
+	* The mail summary dialog has been replaced by a main window,
+	  for controlling Mail Notification when the status icon is
+	  hidden
+	* Added "update the mail status" double-click action
+	* The tooltip mailbox lists (Mailboxes Having New Mail,
+	  Errors, Unsupported Mailboxes) are now sorted
+	* GMime is now mandatory for mbox, MH, Maildir, Sylpheed, POP3
+	  and IMAP mailbox support
+	* The --quit command line argument has been added
+	* Minor fixes and cleanups
+
+	* Updated translations:
+		* Polish (Maurycy Pawłowski-Wieroński)
+		* Serbian (Filip Miletic)
+		* Portuguese (Duarte Henriques)
+		* German (Hendrik Brandt)
+
 1.0					November 25, 2004
 
 	* Some minor IMAP issues have been fixed

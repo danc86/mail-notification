@@ -26,33 +26,32 @@ extern "C" {
 
 #line 28 "mn-mailbox-private.h"
 struct _MNMailboxPrivate {
-#line 140 "mn-mailbox.gob"
+#line 141 "mn-mailbox.gob"
 	char * name;
-#line 144 "mn-mailbox.gob"
+#line 145 "mn-mailbox.gob"
 	gboolean must_poll;
-#line 150 "mn-mailbox.gob"
-	gboolean has_new;
-#line 155 "mn-mailbox.gob"
+#line 151 "mn-mailbox.gob"
 	GSList * messages;
-#line 209 "mn-mailbox.gob"
+#line 205 "mn-mailbox.gob"
 	char * error;
-#line 229 "mn-mailbox.gob"
+#line 225 "mn-mailbox.gob"
 	GnomeVFSMonitorHandle * monitor_handle;
-#line 230 "mn-mailbox.gob"
+#line 226 "mn-mailbox.gob"
 	char * monitor_uri;
-#line 231 "mn-mailbox.gob"
+#line 227 "mn-mailbox.gob"
 	MNMailboxMonitorEventType monitor_events;
-#line 233 "mn-mailbox.gob"
+#line 229 "mn-mailbox.gob"
 	gboolean checking;
-#line 364 "mn-mailbox.gob"
+#line 360 "mn-mailbox.gob"
 	char * init_error;
-#line 50 "mn-mailbox-private.h"
+#line 48 "mn-mailbox-private.h"
 };
 void 	mn_mailbox_set_error	(MNMailbox * self, const char * format, ...);
 void 	mn_mailbox_set_init_error	(MNMailbox * self, const char * format, ...);
 void 	mn_mailbox_monitor	(MNMailbox * self, const char * uri, GnomeVFSMonitorType monitor_type, MNMailboxMonitorEventType events);
 void 	mn_mailbox_end_check	(MNMailbox * self);
 void 	mn_mailbox_notice	(MNMailbox * self, const char * format, ...);
+void 	mn_mailbox_warning	(MNMailbox * self, const char * format, ...);
 
 #ifdef __cplusplus
 }

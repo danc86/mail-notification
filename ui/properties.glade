@@ -8,18 +8,17 @@
   <property name="border_width">6</property>
   <property name="title" translatable="yes">Mail Notification Properties</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
-  <property name="window_position">GTK_WIN_POS_CENTER</property>
+  <property name="window_position">GTK_WIN_POS_NONE</property>
   <property name="modal">False</property>
   <property name="resizable">True</property>
   <property name="destroy_with_parent">False</property>
-  <property name="icon">mail-notification.png</property>
   <property name="decorated">True</property>
   <property name="skip_taskbar_hint">False</property>
   <property name="skip_pager_hint">False</property>
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="has_separator">False</property>
-  <signal name="response" handler="mn_properties_response_h" last_modification_time="Sat, 02 Oct 2004 18:23:37 GMT"/>
+  <signal name="response" handler="mn_properties_dialog_response_h" last_modification_time="Sat, 02 Oct 2004 18:23:37 GMT"/>
 
   <child internal-child="vbox">
     <widget class="GtkVBox" id="dialog-vbox1">
@@ -112,31 +111,16 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkHBox" id="hbox27">
+		    <widget class="GtkAlignment" id="alignment1">
 		      <property name="visible">True</property>
-		      <property name="homogeneous">False</property>
-		      <property name="spacing">0</property>
-
-		      <child>
-			<widget class="GtkLabel" id="label37">
-			  <property name="visible">True</property>
-			  <property name="label" translatable="yes">    </property>
-			  <property name="use_underline">False</property>
-			  <property name="use_markup">False</property>
-			  <property name="justify">GTK_JUSTIFY_LEFT</property>
-			  <property name="wrap">False</property>
-			  <property name="selectable">False</property>
-			  <property name="xalign">0.5</property>
-			  <property name="yalign">0.5</property>
-			  <property name="xpad">0</property>
-			  <property name="ypad">0</property>
-			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">False</property>
-			  <property name="fill">False</property>
-			</packing>
-		      </child>
+		      <property name="xalign">0.5</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xscale">1</property>
+		      <property name="yscale">1</property>
+		      <property name="top_padding">0</property>
+		      <property name="bottom_padding">0</property>
+		      <property name="left_padding">12</property>
+		      <property name="right_padding">0</property>
 
 		      <child>
 			<widget class="GtkVBox" id="vbox23">
@@ -156,7 +140,7 @@
 			      <property name="active">False</property>
 			      <property name="inconsistent">False</property>
 			      <property name="draw_indicator">True</property>
-			      <signal name="toggled" handler="mn_properties_autostart_toggled_h" last_modification_time="Mon, 23 Aug 2004 01:36:43 GMT"/>
+			      <signal name="toggled" handler="mn_properties_dialog_autostart_toggled_h" last_modification_time="Mon, 23 Aug 2004 01:36:43 GMT"/>
 			    </widget>
 			    <packing>
 			      <property name="padding">0</property>
@@ -205,11 +189,6 @@
 			    </packing>
 			  </child>
 			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">True</property>
-			  <property name="fill">True</property>
-			</packing>
 		      </child>
 		    </widget>
 		    <packing>
@@ -254,31 +233,16 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkHBox" id="hbox28">
+		    <widget class="GtkAlignment" id="alignment2">
 		      <property name="visible">True</property>
-		      <property name="homogeneous">False</property>
-		      <property name="spacing">0</property>
-
-		      <child>
-			<widget class="GtkLabel" id="label39">
-			  <property name="visible">True</property>
-			  <property name="label" translatable="yes">    </property>
-			  <property name="use_underline">False</property>
-			  <property name="use_markup">False</property>
-			  <property name="justify">GTK_JUSTIFY_LEFT</property>
-			  <property name="wrap">False</property>
-			  <property name="selectable">False</property>
-			  <property name="xalign">0.5</property>
-			  <property name="yalign">0.5</property>
-			  <property name="xpad">0</property>
-			  <property name="ypad">0</property>
-			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">False</property>
-			  <property name="fill">False</property>
-			</packing>
-		      </child>
+		      <property name="xalign">0.5</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xscale">1</property>
+		      <property name="yscale">1</property>
+		      <property name="top_padding">0</property>
+		      <property name="bottom_padding">0</property>
+		      <property name="left_padding">12</property>
+		      <property name="right_padding">0</property>
 
 		      <child>
 			<widget class="GtkVBox" id="vbox25">
@@ -304,7 +268,7 @@
 				  <property name="active">False</property>
 				  <property name="inconsistent">False</property>
 				  <property name="draw_indicator">True</property>
-				  <signal name="toggled" handler="mn_properties_toggled_h" last_modification_time="Fri, 29 Oct 2004 16:42:45 GMT"/>
+				  <signal name="toggled" handler="mn_properties_dialog_toggled_h" last_modification_time="Fri, 29 Oct 2004 16:42:45 GMT"/>
 				</widget>
 				<packing>
 				  <property name="padding">0</property>
@@ -325,7 +289,6 @@
 				  <property name="has_frame">True</property>
 				  <property name="invisible_char">*</property>
 				  <property name="activates_default">False</property>
-				  <signal name="changed" handler="mn_properties_mail_reader_entry_changed_h" after="yes" last_modification_time="Fri, 29 Oct 2004 16:48:44 GMT"/>
 				</widget>
 				<packing>
 				  <property name="padding">0</property>
@@ -359,7 +322,7 @@
 				  <property name="active">False</property>
 				  <property name="inconsistent">False</property>
 				  <property name="draw_indicator">True</property>
-				  <signal name="toggled" handler="mn_properties_toggled_h" last_modification_time="Sun, 27 Jul 2003 08:45:08 GMT"/>
+				  <signal name="toggled" handler="mn_properties_dialog_toggled_h" last_modification_time="Sun, 27 Jul 2003 08:45:08 GMT"/>
 				</widget>
 				<packing>
 				  <property name="padding">0</property>
@@ -413,7 +376,7 @@
 				  <property name="active">False</property>
 				  <property name="inconsistent">False</property>
 				  <property name="draw_indicator">True</property>
-				  <signal name="toggled" handler="mn_properties_toggled_h" last_modification_time="Sat, 09 Oct 2004 17:36:36 GMT"/>
+				  <signal name="toggled" handler="mn_properties_dialog_toggled_h" last_modification_time="Sat, 09 Oct 2004 17:36:36 GMT"/>
 				</widget>
 				<packing>
 				  <property name="padding">0</property>
@@ -449,11 +412,6 @@
 			    </packing>
 			  </child>
 			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">True</property>
-			  <property name="fill">True</property>
-			</packing>
 		      </child>
 		    </widget>
 		    <packing>
@@ -498,31 +456,16 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkHBox" id="hbox31">
+		    <widget class="GtkAlignment" id="alignment3">
 		      <property name="visible">True</property>
-		      <property name="homogeneous">False</property>
-		      <property name="spacing">0</property>
-
-		      <child>
-			<widget class="GtkLabel" id="label41">
-			  <property name="visible">True</property>
-			  <property name="label" translatable="yes">    </property>
-			  <property name="use_underline">False</property>
-			  <property name="use_markup">False</property>
-			  <property name="justify">GTK_JUSTIFY_LEFT</property>
-			  <property name="wrap">False</property>
-			  <property name="selectable">False</property>
-			  <property name="xalign">0.5</property>
-			  <property name="yalign">0.5</property>
-			  <property name="xpad">0</property>
-			  <property name="ypad">0</property>
-			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">False</property>
-			  <property name="fill">False</property>
-			</packing>
-		      </child>
+		      <property name="xalign">0.5</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xscale">1</property>
+		      <property name="yscale">1</property>
+		      <property name="top_padding">0</property>
+		      <property name="bottom_padding">0</property>
+		      <property name="left_padding">12</property>
+		      <property name="right_padding">0</property>
 
 		      <child>
 			<widget class="GtkVBox" id="vbox27">
@@ -531,17 +474,17 @@
 			  <property name="spacing">6</property>
 
 			  <child>
-			    <widget class="GtkRadioButton" id="action_summary_radio">
+			    <widget class="GtkRadioButton" id="action_main_window_radio">
 			      <property name="visible">True</property>
 			      <property name="can_focus">True</property>
-			      <property name="label" translatable="yes">_Display the mail summary dialog</property>
+			      <property name="label" translatable="yes">_Display the main window</property>
 			      <property name="use_underline">True</property>
 			      <property name="relief">GTK_RELIEF_NORMAL</property>
 			      <property name="focus_on_click">True</property>
 			      <property name="active">False</property>
 			      <property name="inconsistent">False</property>
 			      <property name="draw_indicator">True</property>
-			      <signal name="toggled" handler="mn_properties_toggled_h" last_modification_time="Tue, 26 Oct 2004 11:27:38 GMT"/>
+			      <signal name="toggled" handler="mn_properties_dialog_toggled_h" last_modification_time="Tue, 26 Oct 2004 11:27:38 GMT"/>
 			    </widget>
 			    <packing>
 			      <property name="padding">0</property>
@@ -561,7 +504,27 @@
 			      <property name="active">False</property>
 			      <property name="inconsistent">False</property>
 			      <property name="draw_indicator">True</property>
-			      <property name="group">action_summary_radio</property>
+			      <property name="group">action_main_window_radio</property>
+			    </widget>
+			    <packing>
+			      <property name="padding">0</property>
+			      <property name="expand">False</property>
+			      <property name="fill">False</property>
+			    </packing>
+			  </child>
+
+			  <child>
+			    <widget class="GtkRadioButton" id="action_update_radio">
+			      <property name="visible">True</property>
+			      <property name="can_focus">True</property>
+			      <property name="label" translatable="yes">_Update the mail status</property>
+			      <property name="use_underline">True</property>
+			      <property name="relief">GTK_RELIEF_NORMAL</property>
+			      <property name="focus_on_click">True</property>
+			      <property name="active">False</property>
+			      <property name="inconsistent">False</property>
+			      <property name="draw_indicator">True</property>
+			      <property name="group">action_main_window_radio</property>
 			    </widget>
 			    <packing>
 			      <property name="padding">0</property>
@@ -570,11 +533,6 @@
 			    </packing>
 			  </child>
 			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">True</property>
-			  <property name="fill">True</property>
-			</packing>
 		      </child>
 		    </widget>
 		    <packing>
@@ -651,31 +609,16 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkHBox" id="hbox25">
+		    <widget class="GtkAlignment" id="alignment4">
 		      <property name="visible">True</property>
-		      <property name="homogeneous">False</property>
-		      <property name="spacing">0</property>
-
-		      <child>
-			<widget class="GtkLabel" id="label33">
-			  <property name="visible">True</property>
-			  <property name="label" translatable="yes">    </property>
-			  <property name="use_underline">False</property>
-			  <property name="use_markup">False</property>
-			  <property name="justify">GTK_JUSTIFY_LEFT</property>
-			  <property name="wrap">False</property>
-			  <property name="selectable">False</property>
-			  <property name="xalign">0.5</property>
-			  <property name="yalign">0.5</property>
-			  <property name="xpad">0</property>
-			  <property name="ypad">0</property>
-			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">False</property>
-			  <property name="fill">False</property>
-			</packing>
-		      </child>
+		      <property name="xalign">0.5</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xscale">1</property>
+		      <property name="yscale">1</property>
+		      <property name="top_padding">0</property>
+		      <property name="bottom_padding">0</property>
+		      <property name="left_padding">12</property>
+		      <property name="right_padding">0</property>
 
 		      <child>
 			<widget class="GtkHBox" id="hbox11">
@@ -732,7 +675,7 @@
 			      </child>
 
 			      <child>
-				<widget class="GtkLabel" id="label16">
+				<widget class="GtkLabel" id="minutes_label">
 				  <property name="visible">True</property>
 				  <property name="label" translatable="yes">minutes</property>
 				  <property name="use_underline">False</property>
@@ -773,7 +716,7 @@
 			      </child>
 
 			      <child>
-				<widget class="GtkLabel" id="label17">
+				<widget class="GtkLabel" id="seconds_label">
 				  <property name="visible">True</property>
 				  <property name="label" translatable="yes">seconds</property>
 				  <property name="use_underline">False</property>
@@ -800,11 +743,6 @@
 			    </packing>
 			  </child>
 			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">True</property>
-			  <property name="fill">True</property>
-			</packing>
 		      </child>
 		    </widget>
 		    <packing>
@@ -849,31 +787,16 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkHBox" id="hbox26">
+		    <widget class="GtkAlignment" id="alignment5">
 		      <property name="visible">True</property>
-		      <property name="homogeneous">False</property>
-		      <property name="spacing">0</property>
-
-		      <child>
-			<widget class="GtkLabel" id="label35">
-			  <property name="visible">True</property>
-			  <property name="label" translatable="yes">    </property>
-			  <property name="use_underline">False</property>
-			  <property name="use_markup">False</property>
-			  <property name="justify">GTK_JUSTIFY_LEFT</property>
-			  <property name="wrap">False</property>
-			  <property name="selectable">False</property>
-			  <property name="xalign">0.5</property>
-			  <property name="yalign">0.5</property>
-			  <property name="xpad">0</property>
-			  <property name="ypad">0</property>
-			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">False</property>
-			  <property name="fill">False</property>
-			</packing>
-		      </child>
+		      <property name="xalign">0.5</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xscale">1</property>
+		      <property name="yscale">1</property>
+		      <property name="top_padding">0</property>
+		      <property name="bottom_padding">0</property>
+		      <property name="left_padding">12</property>
+		      <property name="right_padding">0</property>
 
 		      <child>
 			<widget class="GtkVBox" id="vbox21">
@@ -936,7 +859,7 @@
 				  <property name="use_stock">True</property>
 				  <property name="relief">GTK_RELIEF_NORMAL</property>
 				  <property name="focus_on_click">True</property>
-				  <signal name="clicked" handler="mn_properties_add_clicked_h" last_modification_time="Thu, 27 May 2004 20:34:29 GMT"/>
+				  <signal name="clicked" handler="mn_properties_dialog_add_clicked_h" last_modification_time="Thu, 27 May 2004 20:34:29 GMT"/>
 				</widget>
 				<packing>
 				  <property name="padding">0</property>
@@ -953,7 +876,7 @@
 				  <property name="use_stock">True</property>
 				  <property name="relief">GTK_RELIEF_NORMAL</property>
 				  <property name="focus_on_click">True</property>
-				  <signal name="clicked" handler="mn_properties_remove_clicked_h" last_modification_time="Sat, 06 Dec 2003 14:00:02 GMT"/>
+				  <signal name="clicked" handler="mn_properties_dialog_remove_clicked_h" last_modification_time="Sat, 06 Dec 2003 14:00:02 GMT"/>
 				</widget>
 				<packing>
 				  <property name="padding">0</property>
@@ -970,7 +893,7 @@
 				  <property name="use_stock">True</property>
 				  <property name="relief">GTK_RELIEF_NORMAL</property>
 				  <property name="focus_on_click">True</property>
-				  <signal name="clicked" handler="mn_properties_properties_clicked_h" last_modification_time="Sat, 05 Jun 2004 20:07:54 GMT"/>
+				  <signal name="clicked" handler="mn_properties_dialog_properties_clicked_h" last_modification_time="Sat, 05 Jun 2004 20:07:54 GMT"/>
 				</widget>
 				<packing>
 				  <property name="padding">0</property>
@@ -986,11 +909,6 @@
 			    </packing>
 			  </child>
 			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">True</property>
-			  <property name="fill">True</property>
-			</packing>
 		      </child>
 		    </widget>
 		    <packing>
@@ -1067,31 +985,16 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkHBox" id="hbox23">
+		    <widget class="GtkAlignment" id="alignment6">
 		      <property name="visible">True</property>
-		      <property name="homogeneous">False</property>
-		      <property name="spacing">0</property>
-
-		      <child>
-			<widget class="GtkLabel" id="label29">
-			  <property name="visible">True</property>
-			  <property name="label" translatable="yes">    </property>
-			  <property name="use_underline">False</property>
-			  <property name="use_markup">False</property>
-			  <property name="justify">GTK_JUSTIFY_LEFT</property>
-			  <property name="wrap">False</property>
-			  <property name="selectable">False</property>
-			  <property name="xalign">0.5</property>
-			  <property name="yalign">0.5</property>
-			  <property name="xpad">0</property>
-			  <property name="ypad">0</property>
-			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">False</property>
-			  <property name="fill">False</property>
-			</packing>
-		      </child>
+		      <property name="xalign">0.5</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xscale">1</property>
+		      <property name="yscale">1</property>
+		      <property name="top_padding">0</property>
+		      <property name="bottom_padding">0</property>
+		      <property name="left_padding">12</property>
+		      <property name="right_padding">0</property>
 
 		      <child>
 			<widget class="GtkVBox" id="vbox16">
@@ -1111,7 +1014,7 @@
 			      <property name="active">False</property>
 			      <property name="inconsistent">False</property>
 			      <property name="draw_indicator">True</property>
-			      <signal name="toggled" handler="mn_properties_toggled_h" last_modification_time="Wed, 15 Sep 2004 19:20:43 GMT"/>
+			      <signal name="toggled" handler="mn_properties_dialog_toggled_h" last_modification_time="Wed, 15 Sep 2004 19:20:43 GMT"/>
 			    </widget>
 			    <packing>
 			      <property name="padding">0</property>
@@ -1138,7 +1041,7 @@
 				  <property name="active">False</property>
 				  <property name="inconsistent">False</property>
 				  <property name="draw_indicator">True</property>
-				  <signal name="toggled" handler="mn_properties_toggled_h" last_modification_time="Wed, 15 Sep 2004 19:20:52 GMT"/>
+				  <signal name="toggled" handler="mn_properties_dialog_toggled_h" last_modification_time="Wed, 15 Sep 2004 19:20:52 GMT"/>
 				</widget>
 				<packing>
 				  <property name="padding">0</property>
@@ -1269,11 +1172,6 @@
 			    </packing>
 			  </child>
 			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">True</property>
-			  <property name="fill">True</property>
-			</packing>
 		      </child>
 		    </widget>
 		    <packing>
@@ -1318,31 +1216,16 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkHBox" id="hbox24">
+		    <widget class="GtkAlignment" id="alignment7">
 		      <property name="visible">True</property>
-		      <property name="homogeneous">False</property>
-		      <property name="spacing">0</property>
-
-		      <child>
-			<widget class="GtkLabel" id="label31">
-			  <property name="visible">True</property>
-			  <property name="label" translatable="yes">    </property>
-			  <property name="use_underline">False</property>
-			  <property name="use_markup">False</property>
-			  <property name="justify">GTK_JUSTIFY_LEFT</property>
-			  <property name="wrap">False</property>
-			  <property name="selectable">False</property>
-			  <property name="xalign">0.5</property>
-			  <property name="yalign">0.5</property>
-			  <property name="xpad">0</property>
-			  <property name="ypad">0</property>
-			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">False</property>
-			  <property name="fill">False</property>
-			</packing>
-		      </child>
+		      <property name="xalign">0.5</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xscale">1</property>
+		      <property name="yscale">1</property>
+		      <property name="top_padding">0</property>
+		      <property name="bottom_padding">0</property>
+		      <property name="left_padding">12</property>
+		      <property name="right_padding">0</property>
 
 		      <child>
 			<widget class="GtkVBox" id="vbox18">
@@ -1574,11 +1457,6 @@
 			    </packing>
 			  </child>
 			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">True</property>
-			  <property name="fill">True</property>
-			</packing>
 		      </child>
 		    </widget>
 		    <packing>
@@ -1623,31 +1501,16 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkHBox" id="hbox34">
+		    <widget class="GtkAlignment" id="alignment8">
 		      <property name="visible">True</property>
-		      <property name="homogeneous">False</property>
-		      <property name="spacing">0</property>
-
-		      <child>
-			<widget class="GtkLabel" id="label43">
-			  <property name="visible">True</property>
-			  <property name="label" translatable="yes">    </property>
-			  <property name="use_underline">False</property>
-			  <property name="use_markup">False</property>
-			  <property name="justify">GTK_JUSTIFY_LEFT</property>
-			  <property name="wrap">False</property>
-			  <property name="selectable">False</property>
-			  <property name="xalign">0.5</property>
-			  <property name="yalign">0.5</property>
-			  <property name="xpad">0</property>
-			  <property name="ypad">0</property>
-			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">False</property>
-			  <property name="fill">False</property>
-			</packing>
-		      </child>
+		      <property name="xalign">0.5</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xscale">1</property>
+		      <property name="yscale">1</property>
+		      <property name="top_padding">0</property>
+		      <property name="bottom_padding">0</property>
+		      <property name="left_padding">12</property>
+		      <property name="right_padding">0</property>
 
 		      <child>
 			<widget class="GtkVBox" id="vbox29">
@@ -1656,24 +1519,79 @@
 			  <property name="spacing">6</property>
 
 			  <child>
-			    <widget class="GtkHBox" id="hbox35">
+			    <widget class="GtkRadioButton" id="summary_fonts_from_theme_radio">
+			      <property name="visible">True</property>
+			      <property name="can_focus">True</property>
+			      <property name="label" translatable="yes">_Use fonts from theme</property>
+			      <property name="use_underline">True</property>
+			      <property name="relief">GTK_RELIEF_NORMAL</property>
+			      <property name="focus_on_click">True</property>
+			      <property name="active">False</property>
+			      <property name="inconsistent">False</property>
+			      <property name="draw_indicator">True</property>
+			      <signal name="toggled" handler="mn_properties_dialog_toggled_h" last_modification_time="Thu, 03 Feb 2005 20:37:10 GMT"/>
+			    </widget>
+			    <packing>
+			      <property name="padding">0</property>
+			      <property name="expand">False</property>
+			      <property name="fill">False</property>
+			    </packing>
+			  </child>
+
+			  <child>
+			    <widget class="GtkRadioButton" id="summary_custom_fonts_radio">
+			      <property name="visible">True</property>
+			      <property name="can_focus">True</property>
+			      <property name="label" translatable="yes">Use these _fonts:</property>
+			      <property name="use_underline">True</property>
+			      <property name="relief">GTK_RELIEF_NORMAL</property>
+			      <property name="focus_on_click">True</property>
+			      <property name="active">False</property>
+			      <property name="inconsistent">False</property>
+			      <property name="draw_indicator">True</property>
+			      <property name="group">summary_fonts_from_theme_radio</property>
+			    </widget>
+			    <packing>
+			      <property name="padding">0</property>
+			      <property name="expand">False</property>
+			      <property name="fill">False</property>
+			    </packing>
+			  </child>
+
+			  <child>
+			    <widget class="GtkHBox" id="hbox39">
 			      <property name="visible">True</property>
 			      <property name="homogeneous">False</property>
 			      <property name="spacing">12</property>
 
 			      <child>
-				<widget class="GtkCheckButton" id="summary_title_font_check">
+				<widget class="GtkAlignment" id="summary_title_font_alignment">
 				  <property name="visible">True</property>
-				  <property name="tooltip" translatable="yes">Whether to use a custom font for the title of the mail summary popup or not</property>
-				  <property name="can_focus">True</property>
-				  <property name="label" translatable="yes">_Title font:</property>
-				  <property name="use_underline">True</property>
-				  <property name="relief">GTK_RELIEF_NORMAL</property>
-				  <property name="focus_on_click">True</property>
-				  <property name="active">False</property>
-				  <property name="inconsistent">False</property>
-				  <property name="draw_indicator">True</property>
-				  <signal name="toggled" handler="mn_properties_toggled_h" last_modification_time="Wed, 03 Nov 2004 14:44:43 GMT"/>
+				  <property name="xalign">0.5</property>
+				  <property name="yalign">0.5</property>
+				  <property name="xscale">1</property>
+				  <property name="yscale">1</property>
+				  <property name="top_padding">0</property>
+				  <property name="bottom_padding">0</property>
+				  <property name="left_padding">30</property>
+				  <property name="right_padding">0</property>
+
+				  <child>
+				    <widget class="GtkLabel" id="summary_title_font_label">
+				      <property name="visible">True</property>
+				      <property name="label" translatable="yes">_Title:</property>
+				      <property name="use_underline">True</property>
+				      <property name="use_markup">False</property>
+				      <property name="justify">GTK_JUSTIFY_LEFT</property>
+				      <property name="wrap">False</property>
+				      <property name="selectable">False</property>
+				      <property name="xalign">0</property>
+				      <property name="yalign">0.5</property>
+				      <property name="xpad">0</property>
+				      <property name="ypad">0</property>
+				      <property name="mnemonic_widget">summary_title_font_button</property>
+				    </widget>
+				  </child>
 				</widget>
 				<packing>
 				  <property name="padding">0</property>
@@ -1707,24 +1625,39 @@
 			  </child>
 
 			  <child>
-			    <widget class="GtkHBox" id="hbox36">
+			    <widget class="GtkHBox" id="hbox40">
 			      <property name="visible">True</property>
 			      <property name="homogeneous">False</property>
 			      <property name="spacing">12</property>
 
 			      <child>
-				<widget class="GtkCheckButton" id="summary_contents_font_check">
+				<widget class="GtkAlignment" id="summary_contents_font_alignment">
 				  <property name="visible">True</property>
-				  <property name="tooltip" translatable="yes">Whether to use a custom font for the contents of the mail summary popup or not</property>
-				  <property name="can_focus">True</property>
-				  <property name="label" translatable="yes">_Contents font:</property>
-				  <property name="use_underline">True</property>
-				  <property name="relief">GTK_RELIEF_NORMAL</property>
-				  <property name="focus_on_click">True</property>
-				  <property name="active">False</property>
-				  <property name="inconsistent">False</property>
-				  <property name="draw_indicator">True</property>
-				  <signal name="toggled" handler="mn_properties_toggled_h" last_modification_time="Wed, 03 Nov 2004 14:44:53 GMT"/>
+				  <property name="xalign">0.5</property>
+				  <property name="yalign">0.5</property>
+				  <property name="xscale">1</property>
+				  <property name="yscale">1</property>
+				  <property name="top_padding">0</property>
+				  <property name="bottom_padding">0</property>
+				  <property name="left_padding">30</property>
+				  <property name="right_padding">0</property>
+
+				  <child>
+				    <widget class="GtkLabel" id="summary_contents_font_label">
+				      <property name="visible">True</property>
+				      <property name="label" translatable="yes">Co_ntents:</property>
+				      <property name="use_underline">True</property>
+				      <property name="use_markup">False</property>
+				      <property name="justify">GTK_JUSTIFY_LEFT</property>
+				      <property name="wrap">False</property>
+				      <property name="selectable">False</property>
+				      <property name="xalign">0</property>
+				      <property name="yalign">0.5</property>
+				      <property name="xpad">0</property>
+				      <property name="ypad">0</property>
+				      <property name="mnemonic_widget">summary_contents_font_button</property>
+				    </widget>
+				  </child>
 				</widget>
 				<packing>
 				  <property name="padding">0</property>
@@ -1757,11 +1690,6 @@
 			    </packing>
 			  </child>
 			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">True</property>
-			  <property name="fill">True</property>
-			</packing>
 		      </child>
 		    </widget>
 		    <packing>

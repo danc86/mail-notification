@@ -1,6 +1,4 @@
-# $Id: acinclude.m4,v 1.13 2004/09/29 22:15:14 jylefort Exp $
-#
-# Copyright (c) 2003, 2004 Jean-Yves Lefort.
+# Copyright (C) 2003-2005 Jean-Yves Lefort.
 #
 # This file is part of Mail Notification.
 # It may be distributed under the same terms as Mail Notification.
@@ -72,8 +70,23 @@ esac], [enable_compile_warnings=no])
 if test $enable_compile_warnings = no; then
 	WARN_CFLAGS=
 else
-	# some flags are specific to GCC
-	WARN_CFLAGS="-Wall -Wcast-align -Wredundant-decls -Wnested-externs -Winline"
+	# most flags are specific to GCC
+	WARN_CFLAGS="-Wall \
+-Wformat-y2k \
+-Wformat-security \
+-Wno-unused-parameter \
+-Wfloat-equal \
+-Wdeclaration-after-statement \
+-Wendif-labels \
+-Wpointer-arith \
+-Wcast-align \
+-Waggregate-return \
+-Wmissing-noreturn \
+-Wmissing-format-attribute \
+-Wpacked \
+-Wredundant-decls \
+-Wnested-externs \
+-Winline"
 	test $enable_compile_warnings = error && WARN_CFLAGS="$WARN_CFLAGS -Werror"
 fi
 
@@ -83,7 +96,7 @@ AC_SUBST(WARN_CFLAGS)])
 
 dnl MN_REPORT(NAME, VALUE)
 dnl
-AC_DEFUN([MN_REPORT], [  m4_format([%-20s %s], [$1], [$2])])
+AC_DEFUN([MN_REPORT], [  m4_format([%-30s %s], [$1], [$2])])
 
 dnl MN_REPORT_ARG(NAME)
 dnl

@@ -10,13 +10,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNIMAPMailboxPropertiesPrivate {
-#line 67 "mn-imap-mailbox-properties.gob"
-	GtkWidget * inbox_radio;
 #line 68 "mn-imap-mailbox-properties.gob"
-	GtkWidget * other_radio;
+	GtkWidget * inbox_radio;
 #line 69 "mn-imap-mailbox-properties.gob"
-	GtkWidget * mailbox_entry;
+	GtkWidget * other_radio;
 #line 70 "mn-imap-mailbox-properties.gob"
+	GtkWidget * mailbox_entry;
+#line 71 "mn-imap-mailbox-properties.gob"
 	GtkWidget * idle_check;
 #line 22 "mn-imap-mailbox-properties-private.h"
 };

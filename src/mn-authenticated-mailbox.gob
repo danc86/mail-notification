@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ requires 2.0.10
 class MN:Authenticated:Mailbox from MN:Mailbox
 {
   protected char *password = NULL destroywith g_free;
+  protected gboolean prompted;
   protected gboolean cancelled;
   private gboolean authentication_failed;
   private GtkWidget *dialog;
@@ -53,6 +54,8 @@ class MN:Authenticated:Mailbox from MN:Mailbox
     impl_check (MN:Mailbox *mailbox (check null type))
   {
     Self *self = SELF(mailbox);
+
+    self->prompted = FALSE;
     selfp->authentication_failed = FALSE;
   }
   
@@ -74,6 +77,8 @@ class MN:Authenticated:Mailbox from MN:Mailbox
 	if (! self->password)
 	  {
 	    GDK_THREADS_ENTER();
+
+	    self->prompted = TRUE;
 
 	    self->password = self_password_prompt(self,
 						  selfp->authentication_failed
@@ -107,7 +112,7 @@ class MN:Authenticated:Mailbox from MN:Mailbox
 
     g_return_val_if_fail(selfp->dialog == NULL, NULL);
 
-    mn_create_interface("authentication",
+    mn_create_interface(MN_INTERFACE_FILE("authentication.glade"),
 			"dialog", &selfp->dialog,
 			"label", &label,
 			"username_label", &username_label,
@@ -140,7 +145,7 @@ class MN:Authenticated:Mailbox from MN:Mailbox
 
     gtk_entry_set_text(GTK_ENTRY(username_entry), MN_MAILBOX(self)->uri->username);
 
-    if (gtk_dialog_run(GTK_DIALOG(selfp->dialog)) == GTK_RESPONSE_OK)
+    if (mn_dialog_run_nonmodal(GTK_DIALOG(selfp->dialog)) == GTK_RESPONSE_OK)
       password = g_strdup(gtk_entry_get_text(GTK_ENTRY(password_entry)));
 
     gtk_widget_destroy(selfp->dialog);

@@ -80,9 +80,6 @@ const char * 	mn_mailbox_get_name	(MNMailbox * self);
 gboolean 	mn_mailbox_get_must_poll	(MNMailbox * self);
 void 	mn_mailbox_set_must_poll	(MNMailbox * self,
 					gboolean val);
-gboolean 	mn_mailbox_get_has_new	(MNMailbox * self);
-void 	mn_mailbox_set_has_new	(MNMailbox * self,
-					gboolean val);
 gpointer 	mn_mailbox_get_messages	(MNMailbox * self);
 void 	mn_mailbox_set_messages	(MNMailbox * self,
 					gpointer val);
@@ -122,8 +119,6 @@ void 	mn_mailbox_check	(MNMailbox * self);
 #define MN_MAILBOX_GET_PROP_NAME(arg)	"name", __extension__ ({gchar **z = (arg); z;})
 #define MN_MAILBOX_PROP_MUST_POLL(arg)    	"must_poll", __extension__ ({gboolean z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_MUST_POLL(arg)	"must_poll", __extension__ ({gboolean *z = (arg); z;})
-#define MN_MAILBOX_PROP_HAS_NEW(arg)    	"has_new", __extension__ ({gboolean z = (arg); z;})
-#define MN_MAILBOX_GET_PROP_HAS_NEW(arg)	"has_new", __extension__ ({gboolean *z = (arg); z;})
 #define MN_MAILBOX_PROP_MESSAGES(arg)    	"messages", __extension__ ({gpointer z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_MESSAGES(arg)	"messages", __extension__ ({gpointer *z = (arg); z;})
 #define MN_MAILBOX_PROP_ERROR(arg)    	"error", __extension__ ({gchar *z = (arg); z;})
@@ -134,8 +129,6 @@ void 	mn_mailbox_check	(MNMailbox * self);
 #define MN_MAILBOX_GET_PROP_NAME(arg)	"name",(gchar **)(arg)
 #define MN_MAILBOX_PROP_MUST_POLL(arg)    	"must_poll",(gboolean )(arg)
 #define MN_MAILBOX_GET_PROP_MUST_POLL(arg)	"must_poll",(gboolean *)(arg)
-#define MN_MAILBOX_PROP_HAS_NEW(arg)    	"has_new",(gboolean )(arg)
-#define MN_MAILBOX_GET_PROP_HAS_NEW(arg)	"has_new",(gboolean *)(arg)
 #define MN_MAILBOX_PROP_MESSAGES(arg)    	"messages",(gpointer )(arg)
 #define MN_MAILBOX_GET_PROP_MESSAGES(arg)	"messages",(gpointer *)(arg)
 #define MN_MAILBOX_PROP_ERROR(arg)    	"error",(gchar *)(arg)

@@ -16,7 +16,7 @@ extern "C" {
 
 #line 18 "mn-mbox-mailbox-private.h"
 struct _MNmboxMailboxPrivate {
-#line 43 "mn-mbox-mailbox.gob"
+#line 41 "mn-mbox-mailbox.gob"
 	time_t last_mtime;
 #line 22 "mn-mbox-mailbox-private.h"
 };

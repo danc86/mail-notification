@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,12 +31,16 @@ requires 2.0.10
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <time.h>
-#ifdef TM_IN_SYS_TIME
-#include <sys/time.h>
-#endif
 #include <glib/gi18n.h>
 #include <eel/eel.h>
+#ifdef WITH_GMAIL_TIMESTAMPS
+#include <unicode/uenum.h>
+#include <unicode/uloc.h>
+#include <unicode/ucal.h>
+#include "mn-icu.h"
+#endif /* WITH_GMAIL_TIMESTAMPS */
 #include "mn-mailbox-private.h"
 #include "mn-authenticated-mailbox-private.h"
 #include "mn-util.h"
@@ -72,7 +76,7 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
   }
 
   override (G:Object) GObject *
-    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
   {
     GObject *object;
 
@@ -206,7 +210,13 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 
     if (SOUP_STATUS_IS_SUCCESSFUL(message->status_code))
       {
-	body = g_strndup(message->response.body, message->response.length);
+	const char *end;
+	
+	/* Gmail returns UTF-8, so we don't need to parse Content-Type */
+	if (! g_utf8_validate(message->response.body, message->response.length, &end))
+	  mn_mailbox_warning(MN_MAILBOX(self), _("received non-UTF-8 data from server"));
+	  
+	body = g_strndup(message->response.body, end - message->response.body);
 	self_dump_response(self, message, body);
 	self_update_cookies(self, message);
       }
@@ -417,11 +427,9 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
   private void
     update_cookies (self, Soup:Message *message (check null type))
   {
-    const GSList *set_cookie_headers;
     const GSList *l;
     
-    set_cookie_headers = soup_message_get_header_list(message->response_headers, "Set-Cookie");
-    MN_LIST_FOREACH(l, set_cookie_headers)
+    MN_LIST_FOREACH(l, soup_message_get_header_list(message->response_headers, "Set-Cookie"))
       {
 	const char *value = l->data;
 	char *equal;
@@ -506,16 +514,35 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 	    if (self_js_get_arg_list(&work, &arg_list) && arg_list)
 	      {
 		GSList *l;
+		gboolean icu_available = FALSE;
 
+#ifdef WITH_GMAIL_TIMESTAMPS
+		if (arg_list->next)
+		  {
+		    GError *err = NULL;
+
+		    icu_available = mn_icu_use(&err);
+		    if (! icu_available)
+		      {
+			mn_mailbox_warning(MN_MAILBOX(self), _("unable to initialize the ICU library"), err->message);
+			g_error_free(err);
+		      }
+		  }
+#endif /* WITH_GMAIL_TIMESTAMPS */
+		
 		MN_LIST_FOREACH(l, arg_list->next)
-		  self_append_message(self, &messages, l->data);
+		  self_append_message(self, &messages, l->data, icu_available);
+
+#ifdef WITH_GMAIL_TIMESTAMPS
+		if (icu_available)
+		  mn_icu_unuse();
+#endif /* WITH_GMAIL_TIMESTAMPS */
 
 		self_js_arg_list_free(arg_list);
 	      }
 	  }
 	
 	GDK_THREADS_ENTER();
-	mn_mailbox_set_has_new(MN_MAILBOX(self), messages != NULL);
 	mn_mailbox_set_messages(MN_MAILBOX(self), messages);
 	gdk_flush();
 	GDK_THREADS_LEAVE();
@@ -534,7 +561,8 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
   private void
     append_message (self,
 		    GSList **messages (check null),
-		    JSArg *arg (check null))
+		    JSArg *arg (check null),
+		    gboolean icu_available)
   {
     char *date_field;
     char *sender_field;
@@ -543,14 +571,17 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
     GSList *l;
     gboolean in_inbox = FALSE;
 
-    char *date;
+    char *count_str;
     char *sender_email;
     char *sender_name;
     char *subject;
 
+    int count = 1;
     time_t sent_time = 0;
     char *from = NULL;
     char *expanded_subject = NULL;
+
+    int i;
 
     if (arg->type != JS_ARG_LIST
 	|| ! self_js_arg_list_scan(arg->value.list,
@@ -575,17 +606,31 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
     if (! in_inbox)
       return;
     
-    date = self_get_substring(date_field, "<b>", "</b>", FALSE, FALSE);
-    sender_email = self_get_substring(sender_field, "<span id='_user_", "'", FALSE, FALSE);
-    sender_name = self_get_substring(sender_field, "'><b>", "</b>", FALSE, FALSE);
-    subject = self_get_substring(subject_field, "<b>", "</b>", FALSE, FALSE);
-		    
-    if (date)
+#ifdef WITH_GMAIL_TIMESTAMPS
+    if (icu_available)
       {
-	sent_time = self_parse_date(date);
-	g_free(date);
+	char *date;
+
+	date = self_get_substring(date_field, "<b>", "</b>", FALSE, FALSE);
+	if (date)
+	  {
+	    sent_time = self_parse_date(self, date);
+	    g_free(date);
+	  }
+      }
+#endif /* WITH_GMAIL_TIMESTAMPS */
+
+    count_str = self_get_substring(sender_field, "</span> (", ")", FALSE, FALSE);
+    if (count_str)
+      {
+	if (mn_str_isnumeric(count_str))
+	  count = atoi(count_str);
+	g_free(count_str);
       }
     
+    sender_email = self_get_substring(sender_field, "<span id='_user_", "'", FALSE, FALSE);
+    sender_name = self_get_substring(sender_field, "'><b>", "</b>", FALSE, FALSE);
+		    
     if (sender_name && sender_email)
       {
 	char *tmp;
@@ -602,6 +647,7 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
     g_free(sender_email);
     g_free(sender_name);
     
+    subject = self_get_substring(subject_field, "<b>", "</b>", FALSE, FALSE);
     if (subject)
       {
 	if (strcmp(subject, "(no subject)"))
@@ -609,12 +655,13 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 	g_free(subject);
       }
     
-    *messages = g_slist_append(*messages, mn_message_new(MN_MAILBOX(self)->uri,
-							 NULL,
-							 sent_time,
-							 NULL,
-							 from,
-							 expanded_subject));
+    for (i = 0; i < count; i++)
+      *messages = g_slist_append(*messages, mn_message_new(MN_MAILBOX(self)->uri,
+							   NULL,
+							   sent_time,
+							   NULL,
+							   from,
+							   expanded_subject));
     
     g_free(from);
     g_free(expanded_subject);
@@ -818,58 +865,115 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
   }
   
   private time_t
-    parse_date (const char *date (check null))
+    parse_date (self, const char *date (check null))
   {
+#ifdef WITH_GMAIL_TIMESTAMPS
     time_t t = 0;
-#ifdef HAVE_TIMEGM
-    time_t now;
+    UChar *zone_id;
+    UCalendar *cal;
+    UErrorCode status = U_ZERO_ERROR;
+    UDate ud;
+    int hour;
+    int minute;
+    char ampm[3];
+    char month_str[4];
+    int year;
+    int month;
+    int day;
+    gboolean valid = FALSE;
+    
+    zone_id = mn_icu_ustr_new("PST"); /* Gmail's timezone */
+    cal = ucal_open(zone_id, -1, NULL, UCAL_TRADITIONAL, &status);
+    g_free(zone_id);
 
-    now = mn_time();
-    if (now > 0)
+    if (! cal)
       {
-	int hours;
-	int minutes;
-	char ampm[3];
-	char month_str[4];
-	int day;
-	struct tm *tm = NULL;
-	
-	/* convert now to UTC-7 (Gmail time) */
-	now -= (7 * 3600);
-	
-	if (sscanf(date, "%d:%d%2s", &hours, &minutes, ampm) == 3)
-	  {
-	    tm = gmtime(&now);
-	    tm->tm_hour = hours;
-	    if (ampm[0] == 'p')
-	      tm->tm_hour += 12;
-	    tm->tm_min = minutes;
-	    tm->tm_sec = 0;
-	  }
-	else if (sscanf(date, "%3s %d", month_str, &day) == 2)
-	  {
-	    const char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-	    int i;
-	    
-	    for (i = 0; i < G_N_ELEMENTS(months); i++)
-	      if (! strcmp(month_str, months[i]))
-		{
-		  tm = gmtime(&now);
-		  tm->tm_mon = i;
-		  tm->tm_mday = day;
-		  tm->tm_hour = 0;
-		  tm->tm_min = 0;
-		  tm->tm_sec = 0;
-		  
-		  break;
-		}
-	  }
-
-	if (tm)
-	  t = timegm(tm) + (7 * 3600); /* add 7 hours, because Gmail time is UTC-7 */
+	mn_mailbox_warning(MN_MAILBOX(self), _("unable to open calendar: %s"), u_errorName(status));
+	return 0;
       }
-#endif /* HAVE_TIMEGM */
+    
+    ud = ucal_getNow();
+    ucal_setMillis(cal, ud, &status);
+    if (U_FAILURE(status))
+      {
+	mn_mailbox_warning(MN_MAILBOX(self), _("unable to set calendar time: %s"), u_errorName(status));
+	goto end;
+      }
+
+    if (sscanf(date, "%d:%d%2s", &hour, &minute, ampm) == 3)
+      {
+	ucal_set(cal, UCAL_HOUR, hour);
+	ucal_set(cal, UCAL_MINUTE, minute);
+	ucal_set(cal, UCAL_SECOND, 0);
+	ucal_set(cal, UCAL_AM_PM, ampm[0] == 'p' ? 1 : 0);
+	valid = TRUE;
+      }
+    else if (sscanf(date, "%d/%d/%d", &month, &day, &year) == 3)
+      {
+	/*
+	 * Convert year from 2-digits to 4-digits, conforms to the
+	 * POSIX or X/Open standard.
+	 */
+	year += year >= 69 && year <= 99 ? 1900 : 2000;
+	
+	ucal_set(cal, UCAL_MONTH, month);
+	ucal_set(cal, UCAL_DATE, day);
+	ucal_set(cal, UCAL_YEAR, year);
+	ucal_set(cal, UCAL_HOUR, 0);
+	ucal_set(cal, UCAL_MINUTE, 0);
+	ucal_set(cal, UCAL_SECOND, 0);
+	valid = TRUE;
+      }
+    else if (sscanf(date, "%3s %d", month_str, &day) == 2)
+      {
+	const struct 
+	{
+	  const char	*name;
+	  int		value;
+	} months[] = {
+	  { "Jan",	UCAL_JANUARY	},
+	  { "Feb",	UCAL_FEBRUARY	},
+	  { "Mar",	UCAL_MARCH	},
+	  { "Apr",	UCAL_APRIL	},
+	  { "May",	UCAL_MAY	},
+	  { "Jun",	UCAL_JUNE	},
+	  { "Jul",	UCAL_JULY	},
+	  { "Aug",	UCAL_AUGUST	},
+	  { "Sep",	UCAL_SEPTEMBER	},
+	  { "Oct",	UCAL_OCTOBER	},
+	  { "Nov",	UCAL_NOVEMBER	},
+	  { "Dec",	UCAL_DECEMBER	}
+	};
+	int i;
+
+	for (i = 0; i < G_N_ELEMENTS(months); i++)
+	  if (! strcmp(month_str, months[i].name))
+	    {
+	      ucal_set(cal, UCAL_MONTH, months[i].value);
+	      ucal_set(cal, UCAL_DATE, day);
+	      ucal_set(cal, UCAL_HOUR, 0);
+	      ucal_set(cal, UCAL_MINUTE, 0);
+	      ucal_set(cal, UCAL_SECOND, 0);
+	      valid = TRUE;
+	      break;
+	    }
+      }
+    
+    if (valid)
+      {
+	ud = ucal_getMillis(cal, &status);
+	if (U_SUCCESS(status))
+	  t = ud / 1000;
+	else
+	  mn_mailbox_warning(MN_MAILBOX(self), _("unable to get calendar time: %s"), u_errorName(status));
+      }
+
+  end:
+    ucal_close(cal);
 
     return t;
+#else
+    g_return_val_if_reached(0);
+#endif /* WITH_GMAIL_TIMESTAMPS */
   }
 }

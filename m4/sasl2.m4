@@ -1,8 +1,6 @@
-# $Id: sasl2.m4,v 1.2 2004/08/04 22:54:08 jylefort Exp $
-#
 # This file is part of Mail Notification.
 #
-# Copyright (c) 2004 Jean-Yves Lefort.
+# Copyright (C) 2004 Jean-Yves Lefort.
 #
 # As a special exception to the Mail Notification licensing terms,
 # Jean-Yves Lefort gives unlimited permission to copy, distribute and

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ class MN:Mail:Icon from Egg:Tray:Icon
   signal (ACTION) private NONE (NONE)
     void activate (self);
   signal (ACTION) private NONE (NONE)
-    void activate_summary (self);
+    void activate_main_window (self);
   signal (ACTION) private NONE (NONE)
     void activate_mail_reader (self);
   signal (ACTION) private NONE (NONE)
@@ -81,15 +81,15 @@ class MN:Mail:Icon from Egg:Tray:Icon
   init (self)
   {
     GtkMenuShell *shell;
-    GtkWidget *summary_item;
+    GtkWidget *main_window_item;
     GtkWidget *properties_item;
     GtkWidget *help_item;
     GtkWidget *about_item;
     GtkWidget *remove_item;
     
     shell = GTK_MENU_SHELL(selfp->menu);
-    summary_item = mn_menu_shell_append(shell, MN_STOCK_MAIL_SUMMARY, NULL);
-    self->mail_reader_item = mn_menu_shell_append(shell, GTK_STOCK_EXECUTE, _("_Launch Mail Reader"));
+    main_window_item = mn_menu_shell_append(shell, MN_STOCK_MAIN_WINDOW, _("Main _Window"));
+    self->mail_reader_item = mn_menu_shell_append(shell, MN_STOCK_MAIL_READER, _("_Mail Reader"));
     self->update_item = mn_menu_shell_append(shell, GTK_STOCK_REFRESH, _("_Update"));
     mn_menu_shell_append(shell, NULL, NULL);
     properties_item = mn_menu_shell_append(shell, GTK_STOCK_PROPERTIES, NULL);
@@ -98,7 +98,7 @@ class MN:Mail:Icon from Egg:Tray:Icon
     mn_menu_shell_append(shell, NULL, NULL);
     remove_item = mn_menu_shell_append(shell, GTK_STOCK_REMOVE, _("R_emove From Notification Area"));
     
-    g_signal_connect_swapped(summary_item, "activate", G_CALLBACK(self_activate_summary), self);
+    g_signal_connect_swapped(main_window_item, "activate", G_CALLBACK(self_activate_main_window), self);
     g_signal_connect_swapped(self->mail_reader_item, "activate", G_CALLBACK(self_activate_mail_reader), self);
     g_signal_connect_swapped(self->update_item, "activate", G_CALLBACK(self_activate_update), self);
     g_signal_connect_swapped(properties_item, "activate", G_CALLBACK(self_activate_properties), self);
@@ -108,6 +108,7 @@ class MN:Mail:Icon from Egg:Tray:Icon
 
     selfp->event_box = gtk_event_box_new();
     GTK_WIDGET_SET_FLAGS(selfp->event_box, GTK_CAN_FOCUS);
+    gtk_event_box_set_visible_window(GTK_EVENT_BOX(selfp->event_box), FALSE);
     mn_setup_dnd(selfp->event_box);
 
     gtk_container_add(GTK_CONTAINER(selfp->event_box), self->image);
@@ -149,7 +150,7 @@ class MN:Mail:Icon from Egg:Tray:Icon
       self_activate(self);
     else if (event->button == 3)
       {
-	gtk_menu_popup(GTK_MENU(selfp->menu), NULL, NULL, NULL, NULL, event->button, event->time);
+	gtk_menu_popup(GTK_MENU(selfp->menu), NULL, NULL, self_popup_menu_position_cb, self, event->button, event->time);
 	return TRUE;		/* do not propagate event */
       }
 
@@ -178,10 +179,39 @@ class MN:Mail:Icon from Egg:Tray:Icon
   {
     Self *self = user_data;
 
-    gtk_menu_popup(GTK_MENU(selfp->menu), NULL, NULL, NULL, NULL, 0, gtk_get_current_event_time());
+    gtk_menu_popup(GTK_MENU(selfp->menu), NULL, NULL, self_popup_menu_position_cb, self, 0, gtk_get_current_event_time());
+    gtk_menu_shell_select_first(GTK_MENU_SHELL(selfp->menu), FALSE);
+
     return TRUE;		/* a menu was activated */
   }
 
+  private void
+    popup_menu_position_cb (Gtk:Menu *menu (check null type),
+			    int *x (check null),
+			    int *y (check null),
+			    gboolean *push_in (check null),
+			    gpointer user_data (check null))
+  {
+    GtkWidget *widget = user_data;
+
+    gdk_window_get_origin(widget->window, x, y);
+
+    *x += widget->allocation.x;
+    *y += widget->allocation.y;
+
+    if (*y > gdk_screen_get_height(gtk_widget_get_screen(widget)) / 2)
+      {
+	GtkRequisition req;
+	
+	gtk_widget_size_request(GTK_WIDGET(menu), &req);
+	*y -= req.height;
+      }
+    else
+      *y += widget->allocation.height;
+
+    *push_in = TRUE;
+  }
+  
   public void
     set_tip_widget (self, Gtk:Widget *tip_widget)
   {

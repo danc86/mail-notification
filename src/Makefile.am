@@ -100,6 +100,10 @@ gmail_sources = \
 	mn-soup.h
 gmail_built_sources = \
 	mn-sgml-entities.h
+
+if WITH_GMAIL_TIMESTAMPS
+icu_sources = mn-icu.c mn-icu.h
+endif
 endif
 
 if WITH_MIME
@@ -148,7 +152,7 @@ gob_sources = \
 	mn-mailbox-view.gob			\
 	mn-mailbox.gob				\
 	mn-mailboxes.gob			\
-	mn-message-box.gob			\
+	mn-message-view.gob			\
 	mn-message.gob				\
 	mn-pending-mailbox.gob			\
 	mn-shell.gob				\
@@ -191,9 +195,9 @@ gob_built_sources = \
 	mn-mailboxes-private.h				\
 	mn-mailboxes.c					\
 	mn-mailboxes.h					\
-	mn-message-box-private.h			\
-	mn-message-box.c				\
-	mn-message-box.h				\
+	mn-message-view-private.h			\
+	mn-message-view.c				\
+	mn-message-view.h				\
 	mn-message-private.h				\
 	mn-message.c					\
 	mn-message.h					\
@@ -216,11 +220,16 @@ gob_built_sources = \
 	mn-uri.c					\
 	mn-uri.h
 
+egg_built_sources = \
+	eggmarshalers.c	\
+	eggmarshalers.h
+
 nodist_mail_notification_SOURCES = $(idl_built_sources)
 mail_notification_SOURCES = \
 	$(idl_sources)				\
 	$(gob_sources)				\
 	$(gob_built_sources)			\
+	$(egg_built_sources)			\
 	$(gmail_sources)			\
 	$(gmail_built_sources)			\
 	$(md5_sources)				\
@@ -228,6 +237,13 @@ mail_notification_SOURCES = \
 	$(ssl_sources)				\
 	$(sasl_sources)				\
 	$(mime_sources)				\
+	$(icu_sources)				\
+	egg-editable-toolbar.c			\
+	egg-editable-toolbar.h			\
+	egg-toolbar-editor.c			\
+	egg-toolbar-editor.h			\
+	egg-toolbars-model.c			\
+	egg-toolbars-model.h			\
 	eggtrayicon.c				\
 	eggtrayicon.h				\
 	mn-conf.c				\
@@ -238,17 +254,15 @@ mail_notification_SOURCES = \
 	mn-mailbox-properties-util.h		\
 	mn-mailbox-properties.c			\
 	mn-mailbox-properties.h			\
+	mn-main-window.c			\
+	mn-main-window.h			\
 	mn-main.c				\
-	mn-properties.c				\
-	mn-properties.h				\
+	mn-properties-dialog.c			\
+	mn-properties-dialog.h			\
 	mn-stock.c				\
 	mn-stock.h				\
-	mn-summary-dialog.c			\
-	mn-summary-dialog.h			\
 	mn-summary-popup.c			\
 	mn-summary-popup.h			\
-	mn-summary.c				\
-	mn-summary.h				\
 	mn-util.c				\
 	mn-util.h				\
 	mn-vfs.c				\
@@ -256,24 +270,26 @@ mail_notification_SOURCES = \
 BUILT_SOURCES = \
 	$(idl_built_sources)			\
 	$(gob_built_sources)			\
+	$(egg_built_sources)			\
 	$(gmail_built_sources)
 
-AM_CPPFLAGS = $(WARN_CFLAGS) $(GNOME_CFLAGS) $(GMIME_CFLAGS) $(SOUP_CFLAGS) $(OPENSSL_CFLAGS) $(SASL_CFLAGS) \
+AM_CPPFLAGS = $(WARN_CFLAGS) $(GNOME_CFLAGS) $(GMIME_CFLAGS) $(SOUP_CFLAGS) $(OPENSSL_CFLAGS) $(SASL_CFLAGS) $(ICU_CFLAGS) \
 	-I$(top_srcdir) \
 	-DPREFIX="\"$(prefix)\"" \
 	-DSYSCONFDIR="\"$(sysconfdir)\"" \
 	-DDATADIR="\"$(datadir)\"" \
 	-DLIBDIR="\"$(libdir)\"" \
 	-DGNOMELOCALEDIR="\"$(datadir)/locale\"" \
+	-DGNOMEPIXMAPSDIR="\"$(datadir)/pixmaps\"" \
 	-DUIDIR="\"$(pkgdatadir)/ui\"" \
 	-DG_LOG_DOMAIN="\"$(PACKAGE)\""
-AM_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(GMIME_LIBS) $(SOUP_LIBS) $(OPENSSL_LIBS) $(SASL_LIBS)
+AM_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(GMIME_LIBS) $(SOUP_LIBS) $(OPENSSL_LIBS) $(SASL_LIBS) $(ICU_LIBS)
 
 CLEANFILES = $(idl_built_sources)
-MAINTAINERCLEANFILES = $(gob_built_sources) $(gmail_built_sources)
+MAINTAINERCLEANFILES = $(gob_built_sources) $(egg_built_sources) $(gmail_built_sources)
 
 entity_sets = xhtml-lat1.ent xhtml-special.ent xhtml-symbol.ent
-EXTRA_DIST = ent2h.sh $(entity_sets)
+EXTRA_DIST = ent2h.sh $(entity_sets) eggmarshalers.list
 
 %.c %.h %-private.h: %.gob
 	$(GOB2) --always-private-header --exit-on-warn $<
@@ -282,3 +298,15 @@ EXTRA_DIST = ent2h.sh $(entity_sets)
 
 mn-sgml-entities.h: ent2h.sh $(entity_sets)
 	./ent2h.sh $(entity_sets) > $@
+
+eggmarshalers.h: eggmarshalers.list
+	cd $(srcdir) \
+	&& $(GLIB_GENMARSHAL) --prefix=_egg_marshal eggmarshalers.list --header > xgen-emh \
+	&& cp xgen-emh eggmarshalers.h \
+	&& rm -f xgen-emh xgen-emh~
+
+eggmarshalers.c: eggmarshalers.list
+	cd $(srcdir) \
+	&& $(GLIB_GENMARSHAL) --prefix=_egg_marshal eggmarshalers.list --body > xgen-emc \
+	&& cp xgen-emc eggmarshalers.c \
+	&& rm -f xgen-emc xgen-emc~

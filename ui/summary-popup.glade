@@ -92,10 +92,13 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkVBox" id="vbox">
+	    <widget class="Custom" id="mn-message-view">
 	      <property name="visible">True</property>
-	      <property name="homogeneous">False</property>
-	      <property name="spacing">0</property>
+	      <property name="creation_function">mn_summary_popup_message_view_new_cb</property>
+	      <property name="int1">0</property>
+	      <property name="int2">0</property>
+	      <property name="last_modification_time">Sat, 12 Feb 2005 15:59:50 GMT</property>
+	      <signal name="button_press_event" handler="mn_summary_popup_button_press_event_h" last_modification_time="Sat, 12 Feb 2005 17:30:20 GMT"/>
 	    </widget>
 	    <packing>
 	      <property name="padding">0</property>

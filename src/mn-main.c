@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,8 +109,8 @@ mn_main_list_features (void)
 #ifdef WITH_IPV6
   ADD_FEATURE(features, "IPv6");
 #endif
-#ifdef WITH_MIME
-  ADD_FEATURE(features, "MIME");
+#ifdef WITH_GMAIL_TIMESTAMPS
+  ADD_FEATURE(features, _("Gmail timestamps"));
 #endif
 
   g_print(_("Compiled-in features: %s\n"), features->str);
@@ -158,13 +158,14 @@ int
 main (int argc, char **argv)
 {
   gboolean arg_list_features = FALSE;
-  gboolean arg_display_mail_summary = FALSE;
+  gboolean arg_display_main_window = FALSE;
   gboolean arg_display_properties = FALSE;
   gboolean arg_display_about = FALSE;
   gboolean arg_close_popup = FALSE;
   gboolean arg_update = FALSE;
   gboolean arg_report = FALSE;
   gboolean arg_unset_obsolete_configuration = FALSE;
+  gboolean arg_quit = FALSE;
   const struct poptOption popt_options[] = {
     {
       "enable-info",
@@ -181,16 +182,16 @@ main (int argc, char **argv)
       POPT_ARG_NONE,
       &arg_list_features,
       0,
-      N_("List compiled-in features and exit"),
+      N_("List the compiled-in features"),
       NULL
     },
     {
-      "display-mail-summary",
+      "display-main-window",
       'm',
       POPT_ARG_NONE,
-      &arg_display_mail_summary,
+      &arg_display_main_window,
       0,
-      N_("Display the mail summary dialog"),
+      N_("Display the main window"),
       NULL
     },
     {
@@ -244,11 +245,21 @@ main (int argc, char **argv)
       POPT_ARG_NONE,
       &arg_unset_obsolete_configuration,
       0,
-      N_("Unset obsolete GConf configuration and exit"),
+      N_("Unset obsolete GConf configuration"),
+      NULL
+    },
+    {
+      "quit",
+      'q',
+      POPT_ARG_NONE,
+      &arg_quit,
+      0,
+      N_("Quit Mail Notification"),
       NULL
     },
     POPT_TABLEEND
   };
+  GdkPixbuf *icon;
   BonoboGenericFactory *automation_factory;
   GClosure *automation_factory_closure;
   CORBA_Environment ev;
@@ -302,6 +313,13 @@ main (int argc, char **argv)
 
   GDK_THREADS_ENTER();
 
+  icon = mn_pixbuf_new(MN_IMAGE_FILE(GNOMEPIXMAPSDIR, "mail-notification.png"));
+  if (icon)
+    {
+      gtk_window_set_default_icon(icon);
+      g_object_unref(icon);
+    }
+
   mn_stock_init();
   bonobo_activate();
 
@@ -319,64 +337,77 @@ main (int argc, char **argv)
       if (CORBA_Object_is_nil(automation, &ev))
 	mn_fatal_error_dialog(NULL, _("Bonobo could not locate the automation object. Please check your Mail Notification installation."));
 
-      if (result != Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
+      if (arg_quit)
 	{
-	  if (! gnome_vfs_init())
-	    mn_fatal_error_dialog(NULL, _("Unable to initialize the GnomeVFS library."));
-#ifdef WITH_MIME
-	  g_mime_init(0);
-#endif
-
-	  mn_conf_init();
-	  /*
-	   * Work around
-	   * http://bugzilla.gnome.org/show_bug.cgi?id=64764:
-	   * initialize our non GTK-based classes before any thread is
-	   * created.
-	   */
-	  mn_main_init_classes();
-	  mn_shell_new();
-
-	  if (! eel_gconf_get_boolean(MN_CONF_ALREADY_RUN))
+	  if (result == Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
 	    {
-	      if (! arg_display_properties)
-		mn_shell_run_welcome(mn_shell);
-	      eel_gconf_set_boolean(MN_CONF_ALREADY_RUN, TRUE);
+	      g_message(_("quitting Mail Notification"));
+	      GNOME_MNAutomation_quit(automation, &ev);
 	    }
+	  else
+	    g_message(_("Mail Notification is not running"));
 	}
-      
-      if (arg_display_mail_summary)
-	GNOME_MNAutomation_displayMailSummary(automation, &ev);
-      if (arg_display_properties)
-	GNOME_MNAutomation_displayProperties(automation, &ev);
-      if (arg_display_about)
-	GNOME_MNAutomation_displayAbout(automation, &ev);
-      if (arg_close_popup)
-	GNOME_MNAutomation_closePopup(automation, &ev);
-
-      if (result == Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
+      else
 	{
-	  if (arg_update)
+	  if (result != Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
 	    {
-	      g_message(_("updating the mail status"));
-	      GNOME_MNAutomation_update(automation, &ev);
+	      if (! gnome_vfs_init())
+		mn_fatal_error_dialog(NULL, _("Unable to initialize the GnomeVFS library."));
+#ifdef WITH_MIME
+	      g_mime_init(0);
+#endif
+	      
+	      mn_conf_init();
+	      /*
+	       * Work around
+	       * http://bugzilla.gnome.org/show_bug.cgi?id=64764:
+	       * initialize our non GTK-based classes before any
+	       * thread is created.
+	       */
+	      mn_main_init_classes();
+	      mn_shell_new();
+	      
+	      if (! eel_gconf_get_boolean(MN_CONF_ALREADY_RUN))
+		{
+		  if (! arg_display_properties)
+		    mn_shell_display_welcome_dialog(mn_shell);
+		  eel_gconf_set_boolean(MN_CONF_ALREADY_RUN, TRUE);
+		}
 	    }
-	  if (arg_report)
+      
+	  if (arg_display_main_window)
+	    GNOME_MNAutomation_displayMainWindow(automation, &ev);
+	  if (arg_display_properties)
+	    GNOME_MNAutomation_displayProperties(automation, &ev);
+	  if (arg_display_about)
+	    GNOME_MNAutomation_displayAbout(automation, &ev);
+	  if (arg_close_popup)
+	    GNOME_MNAutomation_closePopup(automation, &ev);
+
+	  if (result == Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
 	    {
-	      CORBA_char *report;
-
-	      GNOME_MNAutomation_report(automation, &report, &ev);
-	      g_print("%s", report);
-	      CORBA_free(report);
+	      if (arg_update)
+		{
+		  g_message(_("updating the mail status"));
+		  GNOME_MNAutomation_update(automation, &ev);
+		}
+	      if (arg_report)
+		{
+		  CORBA_char *report;
+		  
+		  GNOME_MNAutomation_report(automation, &report, &ev);
+		  g_print("%s", report);
+		  CORBA_free(report);
+		}
+	      
+	      if (! (arg_display_main_window
+		     || arg_display_properties
+		     || arg_display_about
+		     || arg_close_popup
+		     || arg_update
+		     || arg_report))
+		g_message(_("Mail Notification is already running"));
 	    }
-
-	  if (! (arg_display_mail_summary
-		 || arg_display_properties
-		 || arg_display_about
-		 || arg_close_popup
-		 || arg_update
-		 || arg_report))
-	    g_message(_("Mail Notification is already running"));
 	}
       
       bonobo_object_release_unref(automation, &ev);
@@ -396,7 +427,7 @@ main (int argc, char **argv)
   CORBA_exception_free(&ev);
   gdk_notify_startup_complete();
   
-  if (result != Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
+  if (result != Bonobo_ACTIVATION_REG_ALREADY_ACTIVE && ! arg_quit)
     gtk_main();
 
   GDK_THREADS_LEAVE();

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _MN_SUMMARY_H
-#define _MN_SUMMARY_H
+#ifndef _MN_MAIN_WINDOW_H
+#define _MN_MAIN_WINDOW_H
 
 #include <gtk/gtk.h>
 
-void mn_summary_update (GtkVBox *vbox, GSList *messages, gboolean selectable);
+void		mn_main_window_display		(void);
+gboolean	mn_main_window_is_displayed	(void);
 
-#endif /* _MN_SUMMARY_H */
+void		mn_main_window_add_transient	(GtkWindow *window);
+
+#endif /* _MN_MAIN_WINDOW_H */

@@ -54,7 +54,7 @@ typedef struct _MNMailIconClass MNMailIconClass;
 struct _MNMailIconClass {
 	EggTrayIconClass __parent__;
 	/*signal*/void (* activate) (MNMailIcon * self);
-	/*signal*/void (* activate_summary) (MNMailIcon * self);
+	/*signal*/void (* activate_main_window) (MNMailIcon * self);
 	/*signal*/void (* activate_mail_reader) (MNMailIcon * self);
 	/*signal*/void (* activate_update) (MNMailIcon * self);
 	/*signal*/void (* activate_properties) (MNMailIcon * self);
@@ -79,9 +79,9 @@ GtkWidget * 	mn_mail_icon_new	(void);
 #define mn_mail_icon_connect__activate(object,func,data)	g_signal_connect(MN_MAIL_ICON(__extension__ ({MNMailIcon *___object = (object); ___object; })),"activate",(GCallback) __extension__ ({void (* ___activate) (MNMailIcon * ___fake___self, gpointer ___data ) = (func); ___activate; }), (data))
 #define mn_mail_icon_connect_after__activate(object,func,data)	g_signal_connect_after(MN_MAIL_ICON(__extension__ ({MNMailIcon *___object = (object); ___object; })),"activate",(GCallback) __extension__ ({void (* ___activate) (MNMailIcon * ___fake___self, gpointer ___data ) = (func); ___activate; }), (data))
 #define mn_mail_icon_connect_data__activate(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAIL_ICON(__extension__ ({MNMailIcon *___object = (object); ___object; })),"activate",(GCallback) __extension__ ({void (* ___activate) (MNMailIcon * ___fake___self, gpointer ___data ) = (func); ___activate; }), (data), (destroy_data), (GConnectFlags)(flags))
-#define mn_mail_icon_connect__activate_summary(object,func,data)	g_signal_connect(MN_MAIL_ICON(__extension__ ({MNMailIcon *___object = (object); ___object; })),"activate_summary",(GCallback) __extension__ ({void (* ___activate_summary) (MNMailIcon * ___fake___self, gpointer ___data ) = (func); ___activate_summary; }), (data))
-#define mn_mail_icon_connect_after__activate_summary(object,func,data)	g_signal_connect_after(MN_MAIL_ICON(__extension__ ({MNMailIcon *___object = (object); ___object; })),"activate_summary",(GCallback) __extension__ ({void (* ___activate_summary) (MNMailIcon * ___fake___self, gpointer ___data ) = (func); ___activate_summary; }), (data))
-#define mn_mail_icon_connect_data__activate_summary(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAIL_ICON(__extension__ ({MNMailIcon *___object = (object); ___object; })),"activate_summary",(GCallback) __extension__ ({void (* ___activate_summary) (MNMailIcon * ___fake___self, gpointer ___data ) = (func); ___activate_summary; }), (data), (destroy_data), (GConnectFlags)(flags))
+#define mn_mail_icon_connect__activate_main_window(object,func,data)	g_signal_connect(MN_MAIL_ICON(__extension__ ({MNMailIcon *___object = (object); ___object; })),"activate_main_window",(GCallback) __extension__ ({void (* ___activate_main_window) (MNMailIcon * ___fake___self, gpointer ___data ) = (func); ___activate_main_window; }), (data))
+#define mn_mail_icon_connect_after__activate_main_window(object,func,data)	g_signal_connect_after(MN_MAIL_ICON(__extension__ ({MNMailIcon *___object = (object); ___object; })),"activate_main_window",(GCallback) __extension__ ({void (* ___activate_main_window) (MNMailIcon * ___fake___self, gpointer ___data ) = (func); ___activate_main_window; }), (data))
+#define mn_mail_icon_connect_data__activate_main_window(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAIL_ICON(__extension__ ({MNMailIcon *___object = (object); ___object; })),"activate_main_window",(GCallback) __extension__ ({void (* ___activate_main_window) (MNMailIcon * ___fake___self, gpointer ___data ) = (func); ___activate_main_window; }), (data), (destroy_data), (GConnectFlags)(flags))
 #define mn_mail_icon_connect__activate_mail_reader(object,func,data)	g_signal_connect(MN_MAIL_ICON(__extension__ ({MNMailIcon *___object = (object); ___object; })),"activate_mail_reader",(GCallback) __extension__ ({void (* ___activate_mail_reader) (MNMailIcon * ___fake___self, gpointer ___data ) = (func); ___activate_mail_reader; }), (data))
 #define mn_mail_icon_connect_after__activate_mail_reader(object,func,data)	g_signal_connect_after(MN_MAIL_ICON(__extension__ ({MNMailIcon *___object = (object); ___object; })),"activate_mail_reader",(GCallback) __extension__ ({void (* ___activate_mail_reader) (MNMailIcon * ___fake___self, gpointer ___data ) = (func); ___activate_mail_reader; }), (data))
 #define mn_mail_icon_connect_data__activate_mail_reader(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAIL_ICON(__extension__ ({MNMailIcon *___object = (object); ___object; })),"activate_mail_reader",(GCallback) __extension__ ({void (* ___activate_mail_reader) (MNMailIcon * ___fake___self, gpointer ___data ) = (func); ___activate_mail_reader; }), (data), (destroy_data), (GConnectFlags)(flags))
@@ -104,9 +104,9 @@ GtkWidget * 	mn_mail_icon_new	(void);
 #define mn_mail_icon_connect__activate(object,func,data)	g_signal_connect(MN_MAIL_ICON(object),"activate",(GCallback)(func),(data))
 #define mn_mail_icon_connect_after__activate(object,func,data)	g_signal_connect_after(MN_MAIL_ICON(object),"activate",(GCallback)(func),(data))
 #define mn_mail_icon_connect_data__activate(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAIL_ICON(object),"activate",(GCallback)(func),(data),(destroy_data),(GConnectFlags)(flags))
-#define mn_mail_icon_connect__activate_summary(object,func,data)	g_signal_connect(MN_MAIL_ICON(object),"activate_summary",(GCallback)(func),(data))
-#define mn_mail_icon_connect_after__activate_summary(object,func,data)	g_signal_connect_after(MN_MAIL_ICON(object),"activate_summary",(GCallback)(func),(data))
-#define mn_mail_icon_connect_data__activate_summary(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAIL_ICON(object),"activate_summary",(GCallback)(func),(data),(destroy_data),(GConnectFlags)(flags))
+#define mn_mail_icon_connect__activate_main_window(object,func,data)	g_signal_connect(MN_MAIL_ICON(object),"activate_main_window",(GCallback)(func),(data))
+#define mn_mail_icon_connect_after__activate_main_window(object,func,data)	g_signal_connect_after(MN_MAIL_ICON(object),"activate_main_window",(GCallback)(func),(data))
+#define mn_mail_icon_connect_data__activate_main_window(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAIL_ICON(object),"activate_main_window",(GCallback)(func),(data),(destroy_data),(GConnectFlags)(flags))
 #define mn_mail_icon_connect__activate_mail_reader(object,func,data)	g_signal_connect(MN_MAIL_ICON(object),"activate_mail_reader",(GCallback)(func),(data))
 #define mn_mail_icon_connect_after__activate_mail_reader(object,func,data)	g_signal_connect_after(MN_MAIL_ICON(object),"activate_mail_reader",(GCallback)(func),(data))
 #define mn_mail_icon_connect_data__activate_mail_reader(object,func,data,destroy_data,flags)	g_signal_connect_data(MN_MAIL_ICON(object),"activate_mail_reader",(GCallback)(func),(data),(destroy_data),(GConnectFlags)(flags))

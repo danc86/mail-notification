@@ -10,9 +10,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNAuthenticatedMailboxPrivate {
-#line 38 "mn-authenticated-mailbox.gob"
-	gboolean authentication_failed;
 #line 39 "mn-authenticated-mailbox.gob"
+	gboolean authentication_failed;
+#line 40 "mn-authenticated-mailbox.gob"
 	GtkWidget * dialog;
 #line 18 "mn-authenticated-mailbox-private.h"
 };

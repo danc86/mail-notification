@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,9 +28,7 @@ requires 2.0.10
 #include "mn-mailbox-private.h"
 #include "mn-vfs.h"
 #include "mn-util.h"
-#ifdef WITH_MIME
 #include "mn-message-mime.h"
-#endif
 
 /* taken from procmsg.h in the Sylpheed sources */
 #define SYLPHEED_MSG_NEW		(1U << 0)
@@ -55,7 +53,7 @@ class MN:Sylpheed:Mailbox from MN:Mailbox
   }
 
   override (G:Object) GObject *
-    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
   {
     GObject *object;
     MNMailbox *self;
@@ -103,11 +101,7 @@ class MN:Sylpheed:Mailbox from MN:Mailbox
     GnomeVFSDirectoryHandle *handle;
     GnomeVFSFileInfo *file_info;
     GHashTable *seen_numbers;
-#ifdef WITH_MIME
     GSList *messages = NULL;
-#else
-    gboolean has_new = FALSE;
-#endif
 
     seen_numbers = self_get_seen_numbers(SELF(self));
 
@@ -133,16 +127,11 @@ class MN:Sylpheed:Mailbox from MN:Mailbox
 		
 	  if (! g_hash_table_lookup(seen_numbers, GINT_TO_POINTER(num)))
 	    {
-#ifdef WITH_MIME
 	      GnomeVFSURI *message_uri;
 
 	      message_uri = gnome_vfs_uri_append_file_name(self->uri->vfs, file_info->name);
 	      messages = g_slist_append(messages, mn_message_new_from_uri(self->uri, message_uri));
 	      gnome_vfs_uri_unref(message_uri);
-#else /* WITH_MIME */
-	      has_new = TRUE;
-	      break;
-#endif /* WITH_MIME */
 	    }
 	}
     gnome_vfs_file_info_unref(file_info);
@@ -153,14 +142,7 @@ class MN:Sylpheed:Mailbox from MN:Mailbox
     if (result == GNOME_VFS_ERROR_EOF || result == GNOME_VFS_OK)
       {
 	if (close_result == GNOME_VFS_OK)
-	  {
-#ifdef WITH_MIME
-	    mn_mailbox_set_has_new(self, messages != NULL);
-	    mn_mailbox_set_messages(self, messages);
-#else /* WITH_MIME */
-	    mn_mailbox_set_has_new(self, has_new);
-#endif
-	  }
+	  mn_mailbox_set_messages(self, messages);
 	else
 	  mn_mailbox_set_error(self, _("unable to close folder: %s"), gnome_vfs_result_to_string(close_result));
       }
@@ -172,10 +154,7 @@ class MN:Sylpheed:Mailbox from MN:Mailbox
     GDK_THREADS_LEAVE();
 
     g_hash_table_destroy(seen_numbers);
-
-#ifdef WITH_MIME
     mn_g_object_slist_free(messages);
-#endif
   }
 
   private GHashTable *

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,9 +24,11 @@ requires 2.0.10
 %{
 #include "config.h"
 #include <glib/gi18n.h>
+#include <eel/eel.h>
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-util.h"
 #include "mn-util.h"
+#include "mn-properties-dialog.h"
 
   static char *current_folder_uri = NULL;
 %}
@@ -48,8 +50,8 @@ class MN:Autodetect:Mailbox:Properties from Gtk:HBox (interface MN:Mailbox:Prope
       g_value_set_boolean(VAL, *location != 0);
     };
 
-  private GtkTooltips *tooltips = {mn_gtk_tooltips_new()} unrefwith g_object_unref;
   private GtkWidget *location_entry;
+  private GtkWidget *chooser;
 
   override (G:Object) GObject *
     constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
@@ -76,9 +78,7 @@ class MN:Autodetect:Mailbox:Properties from Gtk:HBox (interface MN:Mailbox:Prope
     gtk_label_set_mnemonic_widget(GTK_LABEL(label), selfp->location_entry);
     gtk_entry_set_activates_default(GTK_ENTRY(selfp->location_entry), TRUE);
 
-    mn_gtk_tooltips_set_tip(selfp->tooltips,
-			    selfp->location_entry,
-			    _("The URI of the mailbox"));
+    mn_properties_dialog_set_tooltip(selfp->location_entry, _("The URI of the mailbox"));
 
     gtk_box_pack_start(GTK_BOX(hbox), selfp->location_entry, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), button, FALSE, FALSE, 0);
@@ -111,39 +111,40 @@ class MN:Autodetect:Mailbox:Properties from Gtk:HBox (interface MN:Mailbox:Prope
   {
     Self *self = user_data;
     GtkWidget *toplevel;
-    GtkWidget *chooser;
     const char *location;
 
-    toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
-    chooser = gtk_file_chooser_dialog_new_with_backend(_("Select a File or Folder"),
-						       GTK_WINDOW(toplevel),
-						       GTK_FILE_CHOOSER_ACTION_OPEN,
-						       "gnome-vfs",
-						       GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-						       GTK_STOCK_OPEN, 1,
-						       NULL);
+    if (selfp->chooser)
+      {
+	gtk_window_present(GTK_WINDOW(selfp->chooser));
+	return;
+      }
     
-    gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(chooser), FALSE);
-    mn_file_chooser_dialog_allow_select_folder(GTK_FILE_CHOOSER_DIALOG(chooser), 1);
+    toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
+    selfp->chooser = gtk_file_chooser_dialog_new_with_backend(_("Select a File or Folder"),
+							      GTK_WINDOW(toplevel),
+							      GTK_FILE_CHOOSER_ACTION_OPEN,
+							      "gnome-vfs",
+							      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+							      GTK_STOCK_OPEN, 1,
+							      NULL);
+    eel_add_weak_pointer(&selfp->chooser);
+    
+    gtk_window_set_destroy_with_parent(GTK_WINDOW(selfp->chooser), TRUE);
+    gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(selfp->chooser), FALSE);
+    mn_file_chooser_dialog_allow_select_folder(GTK_FILE_CHOOSER_DIALOG(selfp->chooser), 1);
 
     location = gtk_entry_get_text(GTK_ENTRY(selfp->location_entry));
     if (*location)
-      gtk_file_chooser_set_uri(GTK_FILE_CHOOSER(chooser), location);
+      gtk_file_chooser_set_uri(GTK_FILE_CHOOSER(selfp->chooser), location);
     else if (current_folder_uri)
-      gtk_file_chooser_set_current_folder_uri(GTK_FILE_CHOOSER(chooser), current_folder_uri);
+      gtk_file_chooser_set_current_folder_uri(GTK_FILE_CHOOSER(selfp->chooser), current_folder_uri);
       
-    g_signal_connect(chooser, "current-folder-changed", G_CALLBACK(self_current_folder_changed_h), self);
+    g_object_connect(selfp->chooser,
+		     "signal::current-folder-changed", self_current_folder_changed_h, self,
+		     "signal::response", self_chooser_response_h, self,
+		     NULL);
 
-    if (gtk_dialog_run(GTK_DIALOG(chooser)) == 1)
-      {
-	char *uri;
-	
-	uri = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(chooser));
-	gtk_entry_set_text(GTK_ENTRY(selfp->location_entry), uri);
-	g_free(uri);
-      }
-    
-    gtk_widget_destroy(chooser);
+    gtk_widget_show(selfp->chooser);
   }
   
   private void
@@ -152,6 +153,24 @@ class MN:Autodetect:Mailbox:Properties from Gtk:HBox (interface MN:Mailbox:Prope
   {
     g_free(current_folder_uri);
     current_folder_uri = gtk_file_chooser_get_current_folder_uri(chooser);
+  }
+  
+  private void
+    chooser_response_h (Gtk:Dialog *dialog (check null type),
+			int response,
+			gpointer user_data (check null))
+  {
+    if (response == 1)
+      {
+	Self *self = user_data;
+	char *uri;
+	
+	uri = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(dialog));
+	gtk_entry_set_text(GTK_ENTRY(selfp->location_entry), uri);
+	g_free(uri);
+      }
+
+    gtk_widget_destroy(GTK_WIDGET(dialog));
   }
   
   interface MN:Mailbox:Properties private gboolean

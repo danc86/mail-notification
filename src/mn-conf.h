@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,22 +25,6 @@
 
 #define MN_CONF_NAMESPACE \
   "/apps/mail-notification"
-#define MN_CONF_LOCAL_NAMESPACE \
-  MN_CONF_NAMESPACE "/local"			/* obsolete */
-#define MN_CONF_LOCAL_ENABLED \
-  MN_CONF_LOCAL_NAMESPACE "/enabled"		/* obsolete */
-#define MN_CONF_LOCAL_DELAY_MINUTES \
-  MN_CONF_LOCAL_NAMESPACE "/delay/minutes"	/* obsolete */
-#define MN_CONF_LOCAL_DELAY_SECONDS \
-  MN_CONF_LOCAL_NAMESPACE "/delay/seconds"	/* obsolete */
-#define MN_CONF_REMOTE_NAMESPACE \
-  MN_CONF_NAMESPACE "/remote"			/* obsolete */
-#define MN_CONF_REMOTE_ENABLED \
-  MN_CONF_REMOTE_NAMESPACE "/enabled"		/* obsolete */
-#define MN_CONF_REMOTE_DELAY_MINUTES \
-  MN_CONF_REMOTE_NAMESPACE "/delay/minutes"	/* obsolete */
-#define MN_CONF_REMOTE_DELAY_SECONDS \
-  MN_CONF_REMOTE_NAMESPACE "/delay/seconds"	/* obsolete */
 #define MN_CONF_DELAY_NAMESPACE \
   MN_CONF_NAMESPACE "/delay"
 #define MN_CONF_DELAY_MINUTES \
@@ -67,32 +51,28 @@
   MN_CONF_COMMANDS_MAIL_READER_NAMESPACE "/enabled"
 #define MN_CONF_COMMANDS_MAIL_READER_COMMAND \
   MN_CONF_COMMANDS_MAIL_READER_NAMESPACE "/command"
-#define MN_CONF_COMMANDS_CLICKED_NAMESPACE \
-  MN_CONF_COMMANDS_NAMESPACE "/clicked"		/* obsolete */
-#define MN_CONF_COMMANDS_CLICKED_ENABLED \
-  MN_CONF_COMMANDS_CLICKED_NAMESPACE "/enabled"	/* obsolete */
-#define MN_CONF_COMMANDS_CLICKED_COMMAND \
-  MN_CONF_COMMANDS_CLICKED_NAMESPACE "/command"	/* obsolete */
-#define MN_CONF_COMMANDS_DOUBLE_CLICKED_NAMESPACE \
-  MN_CONF_COMMANDS_NAMESPACE "/double-clicked"		/* obsolete */
-#define MN_CONF_COMMANDS_DOUBLE_CLICKED_ENABLED	\
-  MN_CONF_COMMANDS_DOUBLE_CLICKED_NAMESPACE "/enabled"	/* obsolete */
-#define MN_CONF_COMMANDS_DOUBLE_CLICKED_COMMAND	\
-  MN_CONF_COMMANDS_DOUBLE_CLICKED_NAMESPACE "/command"	/* obsolete */
 #define MN_CONF_MAILBOXES \
   MN_CONF_NAMESPACE "/mailboxes"
 #define MN_CONF_UI_NAMESPACE \
   MN_CONF_NAMESPACE "/ui"
-#define MN_CONF_PREFERENCES_DIALOG \
-  MN_CONF_UI_NAMESPACE "/preferences-dialog"	/* obsolete */
 #define MN_CONF_PROPERTIES_DIALOG \
   MN_CONF_UI_NAMESPACE "/properties-dialog"
-#define MN_CONF_SUMMARY_DIALOG \
-  MN_CONF_UI_NAMESPACE "/summary-dialog"
 #define MN_CONF_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_NAMESPACE \
   MN_CONF_UI_NAMESPACE "/immediate-notification-error-dialog"
 #define MN_CONF_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_DO_NOT_SHOW \
   MN_CONF_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_NAMESPACE "/do-not-show"
+#define MN_CONF_MAIN_WINDOW_NAMESPACE \
+  MN_CONF_UI_NAMESPACE "/main-window"
+#define MN_CONF_MAIN_WINDOW_DIMENSIONS \
+  MN_CONF_MAIN_WINDOW_NAMESPACE "/dimensions"
+#define MN_CONF_MAIN_WINDOW_VIEW_TOOLBARS \
+  MN_CONF_MAIN_WINDOW_NAMESPACE "/view-toolbars"
+#define MN_CONF_MAIN_WINDOW_VIEW_STATUSBAR \
+  MN_CONF_MAIN_WINDOW_NAMESPACE "/view-statusbar"
+#define MN_CONF_MAIN_WINDOW_TOOLBARS_STYLE \
+  MN_CONF_MAIN_WINDOW_NAMESPACE "/toolbars-style"
+#define MN_CONF_MAIN_WINDOW_EDIT_TOOLBARS_DIALOG \
+  MN_CONF_MAIN_WINDOW_NAMESPACE "/edit-toolbars-dialog"
 #define MN_CONF_ALREADY_RUN \
   MN_CONF_NAMESPACE "/already-run"
 #define MN_CONF_BLINK_ON_ERRORS \
@@ -125,22 +105,22 @@
   MN_CONF_MAIL_SUMMARY_POPUP_NAMESPACE "/only-recent"
 #define MN_CONF_MAIL_SUMMARY_POPUP_FONTS_NAMESPACE \
   MN_CONF_MAIL_SUMMARY_POPUP_NAMESPACE "/fonts"
+#define MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE \
+  MN_CONF_MAIL_SUMMARY_POPUP_FONTS_NAMESPACE "/aspect-source"
 #define MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_NAMESPACE \
   MN_CONF_MAIL_SUMMARY_POPUP_FONTS_NAMESPACE "/title"
-#define MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED \
-  MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_NAMESPACE "/enabled"
 #define MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_FONT \
   MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_NAMESPACE "/font"
 #define MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_NAMESPACE \
   MN_CONF_MAIL_SUMMARY_POPUP_FONTS_NAMESPACE "/contents"
-#define MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED \
-  MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_NAMESPACE "/enabled"
 #define MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_FONT \
   MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_NAMESPACE "/font"
-#define MN_CONF_DOUBLE_CLICK_ACTION \
-  MN_CONF_NAMESPACE "/double-click-action"
+#define MN_CONF_DOUBLE_CLICK_ACTION_2 \
+  MN_CONF_NAMESPACE "/double-click-action-2"
 #define MN_CONF_SUMMARY_TOOLTIP \
   MN_CONF_NAMESPACE "/summary-tooltip"
+
+extern const char *mn_conf_dot_dir;
 
 void		mn_conf_init		(void);
 void		mn_conf_unset_obsolete	(void);
@@ -148,7 +128,12 @@ void		mn_conf_unset_obsolete	(void);
 void		mn_conf_recursive_unset	(const char	*key,
 					 GConfUnsetFlags flags);
 
-void		mn_conf_link		(GtkWidget	*widget,
+gboolean	mn_conf_is_set		(const char	*key);
+
+void		mn_conf_set_value	(const char	*key,
+					 const GConfValue *value);
+
+void		mn_conf_link		(gpointer	object,
 					 ...);
 void		mn_conf_link_combo_box_to_string (GtkComboBox	*combo,
 						  int		string_column,
@@ -167,5 +152,7 @@ void		mn_conf_notification_add (gpointer		object,
 					  const char		*key,
 					  GConfClientNotifyFunc	callback,
 					  gpointer		user_data);
+
+gboolean	mn_conf_has_command	(const char	*namespace);
 
 #endif /* _MN_CONF_H */

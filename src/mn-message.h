@@ -57,6 +57,7 @@ struct _MNMessageClass {
  * Public methods
  */
 GType	mn_message_get_type	(void);
+char * 	mn_message_format_sent_time	(MNMessage * self);
 MNMessage * 	mn_message_new	(MNURI * mailbox_uri,
 					const char * error,
 					time_t sent_time,

@@ -2,7 +2,7 @@
 <!DOCTYPE glade-project SYSTEM "http://glade.gnome.org/glade-project-2.0.dtd">
 
 <glade-project>
-  <name>Mail Notification Summary Dialog</name>
+  <name>Mail Notification</name>
   <program_name>mail-notification</program_name>
   <directory>../</directory>
   <source_directory>../src</source_directory>

@@ -1,6 +1,6 @@
 /* 
- * Copyright (c) 1999 Free Software Foundation, Inc.
- * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 1999 Free Software Foundation, Inc.
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,29 +18,108 @@
  */
 
 #include "config.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <gnome.h>
 #include <eel/eel.h>
 #include "mn-util.h"
 #include "mn-conf.h"
+#include "mn-shell.h"
 
 /*** cpp *********************************************************************/
+
+/* obsolete keys */
+#define MN_CONF_OBSOLETE_LOCAL_NAMESPACE \
+  MN_CONF_NAMESPACE "/local"
+#define MN_CONF_OBSOLETE_LOCAL_ENABLED \
+  MN_CONF_OBSOLETE_LOCAL_NAMESPACE "/enabled"
+#define MN_CONF_OBSOLETE_LOCAL_DELAY_MINUTES \
+  MN_CONF_OBSOLETE_LOCAL_NAMESPACE "/delay/minutes"
+#define MN_CONF_OBSOLETE_LOCAL_DELAY_SECONDS \
+  MN_CONF_OBSOLETE_LOCAL_NAMESPACE "/delay/seconds"
+#define MN_CONF_OBSOLETE_REMOTE_NAMESPACE \
+  MN_CONF_NAMESPACE "/remote"
+#define MN_CONF_OBSOLETE_REMOTE_ENABLED \
+  MN_CONF_OBSOLETE_REMOTE_NAMESPACE "/enabled"
+#define MN_CONF_OBSOLETE_REMOTE_DELAY_MINUTES \
+  MN_CONF_OBSOLETE_REMOTE_NAMESPACE "/delay/minutes"
+#define MN_CONF_OBSOLETE_REMOTE_DELAY_SECONDS \
+  MN_CONF_OBSOLETE_REMOTE_NAMESPACE "/delay/seconds"
+#define MN_CONF_OBSOLETE_COMMANDS_CLICKED_NAMESPACE \
+  MN_CONF_COMMANDS_NAMESPACE "/clicked"
+#define MN_CONF_OBSOLETE_COMMANDS_CLICKED_ENABLED \
+  MN_CONF_OBSOLETE_COMMANDS_CLICKED_NAMESPACE "/enabled"
+#define MN_CONF_OBSOLETE_COMMANDS_CLICKED_COMMAND \
+  MN_CONF_OBSOLETE_COMMANDS_CLICKED_NAMESPACE "/command"
+#define MN_CONF_OBSOLETE_COMMANDS_DOUBLE_CLICKED_NAMESPACE \
+  MN_CONF_COMMANDS_NAMESPACE "/double-clicked"
+#define MN_CONF_OBSOLETE_COMMANDS_DOUBLE_CLICKED_ENABLED	\
+  MN_CONF_OBSOLETE_COMMANDS_DOUBLE_CLICKED_NAMESPACE "/enabled"
+#define MN_CONF_OBSOLETE_COMMANDS_DOUBLE_CLICKED_COMMAND	\
+  MN_CONF_OBSOLETE_COMMANDS_DOUBLE_CLICKED_NAMESPACE "/command"
+#define MN_CONF_OBSOLETE_PREFERENCES_DIALOG \
+  MN_CONF_UI_NAMESPACE "/preferences-dialog"
+#define MN_CONF_OBSOLETE_SUMMARY_DIALOG \
+  MN_CONF_UI_NAMESPACE "/summary-dialog"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED \
+  MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_NAMESPACE "/enabled"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED \
+  MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_NAMESPACE "/enabled"
+#define MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION \
+  MN_CONF_NAMESPACE "/double-click-action"
+
+#define BLOCK(info) \
+  g_signal_handler_block((info)->object, (info)->handler_id)
+#define UNBLOCK(info) \
+  g_signal_handler_unblock((info)->object, (info)->handler_id)
+
+#define LINK_INFO(ptr)			((LinkInfo *) (ptr))
 
 #define SESSION_MANUAL_CONFIG_PREFIX	"session-manual/"
 #define SESSION_MANUAL_NAME		"Default"
 
-#define WINDOW_WIDTH_KEY		"mn-conf-window-width-key"
-#define WINDOW_HEIGHT_KEY		"mn-conf-window-height-key"
-
-#define COMBO_BOX_KEY			"mn-conf-combo-box-key"
-#define COMBO_BOX_STRING_COLUMN		"mn-conf-combo-box-string-column"
-
-#define RADIO_BUTTON_KEY		"mn-conf-radio-button-key"
-#define RADIO_BUTTON_STRING		"mn-conf-radio-button-string"
-
-#define STRING_TO_FONT(str)		((str) ? (str) : "Sans 10")
-
 /*** types *******************************************************************/
+
+typedef struct
+{
+  gpointer		object;
+  char			*key;
+  unsigned long		handler_id;
+  GDestroyNotify	finalize;
+} LinkInfo;
+
+typedef struct
+{
+  LinkInfo		parent;
+  int			string_column;
+} LinkComboBoxToStringInfo;
+
+typedef struct
+{
+  LinkInfo		parent;
+  char			*str;
+} LinkRadioButtonToStringInfo;
+
+typedef struct
+{
+  LinkInfo		parent;
+  char			*width_key;
+  char			*height_key;
+} LinkWindowInfo;
+
+typedef struct
+{
+  LinkInfo		parent;
+  GEnumClass		*enum_class;
+} LinkRadioActionInfo;
+
+typedef struct
+{
+  LinkInfo		parent;
+  GParamSpec		*pspec;
+} LinkObjectInfo;
 
 typedef struct
 {
@@ -49,62 +128,79 @@ typedef struct
   char	**argv;
 } StartupClient;
 
+/*** variables ***************************************************************/
+
+const char *mn_conf_dot_dir = NULL;
+
 /*** functions ***************************************************************/
 
-static void mn_conf_link_combo_box_to_string_update_active (GtkComboBox *combo,
-							    int string_column,
-							    const char *value);
-static void mn_conf_link_combo_box_to_string_changed_h (GtkComboBox *combo,
-							gpointer user_data);
+static void mn_conf_handle_obsolete_key (const char *obsolete, const char *new);
+
+static void mn_conf_link_weak_notify_cb (gpointer data, GObject *former_object);
+
+static void mn_conf_link_combo_box_to_string_set (LinkComboBoxToStringInfo *info,
+						  const GConfValue *value);
+static void mn_conf_link_combo_box_to_string_h (GtkComboBox *combo,
+						gpointer user_data);
 static void mn_conf_link_combo_box_to_string_notify_cb (GConfClient *client,
-							guint cnxn_id,
+							unsigned int cnxn_id,
 							GConfEntry *entry,
 							gpointer user_data);
 
 static void mn_conf_link_radio_button_to_string (GtkRadioButton *radio,
 						 const char *key,
 						 const char *str);
-static void mn_conf_link_radio_button_to_string_toggled_h (GtkToggleButton *toggle,
-							   gpointer user_data);
+static void mn_conf_link_radio_button_to_string_h (GtkToggleButton *toggle,
+						   gpointer user_data);
 static void mn_conf_link_radio_button_to_string_notify_cb (GConfClient *client,
-							   guint cnxn_id,
+							   unsigned int cnxn_id,
 							   GConfEntry *entry,
 							   gpointer user_data);
+static void mn_conf_link_radio_button_to_string_free_info (LinkRadioButtonToStringInfo *info);
 
 static gboolean mn_conf_link_window_h (GtkWidget *widget,
 				       GdkEventConfigure *event,
 				       gpointer user_data);
 static void mn_conf_link_window_notify_cb (GConfClient *client,
-					   guint cnxn_id,
+					   unsigned int cnxn_id,
 					   GConfEntry *entry,
 					   gpointer user_data);
+static void mn_conf_link_window_free_info (LinkWindowInfo *info);
 
-static void mn_conf_link_toggle_button_h (GtkToggleButton*button,
+static void mn_conf_link_radio_action_set (LinkRadioActionInfo *info,
+					   const GConfValue *value);
+static void mn_conf_link_radio_action_h (GtkRadioAction *action,
+					 GtkRadioAction *current,
+					 gpointer user_data);
+static void mn_conf_link_radio_action_notify_cb (GConfClient *client,
+						 unsigned int cnxn_id,
+						 GConfEntry *entry,
+						 gpointer user_data);
+static void mn_conf_link_radio_action_free_info (LinkRadioActionInfo *info);
+
+static void mn_conf_link_toggle_action_h (GtkToggleAction *action,
 					  gpointer user_data);
-static void mn_conf_link_toggle_button_notify_cb (GConfClient *client,
-						  guint cnxn_id,
+static void mn_conf_link_toggle_action_notify_cb (GConfClient *client,
+						  unsigned int cnxn_id,
 						  GConfEntry *entry,
 						  gpointer user_data);
 
 static void mn_conf_link_spin_button_h (GtkSpinButton *button,
 					gpointer user_data);
 static void mn_conf_link_spin_button_notify_cb (GConfClient *client,
-						guint cnxn_id,
+						unsigned int cnxn_id,
 						GConfEntry *entry,
 						gpointer user_data);
 
-static void mn_conf_link_font_button_h (GtkFontButton *button,
-					gpointer user_data);
-static void mn_conf_link_font_button_notify_cb (GConfClient *client,
-						guint cnxn_id,
-						GConfEntry *entry,
-						gpointer user_data);
-
-static void mn_conf_link_entry_h (GtkEditable *editable, gpointer user_data);
-static void mn_conf_link_entry_notify_cb (GConfClient *client,
-					  guint cnxn_id,
-					  GConfEntry *entry,
-					  gpointer user_data);
+static void mn_conf_link_object_set (LinkObjectInfo *info,
+				     const GConfValue *value);
+static void mn_conf_link_object_h (GObject *object,
+				   GParamSpec *pspec,
+				   gpointer user_data);
+static void mn_conf_link_object_notify_cb (GConfClient *client,
+					   unsigned int cnxn_id,
+					   GConfEntry *entry,
+					   gpointer user_data);
 
 static void mn_conf_startup_client_free (StartupClient *client);
 static void mn_conf_startup_clients_free (GSList *list);
@@ -124,19 +220,91 @@ static void mn_conf_notification_add_weak_notify_cb (gpointer data,
 void
 mn_conf_init (void)
 {
+  g_return_if_fail(mn_conf_dot_dir == NULL);
+
+  /* create our dot dir if it does not already exist */
+
+  mn_conf_dot_dir = g_build_filename(g_get_home_dir(),
+				     GNOME_DOT_GNOME,
+				     "mail-notification",
+				     NULL);
+
+  if (! g_file_test(mn_conf_dot_dir, G_FILE_TEST_IS_DIR))
+    {
+      if (mkdir(mn_conf_dot_dir, 0755) < 0)
+	mn_error_dialog(NULL,
+			NULL,
+			NULL,
+			_("A directory creation error has occurred"),
+			_("Unable to create directory \"%s\": %s."),
+			mn_conf_dot_dir,
+			g_strerror(errno));
+    }
+
   /* monitor our namespace */
+
   eel_gconf_monitor_add(MN_CONF_NAMESPACE);
+
+  /* import obsolete keys */
+
+  mn_conf_handle_obsolete_key(MN_CONF_OBSOLETE_PREFERENCES_DIALOG "/height",
+			      MN_CONF_PROPERTIES_DIALOG "/height");
+  mn_conf_handle_obsolete_key(MN_CONF_OBSOLETE_PREFERENCES_DIALOG "/width",
+			      MN_CONF_PROPERTIES_DIALOG "/width");
+
+  if (! mn_conf_is_set(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE)
+      && mn_conf_is_set(MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED)
+      && mn_conf_is_set(MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED)
+      && eel_gconf_get_boolean(MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED)
+      && eel_gconf_get_boolean(MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED))
+    {
+      GEnumClass *enum_class;
+      GEnumValue *enum_value;
+
+      enum_class = g_type_class_ref(MN_TYPE_ASPECT_SOURCE);
+      enum_value = g_enum_get_value(enum_class, MN_ASPECT_SOURCE_CUSTOM);
+      g_return_if_fail(enum_value != NULL);
+      
+      eel_gconf_set_string(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE, enum_value->value_nick);
+      g_type_class_unref(enum_class);
+    }
+
+  mn_conf_handle_obsolete_key(MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION,
+			      MN_CONF_DOUBLE_CLICK_ACTION_2);
+}
+
+static void
+mn_conf_handle_obsolete_key (const char *obsolete, const char *new)
+{
+  g_return_if_fail(obsolete != NULL);
+  g_return_if_fail(new != NULL);
+
+  if (! mn_conf_is_set(new) && mn_conf_is_set(obsolete))
+    {
+      GConfValue *value;
+
+      value = eel_gconf_get_value(obsolete);
+      if (value)
+	{
+	  mn_conf_set_value(new, value);
+	  gconf_value_free(value);
+	}
+    }
 }
 
 void
 mn_conf_unset_obsolete (void)
 {
   const char *obsolete[] = {
-    MN_CONF_LOCAL_NAMESPACE,
-    MN_CONF_REMOTE_NAMESPACE,
-    MN_CONF_COMMANDS_CLICKED_NAMESPACE,
-    MN_CONF_COMMANDS_DOUBLE_CLICKED_NAMESPACE,
-    MN_CONF_PREFERENCES_DIALOG
+    MN_CONF_OBSOLETE_LOCAL_NAMESPACE,
+    MN_CONF_OBSOLETE_REMOTE_NAMESPACE,
+    MN_CONF_OBSOLETE_COMMANDS_CLICKED_NAMESPACE,
+    MN_CONF_OBSOLETE_COMMANDS_DOUBLE_CLICKED_NAMESPACE,
+    MN_CONF_OBSOLETE_PREFERENCES_DIALOG,
+    MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED,
+    MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED,
+    MN_CONF_OBSOLETE_SUMMARY_DIALOG,
+    MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION
   };
   int i;
       
@@ -167,91 +335,177 @@ mn_conf_recursive_unset (const char *key, GConfUnsetFlags flags)
   eel_gconf_handle_error(&err);
 }
 
+gboolean
+mn_conf_is_set (const char *key)
+{
+  GConfValue *value;
+  GConfClient *client;
+  GError *err = NULL;
+  gboolean set = FALSE;
+
+  g_return_val_if_fail(key != NULL, FALSE);
+
+  client = eel_gconf_client_get_global();
+  g_return_val_if_fail(client != NULL, FALSE);
+
+  value = gconf_client_get_without_default(client, key, &err);
+  if (value)
+    {
+      set = TRUE;
+      gconf_value_free(value);
+    }
+
+  if (eel_gconf_handle_error(&err))
+    set = FALSE;
+
+  return set;
+}
+
 void
-mn_conf_link (GtkWidget *widget, ...)
+mn_conf_set_value (const char *key, const GConfValue *value)
+{
+  GConfClient *client;
+  GError *err = NULL;
+
+  g_return_if_fail(key != NULL);
+  g_return_if_fail(value != NULL);
+  
+  client = eel_gconf_client_get_global();
+  g_return_if_fail(client != NULL);
+
+  gconf_client_set(client, key, value, &err);
+  eel_gconf_handle_error(&err);
+}
+
+void
+mn_conf_link (gpointer object, ...)
 {
   va_list args;
 
-  va_start(args, widget);
-  while (widget)
+  va_start(args, object);
+  while (object)
     {
       const char *key;
       const char *signal_name;
+      gpointer free_me = NULL;
       GCallback signal_handler;
       GConfClientNotifyFunc notification_cb;
+      LinkInfo *info = NULL;
 
       key = va_arg(args, const char *);
       g_return_if_fail(key != NULL);
 
       /* the order of these tests is important */
-      if (GTK_IS_WINDOW(widget))
+      if (GTK_IS_WINDOW(object))
 	{
-	  char *width_key;
-	  char *height_key;
+	  LinkWindowInfo *window_info;
+	  
+	  window_info = g_new0(LinkWindowInfo, 1);
+	  window_info->width_key = g_strdup_printf("%s/width", key);
+	  window_info->height_key = g_strdup_printf("%s/height", key);
+	  info = LINK_INFO(window_info);
+	  info->finalize = (GDestroyNotify) mn_conf_link_window_free_info;
 
-	  width_key = g_strdup_printf("%s/width", key);
-	  height_key = g_strdup_printf("%s/height", key);
-
-	  g_object_set_data_full(G_OBJECT(widget), WINDOW_WIDTH_KEY, width_key, g_free);
-	  g_object_set_data_full(G_OBJECT(widget), WINDOW_HEIGHT_KEY, height_key, g_free);
-
-	  gtk_window_set_default_size(GTK_WINDOW(widget),
-				      eel_gconf_get_integer(width_key),
-				      eel_gconf_get_integer(height_key));
+	  gtk_window_set_default_size(object,
+				      eel_gconf_get_integer(window_info->width_key),
+				      eel_gconf_get_integer(window_info->height_key));
 
 	  signal_name = "configure-event";
 	  signal_handler = G_CALLBACK(mn_conf_link_window_h);
 	  notification_cb = mn_conf_link_window_notify_cb;
 	}
-      else if (GTK_IS_TOGGLE_BUTTON(widget))
+      else if (GTK_IS_RADIO_ACTION(object))
 	{
-	  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), eel_gconf_get_boolean(key));
+	  LinkRadioActionInfo *radio_action_info;
+	  GType enum_type;
+	  GConfValue *value;
 
-	  signal_name = "toggled";
-	  signal_handler = G_CALLBACK(mn_conf_link_toggle_button_h);
-	  notification_cb = mn_conf_link_toggle_button_notify_cb;
+	  enum_type = va_arg(args, GType);
+	  g_return_if_fail(enum_type != 0);
+
+	  radio_action_info = g_new0(LinkRadioActionInfo, 1);
+	  radio_action_info->enum_class = g_type_class_ref(enum_type);
+	  info = LINK_INFO(radio_action_info);
+	  info->object = object;
+	  info->finalize = (GDestroyNotify) mn_conf_link_radio_action_free_info;
+
+	  value = eel_gconf_get_value(key);
+	  mn_conf_link_radio_action_set(radio_action_info, value);
+	  if (value)
+	    gconf_value_free(value);
+
+	  signal_name = g_strdup("changed");
+	  signal_handler = G_CALLBACK(mn_conf_link_radio_action_h);
+	  notification_cb = mn_conf_link_radio_action_notify_cb;
 	}
-      else if (GTK_IS_SPIN_BUTTON(widget))
+      else if (GTK_IS_TOGGLE_ACTION(object))
 	{
-	  gtk_spin_button_set_value(GTK_SPIN_BUTTON(widget), eel_gconf_get_integer(key));
+	  gtk_toggle_action_set_active(object, eel_gconf_get_boolean(key));
+	  
+	  signal_name = g_strdup("toggled");
+	  signal_handler = G_CALLBACK(mn_conf_link_toggle_action_h);
+	  notification_cb = mn_conf_link_toggle_action_notify_cb;
+	}
+      else if (GTK_IS_SPIN_BUTTON(object))
+	{
+	  gtk_spin_button_set_value(object, eel_gconf_get_integer(key));
 
 	  signal_name = "value-changed";
 	  signal_handler = G_CALLBACK(mn_conf_link_spin_button_h);
 	  notification_cb = mn_conf_link_spin_button_notify_cb;
 	}
-      else if (GTK_IS_FONT_BUTTON(widget))
+      else if (G_IS_OBJECT(object))
 	{
-	  char *str;
+	  LinkObjectInfo *object_info;
+	  const char *property_name;
+	  GConfValue *value;
 
-	  str = eel_gconf_get_string(key);
-	  gtk_font_button_set_font_name(GTK_FONT_BUTTON(widget), STRING_TO_FONT(str));
-	  g_free(str);
+	  property_name = va_arg(args, const char *);
+	  g_return_if_fail(property_name != NULL);
 
-	  signal_name = "font-set";
-	  signal_handler = G_CALLBACK(mn_conf_link_font_button_h);
-	  notification_cb = mn_conf_link_font_button_notify_cb;
-	}
-      else if (GTK_IS_ENTRY(widget))
-	{
-	  char *str;
+	  object_info = g_new0(LinkObjectInfo, 1);
+	  object_info->pspec = g_object_class_find_property(G_OBJECT_GET_CLASS(object), property_name);
+	  g_return_if_fail(object_info->pspec != NULL);
 
-	  str = eel_gconf_get_string(key);
-	  gtk_entry_set_text(GTK_ENTRY(widget), MN_POINTER_TO_STRING(str));
-	  g_free(str);
+	  info = LINK_INFO(object_info);
+	  info->object = object;
 
-	  signal_name = "changed";
-	  signal_handler = G_CALLBACK(mn_conf_link_entry_h);
-	  notification_cb = mn_conf_link_entry_notify_cb;
+	  value = eel_gconf_get_value(key);
+	  mn_conf_link_object_set(object_info, value);
+	  if (value)
+	    gconf_value_free(value);
+
+	  signal_name = free_me = g_strconcat("notify::", property_name, NULL);
+	  signal_handler = G_CALLBACK(mn_conf_link_object_h);
+	  notification_cb = mn_conf_link_object_notify_cb;
 	}
       else
 	g_return_if_reached();
 
-      g_signal_connect_data(widget, signal_name, signal_handler, g_strdup(key), (GClosureNotify) g_free, 0);
-      mn_conf_notification_add(widget, key, notification_cb, widget);
+      if (! info)
+	info = g_new0(LinkInfo, 1);
 
-      widget = va_arg(args, GtkWidget *);
+      info->object = object;
+      g_free(info->key);
+      info->key = g_strdup(key);
+      info->handler_id = g_signal_connect(object, signal_name, signal_handler, info);
+      mn_conf_notification_add(object, key, notification_cb, info);
+      g_object_weak_ref(object, mn_conf_link_weak_notify_cb, info);
+
+      g_free(free_me);
+      object = va_arg(args, gpointer);
     }
   va_end(args);
+}
+
+static void
+mn_conf_link_weak_notify_cb (gpointer data, GObject *former_object)
+{
+  LinkInfo *info = data;
+
+  if (info->finalize)
+    info->finalize(info);
+  g_free(info);
 }
 
 void
@@ -259,50 +513,57 @@ mn_conf_link_combo_box_to_string (GtkComboBox *combo,
 				  int string_column,
 				  const char *key)
 {
-  char *value;
+  LinkComboBoxToStringInfo *info;
+  GConfValue *value;
 
   g_return_if_fail(GTK_IS_COMBO_BOX(combo));
   g_return_if_fail(key != NULL);
 
-  g_object_set_data_full(G_OBJECT(combo), COMBO_BOX_KEY, g_strdup(key), g_free);
-  g_object_set_data(G_OBJECT(combo), COMBO_BOX_STRING_COLUMN, GINT_TO_POINTER(string_column));
+  info = g_new0(LinkComboBoxToStringInfo, 1);
+  info->string_column = string_column;
+  LINK_INFO(info)->object = combo;
+  LINK_INFO(info)->key = g_strdup(key);
 
-  value = eel_gconf_get_string(key);
-  mn_conf_link_combo_box_to_string_update_active(combo, string_column, value);
-  g_free(value);
+  value = eel_gconf_get_value(key);
+  mn_conf_link_combo_box_to_string_set(info, value);
+  if (value)
+    eel_gconf_value_free(value);
 
-  g_signal_connect(combo, "changed", G_CALLBACK(mn_conf_link_combo_box_to_string_changed_h), NULL);
-  mn_conf_notification_add(combo, key, mn_conf_link_combo_box_to_string_notify_cb, combo);
+  LINK_INFO(info)->handler_id = g_signal_connect(combo, "changed", G_CALLBACK(mn_conf_link_combo_box_to_string_h), info);
+  mn_conf_notification_add(combo, key, mn_conf_link_combo_box_to_string_notify_cb, info);
+  g_object_weak_ref(G_OBJECT(combo), mn_conf_link_weak_notify_cb, info);
 }
 
 static void
-mn_conf_link_combo_box_to_string_update_active (GtkComboBox *combo,
-						int string_column,
-						const char *value)
+mn_conf_link_combo_box_to_string_set (LinkComboBoxToStringInfo *info,
+				      const GConfValue *value)
 {
-  g_return_if_fail(GTK_IS_COMBO_BOX(combo));
+  const char *str;
 
-  if (value)
+  g_return_if_fail(info != NULL);
+
+  str = value ? gconf_value_get_string(value) : NULL;
+  if (str)
     {
       GtkTreeModel *model;
       GtkTreeIter iter;
       gboolean valid;
       
-      model = gtk_combo_box_get_model(combo);
+      model = gtk_combo_box_get_model(LINK_INFO(info)->object);
       valid = gtk_tree_model_get_iter_first(model, &iter);
 
       while (valid)
 	{
-	  char *this_value;
+	  char *this_str;
 	  gboolean found;
 	  
-	  gtk_tree_model_get(model, &iter, string_column, &this_value, -1);
-	  found = this_value && ! strcmp(this_value, value);
-	  g_free(this_value);
+	  gtk_tree_model_get(model, &iter, info->string_column, &this_str, -1);
+	  found = this_str && ! strcmp(this_str, str);
+	  g_free(this_str);
 	  
 	  if (found)
 	    {
-	      gtk_combo_box_set_active_iter(combo, &iter);
+	      gtk_combo_box_set_active_iter(LINK_INFO(info)->object, &iter);
 	      break;
 	    }
 	  
@@ -312,8 +573,7 @@ mn_conf_link_combo_box_to_string_update_active (GtkComboBox *combo,
 }
 
 static void
-mn_conf_link_combo_box_to_string_changed_h (GtkComboBox *combo,
-					    gpointer user_data)
+mn_conf_link_combo_box_to_string_h (GtkComboBox *combo, gpointer user_data)
 {
   GtkTreeModel *model;
   GtkTreeIter iter;
@@ -321,29 +581,27 @@ mn_conf_link_combo_box_to_string_changed_h (GtkComboBox *combo,
   model = gtk_combo_box_get_model(combo);
   if (gtk_combo_box_get_active_iter(combo, &iter))
     {
-      const char *key = g_object_get_data(G_OBJECT(combo), COMBO_BOX_KEY);
-      int string_column = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(combo), COMBO_BOX_STRING_COLUMN));
+      LinkComboBoxToStringInfo *info = user_data;
       char *value;
 
-      gtk_tree_model_get(model, &iter, string_column, &value, -1);
-      eel_gconf_set_string(key, value);
+      gtk_tree_model_get(model, &iter, info->string_column, &value, -1);
+      eel_gconf_set_string(LINK_INFO(info)->key, value);
       g_free(value);
     }
 }
 
 static void
 mn_conf_link_combo_box_to_string_notify_cb (GConfClient *client,
-					    guint cnxn_id,
+					    unsigned int cnxn_id,
 					    GConfEntry *entry,
 					    gpointer user_data)
 {
-  GtkComboBox *combo = user_data;
-  int string_column = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(combo), COMBO_BOX_STRING_COLUMN));
-  GConfValue *value = gconf_entry_get_value(entry);
-  const char *str = value ? gconf_value_get_string(value) : NULL;
+  LinkComboBoxToStringInfo *info = user_data;
 
   GDK_THREADS_ENTER();
-  mn_conf_link_combo_box_to_string_update_active(combo, string_column, str);
+  BLOCK(LINK_INFO(info));
+  mn_conf_link_combo_box_to_string_set(info, gconf_entry_get_value(entry));
+  UNBLOCK(LINK_INFO(info));
   GDK_THREADS_LEAVE();
 }
 
@@ -384,6 +642,7 @@ mn_conf_link_radio_button_to_string (GtkRadioButton *radio,
 				     const char *key,
 				     const char *str)
 {
+  LinkRadioButtonToStringInfo *info;
   char *current_str;
 
   g_return_if_fail(GTK_IS_RADIO_BUTTON(radio));
@@ -398,45 +657,53 @@ mn_conf_link_radio_button_to_string (GtkRadioButton *radio,
       g_free(current_str);
     }
   
-  g_object_set_data_full(G_OBJECT(radio), RADIO_BUTTON_KEY, g_strdup(key), g_free);
-  g_object_set_data_full(G_OBJECT(radio), RADIO_BUTTON_STRING, g_strdup(str), g_free);
+  info = g_new0(LinkRadioButtonToStringInfo, 1);
+  info->str = g_strdup(str);
+  LINK_INFO(info)->object = radio;
+  LINK_INFO(info)->key = g_strdup(key);
+  LINK_INFO(info)->finalize = (GDestroyNotify) mn_conf_link_radio_button_to_string_free_info;
 
-  g_signal_connect(radio, "toggled", G_CALLBACK(mn_conf_link_radio_button_to_string_toggled_h), NULL);
-  mn_conf_notification_add(radio, key, mn_conf_link_radio_button_to_string_notify_cb, radio);
+  LINK_INFO(info)->handler_id = g_signal_connect(radio, "toggled", G_CALLBACK(mn_conf_link_radio_button_to_string_h), info);
+  mn_conf_notification_add(radio, key, mn_conf_link_radio_button_to_string_notify_cb, info);
+  g_object_weak_ref(G_OBJECT(radio), mn_conf_link_weak_notify_cb, info);
 }
 
 static void
-mn_conf_link_radio_button_to_string_toggled_h (GtkToggleButton *toggle,
-					       gpointer user_data)
+mn_conf_link_radio_button_to_string_h (GtkToggleButton *toggle,
+				       gpointer user_data)
 {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(toggle)))
     {
-      const char *key = g_object_get_data(G_OBJECT(toggle), RADIO_BUTTON_KEY);
-      const char *str = g_object_get_data(G_OBJECT(toggle), RADIO_BUTTON_STRING);
+      LinkRadioButtonToStringInfo *info = user_data;
 
-      eel_gconf_set_string(key, str);
+      eel_gconf_set_string(LINK_INFO(info)->key, info->str);
     }
 }
 
 static void
 mn_conf_link_radio_button_to_string_notify_cb (GConfClient *client,
-					       guint cnxn_id,
+					       unsigned int cnxn_id,
 					       GConfEntry *entry,
 					       gpointer user_data)
 {
-  GtkRadioButton *radio = user_data;
+  LinkRadioButtonToStringInfo *info = user_data;
   GConfValue *value = gconf_entry_get_value(entry);
   const char *str = value ? gconf_value_get_string(value) : NULL;
 
-  if (str)
+  if (str && ! strcmp(str, info->str))
     {
       GDK_THREADS_ENTER();
-      
-      if (! strcmp(str, g_object_get_data(G_OBJECT(radio), RADIO_BUTTON_STRING)))
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
-	
+      BLOCK(LINK_INFO(info));
+      gtk_toggle_button_set_active(LINK_INFO(info)->object, TRUE);
+      UNBLOCK(LINK_INFO(info));
       GDK_THREADS_LEAVE();
     }
+}
+
+static void
+mn_conf_link_radio_button_to_string_free_info (LinkRadioButtonToStringInfo *info)
+{
+  g_free(info->str);
 }
 
 static gboolean
@@ -444,124 +711,216 @@ mn_conf_link_window_h (GtkWidget *widget,
 		       GdkEventConfigure *event,
 		       gpointer user_data)
 {
-  const char *width_key = g_object_get_data(G_OBJECT(widget), WINDOW_WIDTH_KEY);
-  const char *height_key = g_object_get_data(G_OBJECT(widget), WINDOW_HEIGHT_KEY);
+  LinkWindowInfo *info = user_data;
 
-  eel_gconf_set_integer(width_key, event->width);
-  eel_gconf_set_integer(height_key, event->height);
+  eel_gconf_set_integer(info->width_key, event->width);
+  eel_gconf_set_integer(info->height_key, event->height);
 
   return FALSE;
 }
 
 static void
 mn_conf_link_window_notify_cb (GConfClient *client,
-			       guint cnxn_id,
+			       unsigned int cnxn_id,
 			       GConfEntry *entry,
 			       gpointer user_data)
 {
-  GtkWindow *window = user_data;
-  const char *width_key;
-  const char *height_key;
+  LinkWindowInfo *info = user_data;
 
   GDK_THREADS_ENTER();
-  width_key = g_object_get_data(G_OBJECT(window), WINDOW_WIDTH_KEY);
-  height_key = g_object_get_data(G_OBJECT(window), WINDOW_HEIGHT_KEY);
-  gtk_window_resize(window,
-		    eel_gconf_get_integer(width_key),
-		    eel_gconf_get_integer(height_key));
+  BLOCK(LINK_INFO(info));
+  gtk_window_resize(LINK_INFO(info)->object,
+		    eel_gconf_get_integer(info->width_key),
+		    eel_gconf_get_integer(info->height_key));
+  UNBLOCK(LINK_INFO(info));
   GDK_THREADS_LEAVE();
 }
 
 static void
-mn_conf_link_toggle_button_h (GtkToggleButton *button, gpointer user_data)
+mn_conf_link_window_free_info (LinkWindowInfo *info)
 {
-  const char *key = user_data;
-  eel_gconf_set_boolean(key, gtk_toggle_button_get_active(button));
+  g_free(info->width_key);
+  g_free(info->height_key);
 }
 
 static void
-mn_conf_link_toggle_button_notify_cb (GConfClient *client,
-				      guint cnxn_id,
+mn_conf_link_radio_action_set (LinkRadioActionInfo *info,
+			       const GConfValue *value)
+{
+  GEnumValue *enum_value;
+  const char *nick;
+
+  g_return_if_fail(info != NULL);
+
+  if (! value)
+    return;
+
+  nick = gconf_value_get_string(value);
+  enum_value = nick ? g_enum_get_value_by_nick(info->enum_class, nick) : NULL;
+
+  if (enum_value)
+    {
+      GSList *l;
+
+      MN_LIST_FOREACH(l, gtk_radio_action_get_group(LINK_INFO(info)->object))
+        {
+	  GtkRadioAction *this_action = l->data;
+	  int this_value;
+
+	  g_object_get(this_action, "value", &this_value, NULL);
+	  if (this_value == enum_value->value)
+	    {
+	      gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(this_action), TRUE);
+	      break;
+	    }
+	}
+    }
+}
+
+static void
+mn_conf_link_radio_action_h (GtkRadioAction *action,
+			     GtkRadioAction *current,
+			     gpointer user_data)
+{
+  LinkRadioActionInfo *info = user_data;
+  int current_value;
+  GEnumValue *enum_value;
+
+  g_object_get(current, "value", &current_value, NULL);
+
+  enum_value = g_enum_get_value(info->enum_class, current_value);
+  g_return_if_fail(enum_value != NULL);
+
+  eel_gconf_set_string(LINK_INFO(info)->key, enum_value->value_nick);
+}
+
+static void
+mn_conf_link_radio_action_notify_cb (GConfClient *client,
+				     unsigned int cnxn_id,
+				     GConfEntry *entry,
+				     gpointer user_data)
+{
+  LinkRadioActionInfo *info = user_data;
+
+  GDK_THREADS_ENTER();
+  BLOCK(LINK_INFO(info));
+  mn_conf_link_radio_action_set(info, gconf_entry_get_value(entry));
+  UNBLOCK(LINK_INFO(info));
+  GDK_THREADS_LEAVE();
+}
+
+static void
+mn_conf_link_radio_action_free_info (LinkRadioActionInfo *info)
+{
+  g_type_class_unref(info->enum_class);
+}
+
+static void
+mn_conf_link_toggle_action_h (GtkToggleAction *action,
+			      gpointer user_data)
+{
+  LinkInfo *info = user_data;
+
+  eel_gconf_set_boolean(info->key, gtk_toggle_action_get_active(action));
+}
+
+static void
+mn_conf_link_toggle_action_notify_cb (GConfClient *client,
+				      unsigned int cnxn_id,
 				      GConfEntry *entry,
 				      gpointer user_data)
 {
+  LinkInfo *info = user_data;
   GConfValue *value = gconf_entry_get_value(entry);
-  GtkToggleButton *button = user_data;
-
+  
   GDK_THREADS_ENTER();
-  gtk_toggle_button_set_active(button, value ? gconf_value_get_bool(value) : FALSE);
+  BLOCK(info);
+  gtk_toggle_action_set_active(info->object, value ? gconf_value_get_bool(value) : FALSE);
+  UNBLOCK(info);
   GDK_THREADS_LEAVE();
 }
 
 static void
 mn_conf_link_spin_button_h (GtkSpinButton *button, gpointer user_data)
 {
-  const char *key = user_data;
-  eel_gconf_set_integer(key, gtk_spin_button_get_value_as_int(button));
+  LinkInfo *info = user_data;
+
+  eel_gconf_set_integer(info->key, gtk_spin_button_get_value_as_int(button));
 }
 
 static void
 mn_conf_link_spin_button_notify_cb (GConfClient *client,
-				    guint cnxn_id,
+				    unsigned int cnxn_id,
 				    GConfEntry *entry,
 				    gpointer user_data)
 {
   GConfValue *value = gconf_entry_get_value(entry);
-  GtkSpinButton *button = user_data;
+  LinkInfo *info = user_data;
 
   GDK_THREADS_ENTER();
-  gtk_spin_button_set_value(button, value ? gconf_value_get_int(value) : 0);
+  BLOCK(info);
+  gtk_spin_button_set_value(info->object, value ? gconf_value_get_int(value) : 0);
+  UNBLOCK(info);
   GDK_THREADS_LEAVE();
 }
 
 static void
-mn_conf_link_font_button_h (GtkFontButton *button, gpointer user_data)
+mn_conf_link_object_set (LinkObjectInfo *info, const GConfValue *value)
 {
-  const char *key = user_data;
+  GValue gvalue = { 0, };
 
-  eel_gconf_set_string(key, gtk_font_button_get_font_name(button));
-}
+  g_return_if_fail(info != NULL);
 
-static void
-mn_conf_link_font_button_notify_cb (GConfClient *client,
-				    guint cnxn_id,
-				    GConfEntry *entry,
-				    gpointer user_data)
-{
-  GtkFontButton *button = user_data;
-  GConfValue *value = gconf_entry_get_value(entry);
-  const char *str = value ? gconf_value_get_string(value) : NULL;
+  if (! value)
+    return;
 
-  GDK_THREADS_ENTER();
-  gtk_font_button_set_font_name(button, STRING_TO_FONT(str));
-  GDK_THREADS_LEAVE();
-}
-
-static void
-mn_conf_link_entry_h (GtkEditable *editable, gpointer user_data)
-{
-  const char *key = user_data;
-  const char *str;
-
-  str = gtk_entry_get_text(GTK_ENTRY(editable));
-  if (*str)
-    eel_gconf_set_string(key, str);
+  g_value_init(&gvalue, G_PARAM_SPEC_VALUE_TYPE(info->pspec));
+  
+  if (G_PARAM_SPEC_VALUE_TYPE(info->pspec) == G_TYPE_BOOLEAN)
+    g_value_set_boolean(&gvalue, gconf_value_get_bool(value));
+  else if (G_PARAM_SPEC_VALUE_TYPE(info->pspec) == G_TYPE_STRING)
+    g_value_set_string(&gvalue, gconf_value_get_string(value));
   else
-    eel_gconf_unset(key);
+    g_return_if_reached();
+
+  g_object_set_property(LINK_INFO(info)->object, g_param_spec_get_name(info->pspec), &gvalue);
+  g_value_unset(&gvalue);
 }
 
 static void
-mn_conf_link_entry_notify_cb (GConfClient *client,
-			      guint cnxn_id,
-			      GConfEntry *entry,
-			      gpointer user_data)
+mn_conf_link_object_h (GObject *object, GParamSpec *pspec, gpointer user_data)
 {
-  GtkEntry *entry_widget = user_data;
-  GConfValue *value = gconf_entry_get_value(entry);
-  const char *str = value ? gconf_value_get_string(value) : NULL;
+  LinkInfo *info = user_data;
+  GValue value = { 0, };
+
+  g_value_init(&value, G_PARAM_SPEC_VALUE_TYPE(pspec));
+  g_object_get_property(object, g_param_spec_get_name(pspec), &value);
+
+  if (G_PARAM_SPEC_VALUE_TYPE(pspec) == G_TYPE_BOOLEAN)
+    eel_gconf_set_boolean(info->key, g_value_get_boolean(&value));
+  else if (G_PARAM_SPEC_VALUE_TYPE(pspec) == G_TYPE_STRING)
+    {
+      const char *str = g_value_get_string(&value);
+      eel_gconf_set_string(info->key, str ? str : "");
+    }
+  else
+    g_return_if_reached();
+
+  g_value_unset(&value);
+}
+
+static void
+mn_conf_link_object_notify_cb (GConfClient *client,
+			       unsigned int cnxn_id,
+			       GConfEntry *entry,
+			       gpointer user_data)
+{
+  LinkObjectInfo *info = user_data;
 
   GDK_THREADS_ENTER();
-  gtk_entry_set_text(entry_widget, MN_POINTER_TO_STRING(str));
+  BLOCK(LINK_INFO(info));
+  mn_conf_link_object_set(info, gconf_entry_get_value(entry));
+  UNBLOCK(LINK_INFO(info));
   GDK_THREADS_LEAVE();
 }
 
@@ -798,4 +1157,34 @@ mn_conf_notification_add_weak_notify_cb (gpointer data, GObject *former_object)
 {
   unsigned int notification_id = GPOINTER_TO_UINT(data);
   eel_gconf_notification_remove(notification_id);
+}
+
+gboolean
+mn_conf_has_command (const char *namespace)
+{
+  char *enabled_key;
+  gboolean has = FALSE;
+
+  g_return_val_if_fail(namespace != NULL, FALSE);
+
+  enabled_key = g_strconcat(namespace, "/enabled", NULL);
+  if (eel_gconf_get_boolean(enabled_key))
+    {
+      char *command_key;
+      char *command;
+
+      command_key = g_strconcat(namespace, "/command", NULL);
+      command = eel_gconf_get_string(command_key);
+      g_free(command_key);
+
+      if (command)
+	{
+	  if (*command)
+	    has = TRUE;
+	  g_free(command);
+	}
+    }
+  g_free(enabled_key);
+
+  return has;
 }

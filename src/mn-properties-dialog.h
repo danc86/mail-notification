@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,12 +16,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _MN_SUMMARY_DIALOG_H
-#define _MN_SUMMARY_DIALOG_H
+#ifndef _MN_PROPERTIES_DIALOG_H
+#define _MN_PROPERTIES_DIALOG_H
 
-#include <glib.h>
+#include <stdarg.h>
+#include <gtk/gtk.h>
 
-void mn_summary_dialog_display (void);
-gboolean mn_summary_dialog_is_displayed (void);
+void	mn_properties_dialog_display		(void);
 
-#endif /* _MN_SUMMARY_DIALOG_H */
+void	mn_properties_dialog_set_tooltip	(GtkWidget	*widget,
+						 const char	*tip);
+void	mn_properties_dialog_set_tooltips	(GtkWidget	*widget,
+						 ...);
+
+#endif /* _MN_PROPERTIES_DIALOG_H */

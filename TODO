@@ -1,2 +1,7 @@
 * Check the SSL certificate's hostname against the hostname we used
   (RFC 3501, section 11.1)
+* Add a Gmail "Mailbox" option similar to the IMAP one (or if that is
+  not feasible, a checkbutton "Only check inbox").
+* Add a per-mailbox check delay setting (probably GConf only, as that
+  feature is seldomly needed)
+* See if we can add an Evolution data server mailbox backend

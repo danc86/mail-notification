@@ -20,6 +20,7 @@
 #define _MN_CONF_H
 
 #include <stdarg.h>
+#include <gtk/gtk.h>
 #include <eel/eel.h>
 
 #define MN_CONF_NAMESPACE \
@@ -61,11 +62,11 @@
 #define MN_CONF_COMMANDS_CLICKED_COMMAND \
   MN_CONF_COMMANDS_CLICKED_NAMESPACE "/command"	/* obsolete */
 #define MN_CONF_COMMANDS_DOUBLE_CLICKED_NAMESPACE \
-  MN_CONF_COMMANDS_NAMESPACE "/double-clicked"
+  MN_CONF_COMMANDS_NAMESPACE "/double-clicked"		/* obsolete */
 #define MN_CONF_COMMANDS_DOUBLE_CLICKED_ENABLED	\
-  MN_CONF_COMMANDS_DOUBLE_CLICKED_NAMESPACE "/enabled"
+  MN_CONF_COMMANDS_DOUBLE_CLICKED_NAMESPACE "/enabled"	/* obsolete */
 #define MN_CONF_COMMANDS_DOUBLE_CLICKED_COMMAND	\
-  MN_CONF_COMMANDS_DOUBLE_CLICKED_NAMESPACE "/command"
+  MN_CONF_COMMANDS_DOUBLE_CLICKED_NAMESPACE "/command"	/* obsolete */
 #define MN_CONF_MAILBOXES \
   MN_CONF_NAMESPACE "/mailboxes"
 #define MN_CONF_UI_NAMESPACE \
@@ -74,6 +75,12 @@
   MN_CONF_UI_NAMESPACE "/preferences-dialog"	/* obsolete */
 #define MN_CONF_PROPERTIES_DIALOG \
   MN_CONF_UI_NAMESPACE "/properties-dialog"
+#define MN_CONF_SUMMARY_DIALOG \
+  MN_CONF_UI_NAMESPACE "/summary-dialog"
+#define MN_CONF_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_NAMESPACE \
+  MN_CONF_UI_NAMESPACE "/immediate-notification-error-dialog"
+#define MN_CONF_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_DO_NOT_SHOW \
+  MN_CONF_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_NAMESPACE "/do-not-show"
 #define MN_CONF_ALREADY_RUN \
   MN_CONF_NAMESPACE "/already-run"
 #define MN_CONF_BLINK_ON_ERRORS \
@@ -82,6 +89,26 @@
   MN_CONF_NAMESPACE "/trusted-x509-certificates"
 #define MN_CONF_TRUSTED_SERVERS \
   MN_CONF_NAMESPACE "/trusted-servers"
+#define MN_CONF_MAIL_SUMMARY_POPUP_NAMESPACE \
+  MN_CONF_NAMESPACE "/mail-summary-popup"
+#define MN_CONF_MAIL_SUMMARY_POPUP_ENABLE \
+  MN_CONF_MAIL_SUMMARY_POPUP_NAMESPACE "/enable"
+#define MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE \
+  MN_CONF_MAIL_SUMMARY_POPUP_NAMESPACE "/autoclose"
+#define MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_NAMESPACE \
+  MN_CONF_MAIL_SUMMARY_POPUP_NAMESPACE "/autoclose-delay"
+#define MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_MINUTES \
+  MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_NAMESPACE "/minutes"
+#define MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_SECONDS \
+  MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_NAMESPACE "/seconds"
+#define MN_CONF_MAIL_SUMMARY_POPUP_POSITION \
+  MN_CONF_MAIL_SUMMARY_POPUP_NAMESPACE "/position"
+#define MN_CONF_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE \
+  MN_CONF_MAIL_SUMMARY_POPUP_NAMESPACE "/offset"
+#define MN_CONF_MAIL_SUMMARY_POPUP_HORIZONTAL_OFFSET \
+  MN_CONF_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE "/horizontal"
+#define MN_CONF_MAIL_SUMMARY_POPUP_VERTICAL_OFFSET \
+  MN_CONF_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE "/vertical"
 
 void		mn_conf_init		(void);
 void		mn_conf_unset_obsolete	(void);
@@ -91,8 +118,14 @@ void		mn_conf_recursive_unset	(const char	*key,
 
 void		mn_conf_link		(GtkWidget	*widget,
 					 ...);
+void		mn_conf_link_combo_box_to_string (GtkComboBox	*combo,
+						  int		string_column,
+						  const char	*key);
 
 gboolean	mn_conf_get_autostart	(void);
 void		mn_conf_set_autostart	(gboolean	autostart);
+
+GEnumValue	*mn_conf_get_enum_value	(GType		enum_type,
+					 const char	*key);
 
 #endif /* _MN_CONF_H */

@@ -16,11 +16,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include <libbonobo.h>
 #include "MNAutomation.h"
 %}
 %{
+#include "mn-summary-dialog.h"
+#include "mn-summary-popup.h"
 #include "mn-properties.h"
 #include "mn-shell.h"
 %}
@@ -44,6 +48,13 @@ class MN:Automation from Bonobo:Object (BonoboObject GNOME_MNAutomation)
   }
 
   BonoboObject private void
+    displayMailSummary (PortableServer_Servant servant, CORBA_Environment *env)
+  {
+    g_return_if_fail(mn_shell != NULL);
+    mn_summary_dialog_display();
+  }
+
+  BonoboObject private void
     displayProperties (PortableServer_Servant servant, CORBA_Environment *env)
   {
     g_return_if_fail(mn_shell != NULL);
@@ -55,6 +66,13 @@ class MN:Automation from Bonobo:Object (BonoboObject GNOME_MNAutomation)
   {
     g_return_if_fail(mn_shell != NULL);
     mn_shell_display_about(mn_shell);
+  }
+
+  BonoboObject private void
+    closePopup (PortableServer_Servant servant, CORBA_Environment *env)
+  {
+    g_return_if_fail(mn_shell != NULL);
+    mn_summary_popup_destroy();
   }
 
   public MNAutomation *

@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include "mn-mailbox.h"
 %}
@@ -42,9 +44,8 @@ class MN:Unsupported:Mailbox from MN:Mailbox
     new (MN:URI *uri (check null type),
 	 const char *reason (check null))
   {
-    return g_object_new(TYPE_SELF,
-			MN_MAILBOX_PROP_URI(G_OBJECT(uri)),
-			MN_UNSUPPORTED_MAILBOX_PROP_REASON((char *) reason),
-			NULL);
+    return MN_MAILBOX(GET_NEW_VARG(MN_MAILBOX_PROP_URI(G_OBJECT(uri)),
+				   MN_UNSUPPORTED_MAILBOX_PROP_REASON((char *) reason),
+				   NULL));
   }
 }

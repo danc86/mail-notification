@@ -18,6 +18,7 @@ src/mn-conf.c
 src/mn-conf.h
 src/mn-gmail-mailbox-properties.gob
 src/mn-gmail-mailbox.gob
+src/mn-gmime-stream-vfs.gob
 src/mn-imap-mailbox-properties.gob
 src/mn-imap-mailbox.gob
 src/mn-mail-icon.gob
@@ -35,6 +36,10 @@ src/mn-main.c
 src/mn-mbox-mailbox.gob
 src/mn-md5.c
 src/mn-md5.h
+src/mn-message-label.gob
+src/mn-message-mime.c
+src/mn-message-mime.h
+src/mn-message.gob
 src/mn-mh-mailbox.gob
 src/mn-pending-mailbox.gob
 src/mn-pi-mailbox-properties.gob
@@ -44,6 +49,8 @@ src/mn-properties.c
 src/mn-properties.h
 src/mn-sasl.c
 src/mn-sasl.h
+src/mn-sgml-ref.c
+src/mn-sgml-ref.h
 src/mn-shell.gob
 src/mn-soup.c
 src/mn-soup.h
@@ -51,6 +58,12 @@ src/mn-ssl.c
 src/mn-ssl.h
 src/mn-stock.c
 src/mn-stock.h
+src/mn-summary-dialog.c
+src/mn-summary-dialog.h
+src/mn-summary-popup.c
+src/mn-summary-popup.h
+src/mn-summary.c
+src/mn-summary.h
 src/mn-sylpheed-mailbox.gob
 src/mn-system-mailbox-properties.gob
 src/mn-unsupported-mailbox.gob
@@ -61,4 +74,6 @@ src/mn-vfs.c
 src/mn-vfs.h
 ui/mailbox-properties.glade
 ui/properties.glade
+ui/summary-dialog.glade
+ui/summary-popup.glade
 ui/welcome.glade

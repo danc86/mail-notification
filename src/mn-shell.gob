@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include "mn-mailboxes.h"
 %}
@@ -26,12 +28,15 @@
 #include "config.h"
 #include <errno.h>
 #include <gnome.h>
+#include <eel/eel.h>
 #include "mn-properties.h"
 #include "mn-util.h"
 #include "mn-conf.h"
 #include "mn-mailboxes.h"
 #include "mn-unsupported-mailbox.h"
 #include "mn-about-dialog.h"
+#include "mn-summary-popup.h"
+#include "mn-summary-dialog.h"
 
   MNShell *mn_shell = NULL;
 %}
@@ -45,14 +50,21 @@ class MN:Shell from G:Object
   init (self)
   {
     g_return_if_fail(mn_shell == NULL);
-    g_object_add_weak_pointer(G_OBJECT(self), (gpointer *) &mn_shell);
+    mn_shell = self;
+    eel_add_weak_pointer(&mn_shell);
 
     self_init_icon(self);
-    eel_gconf_notification_add(MN_CONF_COMMANDS_DOUBLE_CLICKED_COMMAND, self_notify_double_clicked_command_cb, self);
     eel_gconf_notification_add(MN_CONF_BLINK_ON_ERRORS, self_notify_blink_on_errors_cb, self);
 
-    g_signal_connect(G_OBJECT(self->mailboxes), "list-changed", G_CALLBACK(self_mailboxes_list_changed_h), self);
-    g_signal_connect(G_OBJECT(self->mailboxes), "status-changed", G_CALLBACK(self_mailboxes_status_changed_h), self);
+    g_object_connect(self->mailboxes,
+		     "signal::messages-changed", self_mailboxes_messages_changed_h, self,
+		     "swapped-signal::notify::must-poll", self_update_sensitivity, self,
+		     "swapped-signal::list-changed", self_update_icon, self,
+		     "swapped-signal::has-new-changed", self_update_icon, self,
+		     "swapped-signal::error-changed", self_update_icon, self,
+		     NULL);
+
+    mn_summary_popup_init();
   }
 
   override (G:Object) void
@@ -63,22 +75,32 @@ class MN:Shell from G:Object
   }
   
   private void
-    mailboxes_list_changed_h (MN:Mailboxes *mailboxes (check null type),
-			      gpointer user_data (check null))
+    mailboxes_messages_changed_h (MN:Mailboxes *mailboxes (check null type),
+				  gboolean has_new,
+				  gpointer user_data (check null))
   {
-    Self *self = user_data;
-    
-    self_update_sensitivity(self);
-    self_update_icon(self);
-  }
-
-  private void
-    mailboxes_status_changed_h (MN:Mailboxes *mailboxes (check null type),
-				gpointer user_data (check null))
-  {
-    Self *self = user_data;
-
-    self_update_icon(self);
+    if (has_new)
+      {
+	gnome_triggers_do(_("You have new mail."), NULL, "mail-notification", "new-mail", NULL);
+	if (eel_gconf_get_boolean(MN_CONF_COMMANDS_NEW_MAIL_ENABLED))
+	  {
+	    char *command;
+		
+	    command = eel_gconf_get_string(MN_CONF_COMMANDS_NEW_MAIL_COMMAND);
+	    if (command)
+	      {
+		if (gnome_execute_shell(NULL, command) < 0)
+		  mn_error_dialog(NULL,
+				  NULL,
+				  NULL,
+				  _("A command error has occurred in Mail Notification"),
+				  _("Unable to execute new mail command: %s."),
+				  g_strerror(errno));
+		    
+		g_free(command);
+	      }
+	  }
+      }
   }
   
   private void
@@ -86,31 +108,19 @@ class MN:Shell from G:Object
   {
     selfp->icon = MN_MAIL_ICON(mn_mail_icon_new());
 
-    g_signal_connect(G_OBJECT(selfp->icon), "activate", G_CALLBACK(self_icon_activate_h), self);
-    g_signal_connect(G_OBJECT(selfp->icon), "activate-run", G_CALLBACK(self_icon_activate_run_h), self);
-    g_signal_connect(G_OBJECT(selfp->icon), "activate-update", G_CALLBACK(self_icon_activate_update_h), self);
-    g_signal_connect(G_OBJECT(selfp->icon), "activate-properties", G_CALLBACK(self_icon_activate_properties_h), self);
-    g_signal_connect(G_OBJECT(selfp->icon), "activate-help", G_CALLBACK(self_icon_activate_help_h), self);
-    g_signal_connect(G_OBJECT(selfp->icon), "activate-about", G_CALLBACK(self_icon_activate_about_h), self);
-    g_signal_connect(G_OBJECT(selfp->icon), "activate-remove", G_CALLBACK(self_icon_activate_remove_h), self);
-    g_signal_connect(G_OBJECT(selfp->icon), "destroy", G_CALLBACK(self_icon_destroy_h), self);
-
-    self_update_command(self);
+    g_object_connect(selfp->icon,
+		     "signal::activate", self_icon_activate_h, self,
+		     "signal::activate-summary", self_icon_activate_summary_h, self,
+		     "signal::activate-update", self_icon_activate_update_h, self,
+		     "signal::activate-properties", self_icon_activate_properties_h, self,
+		     "signal::activate-help", self_icon_activate_help_h, self,
+		     "signal::activate-about", self_icon_activate_about_h, self,
+		     "signal::activate-remove", self_icon_activate_remove_h, self,
+		     "signal::destroy", self_icon_destroy_h, self,
+		     NULL);
+		     
     self_update_sensitivity(self);
     self_update_icon(self);
-  }
-
-  private void
-    notify_double_clicked_command_cb (GConfClient *client,
-				      guint cnxn_id,
-				      GConfEntry *entry,
-				      gpointer user_data (check null))
-  {
-    Self *self = user_data;
-
-    GDK_THREADS_ENTER();
-    self_update_command(self);
-    GDK_THREADS_LEAVE();
   }
 
   private void
@@ -130,17 +140,14 @@ class MN:Shell from G:Object
     icon_activate_h (MN:Mail:Icon *icon (check null type),
 		     gpointer user_data (check null))
   {
-    Self *self = user_data;
-    if (eel_gconf_get_boolean(MN_CONF_COMMANDS_DOUBLE_CLICKED_ENABLED))
-      self_run_double_clicked_command(self);
+    mn_summary_dialog_display();
   }
 
   private void
-    icon_activate_run_h (MN:Mail:Icon *icon (check null type),
-			 gpointer user_data (check null))
+    icon_activate_summary_h (MN:Mail:Icon *icon (check null type),
+			     gpointer user_data (check null))
   {
-    Self *self = user_data;
-    self_run_double_clicked_command(self);
+    mn_summary_dialog_display();
   }
   
   private void
@@ -162,7 +169,7 @@ class MN:Shell from G:Object
     icon_activate_help_h (MN:Mail:Icon *icon (check null type),
 			  gpointer user_data (check null))
   {
-    mn_display_help(NULL);
+    mn_display_help(NULL, NULL);
   }
   
   private void
@@ -192,37 +199,9 @@ class MN:Shell from G:Object
   }
 
   private void
-    run_double_clicked_command (self)
-  {
-    char *command;
-
-    command = eel_gconf_get_string(MN_CONF_COMMANDS_DOUBLE_CLICKED_COMMAND);
-    if (command)
-      {
-	if (gnome_execute_shell(NULL, command) < 0)
-	  mn_error_dialog(NULL,
-			  _("A command error has occurred"),
-			  _("Unable to execute double-clicked command: %s."),
-			  g_strerror(errno));
-	
-	g_free(command);
-      }
-  }
-
-  private void
-    update_command (self)
-  {
-    char *command;
-
-    command = eel_gconf_get_string(MN_CONF_COMMANDS_DOUBLE_CLICKED_COMMAND);
-    mn_mail_icon_set_command(selfp->icon, command);
-    g_free(command);
-  }
-  
-  private void
     update_sensitivity (self)
   {
-    gtk_widget_set_sensitive(selfp->icon->update_item, mn_mailboxes_has_manual(self->mailboxes));
+    gtk_widget_set_sensitive(selfp->icon->update_item, mn_mailboxes_get_must_poll(self->mailboxes));
   }
 
   private void
@@ -237,7 +216,6 @@ class MN:Shell from G:Object
     if (mailboxes)
       {
 	GSList *l;
-	static int old_n_new = 0;
 	int n_new = 0;
 	int n_error = 0;
 	int n_unsupported = 0;
@@ -314,28 +292,6 @@ class MN:Shell from G:Object
 	g_string_free(new_string, TRUE);
 	g_string_free(error_string, TRUE);
 	g_string_free(unsupported_string, TRUE);
-	
-	if (old_n_new == 0 && n_new > 0)
-	  {
-	    gnome_triggers_do(_("You have new mail."), NULL, "mail-notification", "new-mail", NULL);
-	    if (eel_gconf_get_boolean(MN_CONF_COMMANDS_NEW_MAIL_ENABLED))
-	      {
-		char *command;
-		
-		command = eel_gconf_get_string(MN_CONF_COMMANDS_NEW_MAIL_COMMAND);
-		if (command)
-		  {
-		    if (gnome_execute_shell(NULL, command) < 0)
-		      mn_error_dialog(NULL,
-				      _("A command error has occurred in Mail Notification"),
-				      _("Unable to execute new mail command: %s."),
-				      g_strerror(errno));
-		    
-		    g_free(command);
-		  }
-	      }
-	  }
-	old_n_new = n_new;
       }
     
     if (show || blink)
@@ -367,7 +323,7 @@ class MN:Shell from G:Object
       }
     
     selfp->about = mn_about_dialog_new();
-    g_object_add_weak_pointer(G_OBJECT(selfp->about), (gpointer *) &selfp->about);
+    eel_add_weak_pointer(&selfp->about);
     gtk_widget_show(GTK_WIDGET(selfp->about));
   }
 

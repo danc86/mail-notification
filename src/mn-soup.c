@@ -33,72 +33,16 @@
 #define CONF_PROXY_SOCKS_HOST			CONF_PROXY_NAMESPACE "/socks_host"
 #define CONF_PROXY_SOCKS_PORT			CONF_PROXY_NAMESPACE "/socks_port"
 
-/*** variables ***************************************************************/
-
-static int use_count = 0;
-G_LOCK_DEFINE_STATIC(use_count);
-static unsigned int http_proxy_notification_id;
-static unsigned int proxy_notification_id;
-
 /*** functions ***************************************************************/
 
-static void mn_soup_notify_proxy_cb (GConfClient *client,
-				     unsigned int cnxn_id,
-				     GConfEntry *entry,
-				     gpointer user_data);
-static void mn_soup_update_proxy (void);
+static char *mn_soup_build_proxy_uri (void);
 
 /*** implementation **********************************************************/
 
-void
-mn_soup_use (void)
+static char *
+mn_soup_build_proxy_uri (void)
 {
-  G_LOCK(use_count);
-  if (++use_count == 1)
-    {
-      eel_gconf_monitor_add(CONF_HTTP_PROXY_NAMESPACE);
-      eel_gconf_monitor_add(CONF_PROXY_NAMESPACE);
-
-      mn_soup_update_proxy();
-
-      http_proxy_notification_id = eel_gconf_notification_add(CONF_HTTP_PROXY_NAMESPACE, mn_soup_notify_proxy_cb, NULL);
-      proxy_notification_id = eel_gconf_notification_add(CONF_PROXY_NAMESPACE, mn_soup_notify_proxy_cb, NULL);
-    }
-  G_UNLOCK(use_count);
-}
-
-void
-mn_soup_unuse (void)
-{
-  G_LOCK(use_count);
-  g_return_if_fail(use_count > 0);
-  if (--use_count == 0)
-    {
-      eel_gconf_notification_remove(http_proxy_notification_id);
-      eel_gconf_notification_remove(proxy_notification_id);
-      eel_gconf_monitor_remove(CONF_HTTP_PROXY_NAMESPACE);
-      eel_gconf_monitor_remove(CONF_PROXY_NAMESPACE);
-
-      soup_shutdown();
-    }
-  G_UNLOCK(use_count);
-}
-
-static void
-mn_soup_notify_proxy_cb (GConfClient *client,
-			 unsigned int cnxn_id,
-			 GConfEntry *entry,
-			 gpointer user_data)
-{
-  GDK_THREADS_ENTER();
-  mn_soup_update_proxy();
-  GDK_THREADS_LEAVE();
-}
- 
-static void
-mn_soup_update_proxy (void)
-{
-  SoupContext *context = NULL;
+  char *uri = NULL;
   char *mode;
 
   mode = eel_gconf_get_string(CONF_PROXY_MODE);
@@ -114,7 +58,6 @@ mn_soup_update_proxy (void)
 	      if (*socks_host)
 		{
 		  int socks_port;
-		  char *uri;
 
 		  socks_port = eel_gconf_get_integer(CONF_PROXY_SOCKS_PORT);
 		  if (socks_port <= 0 || socks_port > 65535)
@@ -122,9 +65,6 @@ mn_soup_update_proxy (void)
 
 		  /* we assume it's a Socks 5 proxy, since it is not specified */
 		  uri = g_strdup_printf("socks5://%s:%i", socks_host, socks_port);
-		  context = soup_context_get(uri);
-		  
-		  g_free(uri);
 		}
 
 	      g_free(socks_host);
@@ -133,7 +73,7 @@ mn_soup_update_proxy (void)
       g_free(mode);
     }
   
-  if (! context)
+  if (! uri)
     {
       if (eel_gconf_get_boolean(CONF_HTTP_PROXY_USE_HTTP_PROXY))
 	{
@@ -146,10 +86,10 @@ mn_soup_update_proxy (void)
 	    {
 	      if (*host)
 		{
-		  GString *uri;
+		  GString *string;
 		  int port;
 	      
-		  uri = g_string_new("http://");
+		  string = g_string_new("http://");
 		  
 		  port = eel_gconf_get_integer(CONF_HTTP_PROXY_PORT);
 		  if (port <= 0 || port > 65535)
@@ -165,16 +105,14 @@ mn_soup_update_proxy (void)
 		      
 		      if (authentication_user && authentication_password
 			  && *authentication_user && *authentication_password)
-			g_string_append_printf(uri, "%s:%s@", authentication_user, authentication_password);
+			g_string_append_printf(string, "%s:%s@", authentication_user, authentication_password);
 		      
 		      g_free(authentication_user);
 		      g_free(authentication_password);
 		    }
 	      
-		  g_string_append_printf(uri, "%s:%i", host, port);
-	      
-		  context = soup_context_get(uri->str);
-		  g_string_free(uri, TRUE);
+		  g_string_append_printf(string, "%s:%i", host, port);
+		  uri = g_string_free(string, FALSE);
 		}
 
 	      g_free(host);
@@ -182,7 +120,18 @@ mn_soup_update_proxy (void)
 	}
     }
 
-  soup_set_proxy(context);
-  if (context)
-    soup_context_unref(context);
+  return uri;
+}
+
+SoupSession *
+mn_soup_session_new (void)
+{
+  char *proxy_uri;
+  SoupSession *session;
+
+  proxy_uri = mn_soup_build_proxy_uri();
+  session = soup_session_async_new_with_options(SOUP_SESSION_PROXY_URI, proxy_uri, NULL);
+  g_free(proxy_uri);
+
+  return session;
 }

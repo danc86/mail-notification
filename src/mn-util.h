@@ -21,6 +21,7 @@
 
 #include "config.h"
 #include <stdarg.h>
+#include <time.h>
 #include <gtk/gtk.h>
 
 #define MN_LIST_FOREACH(var, head)		\
@@ -29,7 +30,7 @@ for ((var) = (head);				\
      (var) = (var)->next)
 
 void		mn_info				(const char	*format,
-						 ...);
+						 ...) G_GNUC_PRINTF(1, 2);
 
 GSList		*mn_g_slist_delete_link_deep	(GSList		*list,
 						 GSList		*link_);
@@ -41,6 +42,8 @@ GSList		*mn_g_slist_delete_link_deep_custom (GSList	*list,
 GSList		*mn_g_str_slist_find		(GSList		*list,
 						 const char	*str);
 
+GSList		*mn_g_object_slist_ref		(GSList		*list);
+GSList		*mn_g_object_slist_copy		(GSList		*list);
 void		mn_g_object_slist_free		(GSList		*list);
 GSList		*mn_g_object_slist_delete_link	(GSList		*list,
 						 GSList		*link_);
@@ -68,7 +71,8 @@ gboolean	mn_parse_gnome_copied_files	(const char	*gnome_copied_files,
 						 MNGnomeCopiedFilesType *type,
 						 GSList		**uri_list);
 
-void		mn_display_help			(const char	*link_id);
+void		mn_display_help			(GtkWindow	*parent,
+						 const char	*link_id);
 void		mn_thread_create		(GThreadFunc	func,
 						 gpointer	data);
 
@@ -86,11 +90,32 @@ GtkWidget	*mn_menu_shell_prepend		(GtkMenuShell	*shell,
 						 const char	*stock_id,
 						 const char	*mnemonic);
 
-void		mn_error_dialog			(const char	*help_link_id,
+void		mn_error_dialog			(GtkWindow	*parent,
+						 const char	*not_again_key,
+						 const char	*help_link_id,
 						 const char	*primary,
 						 const char	*format,
-						 ...);
-void		mn_fatal_error_dialog		(const char	*format,
+						 ...) G_GNUC_PRINTF(5, 6);
+void		mn_fatal_error_dialog		(GtkWindow	*parent,
+						 const char	*format,
+						 ...) G_GNUC_PRINTF(2, 3);
+
+time_t		mn_time				(void);
+
+typedef enum
+{
+  MN_POSITION_TOP_LEFT,
+  MN_POSITION_TOP_RIGHT,
+  MN_POSITION_BOTTOM_LEFT,
+  MN_POSITION_BOTTOM_RIGHT
+} MNPosition;
+
+GType		mn_position_get_type		(void);
+#define MN_TYPE_POSITION (mn_position_get_type())
+
+gpointer	mn_g_object_connect		(gpointer	object,
+						 gpointer	instance,
+						 const char	*signal_spec,
 						 ...);
 
 #endif /* _MN_UTIL_H */

@@ -10,7 +10,7 @@ Index
 
 0. About this document
 
-	$Id: README,v 1.21 2004/09/08 23:35:47 jylefort Exp $
+	$Id: README,v 1.22 2004/10/06 17:24:26 jylefort Exp $
 
 	Copyright (c) 2003, 2004 Jean-Yves Lefort.
 
@@ -38,6 +38,7 @@ Index
 		* automatic detection of mailbox format
 		* immediate notification (the status icon is updated
 		  within seconds after a mailbox changes)
+		* a mail summary
 		* HIG 2.0 compliance
 
 2. Installation instructions

@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include "mn-mailbox.h"
 %}
@@ -32,17 +34,118 @@
 class MN:Mailboxes from G:Object
 {
   private GSList *list destroywith mn_g_object_slist_free;
-  private unsigned int timeout_id
-    destroy { if (VAR) g_source_remove(VAR); };
-  private unsigned int delay_notification_id
-    destroy { eel_gconf_notification_remove(VAR); };
-  private unsigned int mailboxes_notification_id
-    destroy { eel_gconf_notification_remove(VAR); };
+  private unsigned int timeout_id;
+  private unsigned int delay_notification_id;
+  private unsigned int mailboxes_notification_id;
     
+  /**
+   * mailbox-added:
+   * @self: the object which received the signal
+   * @mailbox: the mailbox which is about to be added
+   *
+   * This signal gets emitted after a mailbox is added to the list.
+   **/
+  signal private NONE (OBJECT)
+    void mailbox_added (self, MN:Mailbox *mailbox (check null type));
+
+  /**
+   * mailbox-changed:
+   * @self: the object which received the signal
+   * @mailbox: the mailbox which has changed
+   *
+   * This signal gets emitted after a mailbox changes type.
+   **/
+  signal private NONE (OBJECT)
+    void mailbox_changed (self, MN:Mailbox *mailbox (check null type));
+
+  /**
+   * mailbox-removed:
+   * @self: the object which received the signal
+   * @mailbox: the mailbox which is about to be removed
+   *
+   * This signal gets emitted after a mailbox is removed from the
+   * list.
+   **/
+  signal first private NONE (OBJECT)
+    void mailbox_removed (self, MN:Mailbox *mailbox (check null type))
+  {
+    /* has-new, messages and error have possibly changed */
+    self_has_new_changed(self);
+    self_messages_changed(self, FALSE);
+    self_error_changed(self);
+  }
+  
+  /**
+   * list-changed:
+   * @self: the object which received the signal
+   *
+   * This signal gets emitted after the mailbox list changes (but more
+   * than one mailbox may have been added, removed or have changed
+   * between two emissions of this signal).
+   **/
+  signal first private NONE (NONE)
+    void list_changed (self)
+  {
+    /* must-poll has possibly changed */
+    g_object_notify(G_OBJECT(self), "must-poll");
+  }
+  
+  /**
+   * has-new-changed:
+   * @self: the object which received the signal
+   *
+   * This signal gets emitted whenever the global has-new state has
+   * possibly changed, eitheir because one of the mailboxes has-new
+   * property has changed, or because a mailbox has been removed from
+   * the list.
+   **/
   signal private NONE (NONE)
-    void list_changed (self);
+    void has_new_changed (self);
+
+  /**
+   * messages-changed:
+   * @self: the object which received the signal
+   * @has_new: whether a new message has been received or not
+   *
+   * This signal gets emitted whenever a call to
+   * mn_mailboxes_get_messages() would lead to a different list than
+   * before the signal emission.
+   *
+   * Note: messages are only compared by id, therefore two messages
+   * having the same id and different data are not considered
+   * different.
+   **/
+  signal private NONE (BOOLEAN)
+    void messages_changed (self, gboolean has_new);
+
+  /**
+   * error-changed:
+   * @self: the object which received the signal
+   *
+   * This signal gets emitted whenever the global error state has
+   * possibly changed, eitheir because one of the mailboxes error
+   * property has changed, or because a mailbox has been removed from
+   * the list.
+   **/
   signal private NONE (NONE)
-    void status_changed (self);
+    void error_changed (self);
+
+  property BOOLEAN must_poll (blurb = _("Whether one or more of the mailboxes has to be polled"),
+			      export)
+    get
+    {
+      gboolean must_poll = FALSE;
+      GSList *l;
+
+      MN_LIST_FOREACH(l, selfp->list)
+	if (MN_MAILBOX_MUST_POLL(l->data))
+	  {
+	    must_poll = TRUE;
+	    break;
+	  }
+
+      g_value_set_boolean(VAL, must_poll);
+    };
 
   init (self)
   {
@@ -53,6 +156,20 @@ class MN:Mailboxes from G:Object
     selfp->mailboxes_notification_id = eel_gconf_notification_add(MN_CONF_MAILBOXES, self_notify_mailboxes_cb, self);
   }
   
+  override (G:Object) void
+    finalize (G:Object *object (check null type))
+  {
+    Self *self = SELF(object);
+
+    if (selfp->timeout_id)
+      g_source_remove(selfp->timeout_id);
+
+    eel_gconf_notification_remove(selfp->delay_notification_id);
+    eel_gconf_notification_remove(selfp->mailboxes_notification_id);
+
+    PARENT_HANDLER(object);
+  }
+
   private void
     notify_delay_cb (GConfClient *client,
 		     guint cnxn_id,
@@ -97,7 +214,11 @@ class MN:Mailboxes from G:Object
 
 	if (! self_conf_find_uri(gconf_mailboxes, mailbox->uri))
 	  {
-	    selfp->list = mn_g_object_slist_delete_link(selfp->list, l);
+	    selfp->list = g_slist_delete_link(selfp->list, l);
+
+	    self_mailbox_removed(self, mailbox);
+	    g_object_unref(mailbox);
+
 	    changed = TRUE;
 	    goto loop;
 	  }
@@ -117,6 +238,8 @@ class MN:Mailboxes from G:Object
 
 	    mailbox = mn_pending_mailbox_new(uri);
 	    selfp->list = g_slist_append(selfp->list, mailbox);
+
+	    self_mailbox_added(self, mailbox);
 	    changed = TRUE;
 	    
 	    mn_mailbox_new_async(uri, self_new_cb, self);
@@ -142,8 +265,11 @@ class MN:Mailboxes from G:Object
 	if (MN_IS_UNSUPPORTED_MAILBOX(mailbox))
 	  mn_info(_("%s is unsupported: %s"), mn_mailbox_get_name(mailbox), mn_unsupported_mailbox_get_reason(MN_UNSUPPORTED_MAILBOX(mailbox)));
 	
-	g_signal_connect(G_OBJECT(mailbox), "notify::has-new", G_CALLBACK(self_notify_has_new_h), self);
-	g_signal_connect(G_OBJECT(mailbox), "notify::error", G_CALLBACK(self_notify_error_h), self);
+	g_object_connect(mailbox,
+			 "signal::notify::has-new", self_notify_has_new_h, self,
+			 "signal::messages-changed", self_messages_changed_h, self,
+			 "signal::notify::error", self_notify_error_h, self,
+			 NULL);
 
 	if (MN_MAILBOX_CAN_CHECK(mailbox))
 	  mn_mailbox_check(mailbox);
@@ -151,6 +277,7 @@ class MN:Mailboxes from G:Object
 	g_object_unref(elem->data);
 	elem->data = mailbox;
 
+	self_mailbox_changed(self, mailbox);
 	self_list_changed(self);
       }
     else
@@ -169,9 +296,19 @@ class MN:Mailboxes from G:Object
     has_new = mn_mailbox_get_has_new(mailbox);
     mn_info(has_new ? _("%s has new mail") : _("%s has no new mail"), mn_mailbox_get_name(mailbox));
 
-    self_status_changed(self);
+    self_has_new_changed(self);
   }
 
+  private void
+    messages_changed_h (MN:Mailbox *mailbox (check null type),
+			gboolean has_new,
+			gpointer user_data (check null))
+  {
+    Self *self = user_data;
+
+    self_messages_changed(self, has_new);
+  }
+  
   private void
     notify_error_h (G:Object *object (check null type),
 		    GParamSpec *pspec (check null),
@@ -185,7 +322,7 @@ class MN:Mailboxes from G:Object
     if (error)
       mn_info(_("%s reported an error: %s"), mn_mailbox_get_name(mailbox), error);
 
-    self_status_changed(self);
+    self_error_changed(self);
   }
 
   private void
@@ -230,7 +367,7 @@ class MN:Mailboxes from G:Object
       {
 	MNMailbox *mailbox = l->data;
 
-	if (MN_MAILBOX_CAN_CHECK(mailbox) && ! mn_mailbox_get_automatic(mailbox))
+	if (MN_MAILBOX_MUST_POLL(mailbox))
 	  mn_mailbox_check(mailbox);
       }
   }
@@ -241,6 +378,24 @@ class MN:Mailboxes from G:Object
     return selfp->list;
   }
 
+  public GSList *
+    get_messages (self)
+  {
+    GSList *messages = NULL;
+    GSList *l;
+
+    MN_LIST_FOREACH(l, selfp->list)
+      {
+	MNMailbox *mailbox = l->data;
+	messages = g_slist_concat(messages, mn_g_object_slist_copy(mn_mailbox_get_messages(mailbox)));
+      }
+
+    messages = mn_message_slist_sort_by_sent_time(messages);
+    messages = g_slist_reverse(messages);
+
+    return messages;
+  }
+  
   public GSList *
     find (self, const char *text_uri (check null))
   {
@@ -300,26 +455,6 @@ class MN:Mailboxes from G:Object
     g_object_unref(uri_a);
 
     return cmp;
-  }
-  
-  public gboolean
-    has_manual (self)
-  {
-    gboolean has_manual = FALSE;
-    GSList *l;
-  
-    MN_LIST_FOREACH(l, selfp->list)
-      {
-	MNMailbox *mailbox = l->data;
-	
-	if (MN_MAILBOX_CAN_CHECK(mailbox) && ! mn_mailbox_get_automatic(mailbox))
-	  {
-	    has_manual = TRUE;
-	    break;
-	  }
-      }
-
-    return has_manual;
   }
   
   public MNMailboxes *

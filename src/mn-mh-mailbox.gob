@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include "mn-mailbox.h"
 %}
@@ -27,6 +29,10 @@
 #include <gdk/gdk.h>
 #include "mn-mailbox-private.h"
 #include "mn-vfs.h"
+#include "mn-util.h"
+#ifdef WITH_MIME
+#include "mn-message-mime.h"
+#endif
 %}
 
 class MN:MH:Mailbox from MN:Mailbox
@@ -41,26 +47,36 @@ class MN:MH:Mailbox from MN:Mailbox
   {
     GObject *object;
     MNMailbox *self;
-    char *sequences_uri;
 
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
     self = MN_MAILBOX(object);
 
-    sequences_uri = g_build_path("/", self->uri->text, ".mh_sequences", NULL);
-
     GDK_THREADS_ENTER();
 
+#ifdef WITH_MIME
     mn_mailbox_monitor(self,
-		       sequences_uri,
-		       GNOME_VFS_MONITOR_FILE,
+		       self->uri->text,
+		       GNOME_VFS_MONITOR_DIRECTORY,
 		       MN_MAILBOX_MONITOR_EVENT_CHANGED
 		       | MN_MAILBOX_MONITOR_EVENT_DELETED
 		       | MN_MAILBOX_MONITOR_EVENT_CREATED);
+#else /* WITH_MIME */
+    {
+      char *sequences_uri;
+      
+      sequences_uri = g_build_path("/", self->uri->text, ".mh_sequences", NULL);
+      mn_mailbox_monitor(self,
+			 sequences_uri,
+			 GNOME_VFS_MONITOR_FILE,
+			 MN_MAILBOX_MONITOR_EVENT_CHANGED
+			 | MN_MAILBOX_MONITOR_EVENT_DELETED
+			 | MN_MAILBOX_MONITOR_EVENT_CREATED);
+      g_free(sequences_uri);
+    }
+#endif /* WITH_MIME */
 
     gdk_flush();
     GDK_THREADS_LEAVE();
-
-    g_free(sequences_uri);
 
     return object;
   }
@@ -97,18 +113,57 @@ class MN:MH:Mailbox from MN:Mailbox
       {
 	MNVFSReadLineContext *context = NULL;
 	const char *line;
+#ifdef WITH_MIME
+	GSList *messages = NULL;
+#else
 	gboolean has_new = FALSE;
-	
+#endif
+
 	while ((result = mn_vfs_read_line(&context, handle, &line)) == GNOME_VFS_OK)
-	  if (! strncmp(line, "unseen", 6))
+	  if (! strncmp(line, "unseen: ", 8))
 	    {
 	      int first;
+#ifdef WITH_MIME
+	      char **elements;
+	      int i;
 	      
+	      elements = g_strsplit(line + 8, " ", 0);
+	      for (i = 0; elements[i]; i++)
+		{
+		  int last;
+		  int n;
+
+		  n = sscanf(elements[i], "%d-%d", &first, &last);
+		  if (n >= 1)
+		    {
+		      int j;
+
+		      if (n == 1)
+			last = first;
+		  
+		      for (j = first; j <= last; j++)
+			{
+			  char *filename;
+			  GnomeVFSURI *message_uri;
+
+			  filename = g_strdup_printf("%i", j);
+			  message_uri = gnome_vfs_uri_append_file_name(self->uri->vfs, filename);
+			  g_free(filename);
+
+			  messages = g_slist_append(messages, mn_message_new_from_uri(self->uri, message_uri));
+			  gnome_vfs_uri_unref(message_uri);
+			}
+		    }
+		}
+	      g_strfreev(elements);
+
+#else /* WITH_MIME */
 	      if (sscanf(line, "unseen: %d", &first) == 1)
 		{
 		  has_new = TRUE;
 		  break;
 		}
+#endif /* WITH_MIME */
 	    }
 
 	mn_vfs_read_line_context_free(context);
@@ -117,12 +172,23 @@ class MN:MH:Mailbox from MN:Mailbox
 	GDK_THREADS_ENTER();
       
 	if (result == GNOME_VFS_OK || result == GNOME_VFS_ERROR_EOF)
-	  mn_mailbox_set_has_new(self, has_new);
+	  {
+#ifdef WITH_MIME
+	    mn_mailbox_set_has_new(self, messages != NULL);
+	    mn_mailbox_set_messages(self, messages);
+#else /* WITH_MIME */
+	    mn_mailbox_set_has_new(self, has_new);
+#endif
+	  }
 	else
 	  mn_mailbox_set_error(self, _("error while reading .mh_sequences: %s"), gnome_vfs_result_to_string(result));
 	
 	gdk_flush();
 	GDK_THREADS_LEAVE();
+
+#ifdef WITH_MIME
+	mn_g_object_slist_free(messages);
+#endif
       }
     else
       {

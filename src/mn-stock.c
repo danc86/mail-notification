@@ -26,6 +26,7 @@
 
 static const GtkStockItem items[] = {
   { MN_STOCK_SELECT_ALL, N_("Select _All"), 0, 0, NULL },
+  { MN_STOCK_MAIL_SUMMARY, N_("_Mail Summary"), 0, 0, NULL }
 };
 
 /*** implementation **********************************************************/
@@ -47,7 +48,8 @@ mn_stock_init (void)
     { MN_STOCK_GMAIL,		"gmail.png", NULL		},
 #endif
     { MN_STOCK_SYSTEM_MAILBOX,	NULL, "gnome-system"		},
-    { MN_STOCK_SELECT_ALL,	NULL, "stock_select-all"	}
+    { MN_STOCK_SELECT_ALL,	NULL, "stock_select-all"	},
+    { MN_STOCK_MAIL_SUMMARY,	"mail-notification.png", NULL	}
   };
   GtkIconFactory *factory;
   GtkIconTheme *icon_theme;

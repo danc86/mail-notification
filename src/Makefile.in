@@ -57,10 +57,11 @@ am__mail_notification_SOURCES_DIST = MNAutomation.idl \
 	mn-imap-mailbox-properties.gob mn-imap-mailbox.gob \
 	mn-auth-combo-box.gob mn-pi-mailbox-properties.gob \
 	mn-sylpheed-mailbox.gob mn-gmail-mailbox-properties.gob \
-	mn-gmail-mailbox.gob mn-about-dialog.gob \
-	mn-autodetect-mailbox-properties.gob mn-automation.gob \
-	mn-blinking-image.gob mn-mail-icon.gob mn-mailbox-view.gob \
-	mn-mailbox.gob mn-mailboxes.gob mn-pending-mailbox.gob \
+	mn-gmail-mailbox.gob mn-gmime-stream-vfs.gob \
+	mn-about-dialog.gob mn-autodetect-mailbox-properties.gob \
+	mn-automation.gob mn-blinking-image.gob mn-mail-icon.gob \
+	mn-mailbox-view.gob mn-mailbox.gob mn-mailboxes.gob \
+	mn-message-label.gob mn-message.gob mn-pending-mailbox.gob \
 	mn-shell.gob mn-system-mailbox-properties.gob \
 	mn-unsupported-mailbox.gob mn-uri.gob \
 	mn-mbox-mailbox-private.h mn-mbox-mailbox.c mn-mbox-mailbox.h \
@@ -79,8 +80,10 @@ am__mail_notification_SOURCES_DIST = MNAutomation.idl \
 	mn-sylpheed-mailbox.h mn-gmail-mailbox-properties-private.h \
 	mn-gmail-mailbox-properties.c mn-gmail-mailbox-properties.h \
 	mn-gmail-mailbox-private.h mn-gmail-mailbox.c \
-	mn-gmail-mailbox.h mn-about-dialog-private.h mn-about-dialog.c \
-	mn-about-dialog.h mn-autodetect-mailbox-properties-private.h \
+	mn-gmail-mailbox.h mn-gmime-stream-vfs-private.h \
+	mn-gmime-stream-vfs.c mn-gmime-stream-vfs.h \
+	mn-about-dialog-private.h mn-about-dialog.c mn-about-dialog.h \
+	mn-autodetect-mailbox-properties-private.h \
 	mn-autodetect-mailbox-properties.c \
 	mn-autodetect-mailbox-properties.h mn-automation-private.h \
 	mn-automation.c mn-automation.h mn-blinking-image-private.h \
@@ -88,24 +91,30 @@ am__mail_notification_SOURCES_DIST = MNAutomation.idl \
 	mn-mail-icon.c mn-mail-icon.h mn-mailbox-view-private.h \
 	mn-mailbox-view.c mn-mailbox-view.h mn-mailbox-private.h \
 	mn-mailbox.c mn-mailbox.h mn-mailboxes-private.h \
-	mn-mailboxes.c mn-mailboxes.h mn-pending-mailbox-private.h \
+	mn-mailboxes.c mn-mailboxes.h mn-message-label-private.h \
+	mn-message-label.c mn-message-label.h mn-message-private.h \
+	mn-message.c mn-message.h mn-pending-mailbox-private.h \
 	mn-pending-mailbox.c mn-pending-mailbox.h mn-shell-private.h \
 	mn-shell.c mn-shell.h mn-system-mailbox-properties-private.h \
 	mn-system-mailbox-properties.c mn-system-mailbox-properties.h \
 	mn-unsupported-mailbox-private.h mn-unsupported-mailbox.c \
 	mn-unsupported-mailbox.h mn-uri-private.h mn-uri.c mn-uri.h \
-	mn-md5.c mn-md5.h mn-client-session.c mn-client-session.h \
-	mn-soup.c mn-soup.h mn-ssl.c mn-ssl.h mn-sasl.c mn-sasl.h \
-	eggtrayicon.c eggtrayicon.h mn-conf.c mn-conf.h \
+	mn-sgml-ref.c mn-sgml-ref.h mn-soup.c mn-soup.h \
+	mn-sgml-entities.h mn-md5.c mn-md5.h mn-client-session.c \
+	mn-client-session.h mn-ssl.c mn-ssl.h mn-sasl.c mn-sasl.h \
+	mn-message-mime.c mn-message-mime.h eggtrayicon.c \
+	eggtrayicon.h mn-conf.c mn-conf.h \
 	mn-mailbox-properties-dialog.c mn-mailbox-properties-dialog.h \
 	mn-mailbox-properties-util.c mn-mailbox-properties-util.h \
 	mn-mailbox-properties.c mn-mailbox-properties.h mn-main.c \
 	mn-properties.c mn-properties.h mn-stock.c mn-stock.h \
-	mn-util.c mn-util.h mn-vfs.c mn-vfs.h
+	mn-summary-dialog.c mn-summary-dialog.h mn-summary-popup.c \
+	mn-summary-popup.h mn-summary.c mn-summary.h mn-util.c \
+	mn-util.h mn-vfs.c mn-vfs.h
 am__objects_1 =
 am__objects_2 = $(am__objects_1) $(am__objects_1) $(am__objects_1) \
 	$(am__objects_1) $(am__objects_1) $(am__objects_1) \
-	$(am__objects_1) $(am__objects_1)
+	$(am__objects_1) $(am__objects_1) $(am__objects_1)
 @WITH_MBOX_TRUE@am__objects_3 = mn-mbox-mailbox.$(OBJEXT)
 @WITH_MH_TRUE@am__objects_4 = mn-mh-mailbox.$(OBJEXT)
 @WITH_MAILDIR_TRUE@am__objects_5 = mn-maildir-mailbox.$(OBJEXT)
@@ -119,33 +128,39 @@ am__objects_2 = $(am__objects_1) $(am__objects_1) $(am__objects_1) \
 @WITH_GMAIL_TRUE@am__objects_10 =  \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties.$(OBJEXT) \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox.$(OBJEXT)
-am__objects_11 = $(am__objects_3) $(am__objects_4) $(am__objects_5) \
+@WITH_MIME_TRUE@am__objects_11 = mn-gmime-stream-vfs.$(OBJEXT)
+am__objects_12 = $(am__objects_3) $(am__objects_4) $(am__objects_5) \
 	$(am__objects_6) $(am__objects_7) $(am__objects_8) \
-	$(am__objects_9) $(am__objects_10) mn-about-dialog.$(OBJEXT) \
+	$(am__objects_9) $(am__objects_10) $(am__objects_11) \
+	mn-about-dialog.$(OBJEXT) \
 	mn-autodetect-mailbox-properties.$(OBJEXT) \
 	mn-automation.$(OBJEXT) mn-blinking-image.$(OBJEXT) \
 	mn-mail-icon.$(OBJEXT) mn-mailbox-view.$(OBJEXT) \
 	mn-mailbox.$(OBJEXT) mn-mailboxes.$(OBJEXT) \
+	mn-message-label.$(OBJEXT) mn-message.$(OBJEXT) \
 	mn-pending-mailbox.$(OBJEXT) mn-shell.$(OBJEXT) \
 	mn-system-mailbox-properties.$(OBJEXT) \
 	mn-unsupported-mailbox.$(OBJEXT) mn-uri.$(OBJEXT)
-@WITH_POP3_TRUE@am__objects_12 = mn-md5.$(OBJEXT)
-@WITH_POP3_OR_IMAP_TRUE@am__objects_13 = mn-client-session.$(OBJEXT)
-@HAVE_SOUP_TRUE@am__objects_14 = mn-soup.$(OBJEXT)
-@WITH_SSL_TRUE@am__objects_15 = mn-ssl.$(OBJEXT)
-@WITH_SASL_TRUE@am__objects_16 = mn-sasl.$(OBJEXT)
+@WITH_GMAIL_TRUE@am__objects_13 = mn-sgml-ref.$(OBJEXT) \
+@WITH_GMAIL_TRUE@	mn-soup.$(OBJEXT)
+@WITH_POP3_TRUE@am__objects_14 = mn-md5.$(OBJEXT)
+@WITH_POP3_OR_IMAP_TRUE@am__objects_15 = mn-client-session.$(OBJEXT)
+@WITH_SSL_TRUE@am__objects_16 = mn-ssl.$(OBJEXT)
+@WITH_SASL_TRUE@am__objects_17 = mn-sasl.$(OBJEXT)
+@WITH_MIME_TRUE@am__objects_18 = mn-message-mime.$(OBJEXT)
 am_mail_notification_OBJECTS = $(am__objects_1) $(am__objects_2) \
-	$(am__objects_11) $(am__objects_12) $(am__objects_13) \
+	$(am__objects_12) $(am__objects_13) $(am__objects_1) \
 	$(am__objects_14) $(am__objects_15) $(am__objects_16) \
-	eggtrayicon.$(OBJEXT) mn-conf.$(OBJEXT) \
-	mn-mailbox-properties-dialog.$(OBJEXT) \
+	$(am__objects_17) $(am__objects_18) eggtrayicon.$(OBJEXT) \
+	mn-conf.$(OBJEXT) mn-mailbox-properties-dialog.$(OBJEXT) \
 	mn-mailbox-properties-util.$(OBJEXT) \
 	mn-mailbox-properties.$(OBJEXT) mn-main.$(OBJEXT) \
-	mn-properties.$(OBJEXT) mn-stock.$(OBJEXT) mn-util.$(OBJEXT) \
-	mn-vfs.$(OBJEXT)
-am__objects_17 = MNAutomation-common.$(OBJEXT) \
+	mn-properties.$(OBJEXT) mn-stock.$(OBJEXT) \
+	mn-summary-dialog.$(OBJEXT) mn-summary-popup.$(OBJEXT) \
+	mn-summary.$(OBJEXT) mn-util.$(OBJEXT) mn-vfs.$(OBJEXT)
+am__objects_19 = MNAutomation-common.$(OBJEXT) \
 	MNAutomation-stubs.$(OBJEXT) MNAutomation-skels.$(OBJEXT)
-nodist_mail_notification_OBJECTS = $(am__objects_17)
+nodist_mail_notification_OBJECTS = $(am__objects_19)
 mail_notification_OBJECTS = $(am_mail_notification_OBJECTS) \
 	$(nodist_mail_notification_OBJECTS)
 mail_notification_LDADD = $(LDADD)
@@ -165,6 +180,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/mn-conf.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-gmail-mailbox-properties.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-gmail-mailbox.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-gmime-stream-vfs.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-imap-mailbox-properties.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-imap-mailbox.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-mail-icon.Po \
@@ -177,15 +193,22 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/mn-maildir-mailbox.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-main.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-mbox-mailbox.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mn-md5.Po ./$(DEPDIR)/mn-mh-mailbox.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-md5.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-message-label.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-message-mime.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-message.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-mh-mailbox.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-pending-mailbox.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-pi-mailbox-properties.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-pop3-mailbox-properties.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-pop3-mailbox.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-properties.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mn-sasl.Po ./$(DEPDIR)/mn-shell.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mn-soup.Po ./$(DEPDIR)/mn-ssl.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mn-stock.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-sasl.Po ./$(DEPDIR)/mn-sgml-ref.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-shell.Po ./$(DEPDIR)/mn-soup.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-ssl.Po ./$(DEPDIR)/mn-stock.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-summary-dialog.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-summary-popup.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-summary.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-sylpheed-mailbox.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-system-mailbox-properties.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-unsupported-mailbox.Po \
@@ -232,6 +255,8 @@ GCONF_SCHEMAS_INSTALL_TRUE = @GCONF_SCHEMAS_INSTALL_TRUE@
 GCONF_SCHEMA_CONFIG_SOURCE = @GCONF_SCHEMA_CONFIG_SOURCE@
 GCONF_SCHEMA_FILE_DIR = @GCONF_SCHEMA_FILE_DIR@
 GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+GMIME_CFLAGS = @GMIME_CFLAGS@
+GMIME_LIBS = @GMIME_LIBS@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GNOME_CFLAGS = @GNOME_CFLAGS@
@@ -239,9 +264,6 @@ GNOME_LIBS = @GNOME_LIBS@
 GOB2 = @GOB2@
 GTK_CFLAGS = @GTK_CFLAGS@
 GTK_LIBS = @GTK_LIBS@
-G_ASSERTIONS = @G_ASSERTIONS@
-HAVE_SOUP_FALSE = @HAVE_SOUP_FALSE@
-HAVE_SOUP_TRUE = @HAVE_SOUP_TRUE@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -315,6 +337,8 @@ WITH_MBOX_FALSE = @WITH_MBOX_FALSE@
 WITH_MBOX_TRUE = @WITH_MBOX_TRUE@
 WITH_MH_FALSE = @WITH_MH_FALSE@
 WITH_MH_TRUE = @WITH_MH_TRUE@
+WITH_MIME_FALSE = @WITH_MIME_FALSE@
+WITH_MIME_TRUE = @WITH_MIME_TRUE@
 WITH_POP3_FALSE = @WITH_POP3_FALSE@
 WITH_POP3_OR_IMAP_FALSE = @WITH_POP3_OR_IMAP_FALSE@
 WITH_POP3_OR_IMAP_TRUE = @WITH_POP3_OR_IMAP_TRUE@
@@ -429,7 +453,27 @@ target_alias = @target_alias@
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox.c			\
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox.h
 
-@HAVE_SOUP_TRUE@soup_sources = mn-soup.c mn-soup.h
+@WITH_GMAIL_TRUE@gmail_sources = \
+@WITH_GMAIL_TRUE@	mn-sgml-ref.c	\
+@WITH_GMAIL_TRUE@	mn-sgml-ref.h	\
+@WITH_GMAIL_TRUE@	mn-soup.c	\
+@WITH_GMAIL_TRUE@	mn-soup.h
+
+@WITH_GMAIL_TRUE@gmail_built_sources = \
+@WITH_GMAIL_TRUE@	mn-sgml-entities.h
+
+@WITH_MIME_TRUE@mime_gob_sources = \
+@WITH_MIME_TRUE@	mn-gmime-stream-vfs.gob
+
+@WITH_MIME_TRUE@mime_gob_built_sources = \
+@WITH_MIME_TRUE@	mn-gmime-stream-vfs-private.h	\
+@WITH_MIME_TRUE@	mn-gmime-stream-vfs.c		\
+@WITH_MIME_TRUE@	mn-gmime-stream-vfs.h
+
+@WITH_MIME_TRUE@mime_sources = \
+@WITH_MIME_TRUE@	mn-message-mime.c	\
+@WITH_MIME_TRUE@	mn-message-mime.h
+
 @WITH_SSL_TRUE@ssl_sources = mn-ssl.c mn-ssl.h
 @WITH_SASL_TRUE@sasl_sources = mn-sasl.c mn-sasl.h
 idl_sources = MNAutomation.idl
@@ -448,6 +492,7 @@ gob_sources = \
 	$(pi_gob_sources)			\
 	$(sylpheed_gob_sources)			\
 	$(gmail_gob_sources)			\
+	$(mime_gob_sources)			\
 	mn-about-dialog.gob			\
 	mn-autodetect-mailbox-properties.gob	\
 	mn-automation.gob			\
@@ -456,6 +501,8 @@ gob_sources = \
 	mn-mailbox-view.gob			\
 	mn-mailbox.gob				\
 	mn-mailboxes.gob			\
+	mn-message-label.gob			\
+	mn-message.gob				\
 	mn-pending-mailbox.gob			\
 	mn-shell.gob				\
 	mn-system-mailbox-properties.gob	\
@@ -471,6 +518,7 @@ gob_built_sources = \
 	$(pi_gob_built_sources)				\
 	$(sylpheed_gob_built_sources)			\
 	$(gmail_gob_built_sources)			\
+	$(mime_gob_built_sources)			\
 	mn-about-dialog-private.h			\
 	mn-about-dialog.c				\
 	mn-about-dialog.h				\
@@ -495,6 +543,12 @@ gob_built_sources = \
 	mn-mailboxes-private.h				\
 	mn-mailboxes.c					\
 	mn-mailboxes.h					\
+	mn-message-label-private.h			\
+	mn-message-label.c				\
+	mn-message-label.h				\
+	mn-message-private.h				\
+	mn-message.c					\
+	mn-message.h					\
 	mn-pending-mailbox-private.h			\
 	mn-pending-mailbox.c				\
 	mn-pending-mailbox.h				\
@@ -516,11 +570,13 @@ mail_notification_SOURCES = \
 	$(idl_sources)			\
 	$(gob_sources)			\
 	$(gob_built_sources)		\
+	$(gmail_sources)		\
+	$(gmail_built_sources)		\
 	$(md5_sources)			\
 	$(client_session_sources)	\
-	$(soup_sources)			\
 	$(ssl_sources)			\
 	$(sasl_sources)			\
+	$(mime_sources)			\
 	eggtrayicon.c			\
 	eggtrayicon.h			\
 	mn-conf.c			\
@@ -536,13 +592,23 @@ mail_notification_SOURCES = \
 	mn-properties.h			\
 	mn-stock.c			\
 	mn-stock.h			\
+	mn-summary-dialog.c		\
+	mn-summary-dialog.h		\
+	mn-summary-popup.c		\
+	mn-summary-popup.h		\
+	mn-summary.c			\
+	mn-summary.h			\
 	mn-util.c			\
 	mn-util.h			\
 	mn-vfs.c			\
 	mn-vfs.h
 
-BUILT_SOURCES = $(idl_built_sources) $(gob_built_sources)
-AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) $(SOUP_CFLAGS) $(OPENSSL_CFLAGS) $(SASL_CFLAGS) \
+BUILT_SOURCES = \
+	$(idl_built_sources)		\
+	$(gob_built_sources)		\
+	$(gmail_built_sources)
+
+AM_CPPFLAGS = $(WARN_CFLAGS) $(GNOME_CFLAGS) $(GMIME_CFLAGS) $(SOUP_CFLAGS) $(OPENSSL_CFLAGS) $(SASL_CFLAGS) \
 	-I$(top_srcdir) \
 	-DPREFIX="\"$(prefix)\"" \
 	-DSYSCONFDIR="\"$(sysconfdir)\"" \
@@ -552,9 +618,11 @@ AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) $(SOUP_CFLAGS) $(OP
 	-DUIDIR="\"$(pkgdatadir)/ui\"" \
 	-DG_LOG_DOMAIN="\"$(PACKAGE)\""
 
-AM_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(SOUP_LIBS) $(OPENSSL_LIBS) $(SASL_LIBS)
+AM_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(GMIME_LIBS) $(SOUP_LIBS) $(OPENSSL_LIBS) $(SASL_LIBS)
 CLEANFILES = $(idl_built_sources)
-MAINTAINERCLEANFILES = $(gob_built_sources)
+MAINTAINERCLEANFILES = $(gob_built_sources) $(gmail_built_sources)
+entity_sets = xhtml-lat1.ent xhtml-special.ent xhtml-symbol.ent
+EXTRA_DIST = ent2h.sh $(entity_sets)
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -635,6 +703,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-gmail-mailbox-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-gmail-mailbox.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-gmime-stream-vfs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-imap-mailbox-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-imap-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-mail-icon.Po@am__quote@
@@ -648,6 +717,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-mbox-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-md5.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-message-label.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-message-mime.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-message.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-mh-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-pending-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-pi-mailbox-properties.Po@am__quote@
@@ -655,10 +727,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-pop3-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-sasl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-sgml-ref.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-shell.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-soup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-ssl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-stock.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-summary-dialog.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-summary-popup.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-summary.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-sylpheed-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-system-mailbox-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-unsupported-mailbox.Po@am__quote@
@@ -792,8 +868,8 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
@@ -859,6 +935,9 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 	$(GOB2) --always-private-header --exit-on-warn $<
 %-common.c %-stubs.c %-skels.c %.h: %.idl $(ORBIT_IDL)
 	$(ORBIT_IDL) -I$(LIBBONOBO_IDL) -I$(BONOBO_ACTIVATION_IDL) $<
+
+mn-sgml-entities.h: ent2h.sh $(entity_sets)
+	./ent2h.sh $(entity_sets) > $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

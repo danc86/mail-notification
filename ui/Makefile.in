@@ -83,6 +83,8 @@ GCONF_SCHEMAS_INSTALL_TRUE = @GCONF_SCHEMAS_INSTALL_TRUE@
 GCONF_SCHEMA_CONFIG_SOURCE = @GCONF_SCHEMA_CONFIG_SOURCE@
 GCONF_SCHEMA_FILE_DIR = @GCONF_SCHEMA_FILE_DIR@
 GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+GMIME_CFLAGS = @GMIME_CFLAGS@
+GMIME_LIBS = @GMIME_LIBS@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GNOME_CFLAGS = @GNOME_CFLAGS@
@@ -90,9 +92,6 @@ GNOME_LIBS = @GNOME_LIBS@
 GOB2 = @GOB2@
 GTK_CFLAGS = @GTK_CFLAGS@
 GTK_LIBS = @GTK_LIBS@
-G_ASSERTIONS = @G_ASSERTIONS@
-HAVE_SOUP_FALSE = @HAVE_SOUP_FALSE@
-HAVE_SOUP_TRUE = @HAVE_SOUP_TRUE@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -166,6 +165,8 @@ WITH_MBOX_FALSE = @WITH_MBOX_FALSE@
 WITH_MBOX_TRUE = @WITH_MBOX_TRUE@
 WITH_MH_FALSE = @WITH_MH_FALSE@
 WITH_MH_TRUE = @WITH_MH_TRUE@
+WITH_MIME_FALSE = @WITH_MIME_FALSE@
+WITH_MIME_TRUE = @WITH_MIME_TRUE@
 WITH_POP3_FALSE = @WITH_POP3_FALSE@
 WITH_POP3_OR_IMAP_FALSE = @WITH_POP3_OR_IMAP_FALSE@
 WITH_POP3_OR_IMAP_TRUE = @WITH_POP3_OR_IMAP_TRUE@
@@ -208,13 +209,19 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 uidir = $(pkgdatadir)/ui
 interfaces = \
+	$(mail_summary_interfaces)		\
 	mailbox-properties.glade		\
 	properties.glade			\
+	summary-dialog.glade			\
+	summary-popup.glade			\
 	welcome.glade
 
 projects = \
+	$(mail_summary_projects)		\
 	mailbox-properties.gladep		\
 	properties.gladep			\
+	summary-dialog.gladep			\
+	summary-popup.gladep			\
 	welcome.gladep
 
 dist_ui_DATA = $(interfaces)

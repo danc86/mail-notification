@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include "config.h"
 #include <gnome.h>
@@ -41,6 +43,7 @@ class MN:About:Dialog from Gnome:About
 			  _("A Mail Notification Icon"),
 			  authors,
 			  documenters,
+			  /* translator: replace with your name and email */
 			  _("Jean-Yves Lefort <jylefort@brutele.be>"),
 			  logo);
     g_object_unref(logo);

@@ -141,6 +141,8 @@ GCONF_SCHEMAS_INSTALL_TRUE = @GCONF_SCHEMAS_INSTALL_TRUE@
 GCONF_SCHEMA_CONFIG_SOURCE = @GCONF_SCHEMA_CONFIG_SOURCE@
 GCONF_SCHEMA_FILE_DIR = @GCONF_SCHEMA_FILE_DIR@
 GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+GMIME_CFLAGS = @GMIME_CFLAGS@
+GMIME_LIBS = @GMIME_LIBS@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GNOME_CFLAGS = @GNOME_CFLAGS@
@@ -148,9 +150,6 @@ GNOME_LIBS = @GNOME_LIBS@
 GOB2 = @GOB2@
 GTK_CFLAGS = @GTK_CFLAGS@
 GTK_LIBS = @GTK_LIBS@
-G_ASSERTIONS = @G_ASSERTIONS@
-HAVE_SOUP_FALSE = @HAVE_SOUP_FALSE@
-HAVE_SOUP_TRUE = @HAVE_SOUP_TRUE@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -224,6 +223,8 @@ WITH_MBOX_FALSE = @WITH_MBOX_FALSE@
 WITH_MBOX_TRUE = @WITH_MBOX_TRUE@
 WITH_MH_FALSE = @WITH_MH_FALSE@
 WITH_MH_TRUE = @WITH_MH_TRUE@
+WITH_MIME_FALSE = @WITH_MIME_FALSE@
+WITH_MIME_TRUE = @WITH_MIME_TRUE@
 WITH_POP3_FALSE = @WITH_POP3_FALSE@
 WITH_POP3_OR_IMAP_FALSE = @WITH_POP3_OR_IMAP_FALSE@
 WITH_POP3_OR_IMAP_TRUE = @WITH_POP3_OR_IMAP_TRUE@
@@ -273,7 +274,7 @@ entities = documentation-license.xml software-license.xml
 # ************* Begin of section some packagers may need to modify  **************
 # This variable (docdir) specifies where the documents should be installed.
 # This default value should work for most packages.
-docdir = $(datadir)/help/$(docname)/$(lang)
+docdir = $(datadir)/gnome/help/$(docname)/$(lang)
 
 # **************  You should not have to edit below this line  *******************
 xml_files = $(entities) $(docname).xml

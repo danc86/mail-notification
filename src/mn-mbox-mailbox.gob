@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include "mn-mailbox.h"
 %}
@@ -29,6 +31,11 @@
 #include <gdk/gdk.h>
 #include "mn-mailbox-private.h"
 #include "mn-vfs.h"
+#ifdef WITH_MIME
+#include "mn-message-mime.h"
+#include "mn-gmime-stream-vfs.h"
+#endif /* WITH_MIME */
+#include "mn-util.h"
 %}
 
 class MN:mbox:Mailbox from MN:Mailbox
@@ -136,6 +143,49 @@ class MN:mbox:Mailbox from MN:Mailbox
 	result = gnome_vfs_open_uri(&handle, mailbox->uri->vfs, GNOME_VFS_OPEN_READ);
 	if (result == GNOME_VFS_OK)
 	  {
+#ifdef WITH_MIME
+	    GMimeStream *stream;
+	    GMimeParser *parser;
+	    GSList *messages = NULL;
+
+	    stream = mn_gmime_stream_vfs_new(handle, mailbox->uri->text);
+	    parser = g_mime_parser_new_with_stream(stream);
+	    g_object_unref(stream);
+
+	    g_mime_parser_set_scan_from(parser, TRUE);
+	    
+	    while (! g_mime_parser_eos(parser))
+	      {
+		GMimeMessage *mime_message;
+
+		mime_message = g_mime_parser_construct_message(parser);
+		if (mime_message)
+		  {
+		    const char *status;
+		    
+		    status = g_mime_message_get_header(mime_message, "Status");
+		    if (! (status && (strchr(status, 'O') || strchr(status, 'R'))))
+		      messages = g_slist_append(messages, mn_message_new_from_mime_message(mailbox->uri, mime_message));
+
+		    g_object_unref(mime_message);
+		  }
+	      }
+
+	    g_object_unref(parser);
+	    gnome_vfs_close(handle);
+	    
+	    GDK_THREADS_ENTER();
+
+	    mn_mailbox_set_has_new(mailbox, messages != NULL);
+	    mn_mailbox_set_messages(mailbox, messages);
+	    
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+
+	    mn_g_object_slist_free(messages);
+
+#else /* WITH_MIME */
+
 	    MNVFSReadLineContext *context = NULL;
 	    const char *line;
 	    gboolean in_header = FALSE;
@@ -172,6 +222,7 @@ class MN:mbox:Mailbox from MN:Mailbox
 
 	    gdk_flush();
 	    GDK_THREADS_LEAVE();
+#endif /* WITH_MIME */
 	  }
 	else
 	  {

@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include "mn-pi-mailbox-properties.h"
 %}
@@ -127,9 +129,9 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
 			 selfp->mailbox_entry, _("The mailbox name"),
 			 NULL);
 
-    g_signal_connect(G_OBJECT(selfp->inbox_radio), "toggled", G_CALLBACK(self_radio_toggled_h), self);
-    g_signal_connect(G_OBJECT(selfp->other_radio), "toggled", G_CALLBACK(self_radio_toggled_h), self);
-    g_signal_connect(G_OBJECT(selfp->mailbox_entry), "changed", G_CALLBACK(mn_pi_mailbox_properties_entry_changed_h), self);
+    g_signal_connect(selfp->inbox_radio, "toggled", G_CALLBACK(self_radio_toggled_h), self);
+    g_signal_connect(selfp->other_radio, "toggled", G_CALLBACK(self_radio_toggled_h), self);
+    g_signal_connect(selfp->mailbox_entry, "changed", G_CALLBACK(mn_pi_mailbox_properties_entry_changed_h), self);
     
     return object;
   }

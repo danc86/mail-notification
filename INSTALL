@@ -7,10 +7,11 @@ Index
 	0. About this document
 	1. Dependencies
 	2. Instructions
+	3. Configure options
 
 0. About this document
 
-	$Id: INSTALL,v 1.10 2004/09/08 23:35:47 jylefort Exp $
+	$Id: INSTALL,v 1.12 2004/10/03 15:58:02 jylefort Exp $
 
 	Copyright (c) 2003, 2004 Jean-Yves Lefort.
 
@@ -31,8 +32,8 @@ Index
 
 		* for Gmail support:
 
-		  libsoup (version 1.99.28)
-		  ftp://ftp.gnome.org/pub/GNOME/sources/libsoup/1.99/
+		  GNOME (version 2.8.0 or superior)
+		  http://www.gnome.org/
 
 		* for SSL/TLS support:
 
@@ -43,6 +44,11 @@ Index
 
 		  Cyrus SASL (version 2.0 or superior)
 		  http://asg.web.cmu.edu/sasl/sasl-library.html
+
+		* for MIME support:
+
+		  GMime (version 2.0 or superior)
+		  http://spruce.sourceforge.net/gmime/
 
 2. Instructions
 
@@ -66,22 +72,68 @@ Index
 		  (http://bugzilla.gnome.org/show_bug.cgi?id=151082),
 		  your session must be restarted after installing Mail
 		  Notification.
-	
-	The ./configure script behaviour can be changed using
-	command-line options: type "./configure --help" for an
-	exhaustive list.
 
-	These options are specific to Mail Notification:
+	The ./configure script options are documented below. They are
+	enabled by default and automatically disabled if a requirement
+	is not met, so you probably do not need to use them.
 
-		--enable-mbox
-		--enable-mh
-		--enable-maildir
-		--enable-pop3
-		--enable-imap
-		--enable-ssl
-		--enable-sasl
-		--enable-sylpheed
-		--enable-gmail
-		--enable-ipv6
+3. Configure options
 
-	They are all enabled by default.
+	--enable-mbox (default: yes)
+
+		Enable mbox mailbox support.
+
+	--enable-mh (default: yes)
+
+		Enable MH mailbox support.
+
+	--enable-maildir (default: yes)
+
+		Enable Maildir mailbox support.
+
+	--enable-pop3 (default: yes)
+
+		Enable POP3 mailbox support.
+
+	--enable-imap (default: yes)
+
+		Enable IMAP mailbox support.
+
+	--enable-ssl (default: yes)
+
+		Enable SSL/TLS support.
+
+		Requirements: OpenSSL version 0.9.5b or superior.
+		Applies to: POP3, IMAP.
+
+	--enable-sasl (default: yes)
+
+		Enable SASL authentication support.
+
+		Requirements: Cyrus SASL version 2.0 or superior.
+		Applies to: POP3, IMAP.
+
+	--enable-sylpheed (default: yes)
+
+		Enable Sylpheed format support.
+
+	--enable-gmail (default: yes)
+
+		Enable Gmail mailbox support.
+
+		Requirements: GNOME version 2.8.0 or superior.
+
+	--enable-ipv6 (default: yes)
+
+		Enable IPv6 support.
+
+		Applies to: POP3, IMAP.
+
+	--enable-mime (default: yes)
+
+		Enable MIME support. If this option is disabled, the
+		mail summary will not be able to display messages of
+		mbox, MH, Maildir, POP3, IMAP and Sylpheed mailboxes.
+
+		Requirements: GMime version 2.0 or superior.
+		Applies to: mbox, MH, Maildir, POP3, IMAP, Sylpheed.

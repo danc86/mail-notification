@@ -204,7 +204,7 @@ mn_mailbox_properties_dialog_add_type (MNMailboxPropertiesDialog *dialog,
   g_free(label);
 
   gtk_widget_show(GTK_WIDGET(properties));
-  g_signal_connect_swapped(G_OBJECT(properties), "notify::complete", G_CALLBACK(mn_mailbox_properties_dialog_update_sensitivity), dialog);
+  g_signal_connect_swapped(properties, "notify::complete", G_CALLBACK(mn_mailbox_properties_dialog_update_sensitivity), dialog);
 
   g_object_unref(properties);	/* now it belongs to the store */
 }
@@ -231,9 +231,6 @@ mn_mailbox_properties_dialog_select_properties (MNMailboxPropertiesDialog *dialo
   gtk_container_add(GTK_CONTAINER(private->properties_event_box), GTK_WIDGET(properties));
   size_group = mn_mailbox_properties_get_size_group(properties);
   gtk_size_group_add_widget(size_group, private->mailbox_type_label);
-
-  /* force the dialog to recalculate its size */
-  gtk_window_resize(GTK_WINDOW(dialog), 1, 1);
 }
 
 static void

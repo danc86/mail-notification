@@ -1,0 +1,1508 @@
+# Bulgarian translations for mail-notification.
+# Copyright (c) 2003, 2004 Jean-Yves Lefort.
+#
+# This file is distributed under the same license as the
+# mail-notification package.
+#
+# Vladimir "Kaladan" Petkov <vpetkov@i-space.org>, 2004.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome in bulgarian 0.6.2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-10-06 19:31+0200\n"
+"PO-Revision-Date: 2004-10-05 16:13+0200\n"
+"Last-Translator: Vladimir \"Kaladan\" Petkov <vpetkov@i-space.org>\n"
+"Language-Team: Bulgarian <bg@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: data/GNOME_MailNotification_Automation.server.in.in.h:1
+msgid "Mail Notification automation"
+msgstr "Автоматизиране на известяването за поща"
+
+#: data/GNOME_MailNotification_Automation.server.in.in.h:2
+msgid "Mail Notification automation factory"
+msgstr "Фабрика за автоматизирането на известяването за поща"
+
+#: data/mail-notification-properties.desktop.in.h:1
+msgid "Configure Mail Notification"
+msgstr "Настройване на известяването за поща"
+
+#: data/mail-notification-properties.desktop.in.h:2
+#: data/mail-notification.desktop.in.h:2
+#: data/mail-notification.soundlist.in.h:1 src/mn-about-dialog.gob:40
+#: src/mn-mail-icon.gob:163 src/mn-main.c:272
+msgid "Mail Notification"
+msgstr "Известяване за поща"
+
+#: data/mail-notification.desktop.in.h:1
+msgid "Get notified when new mail arrives"
+msgstr "Ще бъдете известяван за пристигането на нова поща"
+
+#: data/mail-notification.schemas.in.h:1
+msgid "Automatically close the mail summary popup"
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:2
+msgid "Blink on errors"
+msgstr "Мигане при грешки"
+
+#: data/mail-notification.schemas.in.h:3
+msgid "Delay between mail checks (minutes part)."
+msgstr "Период между проверката за поща (минути)."
+
+#: data/mail-notification.schemas.in.h:4
+msgid "Delay between mail checks (seconds part)."
+msgstr "Период между проверките за поща (секунди)."
+
+#: data/mail-notification.schemas.in.h:5
+msgid "Do not show the immediate notification error dialog"
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:6
+msgid "Enable mail summary popup"
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:7
+msgid "Fingerprints of trusted X509 certificates"
+msgstr "Пръстови отпечатъци на проверени X509 сертификати"
+
+#: data/mail-notification.schemas.in.h:8
+msgid "Has already been run"
+msgstr "Вече е стартиран"
+
+#: data/mail-notification.schemas.in.h:9
+#, fuzzy
+msgid "Height of mail summary dialog"
+msgstr "Височина на диалоговия прозорец за настройките"
+
+#: data/mail-notification.schemas.in.h:10
+msgid "Height of properties dialog"
+msgstr "Височина на диалоговия прозорец за настройките"
+
+#: data/mail-notification.schemas.in.h:11
+msgid "Mail summary popup horizontal offset"
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:12
+msgid "Mail summary popup position"
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:13
+msgid "Mail summary popup vertical offset"
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:14
+#, fuzzy
+msgid "Mailbox list"
+msgstr "Списък на пощенските кутии"
+
+#: data/mail-notification.schemas.in.h:15
+msgid "Minutes between mail checks"
+msgstr "Минути между проверките"
+
+#: data/mail-notification.schemas.in.h:16
+msgid "Minutes to wait before closing the mail summary popup"
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:17
+msgid "New mail command"
+msgstr "Нова команда за поща"
+
+#: data/mail-notification.schemas.in.h:18
+msgid "Run a command when new mail arrives"
+msgstr "Стартиране на команда при пристигането на нова поща"
+
+#: data/mail-notification.schemas.in.h:19
+msgid "Seconds between mail checks"
+msgstr "Секунди между проверките за поща"
+
+#: data/mail-notification.schemas.in.h:20
+msgid "Seconds to wait before closing the mail summary popup"
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:21
+#, fuzzy
+msgid ""
+"The amount of time to wait before closing the mail summary popup (minutes "
+"part)."
+msgstr "Времевият интервал за изчакване между проверките за нова поща"
+
+#: data/mail-notification.schemas.in.h:22
+#, fuzzy
+msgid ""
+"The amount of time to wait before closing the mail summary popup (seconds "
+"part)."
+msgstr "Времевият интервал за изчакване между проверките за нова поща"
+
+#: data/mail-notification.schemas.in.h:23
+msgid "The command to run when new mail arrives."
+msgstr "Командата, която да се стартира при пристигането на нова поща."
+
+#: data/mail-notification.schemas.in.h:24
+#, fuzzy
+msgid "The height of the mail summary dialog in pixels."
+msgstr "Височината в пиксели на диалоговия прозорец за настройките."
+
+#: data/mail-notification.schemas.in.h:25
+msgid "The height of the properties dialog in pixels."
+msgstr "Височината в пиксели на диалоговия прозорец за настройките."
+
+#: data/mail-notification.schemas.in.h:26
+msgid "The list of mailboxes to monitor."
+msgstr "Списъкът на пощенските кутии за следене."
+
+#: data/mail-notification.schemas.in.h:27
+msgid ""
+"The list of trusted SSL/TLS servers (hostname:port) lacking a X509 "
+"certificate."
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:28
+msgid ""
+"The list of trusted X509 certificates, represented by their MD5 fingerprint."
+msgstr ""
+"Списъкът на проверените сертификати тип X509, представени от техните "
+"пръстови отпечатъци в MD5 формат."
+
+#: data/mail-notification.schemas.in.h:29
+msgid ""
+"The number of pixels to leave between the left or right side of the screen "
+"and the mail summary popup."
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:30
+msgid ""
+"The number of pixels to leave between the top or bottom side of the screen "
+"and the mail summary popup."
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:31
+msgid ""
+"The position of the mail summary popup. Must be \"top-left\", \"top-right\", "
+"\"bottom-left\" or \"bottom-right\"."
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:32
+#, fuzzy
+msgid "The width of the mail summary dialog in pixels."
+msgstr "Ширината на диалоговия прозорец за настройките в пиксели."
+
+#: data/mail-notification.schemas.in.h:33
+msgid "The width of the properties dialog in pixels."
+msgstr "Ширината на диалоговия прозорец за настройките в пиксели."
+
+#: data/mail-notification.schemas.in.h:34
+msgid "Trusted servers list"
+msgstr "Списък на проверените сървъри"
+
+#: data/mail-notification.schemas.in.h:35
+msgid "Whether Mail Notification has already been run or not."
+msgstr "Дали известяването за поща вече е стартирано или не."
+
+#: data/mail-notification.schemas.in.h:36
+msgid "Whether the status icon should blink on errors or not."
+msgstr "Дали иконата за състоянието да мига при грешки или не"
+
+#: data/mail-notification.schemas.in.h:37
+#, fuzzy
+msgid "Whether to automatically close the mail summary popup or not."
+msgstr "Дали да се стартира команда при пристигането на нова поща или не"
+
+#: data/mail-notification.schemas.in.h:38
+#, fuzzy
+msgid "Whether to display the mail summary popup when new mail arrives or not."
+msgstr "Дали да се стартира команда при пристигането на нова поща или не"
+
+#: data/mail-notification.schemas.in.h:39
+msgid ""
+"Whether to prevent the immediate notification error dialog from being "
+"displayed or not."
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:40
+msgid "Whether to run a command when new mail arrives or not."
+msgstr "Дали да се стартира команда при пристигането на нова поща или не"
+
+#: data/mail-notification.schemas.in.h:41
+#, fuzzy
+msgid "Width of mail summary dialog"
+msgstr "Ширина на диалоговия прозорец за настройките"
+
+#: data/mail-notification.schemas.in.h:42
+msgid "Width of properties dialog"
+msgstr "Ширина на диалоговия прозорец за настройките"
+
+#: data/mail-notification.soundlist.in.h:2
+msgid "New Mail"
+msgstr "Нова поща"
+
+#: src/eggtrayicon.c:109
+msgid "Orientation"
+msgstr "Ориентация"
+
+#: src/eggtrayicon.c:110
+msgid "The orientation of the tray."
+msgstr ""
+
+#: src/mn-about-dialog.gob:43
+msgid "A Mail Notification Icon"
+msgstr "Уведомяване за поща"
+
+#. translator: replace with your name and email
+#: src/mn-about-dialog.gob:47
+msgid "Jean-Yves Lefort <jylefort@brutele.be>"
+msgstr "Vladimir Petkov <vpetkov@i-space.org>"
+
+#: src/mn-auth-combo-box.gob:101 src/mn-autodetect-mailbox-properties.gob:37
+msgid "<span style=\"italic\">autodetect</span>"
+msgstr "<span style=\"italic\">автоматично засичане</span>"
+
+#: src/mn-autodetect-mailbox-properties.gob:68
+msgid "_Location:"
+msgstr "_Местоположение:"
+
+#: src/mn-autodetect-mailbox-properties.gob:74
+msgid "_Browse..."
+msgstr "_Разглеждане..."
+
+#: src/mn-autodetect-mailbox-properties.gob:81
+msgid "The URI of the mailbox"
+msgstr "Адресът на пощенската кутия"
+
+#: src/mn-autodetect-mailbox-properties.gob:118
+msgid "Select a File or Folder"
+msgstr "Избор на файл или папка"
+
+#: src/mn-blinking-image.gob:32
+msgid "Whether the image is blinking or not"
+msgstr "Дали изображението да мига или не"
+
+#: src/mn-client-session.c:229
+#, c-format
+msgid "resolving %s"
+msgstr "търсене на %s"
+
+#: src/mn-client-session.c:239
+#, c-format
+msgid "unable to resolve %s: %s"
+msgstr "неуспех при намирането на %s: %s"
+
+#: src/mn-client-session.c:276
+#, c-format
+msgid "%s: unsupported address family"
+msgstr ""
+
+#: src/mn-client-session.c:283
+#, c-format
+msgid "%s: unable to create socket: %s"
+msgstr ""
+
+#: src/mn-client-session.c:287
+#, c-format
+msgid "connecting to %s (%s) port %i"
+msgstr "свързване с %s (%s) порт %i"
+
+#: src/mn-client-session.c:290
+#, c-format
+msgid "unable to connect: %s"
+msgstr "неуспех при свързването: %s"
+
+#: src/mn-client-session.c:295
+msgid "connected successfully"
+msgstr "успешно свързване"
+
+#. if reached, we couldn't find a working address
+#: src/mn-client-session.c:301
+#, c-format
+msgid "unable to connect to %s"
+msgstr "неуспех при свързването с %s"
+
+#: src/mn-client-session.c:317
+#, c-format
+msgid "unable to initialize the OpenSSL library: %s"
+msgstr ""
+
+#: src/mn-client-session.c:325
+#, c-format
+msgid "unable to create a SSL/TLS object: %s"
+msgstr ""
+
+#: src/mn-client-session.c:331
+#, c-format
+msgid "unable to set the SSL/TLS file descriptor: %s"
+msgstr ""
+
+#: src/mn-client-session.c:337
+#, c-format
+msgid "unable to perform the SSL/TLS handshake: %s"
+msgstr ""
+
+#: src/mn-client-session.c:343
+msgid "untrusted server"
+msgstr "непроверен сървър"
+
+#: src/mn-client-session.c:347
+#, c-format
+msgid "a SSL/TLS layer is now active (%s, %s %i-bit)"
+msgstr ""
+
+#: src/mn-client-session.c:394
+#, c-format
+msgid "%s, fingerprint: %s"
+msgstr "%s, пръстов отпечатък: %s"
+
+#: src/mn-client-session.c:423
+msgid "missing certificate"
+msgstr "липсващ сертификат"
+
+#: src/mn-client-session.c:449
+#, c-format
+msgid ""
+"Mail Notification was unable to trust \"%s\" (%s). It is possible that "
+"someone is intercepting your communication to obtain your confidential "
+"information.\n"
+"\n"
+"You should only connect to the server if you are certain you are connected "
+"to \"%s\". If you choose to connect to the server, this message will not be "
+"shown again."
+msgstr ""
+
+#: src/mn-client-session.c:466
+msgid "Connect to untrusted server?"
+msgstr "Свързване с непроверен сървър?"
+
+#: src/mn-client-session.c:471
+msgid "Co_nnect"
+msgstr "Свъ_рзване"
+
+#: src/mn-client-session.c:527
+#, c-format
+msgid "response \"%s\" is not valid in current context"
+msgstr ""
+
+#: src/mn-client-session.c:553
+#, c-format
+msgid "unable to parse response \"%s\""
+msgstr "неуспех при преглед на отговор \"%s\""
+
+#: src/mn-client-session.c:592 src/mn-client-session.c:599
+#, c-format
+msgid "unable to read from server: %s"
+msgstr "неуспех при четенето от сървър: %s"
+
+#: src/mn-client-session.c:597
+msgid "unable to read from server: EOF"
+msgstr "неуспех при четенето от сървър: EOF"
+
+#: src/mn-client-session.c:609
+#, c-format
+msgid "unable to decode data using SASL: %s"
+msgstr ""
+
+#: src/mn-client-session.c:746
+#, c-format
+msgid "unable to encode data using SASL: %s"
+msgstr ""
+
+#: src/mn-client-session.c:777 src/mn-client-session.c:784
+#, c-format
+msgid "unable to write to server: %s"
+msgstr "неуспех при записването на сървър: %s"
+
+#: src/mn-client-session.c:782
+msgid "unable to write to server: EOF"
+msgstr "неуспех при записването на сървър: EOF"
+
+#: src/mn-client-session.c:814
+#, c-format
+msgid "unable to encode Base64: %s"
+msgstr ""
+
+#: src/mn-client-session.c:917
+#, c-format
+msgid "unable to initialize the SASL library: %s"
+msgstr ""
+
+#: src/mn-client-session.c:926
+#, c-format
+msgid "unable to retrieve local address of socket: %s"
+msgstr ""
+
+#: src/mn-client-session.c:932
+#, c-format
+msgid "unable to retrieve remote address of socket: %s"
+msgstr ""
+
+#: src/mn-client-session.c:966
+#, c-format
+msgid "warning: unable to set SASL security properties: %s"
+msgstr ""
+
+#: src/mn-client-session.c:1005
+msgid ""
+"unable to start SASL authentication: SASL asked for something we did not know"
+msgstr ""
+
+#: src/mn-client-session.c:1009
+#, c-format
+msgid "unable to start SASL authentication: %s"
+msgstr ""
+
+#: src/mn-client-session.c:1013
+#, c-format
+msgid "unable to create a SASL connection: %s"
+msgstr ""
+
+#: src/mn-client-session.c:1063
+msgid "SASL asked for something we did not know, aborting SASL authentication"
+msgstr ""
+
+#: src/mn-client-session.c:1067
+#, c-format
+msgid "%s, aborting SASL authentication"
+msgstr ""
+
+#. compliance error
+#: src/mn-client-session.c:1072
+#, c-format
+msgid "unable to decode Base64 input from server: %s"
+msgstr ""
+
+#: src/mn-client-session.c:1075
+msgid ""
+"the server sent a SASL challenge, but there was a pending initial SASL "
+"client response"
+msgstr ""
+
+#: src/mn-client-session.c:1089
+msgid ""
+"the server did not send a SASL challenge, but there was no pending initial "
+"SASL client response"
+msgstr ""
+
+#: src/mn-client-session.c:1112
+#, c-format
+msgid "a SASL security layer of strength factor %i is now active"
+msgstr ""
+
+#. a security layer is active but we can't retrieve maxoutbuf -> fatal
+#: src/mn-client-session.c:1117
+#, c-format
+msgid "unable to get SASL_MAXOUTBUF property: %s"
+msgstr ""
+
+#: src/mn-client-session.c:1123
+#, c-format
+msgid "warning: unable to get SASL_SSF property: %s"
+msgstr ""
+
+#: src/mn-conf.c:123
+#, c-format
+msgid "recursively unsetting %s"
+msgstr ""
+
+#: src/mn-conf.c:127
+msgid "syncing the GConf database"
+msgstr "синхронизиране на базата данни на GConf"
+
+#: src/mn-conf.c:130
+msgid "completed"
+msgstr "завършено"
+
+#: src/mn-gmail-mailbox-properties.gob:79
+msgid "Your Gmail username"
+msgstr "Вашето Gmail потребителско име"
+
+#: src/mn-gmail-mailbox-properties.gob:80
+msgid "Your Gmail password"
+msgstr "Вашата парола в Gmail"
+
+#: src/mn-gmail-mailbox.gob:65
+msgid "libsoup has not been compiled with SSL/TLS support"
+msgstr ""
+
+#: src/mn-gmail-mailbox.gob:110 src/mn-gmail-mailbox.gob:331
+#, fuzzy, c-format
+msgid "unable to parse URI \"%s\""
+msgstr "неуспех при преглед на отговор \"%s\""
+
+#: src/mn-gmail-mailbox.gob:257
+msgid "logging in"
+msgstr "влизане"
+
+#: src/mn-gmail-mailbox.gob:271 src/mn-gmail-mailbox.gob:342
+#: src/mn-gmail-mailbox.gob:380 src/mn-gmail-mailbox.gob:415
+msgid "login failed"
+msgstr "влизането е неуспешно"
+
+#: src/mn-gmail-mailbox.gob:283 src/mn-gmail-mailbox.gob:356
+#: src/mn-gmail-mailbox.gob:394 src/mn-gmail-mailbox.gob:503
+#, c-format
+msgid "unable to transfer data: %s"
+msgstr "неуспех при пренасянето на данни: %s"
+
+#: src/mn-gmail-mailbox.gob:409
+msgid "successfully logged in"
+msgstr "успешно влязъл в"
+
+#: src/mn-gmail-mailbox.gob:487
+msgid "searching for unread mail"
+msgstr "търсене за непрочетена поща"
+
+#: src/mn-gmail-mailbox.gob:491
+#, fuzzy
+msgid "unable to search for unread mail"
+msgstr "търсене за непрочетена поща"
+
+#: src/mn-gmail-mailbox.gob:604
+msgid "unable to parse Gmail data"
+msgstr "неуспех при прегледа на данни от Gmail"
+
+#: src/mn-gmime-stream-vfs.gob:49
+#, fuzzy, c-format
+msgid "unable to read %s: %s"
+msgstr "неуспех при намирането на %s: %s"
+
+#: src/mn-gmime-stream-vfs.gob:51
+#, fuzzy, c-format
+msgid "unable to write to %s: %s"
+msgstr "неуспех при записването на сървър: %s"
+
+#: src/mn-gmime-stream-vfs.gob:53
+#, fuzzy, c-format
+msgid "unable to seek in %s: %s"
+msgstr "неуспех при намирането на %s: %s"
+
+#: src/mn-gmime-stream-vfs.gob:55
+#, fuzzy, c-format
+msgid "unable to tell position of %s: %s"
+msgstr "неуспех при следенето %s: %s"
+
+#: src/mn-gmime-stream-vfs.gob:57
+#, fuzzy, c-format
+msgid "unable to close %s: %s"
+msgstr "неуспех при затварянето на папката: %s"
+
+#: src/mn-imap-mailbox-properties.gob:94
+msgid "Mailbox:"
+msgstr "Пощенска кутия:"
+
+#: src/mn-imap-mailbox-properties.gob:98
+msgid "in_box"
+msgstr "ку_тия"
+
+#: src/mn-imap-mailbox-properties.gob:109
+msgid "oth_er:"
+msgstr "др_уги"
+
+#: src/mn-imap-mailbox-properties.gob:124
+msgid "The hostname or IP address of the IMAP server"
+msgstr "Хостът или IP адресът на IMAP сървъра"
+
+#: src/mn-imap-mailbox-properties.gob:125
+msgid "Your username on the IMAP server"
+msgstr "Потребителското ви име за IMAP сървъра"
+
+#: src/mn-imap-mailbox-properties.gob:126
+msgid "Your password on the IMAP server"
+msgstr "Паролата ви за IMAP сървъра"
+
+#: src/mn-imap-mailbox-properties.gob:127
+#: src/mn-imap-mailbox-properties.gob:128
+msgid "The port number of the IMAP server"
+msgstr "Номера на порта на IMAP сървъра"
+
+#: src/mn-imap-mailbox-properties.gob:129
+msgid "The mailbox name"
+msgstr "Име на пощенската кутия"
+
+#: src/mn-imap-mailbox.gob:132 src/mn-pop3-mailbox.gob:141
+msgid "SSL/TLS support has not been compiled in"
+msgstr ""
+
+#: src/mn-imap-mailbox.gob:203
+msgid "server did not send capabilities"
+msgstr ""
+
+#: src/mn-imap-mailbox.gob:318
+msgid "server advertised LOGINDISABLED, not using LOGIN authentication"
+msgstr ""
+
+#: src/mn-imap-mailbox.gob:319
+msgid "unable to login"
+msgstr "неуспех при влизането"
+
+#. compliance error
+#: src/mn-imap-mailbox.gob:447
+#, fuzzy
+msgid "server did not send search results"
+msgstr "сървърът не изпраща състоянието"
+
+#. compliance error
+#: src/mn-imap-mailbox.gob:523
+#, fuzzy
+msgid "server did not send all the messages we requested"
+msgstr "сървърът не изпраща състоянието"
+
+#: src/mn-imap-mailbox.gob:570
+#, fuzzy
+msgid "unable to fetch message"
+msgstr "неуспех при свързването: %s"
+
+#. compliance error
+#: src/mn-imap-mailbox.gob:617
+msgid "server did not send status"
+msgstr "сървърът не изпраща състоянието"
+
+#: src/mn-imap-mailbox.gob:856 src/mn-pop3-mailbox.gob:903
+msgid "unknown server error"
+msgstr "неизвестна грешка в сървъра"
+
+#: src/mn-imap-mailbox.gob:927 src/mn-pop3-mailbox.gob:225
+msgid "server does not support in-band SSL/TLS"
+msgstr ""
+
+#: src/mn-imap-mailbox.gob:946 src/mn-pop3-mailbox.gob:823
+msgid ""
+"a SASL authentication mechanism was selected but SASL support has not been "
+"compiled in"
+msgstr ""
+
+#: src/mn-imap-mailbox.gob:954 src/mn-pop3-mailbox.gob:835
+#, c-format
+msgid "unknown authentication mechanism \"%s\""
+msgstr "неизвестен механизъм за идентификация \"%s\""
+
+#: src/mn-imap-mailbox.gob:972
+msgid "falling back to IMAP LOGIN authentication"
+msgstr ""
+
+#: src/mn-imap-mailbox.gob:976 src/mn-pop3-mailbox.gob:869
+msgid "authentication failed"
+msgstr "неуспешна идентификация"
+
+#: src/mn-mail-icon.gob:84 ui/summary-dialog.glade.h:2
+msgid "_Update"
+msgstr "_Актуализиране"
+
+#: src/mn-mail-icon.gob:90
+msgid "R_emove From Notification Area"
+msgstr "Пре_махване от зоната за известяване"
+
+#: src/mn-mailbox-properties-dialog.c:109
+msgid "Add a Mailbox"
+msgstr "Добавяне на пощенска кутия"
+
+#: src/mn-mailbox-properties-dialog.c:328
+#, c-format
+msgid "%s Properties"
+msgstr "%s Настройки"
+
+#: src/mn-mailbox-properties-util.c:77
+msgid "_Username:"
+msgstr "_Име:"
+
+#: src/mn-mailbox-properties-util.c:87
+msgid "_Password:"
+msgstr "_Парола:"
+
+#: src/mn-mailbox-properties-util.c:154
+msgid "Connection type:"
+msgstr "Тип на връзката:"
+
+#: src/mn-mailbox-properties-util.c:161
+msgid "Port:"
+msgstr "Порт:"
+
+#: src/mn-mailbox-properties-util.c:189
+msgid "_Authentication mechanism:"
+msgstr "Механизъм за _идентификация:"
+
+#: src/mn-mailbox-properties.c:63
+msgid "Label"
+msgstr "Етикет"
+
+#: src/mn-mailbox-properties.c:64
+msgid "The marked up text to show in the type combo box"
+msgstr ""
+
+#: src/mn-mailbox-properties.c:69
+msgid "Size group"
+msgstr "Размер на групата"
+
+#: src/mn-mailbox-properties.c:70
+msgid "A GtkSizeGroup for aligning control labels"
+msgstr ""
+
+#: src/mn-mailbox-properties.c:75
+msgid "Complete"
+msgstr "Завършено"
+
+#: src/mn-mailbox-properties.c:76
+msgid "Whether the properties are completely filled or not"
+msgstr ""
+
+#: src/mn-mailbox-view.gob:263 src/mn-message-label.gob:74
+msgid "Mailbox"
+msgstr "Пощенска кутия"
+
+#. format column
+#: src/mn-mailbox-view.gob:279
+msgid "Format"
+msgstr "Формат"
+
+#: src/mn-mailbox-view.gob:569
+msgid "Unable to add mailbox"
+msgstr "Неуспех при добавянето на пощенската кутия"
+
+#: src/mn-mailbox-view.gob:569
+msgid "The mailbox is already in the list."
+msgstr "Пощенската кутия е вече в списъка."
+
+#: src/mn-mailbox.gob:133
+msgid "The mailbox URI"
+msgstr "Адресът на пощенската кутия"
+
+#: src/mn-mailbox.gob:144
+msgid "The mailbox human-readable name"
+msgstr "Името на пощенската кутия във формат разбираем от хора"
+
+#: src/mn-mailbox.gob:148
+msgid "Whether the mailbox has to be manually checked or not"
+msgstr ""
+
+#: src/mn-mailbox.gob:153
+msgid "Whether the mailbox has new mail or not"
+msgstr ""
+
+#: src/mn-mailbox.gob:158
+msgid "The list of new and unread MNMessage objects"
+msgstr ""
+
+#: src/mn-mailbox.gob:212
+msgid "The mailbox error, if any"
+msgstr "Грешката в пощенската кутия, ако има"
+
+#: src/mn-mailbox.gob:310
+msgid "does not exist"
+msgstr "не съществува"
+
+#: src/mn-mailbox.gob:342
+msgid "unknown format"
+msgstr "непознат формат"
+
+#: src/mn-mailbox.gob:408
+#, fuzzy, c-format
+msgid "unable to enable immediate notification for %s: %s"
+msgstr ""
+"Известяването за поща не можа да разреши моменталното известяване за една "
+"или повече пощенски кутии. %s"
+
+#: src/mn-mailbox.gob:426
+#, c-format
+msgid ""
+"As a fallback, they will be checked every %i second (this delay is "
+"configurable from the Properties Dialog)."
+msgid_plural ""
+"As a fallback, they will be checked every %i seconds (this delay is "
+"configurable from the Properties Dialog)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-mailbox.gob:437
+#, c-format
+msgid ""
+"As a fallback, they will be checked every %i minute (this delay is "
+"configurable from the Properties Dialog)."
+msgid_plural ""
+"As a fallback, they will be checked every %i minutes (this delay is "
+"configurable from the Properties Dialog)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-mailbox.gob:448
+#, c-format
+msgid ""
+"As a fallback, they will be checked approximately every %i minute (this "
+"delay is configurable from the Properties Dialog)."
+msgid_plural ""
+"As a fallback, they will be checked approximately every %i minutes (this "
+"delay is configurable from the Properties Dialog)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-mailbox.gob:464
+msgid "A monitoring error has occurred"
+msgstr "Получи се грешка при наблюдението"
+
+#: src/mn-mailbox.gob:465
+#, c-format
+msgid ""
+"Mail Notification was unable to enable immediate notification for one or "
+"more mailboxes. %s"
+msgstr ""
+"Известяването за поща не можа да разреши моменталното известяване за една "
+"или повече пощенски кутии. %s"
+
+#: src/mn-mailboxes.gob:133
+msgid "Whether one or more of the mailboxes has to be polled"
+msgstr ""
+
+#: src/mn-mailboxes.gob:266
+#, c-format
+msgid "%s is unsupported: %s"
+msgstr "%s е неподдържан: %s"
+
+#: src/mn-mailboxes.gob:297
+#, c-format
+msgid "%s has new mail"
+msgstr "%s има поща"
+
+#: src/mn-mailboxes.gob:297
+#, c-format
+msgid "%s has no new mail"
+msgstr "%s няма нова поща"
+
+#: src/mn-mailboxes.gob:323
+#, c-format
+msgid "%s reported an error: %s"
+msgstr "%s докладва за грешка: %s"
+
+#: src/mn-maildir-mailbox.gob:119
+#, c-format
+msgid "unable to open folder \"new\": %s"
+msgstr "неуспех при отварянето на папка \"нови\": %s"
+
+#: src/mn-maildir-mailbox.gob:161
+#, c-format
+msgid "unable to close folder \"new\": %s"
+msgstr "неуспех при отварянето на папка \"нови\": %s"
+
+#: src/mn-maildir-mailbox.gob:164
+#, c-format
+msgid "error while reading folder \"new\": %s"
+msgstr "грешка при четенето на папката \"нови\": %s"
+
+#: src/mn-main.c:97
+#, c-format
+msgid "Compiled-in mailbox backends: %s\n"
+msgstr ""
+
+#: src/mn-main.c:114
+#, c-format
+msgid "Compiled-in features: %s\n"
+msgstr "Компилирани възможности: %s\n"
+
+#: src/mn-main.c:166
+msgid "Enable informational output"
+msgstr "Разрешаване на информационния изход"
+
+#: src/mn-main.c:175
+msgid "List compiled-in features and exit"
+msgstr "Изписване на компилираните възможности и излизане"
+
+#: src/mn-main.c:184
+#, fuzzy
+msgid "Display the mail summary dialog"
+msgstr "Изобразяване на диалоговия прозорец с информацията"
+
+#: src/mn-main.c:193
+msgid "Display the properties dialog"
+msgstr "Показване на диалоговия прозорец с настройките"
+
+#: src/mn-main.c:202
+msgid "Display the about dialog"
+msgstr "Изобразяване на диалоговия прозорец с информацията"
+
+#: src/mn-main.c:211
+msgid "Close the mail summary popup"
+msgstr ""
+
+#: src/mn-main.c:220
+msgid "Update the mail status"
+msgstr "Актуализиране състоянието на пощата"
+
+#: src/mn-main.c:229
+msgid "Report the mail status"
+msgstr "Докладване за състоянието на пощата"
+
+#: src/mn-main.c:238
+msgid "Unset obsolete GConf configuration and exit"
+msgstr "Премахване на остарелите настройки в GConf и излизане"
+
+#.
+#. * We can't use mn_error_dialog() because gtk_init() has not been
+#. * called yet.
+#.
+#: src/mn-main.c:264
+msgid "multi-threading is not available"
+msgstr "много-нишки не е налично"
+
+#: src/mn-main.c:309
+msgid ""
+"Bonobo could not locate the automation object. Please check your Mail "
+"Notification installation."
+msgstr ""
+
+#: src/mn-main.c:314
+msgid "Unable to initialize the GnomeVFS library."
+msgstr "Неуспех при инициализирането на библиотеката GnomeVFS."
+
+#: src/mn-main.c:350
+msgid "updating the mail status"
+msgstr "актуализиране състоянието на пощата"
+
+#: src/mn-main.c:368
+msgid "Mail Notification is already running"
+msgstr "Известяването за поща вече е стартирано"
+
+#: src/mn-main.c:375
+msgid ""
+"Bonobo could not locate the GNOME_MailNotification_Automation.server file. "
+"Please check your Mail Notification installation."
+msgstr ""
+
+#: src/mn-main.c:379
+msgid ""
+"Bonobo was unable to register the automation server. Please check your Mail "
+"Notification installation."
+msgstr ""
+"Bonobo не успя да регистрира сървъра за автоматизация. Моля, проверете "
+"инсталацията на известяването за поща."
+
+#: src/mn-mbox-mailbox.gob:221
+#, c-format
+msgid "error while reading mailbox: %s"
+msgstr "грешка при четенето на пощенската кутия: %s"
+
+#: src/mn-mbox-mailbox.gob:230
+#, c-format
+msgid "unable to open mailbox: %s"
+msgstr "грешка при отварянето на пощенската кутия: %s"
+
+#: src/mn-message-label.gob:77
+msgid "Unreadable message"
+msgstr ""
+
+#: src/mn-message-label.gob:97
+msgid "From"
+msgstr ""
+
+#: src/mn-message-label.gob:98
+msgid "Subject"
+msgstr ""
+
+#: src/mn-message-label.gob:102
+msgid "Sent"
+msgstr ""
+
+#: src/mn-message-label.gob:151
+#, c-format
+msgid "%i second ago"
+msgid_plural "%i seconds ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-message-label.gob:155
+#, c-format
+msgid "%i minute ago"
+msgid_plural "%i minutes ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-message-label.gob:160
+#, c-format
+msgid "%i hour ago"
+msgid_plural "%i hours ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-message-label.gob:165
+#, c-format
+msgid "%i day ago"
+msgid_plural "%i days ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-message-mime.c:105
+#, fuzzy
+msgid "unable to parse MIME message"
+msgstr "неуспех при преглед на отговор \"%s\""
+
+#: src/mn-message.gob:82
+msgid "Unknown"
+msgstr ""
+
+#: src/mn-mh-mailbox.gob:184
+#, c-format
+msgid "error while reading .mh_sequences: %s"
+msgstr "грешка при четенето на .mh_sequences: %s"
+
+#: src/mn-mh-mailbox.gob:196
+#, c-format
+msgid "unable to open .mh_sequences: %s"
+msgstr "неуспех при отварянето на .mh_sequences: %s"
+
+#: src/mn-pending-mailbox.gob:35
+msgid "detecting"
+msgstr "засичане"
+
+#: src/mn-pi-mailbox-properties.gob:76
+msgid "_Hostname:"
+msgstr "_Хост:"
+
+#: src/mn-pi-mailbox-properties.gob:94
+msgid "_Details"
+msgstr "_Подробности"
+
+#: src/mn-pi-mailbox-properties.gob:106
+msgid "sta_ndard"
+msgstr "стан_дартно"
+
+#: src/mn-pi-mailbox-properties.gob:116
+msgid "_in-band SSL/TLS"
+msgstr "_in-band SSL/TLS"
+
+#: src/mn-pi-mailbox-properties.gob:126
+msgid "SSL/TLS on sepa_rate port"
+msgstr "SSL/TLS на отделен по_рт"
+
+#: src/mn-pop3-mailbox-properties.gob:86
+msgid "The hostname or IP address of the POP3 server"
+msgstr "Хостът или IP адресът на POP3 сървъра"
+
+#: src/mn-pop3-mailbox-properties.gob:87
+msgid "Your username on the POP3 server"
+msgstr "Потребителското име в POP3 сървъра"
+
+#: src/mn-pop3-mailbox-properties.gob:88
+msgid "Your password on the POP3 server"
+msgstr "Паролата ви в POP3 сървъра"
+
+#: src/mn-pop3-mailbox-properties.gob:89 src/mn-pop3-mailbox-properties.gob:90
+msgid "The port number of the POP3 server"
+msgstr "Номера на порта на POP3 сървъра"
+
+#: src/mn-pop3-mailbox.gob:271
+msgid "invalid arguments for the LOGIN-DELAY capability"
+msgstr ""
+
+#: src/mn-pop3-mailbox.gob:536
+#, fuzzy
+msgid "unknown error"
+msgstr "неизвестна грешка в сървъра"
+
+#: src/mn-pop3-mailbox.gob:666
+#, c-format
+msgid "honouring LOGIN-DELAY, sleeping for %i second"
+msgid_plural "honouring LOGIN-DELAY, sleeping for %i seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-pop3-mailbox.gob:831
+msgid "server does not support APOP authentication"
+msgstr "Сървърът не поддържа идентификация тип APOP"
+
+#: src/mn-pop3-mailbox.gob:859
+msgid "falling back to APOP authentication"
+msgstr ""
+
+#: src/mn-pop3-mailbox.gob:864
+msgid "falling back to USER/PASS authentication"
+msgstr ""
+
+#: src/mn-properties.c:161
+#, fuzzy
+msgid "top left"
+msgstr "Завършено"
+
+#: src/mn-properties.c:162
+msgid "top right"
+msgstr ""
+
+#: src/mn-properties.c:163
+msgid "bottom left"
+msgstr ""
+
+#: src/mn-properties.c:164
+msgid "bottom right"
+msgstr ""
+
+#: src/mn-properties.c:240
+msgid "No mailbox selected."
+msgstr "Няма избрана кутия."
+
+#: src/mn-properties.c:245
+#, fuzzy, c-format
+msgid "%i mailbox selected."
+msgid_plural "%i mailboxes selected."
+msgstr[0] "%i избрана кутия."
+msgstr[1] "%i избрана кутия."
+
+#: src/mn-shell.gob:84
+msgid "You have new mail."
+msgstr "Имате поща."
+
+#: src/mn-shell.gob:96
+msgid "A command error has occurred in Mail Notification"
+msgstr "Грешка с командите се получи в известяването за поща"
+
+#: src/mn-shell.gob:97
+#, c-format
+msgid "Unable to execute new mail command: %s."
+msgstr "Неуспех при стартирането на нова пощенска команда: %s."
+
+#: src/mn-shell.gob:270
+#, fuzzy
+msgid "The following mailbox has new mail:\n"
+msgid_plural "The following mailboxes have new mail:\n"
+msgstr[0] "Следната пощенска кутия има нова поща:\n"
+msgstr[1] "Следната пощенска кутия има нова поща:\n"
+
+#: src/mn-shell.gob:274
+msgid "You have no new mail."
+msgstr "Нямата нова поща."
+
+#: src/mn-shell.gob:277
+#, fuzzy
+msgid "The following mailbox reported an error:\n"
+msgid_plural "The following mailboxes reported an error:\n"
+msgstr[0] "Следната пощенска кутия докладва за грешка:\n"
+msgstr[1] "Следната пощенска кутия докладва за грешка:\n"
+
+#: src/mn-shell.gob:282
+#, fuzzy
+msgid "The following mailbox is unsupported:\n"
+msgid_plural "The following mailboxes are unsupported:\n"
+msgstr[0] "Следните пощенски кутии не се поддържат:\n"
+msgstr[1] "Следните пощенски кутии не се поддържат:\n"
+
+#: src/mn-ssl.c:79
+msgid "unknown SSL/TLS error"
+msgstr "неизвестна SSL/TLS грешка"
+
+#: src/mn-stock.c:28
+msgid "Select _All"
+msgstr "Избор на _всички"
+
+#: src/mn-stock.c:29
+msgid "_Mail Summary"
+msgstr ""
+
+#: src/mn-sylpheed-mailbox.gob:122
+#, c-format
+msgid "unable to open folder: %s"
+msgstr "неуспех при отварянето на папката: %s"
+
+#: src/mn-sylpheed-mailbox.gob:180
+#, c-format
+msgid "unable to close folder: %s"
+msgstr "неуспех при затварянето на папката: %s"
+
+#: src/mn-sylpheed-mailbox.gob:183
+#, c-format
+msgid "error while reading folder: %s"
+msgstr "грешка при четенето на папката: %s"
+
+#: src/mn-system-mailbox-properties.gob:34 src/mn-uri.gob:393
+msgid "System Mailbox"
+msgstr "Системна кутия"
+
+#: src/mn-system-mailbox-properties.gob:57
+#, c-format
+msgid "Your system mailbox (<span weight=\"bold\">%s</span>) will be used."
+msgstr ""
+"Системната ви пощенска кутия (<span weight=\"bold\">%s</span>) ще бъде "
+"използвана."
+
+#: src/mn-system-mailbox-properties.gob:64
+msgid ""
+"The location of your system mailbox could not be detected. Please set the "
+"MAIL environment variable."
+msgstr ""
+"Местоположението на Вашата системна пощенска кутия не може да бъде засечено. "
+"Моля, настройте променливата MAIL environment."
+
+#: src/mn-unsupported-mailbox.gob:33
+msgid "The reason why the mailbox is unsupported"
+msgstr "Причината защо пощенската кутия е неподдържана"
+
+#: src/mn-unsupported-mailbox.gob:40
+msgid "unsupported"
+msgstr "не е поддържан"
+
+#: src/mn-util.c:233
+#, c-format
+msgid "error loading image: %s"
+msgstr "грешка при зареждането на изображение: %s"
+
+#: src/mn-util.c:271
+#, fuzzy, c-format
+msgid "widget \"%s\" not found in interface \"%s\""
+msgstr "уиджета %s не е намерен в интерфейса %s"
+
+#: src/mn-util.c:385
+msgid "received an invalid URI list"
+msgstr "получен е некоректен списък с адреси"
+
+#: src/mn-util.c:421
+msgid "received an invalid Mozilla URL"
+msgstr "получен е некоректен Mozilla адрес"
+
+#: src/mn-util.c:514
+msgid "Unable to display help"
+msgstr "Неуспех при показването на помощта"
+
+#: src/mn-util.c:528
+#, c-format
+msgid "Unable to create a thread: %s."
+msgstr "Неуспех при създаването на нишка: %s."
+
+#: src/mn-util.c:705
+msgid "_Do not show this message again"
+msgstr ""
+
+#: src/mn-util.c:789
+msgid "A fatal error has occurred in Mail Notification"
+msgstr "Получи се сериозна грешка в известяването за поща"
+
+#: src/mn-util.c:804
+#, fuzzy, c-format
+msgid "unable to get current time: %s"
+msgstr "неуспех при свързването с %s"
+
+#: src/mn-util.c:887
+#, c-format
+msgid "invalid signal specification \"%s\""
+msgstr ""
+
+#: ui/mailbox-properties.glade.h:1
+msgid "_Mailbox type:"
+msgstr "_Тип на пощенската кутия:"
+
+#: ui/properties.glade.h:1
+msgid "    "
+msgstr "    "
+
+#: ui/properties.glade.h:2
+msgid "*"
+msgstr "*"
+
+#: ui/properties.glade.h:3
+msgid "<span weight=\"bold\">General</span>"
+msgstr "<span weight=\"bold\">Основни</span>"
+
+#: ui/properties.glade.h:4
+#, fuzzy
+msgid "<span weight=\"bold\">Mailbox List</span>"
+msgstr "<span weight=\"bold\">Пощенски кутии</span>"
+
+#: ui/properties.glade.h:5
+#, fuzzy
+msgid "<span weight=\"bold\">Position</span>"
+msgstr "<span weight=\"bold\">Команди</span>"
+
+#: ui/properties.glade.h:6
+msgid "General"
+msgstr ""
+
+#: ui/properties.glade.h:7
+msgid "Hori_zontal offset:"
+msgstr ""
+
+#: ui/properties.glade.h:8
+msgid "Mail Notification Properties"
+msgstr "Настройки на известяването за поща"
+
+#: ui/properties.glade.h:9
+msgid "Mail Summary Popup"
+msgstr ""
+
+#: ui/properties.glade.h:10
+#, fuzzy
+msgid "Mailboxes"
+msgstr "Пощенска кутия"
+
+#: ui/properties.glade.h:11
+#, fuzzy
+msgid "P_osition:"
+msgstr "_Местоположение:"
+
+#: ui/properties.glade.h:12
+#, fuzzy
+msgid "The amount of time to wait before closing the mail summary popup"
+msgstr "Времевият интервал за изчакване между проверките за нова поща"
+
+#: ui/properties.glade.h:13
+msgid "The amount of time to wait between mail checks"
+msgstr "Времевият интервал за изчакване между проверките за нова поща"
+
+#: ui/properties.glade.h:14
+msgid "The command to run when new mail arrives"
+msgstr "Командата, която да се изпълни при пристигането на нова поща"
+
+#: ui/properties.glade.h:15
+msgid ""
+"The number of pixels to leave between the left or right side of the screen "
+"and the mail summary popup"
+msgstr ""
+
+#: ui/properties.glade.h:16
+msgid ""
+"The number of pixels to leave between the top or bottom side of the screen "
+"and the mail summary popup"
+msgstr ""
+
+#: ui/properties.glade.h:17
+msgid "Whether the status icon should blink on errors or not"
+msgstr "Дали иконата за състоянието да започне да мига при грешки или не"
+
+#: ui/properties.glade.h:18
+#, fuzzy
+msgid "Whether to automatically close the mail summary popup or not"
+msgstr "Дали да се стартира команда при пристигането на нова поща или не"
+
+#: ui/properties.glade.h:19
+#, fuzzy
+msgid "Whether to display the mail summary popup when new mail arrives or not"
+msgstr "Дали да се стартира команда при пристигането на нова поща или не"
+
+#: ui/properties.glade.h:20
+msgid "Whether to run a command when new mail arrives or not"
+msgstr "Дали да се стартира команда при пристигането на нова поща или не"
+
+#: ui/properties.glade.h:21
+msgid ""
+"Whether to start Mail Notification when you log into your GNOME session or "
+"not"
+msgstr ""
+"Дали да се стартира известяването за поща, когато влизате в GNOME или не"
+
+#: ui/properties.glade.h:22
+msgid "_Automatically close after:"
+msgstr ""
+
+#: ui/properties.glade.h:23
+msgid "_Blink on errors"
+msgstr "_Мигане при грешки"
+
+#: ui/properties.glade.h:24
+msgid "_Delay between mail checks:"
+msgstr "_Време между проверките за поща:"
+
+#: ui/properties.glade.h:25
+msgid "_Enable mail summary popup"
+msgstr ""
+
+#: ui/properties.glade.h:26
+#, fuzzy
+msgid "_Run a command when new mail arrives:"
+msgstr "Стартиране на команда при пристигането на нова поща"
+
+#: ui/properties.glade.h:27
+msgid "_Start Mail Notification on GNOME login"
+msgstr "_Стартиране на известяването за поща при влизане в GNOME"
+
+#: ui/properties.glade.h:28
+msgid "_Vertical offset:"
+msgstr ""
+
+#: ui/properties.glade.h:29
+msgid "minutes"
+msgstr "минути"
+
+#: ui/properties.glade.h:30
+msgid "pixels"
+msgstr ""
+
+#: ui/properties.glade.h:31
+msgid "seconds"
+msgstr "секунди"
+
+#: ui/summary-dialog.glade.h:1
+msgid "Mail Summary"
+msgstr ""
+
+#: ui/summary-popup.glade.h:1
+#, fuzzy
+msgid "<span size=\"larger\" weight=\"bold\">Mail Summary</span>"
+msgstr "<span weight=\"bold\">Пощенски кутии</span>"
+
+#: ui/welcome.glade.h:1
+msgid ""
+"<span weight=\"bold\" size=\"larger\">First startup</span>\n"
+"\n"
+"Mail Notification has been loaded successfully.\n"
+"\n"
+"Since this is the first time you run Mail Notification, you might want to "
+"configure it.\n"
+"\n"
+"Note: this message will not be shown anymore. To configure Mail Notification "
+"again, choose <span weight=\"bold\">Applications</span> → <span weight=\"bold"
+"\">Desktop Preferences</span> → <span weight=\"bold\">Mail Notification</"
+"span> (or on some systems <span weight=\"bold\">Applications → Preferences → "
+"More Preferences → Mail Notification</span>)."
+msgstr ""
+"<span weight=\"bold\" size=\"larger\">Първо стартиране</span>\n"
+"\n"
+"Известяването за поща беше стартирано успешно.\n"
+"\n"
+"След като стартирате за първи път известяването за поща то сигурно желаете "
+"да го настроите.\n"
+"\n"
+"Бележка: няма да видите това съобщение отново. За да настроите известяването "
+"за поща отново, то изберете <span weight=\"bold\">Програми</span> → "
+"<span·weight=\"bold\">Настройки на средата</span> → <span weight=\"bold"
+"\">Известяване за поща</span> (или при някои системи <span weight=\"bold"
+"\">Програми → Настройки → Допълнителни настройки → Известяване за поща</"
+"span>)."
+
+#: ui/welcome.glade.h:8
+msgid "_Configure Mail Notification"
+msgstr "_Настройки на известяването за поща"
+
+#: ui/welcome.glade.h:9
+msgid "_Skip configuration"
+msgstr "_Пропускане на настройването"
+
+#~ msgid "Double-clicked command"
+#~ msgstr "Команда при двойна натискане"
+
+#~ msgid "Run a command when the icon is double-clicked"
+#~ msgstr "Стартиране на команда при двойно натискане на иконата"
+
+#~ msgid "The command to run when the icon is double-clicked."
+#~ msgstr ""
+#~ "Командата, която да се стартира при двойно натискане на иконата - писмо."
+
+#~ msgid "Whether to run a command when the icon is double-clicked or not."
+#~ msgstr "Дали да се стартира команда при натискането на иконата-писмо или не"
+
+#~ msgid "_Run %s"
+#~ msgstr "_Стартиране %s"
+
+#~ msgid "_Run Default Action"
+#~ msgstr "_Стартиране на стандартното действие"
+
+#~ msgid "A command error has occurred"
+#~ msgstr "След изпълнението на командата се получи грешка"
+
+#~ msgid "Unable to execute double-clicked command: %s."
+#~ msgstr "Неуспех при стартирането на командата: %s."
+
+#~ msgid "The command to run when the icon is double-clicked"
+#~ msgstr ""
+#~ "Командата, която да се стартира когато иконата-писмо се натисне два пъти"
+
+#~ msgid "When _new mail arrives:"
+#~ msgstr "При пристигане на _нова поща:"
+
+#~ msgid "When double-click_ed:"
+#~ msgstr "При _двойно натискане:"
+
+#~ msgid "Whether to run a command when the icon is double-clicked or not"
+#~ msgstr "Дали да се стартира команда при двойно натискане на иконата или не"

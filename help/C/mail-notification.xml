@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "0.6.2">
-  <!ENTITY manrevision "2.4">
-  <!ENTITY date "Thursday, September 9, 2004">
+  <!ENTITY appversion "0.7.0">
+  <!ENTITY manrevision "2.5">
+  <!ENTITY date "Wednesday, October 6, 2004">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,7 +26,7 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.49 2004/09/08 23:26:57 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.56 2004/10/06 17:25:39 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (c) 2004 Jean-Yves Lefort -->
@@ -134,6 +134,17 @@
 	</revdescription>
       </revision>
       <revision>
+	<revnumber>Mail Notification Manual V2.4</revnumber>
+	<date>Thursday, September 9, 2004</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
 	<revnumber>Mail Notification Manual V2.3</revnumber>
 	<date>Thursday, August 19, 2004</date>
 	<revdescription>
@@ -218,6 +229,7 @@
       <listitem><para>&ssl;/&tls; support</para></listitem>
       <listitem><para>automatic detection of mailbox format</para></listitem>
       <listitem><para><link linkend="immediate-notification">immediate notification</link> (the status icon is updated within seconds after a mailbox changes)</para></listitem>
+      <listitem><para>a mail summary</para></listitem>
       <listitem><para><ulink url="http://developer.gnome.org/projects/gup/hig" type="http">HIG</ulink> 2.0 compliance</para></listitem>
     </itemizedlist>
   </sect1>
@@ -228,8 +240,7 @@
     <sect2 id="to-start">
     <title>To Start &app;</title>
       <para>
-	You can start <application>&app;</application> in the
-	following ways:
+	You can start &app; in the following ways:
       </para>
       <variablelist>
     	<varlistentry>
@@ -247,9 +258,8 @@
 	  <term>Command line</term>
 	  <listitem>
 	    <para>
-	      To start <application>&app;</application> from a command
-	      line, type the following command, then press
-	      <keycap>Return</keycap>:
+	      To start &app; from a command line, type the following
+	      command, then press <keycap>Return</keycap>:
 	    </para>
 	    <para>
 	      <command>mail-notification</command>
@@ -283,6 +293,11 @@
 	      </varlistentry>
 
 	      <varlistentry>
+		<term>--display-mail-summary</term>
+		<listitem><para>Display the mail summary dialog</para></listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term>--display-properties</term>
 		<listitem><para>Display the properties dialog</para></listitem>
 	      </varlistentry>
@@ -290,6 +305,11 @@
 	      <varlistentry>
 		<term>--display-about</term>
 		<listitem><para>Display the about dialog</para></listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term>--close-popup</term>
+		<listitem><para>Close the mail summary popup</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
@@ -320,8 +340,8 @@
     <sect2 id="when-start">
       <title>When You Start &app;</title>
       <para>
-	When you start <application>&app;</application>, it stays in
-	the background and monitors the status of your mailboxes.
+	When you start &app;, it stays in the background and monitors
+	the status of your mailboxes.
       </para>
       <para>
 	When new mail arrives, an icon similar to the following one is
@@ -341,12 +361,18 @@
 	</screenshot>
       </figure>
       <para>
+	Additionally, if the <link linkend="enable-mail-summary-popup">Enable mail summary popup</link>
+	setting is enabled, an overview of new and unread messages is
+	displayed.
+      </para>
+      <para>
 	If an error is detected, the icon blinks (unless the
 	<link linkend="blink-on-errors">Blink on errors</link> setting is disabled).
       </para>
       <para>
 	Leaving your mouse over the icon will reveal more details
-	about the status of your mailboxes.
+	about the status of your mailboxes. Double-clicking on the
+	icon will display the <link linkend="mail-summary">Mail	Summary</link> dialog.
       </para>
     </sect2>
   </sect1>
@@ -368,99 +394,176 @@
     </para>
     <para>
       The <guilabel>Properties</guilabel> dialog contains the
-      following settings:
+      following tabbed sections:
     </para>
+    <itemizedlist>
+      <listitem>
+	<para><link linkend="properties-general">General</link></para>
+      </listitem>
+      <listitem>
+	<para><link linkend="properties-mailboxes">Mailboxes</link></para>
+      </listitem>
+      <listitem>
+	<para><link linkend="properties-mail-summary-popup">Mail Summary Popup</link></para>
+      </listitem>
+    </itemizedlist>
 
-    <variablelist>
-      <varlistentry>
-	<term><guilabel>General</guilabel></term>
-	<listitem>
-	  <variablelist>
-	    <varlistentry id="delay-between-mail-checks">
-	      <term><guilabel>Delay between mail checks</guilabel></term>
-	      <listitem>
+    <sect2 id="properties-general">
+      <title>General</title>
+      <variablelist>
+	<varlistentry>
+	  <term><guilabel>Start Mail Notification on GNOME login</guilabel></term>
+	  <listitem>
+	    <para>
+	      If this option is enabled, &app; will be started along
+	      with your GNOME session.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry id="blink-on-errors">
+	  <term><guilabel>Blink on errors</guilabel></term>
+	  <listitem>
+	    <para>
+	      If this option is enabled, &app; will show the status
+	      icon and make it blink on errors. Disabling this option
+	      is useful if some of your mailboxes are not permanently
+	      accessible.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><guilabel>Run a command when new mail arrives:</guilabel></term>
+	  <listitem>
+	    <para>
+	      This is the command to execute when new mail arrives.
+	    </para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+    
+    <sect2 id="properties-mailboxes">
+      <title>Mailboxes</title>
+      <variablelist>
+	<varlistentry>
+	  <term><guilabel>General</guilabel></term>
+	  <listitem>
+	    <variablelist>
+	      <varlistentry id="delay-between-mail-checks">
+		<term><guilabel>Delay between mail checks</guilabel></term>
+		<listitem>
+		  <para>
+		    This is the amount of time to wait between mail
+		    checks.
+		    <note>
+		      <para>
+			This delay only applies to mailboxes which do
+			not support <link linkend="immediate-notification">immediate
+			notification</link> of changes.
+		      </para>
+		    </note>
+		  </para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><guilabel>Mailbox List</guilabel></term>
+	  <listitem>
+	    <para>
+	      This is the list of mailboxes to monitor for new
+	      mail. Selecting <guibutton>Add</guibutton> or
+	      <guibutton>Properties</guibutton> will display the <link linkend="mailbox-properties">Mailbox Properties</link>
+	      dialog.
+	      <tip>
 		<para>
-		  This is the amount of time to wait between mail
-		  checks.
-		  <note>
-		    <para>
-		      This delay only applies to mailboxes which do
-		      not support <link linkend="immediate-notification">immediate notification</link> of changes.
-		    </para>
-		  </note>
+		  You can drag a file or folder into this list.
 		</para>
-	      </listitem>
-	    </varlistentry>
-	    <varlistentry>
-	      <term><guilabel>Start Mail Notification on GNOME login</guilabel></term>
-	      <listitem>
-		<para>
-		  If this option is enabled, &app; will be started
-		  along with your GNOME session.
-		</para>
-	      </listitem>
-	    </varlistentry>
-	    <varlistentry id="blink-on-errors">
-	      <term><guilabel>Blink on errors</guilabel></term>
-	      <listitem>
-		<para>
-		  If this option is enabled, &app; will show the
-		  status icon and make it blink on errors. Disabling
-		  this option is useful if some of your mailboxes are
-		  not permanently accessible.
-		</para>
-	      </listitem>
-	    </varlistentry>
-	  </variablelist>
-	</listitem>
-      </varlistentry>
-      
-      <varlistentry>
-	<term><guilabel>Mailboxes</guilabel></term>
-	<listitem>
-	  <para>
-	    This is the list of mailboxes to monitor for new mail.
-	    <tip>
-	      <para>
-		You can drag a file or folder into this list.
-	      </para>
-	    </tip>
-	  </para>
-	</listitem>
-      </varlistentry>
+	      </tip>
+	    </para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
 
-      <varlistentry>
-	<term><guilabel>Commands</guilabel></term>
-	<listitem>
-	  <variablelist>
-	    <varlistentry>
-	      <term><guilabel>When new mail arrives:</guilabel></term>
-	      <listitem>
-		<para>
-		  This is the command to execute when new mail
-		  arrives.
-		  <note>
-		    <para>
-		      This command will not be executed if you already
-		      have new mail.
-		    </para>
-		  </note>
-		</para>
-	      </listitem>
-	    </varlistentry>
-	    <varlistentry>
-	      <term><guilabel>When double-clicked:</guilabel></term>
-	      <listitem>
-		<para>
-		  This is the command to execute when the icon is
-		  double-clicked.
-		</para>
-	      </listitem>
-	    </varlistentry>
-	  </variablelist>
-	</listitem>
-      </varlistentry>
-    </variablelist>
+    <sect2 id="properties-mail-summary-popup">
+      <title>Mail Summary Popup</title>
+      <variablelist>
+	<varlistentry>
+	  <term><guilabel>General</guilabel></term>
+	  <listitem>
+	    <variablelist>
+	      <varlistentry id="enable-mail-summary-popup">
+		<term><guilabel>Enable mail summary popup</guilabel></term>
+		<listitem>
+		  <para>
+		    Whether to display the mail summary popup when new
+		    mail arrives or not.
+		    <note>
+		      <para>
+			The mail summary popup will not be displayed if the <link linkend="mail-summary">Mail Summary</link>
+			dialog is displayed.
+		      </para>
+		    </note>
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Automatically close after:</guilabel></term>
+		<listitem>
+		  <para>
+		    Whether to automatically close the mail summary
+		    popup after a delay has elapsed or not.
+		    <note>
+		      <para>
+			The timer is restarted when new mail arrives.
+		      </para>
+		    </note>
+		  </para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><guilabel>Position</guilabel></term>
+	  <listitem>
+	    <variablelist>
+	      <varlistentry>
+		<term><guilabel>Position:</guilabel></term>
+		<listitem>
+		  <para>
+		    The location of the mail summary popup on the
+		    screen.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Horizontal offset:</guilabel></term>
+		<listitem>
+		  <para>
+		    The number of pixels to leave between the left or
+		    right side of the screen and the mail summary
+		    popup.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Vertical offset:</guilabel></term>
+		<listitem>
+		  <para>
+		    The number of pixels to leave between the top or
+		    bottom side of the screen and the mail summary
+		    popup.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
   </sect1>
 
   <sect1 id="mailbox-properties">
@@ -664,6 +767,32 @@
     </variablelist>
   </sect1>
 
+  <sect1 id="mail-summary">
+    <title>Mail Summary</title>
+    <para>
+      The <guilabel>Mail Summary</guilabel> dialog can be accessed by
+      double-clicking on the mail icon, or by right-clicking on it and
+      choosing <menuchoice><guimenuitem>Mail Summary</guimenuitem></menuchoice>.
+    </para>
+    <para>
+      The <guilabel>Mail Summary</guilabel> dialog displays the list
+      of new and unread messages, sorted by sent date in descending
+      order.
+    </para>
+    <important>
+      <para>
+	To be able to extract messages from mbox, MH, Maildir, POP3,
+	IMAP and Sylpheed mailboxes, &app; must have been compiled
+	with MIME support.
+      </para>
+      <para>
+	&app; has been compiled with MIME support if
+	<command>mail-notification --list-features</command> lists the
+	MIME feature.
+      </para>
+    </important>
+  </sect1>
+
   <sect1 id="troubleshooting">
     <title>Troubleshooting</title>
     <para>
@@ -812,7 +941,9 @@ endif</programlisting>
 	<listitem><para>Hendrik Brandt</para></listitem>
 	<listitem><para>Duarte Henriques</para></listitem>
 	<listitem><para>Dan Korostelev</para></listitem>
+	<listitem><para>Filip Miletic</para></listitem>
 	<listitem><para>Phil Nelson</para></listitem>
+	<listitem><para>Vladimir Petkov</para></listitem>
       </itemizedlist>
     </sect2>
 

@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include <gtk/gtk.h>
 %}
@@ -89,8 +91,8 @@ class MN:Autodetect:Mailbox:Properties from Gtk:HBox (interface MN:Mailbox:Prope
 
     gtk_size_group_add_widget(selfp->size_group, label);
 
-    g_signal_connect(G_OBJECT(selfp->location_entry), "changed", G_CALLBACK(self_entry_changed_h), self);
-    g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(self_browse_clicked_h), self);
+    g_signal_connect(selfp->location_entry, "changed", G_CALLBACK(self_entry_changed_h), self);
+    g_signal_connect(button, "clicked", G_CALLBACK(self_browse_clicked_h), self);
 
     return object;
   }
@@ -130,7 +132,7 @@ class MN:Autodetect:Mailbox:Properties from Gtk:HBox (interface MN:Mailbox:Prope
     else if (current_folder_uri)
       gtk_file_chooser_set_current_folder_uri(GTK_FILE_CHOOSER(chooser), current_folder_uri);
       
-    g_signal_connect(G_OBJECT(chooser), "current-folder-changed", G_CALLBACK(self_current_folder_changed_h), self);
+    g_signal_connect(chooser, "current-folder-changed", G_CALLBACK(self_current_folder_changed_h), self);
 
     if (gtk_dialog_run(GTK_DIALOG(chooser)) == 1)
       {

@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include <gtk/gtk.h>
 %}
@@ -151,14 +153,14 @@ class MN:PI:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
 				       GTK_ENTRY(self->password_entry),
 				       NULL);
 
-    g_signal_connect(G_OBJECT(expander), "notify::expanded", G_CALLBACK(self_notify_expanded_h), self);
+    g_signal_connect(expander, "notify::expanded", G_CALLBACK(self_notify_expanded_h), self);
 
     for (i = 0; i < 3; i++)
-      g_signal_connect(G_OBJECT(self->conn_radio[i]), "toggled", G_CALLBACK(self_radio_toggled_h), self);
+      g_signal_connect(self->conn_radio[i], "toggled", G_CALLBACK(self_radio_toggled_h), self);
     
-    g_signal_connect(G_OBJECT(self->hostname_entry), "changed", G_CALLBACK(self_entry_changed_h), self);
-    g_signal_connect(G_OBJECT(self->username_entry), "changed", G_CALLBACK(self_entry_changed_h), self);
-    g_signal_connect(G_OBJECT(self->password_entry), "changed", G_CALLBACK(self_entry_changed_h), self);
+    g_signal_connect(self->hostname_entry, "changed", G_CALLBACK(self_entry_changed_h), self);
+    g_signal_connect(self->username_entry, "changed", G_CALLBACK(self_entry_changed_h), self);
+    g_signal_connect(self->password_entry, "changed", G_CALLBACK(self_entry_changed_h), self);
 
     return object;
   }

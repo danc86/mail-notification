@@ -21,11 +21,17 @@
 #include <signal.h>
 #include <gnome.h>
 #include <libgnomevfs/gnome-vfs.h>
+#ifdef WITH_MIME
+#include <gmime/gmime.h>
+#include "mn-gmime-stream-vfs.h"
+#endif
 #include "mn-conf.h"
 #include "mn-util.h"
 #include "mn-stock.h"
 #include "mn-automation.h"
 #include "mn-shell.h"
+#include "mn-pending-mailbox.h"
+#include "mn-unsupported-mailbox.h"
 
 /*** cpp *********************************************************************/
 
@@ -47,6 +53,8 @@ static void	mn_main_info_log_cb	(const char	*log_domain,
 					 const char	*message,
 					 gpointer	user_data);
 
+static void	mn_main_init_classes	(void);
+
 /*** implementation **********************************************************/
 
 static BonoboObject *
@@ -65,21 +73,25 @@ mn_main_list_features (void)
 {
   GString *backends;
   GString *features;
-  const GType *types;
   int i;
 
-  backends = g_string_new(NULL);
-  types = mn_mailbox_get_types();
+#define ADD_FEATURE(string, feature)		\
+  {						\
+    if (*(string)->str)				\
+      g_string_append((string), ", ");		\
+    g_string_append((string), (feature));	\
+  }
 
-  for (i = 0; types[i]; i++)
+  backends = g_string_new(NULL);
+
+  for (i = 0; mn_mailbox_types[i]; i++)
     {
       MNMailboxClass *class;
       
-      class = g_type_class_ref(types[i]);
-      if (*backends->str)
-	g_string_append(backends, ", ");
-      g_string_append(backends, class->format);
-      g_type_class_unref(class);
+      class = g_type_class_peek(mn_mailbox_types[i]);
+      g_return_if_fail(class != NULL);
+
+      ADD_FEATURE(backends, class->format);
     }
 
   g_print(_("Compiled-in mailbox backends: %s\n"), backends->str);
@@ -87,18 +99,17 @@ mn_main_list_features (void)
 
   features = g_string_new(NULL);
 #ifdef WITH_SSL
-  g_string_append(features, "SSL/TLS");
-#endif /* WITH_SSL */
+  ADD_FEATURE(features, "SSL/TLS");
+#endif
 #ifdef WITH_SASL
-  if (*features->str)
-    g_string_append(features, ", ");
-  g_string_append(features, "SASL");
-#endif /* WITH_SASL */
+  ADD_FEATURE(features, "SASL");
+#endif
 #ifdef WITH_IPV6
-  if (*features->str)
-    g_string_append(features, ", ");
-  g_string_append(features, "IPv6");
-#endif /* WITH_IPV6 */
+  ADD_FEATURE(features, "IPv6");
+#endif
+#ifdef WITH_MIME
+  ADD_FEATURE(features, "MIME");
+#endif
 
   g_print(_("Compiled-in features: %s\n"), features->str);
   g_string_free(features, TRUE);
@@ -114,12 +125,34 @@ mn_main_info_log_cb (const char *log_domain,
     g_log_default_handler(log_domain, log_level, message, user_data);
 }
 
+static void
+mn_main_init_classes (void)
+{
+  int i;
+
+  g_type_class_ref(MN_TYPE_AUTOMATION);
+#ifdef WITH_MIME
+  g_type_class_ref(MN_TYPE_GMIME_STREAM_VFS);
+#endif
+  g_type_class_ref(MN_TYPE_MAILBOX);
+  for (i = 0; mn_mailbox_types[i]; i++)
+    g_type_class_ref(mn_mailbox_types[i]);
+  g_type_class_ref(MN_TYPE_MAILBOXES);
+  g_type_class_ref(MN_TYPE_MESSAGE);
+  g_type_class_ref(MN_TYPE_PENDING_MAILBOX);
+  g_type_class_ref(MN_TYPE_SHELL);
+  g_type_class_ref(MN_TYPE_UNSUPPORTED_MAILBOX);
+  g_type_class_ref(MN_TYPE_URI);
+}
+
 int
 main (int argc, char **argv)
 {
   gboolean arg_list_features = FALSE;
+  gboolean arg_display_mail_summary = FALSE;
   gboolean arg_display_properties = FALSE;
   gboolean arg_display_about = FALSE;
+  gboolean arg_close_popup = FALSE;
   gboolean arg_update = FALSE;
   gboolean arg_report = FALSE;
   gboolean arg_unset_obsolete_configuration = FALSE;
@@ -143,6 +176,15 @@ main (int argc, char **argv)
       NULL
     },
     {
+      "display-mail-summary",
+      'm',
+      POPT_ARG_NONE,
+      &arg_display_mail_summary,
+      0,
+      N_("Display the mail summary dialog"),
+      NULL
+    },
+    {
       "display-properties",
       'p',
       POPT_ARG_NONE,
@@ -158,6 +200,15 @@ main (int argc, char **argv)
       &arg_display_about,
       0,
       N_("Display the about dialog"),
+      NULL
+    },
+    {
+      "close-popup",
+      'c',
+      POPT_ARG_NONE,
+      &arg_close_popup,
+      0,
+      N_("Close the mail summary popup"),
       NULL
     },
     {
@@ -255,15 +306,25 @@ main (int argc, char **argv)
     case Bonobo_ACTIVATION_REG_SUCCESS:
       automation = bonobo_activation_activate_from_id(AUTOMATION_IID, 0, NULL, &ev);
       if (CORBA_Object_is_nil(automation, &ev))
-	mn_fatal_error_dialog(_("Bonobo could not locate the automation object. Please check your Mail Notification installation."));
+	mn_fatal_error_dialog(NULL, _("Bonobo could not locate the automation object. Please check your Mail Notification installation."));
 
       if (result != Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
 	{
 	  if (! gnome_vfs_init())
-	    mn_fatal_error_dialog(_("Unable to initialize the GnomeVFS library."));
+	    mn_fatal_error_dialog(NULL, _("Unable to initialize the GnomeVFS library."));
+#ifdef WITH_MIME
+	  g_mime_init(0);
+#endif
 
 	  mn_conf_init();
-	  mn_shell = mn_shell_new();
+	  /*
+	   * Work around
+	   * http://bugzilla.gnome.org/show_bug.cgi?id=64764:
+	   * initialize our non GTK-based classes before any thread is
+	   * created.
+	   */
+	  mn_main_init_classes();
+	  mn_shell_new();
 
 	  if (! eel_gconf_get_boolean(MN_CONF_ALREADY_RUN))
 	    {
@@ -273,10 +334,14 @@ main (int argc, char **argv)
 	    }
 	}
       
+      if (arg_display_mail_summary)
+	GNOME_MNAutomation_displayMailSummary(automation, &ev);
       if (arg_display_properties)
 	GNOME_MNAutomation_displayProperties(automation, &ev);
       if (arg_display_about)
 	GNOME_MNAutomation_displayAbout(automation, &ev);
+      if (arg_close_popup)
+	GNOME_MNAutomation_closePopup(automation, &ev);
 
       if (result == Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
 	{
@@ -294,8 +359,10 @@ main (int argc, char **argv)
 	      CORBA_free(report);
 	    }
 
-	  if (! (arg_display_properties
+	  if (! (arg_display_mail_summary
+		 || arg_display_properties
 		 || arg_display_about
+		 || arg_close_popup
 		 || arg_update
 		 || arg_report))
 	    g_message(_("Mail Notification is already running"));
@@ -305,11 +372,11 @@ main (int argc, char **argv)
       break;
 
     case Bonobo_ACTIVATION_REG_NOT_LISTED:
-      mn_fatal_error_dialog(_("Bonobo could not locate the GNOME_MailNotification_Automation.server file. Please check your Mail Notification installation."));
+      mn_fatal_error_dialog(NULL, _("Bonobo could not locate the GNOME_MailNotification_Automation.server file. Please check your Mail Notification installation."));
       break;
 
     case Bonobo_ACTIVATION_REG_ERROR:
-      mn_fatal_error_dialog(_("Bonobo was unable to register the automation server. Please check your Mail Notification installation."));
+      mn_fatal_error_dialog(NULL, _("Bonobo was unable to register the automation server. Please check your Mail Notification installation."));
       break;
 
     default:

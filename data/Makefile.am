@@ -10,7 +10,7 @@ serverdir = $(libdir)/bonobo/servers
 server_in_files = GNOME_MailNotification_Automation.server.in
 server_DATA = GNOME_MailNotification_Automation.server
 
-schemasdir = $(sysconfdir)/gconf/schemas
+schemasdir = $(GCONF_SCHEMA_FILE_DIR)
 schemas_in_files = mail-notification.schemas.in
 schemas_DATA = mail-notification.schemas
 

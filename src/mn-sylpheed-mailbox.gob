@@ -16,15 +16,35 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include "mn-mailbox.h"
 %}
 %{
 #include "config.h"
+#include <stdlib.h>
 #include <glib/gi18n-lib.h>
 #include "mn-mailbox-private.h"
 #include "mn-vfs.h"
 #include "mn-util.h"
+#ifdef WITH_MIME
+#include "mn-message-mime.h"
+#endif
+
+/* taken from procmsg.h in the Sylpheed sources */
+#define SYLPHEED_MSG_NEW		(1U << 0)
+#define SYLPHEED_MSG_UNREAD		(1U << 1)
+
+/* taken from defs.h in the Sylpheed sources */
+#define SYLPHEED_MARK_FILE		".sylpheed_mark"
+#define SYLPHEED_MARK_VERSION		2
+
+  typedef struct
+  {
+    int		num;
+    guint32	flags;
+  } MarkEntry;
 %}
 
 class MN:Sylpheed:Mailbox from MN:Mailbox
@@ -67,7 +87,7 @@ class MN:Sylpheed:Mailbox from MN:Mailbox
       {
 	GnomeVFSURI *markfile_uri;
 
-	markfile_uri = gnome_vfs_uri_append_file_name(uri->vfs, ".sylpheed_mark");
+	markfile_uri = gnome_vfs_uri_append_file_name(uri->vfs, SYLPHEED_MARK_FILE);
 	is = mn_vfs_test(markfile_uri, G_FILE_TEST_IS_REGULAR);
 	gnome_vfs_uri_unref(markfile_uri);
       }
@@ -82,8 +102,17 @@ class MN:Sylpheed:Mailbox from MN:Mailbox
     GnomeVFSResult close_result;
     GnomeVFSDirectoryHandle *handle;
     GnomeVFSFileInfo *file_info;
+#ifdef WITH_MIME
+    GHashTable *seen_numbers;
+    GSList *messages = NULL;
+#else /* WITH_MIME */
     int total_count = 0;
     int mark_count = 0;
+#endif /* WITH_MIME */
+
+#ifdef WITH_MIME
+    seen_numbers = self_get_seen_numbers(SELF(self));
+#endif
 
     result = gnome_vfs_directory_open_from_uri(&handle, self->uri->vfs, GNOME_VFS_FILE_INFO_FOLLOW_LINKS);
     if (result != GNOME_VFS_OK)
@@ -105,14 +134,31 @@ class MN:Sylpheed:Mailbox from MN:Mailbox
 	if (file_info->name[0] != '.')
 	  {
 	    if (mn_str_isnumeric(file_info->name))
-	      total_count++;
+	      {
+#ifdef WITH_MIME
+		int num = atoi(file_info->name);
+		
+		if (! g_hash_table_lookup(seen_numbers, GINT_TO_POINTER(num)))
+		  {
+		    GnomeVFSURI *message_uri;
+
+		    message_uri = gnome_vfs_uri_append_file_name(self->uri->vfs, file_info->name);
+		    messages = g_slist_append(messages, mn_message_new_from_uri(self->uri, message_uri));
+		    gnome_vfs_uri_unref(message_uri);
+		  }
+#else /* WITH_MIME */
+		total_count++;
+#endif
+	      }
 	  }
-	else if (! strcmp(file_info->name, ".sylpheed_mark") && file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_SIZE)
+#ifndef WITH_MIME
+	else if (! strcmp(file_info->name, SYLPHEED_MARK_FILE) && file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_SIZE)
 	  /*
 	   * Format of a Sylpheed markfile:
-	   * int version, int num, int flags, int num, int flags, ...
+	   * int version, int num, guint32 flags, int num, guint32 flags, ...
 	   */
-	  mark_count = (file_info->size - sizeof(int)) / (sizeof(int) * 2);
+	  mark_count = (file_info->size - sizeof(int)) / (sizeof(int) + sizeof(guint32));
+#endif /* ! WITH_MIME */
       }
     gnome_vfs_file_info_unref(file_info);
     close_result = gnome_vfs_directory_close(handle);
@@ -122,7 +168,14 @@ class MN:Sylpheed:Mailbox from MN:Mailbox
     if (result == GNOME_VFS_ERROR_EOF)
       {
 	if (close_result == GNOME_VFS_OK)
-	  mn_mailbox_set_has_new(self, total_count != mark_count);
+	  {
+#ifdef WITH_MIME
+	    mn_mailbox_set_has_new(self, messages != NULL);
+	    mn_mailbox_set_messages(self, messages);
+#else /* WITH_MIME */
+	    mn_mailbox_set_has_new(self, total_count != mark_count);
+#endif
+	  }
 	else
 	  mn_mailbox_set_error(self, _("unable to close folder: %s"), gnome_vfs_result_to_string(close_result));
       }
@@ -132,5 +185,49 @@ class MN:Sylpheed:Mailbox from MN:Mailbox
 
     gdk_flush();
     GDK_THREADS_LEAVE();
+
+#ifdef WITH_MIME
+    g_hash_table_destroy(seen_numbers);
+    mn_g_object_slist_free(messages);
+#endif
+  }
+
+  private GHashTable *
+    get_seen_numbers (self)
+  {
+#ifdef WITH_MIME
+    GHashTable *seen_numbers;
+    char *uri;
+    int file_size;
+    char *buf;
+    
+    seen_numbers = g_hash_table_new(g_direct_hash, g_direct_equal);
+
+    uri = g_build_path("/", MN_MAILBOX(self)->uri->text, SYLPHEED_MARK_FILE, NULL);
+    if (gnome_vfs_read_entire_file(uri, &file_size, &buf) == GNOME_VFS_OK)
+      {
+	if (file_size >= sizeof(int) && *((int *) buf) == SYLPHEED_MARK_VERSION)
+	  {
+	    int pos = sizeof(int);	/* start after version */
+
+	    while (pos + sizeof(MarkEntry) <= file_size)
+	      {
+		MarkEntry *entry = (MarkEntry *) (buf + pos);
+		
+		if (! (entry->flags & SYLPHEED_MSG_NEW) && ! (entry->flags & SYLPHEED_MSG_UNREAD))
+		  g_hash_table_insert(seen_numbers, GINT_TO_POINTER(entry->num), GINT_TO_POINTER(TRUE));
+		
+		pos += sizeof(MarkEntry);
+	      }
+	  }
+
+	g_free(buf);
+      }
+    g_free(uri);
+    
+    return seen_numbers;
+#else /* WITH_MIME */
+    g_return_val_if_reached(NULL);
+#endif
   }
 }

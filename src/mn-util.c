@@ -20,6 +20,8 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <time.h>
+#include <errno.h>
 #include <gnome.h>
 #include <glade/glade.h>
 #include <eel/eel.h>
@@ -36,6 +38,12 @@ enum {
   TARGET_MOZ_URL
 };
 
+typedef struct
+{
+  gpointer		instance;
+  unsigned long		id;
+} SignalHandler;
+  
 /*** functions ***************************************************************/
 
 static int mn_g_str_slist_compare_func (gconstpointer a, gconstpointer b);
@@ -56,6 +64,19 @@ static void mn_drag_data_received_h (GtkWidget *widget,
 				     gpointer user_data);
 
 static GtkWidget *mn_menu_item_new (const char *stock_id, const char *mnemonic);
+
+static void mn_error_dialog_real (GtkWindow *parent,
+				  gboolean blocking,
+				  const char *not_again_key,
+				  const char *help_link_id,
+				  const char *primary,
+				  const char *secondary);
+static void mn_error_dialog_real_response_h (GtkDialog *dialog,
+					     int response,
+					     gpointer user_data);
+
+static void mn_g_object_connect_weak_notify_cb (gpointer data,
+						GObject *former_object);
 
 /*** implementation **********************************************************/
 
@@ -125,6 +146,19 @@ static int
 mn_g_str_slist_compare_func (gconstpointer a, gconstpointer b)
 {
   return strcmp(a, b);
+}
+
+GSList *
+mn_g_object_slist_ref (GSList *list)
+{
+  g_slist_foreach(list, (GFunc) g_object_ref, NULL);
+  return list;
+}
+
+GSList *
+mn_g_object_slist_copy (GSList *list)
+{
+  return g_slist_copy(mn_g_object_slist_ref(list));
 }
 
 /**
@@ -234,7 +268,7 @@ mn_create_interface (const char *name, ...)
 
       *widget = glade_xml_get_widget(xml, widget_name);
       if (! *widget)
-	g_critical(_("widget %s not found in interface %s"), widget_name, name);
+	g_critical(_("widget \"%s\" not found in interface \"%s\""), widget_name, name);
     }
   va_end(args);
   
@@ -263,14 +297,10 @@ mn_file_chooser_dialog_allow_select_folder (GtkFileChooserDialog *dialog,
 		      || accept_id == GTK_RESPONSE_YES
 		      || accept_id == GTK_RESPONSE_APPLY));
 
-  g_signal_connect(G_OBJECT(dialog),
-		   "file-activated",
-		   G_CALLBACK(mn_file_chooser_dialog_file_activated_h),
-		   GINT_TO_POINTER(accept_id));
-  g_signal_connect(G_OBJECT(dialog),
-		   "response",
-		   G_CALLBACK(mn_file_chooser_dialog_response_h),
-		   GINT_TO_POINTER(accept_id));
+  g_object_connect(dialog,
+		   "signal::file-activated", mn_file_chooser_dialog_file_activated_h, GINT_TO_POINTER(accept_id),
+		   "signal::response", mn_file_chooser_dialog_response_h, GINT_TO_POINTER(accept_id),
+		   NULL);
 }
 
 static void
@@ -323,7 +353,7 @@ mn_setup_dnd (GtkWidget *widget)
 		    targets,
 		    G_N_ELEMENTS(targets),
 		    GDK_ACTION_COPY);
-  g_signal_connect(G_OBJECT(widget),
+  g_signal_connect(widget,
 		   "drag-data-received",
 		   G_CALLBACK(mn_drag_data_received_h),
 		   NULL);
@@ -475,13 +505,13 @@ mn_parse_gnome_copied_files (const char *gnome_copied_files,
 }
 
 void
-mn_display_help (const char *link_id)
+mn_display_help (GtkWindow *parent, const char *link_id)
 {
   GError *err = NULL;
 
   if (! gnome_help_display("mail-notification.xml", link_id, &err))
     {
-      mn_error_dialog(NULL, _("Unable to display help"), "%s", err->message);
+      mn_error_dialog(parent, NULL, _("Unable to display help"), "%s", err->message);
       g_error_free(err);
     }
 }
@@ -495,7 +525,7 @@ mn_thread_create (GThreadFunc func, gpointer data)
   
   if (! g_thread_create(func, data, FALSE, &err))
     {
-      mn_fatal_error_dialog(_("Unable to create a thread: %s."), err->message);
+      mn_fatal_error_dialog(NULL, _("Unable to create a thread: %s."), err->message);
       g_error_free(err);
     }
 }
@@ -648,14 +678,86 @@ mn_menu_item_new (const char *stock_id, const char *mnemonic)
   return item;
 }
 
+static void
+mn_error_dialog_real (GtkWindow *parent,
+		      gboolean blocking,
+		      const char *not_again_key,
+		      const char *help_link_id,
+		      const char *primary,
+		      const char *secondary)
+{
+  GtkWidget *dialog;
+
+  dialog = eel_alert_dialog_new(parent,
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_MESSAGE_ERROR,
+				GTK_BUTTONS_NONE,
+				primary,
+				secondary,
+				NULL);
+
+  if (not_again_key)
+    {
+      GtkWidget *alignment;
+      GtkWidget *check;
+
+      alignment = gtk_alignment_new(0.5, 0.5, 0, 0);
+      check = gtk_check_button_new_with_mnemonic(_("_Do not show this message again"));
+
+      gtk_container_add(GTK_CONTAINER(alignment), check);
+      gtk_widget_show_all(alignment);
+
+      gtk_box_pack_end(GTK_BOX(GTK_DIALOG(dialog)->vbox), alignment, FALSE, FALSE, 0);
+
+      mn_conf_link(check, not_again_key, NULL);
+    }
+  
+  if (help_link_id != NULL)
+    gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_HELP, GTK_RESPONSE_HELP);
+  gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_OK, GTK_RESPONSE_OK);
+
+  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
+
+  if (blocking)
+    {
+      while (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_HELP)
+	mn_display_help(GTK_WINDOW(dialog), help_link_id);
+      gtk_widget_destroy(dialog);
+    }
+  else
+    {
+      g_signal_connect_data(dialog,
+			    "response",
+			    G_CALLBACK(mn_error_dialog_real_response_h),
+			    g_strdup(help_link_id),
+			    (GClosureNotify) g_free,
+			    0);
+      gtk_widget_show(dialog);
+    }
+}
+
+static void
+mn_error_dialog_real_response_h (GtkDialog *dialog,
+				 int response,
+				 gpointer user_data)
+{
+  char *help_link_id = user_data;
+
+  if (response == GTK_RESPONSE_HELP)
+    mn_display_help(GTK_WINDOW(dialog), help_link_id);
+  else
+    gtk_widget_destroy(GTK_WIDGET(dialog));
+}
+
 void
-mn_error_dialog (const char *help_link_id,
+mn_error_dialog (GtkWindow *parent,
+		 const char *not_again_key,
+		 const char *help_link_id,
 		 const char *primary,
 		 const char *format,
 		 ...)
 {
-  GtkWidget *dialog;
-  char *secondary = NULL;
+  char *secondary;
 
   if (format)
     {
@@ -665,29 +767,15 @@ mn_error_dialog (const char *help_link_id,
       secondary = g_strdup_vprintf(format, args);
       va_end(args);
     }
+  else
+    secondary = NULL;
 
-  dialog = eel_alert_dialog_new(NULL,
-				GTK_DIALOG_DESTROY_WITH_PARENT,
-				GTK_MESSAGE_ERROR,
-				GTK_BUTTONS_NONE,
-				primary,
-				secondary,
-				NULL);
-
-  if (help_link_id != NULL)
-    gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_HELP, GTK_RESPONSE_HELP);
-  gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_OK, GTK_RESPONSE_OK);
-
-  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
-
-  while (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_HELP)
-    mn_display_help(help_link_id);
-
-  gtk_widget_destroy(dialog);
+  mn_error_dialog_real(parent, FALSE, not_again_key, help_link_id, primary, secondary);
+  g_free(secondary);
 }
 
 void
-mn_fatal_error_dialog (const char *format, ...)
+mn_fatal_error_dialog (GtkWindow *parent, const char *format, ...)
 {
   va_list args;
   char *secondary;
@@ -698,8 +786,125 @@ mn_fatal_error_dialog (const char *format, ...)
   secondary = g_strdup_vprintf(format, args);
   va_end(args);
 
-  mn_error_dialog(NULL, _("A fatal error has occurred in Mail Notification"), "%s", secondary);
+  mn_error_dialog_real(parent, TRUE, NULL, NULL, _("A fatal error has occurred in Mail Notification"), secondary);
   g_free(secondary);
 
   exit(1);  
+}
+
+time_t
+mn_time (void)
+{
+  time_t t;
+
+  t = time(NULL);
+  if (t < 0)
+    {
+      t = 0;
+      g_warning(_("unable to get current time: %s"), g_strerror(errno));
+    }
+
+  return t;
+}
+
+GType
+mn_position_get_type (void)
+{
+  static GType type = 0;
+
+  if (type == 0)
+    {
+      static const GEnumValue values[] = {
+	{ MN_POSITION_TOP_LEFT, "MN_POSITION_TOP_LEFT", "top-left" },
+	{ MN_POSITION_TOP_RIGHT, "MN_POSITION_TOP_RIGHT", "top-right" },
+	{ MN_POSITION_BOTTOM_LEFT, "MN_POSITION_BOTTOM_LEFT", "bottom-left" },
+	{ MN_POSITION_BOTTOM_RIGHT, "MN_POSITION_BOTTOM_RIGHT", "bottom-right" },
+	{ 0, NULL, NULL }
+      };
+
+      type = g_enum_register_static("MNPosition", values);
+    }
+
+  return type;
+}
+
+/**
+ * mn_g_object_connect:
+ * @object: the object to associate the handlers with
+ * @instance: the instance to connect to
+ * @signal_spec: the spec for the first signal
+ * @...: #GCallback for the first signal, followed by data for the
+ *       first signal, followed optionally by more signal spec/callback/data
+ *       triples, followed by NULL
+ *
+ * Connects to one or more signals of @instance, associating the
+ * handlers with @object. The handlers will be disconnected whenever
+ * @object is finalized.
+ *
+ * Note: this function is not thread-safe. If @object and @instance
+ * are finalized concurrently, the behaviour is undefined.
+ *
+ * The signals specs must be in the same format than those passed to
+ * g_object_connect(), except that object-signal,
+ * swapped-object-signal, object-signal-after and
+ * swapped-object-signal-after are not accepted.
+ *
+ * Return value: @object
+ **/
+gpointer
+mn_g_object_connect (gpointer object,
+		     gpointer instance,
+		     const char *signal_spec,
+		     ...)
+{
+  va_list args;
+
+  g_return_val_if_fail(G_IS_OBJECT(object), NULL);
+  g_return_val_if_fail(G_IS_OBJECT(instance), NULL);
+
+  va_start(args, signal_spec);
+  while (signal_spec)
+    {
+      GCallback callback = va_arg(args, GCallback);
+      gpointer data = va_arg(args, gpointer);
+      SignalHandler *handler;
+
+      handler = g_new(SignalHandler, 1);
+      handler->instance = instance;
+
+      if (! strncmp(signal_spec, "signal::", 8))
+	handler->id = g_signal_connect(instance, signal_spec + 8, callback, data);
+      else if (! strncmp(signal_spec, "swapped_signal", 16)
+	       || ! strncmp(signal_spec, "swapped-signal", 16))
+	handler->id = g_signal_connect_swapped(instance, signal_spec + 16, callback, data);
+      else if (! strncmp(signal_spec, "signal_after::", 14)
+	       || ! strncmp(signal_spec, "signal-after::", 14))
+	handler->id = g_signal_connect_after(instance, signal_spec + 14, callback, data);
+      else if (! strncmp(signal_spec, "swapped_signal_after::", 22)
+	       || ! strncmp(signal_spec, "swapped-signal-after::", 22))
+	handler->id = g_signal_connect_data(instance, signal_spec + 22, callback, data, NULL, G_CONNECT_AFTER | G_CONNECT_SWAPPED);
+      else
+	g_critical(_("invalid signal specification \"%s\""), signal_spec);
+
+      eel_add_weak_pointer(&handler->instance);
+      g_object_weak_ref(object, mn_g_object_connect_weak_notify_cb, handler);
+
+      signal_spec = va_arg(args, const char *);
+    }
+  va_end(args);
+
+  return object;
+}
+
+static void
+mn_g_object_connect_weak_notify_cb (gpointer data, GObject *former_object)
+{
+  SignalHandler *handler = data;
+
+  if (handler->instance)
+    {
+      g_signal_handler_disconnect(handler->instance, handler->id);
+      eel_remove_weak_pointer(&handler->instance);
+    }
+  g_free(handler);
 }

@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include <gtk/gtk.h>
 %}
@@ -82,8 +84,8 @@ class MN:Gmail:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties
 				       GTK_ENTRY(selfp->password_entry),
 				       NULL);
 
-    g_signal_connect(G_OBJECT(selfp->username_entry), "changed", G_CALLBACK(self_entry_changed_h), self);
-    g_signal_connect(G_OBJECT(selfp->password_entry), "changed", G_CALLBACK(self_entry_changed_h), self);
+    g_signal_connect(selfp->username_entry, "changed", G_CALLBACK(self_entry_changed_h), self);
+    g_signal_connect(selfp->password_entry, "changed", G_CALLBACK(self_entry_changed_h), self);
     
     return object;
   }

@@ -25,6 +25,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include "mn-mailbox.h"
 %}
@@ -42,6 +44,9 @@
 #include "mn-client-session.h"
 #include "mn-util.h"
 #include "mn-md5.h"
+#ifdef WITH_MIME
+#include "mn-message-mime.h"
+#endif
 
   enum
   {
@@ -56,7 +61,12 @@
     STATE_APOP,
     STATE_USER,
     STATE_PASS,
+#ifdef WITH_MIME
+    STATE_LIST,
+    STATE_RETR,
+#else /* WITH_MIME */
     STATE_STAT,
+#endif
     STATE_QUIT
   };
 
@@ -83,6 +93,12 @@
 #endif
     gboolean		authenticated;
     gboolean		login_delay_user;
+#ifdef WITH_MIME
+    GSList		*message_numbers;
+    GSList		*current_message_number;
+    GSList		*messages;
+    GString		*current_message;
+#endif
   };
 
   typedef enum
@@ -104,7 +120,7 @@
 class MN:POP3:Mailbox from MN:Mailbox
 {
   private int login_delay;
-  private GTimer *authentication_timer;
+  private GTimer *authentication_timer destroywith g_timer_destroy;
 
   class_init (class)
   {
@@ -177,11 +193,11 @@ class MN:POP3:Mailbox from MN:Mailbox
 		    MNClientSessionResponse *response (check null),
 		    MNClientSessionPrivate *priv (check null))
   {
+    self_handle_list_response(priv, response);
+
     switch (response->type)
       {
       case RESPONSE_OK:
-	priv->in_list = TRUE;
-      
 	eel_g_slist_free_deep(priv->auth_mechanisms);
 	priv->auth_mechanisms = NULL;
 	priv->self->_priv->login_delay = 0;
@@ -194,9 +210,8 @@ class MN:POP3:Mailbox from MN:Mailbox
 	
       case RESPONSE_ERR:
       case RESPONSE_LIST_END:
-	priv->in_list = FALSE;
 	if (priv->authenticated)
-	  return STATE_STAT;
+	  return self_session_check_mail(priv);
 
 #ifdef WITH_SSL
 	if (MN_URI_IS_INBAND_SSL(priv->mailbox->uri)
@@ -258,7 +273,6 @@ class MN:POP3:Mailbox from MN:Mailbox
 	return MN_CLIENT_SESSION_RESULT_CONTINUE;
 	
       default:
-	priv->in_list = FALSE;
 	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
       }
   }
@@ -420,10 +434,130 @@ class MN:POP3:Mailbox from MN:Mailbox
   }
 
   private int
+    enter_list_cb (MNClientSession *session (check null),
+		   MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_MIME
+    return mn_client_session_write(session, "LIST");
+#else
+    g_return_val_if_reached(0);
+#endif
+  }
+
+  private int
+    handle_list_cb (MNClientSession *session (check null),
+		    MNClientSessionResponse *response (check null),
+		    MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_MIME
+    self_handle_list_response(priv, response);
+
+    switch (response->type)
+      {
+      case RESPONSE_OK:
+	return MN_CLIENT_SESSION_RESULT_CONTINUE;
+
+      case RESPONSE_LIST_END:
+	priv->current_message_number = priv->message_numbers;
+	return STATE_RETR;
+
+      case RESPONSE_ERR:
+	return RESULT_ERROR_END;
+
+      case RESPONSE_LIST_ITEM:
+	{
+	  int num;
+	  int size;
+	  
+	  if (sscanf(response->arguments, "%d %d", &num, &size) == 2)
+	    priv->message_numbers = g_slist_append(priv->message_numbers, GINT_TO_POINTER(num));
+	  else			/* compliance error */
+	    return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+	}
+	return MN_CLIENT_SESSION_RESULT_CONTINUE;
+	
+      default:
+	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+      }
+#else /* WITH_MIME */
+    g_return_val_if_reached(0);
+#endif
+  }
+  
+  private int
+    enter_retr_cb (MNClientSession *session (check null),
+		   MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_MIME
+    if (priv->current_message_number)
+      return mn_client_session_write(session, "RETR %i", GPOINTER_TO_INT(priv->current_message_number->data));
+    else
+      {
+	GDK_THREADS_ENTER();
+	mn_mailbox_set_has_new(priv->mailbox, priv->messages != NULL);
+	mn_mailbox_set_messages(priv->mailbox, priv->messages);
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+	
+	return STATE_QUIT;
+      }
+#else
+    g_return_val_if_reached(0);
+#endif
+  }
+
+  private int
+    handle_retr_cb (MNClientSession *session (check null),
+		    MNClientSessionResponse *response (check null),
+		    MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_MIME
+    self_handle_list_response(priv, response);
+
+    switch (response->type)
+      {
+      case RESPONSE_OK:
+	if (priv->current_message)
+	  g_string_free(priv->current_message, TRUE);
+	priv->current_message = g_string_new(NULL);
+	return MN_CLIENT_SESSION_RESULT_CONTINUE;
+
+      case RESPONSE_LIST_END:
+	priv->messages = g_slist_append(priv->messages,
+					mn_message_new_from_buffer(priv->mailbox->uri,
+								   priv->current_message->str,
+								   priv->current_message->len));
+	priv->current_message_number = priv->current_message_number->next;
+	return STATE_RETR;
+
+      case RESPONSE_ERR:
+	priv->messages = g_slist_append(priv->messages,
+					mn_message_new_from_error(priv->mailbox->uri,
+								  response->arguments ? response->arguments : _("unknown error")));
+	priv->current_message_number = priv->current_message_number->next;
+	return STATE_RETR;
+
+      case RESPONSE_LIST_ITEM:
+	g_string_append_printf(priv->current_message, "%s\n", response->arguments);
+	return MN_CLIENT_SESSION_RESULT_CONTINUE;
+
+      default:
+	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+      }
+#else
+    g_return_val_if_reached(0);
+#endif
+  }
+  
+  private int
     enter_stat_cb (MNClientSession *session (check null),
 		   MNClientSessionPrivate *priv (check null))
   {
+#ifndef WITH_MIME
     return mn_client_session_write(session, "STAT");
+#else
+    g_return_val_if_reached(0);
+#endif
   }
 
   private int
@@ -431,6 +565,7 @@ class MN:POP3:Mailbox from MN:Mailbox
 		    MNClientSessionResponse *response (check null),
 		    MNClientSessionPrivate *priv (check null))
   {
+#ifndef WITH_MIME
     switch (response->type)
       {
       case RESPONSE_OK:
@@ -455,6 +590,9 @@ class MN:POP3:Mailbox from MN:Mailbox
       case RESPONSE_ERR:	return RESULT_ERROR_QUIT;
       default:			return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
       }
+#else /* ! WITH_MIME */
+    g_return_val_if_reached(0);
+#endif
   }
 
   private int
@@ -493,7 +631,12 @@ class MN:POP3:Mailbox from MN:Mailbox
       { STATE_APOP,		self_enter_apop_cb,	self_handle_apop_cb },
       { STATE_USER,		self_enter_user_cb,	self_handle_user_cb },
       { STATE_PASS,		self_enter_pass_cb,	self_handle_pass_cb },
+#ifdef WITH_MIME
+      { STATE_LIST,		self_enter_list_cb,	self_handle_list_cb },
+      { STATE_RETR,		self_enter_retr_cb,	self_handle_retr_cb },
+#else /* WITH_MIME */
       { STATE_STAT,		self_enter_stat_cb,	self_handle_stat_cb },
+#endif
       { STATE_QUIT,		self_enter_quit_cb,	self_handle_quit_cb },
       
       MN_CLIENT_SESSION_STATES_END
@@ -558,6 +701,12 @@ class MN:POP3:Mailbox from MN:Mailbox
 
     g_free(priv.apop_timestamp);
     eel_g_slist_free_deep(priv.auth_mechanisms);
+#ifdef WITH_MIME
+    g_slist_free(priv.message_numbers);
+    mn_g_object_slist_free(priv.messages);
+    if (priv.current_message)
+      g_string_free(priv.current_message, TRUE);
+#endif
   }
 
   private void
@@ -731,9 +880,19 @@ class MN:POP3:Mailbox from MN:Mailbox
 	else
 	  priv->self->_priv->authentication_timer = g_timer_new();
       }
-    return priv->login_delay_user ? STATE_CAPA : STATE_STAT;
+    return priv->login_delay_user ? STATE_CAPA : self_session_check_mail(priv);
   }
 
+  private int
+    session_check_mail (MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_MIME
+    return STATE_LIST;
+#else
+    return STATE_STAT;
+#endif
+  }
+  
   private void
     session_set_error_from_arguments (MNClientSessionPrivate *priv (check null),
 				      MNClientSessionResponse *response (check null))
@@ -742,5 +901,24 @@ class MN:POP3:Mailbox from MN:Mailbox
       mn_client_session_error(priv->session, "\"%s\"", response->arguments);
     else
       mn_client_session_error(priv->session, _("unknown server error"));
+  }
+
+  private void
+    handle_list_response (MNClientSessionPrivate *priv (check null),
+			  MNClientSessionResponse *response (check null))
+  {
+    switch (response->type)
+      {
+      case RESPONSE_OK:
+	priv->in_list = TRUE;
+	break;
+
+      case RESPONSE_LIST_ITEM:	/* nop */
+	break;
+
+      default:
+	priv->in_list = FALSE;
+	break;
+      }
   }
 }

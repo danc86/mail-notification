@@ -1,3 +1,33 @@
+0.7.0					06 October 2004
+
+	* Binaries compiled with GCC 3.4.x were crashing in various
+	  places: fixed
+	* Fixed a vulnerability in the IMAP code (a malicious IMAP
+	  server could trigger a null pointer dereference by sending
+	  an invalid reply)
+	* Fixed a vulnerability in the Gmail code (a man in the middle
+	  attack could, with some libsoup configurations, trigger a
+	  null pointer indirection)
+	* The properties dialog has been split into tabs
+	* A mail summary has been added (requires GMime version 2.0 or
+	  superior)
+	* Double-clicking on the icon now displays the mail summary
+	  (the double-clicked command has been removed)
+	* The "new mail" command is now executed everytime a mailbox
+	  receives one or more new messages
+	* Tracks the latest Gmail change (reported by Vincent Noel)
+	* Gmail support now requires libsoup version 2.2 or superior
+	  (which is part of GNOME 2.8)
+	* The manual is now installed in the proper location (Pascal
+	  Giard, Christian Krause)
+	* The --with-gconf-schema-file-dir configure argument was
+	  ignored: fixed (Julio M. Merino Vidal)
+	* A few minor issues have been fixed
+	* Some cleanups have been performed
+	* The german translations have been updated (Hendrik Brandt)
+	* Added serbian translations (Filip Miletic)
+	* Added bulgarian translations (Vladimir Petkov)
+
 0.6.2					09 September 2004
 
 	* Added STARTTLS support to the IMAP backend
@@ -17,7 +47,7 @@
 	* Fixed a typo in the MD5 code which prevented builds on some
 	  platforms (reported by Andy Shaw)
 	* Automatic mailboxes were also polled: fixed
-	* Added german translations (Henrik Brandt)
+	* Added german translations (Hendrik Brandt)
 	* Added portuguese translations (Duarte Henriques)
 	* A few minor issues have been fixed
 	* Some cleanups have been performed

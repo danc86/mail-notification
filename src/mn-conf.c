@@ -32,6 +32,9 @@
 #define WINDOW_WIDTH_KEY		"mn-conf-window-width-key"
 #define WINDOW_HEIGHT_KEY		"mn-conf-window-height-key"
 
+#define COMBO_BOX_KEY			"mn-conf-combo-box-key"
+#define COMBO_BOX_STRING_COLUMN		"mn-conf-combo-box-string-column"
+
 /*** types *******************************************************************/
 
 typedef struct
@@ -42,6 +45,16 @@ typedef struct
 } StartupClient;
 
 /*** functions ***************************************************************/
+
+static void mn_conf_link_combo_box_to_string_update_active (GtkComboBox *combo,
+							    int string_column,
+							    const char *value);
+static void mn_conf_link_combo_box_to_string_changed_h (GtkComboBox *combo,
+							gpointer user_data);
+static void mn_conf_link_combo_box_to_string_notify_cb (GConfClient *client,
+							guint cnxn_id,
+							GConfEntry *entry,
+							gpointer user_data);
 
 static gboolean mn_conf_link_window_h (GtkWidget *widget,
 				       GdkEventConfigure *event,
@@ -100,6 +113,7 @@ mn_conf_unset_obsolete (void)
     MN_CONF_LOCAL_NAMESPACE,
     MN_CONF_REMOTE_NAMESPACE,
     MN_CONF_COMMANDS_CLICKED_NAMESPACE,
+    MN_CONF_COMMANDS_DOUBLE_CLICKED_NAMESPACE,
     MN_CONF_PREFERENCES_DIALOG
   };
   int i;
@@ -206,6 +220,100 @@ mn_conf_link (GtkWidget *widget, ...)
       widget = va_arg(args, GtkWidget *);
     }
   va_end(args);
+}
+
+void
+mn_conf_link_combo_box_to_string (GtkComboBox *combo,
+				  int string_column,
+				  const char *key)
+{
+  char *value;
+  unsigned int notification_id;
+
+  g_return_if_fail(GTK_IS_COMBO_BOX(combo));
+  g_return_if_fail(key != NULL);
+
+  g_object_set_data_full(G_OBJECT(combo), COMBO_BOX_KEY, g_strdup(key), g_free);
+  g_object_set_data(G_OBJECT(combo), COMBO_BOX_STRING_COLUMN, GINT_TO_POINTER(string_column));
+
+  value = eel_gconf_get_string(key);
+  mn_conf_link_combo_box_to_string_update_active(combo, string_column, value);
+  g_free(value);
+
+  g_signal_connect(combo, "changed", G_CALLBACK(mn_conf_link_combo_box_to_string_changed_h), NULL);
+  notification_id = eel_gconf_notification_add(key, mn_conf_link_combo_box_to_string_notify_cb, combo);
+  g_object_weak_ref(G_OBJECT(combo), mn_conf_link_weak_notify_cb, GUINT_TO_POINTER(notification_id));
+}
+
+static void
+mn_conf_link_combo_box_to_string_update_active (GtkComboBox *combo,
+						int string_column,
+						const char *value)
+{
+  g_return_if_fail(GTK_IS_COMBO_BOX(combo));
+
+  if (value)
+    {
+      GtkTreeModel *model;
+      GtkTreeIter iter;
+      gboolean valid;
+      
+      model = gtk_combo_box_get_model(combo);
+      valid = gtk_tree_model_get_iter_first(model, &iter);
+
+      while (valid)
+	{
+	  char *this_value;
+	  gboolean found;
+	  
+	  gtk_tree_model_get(model, &iter, string_column, &this_value, -1);
+	  found = this_value && ! strcmp(this_value, value);
+	  g_free(this_value);
+	  
+	  if (found)
+	    {
+	      gtk_combo_box_set_active_iter(combo, &iter);
+	      break;
+	    }
+	  
+	  valid = gtk_tree_model_iter_next(model, &iter);
+	}
+    }
+}
+
+static void
+mn_conf_link_combo_box_to_string_changed_h (GtkComboBox *combo,
+					    gpointer user_data)
+{
+  GtkTreeModel *model;
+  GtkTreeIter iter;
+
+  model = gtk_combo_box_get_model(combo);
+  if (gtk_combo_box_get_active_iter(combo, &iter))
+    {
+      const char *key = g_object_get_data(G_OBJECT(combo), COMBO_BOX_KEY);
+      int string_column = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(combo), COMBO_BOX_STRING_COLUMN));
+      char *value;
+
+      gtk_tree_model_get(model, &iter, string_column, &value, -1);
+      eel_gconf_set_string(key, value);
+      g_free(value);
+    }
+}
+
+static void
+mn_conf_link_combo_box_to_string_notify_cb (GConfClient *client,
+					    guint cnxn_id,
+					    GConfEntry *entry,
+					    gpointer user_data)
+{
+  GtkComboBox *combo = user_data;
+  GConfValue *value = gconf_entry_get_value(entry);
+  int string_column = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(combo), COMBO_BOX_STRING_COLUMN));
+
+  GDK_THREADS_ENTER();
+  mn_conf_link_combo_box_to_string_update_active(combo, string_column, gconf_value_get_string(value));
+  GDK_THREADS_LEAVE();
 }
 
 static gboolean
@@ -506,4 +614,30 @@ mn_conf_set_autostart (gboolean autostart)
       mn_conf_startup_list_write(clients, SESSION_MANUAL_NAME);
     }
   mn_conf_startup_clients_free(clients);
+}
+
+GEnumValue *
+mn_conf_get_enum_value (GType enum_type, const char *key)
+{
+  GEnumClass *enum_class;
+  GEnumValue *enum_value = NULL;
+
+  g_return_val_if_fail(key != NULL, NULL);
+
+  enum_class = g_type_class_ref(enum_type);
+  if (enum_class)
+    {
+      char *nick;
+
+      nick = eel_gconf_get_string(key);
+      if (nick)
+	{
+	  enum_value = g_enum_get_value_by_nick(enum_class, nick);
+	  g_free(nick);
+	}
+
+      g_type_class_unref(enum_class);
+    }
+
+  return enum_value;
 }

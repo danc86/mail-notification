@@ -1,0 +1,260 @@
+/* 
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.10
+
+%headertop{
+#include <libgnomevfs/gnome-vfs.h>
+#include <gmime/gmime.h>
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n-lib.h>
+
+#define VFS_CALL(stream, expr, fail_format, fail_retval)		\
+  {									\
+    GnomeVFSResult result;						\
+									\
+    result = expr;							\
+    if (result != GNOME_VFS_OK)						\
+      {									\
+	(stream)->_priv->eof = TRUE;					\
+	if (result != GNOME_VFS_ERROR_EOF)				\
+	  {								\
+	    g_warning((fail_format),					\
+		      (stream)->_priv->uri,				\
+		      gnome_vfs_result_to_string(result));		\
+	    return (fail_retval);					\
+	  }								\
+      }									\
+  }
+
+#define VFS_READ(stream, buffer, bytes, bytes_read, fail_retval) \
+  VFS_CALL((stream), gnome_vfs_read((stream)->_priv->handle, (buffer), (bytes), (bytes_read)), _("unable to read %s: %s"), (fail_retval))
+#define VFS_WRITE(stream, buffer, bytes, bytes_written, fail_retval) \
+  VFS_CALL((stream), gnome_vfs_write((stream)->_priv->handle, (buffer), (bytes), (bytes_written)), _("unable to write to %s: %s"), (fail_retval))
+#define VFS_SEEK(stream, whence, offset, fail_retval) \
+  VFS_CALL((stream), gnome_vfs_seek((stream)->_priv->handle, (whence), (offset)), _("unable to seek in %s: %s"), (fail_retval))
+#define VFS_TELL(stream, offset_return, fail_retval) \
+  VFS_CALL((stream), gnome_vfs_tell((stream)->_priv->handle, (offset_return)), _("unable to tell position of %s: %s"), (fail_retval))
+#define VFS_CLOSE(stream, fail_retval) \
+  VFS_CALL((stream), gnome_vfs_close((stream)->_priv->handle), _("unable to close %s: %s"), (fail_retval))
+%}
+
+class MN:GMime:Stream:VFS from GMime:Stream
+{
+  private GnomeVFSHandle *handle;
+  private char *uri destroywith g_free; /* used in error messages only */
+  private gboolean eof;
+
+  override (GMime:Stream) ssize_t
+    read (GMime:Stream *stream (check null type),
+	  char *buf (check null),
+	  size_t len)
+  {
+    Self *self = SELF(stream);
+    GnomeVFSFileSize bytes_read;
+
+    if (stream->bound_end != -1 && stream->position >= stream->bound_end)
+      return -1;
+    if (stream->bound_end != -1)
+      len = MIN(stream->bound_end - stream->position, (off_t) len);
+
+    /* make sure we are at the right position */
+    VFS_SEEK(self, GNOME_VFS_SEEK_START, stream->position, -1);
+
+    VFS_READ(self, buf, len, &bytes_read, -1);
+    stream->position += bytes_read;
+    
+    return bytes_read;
+  }
+
+  override (GMime:Stream) ssize_t
+    write (GMime:Stream *stream (check null type),
+	   const char *buf (check null),
+	   size_t len)
+  {
+    Self *self = SELF(stream);
+    GnomeVFSFileSize bytes_written;
+
+    if (stream->bound_end != -1 && stream->position >= stream->bound_end)
+      return -1;
+    if (stream->bound_end != -1)
+      len = MIN(stream->bound_end - stream->position, (off_t) len);
+
+    /* make sure we are at the right position */
+    VFS_SEEK(self, GNOME_VFS_SEEK_START, stream->position, -1);
+
+    VFS_WRITE(self, buf, len, &bytes_written, -1);
+    stream->position += bytes_written;
+
+    return bytes_written;
+  }
+
+  override (GMime:Stream) int
+    flush (GMime:Stream *stream (check null type))
+  {
+    /* nop */
+    return 0;			/* success */
+  }
+  
+  override (GMime:Stream) int
+    close (GMime:Stream *stream (check null type))
+  {
+    Self *self = SELF(stream);
+
+    VFS_CLOSE(self, -1);
+
+    return 0;			/* success */
+  }
+
+  override (GMime:Stream) gboolean
+    eos (GMime:Stream *stream (check null type))
+  {
+    Self *self = SELF(stream);
+
+    if (stream->bound_end == -1)
+      return selfp->eof;
+    else
+      return stream->position >= stream->bound_end;
+  }
+
+  override (GMime:Stream) int
+    reset (GMime:Stream *stream (check null type))
+  {
+    Self *self = SELF(stream);
+
+    if (stream->position == stream->bound_start)
+      return 0;
+
+    VFS_SEEK(self, GNOME_VFS_SEEK_START, stream->bound_start, -1);
+    stream->position = stream->bound_start;
+
+    return 0;
+  }
+
+  override (GMime:Stream) off_t
+    seek (GMime:Stream *stream (check null type),
+	  off_t offset,
+	  GMimeSeekWhence whence)
+  {
+    Self *self = SELF(stream);
+    off_t real = stream->position;
+
+    switch (whence)
+      {
+      case GMIME_STREAM_SEEK_SET:
+	real = offset;
+	break;
+
+      case GMIME_STREAM_SEEK_CUR:
+	real = stream->position + offset;
+	break;
+
+      case GMIME_STREAM_SEEK_END:
+	if (stream->bound_end == -1)
+	  {
+	    GnomeVFSFileSize current_position;
+
+	    VFS_SEEK(self, GNOME_VFS_SEEK_END, offset, -1);
+	    VFS_TELL(self, &current_position, -1);
+
+	    real = current_position;
+	    if (real < stream->bound_start)
+	      real = stream->bound_start;
+	    stream->position = real;
+	    
+	    return real;
+	  }
+	real = stream->bound_end + offset;
+	break;
+      }
+    
+    if (stream->bound_end != -1)
+      real = MIN(real, stream->bound_end);
+    real = MAX(real, stream->bound_start);
+
+    VFS_SEEK(self, GNOME_VFS_SEEK_START, real, -1);
+    stream->position = real;
+
+    return real;
+  }
+  
+  override (GMime:Stream) off_t
+    tell (GMime:Stream *stream (check null type))
+  {
+    return stream->position;
+  }
+  
+  override (GMime:Stream) ssize_t
+    length (GMime:Stream *stream (check null type))
+  {
+    Self *self = SELF(stream);
+    GnomeVFSFileSize bound_end;
+
+    if (stream->bound_start != -1 && stream->bound_end != -1)
+      return stream->bound_end - stream->bound_start;
+
+    VFS_SEEK(self, GNOME_VFS_SEEK_END, 0, -1);
+    VFS_TELL(self, &bound_end, -1);
+    VFS_SEEK(self, GNOME_VFS_SEEK_START, stream->position, -1);
+    
+    if (bound_end < stream->bound_start)
+      return -1;
+    
+    return bound_end - stream->bound_start;
+  }
+
+  override (GMime:Stream) GMimeStream *
+    substream (GMime:Stream *stream (check null type), off_t start, off_t end)
+  {
+    Self *self;
+
+    self = GET_NEW;
+    selfp->handle = SELF(stream)->_priv->handle;
+
+    g_mime_stream_construct(GMIME_STREAM(self), start, end);
+
+    return GMIME_STREAM(self);
+  }
+
+  public GMimeStream *
+    new (GnomeVFSHandle *handle (check null), const char *uri (check null))
+  {
+    Self *self;
+    GMimeStream *stream;
+    GnomeVFSFileSize current_position;
+
+    self = GET_NEW;
+    selfp->handle = handle;
+    selfp->uri = g_strdup(uri);
+    
+    if (gnome_vfs_tell(selfp->handle, &current_position) != GNOME_VFS_OK)
+      current_position = 0;
+    
+    stream = GMIME_STREAM(self);
+    g_mime_stream_construct(stream, current_position, -1);
+    
+    /* check for EOF */
+    if (g_mime_stream_length(stream) <= 0)
+      selfp->eof = TRUE;
+
+    return stream;
+  }
+}

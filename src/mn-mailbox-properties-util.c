@@ -106,7 +106,7 @@ mn_mailbox_properties_link_entries (GtkEntry *first, ...)
       if (next)
 	g_return_if_fail(GTK_IS_ENTRY(next));
 
-      g_signal_connect(G_OBJECT(entry),
+      g_signal_connect(entry,
 		       "activate",
 		       G_CALLBACK(mn_mailbox_properties_entry_activate_h),
 		       next ? next : first);

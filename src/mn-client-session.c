@@ -48,7 +48,7 @@
 /*** cpp *********************************************************************/
 
 #define READ_BUFSIZE				2048
-
+  
 /*** types *******************************************************************/
 
 struct _MNClientSession
@@ -63,6 +63,8 @@ struct _MNClientSession
   MNClientSessionState		*state;
   char				*error;
   MNClientSessionPrivate	*private;
+  GByteArray			*input_buffer;
+  unsigned int			bytes_to_remove;
   
 #ifdef WITH_SSL
   SSL				*ssl;
@@ -106,6 +108,8 @@ static gboolean mn_client_session_run_untrusted_dialog (const char *hostname,
 static int mn_client_session_enter_state (MNClientSession *session, int id);
 static gboolean mn_client_session_handle_input (MNClientSession *session, const char *input);
 
+static void mn_client_session_prepare_input_buffer (MNClientSession *session);
+
 #ifdef WITH_SASL
 static int mn_client_session_write_base64 (MNClientSession *session,
 					   const char *buf,
@@ -132,7 +136,7 @@ mn_client_session_run (MNClientSessionState *states,
 {
   MNClientSession session;
   struct addrinfo *addrinfo;
-  GString *input_buffer;
+  const char *line;
 
   g_return_val_if_fail(states != NULL, FALSE);
   g_return_val_if_fail(callbacks != NULL, FALSE);
@@ -170,70 +174,11 @@ mn_client_session_run (MNClientSessionState *states,
 
   mn_client_session_enter_state(&session, MN_CLIENT_SESSION_INITIAL_STATE);
 
-  input_buffer = g_string_new(NULL);
-  while (TRUE)
-    {
-      char buf[READ_BUFSIZE];
-      ssize_t bytes_read;
-      const char *in = NULL;
-      unsigned int inlen;
-      char *terminator;
-      gboolean cont = TRUE;
-
-#ifdef WITH_SSL
-      if (session.ssl)
-	bytes_read = SSL_read(session.ssl, buf, sizeof(buf));
-      else
-#endif /* WITH_SSL */
-	do
-	  bytes_read = read(session.s, buf, sizeof(buf));
-	while (bytes_read < 0 && errno == EINTR);
-	  
-      if (bytes_read <= 0)
-	{
-#ifdef WITH_SSL
-	  if (session.ssl)
-	    mn_client_session_error(&session, _("unable to read from server: %s"), mn_ssl_get_error());
-	  else
-#endif /* WITH_SSL */
-	    {
-	      if (bytes_read == 0)
-		mn_client_session_error(&session, _("unable to read from server: EOF"));
-	      else
-		mn_client_session_error(&session, _("unable to read from server: %s"), g_strerror(errno));
-	    }
-	  break;		/* end */
-	}
-
-#ifdef WITH_SASL
-      if (session.sasl_ssf)
-	{
-	  if (sasl_decode(session.sasl_conn, buf, bytes_read, &in, &inlen) != SASL_OK)
-	    {
-	      mn_client_session_error(&session, _("unable to decode data using SASL: %s"), sasl_errdetail(session.sasl_conn));
-	      break;		/* end */
-	    }
-	}
-#endif /* WITH_SASL */
-
-      if (! in)
-	{
-	  in = buf;
-	  inlen = bytes_read;
-	}
-      
-      g_string_append_len(input_buffer, in, inlen);
-      while (cont && (terminator = strstr(input_buffer->str, "\r\n")))
-	{
-	  *terminator = 0;
-	  cont = mn_client_session_handle_input(&session, input_buffer->str);
-	  g_string_erase(input_buffer, 0, terminator - input_buffer->str + 2);
-	}
-      
-      if (! cont)
-	break;
-    }
-  g_string_free(input_buffer, TRUE);
+  session.input_buffer = g_byte_array_new();
+  while ((line = mn_client_session_read_line(&session)))
+    if (! mn_client_session_handle_input(&session, line))
+      break;
+  g_byte_array_free(session.input_buffer, TRUE);
   
  end:
   g_free(session.hostname);
@@ -564,8 +509,6 @@ mn_client_session_handle_input (MNClientSession *session, const char *input)
   g_return_val_if_fail(session != NULL, FALSE);
   g_return_val_if_fail(input != NULL, FALSE);
 
-  mn_client_session_notice(session, "< %s", input);
-
   response = session->callbacks->response_new(session, input, session->private);
   if (response)
     {
@@ -597,7 +540,7 @@ mn_client_session_handle_input (MNClientSession *session, const char *input)
 	    result = mn_client_session_enter_state(session, result);
 	  else			/* custom result */
 	    {
-	      g_return_val_if_fail(session->callbacks->custom_handler != NULL, NULL);
+	      g_return_val_if_fail(session->callbacks->custom_handler != NULL, FALSE);
 	      result = session->callbacks->custom_handler(session, response, result, session->private);
 	    }
 	  goto loop;
@@ -612,6 +555,152 @@ mn_client_session_handle_input (MNClientSession *session, const char *input)
     }
 
   return cont;
+}
+
+static void
+mn_client_session_prepare_input_buffer (MNClientSession *session)
+{
+  g_return_if_fail(session != NULL);
+
+  if (session->bytes_to_remove)
+    g_byte_array_remove_range(session->input_buffer, 0, session->bytes_to_remove);
+}
+
+static gboolean
+mn_client_session_fill_input_buffer (MNClientSession *session)
+{
+  char buf[READ_BUFSIZE];
+  ssize_t bytes_read;
+  const char *in = NULL;
+  unsigned int inlen;
+  
+  g_return_val_if_fail(session != NULL, FALSE);
+
+#ifdef WITH_SSL
+  if (session->ssl)
+    bytes_read = SSL_read(session->ssl, buf, sizeof(buf));
+  else
+#endif /* WITH_SSL */
+    do
+      bytes_read = read(session->s, buf, sizeof(buf));
+    while (bytes_read < 0 && errno == EINTR);
+	  
+  if (bytes_read <= 0)
+    {
+#ifdef WITH_SSL
+      if (session->ssl)
+	mn_client_session_error(session, _("unable to read from server: %s"), mn_ssl_get_error());
+      else
+#endif /* WITH_SSL */
+	{
+	  if (bytes_read == 0)
+	    mn_client_session_error(session, _("unable to read from server: EOF"));
+	  else
+	    mn_client_session_error(session, _("unable to read from server: %s"), g_strerror(errno));
+	}
+      return FALSE;
+    }
+
+#ifdef WITH_SASL
+  if (session->sasl_ssf)
+    {
+      if (sasl_decode(session->sasl_conn, buf, bytes_read, &in, &inlen) != SASL_OK)
+	{
+	  mn_client_session_error(session, _("unable to decode data using SASL: %s"), sasl_errdetail(session->sasl_conn));
+	  return FALSE;
+	}
+    }
+#endif /* WITH_SASL */
+
+  if (! in)
+    {
+      in = buf;
+      inlen = bytes_read;
+    }
+
+  g_byte_array_append(session->input_buffer, in, inlen);
+  return TRUE;
+}
+
+/**
+ * mn_client_session_read:
+ * @session: a #MNClientSession object to read from
+ * @nbytes: the number of bytes to read
+ *
+ * Reads exactly @nbytes from @session. If an error occurs,
+ * mn_client_session_error() will be called on @session.
+ *
+ * Return value: a pointer to a buffer containing @nbytes on success,
+ *               %NULL on failure. The pointer will be valid until the
+ *               next call to mn_client_session_read() or
+ *               mn_client_session_read_line().
+ **/
+gconstpointer
+mn_client_session_read (MNClientSession *session, unsigned int nbytes)
+{
+  GString *printable;
+  int i;
+
+  g_return_val_if_fail(session != NULL, FALSE);
+  g_return_val_if_fail(session->input_buffer != NULL, FALSE);
+  g_return_val_if_fail(nbytes >= 0, FALSE);
+
+  mn_client_session_prepare_input_buffer(session);
+
+  while (session->input_buffer->len < nbytes)
+    if (! mn_client_session_fill_input_buffer(session))
+      return FALSE;
+
+  session->bytes_to_remove = nbytes;
+
+  printable = g_string_new(NULL);
+  for (i = 0; i < nbytes; i++)
+    if (g_ascii_isprint(session->input_buffer->data[i]))
+      g_string_append_c(printable, session->input_buffer->data[i]);
+    else
+      g_string_append_printf(printable, "<%02X>", (int) session->input_buffer->data[i]);
+  mn_client_session_notice(session, "< %s", printable->str);
+  g_string_free(printable, TRUE);
+  
+  return session->input_buffer->data;
+}
+
+/**
+ * mn_client_session_read_line:
+ * @session: a #MNClientSession object to read from
+ *
+ * Reads a crlf-terminated line from @session. If an error occurs,
+ * mn_client_session_error() will be called on @session.
+ *
+ * Return value: the line read on success, %NULL on failure. The
+ *               pointer will be valid until the next call to
+ *               mn_client_session_read() or mn_client_session_read_line().
+ **/
+const char *
+mn_client_session_read_line (MNClientSession *session)
+{
+  char *terminator;
+  const char *line;
+
+  g_return_val_if_fail(session != NULL, NULL);
+  g_return_val_if_fail(session->input_buffer != NULL, NULL);
+
+  mn_client_session_prepare_input_buffer(session);
+
+  while (! (session->input_buffer->data
+	    && (terminator = g_strstr_len(session->input_buffer->data,
+					  session->input_buffer->len,
+					  "\r\n"))))
+    if (! mn_client_session_fill_input_buffer(session))
+      return NULL;
+    
+  *terminator = 0;
+  session->bytes_to_remove = terminator - (char *) session->input_buffer->data + 2;
+
+  line = session->input_buffer->data;
+  mn_client_session_notice(session, "< %s", line);
+
+  return line;
 }
 
 int

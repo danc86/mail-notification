@@ -19,7 +19,8 @@
 #ifndef _MN_SOUP_H
 #define _MN_SOUP_H
 
-void mn_soup_use (void);
-void mn_soup_unuse (void);
+#include <libsoup/soup.h>
+
+SoupSession *mn_soup_session_new (void);
 
 #endif /* _MN_SOUP_H */

@@ -24,7 +24,9 @@ module GNOME
   {
     void update ();
     void report (out string report);
+    void displayMailSummary ();
     void displayProperties ();
     void displayAbout ();
+    void closePopup ();
   };
 };

@@ -30,6 +30,7 @@
 #endif
 #define MN_STOCK_SYSTEM_MAILBOX		"mail-notification-system-mailbox"
 #define MN_STOCK_SELECT_ALL		"mail-notification-select-all"
+#define MN_STOCK_MAIL_SUMMARY		"mail-notification-mail-summary"
 
 void mn_stock_init (void);
 

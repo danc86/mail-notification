@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include <gtk/gtk.h>
 %}
@@ -62,11 +64,11 @@ class MN:Mailbox:View from Gtk:Tree:View
     toplevel = gtk_widget_get_toplevel(GTK_WIDGET(self));
     dialog = mn_mailbox_properties_dialog_new((GtkWindow *) toplevel, MN_MAILBOX_PROPERTIES_DIALOG_MODE_ADD);
 
-    g_signal_connect(G_OBJECT(dialog),
+    g_signal_connect(dialog,
 		     "response",
 		     G_CALLBACK(self_properties_add_response_h),
 		     NULL);
-    
+
     gtk_widget_show(dialog);
   }
 
@@ -174,7 +176,7 @@ class MN:Mailbox:View from Gtk:Tree:View
     mn_mailbox_properties_dialog_set_uri(MN_MAILBOX_PROPERTIES_DIALOG(dialog), uri);
     g_object_unref(uri);
     
-    g_signal_connect(G_OBJECT(dialog),
+    g_signal_connect(dialog,
 		     "response",
 		     G_CALLBACK(self_properties_edit_response_h),
 		     NULL);
@@ -220,6 +222,9 @@ class MN:Mailbox:View from Gtk:Tree:View
     GtkTreeViewColumn *column;
     GtkCellRenderer *renderer;
     GtkTreeSelection *selection;
+    GSList *l;
+
+    /* popup menu */
 
     shell = GTK_MENU_SHELL(selfp->menu);
     
@@ -234,13 +239,15 @@ class MN:Mailbox:View from Gtk:Tree:View
     mn_menu_shell_append(shell, NULL, NULL);
     selfp->properties_item = mn_menu_shell_append(shell, GTK_STOCK_PROPERTIES, NULL);
     
-    g_signal_connect_swapped(G_OBJECT(add_item), "activate", G_CALLBACK(self_activate_add), self);
-    g_signal_connect_swapped(G_OBJECT(selfp->remove_item), "activate", G_CALLBACK(self_activate_remove), self);
-    g_signal_connect_swapped(G_OBJECT(selfp->cut_item), "activate", G_CALLBACK(self_activate_cut), self);
-    g_signal_connect_swapped(G_OBJECT(selfp->copy_item), "activate", G_CALLBACK(self_activate_copy), self);
-    g_signal_connect_swapped(G_OBJECT(selfp->paste_item), "activate", G_CALLBACK(self_activate_paste), self);
-    g_signal_connect_swapped(G_OBJECT(select_all_item), "activate", G_CALLBACK(self_select_all), self);
-    g_signal_connect_swapped(G_OBJECT(selfp->properties_item), "activate", G_CALLBACK(self_activate_properties), self);
+    g_signal_connect_swapped(add_item, "activate", G_CALLBACK(self_activate_add), self);
+    g_signal_connect_swapped(selfp->remove_item, "activate", G_CALLBACK(self_activate_remove), self);
+    g_signal_connect_swapped(selfp->cut_item, "activate", G_CALLBACK(self_activate_cut), self);
+    g_signal_connect_swapped(selfp->copy_item, "activate", G_CALLBACK(self_activate_copy), self);
+    g_signal_connect_swapped(selfp->paste_item, "activate", G_CALLBACK(self_activate_paste), self);
+    g_signal_connect_swapped(select_all_item, "activate", G_CALLBACK(self_select_all), self);
+    g_signal_connect_swapped(selfp->properties_item, "activate", G_CALLBACK(self_activate_properties), self);
+
+    /* store */
 
     store = gtk_list_store_new(N_COLUMNS,
 			       MN_TYPE_URI,
@@ -250,9 +257,11 @@ class MN:Mailbox:View from Gtk:Tree:View
     gtk_tree_view_set_model(GTK_TREE_VIEW(self), GTK_TREE_MODEL(store));
     g_object_unref(store);
     
+    /* mailbox column */
+
     column = gtk_tree_view_column_new();
     gtk_tree_view_column_set_title(column, _("Mailbox"));
-    gtk_tree_view_column_set_resizable(column, TRUE);
+    gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
     gtk_tree_view_column_set_sort_column_id(column, COLUMN_MAILBOX);
 
     renderer = gtk_cell_renderer_pixbuf_new();
@@ -262,83 +271,94 @@ class MN:Mailbox:View from Gtk:Tree:View
     renderer = gtk_cell_renderer_text_new();
     gtk_tree_view_column_pack_start(column, renderer, TRUE);
     gtk_tree_view_column_add_attribute(column, renderer, "text", COLUMN_MAILBOX);
-    
+
     gtk_tree_view_append_column(GTK_TREE_VIEW(self), column);
+
+    /* format column */
 
     column = gtk_tree_view_column_new_with_attributes(_("Format"),
 						      gtk_cell_renderer_text_new(),
 						      "text", COLUMN_FORMAT,
 						      NULL);
 
-    gtk_tree_view_column_set_resizable(column, TRUE);
+    gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
     gtk_tree_view_column_set_sort_column_id(column, COLUMN_FORMAT);
     gtk_tree_view_append_column(GTK_TREE_VIEW(self), column);
+
+    /* misc */
 
     gtk_tree_view_set_search_column(GTK_TREE_VIEW(self), COLUMN_MAILBOX);
 
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
     gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
     
-    self_update(self);
+    MN_LIST_FOREACH(l, mn_mailboxes_get(mn_shell->mailboxes))
+      self_append(self, l->data);
     self_update_sensitivity(self);
 
-    g_signal_connect_swapped(G_OBJECT(mn_shell->mailboxes), "list-changed", G_CALLBACK(self_update), self);
-    g_signal_connect_swapped(G_OBJECT(selection), "changed", G_CALLBACK(self_update_sensitivity), self);
+    mn_g_object_connect(self,
+			mn_shell->mailboxes,
+			"signal::mailbox-added", self_mailbox_added_h, self,
+			"signal::mailbox-changed", self_mailbox_changed_h, self,
+			"signal::mailbox-removed", self_mailbox_removed_h, self,
+			NULL);
 
-    g_signal_connect(G_OBJECT(self), "popup-menu", G_CALLBACK(self_popup_menu_h), NULL);
-    g_signal_connect(G_OBJECT(self), "button-press-event", G_CALLBACK(self_button_press_event_h), NULL);
-    g_signal_connect(G_OBJECT(self), "row-activated", G_CALLBACK(self_row_activated_h), NULL);
+    g_signal_connect_swapped(selection, "changed", G_CALLBACK(self_update_sensitivity), self);
+
+    g_object_connect(self,
+		     "signal::popup-menu", self_popup_menu_h, NULL,
+		     "signal::button-press-event", self_button_press_event_h, NULL,
+		     "signal::row-activated", self_row_activated_h, NULL,
+		     NULL);
   }
 
-  override (G:Object) void
-    finalize (G:Object *object (check null type))
-  {
-    g_signal_handlers_disconnect_by_func(mn_shell->mailboxes, self_update, object);
-    PARENT_HANDLER(object);
-  }
-  
   private void
-    update (self)
+    append (self, MN:Mailbox *mailbox (check null type))
   {
     GtkTreeModel *model;
     GtkTreeIter iter;
-    gboolean valid;
-    GSList *l;
-      
+
     model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
-
-    /* first step: remove or update old mailboxes */
-
-    valid = gtk_tree_model_get_iter_first(model, &iter);
-    while (valid)
-      {
-	MNURI *uri;
-	GSList *elem;
-      
-	gtk_tree_model_get(model, &iter, COLUMN_URI, &uri, -1);
-	elem = mn_mailboxes_find_uri(mn_shell->mailboxes, uri);
-	g_object_unref(uri);
-      
-	if (elem)
-	  {
-	    self_update_iter(self, &iter, elem->data);
-	    valid = gtk_tree_model_iter_next(model, &iter);
-	  }
-	else
-	  valid = gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
-      }
+    gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+    self_update_iter(self, &iter, mailbox);
+  }
   
-    /* second step: add new mailboxes */
+  private void
+    mailbox_added_h (MN:Mailboxes *mailboxes (check null type),
+		     MN:Mailbox *mailbox (check null type),
+		     gpointer user_data (check null))
+  {
+    Self *self = user_data;
 
-    MN_LIST_FOREACH(l, mn_mailboxes_get(mn_shell->mailboxes))
+    self_append(self, mailbox);
+  }
+
+  private void
+    mailbox_changed_h (MN:Mailboxes *mailboxes (check null type),
+		       MN:Mailbox *mailbox (check null type),
+		       gpointer user_data (check null))
+  {
+    Self *self = user_data;
+    GtkTreeIter iter;
+
+    if (self_find_mailbox(self, mailbox, &iter))
+      self_update_iter(self, &iter, mailbox);
+  }
+
+  private void
+    mailbox_removed_h (MN:Mailboxes *mailboxes (check null type),
+		       MN:Mailbox *mailbox (check null type),
+		       gpointer user_data (check null))
+  {
+    Self *self = user_data;
+    GtkTreeIter iter;
+
+    if (self_find_mailbox(self, mailbox, &iter))
       {
-	MNMailbox *mailbox = l->data;
-
-	if (! self_has_mailbox(self, mailbox))
-	  {
-	    gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-	    self_update_iter(self, &iter, mailbox);
-	  }
+	GtkTreeModel *model;
+	
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
+	gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
       }
   }
   
@@ -373,30 +393,36 @@ class MN:Mailbox:View from Gtk:Tree:View
   }
 
   private gboolean
-    has_mailbox (self, MN:Mailbox *mailbox (check null type))
+    find_mailbox (self,
+		  MN:Mailbox *mailbox (check null type),
+		  GtkTreeIter *iter (check null))
   {
     GtkTreeModel *model;
-    GtkTreeIter iter;
+    GtkTreeIter our_iter;
     gboolean valid;
-    gboolean has = FALSE;
 
     model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
-    valid = gtk_tree_model_get_iter_first(model, &iter);
+    valid = gtk_tree_model_get_iter_first(model, &our_iter);
+
     while (valid)
       {
 	MNURI *uri;
+	gboolean is;
 	
-	gtk_tree_model_get(model, &iter, COLUMN_URI, &uri, -1);
-	has = ! strcmp(uri->text, mailbox->uri->text);
+	gtk_tree_model_get(model, &our_iter, COLUMN_URI, &uri, -1);
+	is = ! strcmp(uri->text, mailbox->uri->text);
 	g_object_unref(uri);
 
-	if (has)
-	  break;
+	if (is)
+	  {
+	    *iter = our_iter;
+	    return TRUE;
+	  }
 
-	valid = gtk_tree_model_iter_next(model, &iter);
+	valid = gtk_tree_model_iter_next(model, &our_iter);
       }
 
-    return has;
+    return FALSE;
   }
 
   private void
@@ -518,7 +544,7 @@ class MN:Mailbox:View from Gtk:Tree:View
 			       gpointer user_data)
   {
     if (response == GTK_RESPONSE_HELP)
-      mn_display_help("mailbox-properties");
+      mn_display_help(GTK_WINDOW(dialog), "mailbox-properties");
     else if (response == GTK_RESPONSE_CANCEL)
       gtk_widget_destroy(GTK_WIDGET(dialog));
     else if (response == GTK_RESPONSE_ACCEPT)
@@ -540,7 +566,7 @@ class MN:Mailbox:View from Gtk:Tree:View
 	    gtk_widget_destroy(GTK_WIDGET(dialog));
 	  }
 	else
-	  mn_error_dialog(NULL, _("Unable to add mailbox"), _("The mailbox is already in the list."));
+	  mn_error_dialog(GTK_WINDOW(dialog), NULL, NULL, _("Unable to add mailbox"), _("The mailbox is already in the list."));
 
 	g_object_unref(uri);
       }
@@ -552,7 +578,7 @@ class MN:Mailbox:View from Gtk:Tree:View
 				gpointer user_data)
   {
     if (response == GTK_RESPONSE_HELP)
-      mn_display_help("mailbox-properties");
+      mn_display_help(GTK_WINDOW(dialog), "mailbox-properties");
     else
       {
 	if (response == GTK_RESPONSE_APPLY || response == GTK_RESPONSE_OK)

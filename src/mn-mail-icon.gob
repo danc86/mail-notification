@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include <gtk/gtk.h>
 #include "eggtrayicon.h"
@@ -35,13 +37,12 @@ class MN:Mail:Icon from Egg:Tray:Icon
   public GtkWidget *image = {mn_blinking_image_new_from_stock(MN_STOCK_MAIL, GTK_ICON_SIZE_LARGE_TOOLBAR)};
 
   private GtkWidget *menu = {gtk_menu_new()} destroywith gtk_widget_destroy;
-  private GtkWidget *run_item;
   public GtkWidget *update_item;
   
   signal (ACTION) private NONE (NONE)
     void activate (self);
   signal (ACTION) private NONE (NONE)
-    void activate_run (self);
+    void activate_summary (self);
   signal (ACTION) private NONE (NONE)
     void activate_update (self);
   signal (ACTION) private NONE (NONE)
@@ -72,12 +73,14 @@ class MN:Mail:Icon from Egg:Tray:Icon
   {
     GtkMenuShell *shell;
     GtkWidget *event_box;
+    GtkWidget *summary_item;
     GtkWidget *properties_item;
     GtkWidget *help_item;
     GtkWidget *about_item;
     GtkWidget *remove_item;
     
     shell = GTK_MENU_SHELL(selfp->menu);
+    summary_item = mn_menu_shell_append(shell, MN_STOCK_MAIL_SUMMARY, NULL);
     self->update_item = mn_menu_shell_append(shell, GTK_STOCK_REFRESH, _("_Update"));
     mn_menu_shell_append(shell, NULL, NULL);
     properties_item = mn_menu_shell_append(shell, GTK_STOCK_PROPERTIES, NULL);
@@ -86,11 +89,12 @@ class MN:Mail:Icon from Egg:Tray:Icon
     mn_menu_shell_append(shell, NULL, NULL);
     remove_item = mn_menu_shell_append(shell, GTK_STOCK_REMOVE, _("R_emove From Notification Area"));
     
-    g_signal_connect_swapped(G_OBJECT(self->update_item), "activate", G_CALLBACK(self_activate_update), self);
-    g_signal_connect_swapped(G_OBJECT(properties_item), "activate", G_CALLBACK(self_activate_properties), self);
-    g_signal_connect_swapped(G_OBJECT(help_item), "activate", G_CALLBACK(self_activate_help), self);
-    g_signal_connect_swapped(G_OBJECT(about_item), "activate", G_CALLBACK(self_activate_about), self);
-    g_signal_connect_swapped(G_OBJECT(remove_item), "activate", G_CALLBACK(self_activate_remove), self);
+    g_signal_connect_swapped(summary_item, "activate", G_CALLBACK(self_activate_summary), self);
+    g_signal_connect_swapped(self->update_item, "activate", G_CALLBACK(self_activate_update), self);
+    g_signal_connect_swapped(properties_item, "activate", G_CALLBACK(self_activate_properties), self);
+    g_signal_connect_swapped(help_item, "activate", G_CALLBACK(self_activate_help), self);
+    g_signal_connect_swapped(about_item, "activate", G_CALLBACK(self_activate_about), self);
+    g_signal_connect_swapped(remove_item, "activate", G_CALLBACK(self_activate_remove), self);
 
     event_box = gtk_event_box_new();
     GTK_WIDGET_SET_FLAGS(event_box, GTK_CAN_FOCUS);
@@ -99,12 +103,11 @@ class MN:Mail:Icon from Egg:Tray:Icon
     gtk_container_add(GTK_CONTAINER(event_box), self->image);
     gtk_container_add(GTK_CONTAINER(self), event_box);
   
-    g_signal_connect(G_OBJECT(event_box), "button-press-event",
-		     G_CALLBACK(self_button_press_event_h), self);
-    g_signal_connect(G_OBJECT(event_box), "button-release-event",
-		     G_CALLBACK(self_button_release_event_h), self);
-    g_signal_connect(G_OBJECT(event_box), "popup-menu",
-		     G_CALLBACK(self_popup_menu_h), self);
+    g_object_connect(event_box,
+		     "signal::button-press-event", self_button_press_event_h, self,
+		     "signal::button-release-event", self_button_release_event_h, self,
+		     "signal::popup-menu", self_popup_menu_h, self,
+		     NULL);
 
     gtk_widget_show(self->image);
     gtk_widget_show(event_box);
@@ -157,25 +160,6 @@ class MN:Mail:Icon from Egg:Tray:Icon
   public GtkWidget *
     new (void)
   {
-    return g_object_new(TYPE_SELF, "title", _("Mail Notification"), NULL);
-  }
-
-  public void
-    set_command (self, const char *command)
-  {
-    char *mnemonic;
-
-    if (selfp->run_item)
-      gtk_widget_destroy(selfp->run_item);
-
-    mnemonic = command
-      ? g_strdup_printf(_("_Run %s"), command)
-      : g_strdup(_("_Run Default Action"));
-
-    selfp->run_item = mn_menu_shell_prepend(GTK_MENU_SHELL(selfp->menu), GTK_STOCK_EXECUTE, mnemonic);
-    g_free(mnemonic);
-
-    gtk_widget_set_sensitive(selfp->run_item, command != NULL);
-    g_signal_connect_swapped(G_OBJECT(selfp->run_item), "activate", G_CALLBACK(self_activate_run), self);
+    return GTK_WIDGET(GET_NEW_VARG("title", _("Mail Notification"), NULL));
   }
 }

@@ -84,10 +84,25 @@ gmail_gob_built_sources = \
 	mn-gmail-mailbox-private.h		\
 	mn-gmail-mailbox.c			\
 	mn-gmail-mailbox.h
+gmail_sources = \
+	mn-sgml-ref.c	\
+	mn-sgml-ref.h	\
+	mn-soup.c	\
+	mn-soup.h
+gmail_built_sources = \
+	mn-sgml-entities.h
 endif
 
-if HAVE_SOUP
-soup_sources = mn-soup.c mn-soup.h
+if WITH_MIME
+mime_gob_sources = \
+	mn-gmime-stream-vfs.gob
+mime_gob_built_sources = \
+	mn-gmime-stream-vfs-private.h	\
+	mn-gmime-stream-vfs.c		\
+	mn-gmime-stream-vfs.h
+mime_sources = \
+	mn-message-mime.c	\
+	mn-message-mime.h
 endif
 
 if WITH_SSL
@@ -114,6 +129,7 @@ gob_sources = \
 	$(pi_gob_sources)			\
 	$(sylpheed_gob_sources)			\
 	$(gmail_gob_sources)			\
+	$(mime_gob_sources)			\
 	mn-about-dialog.gob			\
 	mn-autodetect-mailbox-properties.gob	\
 	mn-automation.gob			\
@@ -122,6 +138,8 @@ gob_sources = \
 	mn-mailbox-view.gob			\
 	mn-mailbox.gob				\
 	mn-mailboxes.gob			\
+	mn-message-label.gob			\
+	mn-message.gob				\
 	mn-pending-mailbox.gob			\
 	mn-shell.gob				\
 	mn-system-mailbox-properties.gob	\
@@ -136,6 +154,7 @@ gob_built_sources = \
 	$(pi_gob_built_sources)				\
 	$(sylpheed_gob_built_sources)			\
 	$(gmail_gob_built_sources)			\
+	$(mime_gob_built_sources)			\
 	mn-about-dialog-private.h			\
 	mn-about-dialog.c				\
 	mn-about-dialog.h				\
@@ -160,6 +179,12 @@ gob_built_sources = \
 	mn-mailboxes-private.h				\
 	mn-mailboxes.c					\
 	mn-mailboxes.h					\
+	mn-message-label-private.h			\
+	mn-message-label.c				\
+	mn-message-label.h				\
+	mn-message-private.h				\
+	mn-message.c					\
+	mn-message.h					\
 	mn-pending-mailbox-private.h			\
 	mn-pending-mailbox.c				\
 	mn-pending-mailbox.h				\
@@ -181,11 +206,13 @@ mail_notification_SOURCES = \
 	$(idl_sources)			\
 	$(gob_sources)			\
 	$(gob_built_sources)		\
+	$(gmail_sources)		\
+	$(gmail_built_sources)		\
 	$(md5_sources)			\
 	$(client_session_sources)	\
-	$(soup_sources)			\
 	$(ssl_sources)			\
 	$(sasl_sources)			\
+	$(mime_sources)			\
 	eggtrayicon.c			\
 	eggtrayicon.h			\
 	mn-conf.c			\
@@ -201,13 +228,22 @@ mail_notification_SOURCES = \
 	mn-properties.h			\
 	mn-stock.c			\
 	mn-stock.h			\
+	mn-summary-dialog.c		\
+	mn-summary-dialog.h		\
+	mn-summary-popup.c		\
+	mn-summary-popup.h		\
+	mn-summary.c			\
+	mn-summary.h			\
 	mn-util.c			\
 	mn-util.h			\
 	mn-vfs.c			\
 	mn-vfs.h
-BUILT_SOURCES = $(idl_built_sources) $(gob_built_sources)
+BUILT_SOURCES = \
+	$(idl_built_sources)		\
+	$(gob_built_sources)		\
+	$(gmail_built_sources)
 
-AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) $(SOUP_CFLAGS) $(OPENSSL_CFLAGS) $(SASL_CFLAGS) \
+AM_CPPFLAGS = $(WARN_CFLAGS) $(GNOME_CFLAGS) $(GMIME_CFLAGS) $(SOUP_CFLAGS) $(OPENSSL_CFLAGS) $(SASL_CFLAGS) \
 	-I$(top_srcdir) \
 	-DPREFIX="\"$(prefix)\"" \
 	-DSYSCONFDIR="\"$(sysconfdir)\"" \
@@ -216,12 +252,18 @@ AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) $(SOUP_CFLAGS) $(OP
 	-DGNOMELOCALEDIR="\"$(datadir)/locale\"" \
 	-DUIDIR="\"$(pkgdatadir)/ui\"" \
 	-DG_LOG_DOMAIN="\"$(PACKAGE)\""
-AM_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(SOUP_LIBS) $(OPENSSL_LIBS) $(SASL_LIBS)
+AM_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(GMIME_LIBS) $(SOUP_LIBS) $(OPENSSL_LIBS) $(SASL_LIBS)
 
 CLEANFILES = $(idl_built_sources)
-MAINTAINERCLEANFILES = $(gob_built_sources)
+MAINTAINERCLEANFILES = $(gob_built_sources) $(gmail_built_sources)
+
+entity_sets = xhtml-lat1.ent xhtml-special.ent xhtml-symbol.ent
+EXTRA_DIST = ent2h.sh $(entity_sets)
 
 %.c %.h %-private.h: %.gob
 	$(GOB2) --always-private-header --exit-on-warn $<
 %-common.c %-stubs.c %-skels.c %.h: %.idl $(ORBIT_IDL)
 	$(ORBIT_IDL) -I$(LIBBONOBO_IDL) -I$(BONOBO_ACTIVATION_IDL) $<
+
+mn-sgml-entities.h: ent2h.sh $(entity_sets)
+	./ent2h.sh $(entity_sets) > $@

@@ -1,0 +1,157 @@
+/* 
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.10
+
+%headertop{
+#include <time.h>
+#include "mn-uri.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n-lib.h>
+#include "mn-util.h"
+%}
+
+class MN:Message from G:Object
+{
+  /* always set */
+  public MNURI *mailbox_uri unrefwith g_object_unref;
+  property OBJECT mailbox_uri (flags = CONSTRUCT_ONLY,
+			       object_type = MN:URI,
+			       link);
+  
+  /* may be NULL */
+  public char *error destroywith g_free;
+  property STRING error (flags = CONSTRUCT_ONLY, link);
+
+  /* sent time, may be 0 */
+  public time_t sent_time;
+  property ULONG sent_time (flags = CONSTRUCT_ONLY, link);
+
+  /* always set */
+  public char *id destroywith g_free;
+  property STRING id (flags = CONSTRUCT_ONLY)
+    set
+    {
+      const char *id = g_value_get_string(VAL);
+
+      g_return_if_fail(self->id == NULL);
+      if (id)
+	self->id = g_strdup(id);
+      else
+	{
+	  static int unique = 0;
+
+	  /*
+	   * Generate an unique identifier (we don't need it do be a
+	   * compliant Message-Id).
+	   */
+	  self->id = g_strdup_printf("%i", g_atomic_int_exchange_and_add(&unique, 1));
+	}
+    }
+    get
+    {
+      g_value_set_string(VAL, self->id);
+    };
+  
+  /* always set */
+  public char *from destroywith g_free;
+  property STRING from (flags = CONSTRUCT_ONLY)
+    set
+    {
+      const char *from = g_value_get_string(VAL);
+
+      g_return_if_fail(self->from == NULL);
+      self->from = g_strdup(from ? from : _("Unknown"));
+    }
+    get
+    {
+      g_value_set_string(VAL, self->from);
+    };
+
+  /* always set */
+  public char *subject destroywith g_free;
+  property STRING subject (flags = CONSTRUCT_ONLY)
+    set
+    {
+      const char *subject = g_value_get_string(VAL);
+
+      g_return_if_fail(self->subject == NULL);
+      self->subject = g_strdup(subject ? subject : "");
+    }
+    get
+    {
+      g_value_set_string(VAL, self->subject);
+    };
+
+  public MNMessage *
+    new (MN:URI *mailbox_uri (check null type),
+	 const char *error,
+	 time_t sent_time,
+	 const char *id,
+	 const char *from,
+	 const char *subject)
+  {
+    return GET_NEW_VARG(MN_MESSAGE_PROP_MAILBOX_URI(G_OBJECT(mailbox_uri)),
+			MN_MESSAGE_PROP_ERROR((char *) error),
+			MN_MESSAGE_PROP_SENT_TIME(sent_time),
+			MN_MESSAGE_PROP_ID((char *) id),
+			MN_MESSAGE_PROP_FROM((char *) from),
+			MN_MESSAGE_PROP_SUBJECT((char *) subject),
+			NULL);
+  }
+
+  public MNMessage *
+    new_from_error (MN:URI *mailbox_uri (check null type),
+		    const char *error (check null))
+  {
+    return self_new(mailbox_uri, error, 0, NULL, NULL, NULL);
+  }
+  
+  public GSList *
+    slist_find_by_id (GSList *list, MN:Message *self (check null type))
+  {
+    return g_slist_find_custom(list, self, self_slist_find_by_id_compare_func);
+  }
+
+  private int
+    slist_find_by_id_compare_func (gconstpointer a, gconstpointer b)
+  {
+    Self *message_a = (Self *) a;
+    Self *message_b = (Self *) b;
+
+    return strcmp(message_a->id, message_b->id);
+  }
+  
+  public GSList *
+    slist_sort_by_sent_time (GSList *list)
+  {
+    return g_slist_sort(list, self_slist_sort_by_sent_time_compare_func);
+  }
+
+  private int
+    slist_sort_by_sent_time_compare_func (gconstpointer a, gconstpointer b)
+  {
+    Self *message_a = (Self *) a;
+    Self *message_b = (Self *) b;
+
+    return message_a->sent_time - message_b->sent_time;
+  }
+}

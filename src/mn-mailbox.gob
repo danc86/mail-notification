@@ -16,8 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
+#include "config.h"
 #include <stdarg.h>
+#include "mn-message.h"
 #include "mn-uri.h"
 %}
 
@@ -36,9 +40,14 @@
 %}
 
 %h{
+#define MN_MAILBOX_N_TYPES		7
+  extern GType mn_mailbox_types[MN_MAILBOX_N_TYPES + 1];
+
 #define MN_MAILBOX_CAN_CHECK(self) \
   (MN_MAILBOX_GET_CLASS((self))->impl_check != NULL \
    || MN_MAILBOX_GET_CLASS((self))->impl_threaded_check != NULL)
+#define MN_MAILBOX_MUST_POLL(self) \
+  (MN_MAILBOX_CAN_CHECK((self)) && ! mn_mailbox_get_automatic((self)))
 %}
   
 %{
@@ -77,6 +86,8 @@ typedef struct
 				 gpointer	user_data);
   gpointer	user_data;
 } NewInfo;
+
+ GType mn_mailbox_types[MN_MAILBOX_N_TYPES + 1];
 %}
 
 /******************************************************************************
@@ -143,6 +154,60 @@ class MN:Mailbox from G:Object
 			    link,
 			    export);
 
+  private GSList *messages destroywith mn_g_object_slist_free;
+  property POINTER messages (blurb = _("The list of new and unread MNMessage objects"),
+			     export)
+    set
+    {
+      GSList *messages;
+      GSList *l;
+      gboolean changed = FALSE;
+      gboolean has_new = FALSE;
+
+      messages = g_value_get_pointer(VAL);
+      
+      MN_LIST_FOREACH(l, selfp->messages)
+	if (! mn_message_slist_find_by_id(messages, l->data))
+	  {
+	    changed = TRUE;
+	    break;
+	  }
+      
+      MN_LIST_FOREACH(l, messages)
+	if (! mn_message_slist_find_by_id(selfp->messages, l->data))
+	  {
+	    changed = TRUE;
+	    has_new = TRUE;
+	    break;
+	  }
+
+      mn_g_object_slist_free(selfp->messages);
+      selfp->messages = mn_g_object_slist_copy(messages);
+
+      if (changed)
+	self_messages_changed(self, has_new);
+    }
+    get
+    {
+      g_value_set_pointer(VAL, selfp->messages);
+    };
+
+  /**
+   * messages-changed:
+   * @self: the object which received the signal
+   * @has_new: whether a new message has been received or not
+   *
+   * This signal gets emitted whenever the messages property changes.
+   *
+   * It is considered that the property changes if a new message
+   * appears or if an old message disappears. If an existing message
+   * changes while keeping the same id, this signal is not emitted
+   * (use the "notify::messages" signal if you need notification of
+   * such events).
+   **/
+  signal private NONE (BOOLEAN)
+    void messages_changed (self, gboolean has_new);
+
   private char *error destroywith g_free;
   property STRING error (blurb = _("The mailbox error, if any"), link);
   protected void
@@ -163,57 +228,51 @@ class MN:Mailbox from G:Object
   }
   public const char *get_error (self) { return selfp->error; }
   
-  private GnomeVFSMonitorHandle *monitor_handle destroywith gnome_vfs_monitor_cancel;
+  private GnomeVFSMonitorHandle *monitor_handle;
   private char *monitor_uri destroywith g_free;
   private MNMailboxMonitorEventType monitor_events;
   
   private gboolean checking;
   
-  public const GType *
-    get_types (void)
+  class_init (class)
   {
-    static GType *types = NULL;
-    G_LOCK_DEFINE_STATIC(types);
-    
-    G_LOCK(types);
-    if (! types)
-      {
-	GType tmp_types[7];
-	int n_types = 0;
-	int i;
-	
+    int i = 0;
+
 #ifdef WITH_MBOX
-	tmp_types[n_types++] = MN_TYPE_MBOX_MAILBOX;
+    mn_mailbox_types[i++] = MN_TYPE_MBOX_MAILBOX;
 #endif
 #ifdef WITH_MH
-	tmp_types[n_types++] = MN_TYPE_MH_MAILBOX;
+    mn_mailbox_types[i++] = MN_TYPE_MH_MAILBOX;
 #endif
 #ifdef WITH_MAILDIR
-	tmp_types[n_types++] = MN_TYPE_MAILDIR_MAILBOX;
+    mn_mailbox_types[i++] = MN_TYPE_MAILDIR_MAILBOX;
 #endif
 #ifdef WITH_POP3
-	tmp_types[n_types++] = MN_TYPE_POP3_MAILBOX;
+    mn_mailbox_types[i++] = MN_TYPE_POP3_MAILBOX;
 #endif
 #ifdef WITH_IMAP
-	tmp_types[n_types++] = MN_TYPE_IMAP_MAILBOX;
+    mn_mailbox_types[i++] = MN_TYPE_IMAP_MAILBOX;
 #endif
 #ifdef WITH_SYLPHEED
-	tmp_types[n_types++] = MN_TYPE_SYLPHEED_MAILBOX;
+    mn_mailbox_types[i++] = MN_TYPE_SYLPHEED_MAILBOX;
 #endif
 #ifdef WITH_GMAIL
-	tmp_types[n_types++] = MN_TYPE_GMAIL_MAILBOX;
+    mn_mailbox_types[i++] = MN_TYPE_GMAIL_MAILBOX;
 #endif
-	
-	types = g_new(GType, n_types + 1);
-	for (i = 0; i < n_types; i++)
-	  types[i] = tmp_types[i];
-	types[n_types] = 0;
-      }
-    G_UNLOCK(types);
-    
-    return types;
+    mn_mailbox_types[i] = 0;
   }
+  
+  override (G:Object) void
+    finalize (G:Object *object (check null type))
+  {
+    Self *self = SELF(object);
 
+    if (selfp->monitor_handle)
+      gnome_vfs_monitor_cancel(selfp->monitor_handle);
+
+    PARENT_HANDLER(object);
+  }
+  
   /**
    * new_async:
    * @uri: location of the mailbox
@@ -253,22 +312,18 @@ class MN:Mailbox from G:Object
 
     if (! mailbox)
       {
-	const GType *types;
 	int i;
 	
-	types = self_get_types();
-	for (i = 0; types[i]; i++)
+	for (i = 0; mn_mailbox_types[i]; i++)
 	  {
 	    SelfClass *class;
-	    gboolean is;
 
-	    class = g_type_class_ref(types[i]);
-	    is = class->impl_is(NULL, info->uri);
-	    g_type_class_unref(class);
+	    class = g_type_class_peek(mn_mailbox_types[i]);
+	    g_return_val_if_fail(class != NULL, NULL);
 
-	    if (is)
+	    if (class->impl_is(NULL, info->uri))
 	      {
-		mailbox = g_object_new(types[i], MN_MAILBOX_PROP_URI(G_OBJECT(info->uri)), NULL);
+		mailbox = g_object_new(mn_mailbox_types[i], MN_MAILBOX_PROP_URI(G_OBJECT(info->uri)), NULL);
 		if (mailbox->_priv->init_error)
 		  {
 		    MNMailbox *old_mailbox;
@@ -350,62 +405,67 @@ class MN:Mailbox from G:Object
       }
     else
       {
-	static gboolean first_time = TRUE;
+	g_warning(_("unable to enable immediate notification for %s: %s"), uri, gnome_vfs_result_to_string(result));
 
-	g_warning(_("unable to monitor %s: %s"), uri, gnome_vfs_result_to_string(result));
-
-	if (first_time)
+	if (! eel_gconf_get_boolean(MN_CONF_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_DO_NOT_SHOW))
 	  {
-	    int minutes;
-	    int seconds;
-	    char *str;
+	    static gboolean first_time = TRUE;
 	    
-	    first_time = FALSE;
+	    if (first_time)
+	      {
+		int minutes;
+		int seconds;
+		char *str;
 	    
-	    minutes = eel_gconf_get_integer(MN_CONF_DELAY_MINUTES);
-	    seconds = eel_gconf_get_integer(MN_CONF_DELAY_SECONDS);
+		first_time = FALSE;
 	    
-	    if (minutes == 0)
-	      str = g_strdup_printf(ngettext("As a fallback, they will be "
-					     "checked every %i second (this "
-					     "delay is configurable from the "
-					     "Properties Dialog).",
-					     "As a fallback, they will be "
-					     "checked every %i seconds (this "
-					     "delay is configurable from the "
-					     "Properties Dialog).",
+		minutes = eel_gconf_get_integer(MN_CONF_DELAY_MINUTES);
+		seconds = eel_gconf_get_integer(MN_CONF_DELAY_SECONDS);
+		
+		if (minutes == 0)
+		  str = g_strdup_printf(ngettext("As a fallback, they will be "
+						 "checked every %i second (this "
+						 "delay is configurable from the "
+						 "Properties Dialog).",
+						 "As a fallback, they will be "
+						 "checked every %i seconds (this "
+						 "delay is configurable from the "
+						 "Properties Dialog).",
 					     seconds),
-				    seconds);
-	    else if (seconds == 0)
-	      str = g_strdup_printf(ngettext("As a fallback, they will be "
-					     "checked every %i minute (this "
-					     "delay is configurable from the "
-					     "Properties Dialog).",
-					     "As a fallback, they will be "
-					     "checked every %i minutes (this "
-					     "delay is configurable from the "
-					     "Properties Dialog).",
-					     minutes),
-				    minutes);
-	    else
-	      str = g_strdup_printf(ngettext("As a fallback, they will be "
-					     "checked approximately every %i "
-					     "minute (this delay is "
-					     "configurable from the "
-					     "Properties Dialog).",
-					     "As a fallback, they will be "
-					     "checked approximately every %i "
-					     "minutes (this delay is "
-					     "configurable from the "
-					     "Properties Dialog).",
-					     minutes),
-				    minutes);
-	    
-	    mn_error_dialog("immediate-notification",
-			    _("A monitoring error has occurred"),
-			    _("Mail Notification was unable to enable immediate "
-			      "notification for one or more mailboxes. %s"), str);
-	    g_free(str);
+					seconds);
+		else if (seconds == 0)
+		  str = g_strdup_printf(ngettext("As a fallback, they will be "
+						 "checked every %i minute (this "
+						 "delay is configurable from the "
+						 "Properties Dialog).",
+						 "As a fallback, they will be "
+						 "checked every %i minutes (this "
+						 "delay is configurable from the "
+						 "Properties Dialog).",
+						 minutes),
+					minutes);
+		else
+		  str = g_strdup_printf(ngettext("As a fallback, they will be "
+						 "checked approximately every %i "
+						 "minute (this delay is "
+						 "configurable from the "
+						 "Properties Dialog).",
+						 "As a fallback, they will be "
+						 "checked approximately every %i "
+						 "minutes (this delay is "
+						 "configurable from the "
+						 "Properties Dialog).",
+						 minutes),
+					minutes);
+		
+		mn_error_dialog(NULL,
+				MN_CONF_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_DO_NOT_SHOW,
+				"immediate-notification",
+				_("A monitoring error has occurred"),
+				_("Mail Notification was unable to enable immediate "
+				  "notification for one or more mailboxes. %s"), str);
+		g_free(str);
+	      }
 	  }
       }
   }

@@ -77,9 +77,12 @@ gboolean mn_client_session_run (MNClientSessionState *states,
 				MNClientSessionPrivate *private,
 				GError **err);
 
+gconstpointer mn_client_session_read (MNClientSession *session, unsigned int nbytes);
+const char *mn_client_session_read_line (MNClientSession *session);
+
 int mn_client_session_write (MNClientSession *session,
 			     const char *format,
-			     ...);
+			     ...) G_GNUC_PRINTF(2, 3);
 
 #ifdef WITH_SSL
 gboolean mn_client_session_enable_ssl (MNClientSession *session);
@@ -98,9 +101,9 @@ gboolean mn_client_session_sasl_authentication_done (MNClientSession *session);
 
 void mn_client_session_notice (MNClientSession *session,
 			       const char *format,
-			       ...);
+			       ...) G_GNUC_PRINTF(2, 3);
 int mn_client_session_error (MNClientSession *session,
 			     const char *format,
-			     ...);
+			     ...) G_GNUC_PRINTF(2, 3);
 
 #endif /* _MN_CLIENT_SESSION_H */

@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include "mn-mailbox.h"
 %}
@@ -25,6 +27,9 @@
 #include "mn-mailbox-private.h"
 #include "mn-vfs.h"
 #include "mn-util.h"
+#ifdef WITH_MIME
+#include "mn-message-mime.h"
+#endif
 %}
 
 class MN:Maildir:Mailbox from MN:Mailbox
@@ -52,6 +57,9 @@ class MN:Maildir:Mailbox from MN:Mailbox
 		       new_uri,
 		       GNOME_VFS_MONITOR_DIRECTORY,
 		       MN_MAILBOX_MONITOR_EVENT_DELETED
+#ifdef WITH_MIME
+		       | MN_MAILBOX_MONITOR_EVENT_CHANGED
+#endif
 		       | MN_MAILBOX_MONITOR_EVENT_CREATED);
 
     gdk_flush();
@@ -97,10 +105,12 @@ class MN:Maildir:Mailbox from MN:Mailbox
     GnomeVFSDirectoryHandle *handle;
     GnomeVFSFileInfo *file_info;
     gboolean has_new = FALSE;
+#ifdef WITH_MIME
+    GSList *messages = NULL;
+#endif
     
     new_uri = gnome_vfs_uri_append_path(self->uri->vfs, "new");
     result = gnome_vfs_directory_open_from_uri(&handle, new_uri, GNOME_VFS_FILE_INFO_FOLLOW_LINKS);
-    gnome_vfs_uri_unref(new_uri);
 
     if (result != GNOME_VFS_OK)
       {
@@ -112,18 +122,27 @@ class MN:Maildir:Mailbox from MN:Mailbox
 	gdk_flush();
 	GDK_THREADS_LEAVE();
 
-	return;
+	goto end;
       }
   
     file_info = gnome_vfs_file_info_new();
     while ((result = gnome_vfs_directory_read_next(handle, file_info)) == GNOME_VFS_OK)
-      {
-	if (file_info->name[0] != '.')
-	  {
-	    has_new = TRUE;
-	    break;
-	  }
-      }
+      if (file_info->name[0] != '.')
+	{
+#ifdef WITH_MIME
+	  GnomeVFSURI *message_uri;
+#endif /* WITH_MIME */
+
+	  has_new = TRUE;
+
+#ifdef WITH_MIME
+	  message_uri = gnome_vfs_uri_append_file_name(new_uri, file_info->name);
+	  messages = g_slist_append(messages, mn_message_new_from_uri(self->uri, message_uri));
+	  gnome_vfs_uri_unref(message_uri);
+#else /* WITH_MIME */
+	  break;
+#endif
+	}
     gnome_vfs_file_info_unref(file_info);
     close_result = gnome_vfs_directory_close(handle);
 
@@ -132,7 +151,12 @@ class MN:Maildir:Mailbox from MN:Mailbox
     if (result == GNOME_VFS_OK || result == GNOME_VFS_ERROR_EOF)
       {
 	if (close_result == GNOME_VFS_OK)
-	  mn_mailbox_set_has_new(self, has_new);
+	  {
+	    mn_mailbox_set_has_new(self, has_new);
+#ifdef WITH_MIME
+	    mn_mailbox_set_messages(self, messages);
+#endif /* WITH_MIME */
+	  }
 	else
 	  mn_mailbox_set_error(self, _("unable to close folder \"new\": %s"), gnome_vfs_result_to_string(close_result));
       }
@@ -142,5 +166,12 @@ class MN:Maildir:Mailbox from MN:Mailbox
 
     gdk_flush();
     GDK_THREADS_LEAVE();
+
+#ifdef WITH_MIME
+    mn_g_object_slist_free(messages);
+#endif
+
+  end:
+    gnome_vfs_uri_unref(new_uri);
   }
 }

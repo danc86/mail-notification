@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+requires 2.0.10
+
 %headertop{
 #include <gtk/gtk.h>
 %}
@@ -46,11 +48,22 @@ class MN:Blinking:Image from Gtk:Image
       g_value_set_boolean(VAL, selfp->blinking);
     };
 
-  private unsigned int timeout_id destroy { if (VAR) g_source_remove(VAR); };
+  private unsigned int timeout_id;
   private gboolean is_on = TRUE; /* is currently displaying the on pixbuf? */
   private GdkPixbuf *on_pixbuf unrefwith g_object_unref;
   private GdkPixbuf *off_pixbuf unrefwith g_object_unref;
 
+  override (G:Object) void
+    finalize (G:Object *object (check null type))
+  {
+    Self *self = SELF(object);
+
+    if (selfp->timeout_id)
+      g_source_remove(selfp->timeout_id);
+
+    PARENT_HANDLER(object);
+  }
+  
   private void
     update (self, gboolean is_on)
   {

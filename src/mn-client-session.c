@@ -1136,6 +1136,14 @@ mn_client_session_sasl_authentication_done (MNClientSession *session)
 
   return TRUE;
 }
+
+int
+mn_client_session_sasl_get_ssf (MNClientSession *session)
+{
+  g_return_val_if_fail(session != NULL, FALSE);
+
+  return session->sasl_ssf;
+}
 #endif /* WITH_SASL */
 
 void

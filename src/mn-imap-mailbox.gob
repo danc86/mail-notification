@@ -104,6 +104,7 @@ requires 2.0.10
 
     char		**capabilities;
     GSList		*auth_mechanisms;
+    gboolean		authenticated;
     gboolean		authentication_failed;
 
     gboolean		search_received;
@@ -202,20 +203,16 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
       return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
     else if (! response->tag && IS_OK(response))
       {
-	if (response->code)
-	  {
-	    if (! strcmp(response->code, "CAPABILITY"))
-	      self_session_parse_capabilities(priv, NULL);
-	    else if (g_str_has_prefix(response->code, "CAPABILITY "))
-	      self_session_parse_capabilities(priv, response->code + 11);
-	  }
-	
+	self_handle_capability_code(priv, response);
 	return priv->capabilities
 	  ? self_session_after_capability(priv)
 	  : STATE_CAPABILITY;
       }
     else if (! response->tag && IS(response, "PREAUTH"))
-      return self_session_check_mail(priv);
+      {
+	self_handle_capability_code(priv, response);
+	return self_session_check_mail(priv);
+      }
     else if (! response->tag && IS_BYE(response))
       return RESULT_ERROR_END;
     else
@@ -226,12 +223,6 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
     enter_capability_cb (MNClientSession *session (check null),
 			 MNClientSessionPrivate *priv (check null))
   {
-    g_strfreev(priv->capabilities);
-    priv->capabilities = NULL;
-
-    eel_g_slist_free_deep(priv->auth_mechanisms);
-    priv->auth_mechanisms = NULL;
-
     return self_session_write(priv, "CAPABILITY");
   }
 
@@ -346,9 +337,34 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 	  {
 	    if (IS_OK(response))
 	      {
-		return mn_client_session_sasl_authentication_done(session)
-		  ? self_session_check_mail(priv)
-		  : MN_CLIENT_SESSION_RESULT_END;
+		if (mn_client_session_sasl_authentication_done(session))
+		  {
+		    priv->authenticated = TRUE;
+		    self_handle_capability_code(priv, response);
+
+		    /*
+		     * RFC 3501 2.2.2:
+		     *
+		     * A server MAY include a CAPABILITY response code
+		     * in the tagged OK response of a successful
+		     * AUTHENTICATE command in order to send
+		     * capabilities automatically.  It is unnecessary
+		     * for a client to send a separate CAPABILITY
+		     * command if it recognizes these automatic
+		     * capabilities.  This should only be done if a
+		     * security layer was not negotiated by the
+		     * AUTHENTICATE command, because the tagged OK
+		     * response as part of an AUTHENTICATE command is
+		     * not protected by encryption/integrity checking.
+		     * [SASL] requires the client to re-issue a
+		     * CAPABILITY command in this case.
+		     */
+		    return priv->capabilities && mn_client_session_sasl_get_ssf(session)
+		      ? self_session_check_mail(priv)
+		      : STATE_CAPABILITY;
+		  }
+		else
+		  return MN_CLIENT_SESSION_RESULT_END;
 	      }
 	    else if (IS_NO(response) || IS_BAD(response))
 	      return self_session_authenticate_fallback(priv);
@@ -403,7 +419,13 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 	if (HAS_CURRENT_TAG(response, priv))
 	  {
 	    if (IS_OK(response))
-	      return self_session_check_mail(priv);
+	      {
+		priv->authenticated = TRUE;
+		self_handle_capability_code(priv, response);
+		return priv->capabilities
+		  ? STATE_CAPABILITY
+		  : self_session_check_mail(priv);
+	      }
 	    else if (IS_NO(response) || IS_BAD(response))
 	      {
 		priv->authentication_failed = TRUE;
@@ -1059,9 +1081,28 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
   }
 
   private void
+    handle_capability_code (MNClientSessionPrivate *priv (check null),
+			    MNClientSessionResponse *response (check null))
+  {
+    if (response->code)
+      {
+	if (! strcmp(response->code, "CAPABILITY"))
+	  self_session_parse_capabilities(priv, NULL);
+	else if (g_str_has_prefix(response->code, "CAPABILITY "))
+	  self_session_parse_capabilities(priv, response->code + 11);
+      }
+  }
+  
+  private void
     session_parse_capabilities (MNClientSessionPrivate *priv (check null),
 				const char *capabilities)
   {
+    g_strfreev(priv->capabilities);
+    priv->capabilities = NULL;
+
+    eel_g_slist_free_deep(priv->auth_mechanisms);
+    priv->auth_mechanisms = NULL;
+
     if (capabilities)
       {
 	int i;
@@ -1109,7 +1150,9 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
       }
     else
 #endif /* WITH_SSL */
-      return self_session_authenticate(priv);
+      return priv->authenticated
+	? self_session_check_mail(priv)
+	: self_session_authenticate(priv);
   }
   
   private int

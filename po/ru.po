@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mail-notification 0.5.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-11-04 11:04+0100\n"
+"POT-Creation-Date: 2004-11-15 16:03+0100\n"
 "PO-Revision-Date: 2004-07-21 21:58+0200\n"
 "Last-Translator: Dan Korostelev <dan@ats.energo.ru>\n"
 "Language-Team: Russian\n"
@@ -64,260 +64,268 @@ msgid "Delay between mail checks (seconds part)."
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:5
-msgid "Do not show the immediate notification error dialog"
+msgid "Display mail summary in tooltip"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:6
-msgid "Double-click action"
+msgid "Do not show the immediate notification error dialog"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:7
-msgid "Enable mail summary popup"
+msgid "Double-click action"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:8
-msgid "Fingerprints of trusted X509 certificates"
+msgid "Enable mail summary popup"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:9
-msgid "Has already been run"
+msgid "Fingerprints of trusted X509 certificates"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:10
-msgid "Height of mail summary dialog"
+msgid "Has already been run"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:11
-msgid "Height of properties dialog"
+msgid "Height of mail summary dialog"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:12
-msgid "Mail read command"
+msgid "Height of properties dialog"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:13
-msgid "Mail reader command"
+msgid "Mail read command"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:14
-msgid "Mail summary popup contents font"
+msgid "Mail reader command"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:15
-msgid "Mail summary popup horizontal offset"
+msgid "Mail summary popup contents font"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:16
-msgid "Mail summary popup position"
+msgid "Mail summary popup horizontal offset"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:17
-msgid "Mail summary popup title font"
+msgid "Mail summary popup position"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:18
-msgid "Mail summary popup vertical offset"
+msgid "Mail summary popup title font"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:19
-msgid "Mailbox list"
+msgid "Mail summary popup vertical offset"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:20
-msgid "Minutes between mail checks"
+msgid "Mailbox list"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:21
-msgid "Minutes to wait before closing the mail summary popup"
+msgid "Minutes between mail checks"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:22
-msgid "New mail command"
+msgid "Minutes to wait before closing the mail summary popup"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:23
-msgid "Only display recent mail in mail summary popup"
+msgid "New mail command"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:24
+msgid "Only display recent mail in mail summary popup"
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:25
 #, fuzzy
 msgid "Run a command when all mail is read"
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: data/mail-notification.schemas.in.h:25
+#: data/mail-notification.schemas.in.h:26
 #, fuzzy
 msgid "Run a command when new mail arrives"
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: data/mail-notification.schemas.in.h:26
+#: data/mail-notification.schemas.in.h:27
 msgid "Seconds between mail checks"
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:27
+#: data/mail-notification.schemas.in.h:28
 msgid "Seconds to wait before closing the mail summary popup"
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:28
+#: data/mail-notification.schemas.in.h:29
 msgid "Set a mail reader"
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:29
+#: data/mail-notification.schemas.in.h:30
 msgid ""
 "The action to perform when the icon is double-clicked. Must be \"display-"
 "mail-summary\" or \"launch-mail-reader\"."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:30
+#: data/mail-notification.schemas.in.h:31
 msgid ""
 "The amount of time to wait before closing the mail summary popup (minutes "
 "part)."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:31
+#: data/mail-notification.schemas.in.h:32
 msgid ""
 "The amount of time to wait before closing the mail summary popup (seconds "
 "part)."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:32
+#: data/mail-notification.schemas.in.h:33
 #, fuzzy
 msgid "The command to run to launch the mail reader."
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: data/mail-notification.schemas.in.h:33
+#: data/mail-notification.schemas.in.h:34
 #, fuzzy
 msgid "The command to run when all mail is read."
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: data/mail-notification.schemas.in.h:34
+#: data/mail-notification.schemas.in.h:35
 #, fuzzy
 msgid "The command to run when new mail arrives."
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: data/mail-notification.schemas.in.h:35
+#: data/mail-notification.schemas.in.h:36
 msgid "The custom font to use for the contents of the mail summary popup."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:36
+#: data/mail-notification.schemas.in.h:37
 msgid "The custom font to use for the title of the mail summary popup."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:37
+#: data/mail-notification.schemas.in.h:38
 msgid "The height of the mail summary dialog in pixels."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:38
+#: data/mail-notification.schemas.in.h:39
 msgid "The height of the properties dialog in pixels."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:39
+#: data/mail-notification.schemas.in.h:40
 msgid "The list of mailboxes to monitor."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:40
+#: data/mail-notification.schemas.in.h:41
 msgid ""
 "The list of trusted SSL/TLS servers (hostname:port) lacking a X509 "
 "certificate."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:41
+#: data/mail-notification.schemas.in.h:42
 msgid ""
 "The list of trusted X509 certificates, represented by their MD5 fingerprint."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:42
+#: data/mail-notification.schemas.in.h:43
 msgid ""
 "The number of pixels to leave between the left or right side of the screen "
 "and the mail summary popup."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:43
+#: data/mail-notification.schemas.in.h:44
 msgid ""
 "The number of pixels to leave between the top or bottom side of the screen "
 "and the mail summary popup."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:44
+#: data/mail-notification.schemas.in.h:45
 msgid ""
 "The position of the mail summary popup. Must be \"top-left\", \"top-right\", "
 "\"bottom-left\" or \"bottom-right\"."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:45
+#: data/mail-notification.schemas.in.h:46
 msgid "The width of the mail summary dialog in pixels."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:46
+#: data/mail-notification.schemas.in.h:47
 msgid "The width of the properties dialog in pixels."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:47
+#: data/mail-notification.schemas.in.h:48
 msgid "Trusted servers list"
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:48
+#: data/mail-notification.schemas.in.h:49
 msgid "Use a custom font for the contents of the mail summary popup"
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:49
+#: data/mail-notification.schemas.in.h:50
 msgid "Use a custom font for the title of the mail summary popup"
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:50
+#: data/mail-notification.schemas.in.h:51
 msgid "Whether Mail Notification has already been run or not."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:51
+#: data/mail-notification.schemas.in.h:52
 msgid "Whether the status icon should blink on errors or not."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:52
+#: data/mail-notification.schemas.in.h:53
 #, fuzzy
 msgid "Whether to automatically close the mail summary popup or not."
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: data/mail-notification.schemas.in.h:53
+#: data/mail-notification.schemas.in.h:54
+msgid "Whether to display the mail summary in the status icon tooltip or not."
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:55
 #, fuzzy
 msgid "Whether to display the mail summary popup when new mail arrives or not."
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: data/mail-notification.schemas.in.h:54
+#: data/mail-notification.schemas.in.h:56
 msgid ""
 "Whether to hide previously displayed mail in the mail summary popup or not."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:55
+#: data/mail-notification.schemas.in.h:57
 msgid ""
 "Whether to prevent the immediate notification error dialog from being "
 "displayed or not."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:56
+#: data/mail-notification.schemas.in.h:58
 #, fuzzy
 msgid "Whether to run a command when all mail is read or not."
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: data/mail-notification.schemas.in.h:57
+#: data/mail-notification.schemas.in.h:59
 #, fuzzy
 msgid "Whether to run a command when new mail arrives or not."
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: data/mail-notification.schemas.in.h:58
+#: data/mail-notification.schemas.in.h:60
 #, fuzzy
 msgid "Whether to set a mail reader or not."
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: data/mail-notification.schemas.in.h:59
+#: data/mail-notification.schemas.in.h:61
 #, fuzzy
 msgid ""
 "Whether to use a custom font for the contents of the mail summary popup or "
@@ -325,18 +333,18 @@ msgid ""
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: data/mail-notification.schemas.in.h:60
+#: data/mail-notification.schemas.in.h:62
 #, fuzzy
 msgid ""
 "Whether to use a custom font for the title of the mail summary popup or not."
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: data/mail-notification.schemas.in.h:61
+#: data/mail-notification.schemas.in.h:63
 msgid "Width of mail summary dialog"
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:62
+#: data/mail-notification.schemas.in.h:64
 msgid "Width of properties dialog"
 msgstr ""
 
@@ -742,65 +750,65 @@ msgstr ""
 msgid "The mailbox name"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:164 src/mn-pop3-mailbox.gob:142
+#: src/mn-imap-mailbox.gob:165 src/mn-pop3-mailbox.gob:142
 msgid "SSL/TLS support has not been compiled in"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:253
+#: src/mn-imap-mailbox.gob:244
 msgid "server did not send capabilities"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:374
+#: src/mn-imap-mailbox.gob:390
 msgid "server advertised LOGINDISABLED, not using LOGIN authentication"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:375
+#: src/mn-imap-mailbox.gob:391
 msgid "unable to login"
 msgstr ""
 
 #. compliance error
-#: src/mn-imap-mailbox.gob:516
+#: src/mn-imap-mailbox.gob:538
 msgid "server did not send search results"
 msgstr ""
 
 #. compliance error
-#: src/mn-imap-mailbox.gob:596
+#: src/mn-imap-mailbox.gob:618
 msgid "server did not send all the messages we requested"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:645
+#: src/mn-imap-mailbox.gob:667
 msgid "unable to fetch message"
 msgstr ""
 
 #. compliance error
-#: src/mn-imap-mailbox.gob:763
+#: src/mn-imap-mailbox.gob:785
 msgid "server did not send status"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:1035 src/mn-pop3-mailbox.gob:922
+#: src/mn-imap-mailbox.gob:1057 src/mn-pop3-mailbox.gob:922
 msgid "unknown server error"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:1106 src/mn-pop3-mailbox.gob:226
+#: src/mn-imap-mailbox.gob:1147 src/mn-pop3-mailbox.gob:226
 msgid "server does not support in-band SSL/TLS"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:1125 src/mn-pop3-mailbox.gob:841
+#: src/mn-imap-mailbox.gob:1168 src/mn-pop3-mailbox.gob:841
 msgid ""
 "a SASL authentication mechanism was selected but SASL support has not been "
 "compiled in"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:1133 src/mn-pop3-mailbox.gob:853
+#: src/mn-imap-mailbox.gob:1176 src/mn-pop3-mailbox.gob:853
 #, c-format
 msgid "unknown authentication mechanism \"%s\""
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:1151
+#: src/mn-imap-mailbox.gob:1194
 msgid "falling back to IMAP LOGIN authentication"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:1156 src/mn-pop3-mailbox.gob:888
+#: src/mn-imap-mailbox.gob:1199 src/mn-pop3-mailbox.gob:888
 msgid "authentication failed"
 msgstr ""
 
@@ -1239,50 +1247,50 @@ msgstr ""
 msgid "falling back to USER/PASS authentication"
 msgstr ""
 
-#: src/mn-properties.c:191
+#: src/mn-properties.c:193
 msgid "top left"
 msgstr ""
 
-#: src/mn-properties.c:192
+#: src/mn-properties.c:194
 msgid "top right"
 msgstr ""
 
-#: src/mn-properties.c:193
+#: src/mn-properties.c:195
 msgid "bottom left"
 msgstr ""
 
-#: src/mn-properties.c:194
+#: src/mn-properties.c:196
 msgid "bottom right"
 msgstr ""
 
-#: src/mn-properties.c:284
+#: src/mn-properties.c:287
 msgid "No mailbox selected."
 msgstr ""
 
-#: src/mn-properties.c:289
+#: src/mn-properties.c:292
 #, c-format
 msgid "%i mailbox selected."
 msgid_plural "%i mailboxes selected."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/mn-shell.gob:92
+#: src/mn-shell.gob:93
 msgid "You have new mail."
 msgstr ""
 
-#: src/mn-shell.gob:347
+#: src/mn-shell.gob:360
 msgid "Mailboxes Having New Mail"
 msgstr ""
 
-#: src/mn-shell.gob:349
+#: src/mn-shell.gob:362
 msgid "Errors"
 msgstr ""
 
-#: src/mn-shell.gob:351
+#: src/mn-shell.gob:364
 msgid "Unsupported Mailboxes"
 msgstr ""
 
-#: src/mn-shell.gob:364 ui/summary-dialog.glade.h:1
+#: src/mn-shell.gob:381 ui/summary-dialog.glade.h:1
 msgid "Mail Summary"
 msgstr ""
 
@@ -1395,7 +1403,7 @@ msgstr ""
 msgid "Unable to execute \"%s\": %s."
 msgstr ""
 
-#: ui/authentication.glade.h:1 ui/properties.glade.h:2
+#: ui/authentication.glade.h:1
 msgid "*"
 msgstr ""
 
@@ -1411,28 +1419,32 @@ msgstr ""
 msgid "    "
 msgstr ""
 
-#: ui/properties.glade.h:3
+#: ui/properties.glade.h:2
 msgid "<span weight=\"bold\">Commands</span>"
 msgstr ""
 
-#: ui/properties.glade.h:4
+#: ui/properties.glade.h:3
 msgid "<span weight=\"bold\">Double-click Action</span>"
 msgstr ""
 
-#: ui/properties.glade.h:5
+#: ui/properties.glade.h:4
 msgid "<span weight=\"bold\">Fonts</span>"
 msgstr ""
 
-#: ui/properties.glade.h:6
+#: ui/properties.glade.h:5
 msgid "<span weight=\"bold\">General</span>"
 msgstr ""
 
-#: ui/properties.glade.h:7
+#: ui/properties.glade.h:6
 msgid "<span weight=\"bold\">Mailbox List</span>"
 msgstr ""
 
-#: ui/properties.glade.h:8
+#: ui/properties.glade.h:7
 msgid "<span weight=\"bold\">Position</span>"
+msgstr ""
+
+#: ui/properties.glade.h:8
+msgid "Dis_play mail summary in tooltip"
 msgstr ""
 
 #: ui/properties.glade.h:9
@@ -1517,38 +1529,42 @@ msgid "Whether to automatically close the mail summary popup or not"
 msgstr ""
 
 #: ui/properties.glade.h:27
+msgid "Whether to display the mail summary in the status icon tooltip or not"
+msgstr ""
+
+#: ui/properties.glade.h:28
 #, fuzzy
 msgid "Whether to display the mail summary popup when new mail arrives or not"
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: ui/properties.glade.h:28
+#: ui/properties.glade.h:29
 msgid "Whether to hide previously displayed mail or not"
 msgstr ""
 
-#: ui/properties.glade.h:29
+#: ui/properties.glade.h:30
 #, fuzzy
 msgid "Whether to run a command when all mail is read or not"
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: ui/properties.glade.h:30
+#: ui/properties.glade.h:31
 msgid "Whether to run a command when new mail arrives or not"
 msgstr ""
 
-#: ui/properties.glade.h:31
+#: ui/properties.glade.h:32
 #, fuzzy
 msgid "Whether to set a mail reader or not"
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: ui/properties.glade.h:32
+#: ui/properties.glade.h:33
 msgid ""
 "Whether to start Mail Notification when you log into your GNOME session or "
 "not"
 msgstr ""
 
-#: ui/properties.glade.h:33
+#: ui/properties.glade.h:34
 #, fuzzy
 msgid ""
 "Whether to use a custom font for the contents of the mail summary popup or "
@@ -1556,67 +1572,67 @@ msgid ""
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: ui/properties.glade.h:34
+#: ui/properties.glade.h:35
 #, fuzzy
 msgid ""
 "Whether to use a custom font for the title of the mail summary popup or not"
 msgstr ""
 "Иконка в области уведомления панели, уведомляющая о приходе новой почты."
 
-#: ui/properties.glade.h:35
+#: ui/properties.glade.h:36
 msgid "_Automatically close after:"
 msgstr ""
 
-#: ui/properties.glade.h:36
+#: ui/properties.glade.h:37
 msgid "_Blink on errors"
 msgstr ""
 
-#: ui/properties.glade.h:37
+#: ui/properties.glade.h:38
 msgid "_Contents font:"
 msgstr ""
 
-#: ui/properties.glade.h:38
+#: ui/properties.glade.h:39
 msgid "_Delay between mail checks:"
 msgstr ""
 
-#: ui/properties.glade.h:39
+#: ui/properties.glade.h:40
 msgid "_Display the mail summary dialog"
 msgstr ""
 
-#: ui/properties.glade.h:40
+#: ui/properties.glade.h:41
 msgid "_Enable mail summary popup"
 msgstr ""
 
-#: ui/properties.glade.h:41
+#: ui/properties.glade.h:42
 msgid "_Launch the mail reader"
 msgstr ""
 
-#: ui/properties.glade.h:42
+#: ui/properties.glade.h:43
 msgid "_Mail reader:"
 msgstr ""
 
-#: ui/properties.glade.h:43
+#: ui/properties.glade.h:44
 #, fuzzy
 msgid "_Start Mail Notification on GNOME login"
 msgstr "Иконка входящих сообщений"
 
-#: ui/properties.glade.h:44
+#: ui/properties.glade.h:45
 msgid "_Title font:"
 msgstr ""
 
-#: ui/properties.glade.h:45
+#: ui/properties.glade.h:46
 msgid "_Vertical offset:"
 msgstr ""
 
-#: ui/properties.glade.h:46
+#: ui/properties.glade.h:47
 msgid "minutes"
 msgstr ""
 
-#: ui/properties.glade.h:47
+#: ui/properties.glade.h:48
 msgid "pixels"
 msgstr ""
 
-#: ui/properties.glade.h:48
+#: ui/properties.glade.h:49
 msgid "seconds"
 msgstr ""
 

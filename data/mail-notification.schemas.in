@@ -339,5 +339,16 @@
 	<long>The action to perform when the icon is double-clicked. Must be "display-mail-summary" or "launch-mail-reader".</long>
       </locale>
     </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/summary-tooltip</key>
+      <applyto>/apps/mail-notification/summary-tooltip</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>1</default>
+      <locale name="C">
+        <short>Display mail summary in tooltip</short>
+	<long>Whether to display the mail summary in the status icon tooltip or not.</long>
+      </locale>
+    </schema> 
   </schemalist>
 </gconfschemafile>

@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "0.8.1">
-  <!ENTITY manrevision "2.8">
-  <!ENTITY date "Thursday, November 4, 2004">
+  <!ENTITY appversion "0.99">
+  <!ENTITY manrevision "2.9">
+  <!ENTITY date "Monday, November 15, 2004">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,7 +26,7 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.78 2004/11/04 10:52:35 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.79 2004/11/15 15:03:17 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (c) 2004 Jean-Yves Lefort -->
@@ -125,6 +125,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.8</revnumber>
+	<date>Thursday, November 4, 2004</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -494,6 +505,15 @@
 		    icon and make it blink on errors. Disabling this option
 		    is useful if some of your mailboxes are not permanently
 		    accessible.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Display mail summary in tooltip</guilabel></term>
+		<listitem>
+		  <para>
+		    If this option is enabled, the mail summary will
+		    be displayed in the status icon tooltip.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -1278,6 +1298,7 @@ widget "*" style "mn-icons"</programlisting>
 	<listitem><para>Filip Miletic</para></listitem>
 	<listitem><para>Phil Nelson</para></listitem>
 	<listitem><para>Vladimir Petkov</para></listitem>
+	<listitem><para>Edwin Shin</para></listitem>
       </itemizedlist>
     </sect2>
 

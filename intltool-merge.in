@@ -35,7 +35,7 @@
 ## Release information
 my $PROGRAM = "intltool-merge";
 my $PACKAGE = "intltool";
-my $VERSION = "0.31.3";
+my $VERSION = "0.32.1";
 
 ## Loaded modules
 use strict; 
@@ -111,6 +111,7 @@ elsif ($HELP_ARG)
 } 
 elsif ($BA_STYLE_ARG && @ARGV > 2) 
 {
+	&utf8_sanity_check;
 	&preparation;
 	&print_message;
 	&ba_merge_translations;
@@ -118,41 +119,41 @@ elsif ($BA_STYLE_ARG && @ARGV > 2)
 } 
 elsif ($XML_STYLE_ARG && @ARGV > 2) 
 {
-        &utf8_sanity_check;
+	&utf8_sanity_check;
 	&preparation;
 	&print_message;
-	
-    &xml_merge_output;
-
+	&xml_merge_output;
 	&finalize;
 } 
 elsif ($KEYS_STYLE_ARG && @ARGV > 2) 
 {
-        &utf8_sanity_check;
-        &preparation;
-        &print_message;
-        &keys_merge_translations;
+	&utf8_sanity_check;
+	&preparation;
+	&print_message;
+	&keys_merge_translations;
 	&finalize;
 } 
 elsif ($DESKTOP_STYLE_ARG && @ARGV > 2) 
 {
-        &preparation;
-        &print_message;
-        &desktop_merge_translations;
+	&utf8_sanity_check;
+	&preparation;
+	&print_message;
+	&desktop_merge_translations;
 	&finalize;
 } 
 elsif ($SCHEMAS_STYLE_ARG && @ARGV > 2) 
 {
-        &preparation;
-        &print_message;
-        &schemas_merge_translations;
+	&utf8_sanity_check;
+	&preparation;
+	&print_message;
+	&schemas_merge_translations;
 	&finalize;
 } 
 elsif ($RFC822DEB_STYLE_ARG && @ARGV > 2) 
 {
-        &preparation;
-        &print_message;
-        &rfc822deb_merge_translations;
+	&preparation;
+	&print_message;
+	&rfc822deb_merge_translations;
 	&finalize;
 } 
 else 
@@ -194,9 +195,9 @@ Mandatory options: (exactly one must be specified)
   -x, --xml-style        includes translations in the standard xml style
 
 Other options:
-  -u, --utf8             convert all strings to UTF-8 before merging
-  -p, --pass-through     use strings as found in .po files, without
-                         conversion (STRONGLY unrecommended with -x)
+  -u, --utf8             convert all strings to UTF-8 before merging 
+                         (default for everything except RFC822 style)
+  -p, --pass-through     deprecated, does nothing and issues a warning
   -m, --multiple-output  output one localized file per locale, instead of 
 	                 a single file containing all localized elements
   -c, --cache=FILE       specify cache file name
@@ -308,13 +309,8 @@ sub get_po_encoding
 
 sub utf8_sanity_check 
 {
-    if (!$UTF8_ARG) 
-    {
-        if (!$PASS_THROUGH_ARG) 
-        {
-            $PASS_THROUGH_ARG="1";
-        }
-    }
+    print STDERR "Warning: option --pass-through has been removed.\n" if $PASS_THROUGH_ARG;
+    $UTF8_ARG = 1;
 }
 
 sub get_translation_database
@@ -462,9 +458,17 @@ sub unescape_one_sequence
     return "\\" if $sequence eq "\\\\";
     return "\"" if $sequence eq "\\\"";
     return "\n" if $sequence eq "\\n";
+    return "\r" if $sequence eq "\\r";
+    return "\t" if $sequence eq "\\t";
+    return "\b" if $sequence eq "\\b";
+    return "\f" if $sequence eq "\\f";
+    return "\a" if $sequence eq "\\a";
+    return chr(11) if $sequence eq "\\v"; # vertical tab, see ascii(7)
 
-    # gettext also handles \n, \t, \b, \r, \f, \v, \a, \xxx (octal),
-    # \xXX (hex) and has a comment saying they want to handle \u and \U.
+    return chr(hex($1)) if ($sequence =~ /\\x([0-9a-fA-F]{2})/);
+    return chr(oct($1)) if ($sequence =~ /\\([0-7]{3})/);
+
+    # FIXME: Is \0 supported as well? Kenneth and Rodney don't want it, see bug #48489
 
     return $sequence;
 }
@@ -473,7 +477,7 @@ sub unescape_po_string
 {
     my ($string) = @_;
 
-    $string =~ s/(\\.)/unescape_one_sequence($1)/eg;
+    $string =~ s/(\\x[0-9a-fA-F]{2}|\\[0-7]{3}|\\.)/unescape_one_sequence($1)/eg;
 
     return $string;
 }
@@ -494,8 +498,7 @@ sub entity_decode
  
 # entity_encode: (string)
 #
-# Encode the given string to XML format (encode '<' etc). It also 
-# encodes high bit if not in UTF-8 mode.
+# Encode the given string to XML format (encode '<' etc).
 
 sub entity_encode
 {
@@ -503,15 +506,8 @@ sub entity_encode
 
     my @list_of_chars = unpack ('C*', $pre_encoded);
 
-    if ($PASS_THROUGH_ARG) 
-    {
-        return join ('', map (&entity_encode_int_even_high_bit, @list_of_chars));
-    } 
-    else 
-    {
-	# with UTF-8 we only encode minimalistic
-        return join ('', map (&entity_encode_int_minimalist, @list_of_chars));
-    }
+    # with UTF-8 we only encode minimalistic
+    return join ('', map (&entity_encode_int_minimalist, @list_of_chars));
 }
 
 sub entity_encode_int_minimalist
@@ -521,19 +517,6 @@ sub entity_encode_int_minimalist
     return "&apos;" if $_ == 39;
     return "&lt;" if $_ == 60;
     return chr $_;
-}
-
-sub entity_encode_int_even_high_bit
-{
-    if ($_ > 127 || $_ == 34 || $_ == 38 || $_ == 39 || $_ == 60) 
-    {
-        # the ($_ > 127) should probably be removed
-	return "&#" . $_ . ";"; 
-    } 
-    else 
-    {
-	return chr $_;
-    }
 }
 
 sub entity_encoded_translation
@@ -608,6 +591,7 @@ sub getAttributeString
     my $do_translate = shift || 0;
     my $language = shift || "";
     my $result = "";
+    my $translate = shift;
     foreach my $e (reverse(sort(keys %{ $sub }))) {
 	my $key    = $e;
 	my $string = $sub->{$e};
@@ -634,8 +618,11 @@ sub getAttributeString
 		if ($translation) {
 		    $translation = entity_encode($translation);
 		    $string = $translation;
+                    $$translate = 2;
 		}
-	    }
+            } else {
+                 $$translate = 1 if ($translate && (!$$translate)); # watch not to "overwrite" if $translate == 2
+            }
 	}
 	
 	$result .= " $key=$quote$string$quote";
@@ -657,6 +644,7 @@ sub getXMLstring
     my $count = scalar(@list);
     my $attrs = $list[0];
     my $index = 1;
+
     while ($index < $count) {
 	my $type = $list[$index];
 	my $content = $list[$index+1];
@@ -664,7 +652,7 @@ sub getXMLstring
 	    # We've got CDATA
 	    if ($content) {
 		# lets strip the whitespace here, and *ONLY* here
-		$content =~ s/\s+/ /gs;
+                $content =~ s/\s+/ /gs if (!((exists $attrs->{"xml:space"}) && ($attrs->{"xml:space"} =~ /^["']?preserve["']?$/)));
 		$result .= ($content);
 	    } else {
 		#print "no cdata content when expected it\n"; # is this possible, is this ok?
@@ -674,7 +662,7 @@ sub getXMLstring
 	} else {
 	    # We've got another element
 	    $result .= "<$type";
-	    $result .= getAttributeString($attrs, 0); # no nested translatable elements
+	    $result .= getAttributeString(@{$content}[0], 0); # no nested translatable elements
 	    if ($content) {
 		my $subresult = getXMLstring($content);
 		if ($subresult) {
@@ -707,23 +695,26 @@ sub traverse
 	# element
 	my @all = @{ $content };
 	my $attrs = shift @all;
-	my $outattr = getAttributeString($attrs, 1, $language);
 	my $translate = 0;
+	my $outattr = getAttributeString($attrs, 1, $language, \$translate);
 
 	if ($nodename =~ /^_/) {
 	    $translate = 1;
 	    $nodename =~ s/^_//;
 	}
 	my $lookup = '';
-	print $fh "<$nodename$outattr";
+	print $fh "<$nodename", $outattr;
 	if ($translate) {
 	    $lookup = getXMLstring($content);
-	    $lookup =~ s/^\s+//s;
-	    $lookup =~ s/\s+$//s;
+            if (!((exists $attrs->{"xml:space"}) && ($attrs->{"xml:space"} =~ /^["']?preserve["']?$/))) {
+                $lookup =~ s/^\s+//s;
+                $lookup =~ s/\s+$//s;
+            }
 
-	    if ($lookup) {
+	    if ($lookup || $translate == 2) {
                 my $translation = $translations{$language, $lookup};
-                if ($MULTIPLE_OUTPUT && $translation) {
+                if ($MULTIPLE_OUTPUT && ($translation || $translate == 2)) {
+                    $translation = $lookup if (!$translation);
                     print $fh " xml:lang=\"", $language, "\"";
                     print $fh ">", $translation, "</$nodename>";
                     return; # this means there will be no same translation with xml:lang="$language"...
@@ -734,20 +725,22 @@ sub traverse
 	    } else {
 		print $fh "/>";
 	    }
-	    
- 
+
 	    for my $lang (sort keys %po_files_by_lang) {
                     if ($MULTIPLE_OUTPUT && $lang ne "$language") {
                         next;
                     }
 		    if ($lang) {
-
                         # Handle translation
                         #
-			my $localattrs = getAttributeString($attrs, 1, $lang);
-                        my $decode_string = ($lookup); #entity_decode($lookup);
-                        my $translation = $translations{$lang, $decode_string};
-                        if ($translation) {
+                        my $translate = 0;
+                        my $localattrs = getAttributeString($attrs, 1, $lang, \$translate);
+                        my $translation = $translations{$lang, $lookup};
+                        if ($translate && !$translation) {
+                            $translation = $lookup;
+                        }
+
+                        if ($translation || $translate) {
                             $translation = ($translation);
 			    print $fh "\n";
 			    $leading_space =~ s/.*\n//g;

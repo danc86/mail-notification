@@ -139,6 +139,8 @@
   MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_NAMESPACE "/font"
 #define MN_CONF_DOUBLE_CLICK_ACTION \
   MN_CONF_NAMESPACE "/double-click-action"
+#define MN_CONF_SUMMARY_TOOLTIP \
+  MN_CONF_NAMESPACE "/summary-tooltip"
 
 void		mn_conf_init		(void);
 void		mn_conf_unset_obsolete	(void);

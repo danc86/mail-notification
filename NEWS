@@ -1,3 +1,10 @@
+0.99					November 15, 2004
+
+	* The IMAP capabilities sent in a PREAUTH, AUTHENTICATE or
+	  LOGIN response were ignored, and a CAPABILITY command was
+	  not re-issued after a successful authentication: fixed
+	* Added a "Display mail summary in tooltip" option
+
 0.8.1					November 4, 2004
 
 	* Mail summary popup fixes and improvements:

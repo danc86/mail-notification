@@ -184,6 +184,26 @@
 			      <property name="fill">False</property>
 			    </packing>
 			  </child>
+
+			  <child>
+			    <widget class="GtkCheckButton" id="summary_tooltip_check">
+			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">Whether to display the mail summary in the status icon tooltip or not</property>
+			      <property name="can_focus">True</property>
+			      <property name="label" translatable="yes">Dis_play mail summary in tooltip</property>
+			      <property name="use_underline">True</property>
+			      <property name="relief">GTK_RELIEF_NORMAL</property>
+			      <property name="focus_on_click">True</property>
+			      <property name="active">False</property>
+			      <property name="inconsistent">False</property>
+			      <property name="draw_indicator">True</property>
+			    </widget>
+			    <packing>
+			      <property name="padding">0</property>
+			      <property name="expand">False</property>
+			      <property name="fill">False</property>
+			    </packing>
+			  </child>
 			</widget>
 			<packing>
 			  <property name="padding">0</property>
@@ -303,7 +323,7 @@
 				  <property name="max_length">0</property>
 				  <property name="text" translatable="yes"></property>
 				  <property name="has_frame">True</property>
-				  <property name="invisible_char" translatable="yes">*</property>
+				  <property name="invisible_char">*</property>
 				  <property name="activates_default">False</property>
 				  <signal name="changed" handler="mn_properties_mail_reader_entry_changed_h" after="yes" last_modification_time="Fri, 29 Oct 2004 16:48:44 GMT"/>
 				</widget>
@@ -358,7 +378,7 @@
 				  <property name="max_length">0</property>
 				  <property name="text" translatable="yes"></property>
 				  <property name="has_frame">True</property>
-				  <property name="invisible_char" translatable="yes">*</property>
+				  <property name="invisible_char">*</property>
 				  <property name="activates_default">False</property>
 				</widget>
 				<packing>
@@ -412,7 +432,7 @@
 				  <property name="max_length">0</property>
 				  <property name="text" translatable="yes"></property>
 				  <property name="has_frame">True</property>
-				  <property name="invisible_char" translatable="yes">*</property>
+				  <property name="invisible_char">*</property>
 				  <property name="activates_default">False</property>
 				</widget>
 				<packing>

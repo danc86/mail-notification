@@ -103,6 +103,7 @@ gboolean mn_client_session_sasl_authentication_start (MNClientSession *session,
 int mn_client_session_sasl_authentication_step (MNClientSession *session,
 						const char *input);
 gboolean mn_client_session_sasl_authentication_done (MNClientSession *session);
+int mn_client_session_sasl_get_ssf (MNClientSession *session);
 #endif /* WITH_SASL */
 
 void mn_client_session_notice (MNClientSession *session,

@@ -30,7 +30,7 @@
 
 ## Release information
 my $PROGRAM = "intltool-update";
-my $VERSION = "0.31.3";
+my $VERSION = "0.32.1";
 my $PACKAGE = "intltool";
 
 ## Loaded modules
@@ -74,6 +74,7 @@ my $xml_support =
 "kbd(?:\\.in)+";	# GOK specific. 
 
 my $ini_support =
+"icon(?:\\.in)+|".	# http://www.freedesktop.org/Standards/icon-theme-spec
 "desktop(?:\\.in)+|".	# http://www.freedesktop.org/Standards/menu-spec
 "caves(?:\\.in)+|".	# GNOME Games specific
 "directory(?:\\.in)+|".	# http://www.freedesktop.org/Standards/menu-spec
@@ -283,6 +284,13 @@ sub TextFile_DetermineEncoding ($)
     return $gettext_code;
 }
 
+sub isNotValidMissing
+{
+    my ($file) = @_;
+
+    return if $file =~ /^\{arch\}\/.*$/;
+    return if $file =~ /^$varhash{"PACKAGE"}-$varhash{"VERSION"}\/.*$/;
+}
 
 sub FindLeftoutFiles
 {
@@ -397,15 +405,19 @@ sub FindLeftoutFiles
 
 	    if (/\.GetString ?\(QUOTEDTEXT/)
 	    {
-		## Remove the first 3 chars and add newline
-		push @buf_allfiles, unpack("x3 A*", $file) . "\n";
+                if (defined isNotValidMissing (unpack("x3 A*", $file))) {
+                    ## Remove the first 3 chars and add newline
+                    push @buf_allfiles, unpack("x3 A*", $file) . "\n";
+                }
 		last;
 	    }
 
 	    if (/_\(QUOTEDTEXT/)
 	    {
-		## Remove the first 3 chars and add newline
-		push @buf_allfiles, unpack("x3 A*", $file) . "\n";
+                if (defined isNotValidMissing (unpack("x3 A*", $file))) {
+                    ## Remove the first 3 chars and add newline
+                    push @buf_allfiles, unpack("x3 A*", $file) . "\n";
+                }
 		last;
 	    }
 	}
@@ -421,7 +433,9 @@ sub FindLeftoutFiles
 	    # FIXME: share the pattern matching code with intltool-extract
 	    if (/\s_(.*)=\"/ || /<_[^>]+>/ || /translatable=\"yes\"/)
 	    {
-		push @buf_allfiles, unpack("x3 A*", $file) . "\n";
+                if (defined isNotValidMissing (unpack("x3 A*", $file))) {
+                    push @buf_allfiles, unpack("x3 A*", $file) . "\n";
+                }
 		last;
 	    }
 	}
@@ -435,7 +449,9 @@ sub FindLeftoutFiles
 	{
 	    if (/_(.*)=/)
 	    {
-		push @buf_allfiles, unpack("x3 A*", $file) . "\n";
+                if (defined isNotValidMissing (unpack("x3 A*", $file))) {
+                    push @buf_allfiles, unpack("x3 A*", $file) . "\n";
+                }
 		last;
 	    }
 	}
@@ -444,7 +460,9 @@ sub FindLeftoutFiles
 
     foreach my $file (@buf_i18n_xml_unmarked)
     {
-	push @buf_allfiles, unpack("x3 A*", $file) . "\n";
+        if (defined isNotValidMissing (unpack("x3 A*", $file))) {
+            push @buf_allfiles, unpack("x3 A*", $file) . "\n";
+        }
     }
 
 
@@ -997,7 +1015,7 @@ sub FindPackageName
 sub FindPOTKeywords
 {
 
-    my $keywords = "--keyword\=\_ --keyword\=N\_ --keyword\=U\_";
+    my $keywords = "--keyword\=\_ --keyword\=N\_ --keyword\=U\_ --keyword\=Q\_";
     my $varname = "XGETTEXT_OPTIONS";
     my $make_source; {
 	local (*IN);

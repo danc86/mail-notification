@@ -2,3 +2,5 @@
   (RFC 3501, section 11.1)
 
 * See if we can add an Evolution data server mailbox backend
+
+* List the available IMAP folders in the mailbox properties dialog

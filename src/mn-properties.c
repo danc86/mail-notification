@@ -36,6 +36,7 @@ typedef struct
   /* general tab */
   GtkWidget		*autostart_check;
   GtkWidget		*blink_check;
+  GtkWidget		*summary_tooltip_check;
   GtkWidget		*command_mail_reader_check;
   GtkWidget		*command_mail_reader_entry;
   GtkWidget		*command_new_mail_check;
@@ -122,6 +123,7 @@ mn_properties_display (void)
 		      "notebook", &properties.notebook,
 		      "autostart_check", &properties.autostart_check,
 		      "blink_check", &properties.blink_check,
+		      "summary_tooltip_check", &properties.summary_tooltip_check,
 		      "command_mail_reader_check", &properties.command_mail_reader_check,
 		      "command_mail_reader_entry", &properties.command_mail_reader_entry,
 		      "command_new_mail_check", &properties.command_new_mail_check,
@@ -204,6 +206,7 @@ mn_properties_display (void)
   
   mn_conf_link(properties.dialog, MN_CONF_PROPERTIES_DIALOG,
 	       properties.blink_check, MN_CONF_BLINK_ON_ERRORS,
+	       properties.summary_tooltip_check, MN_CONF_SUMMARY_TOOLTIP,
 	       properties.command_mail_reader_check, MN_CONF_COMMANDS_MAIL_READER_ENABLED,
 	       properties.command_mail_reader_entry, MN_CONF_COMMANDS_MAIL_READER_COMMAND,
 	       properties.command_new_mail_check, MN_CONF_COMMANDS_NEW_MAIL_ENABLED,

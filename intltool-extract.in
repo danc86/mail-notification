@@ -32,7 +32,7 @@
 ## Release information
 my $PROGRAM      = "intltool-extract";
 my $PACKAGE      = "intltool";
-my $VERSION      = "0.31.3";
+my $VERSION      = "0.32.1";
 
 ## Loaded modules
 use strict; 
@@ -394,7 +394,7 @@ sub type_glade {
 	# Glade sometimes uses tags that normally mark translatable things for
         # little bits of non-translatable content. We work around this by not
         # translating strings that only includes something like label4 or window1.
-	$messages{entity_decode($2)} = [] unless $2 =~ /^(window|label)[0-9]+$/;
+	$messages{entity_decode($2)} = [] unless $2 =~ /^(window|label|dialog)[0-9]+$/;
     }
     
     while ($input =~ /<items>(..[^<]*)<\/items>/sg) {
@@ -404,8 +404,11 @@ sub type_glade {
     }
 
     ## handle new glade files
-    while ($input =~ /<(property|atkproperty)\s+[^>]*translatable\s*=\s*"yes"[^>]*>([^<]+)<\/\1>/sg) {
-	$messages{entity_decode($2)} = [] unless $2 =~ /^(window|label)[0-9]+$/;
+    while ($input =~ /<(property|atkproperty)\s+[^>]*translatable\s*=\s*"yes"(?:\s+[^>]*comments\s*=\s*"([^"]*)")?[^>]*>([^<]+)<\/\1>/sg) {
+	$messages{entity_decode($3)} = [] unless $3 =~ /^(window|label)[0-9]+$/;
+        if (defined($2) and !($3 =~ /^(window|label)[0-9]+$/)) {
+	   $comments{entity_decode($3)} = entity_decode($2) ;
+        }
     }
     while ($input =~ /<atkaction\s+action_name="([^>]*)"\s+description="([^>]+)"\/>/sg) {
         $messages{entity_decode_minimal($2)} = [];
@@ -413,8 +416,47 @@ sub type_glade {
 }
 
 sub type_scheme {
-    while ($input =~ /_\w*\(?"((?:[^"\\]+|\\.)*)"\)?/sg) {
-	$messages{$1} = [];
+    my ($line, $i, $state, $str, $trcomment, $char);
+    for $line (split(/\n/, $input)) {
+        $i = 0;
+        $state = 0; # 0 - nothing, 1 - string, 2 - translatable string
+        while ($i < length($line)) {
+            if (substr($line,$i,1) eq "\"") {
+                if ($state == 2) {
+                    $comments{$str} = $trcomment if ($trcomment);
+                    $messages{$str} = [];
+                    $str = '';
+                    $state = 0; $trcomment = "";
+                } elsif ($state == 1) {
+                    $str = '';
+                    $state = 0; $trcomment = "";
+                } else {
+                    $state = 1;
+                    $str = '';
+                    if ($i>0 && substr($line,$i-1,1) eq '_') {
+                        $state = 2;
+                    }
+                }
+            } elsif (!$state) {
+                if (substr($line,$i,1) eq ";") {
+                    $trcomment = substr($line,$i+1);
+                    $trcomment =~ s/^;*\s*//;
+                    $i = length($line);
+                } elsif ($trcomment && substr($line,$i,1) !~ /\s|\(|\)|_/) {
+                    $trcomment = "";
+                }
+            } else {
+                if (substr($line,$i,1) eq "\\") {
+                    $char = substr($line,$i+1,1);
+                    if ($char ne "\"" && $char ne "\\") {
+                       $str = $str . "\\";
+                    }
+                    $i++;
+                }
+                $str = $str . substr($line,$i,1);
+            }
+            $i++;
+        }
     }
 }
 

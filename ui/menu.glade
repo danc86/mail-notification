@@ -1,0 +1,68 @@
+<?xml version="1.0" standalone="no"?> <!--*- mode: xml -*-->
+<!DOCTYPE glade-interface SYSTEM "http://glade.gnome.org/glade-2.0.dtd">
+
+<glade-interface>
+<requires lib="gnome"/>
+
+<widget class="GtkMenu" id="menu">
+
+  <child>
+    <widget class="GtkImageMenuItem" id="check_for_mail">
+      <property name="visible">True</property>
+      <property name="tooltip" translatable="yes">Check for new mail</property>
+      <property name="label" translatable="yes">_Check for Mail</property>
+      <property name="use_underline">True</property>
+      <signal name="activate" handler="mn_ui_check_for_mail_activate_h" last_modification_time="Sun, 27 Jul 2003 07:10:19 GMT"/>
+
+      <child internal-child="image">
+	<widget class="GtkImage" id="image1">
+	  <property name="visible">True</property>
+	  <property name="stock">gtk-refresh</property>
+	  <property name="icon_size">1</property>
+	  <property name="xalign">0.5</property>
+	  <property name="yalign">0.5</property>
+	  <property name="xpad">0</property>
+	  <property name="ypad">0</property>
+	</widget>
+      </child>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkMenuItem" id="menuitem1">
+      <property name="visible">True</property>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkImageMenuItem" id="imagemenuitem2">
+      <property name="visible">True</property>
+      <property name="stock_item">GNOMEUIINFO_MENU_PREFERENCES_ITEM</property>
+      <signal name="activate" handler="mn_ui_preferences_activate_h" last_modification_time="Sun, 27 Jul 2003 07:10:19 GMT"/>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkImageMenuItem" id="imagemenuitem3">
+      <property name="visible">True</property>
+      <property name="stock_item">GNOMEUIINFO_MENU_ABOUT_ITEM</property>
+      <signal name="activate" handler="mn_ui_about_activate_h" last_modification_time="Sun, 27 Jul 2003 07:10:19 GMT"/>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkMenuItem" id="menuitem2">
+      <property name="visible">True</property>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkImageMenuItem" id="imagemenuitem4">
+      <property name="visible">True</property>
+      <property name="stock_item">GNOMEUIINFO_MENU_EXIT_ITEM</property>
+      <signal name="activate" handler="mn_ui_quit_activate_h" last_modification_time="Sun, 27 Jul 2003 07:10:19 GMT"/>
+    </widget>
+  </child>
+</widget>
+
+</glade-interface>

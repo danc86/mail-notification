@@ -1,0 +1,56 @@
+-------------------------------------------------------------------------------
+ Mail Notification installation instructions
+-------------------------------------------------------------------------------
+
+Index
+
+	0. About this document
+	1. Requirements
+	2. Instructions
+
+0. About this document
+
+	$Id: INSTALL,v 1.4 2003/10/02 16:07:38 jylefort Exp $
+
+	Copyright (c) 2003 Jean-Yves Lefort.
+
+	This document is part of Mail Notification.
+	It may be distributed under the same terms as Mail Notification.
+
+1. Requirements
+
+	Mail Notification requires the following libraries:
+
+		* GTK+ (version 2.2.2 or superior)
+		  http://www.gtk.org/
+
+		* GNOME (version 2.0 or superior)
+		  http://www.gnome.org/
+
+		* for POP3 support: GNet (version 2.0 or superior)
+		  http://www.gnetlibrary.org/
+
+2. Instructions
+
+	Mail Notification uses the well-known GNU build system. Hence,
+	the following usual sequence will probably satisfy most users:
+
+		$ ./configure
+		$ make
+		<get root privileges, if needed>
+		$ make install
+
+	The ./configure script behaviour can be changed using
+	command-line options: type "./configure --help" for an
+	exhaustive list.
+
+	Five options are specific to Mail Notification:
+
+		--enable-mbox
+		--enable-mh
+		--enable-maildir
+		--enable-pop3
+		--enable-sylpheed
+
+	They may be used to disable the compilation of some format
+	handlers. They are all enabled by default.

@@ -1,0 +1,77 @@
+2003-12-24 15:22  jylefort
+
+	* fr.po: Version 0.3.2
+
+2003-12-06 15:03  jylefort
+
+	* fr.po: Images are not inlined anymore; cleanups
+
+2003-12-06 13:51  jylefort
+
+	* POTFILES.in, fr.po: Now uses libglade instead of code generation
+
+2003-11-27 10:21  jylefort
+
+	* POTFILES.in, fr.po: Update to new design
+
+2003-10-20 17:24  jylefort
+
+	* fr.po: Version 0.3.1
+
+2003-10-20 17:18  jylefort
+
+	* fr.po: Added some new translations
+
+2003-10-02 17:26  jylefort
+
+	* POTFILES.in, fr.po: Updated
+
+2003-09-25 19:55  jylefort
+
+	* POTFILES.in: Important redesign
+
+2003-09-25 18:56  jylefort
+
+	* fr.po: Added one entry
+
+2003-09-25 18:41  jylefort
+
+	* fr.po: Better wording
+
+2003-09-25 18:15  jylefort
+
+	* fr.po: Added some entries
+
+2003-09-25 17:00  jylefort
+
+	* fr.po: Implemented Sylpheed support
+
+2003-09-25 17:00  jylefort
+
+	* POTFILES.in: Fixed an oblivion
+
+2003-09-23 09:54  jylefort
+
+	* fr.po: Added some translations
+
+2003-09-23 09:43  jylefort
+
+	* POTFILES.in: All GConf calls are now checked for errors
+
+2003-09-18 04:09  jylefort
+
+	* fr.po: HIG fixes
+
+2003-09-17 11:09  jylefort
+
+	* Makefile.in.in: Switched to Autoconf 2.57, Automake 1.7, and some
+	  cleanups
+
+2003-09-09 12:31  jylefort
+
+	* POTFILES.in, fr.po: Completed the french translation
+
+2003-09-09 07:26  jylefort
+
+	* Makefile.in.in, POTFILES.in, fr.po: Internationalized
+

@@ -1,0 +1,80 @@
+-------------------------------------------------------------------------------
+ Mail Notification overview
+-------------------------------------------------------------------------------
+
+Index
+
+	0. About this document
+	1. About Mail Notification
+	2. Release notes
+	3. Documentation map
+
+0. About this document
+
+	$Id: README,v 1.10 2003/12/24 14:19:53 jylefort Exp $
+
+	Copyright (c) 2003 Jean-Yves Lefort.
+
+	This document is part of Mail Notification.
+	It may be distributed under the same terms as Mail Notification.
+
+1. About Mail Notification
+
+	Mail Notification is an icon for the GNOME Notification Area
+	that informs users if they have new mail.
+
+	In order to display the icon in the Notification Area, Mail
+	Notification uses the EggTrayIcon backend, which adheres to
+	the freedesktop's System Tray Specification
+	(http://www.freedesktop.org/Standards/systemtray-spec). This
+	might allow Mail Notification to function with the KDE System
+	Tray (untested).
+
+	Features:
+
+		* multiple folder support
+		* mbox, MH, Maildir and Sylpheed support
+		* POP3 support (if the GNet library is available)
+		* automatic folder format detection
+		* responsive UI (multi-threaded application)
+		* HIG-compliant user interface
+		* themeable stock icons
+
+	Usage:
+
+		Right-click the dot icon in the Notification Area to
+		access the popup menu.
+
+		The two GTK+ stock icons are named
+		"mail-notification-no-mail" and
+		"mail-notification-mail".
+
+		See http://developer.gnome.org/doc/API/2.0/gtk/gtk-Res-
+		ource-Files.html for details about how to customize
+		them in your ~/.gtkrc-2.0.
+
+		If the program does not work as expected, run it from
+		a terminal and watch for possible error messages.
+
+2. Release notes
+
+	libglade is now used instead of code generation.
+
+3. Documentation map
+
+	The following documents are included in the distribution:
+
+		COPYING		licensing information
+
+		README		this document
+
+		INSTALL		installation instructions
+
+		NEWS		reverse chronology of changes,
+				manually edited
+
+		ChangeLog	reverse chronology of changes,
+				automatically generated from CVS
+				commit messages
+
+		TODO		to-do list, mostly useful for developers

@@ -1,0 +1,123 @@
+/* 
+ * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+#include "config.h"
+#include <gtk/gtk.h>
+#include <libgnome/gnome-i18n.h>
+#include <glade/glade.h>
+#ifdef HAVE_GNET
+#include <gnet.h>
+#endif
+#include <stdarg.h>
+#include "mn-util.h"
+
+/*** implementation **********************************************************/
+
+/*
+ * Frees a singly linked list of heap pointers.
+ */
+void
+mn_slist_free (GSList *list)
+{
+  GSList *l;
+
+  MN_LIST_FOREACH(l, list)
+    g_free(l->data);
+
+  g_slist_free(list);
+}
+
+#ifdef HAVE_GNET
+GIOError
+mn_gnet_io_channel_printf (GIOChannel *channel, const char *format, ...)
+{
+  va_list args;
+  char *message;
+  GIOError status;
+  int len;
+  gsize count;
+
+  g_return_val_if_fail(channel != NULL, G_IO_ERROR_UNKNOWN);
+  
+  va_start(args, format);
+  message = g_strdup_vprintf(format, args);
+  va_end(args);
+
+  len = strlen(message);
+  status = gnet_io_channel_writen(channel, message, len, &count);
+  g_free(message);
+
+  if (status == G_IO_ERROR_NONE && count != len)
+    status = G_IO_ERROR_UNKNOWN;
+
+  return status;
+}
+#endif /* HAVE_GNET */
+
+gboolean
+mn_str_isnumeric (const char *str)
+{
+  int i;
+
+  g_return_val_if_fail(str != NULL, FALSE);
+
+  for (i = 0; str[i]; i++)
+    if (! g_ascii_isdigit(str[i]))
+      return FALSE;
+
+  return TRUE;
+}
+
+GdkPixbuf *mn_pixbuf_new (const char *filename)
+{
+  char *pathname;
+  GdkPixbuf *pixbuf;
+  GError *err = NULL;
+
+  g_return_val_if_fail(filename != NULL, NULL);
+
+  pathname = g_build_filename(UIDIR, filename, NULL);
+  pixbuf = gdk_pixbuf_new_from_file(pathname, &err);
+  g_free(pathname);
+
+  if (! pixbuf)
+    {
+      g_warning(_("error loading image: %s"), err->message);
+      g_error_free(err);
+    }
+
+  return pixbuf;
+}
+
+GladeXML *mn_glade_xml_new (const char *filename)
+{
+  char *full_filename;
+  char *pathname;
+  GladeXML *xml;
+
+  full_filename = g_strconcat(filename, ".glade", NULL);
+  pathname = g_build_filename(UIDIR, full_filename, NULL);
+  g_free(full_filename);
+
+  xml = glade_xml_new(pathname, NULL, NULL);
+  g_free(pathname);
+
+  glade_xml_signal_autoconnect(xml);
+
+  return xml;
+}

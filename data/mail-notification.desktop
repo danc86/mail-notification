@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Mail Notification
+Name[fr]=Notification de Courrier
+Icon=mail-notification.png
+Comment=Get notified when new mail arrives
+Comment[fr]=Etre notifié quand du nouveau courrier arrive
+Type=Application
+Categories=Application;Network;
+TryExec=mail-notification
+Exec=mail-notification
+Terminal=0

@@ -1,0 +1,123 @@
+<gconfschemafile>
+  <schemalist>
+    <schema>
+      <key>/schemas/apps/mail-notification/local/enabled</key>
+      <applyto>/apps/mail-notification/local/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>1</default>
+      <locale name="C">
+        <short>Check for local mail</short>
+        <long>Whether to periodically check for new local mail or not.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/local/delay/minutes</key>
+      <applyto>/apps/mail-notification/local/delay/minutes</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Minutes between local checks</short>
+        <long>Delay between local mail checks (minutes part).</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/local/delay/seconds</key>
+      <applyto>/apps/mail-notification/local/delay/seconds</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>15</default>
+      <locale name="C">
+        <short>Seconds between local checks</short>
+        <long>Delay between local mail checks (seconds part).</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/remote/enabled</key>
+      <applyto>/apps/mail-notification/remote/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>1</default>
+      <locale name="C">
+        <short>Check for remote mail</short>
+        <long>Whether to periodically check for new remote mail or not.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/remote/delay/minutes</key>
+      <applyto>/apps/mail-notification/remote/delay/minutes</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>5</default>
+      <locale name="C">
+        <short>Minutes between remote checks</short>
+        <long>Delay between remote mail checks (minutes part).</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/remote/delay/seconds</key>
+      <applyto>/apps/mail-notification/remote/delay/seconds</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Seconds between remote checks</short>
+        <long>Delay between remote mail checks (seconds part).</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/commands/new-mail/enabled</key>
+      <applyto>/apps/mail-notification/commands/new-mail/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Run a command when new mail arrives</short>
+	<long>Whether to run a command when new mail arrives or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/commands/new-mail/command</key>
+      <applyto>/apps/mail-notification/commands/new-mail/command</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <locale name="C">
+        <short>New mail command</short>
+	<long>The command to run when new mail arrives.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/commands/clicked/enabled</key>
+      <applyto>/apps/mail-notification/commands/clicked/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Run a command when the icon is clicked</short>
+	<long>Whether to run a command when the icon is clicked or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/commands/clicked/command</key>
+      <applyto>/apps/mail-notification/commands/clicked/command</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <locale name="C">
+        <short>Clicked command</short>
+	<long>The command to run when the icon is clicked.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/mailboxes</key>
+      <applyto>/apps/mail-notification/mailboxes</applyto>
+      <owner>mail-notification</owner>
+      <type>list</type>
+      <list_type>string</list_type>
+      <locale name="C">
+        <short>Mailboxes list</short>
+	<long>List of mailboxes to monitor.</long>
+      </locale>
+    </schema>
+ </schemalist>
+</gconfschemafile>

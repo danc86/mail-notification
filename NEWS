@@ -1,0 +1,40 @@
+0.3.2					24 December 2003
+
+	* A bug in the Sylpheed checking code has been fixed
+	* Restarting notification-area-applet is now handled properly
+	* libglade is now used instead of code generation
+	* Some code cleanups have been performed
+
+0.3.1					20 October 2003
+
+	* A few minor bugs have been fixed
+
+0.3.0					02 October 2003
+
+	* Major code cleanup
+	* Implemented Sylpheed and POP3 support
+	* The file selection dialog now remembers its last path
+	* Speed optimizations
+	* In order to maintain UI responsiveness during mail checks,
+	  the application is now multi-threaded
+	* Error messages are now displayed in a dialog box if the
+	  check has been launched interactively
+
+0.2.0					24 September 2003
+
+	* Implemented mbox and MH support
+	* Added exhaustive error reporting
+	* Enriched the documentation
+
+0.1.0					18 September 2003
+
+	* Is now a GNOME application
+	* Added a graphical user interface (preferences dialog and
+	  popup menu)
+	* Internationalization has been performed, and a french
+	  translation is already available
+	* Switched to Autoconf 2.57 and Automake 1.7.5
+
+0.0.1					20 July 2003
+	
+	* Initial release

@@ -1,0 +1,654 @@
+2003-12-24 15:22  jylefort
+
+	* configure.ac: Version 0.3.2
+
+2003-12-24 15:12  jylefort
+
+	* src/: mn-check.c, mn-mail-icon.c, mn-mailboxes.c,
+	  mn-preferences.c, mn-util.c, mn-util.h: Cleanups
+
+2003-12-06 18:11  jylefort
+
+	* src/: mn-mail-icon.c, mn-ui.c: Now recreates the icon when the
+	  notification area applet is terminated
+
+2003-12-06 15:09  jylefort
+
+	* src/: mn-dialog.c, mn-mail-icon.c, mn-preferences.c: Fixes
+
+2003-12-06 15:03  jylefort
+
+	* configure.ac, art/Makefile.am, art/no-mail.png, art/no_mail.png,
+	  src/Makefile.am, src/mn-check.c, src/mn-conf.c, src/mn-dialog.c,
+	  src/mn-mail-icon.c, src/mn-mailboxes.c, src/mn-pop3-mailbox.c,
+	  src/mn-preferences.c, src/mn-sylpheed-mailbox.c, src/mn-ui.c,
+	  src/mn-util.c, src/mn-util.h, ui/preferences.glade: Images are
+	  not inlined anymore; cleanups
+
+2003-12-06 14:06  jylefort
+
+	* src/: mn-conf.c, mn-preferences.c: Cleanups
+
+2003-12-06 13:51  jylefort
+
+	* configure.ac, art/Makefile.am, src/Makefile.am,
+	  src/glade-callbacks.c, src/glade-callbacks.h, src/mn-check.c,
+	  src/mn-dialog.c, src/mn-dialog.h, src/mn-mail-icon.c,
+	  src/mn-preferences.c, src/mn-preferences.h, src/mn-ui.c,
+	  src/mn-ui.h, ui/Makefile.am, ui/add-pop3.glade,
+	  ui/add-pop3.gladep, ui/dialog.glade, ui/dialog.gladep,
+	  ui/mail-notification.glade, ui/mail-notification.gladep,
+	  ui/menu.glade, ui/menu.gladep, ui/preferences.glade,
+	  ui/preferences.gladep: Now uses libglade instead of code
+	  generation
+
+2003-12-05 10:09  jylefort
+
+	* src/mail-notification.c: Cleanup
+
+2003-11-27 10:15  jylefort
+
+	* src/: Makefile.am, mn-check.c, mn-mail-icon.c, mn-mail-icon.h,
+	  mn-ui.c, mn-ui.h: Design cleanup
+
+2003-11-25 01:47  jylefort
+
+	* src/: mn-check.c, mn-ui.c, mn-ui.h: Instead of displaying an
+	  error dialog if the user clicks "Check for mail" when a check is
+	  in progress, don't let him click the menu item (by making it
+	  insensitive)
+
+2003-11-24 05:17  jylefort
+
+	* src/mn-sylpheed-mailbox.c: Only numeric filenames should be
+	  counted as messages
+
+2003-10-20 17:24  jylefort
+
+	* configure.ac: Version 0.3.1
+
+2003-10-20 17:12  jylefort
+
+	* src/: mn-check.c, mn-unsupported-mailbox.c,
+	  mn-unsupported-mailbox.h: Do not try to check unsupported
+	  mailboxes anymore
+
+2003-10-20 02:33  jylefort
+
+	* src/: mn-mailbox.c, mn-mailbox.h, mn-pop3-mailbox.c,
+	  mn-pop3-mailbox.h: A wrong POP3 locator does not trigger a fatal
+	  error anymore
+
+2003-10-20 01:45  jylefort
+
+	* src/: glade-callbacks.c, mn-check.c, mn-conf.c, mn-dialog.c,
+	  mn-mailbox.c, mn-mailboxes.c, mn-maildir-mailbox.c,
+	  mn-mbox-mailbox.c, mn-mh-mailbox.c, mn-pop3-mailbox.c,
+	  mn-preferences.c, mn-sylpheed-mailbox.c, mn-ui.c,
+	  mn-unsupported-mailbox.c: Fixes some includes (include only what
+	  is necessary, or fix the forgotten inclusion of necessary
+	  headers)
+
+2003-10-20 01:27  jylefort
+
+	* src/: mail-notification.c, mn-dialog.c, mn-dialog.h,
+	  mn-pop3-mailbox.c: Using g_log_set_always_fatal() made failed
+	  assertions fatal: we now use our own mn_fatal() instead of
+	  g_critical(); fixed a few bugs in mn_pop3_mailbox_parse_locator()
+
+2003-10-20 01:12  jylefort
+
+	* src/mn-preferences.c: Added sanity checks in
+	  mn_preferences_add_remote_mailbox()
+
+2003-10-20 00:57  jylefort
+
+	* src/mn-preferences.c: Enable the "Add remote mailbox" button only
+	  if POP3 support is enabled
+
+2003-10-20 00:49  jylefort
+
+	* configure.ac: Cleaner use of the AM_PATH_GNET_2_0 macro
+
+2003-10-15 15:07  jylefort
+
+	* src/mn-ui.c: Fixed a little bug
+
+2003-10-06 12:25  jylefort
+
+	* src/mail-notification.c: Forgot to enclose gtk_main() into a
+	  GDK_THREADS_{ENTER|LEAVE}() pair
+
+2003-10-06 12:01  jylefort
+
+	* AUTHORS: Updated
+
+2003-10-02 18:07  jylefort
+
+	* INSTALL: Added GTK+ 2.2.2 requirement
+
+2003-10-02 18:04  jylefort
+
+	* configure.ac: Version 0.3.0
+
+2003-10-02 17:26  jylefort
+
+	* src/: mn-check.c, mn-conf.c, mn-mailboxes.c: Fixes
+
+2003-10-02 15:37  jylefort
+
+	* art/no_mail.png: More meaningful icon
+
+2003-10-02 15:15  jylefort
+
+	* art/logo.png: Added a small GNOME foot
+
+2003-10-02 12:20  jylefort
+
+	* src/: mail-notification.c, mn-check.c, mn-check.h, mn-conf.c,
+	  mn-dialog.c, mn-mailbox.c, mn-mailbox.h, mn-mailboxes.c,
+	  mn-maildir-mailbox.c, mn-maildir-mailbox.h, mn-mbox-mailbox.c,
+	  mn-mbox-mailbox.h, mn-mh-mailbox.c, mn-mh-mailbox.h,
+	  mn-pop3-mailbox.c, mn-pop3-mailbox.h, mn-preferences.c,
+	  mn-settings.c, mn-settings.h, mn-sylpheed-mailbox.c,
+	  mn-sylpheed-mailbox.h, mn-ui.c, mn-unsupported-mailbox.c,
+	  mn-unsupported-mailbox.h, mn-util.c: Code has been nicely
+	  formatted, and copyright notices have been added
+
+2003-10-02 11:34  jylefort
+
+	* src/: mn-pop3-mailbox.c, mn-util.c, mn-util.h: Added sanity
+	  checks to mn_pop3_mailbox_parse_locator()
+
+2003-10-02 11:13  jylefort
+
+	* configure.ac, src/mn-sylpheed-mailbox.c,
+	  src/mn-sylpheed-mailbox.h: Unified behaviour: all format checkers
+	  now don't count unread mail as new
+
+2003-10-02 10:57  jylefort
+
+	* src/mn-pop3-mailbox.c: POP3 replies are correctly formatted, and
+	  reported in the error messages
+
+2003-10-02 10:41  jylefort
+
+	* configure.ac: Requires GTK+ >= 2.2.2 (because of the
+	  gtk_dialog_run() bug present in older versions)
+
+2003-10-02 10:34  jylefort
+
+	* src/mn-check.c: Warns if there is already a check in progress
+	  when the user interactively requests a check
+
+2003-10-01 18:48  jylefort
+
+	* src/: glade-callbacks.c, mn-check.c, mn-check.h: Check error
+	  messages are now displayed in a dialog box if the check has been
+	  launched interactively (that is, from the popup menu)
+
+2003-10-01 18:47  jylefort
+
+	* src/: mn-unsupported-mailbox.c, mn-unsupported-mailbox.h:
+	  _has_new() now always fills err (it's the whole point of
+	  MNUnsupportedMailbox)
+
+2003-10-01 18:09  jylefort
+
+	* src/: Makefile.am, mail-notification.c, mn-check.c, mn-dialog.c,
+	  mn-dialog.h, mn-mailboxes.c, mn-pop3-mailbox.c, mn-settings.c,
+	  mn-settings.h: Added a --enable-debug option
+
+2003-10-01 17:39  jylefort
+
+	* art/Makefile.am, art/logo.png, ui/mail-notification.glade: Added
+	  a custom about logo
+
+2003-10-01 17:34  jylefort
+
+	* art/Makefile.am, art/about-icon.png, art/add-icon.png,
+	  art/mail-notification.png, art/preferences-icon.png,
+	  data/Makefile.am, data/mail-notification.png, src/Makefile.am,
+	  src/mail-notification.c, ui/mail-notification.glade: Added icons
+	  to windows
+
+2003-10-01 14:22  jylefort
+
+	* src/mn-check.c: Cleanup
+
+2003-09-30 19:03  jylefort
+
+	* configure.ac, src/Makefile.am, src/glade-callbacks.c,
+	  src/mail-notification.c, src/mail-notification.h, src/mn-check.c,
+	  src/mn-check.h, src/mn-conf.c: Check implementation moved to
+	  mn-check; uses threads to keep the UI responsive while a check is
+	  in progress (particularly relevant for POP3 checks)
+
+2003-09-29 18:21  jylefort
+
+	* src/mail-notification.c: Fix
+
+2003-09-29 17:49  jylefort
+
+	* src/: Makefile.am, mn-mailbox.c, mn-mailboxes.c,
+	  mn-unsupported-mailbox.c, mn-unsupported-mailbox.h: Handles
+	  unsupported mailboxes in the preferences
+
+2003-09-29 17:30  jylefort
+
+	* src/mn-preferences.c: Fixed removing a remote mailbox
+
+2003-09-29 17:30  jylefort
+
+	* ui/mail-notification.glade: UI fix
+
+2003-09-29 17:19  jylefort
+
+	* src/: mn-mailbox.c, mn-mailbox.h: Check for the existence of a
+	  local mailbox before detecting its format
+
+2003-09-29 17:15  jylefort
+
+	* src/: mn-conf.c, mn-mailbox.c, mn-mailboxes.c, mn-ui.c: Now uses
+	  GUI error messages, when relevant
+
+2003-09-29 17:05  jylefort
+
+	* src/mn-dialog.c, src/mn-dialog.h, ui/mail-notification.glade:
+	  Added an HIG-compliant modal dialog function
+
+2003-09-29 16:17  jylefort
+
+	* src/mn-conf.c: Performance fix
+
+2003-09-29 16:03  jylefort
+
+	* src/: mn-pop3-mailbox.c, mn-preferences.c: "Add remote mailbox"
+	  dialog is now functional
+
+2003-09-29 15:50  jylefort
+
+	* src/mn-preferences.c, ui/mail-notification.glade: UI fixes
+
+2003-09-29 15:44  jylefort
+
+	* src/glade-callbacks.c, src/glade-callbacks.h,
+	  src/mn-preferences.c, src/mn-preferences.h,
+	  ui/mail-notification.glade: Added a dialog to add a POP3 mailbox
+
+2003-09-29 14:47  jylefort
+
+	* data/mail-notification.schemas, src/glade-callbacks.c,
+	  src/mail-notification.c, src/mn-preferences.c,
+	  ui/mail-notification.glade: Added an UI and GConf keys for the
+	  remote checking
+
+2003-09-29 13:56  jylefort
+
+	* acinclude.m4: Changed error message of --enable-assertions
+
+2003-09-29 12:51  jylefort
+
+	* src/: mail-notification.c, mn-mailboxes.h, mn-mbox-mailbox.c,
+	  mn-preferences.c: Uses properties with gnome_program_init(), and
+	  fixes a few compile warnings
+
+2003-09-29 12:41  jylefort
+
+	* INSTALL: Better doc
+
+2003-09-29 12:37  jylefort
+
+	* configure.ac, src/Makefile.am, src/mail-notification.c,
+	  src/mn-mailbox.c, src/mn-sylpheed-mailbox.c,
+	  src/mn-sylpheed-mailbox.h: Added
+	  --enable-{mbox|mh|maildir|pop3|sylpheed} configure flags
+
+2003-09-29 11:51  jylefort
+
+	* src/: mn-mailbox.c, mn-mailbox.h, mn-maildir-mailbox.c,
+	  mn-maildir-mailbox.h, mn-mbox-mailbox.c, mn-mbox-mailbox.h,
+	  mn-mh-mailbox.c, mn-mh-mailbox.h, mn-pop3-mailbox.c,
+	  mn-pop3-mailbox.h, mn-sylpheed-mailbox.c, mn-sylpheed-mailbox.h:
+	  Now uses GError domains and codes
+
+2003-09-29 11:24  jylefort
+
+	* configure.ac, src/Makefile.am, src/mn-mailbox.c,
+	  src/mn-sylpheed-mailbox.c, src/mn-sylpheed-mailbox.h,
+	  src/mn-util.c, src/mn-util.h: Added HAVE_GNET and HAVE_MMAP
+	  conditionals
+
+2003-09-29 11:07  jylefort
+
+	* src/mn-preferences.c, ui/mail-notification.glade: Added a format
+	  column in the mailboxes list
+
+2003-09-29 10:56  jylefort
+
+	* src/: mn-mailbox.c, mn-pop3-mailbox.c: Added finalizers
+
+2003-09-29 10:48  jylefort
+
+	* src/mn-sylpheed-mailbox.c: More detailed error reporting
+
+2003-09-29 10:44  jylefort
+
+	* src/: Makefile.am, conf.c, conf.h, dialog.c, dialog.h,
+	  glade-callbacks.c, mail-notification.c, mail-notification.h,
+	  mailboxes.c, mailboxes.h, mn-conf.c, mn-conf.h, mn-dialog.c,
+	  mn-dialog.h, mn-mailbox.c, mn-mailboxes.c, mn-mailboxes.h,
+	  mn-preferences.c, mn-preferences.h, mn-ui.c, mn-ui.h, mn-util.c,
+	  mn-util.h, preferences.c, preferences.h, ui.c, ui.h, util.c,
+	  util.h: Now uses a namespace
+
+2003-09-27 16:12  jylefort
+
+	* src/: Makefile.am, conf.c, conf.h, mail-notification.c,
+	  mailbox.c, mailbox.h, mailboxes.c, mailboxes.h, mn-mailbox.c,
+	  mn-mailbox.h, mn-maildir-mailbox.c, mn-maildir-mailbox.h,
+	  mn-mbox-mailbox.c, mn-mbox-mailbox.h, mn-mh-mailbox.c,
+	  mn-mh-mailbox.h, mn-pop3-mailbox.c, mn-pop3-mailbox.h,
+	  mn-sylpheed-mailbox.c, mn-sylpheed-mailbox.h, preferences.c,
+	  ui.c, ui.h: Major internal cleanup: implemented a MNMailbox
+	  GObject-derived class, and a couple of MNMailbox-derived
+	  subclasses acting as format handlers
+
+2003-09-26 13:39  jylefort
+
+	* src/: mailbox.c, util.c, util.h: Added initial POP3 support
+	  (still need an UI for it)
+
+2003-09-26 12:49  jylefort
+
+	* configure.ac, src/Makefile.am, src/mail-notification.c,
+	  src/mailbox.c, src/mailbox.h, src/mailboxes.h: Structural
+	  modifications for future POP3 and IMAP support
+
+2003-09-26 10:33  jylefort
+
+	* src/: conf.c, mailbox.c, mailboxes.c: Style cleanups
+
+2003-09-26 10:14  jylefort
+
+	* src/mailboxes.c: Better messages
+
+2003-09-26 10:04  jylefort
+
+	* src/: mail-notification.c, mailbox.c, mailbox.h: Style cleanups
+
+2003-09-26 09:59  jylefort
+
+	* src/: conf.c, conf.h, mailboxes.c, preferences.c: Mailboxes of
+	  unknown format are immediately removed from GConf
+
+2003-09-25 20:45  jylefort
+
+	* src/: mailboxes.c, preferences.c: Cleanups
+
+2003-09-25 19:55  jylefort
+
+	* src/: Makefile.am, conf.c, mail-notification.c, mailbox.c,
+	  mailbox.h, mailboxes.c, mailboxes.h, preferences.c, util.h:
+	  Important redesign
+
+2003-09-25 18:53  jylefort
+
+	* configure.ac, src/mail-notification.c, src/mailbox.c: mmap()
+	  check, and check for some headers
+
+2003-09-25 18:41  jylefort
+
+	* src/: mail-notification.c, mailbox.c, mailbox.h: Better wording
+
+2003-09-25 18:27  jylefort
+
+	* src/preferences.c: The "add mailbox" dialog now remembers its
+	  last path
+
+2003-09-25 18:13  jylefort
+
+	* src/: mail-notification.c, mailbox.c, mailbox.h: Code cleanups
+
+2003-09-25 17:57  jylefort
+
+	* src/: mail-notification.c, mailbox.c: Code cleanups
+
+2003-09-25 17:18  jylefort
+
+	* src/: mail-notification.c, mailbox.c, mailbox.h: Reports the type
+	  of all mailboxes when application is started
+
+2003-09-25 17:00  jylefort
+
+	* src/mailbox.c: Implemented Sylpheed support
+
+2003-09-24 12:59  jylefort
+
+	* configure.ac: Version 0.2.0
+
+2003-09-24 12:55  jylefort
+
+	* README: Added a release notes section
+
+2003-09-24 12:29  jylefort
+
+	* README: Added some details
+
+2003-09-24 12:20  jylefort
+
+	* src/mailbox.c: Fixed one access-after-free() in
+	  mailbox_mh_has_new()
+
+2003-09-24 11:54  jylefort
+
+	* README, src/mailbox.c: Implemented MH support, and fixed a memory
+	  leak in mailbox_mbox_has_new()
+
+2003-09-24 10:42  jylefort
+
+	* data/mail-notification.desktop: Improved wording
+
+2003-09-23 09:43  jylefort
+
+	* src/: conf.c, conf.h, mail-notification.c, preferences.c, ui.c:
+	  All GConf calls are now checked for errors
+
+2003-09-23 08:55  jylefort
+
+	* README, src/mailbox.c: Added mbox support
+
+2003-09-23 07:44  jylefort
+
+	* INSTALL: Customized
+
+2003-09-18 04:17  jylefort
+
+	* configure.ac: Version 0.1.0
+
+2003-09-18 04:16  jylefort
+
+	* README: Added an usage section
+
+2003-09-18 04:09  jylefort
+
+	* ui/mail-notification.glade: HIG fixes
+
+2003-09-18 03:49  jylefort
+
+	* Makefile.am, configure.ac, data/Makefile.am,
+	  data/mail-notification.desktop, data/mail-notification.png: Added
+	  a .desktop and an icon; now installs schemas
+
+2003-09-18 03:22  jylefort
+
+	* Makefile.am, ui/Makefile.am: Add Glade resources to dist
+
+2003-09-17 11:09  jylefort
+
+	* Makefile.am, autogen.sh, config.guess, config.sub, configure.ac,
+	  src/Makefile.am: Switched to Autoconf 2.57, Automake 1.7, and
+	  some cleanups
+
+2003-09-09 12:31  jylefort
+
+	* configure.ac: Fixed a gettext problem
+
+2003-09-09 07:28  jylefort
+
+	* Makefile.am, m4/Makefile.am: Now distributes pkg.m4, as it might
+	  be useful to others
+
+2003-09-09 07:26  jylefort
+
+	* Makefile.am, autogen.sh, configure.ac, src/Makefile.am,
+	  src/eggtrayicon.c, src/mail-notification.c, src/preferences.c,
+	  src/ui.c, ui/mail-notification.gladep: Internationalized
+
+2003-07-30 21:07  jylefort
+
+	* src/ui.c: Added a tooltip
+
+2003-07-30 20:44  jylefort
+
+	* src/preferences.c: Can now remove multiple mailboxes in a single
+	  step
+
+2003-07-30 20:17  jylefort
+
+	* src/preferences.c: Can now add multiple mailboxes in a single
+	  step
+
+2003-07-27 10:52  jylefort
+
+	* data/mail-notification.schemas, src/glade-callbacks.c,
+	  src/glade-callbacks.h, src/preferences.c,
+	  ui/mail-notification.glade: Added a clicked command
+
+2003-07-27 07:16  jylefort
+
+	* src/glade-callbacks.c, src/glade-callbacks.h, src/preferences.c,
+	  ui/mail-notification.glade: Fixes
+
+2003-07-27 07:05  jylefort
+
+	* src/: conf.c, glade-callbacks.c, mail-notification.c,
+	  preferences.c, preferences.h: Fixes
+
+2003-07-27 06:55  jylefort
+
+	* src/: Makefile.am, dialog.c, dialog.h, mail-notification.c,
+	  preferences.c: Dialogs can now be closed
+
+2003-07-27 06:41  jylefort
+
+	* src/mail-notification.c: Added a quit menuitem
+
+2003-07-27 06:33  jylefort
+
+	* data/mail-notification.schemas, src/Makefile.am, src/conf.c,
+	  src/conf.h, src/glade-callbacks.c, src/mail-notification.c,
+	  src/mail-notification.h, src/preferences.c, src/preferences.h,
+	  ui/mail-notification.glade: Added initial GConf support
+
+2003-07-26 22:33  jylefort
+
+	* ui/mail-notification.glade: Nicer look
+
+2003-07-25 09:48  jylefort
+
+	* src/mail-notification.c: Added a comment to the about dialog
+
+2003-07-25 09:46  jylefort
+
+	* ui/mail-notification.glade: Some more HIG-ification
+
+2003-07-25 09:41  jylefort
+
+	* ui/mail-notification.glade: Cosmetical improvements
+
+2003-07-25 09:35  jylefort
+
+	* src/mail-notification.c, ui/mail-notification.glade: Uses a
+	  GtkSizeGroup, as mandated by the HIG
+
+2003-07-25 09:24  jylefort
+
+	* src/Makefile.am, src/mail-notification.c,
+	  ui/mail-notification.glade, ui/mail-notification.gladep: First
+	  version of a preferences window, using Glade
+
+2003-07-25 08:31  jylefort
+
+	* src/: eggtrayicon.c, eggtrayicon.h: Vendor import, 20030725
+
+2003-07-25 08:16  jylefort
+
+	* src/mail-notification.c: Added a "Check for mail" feature
+
+2003-07-25 08:02  jylefort
+
+	* src/mail-notification.c: Now calls gnome_program_init()
+
+2003-07-25 07:48  jylefort
+
+	* src/mail-notification.c: Added an about dialog
+
+2003-07-25 07:37  jylefort
+
+	* src/mail-notification.c: Is now a GNOME application, and has a
+	  primitive popup menu
+
+2003-07-25 07:37  jylefort
+
+	* src/Makefile.am: Is now a GNOME application, and uses WARN_CFLAGS
+
+2003-07-25 07:36  jylefort
+
+	* configure.ac: Is now a GNOME application
+
+2003-07-25 07:36  jylefort
+
+	* acinclude.m4: Added AC_ARG_COMPILE_WARNINGS
+
+2003-07-20 19:50  jylefort
+
+	* aclocal.m4: Removed
+
+2003-07-20 19:47  jylefort
+
+	* NEWS: Added
+
+2003-07-20 19:44  jylefort
+
+	* README: Added
+
+2003-07-20 19:37  jylefort
+
+	* INSTALL: Added
+
+2003-07-20 18:16  jylefort
+
+	* src/: mail-notification.c, mailbox.c, mailbox.h: Added copyright
+	  notices
+
+2003-07-20 18:12  jylefort
+
+	* AUTHORS, COPYING, Makefile.am, Makefile.in, TODO, acinclude.m4,
+	  aclocal.m4, autogen.sh, compile, config.guess, config.sub,
+	  configure, configure.ac, depcomp, install-sh, missing,
+	  mkinstalldirs, art/Makefile.am, art/Makefile.in, art/mail.png,
+	  art/no_mail.png, src/Makefile.am, src/Makefile.in,
+	  src/eggtrayicon.c, src/eggtrayicon.h, src/mail-notification.c,
+	  src/mailbox.c, src/mailbox.h: Imported sources
+
+2003-07-20 18:12  jylefort
+
+	* AUTHORS, COPYING, Makefile.am, Makefile.in, TODO, acinclude.m4,
+	  aclocal.m4, autogen.sh, compile, config.guess, config.sub,
+	  configure, configure.ac, depcomp, install-sh, missing,
+	  mkinstalldirs, art/Makefile.am, art/Makefile.in, art/mail.png,
+	  art/no_mail.png, src/Makefile.am, src/Makefile.in,
+	  src/eggtrayicon.c, src/eggtrayicon.h, src/mail-notification.c,
+	  src/mailbox.c, src/mailbox.h: Initial revision
+

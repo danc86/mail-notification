@@ -12,6 +12,12 @@
 /* Define to 1 if you have the `bind_textdomain_codeset' function. */
 #undef HAVE_BIND_TEXTDOMAIN_CODESET
 
+/* Define to 1 if you have the `close' function. */
+#undef HAVE_CLOSE
+
+/* Define to 1 if you have the `connect' function. */
+#undef HAVE_CONNECT
+
 /* Define to 1 if you have the `dcgettext' function. */
 #undef HAVE_DCGETTEXT
 

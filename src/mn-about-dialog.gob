@@ -45,7 +45,7 @@ class MN:About:Dialog from Gnome:About
 			  logo);
     g_object_unref(logo);
 
-    icon = mn_pixbuf_new("about-icon.png");
+    icon = mn_pixbuf_new("mail-notification.png");
     gtk_window_set_icon(GTK_WINDOW(self), icon);
     g_object_unref(icon);
   }

@@ -207,18 +207,16 @@ mail_notification_SOURCES = \
 	mn-vfs.h
 BUILT_SOURCES = $(idl_built_sources) $(gob_built_sources)
 
-mail_notification_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(SOUP_LIBS) $(OPENSSL_LIBS) $(SASL_LIBS)
-
-gnomelocaledir = $(datadir)/locale
 AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) $(SOUP_CFLAGS) $(OPENSSL_CFLAGS) $(SASL_CFLAGS) \
 	-I$(top_srcdir) \
 	-DPREFIX="\"$(prefix)\"" \
 	-DSYSCONFDIR="\"$(sysconfdir)\"" \
 	-DDATADIR="\"$(datadir)\"" \
 	-DLIBDIR="\"$(libdir)\"" \
-	-DGNOMELOCALEDIR="\"$(gnomelocaledir)\"" \
+	-DGNOMELOCALEDIR="\"$(datadir)/locale\"" \
 	-DUIDIR="\"$(pkgdatadir)/ui\"" \
 	-DG_LOG_DOMAIN="\"$(PACKAGE)\""
+AM_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(SOUP_LIBS) $(OPENSSL_LIBS) $(SASL_LIBS)
 
 CLEANFILES = $(idl_built_sources)
 MAINTAINERCLEANFILES = $(gob_built_sources)

@@ -170,6 +170,8 @@ class MN:Gmail:Mailbox from MN:Mailbox
     login (self)
   {
     char *uri;
+    char *escaped_username;
+    char *escaped_password;
 
     g_return_if_fail(selfp->logged_in == FALSE);
 
@@ -179,7 +181,12 @@ class MN:Gmail:Mailbox from MN:Mailbox
 	
     mn_mailbox_notice(MN_MAILBOX(self), _("logging in"));
 
-    uri = g_strdup_printf("https://www.google.com/accounts/ServiceLoginBoxAuth?service=mail&continue=http://gmail.google.com/gmail&Email=%s&Passwd=%s", selfp->username, selfp->password);
+    escaped_username = gnome_vfs_escape_string(selfp->username);
+    escaped_password = gnome_vfs_escape_string(selfp->password);
+    uri = g_strdup_printf("https://www.google.com/accounts/ServiceLoginBoxAuth?service=mail&continue=http://gmail.google.com/gmail&Email=%s&Passwd=%s", escaped_username, escaped_password);
+    g_free(escaped_username);
+    g_free(escaped_password);
+
     self_get(self, uri, self_login_cb1);
     g_free(uri);
   }
@@ -303,7 +310,7 @@ class MN:Gmail:Mailbox from MN:Mailbox
 	char *equal;
 
 	equal = strchr(value, '=');
-	if (equal)
+	if (equal && equal - value > 0)
 	  {
 	    char *end;
 	    char *cookie_name;

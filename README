@@ -11,7 +11,7 @@ Index
 
 0. About this document
 
-	$Id: README,v 1.16 2004/08/16 16:11:07 jylefort Exp $
+	$Id: README,v 1.18 2004/08/18 01:00:25 jylefort Exp $
 
 	Copyright (c) 2003, 2004 Jean-Yves Lefort.
 
@@ -42,12 +42,15 @@ Index
 
 2. Release notes
 
-	Some configuration keys have been obsoleted. For the sake of
-	cleanliness, you should remove them:
+	In this release or in previous ones, some configuration keys
+	have been obsoleted. For the sake of cleanliness, you should
+	remove them, by typing:
 
 		$ gconftool-2 --recursive-unset \
+			/apps/mail-notification/local \
+			/apps/mail-notification/remote \
 			/apps/mail-notification/commands/clicked \
-			/apps/mail-notification/preferences-dialog
+			/apps/mail-notification/ui/preferences-dialog
 
 3. Installation instructions
 

@@ -1,3 +1,18 @@
+0.6.1					19 August 2004
+
+	* File descriptor leaks in the Sylpheed and Maildir backends
+	  have been fixed
+	* It was not possible to use some special characters (such as
+	  '@') in usernames, passwords etc (reported by Ronny
+	  Schoebel): now escapes URIs
+	* Now properly quotes arguments to the IMAP LOGIN and STATUS
+	  commands
+	* Gmail support didn't work in all situations: fixed (thanks
+	  to Phil Nelson for his help)
+	* A first startup dialog has been added
+	* A memory leak has been fixed
+	* A few minor issues have been fixed
+	
 0.6.0					16 August 2004
 
 	* Added IMAP support

@@ -8,7 +8,6 @@ Contributors:
 	* Dan Korostelev <dan@ats.energo.ru> (russian translations)
 
 External art sources:
-	* GNOME (about-icon.png)
 	* Google (gmail.png)
-	* Evolution (mail-notification.png, properties-icon.png)
+	* Evolution (mail-notification.png)
 	* GTK+ (unsupported.png)

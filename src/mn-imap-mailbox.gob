@@ -269,9 +269,19 @@ class MN:IMAP:Mailbox from MN:Mailbox
       return STATE_LOGOUT;
     }
     else
-      return self_session_write(priv, "LOGIN %s %s",
-				priv->mailbox->_priv->username,
-				priv->mailbox->_priv->password);
+      {
+	char *quoted_username;
+	char *quoted_password;
+	int result;
+
+	quoted_username = self_quote(priv->mailbox->_priv->username);
+	quoted_password = self_quote(priv->mailbox->_priv->password);
+	result = self_session_write(priv, "LOGIN %s %s", quoted_username, quoted_password);
+	g_free(quoted_username);
+	g_free(quoted_password);
+
+	return result;
+      }
   }
   
   private int
@@ -299,7 +309,14 @@ class MN:IMAP:Mailbox from MN:Mailbox
     enter_status_cb (MNClientSession *session (check null),
 		     MNClientSessionPrivate *priv (check null))
   {
-    return self_session_write(priv, "STATUS \"%s\" (UNSEEN)", priv->mailbox->_priv->mailbox);
+    char *quoted_mailbox;
+    int result;
+
+    quoted_mailbox = self_quote(priv->mailbox->_priv->mailbox);
+    result = self_session_write(priv, "STATUS %s (UNSEEN)", quoted_mailbox);
+    g_free(quoted_mailbox);
+
+    return result;
   }
   
   private int
@@ -492,8 +509,8 @@ class MN:IMAP:Mailbox from MN:Mailbox
 		      MNClientSessionResponse *response (check null),
 		      MNClientSessionPrivate *priv (check null))
   {
-    g_free(response->tag);
     g_free(response->continuation);
+    g_free(response->tag);
     g_free(response->response);
     g_free(response->code);
     g_free(response->arguments);
@@ -544,6 +561,7 @@ class MN:IMAP:Mailbox from MN:Mailbox
   {
     va_list args;
     char *command;
+    int result;
 
     va_start(args, format);
     command = g_strdup_vprintf(format, args);
@@ -551,10 +569,14 @@ class MN:IMAP:Mailbox from MN:Mailbox
     
     if (priv->numeric_tag == 1000)
       priv->numeric_tag = 0;
+
     g_free(priv->tag);
     priv->tag = g_strdup_printf("a%03i", priv->numeric_tag++);
 
-    return mn_client_session_write(priv->session, "%s %s", priv->tag, command);
+    result = mn_client_session_write(priv->session, "%s %s", priv->tag, command);
+    g_free(command);
+
+    return result;
   }
 
   private void
@@ -631,5 +653,30 @@ class MN:IMAP:Mailbox from MN:Mailbox
       }
 
     return mn_client_session_error(priv->session, _("authentication failed"));
+  }
+
+  /**
+   * quote:
+   * @str: the string to quote
+   *
+   * Quotes a string using RFC 3501 BNF rules.
+   *
+   * Return value: the quoted string.
+   **/
+  private char *
+    quote (const char *str (check null))
+  {
+    GString *quoted;
+    int i;
+
+    quoted = g_string_new("\"");
+    for (i = 0; str[i]; i++)
+      if (str[i] == '"' || str[i] == '\\') /* quoted-specials in BNF */
+	g_string_append_printf(quoted, "\\%c", str[i]);
+      else
+	g_string_append_c(quoted, str[i]);
+    g_string_append_c(quoted, '"');
+
+    return g_string_free(quoted, FALSE);
   }
 }

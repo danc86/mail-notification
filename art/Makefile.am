@@ -1,9 +1,8 @@
 GNOME_IMAGES = mail-notification.png
 APP_IMAGES = \
-	about-icon.png		\
 	logo.png		\
 	gmail.png		\
-	properties-icon.png	\
+	mail-notification.png	\
 	unsupported.png
 
 gnome_pixmapsdir = $(datadir)/pixmaps

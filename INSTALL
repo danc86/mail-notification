@@ -10,7 +10,7 @@ Index
 
 0. About this document
 
-	$Id: INSTALL,v 1.7 2004/08/16 16:08:17 jylefort Exp $
+	$Id: INSTALL,v 1.8 2004/08/18 22:45:35 jylefort Exp $
 
 	Copyright (c) 2003, 2004 Jean-Yves Lefort.
 
@@ -49,10 +49,13 @@ Index
 	Mail Notification uses the well-known GNU build system. Hence,
 	the following usual sequence will probably satisfy most users:
 
-		$ ./configure
+		$ ./configure --prefix=/usr
 		$ make
 		<get root privileges, if needed>
 		$ make install
+
+	IMPORTANT: you must install Mail Notification in the same
+	prefix as GNOME (commonly /usr or /opt/gnome).
 
 	The ./configure script behaviour can be changed using
 	command-line options: type "./configure --help" for an

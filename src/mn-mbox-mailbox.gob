@@ -20,7 +20,7 @@
 #include "mn-mailbox.h"
 %}
 %privateheader{
-#include <time.h>
+#include <libgnomevfs/gnome-vfs.h>
 %}
 %{
 #include "config.h"

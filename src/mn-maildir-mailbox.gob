@@ -82,6 +82,7 @@ class MN:Maildir:Mailbox from MN:Mailbox
   {
     char *new_uri;
     GnomeVFSResult result;
+    GnomeVFSResult close_result;
     GnomeVFSDirectoryHandle *handle;
     GnomeVFSFileInfo *file_info;
     gboolean has_new = FALSE;
@@ -113,11 +114,17 @@ class MN:Maildir:Mailbox from MN:Mailbox
 	  }
       }
     gnome_vfs_file_info_unref(file_info);
+    close_result = gnome_vfs_directory_close(handle);
 
     GDK_THREADS_ENTER();
 
     if (result == GNOME_VFS_OK || result == GNOME_VFS_ERROR_EOF)
-      mn_mailbox_set_has_new(self, has_new);
+      {
+	if (close_result == GNOME_VFS_OK)
+	  mn_mailbox_set_has_new(self, has_new);
+	else
+	  mn_mailbox_set_error(self, _("unable to close folder \"new\": %s"), gnome_vfs_result_to_string(close_result));
+      }
     else
       mn_mailbox_set_error(self, _("error while reading folder \"new\": %s"), gnome_vfs_result_to_string(result));
     mn_mailbox_end_check(self);

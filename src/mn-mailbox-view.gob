@@ -364,10 +364,10 @@ class MN:Mailbox:View from Gtk:Tree:View
 	mailbox = l->data;
 
 	if (! self_has_mailbox(self, mailbox))
-	{
-	  gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-	  self_update_iter(self, &iter, mailbox);
-	}
+	  {
+	    gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+	    self_update_iter(self, &iter, mailbox);
+	  }
       }
   }
   

@@ -26,7 +26,6 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <sys/param.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
@@ -258,7 +257,7 @@ mn_client_session_run (MNClientSessionState *states,
 #endif /* WITH_SASL */
   if (session.error)
     {
-      g_set_error(err, 0, 0, session.error);
+      g_set_error(err, 0, 0, "%s", session.error);
       g_free(session.error);
       return FALSE;
     }

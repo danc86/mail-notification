@@ -58,6 +58,7 @@ struct _MNShellClass {
 GType	mn_shell_get_type	(void);
 MNShell * 	mn_shell_new	(void);
 void 	mn_shell_display_about	(MNShell * self);
+void 	mn_shell_run_welcome	(MNShell * self);
 void 	mn_shell_report	(MNShell * self,
 					char ** report);
 

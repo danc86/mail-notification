@@ -89,27 +89,51 @@ mn_uri_build_generic (const char *scheme,
 		      const char *path)
 {
   GString *uri;
-
+  char *escaped;
+      
   g_return_val_if_fail(scheme != NULL, NULL);
 
-  uri = g_string_new(scheme);
+  escaped = gnome_vfs_escape_string(scheme);
+  uri = g_string_new(escaped);
+  g_free(escaped);
+
   g_string_append(uri, "://");
 
   if (username)
-    g_string_append(uri, username);
+    {
+      escaped = gnome_vfs_escape_string(username);
+      g_string_append(uri, escaped);
+      g_free(escaped);
+    }
   if (password)
-    g_string_append_printf(uri, ":%s", password);
+    {
+      escaped = gnome_vfs_escape_string(password);
+      g_string_append_printf(uri, ":%s", escaped);
+      g_free(escaped);
+    }
   if (authmech)
-    g_string_append_printf(uri, ";auth=%s", authmech);
+    {
+      escaped = gnome_vfs_escape_string(authmech);
+      g_string_append_printf(uri, ";AUTH=%s", escaped);
+      g_free(escaped);
+    }
   if (hostname)
-    g_string_append_printf(uri, mn_uri_is_ipv6_address(hostname) ? "@[%s]" : "@%s", hostname);
+    {
+      escaped = gnome_vfs_escape_host_and_path_string(hostname);
+      g_string_append_printf(uri, mn_uri_is_ipv6_address(hostname) ? "@[%s]" : "@%s", escaped);
+      g_free(escaped);
+    }
   if (port >= 0)
     {
       g_return_val_if_fail(hostname != NULL, NULL);
       g_string_append_printf(uri, ":%i", port);
     }
   if (path)
-    g_string_append_printf(uri, "/%s", path);
+    {
+      escaped = gnome_vfs_escape_path_string(path);
+      g_string_append_printf(uri, "/%s", escaped);
+      g_free(escaped);
+    }
 
   return g_string_free(uri, FALSE);
 }
@@ -131,7 +155,8 @@ mn_uri_build_generic (const char *scheme,
  * WARNING: the parsing is very lax, this function is NOT intended to
  * be used on untrusted URIs.
  *
- * Return value: TRUE is @uri has at least a scheme, FALSE otherwise.
+ * Return value: TRUE is @uri has at least a scheme, username and
+ *               password, FALSE otherwise.
  **/
 static gboolean
 mn_uri_parse_generic (const char *uri,
@@ -143,79 +168,109 @@ mn_uri_parse_generic (const char *uri,
 		      int *port,
 		      char **path)
 {
-  int n1;
-  char scheme_buf[513];
-  char auth_buf[513];
-  char host_buf[513];
+  int len;
 
   g_return_val_if_fail(uri != NULL, FALSE);
   
-  n1 = sscanf(uri, "%512[^:]://%512[^@]@%512s", scheme_buf, auth_buf, host_buf);
-  if (n1 > 0)
-    {
-      char username_buf[513];
-      char password_buf[513];
-      char authmech_buf[513];
-      char hostname_buf[513];
-      int _port;
-      char path_buf[513];
-      gboolean has_username = FALSE;
-      gboolean has_password = FALSE;
-      gboolean has_authmech = FALSE;
-      gboolean has_hostname = FALSE;
-      gboolean has_port = FALSE;
-      gboolean has_path = FALSE;
+  len = strlen(uri);
+  
+  {
+    char *pat;
+    int n;
+    char scheme_buf[len + 1];
+    char username_buf[len + 1];
+    char password_buf[len + 1];
+    char authmech_buf[len + 1];
+    char hostpart_buf[len + 1];
+    char hostname_buf[len + 1];
+    int _port;
+    char path_buf[len + 1];
+    gboolean has_authmech = FALSE;
+    gboolean has_hostpart = FALSE;
+    gboolean has_port = FALSE;
+    gboolean has_path = FALSE;
 
-      if (n1 > 1)
-	{
-	  int n2;
+    /*
+     * For backward compatibility with previous versions of Mail
+     * Notification, we also support ;auth= (in lowercase).
+     */
 
-	  n2 = sscanf(auth_buf, "%512[^:]:%512[^;];auth=%512s", username_buf, password_buf, authmech_buf);
-	  has_username = n2 > 0;
-	  has_password = n2 > 1;
-	  has_authmech = n2 > 2;
+    pat = g_strdup_printf("%%%i[^:]://%%%i[^:]:%%%i[^;];%%*1[aA]%%*1[uU]%%*1[tT]%%*1[hH]=%%%i[^@]@%%%is", len, len, len, len, len);
+    n = sscanf(uri, pat, scheme_buf, username_buf, password_buf, authmech_buf, hostpart_buf);
+    g_free(pat);
 
-	  if (n1 > 2)
-	    {
-	      int n3;
-	      char hostport_buf[513];
+    if (n >= 4)
+      {
+	has_authmech = TRUE;
+	has_hostpart = n > 4;
+      }
+    else
+      {
+	pat = g_strdup_printf("%%%i[^:]://%%%i[^:]:%%%i[^@]@%%%is", len, len, len, len);
+	n = sscanf(uri, pat, scheme_buf, username_buf, password_buf, hostpart_buf);
+	g_free(pat);
 
-	      n3 = sscanf(host_buf, "%512[^/]/%512s", hostport_buf, path_buf);
-	      has_path = n3 > 1;
+	if (n >= 3)
+	  has_hostpart = n > 3;
+	else
+	  return FALSE;
+      }
+  
+    if (has_hostpart)
+      {
+	pat = g_strdup_printf("[%%%i[^]]]:%%u/%%%is", len, len);
+	n = sscanf(hostpart_buf, pat, hostname_buf, &_port, path_buf);
+	g_free(pat);
 
-	      if (n3 > 0)
-		{
-		  int n4;
-		  
-		  n4 = sscanf(hostport_buf, "[%512[^]]]:%i", hostname_buf, &_port);
-		  if (n4 == 0)
-		    n4 = sscanf(hostport_buf, "%512[^:]:%i", hostname_buf, &_port);
+	if (n < 1)
+	  {
+	    pat = g_strdup_printf("%%%i[^:]:%%u/%%%is", len, len);
+	    n = sscanf(hostpart_buf, pat, hostname_buf, &_port, path_buf);
+	    g_free(pat);
+	  }
 
-		  has_hostname = n4 > 0;
-		  has_port = n4 > 1;
-		}
-	    }
-	}
+	if (n >= 2)
+	  {
+	    has_port = TRUE;
+	    has_path = n > 2;
+	  }
+	else
+	  {
+	    pat = g_strdup_printf("[%%%i[^]]]/%%%is", len, len);
+	    n = sscanf(hostpart_buf, pat, hostname_buf, path_buf);
+	    g_free(pat);
 
-      if (scheme)
-	*scheme = g_strdup(scheme_buf);
-      if (username)
-	*username = has_username ? g_strdup(username_buf) : NULL;
-      if (password)
-	*password = has_password ? g_strdup(password_buf) : NULL;
-      if (authmech)
-	*authmech = has_authmech ? g_strdup(authmech_buf) : NULL;
-      if (hostname)
-	*hostname = has_hostname ? g_strdup(hostname_buf) : NULL;
-      if (port)
-	*port = has_port ? _port : -1;
-      if (path)
-	*path = has_path ? g_strdup(path_buf) : NULL;
-      
-      return TRUE;
-    }
-  else
-    return FALSE;
+	    if (n < 1)
+	      {
+		pat = g_strdup_printf("%%%i[^/]/%%%is", len, len);
+		n = sscanf(hostpart_buf, pat, hostname_buf, path_buf);
+		g_free(pat);
+	      }
+
+	    if (n < 1)
+	      return FALSE;
+
+	    has_path = n > 1;
+	  }
+      }
+
+    if (scheme)
+      *scheme = gnome_vfs_unescape_string(scheme_buf, NULL);
+    if (username)
+      *username = gnome_vfs_unescape_string(username_buf, NULL);
+    if (password)
+      *password = gnome_vfs_unescape_string(password_buf, NULL);
+    if (authmech)
+      *authmech = has_authmech ? gnome_vfs_unescape_string(authmech_buf, NULL) : NULL;
+    if (hostname)
+      *hostname = has_hostpart ? gnome_vfs_unescape_string(hostname_buf, NULL) : NULL;
+    if (port)
+      *port = has_port ? _port : -1;
+    if (path)
+      *path = has_path ? gnome_vfs_unescape_string(path_buf, NULL) : NULL;
+
+    return TRUE;
+  }
 }
 
 /**

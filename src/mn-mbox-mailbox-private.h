@@ -12,7 +12,7 @@ extern "C" {
 
 #line 22 "mn-mbox-mailbox.gob"
 
-#include <time.h>
+#include <libgnomevfs/gnome-vfs.h>
 
 #line 18 "mn-mbox-mailbox-private.h"
 struct _MNmboxMailboxPrivate {

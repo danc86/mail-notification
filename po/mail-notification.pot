@@ -8,12 +8,12 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-08-16 18:15+0200\n"
+"POT-Creation-Date: 2004-08-19 00:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
@@ -53,62 +53,70 @@ msgid "Double-clicked command"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:4
-msgid "Height of properties dialog"
+msgid "Has already been run"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:5
-msgid "Mailboxes list"
+msgid "Height of properties dialog"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:6
-msgid "Minutes between mail checks"
+msgid "Mailboxes list"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:7
-msgid "New mail command"
+msgid "Minutes between mail checks"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:8
-msgid "Run a command when new mail arrives"
+msgid "New mail command"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:9
-msgid "Run a command when the icon is double-clicked"
+msgid "Run a command when new mail arrives"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:10
-msgid "Seconds between mail checks"
+msgid "Run a command when the icon is double-clicked"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:11
-msgid "The command to run when new mail arrives."
+msgid "Seconds between mail checks"
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:12
-msgid "The command to run when the icon is double-clicked."
+msgid "The command to run when new mail arrives."
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:13
-msgid "The height of the properties dialog in pixels."
+msgid "The command to run when the icon is double-clicked."
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:14
-msgid "The list of mailboxes to monitor."
+msgid "The height of the properties dialog in pixels."
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:15
-msgid "The width of the properties dialog in pixels."
+msgid "The list of mailboxes to monitor."
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:16
-msgid "Whether to run a command when new mail arrives or not."
+msgid "The width of the properties dialog in pixels."
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:17
-msgid "Whether to run a command when the icon is double-clicked or not."
+msgid "Whether Mail Notification has already been run or not."
 msgstr ""
 
 #: data/mail-notification.schemas.in.h:18
+msgid "Whether to run a command when new mail arrives or not."
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:19
+msgid "Whether to run a command when the icon is double-clicked or not."
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:20
 msgid "Width of properties dialog"
 msgstr ""
 
@@ -156,178 +164,178 @@ msgstr ""
 msgid "Whether the image is blinking or not"
 msgstr ""
 
-#: src/mn-client-session.c:196 src/mn-client-session.c:203
+#: src/mn-client-session.c:195 src/mn-client-session.c:202
 #, c-format
 msgid "unable to read from server: %s"
 msgstr ""
 
-#: src/mn-client-session.c:201
+#: src/mn-client-session.c:200
 msgid "unable to read from server: EOF"
 msgstr ""
 
-#: src/mn-client-session.c:213
+#: src/mn-client-session.c:212
 #, c-format
 msgid "unable to decode data using SASL: %s"
 msgstr ""
 
-#: src/mn-client-session.c:287
+#: src/mn-client-session.c:286
 #, c-format
 msgid "resolving %s"
 msgstr ""
 
-#: src/mn-client-session.c:297
+#: src/mn-client-session.c:296
 #, c-format
 msgid "unable to resolve %s: %s"
 msgstr ""
 
-#: src/mn-client-session.c:334
+#: src/mn-client-session.c:333
 #, c-format
 msgid "%s: unsupported address family"
 msgstr ""
 
-#: src/mn-client-session.c:341
+#: src/mn-client-session.c:340
 #, c-format
 msgid "%s: unable to create socket: %s"
 msgstr ""
 
-#: src/mn-client-session.c:345
+#: src/mn-client-session.c:344
 #, c-format
 msgid "connecting to %s (%s) port %i"
 msgstr ""
 
-#: src/mn-client-session.c:348
+#: src/mn-client-session.c:347
 #, c-format
 msgid "unable to connect: %s"
 msgstr ""
 
-#: src/mn-client-session.c:353
+#: src/mn-client-session.c:352
 msgid "connected successfully"
 msgstr ""
 
 #. if reached, we couldn't find a working address
-#: src/mn-client-session.c:359
+#: src/mn-client-session.c:358
 #, c-format
 msgid "unable to connect to %s"
 msgstr ""
 
-#: src/mn-client-session.c:375
+#: src/mn-client-session.c:374
 #, c-format
 msgid "unable to initialize the OpenSSL library: %s"
 msgstr ""
 
-#: src/mn-client-session.c:383
+#: src/mn-client-session.c:382
 #, c-format
 msgid "unable to create a SSL object: %s"
 msgstr ""
 
-#: src/mn-client-session.c:389
+#: src/mn-client-session.c:388
 #, c-format
 msgid "unable to set the SSL file descriptor: %s"
 msgstr ""
 
-#: src/mn-client-session.c:444
+#: src/mn-client-session.c:443
 #, c-format
 msgid "response \"%s\" is not valid in current context"
 msgstr ""
 
-#: src/mn-client-session.c:470
+#: src/mn-client-session.c:469
 #, c-format
 msgid "unable to parse response \"%s\""
 msgstr ""
 
-#: src/mn-client-session.c:517
+#: src/mn-client-session.c:516
 #, c-format
 msgid "unable to encode data using SASL: %s"
 msgstr ""
 
-#: src/mn-client-session.c:546 src/mn-client-session.c:553
+#: src/mn-client-session.c:545 src/mn-client-session.c:552
 #, c-format
 msgid "unable to write to server: %s"
 msgstr ""
 
-#: src/mn-client-session.c:551
+#: src/mn-client-session.c:550
 msgid "unable to write to server: EOF"
 msgstr ""
 
-#: src/mn-client-session.c:583
+#: src/mn-client-session.c:582
 #, c-format
 msgid "unable to encode Base64: %s"
 msgstr ""
 
-#: src/mn-client-session.c:686
+#: src/mn-client-session.c:685
 #, c-format
 msgid "unable to initialize the SASL library: %s"
 msgstr ""
 
-#: src/mn-client-session.c:695
+#: src/mn-client-session.c:694
 #, c-format
 msgid "unable to retrieve local address of socket: %s"
 msgstr ""
 
-#: src/mn-client-session.c:701
+#: src/mn-client-session.c:700
 #, c-format
 msgid "unable to retrieve remote address of socket: %s"
 msgstr ""
 
-#: src/mn-client-session.c:735
+#: src/mn-client-session.c:734
 #, c-format
 msgid "warning: unable to set SASL security properties: %s"
 msgstr ""
 
-#: src/mn-client-session.c:774
+#: src/mn-client-session.c:773
 msgid ""
 "unable to start SASL authentication: SASL asked for something we did not know"
 msgstr ""
 
-#: src/mn-client-session.c:778
+#: src/mn-client-session.c:777
 #, c-format
 msgid "unable to start SASL authentication: %s"
 msgstr ""
 
-#: src/mn-client-session.c:782
+#: src/mn-client-session.c:781
 #, c-format
 msgid "unable to create a SASL connection: %s"
 msgstr ""
 
-#: src/mn-client-session.c:832
+#: src/mn-client-session.c:831
 msgid "SASL asked for something we did not know, aborting SASL authentication"
 msgstr ""
 
-#: src/mn-client-session.c:836
+#: src/mn-client-session.c:835
 #, c-format
 msgid "%s, aborting SASL authentication"
 msgstr ""
 
 #. compliance error
-#: src/mn-client-session.c:841
+#: src/mn-client-session.c:840
 #, c-format
 msgid "unable to decode Base64 input from server: %s"
 msgstr ""
 
-#: src/mn-client-session.c:844
+#: src/mn-client-session.c:843
 msgid ""
 "the server sent a SASL challenge, but there was a pending initial SASL "
 "client response"
 msgstr ""
 
-#: src/mn-client-session.c:858
+#: src/mn-client-session.c:857
 msgid ""
 "the server did not send a SASL challenge, but there was no pending initial "
 "SASL client response"
 msgstr ""
 
-#: src/mn-client-session.c:881
+#: src/mn-client-session.c:880
 #, c-format
 msgid "a SASL security layer of strength factor %i is now active"
 msgstr ""
 
 #. a security layer is active but we can't retrieve maxoutbuf -> fatal
-#: src/mn-client-session.c:886
+#: src/mn-client-session.c:885
 #, c-format
 msgid "unable to get SASL_MAXOUTBUF property: %s"
 msgstr ""
 
-#: src/mn-client-session.c:892
+#: src/mn-client-session.c:891
 #, c-format
 msgid "warning: unable to get SASL_SSF property: %s"
 msgstr ""
@@ -348,30 +356,30 @@ msgstr ""
 msgid "unable to parse Gmail URI"
 msgstr ""
 
-#: src/mn-gmail-mailbox.gob:180
+#: src/mn-gmail-mailbox.gob:182
 msgid "logging in"
 msgstr ""
 
-#: src/mn-gmail-mailbox.gob:194 src/mn-gmail-mailbox.gob:233
-#: src/mn-gmail-mailbox.gob:266 src/mn-gmail-mailbox.gob:370
+#: src/mn-gmail-mailbox.gob:201 src/mn-gmail-mailbox.gob:240
+#: src/mn-gmail-mailbox.gob:273 src/mn-gmail-mailbox.gob:377
 #, c-format
 msgid "unable to transfer data: %s"
 msgstr ""
 
-#: src/mn-gmail-mailbox.gob:219 src/mn-gmail-mailbox.gob:252
-#: src/mn-gmail-mailbox.gob:286
+#: src/mn-gmail-mailbox.gob:226 src/mn-gmail-mailbox.gob:259
+#: src/mn-gmail-mailbox.gob:293
 msgid "login failed"
 msgstr ""
 
-#: src/mn-gmail-mailbox.gob:280
+#: src/mn-gmail-mailbox.gob:287
 msgid "successfully logged in"
 msgstr ""
 
-#: src/mn-gmail-mailbox.gob:358
+#: src/mn-gmail-mailbox.gob:365
 msgid "searching for unread mail"
 msgstr ""
 
-#: src/mn-gmail-mailbox.gob:377
+#: src/mn-gmail-mailbox.gob:384
 msgid "unable to parse Gmail data"
 msgstr ""
 
@@ -429,30 +437,30 @@ msgid "unable to login"
 msgstr ""
 
 #. compliance error
-#: src/mn-imap-mailbox.gob:319
+#: src/mn-imap-mailbox.gob:336
 msgid "server did not send status"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:537 src/mn-pop3-mailbox.gob:715
+#: src/mn-imap-mailbox.gob:554 src/mn-pop3-mailbox.gob:715
 msgid "unknown server error"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:603 src/mn-pop3-mailbox.gob:645
+#: src/mn-imap-mailbox.gob:625 src/mn-pop3-mailbox.gob:645
 msgid ""
 "a SASL authentication mechanism was selected but SASL support has not been "
 "compiled in"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:611 src/mn-pop3-mailbox.gob:657
+#: src/mn-imap-mailbox.gob:633 src/mn-pop3-mailbox.gob:657
 #, c-format
 msgid "unknown authentication mechanism \"%s\""
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:629
+#: src/mn-imap-mailbox.gob:651
 msgid "falling back to IMAP LOGIN authentication"
 msgstr ""
 
-#: src/mn-imap-mailbox.gob:633 src/mn-pop3-mailbox.gob:691
+#: src/mn-imap-mailbox.gob:655 src/mn-pop3-mailbox.gob:691
 msgid "authentication failed"
 msgstr ""
 
@@ -639,12 +647,17 @@ msgstr ""
 msgid "%s reported an error: %s"
 msgstr ""
 
-#: src/mn-maildir-mailbox.gob:97
+#: src/mn-maildir-mailbox.gob:98
 #, c-format
 msgid "unable to open folder \"new\": %s"
 msgstr ""
 
-#: src/mn-maildir-mailbox.gob:122
+#: src/mn-maildir-mailbox.gob:126
+#, c-format
+msgid "unable to close folder \"new\": %s"
+msgstr ""
+
+#: src/mn-maildir-mailbox.gob:129
 #, c-format
 msgid "error while reading folder \"new\": %s"
 msgstr ""
@@ -691,31 +704,31 @@ msgstr ""
 msgid "multi-threading is not available"
 msgstr ""
 
-#: src/mn-main.c:244
-msgid "Unable to initialize the GnomeVFS library."
-msgstr ""
-
-#: src/mn-main.c:252
+#: src/mn-main.c:243
 msgid ""
 "Bonobo could not locate the automation object. Please check your Mail "
 "Notification installation."
 msgstr ""
 
-#: src/mn-main.c:263
+#: src/mn-main.c:248
+msgid "Unable to initialize the GnomeVFS library."
+msgstr ""
+
+#: src/mn-main.c:270
 msgid "updating the mail status"
 msgstr ""
 
-#: src/mn-main.c:279
+#: src/mn-main.c:286
 msgid "Mail Notification is already running"
 msgstr ""
 
-#: src/mn-main.c:286
+#: src/mn-main.c:293
 msgid ""
 "Bonobo could not locate the GNOME_MailNotification_Automation.server file. "
 "Please check your Mail Notification installation."
 msgstr ""
 
-#: src/mn-main.c:290
+#: src/mn-main.c:297
 msgid ""
 "Bonobo was unable to register the automation server. Please check your Mail "
 "Notification installation."
@@ -863,17 +876,22 @@ msgstr ""
 msgid "Select _All"
 msgstr ""
 
-#: src/mn-sylpheed-mailbox.gob:83
+#: src/mn-sylpheed-mailbox.gob:84
 #, c-format
 msgid "unable to open folder: %s"
 msgstr ""
 
-#: src/mn-sylpheed-mailbox.gob:114
+#: src/mn-sylpheed-mailbox.gob:118
+#, c-format
+msgid "unable to close folder: %s"
+msgstr ""
+
+#: src/mn-sylpheed-mailbox.gob:121
 #, c-format
 msgid "error while reading folder: %s"
 msgstr ""
 
-#: src/mn-system-mailbox-properties.gob:33 src/mn-uri.c:617
+#: src/mn-system-mailbox-properties.gob:33 src/mn-uri.c:672
 msgid "System Mailbox"
 msgstr ""
 
@@ -989,4 +1007,27 @@ msgstr ""
 
 #: ui/properties.glade.h:16
 msgid "seconds"
+msgstr ""
+
+#: ui/welcome.glade.h:1
+msgid ""
+"<span weight=\"bold\" size=\"larger\">First startup</span>\n"
+"\n"
+"Mail Notification has been loaded successfully.\n"
+"\n"
+"Since this is the first time you run Mail Notification, you might want to "
+"configure it.\n"
+"\n"
+"Note: this message will not be shown anymore. To configure Mail Notification "
+"again, choose <span weight=\"bold\">Applications</span> → <span weight=\"bold"
+"\">Desktop Preferences</span> → <span weight=\"bold\">Mail Notification</"
+"span>."
+msgstr ""
+
+#: ui/welcome.glade.h:8
+msgid "_Configure Mail Notification"
+msgstr ""
+
+#: ui/welcome.glade.h:9
+msgid "_Skip configuration"
 msgstr ""

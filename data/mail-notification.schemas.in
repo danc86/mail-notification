@@ -97,5 +97,16 @@
         <long>The width of the properties dialog in pixels.</long>
       </locale>
     </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/already-run</key>
+      <applyto>/apps/mail-notification/already-run</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Has already been run</short>
+	<long>Whether Mail Notification has already been run or not.</long>
+      </locale>
+    </schema> 
   </schemalist>
 </gconfschemafile>

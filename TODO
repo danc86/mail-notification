@@ -1,1 +1,3 @@
 * add STARTTLS support to the IMAP backend
+* implement RFC 2965 cookie support
+* implement a MNURI object

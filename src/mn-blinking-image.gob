@@ -46,7 +46,7 @@ class MN:Blinking:Image from Gtk:Image
       g_value_set_boolean(VAL, selfp->blinking);
     };
 
-  private unsigned int timeout_id destroy { g_source_remove(VAR); };
+  private unsigned int timeout_id destroy { if (VAR) g_source_remove(VAR); };
   private gboolean is_on = TRUE; /* is currently displaying the on pixbuf? */
   private GdkPixbuf *on_pixbuf unrefwith g_object_unref;
   private GdkPixbuf *off_pixbuf unrefwith g_object_unref;

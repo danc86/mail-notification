@@ -238,6 +238,10 @@ main (int argc, char **argv)
     {
     case Bonobo_ACTIVATION_REG_ALREADY_ACTIVE:
     case Bonobo_ACTIVATION_REG_SUCCESS:
+      automation = bonobo_activation_activate_from_id(AUTOMATION_IID, 0, NULL, &ev);
+      if (CORBA_Object_is_nil(automation, &ev))
+	mn_fatal_error_dialog(_("Bonobo could not locate the automation object. Please check your Mail Notification installation."));
+
       if (result != Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
 	{
 	  if (! gnome_vfs_init())
@@ -245,12 +249,15 @@ main (int argc, char **argv)
 
 	  mn_conf_init();
 	  mn_shell = mn_shell_new();
+
+	  if (! eel_gconf_get_boolean(MN_CONF_ALREADY_RUN))
+	    {
+	      if (! arg_display_properties)
+		mn_shell_run_welcome(mn_shell);
+	      eel_gconf_set_boolean(MN_CONF_ALREADY_RUN, TRUE);
+	    }
 	}
       
-      automation = bonobo_activation_activate_from_id(AUTOMATION_IID, 0, NULL, &ev);
-      if (CORBA_Object_is_nil(automation, &ev))
-	mn_fatal_error_dialog(_("Bonobo could not locate the automation object. Please check your Mail Notification installation."));
-
       if (arg_display_properties)
 	GNOME_MNAutomation_displayProperties(automation, &ev);
       if (arg_display_about)

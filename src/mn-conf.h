@@ -44,6 +44,7 @@
 #define MN_CONF_UI_NAMESPACE			MN_CONF_NAMESPACE "/ui"
 #define MN_CONF_PREFERENCES_DIALOG		MN_CONF_UI_NAMESPACE "/preferences-dialog"	/* obsolete */
 #define MN_CONF_PROPERTIES_DIALOG		MN_CONF_UI_NAMESPACE "/properties-dialog"
+#define MN_CONF_ALREADY_RUN			MN_CONF_NAMESPACE "/already-run"
 
 void		mn_conf_init		(void);
 

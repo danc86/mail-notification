@@ -1,4 +1,4 @@
-AC_INIT(mail-notification, 0.6.0, jylefort@brutele.be)
+AC_INIT(mail-notification, 0.6.1, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mn-main.c)
 
 AC_PREREQ(2.59)
@@ -108,7 +108,7 @@ AC_PROG_CC
 AC_SYS_LARGEFILE
 
 # the order of these tests matters
-AC_CHECK_HEADERS(errno.h signal.h stdarg.h stdio.h stdlib.h string.h sys/types.h,, [AC_MSG_ERROR([header not found])])
+AC_CHECK_HEADERS(errno.h signal.h stdarg.h stdio.h stdlib.h string.h sys/types.h unistd.h,, [AC_MSG_ERROR([header not found])])
 AC_CHECK_HEADER(sys/uio.h,, [AC_MSG_ERROR([header not found])],
 [#include <sys/types.h>])
 AC_CHECK_HEADER(sys/socket.h,, [AC_MSG_ERROR([header not found])],
@@ -132,7 +132,7 @@ AC_CHECK_HEADER(arpa/inet.h,, [AC_MSG_ERROR([header not found])],
 #include <sys/socket.h>
 #include <netinet/in.h>])
 
-AC_CHECK_FUNCS(atoi exit freeaddrinfo gai_strerror getaddrinfo getnameinfo getpeername getsockname memcpy memset read signal sleep socket sscanf strchr strcmp strlen strncmp strstr write,, [AC_MSG_ERROR([library function not found])])
+AC_CHECK_FUNCS(atoi close connect exit freeaddrinfo gai_strerror getaddrinfo getnameinfo getpeername getsockname memcpy memset read signal sleep socket sscanf strchr strcmp strlen strncmp strstr write,, [AC_MSG_ERROR([library function not found])])
 
 ### build dependencies
 

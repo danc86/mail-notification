@@ -1,3 +1,4 @@
+[encoding: UTF-8]
 data/GNOME_MailNotification_Automation.server.in.in
 data/mail-notification-properties.desktop.in
 data/mail-notification.desktop.in
@@ -64,3 +65,4 @@ src/mn-vfs.h
 ui/dialog.glade
 ui/mailbox-properties.glade
 ui/properties.glade
+ui/welcome.glade

@@ -213,11 +213,11 @@ class MN:Mailbox from G:Object
 
     vfs_uri = gnome_vfs_uri_new(info->uri);
     if (vfs_uri) /* the scheme is supported by GnomeVFS, therefore we require that the URI exists */
-    {
-      if (! mn_vfs_test(info->uri, G_FILE_TEST_EXISTS))
-	mailbox = mn_unsupported_mailbox_new(info->uri, _("does not exist"));
-      gnome_vfs_uri_unref(vfs_uri);
-    }
+      {
+	if (! mn_vfs_test(info->uri, G_FILE_TEST_EXISTS))
+	  mailbox = mn_unsupported_mailbox_new(info->uri, _("does not exist"));
+	gnome_vfs_uri_unref(vfs_uri);
+      }
 
     if (! mailbox)
       {

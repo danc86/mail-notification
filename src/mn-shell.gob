@@ -382,6 +382,22 @@ class MN:Shell from G:Object
   }
 
   public void
+    run_welcome (self)
+  {
+    GtkWidget *dialog;
+    int response;
+
+    mn_create_interface("welcome", "dialog", &dialog, NULL);
+    gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
+
+    response = gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+
+    if (response == GTK_RESPONSE_OK)
+      mn_properties_display();
+  }
+  
+  public void
     report (self, char **report (check null))
   {
     GString *string;

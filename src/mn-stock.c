@@ -17,9 +17,16 @@
  */
 
 #include "config.h"
+#include <glib/gi18n-lib.h>
 #include <gtk/gtk.h>
 #include "mn-stock.h"
 #include "mn-util.h"
+
+/*** constants ***************************************************************/
+
+static const GtkStockItem items[] = {
+  { MN_STOCK_SELECT_ALL, N_("Select _All"), 0, 0, NULL },
+};
 
 /*** implementation **********************************************************/
 
@@ -32,16 +39,15 @@ mn_stock_init (void)
     const char	*filename;
     const char	*icon_name;
   } icons[] = {
-    { MN_STOCK_MAIL,		"mail.png", NULL		},
-    { MN_STOCK_MAIL_ERROR,	"mail-error.png", NULL		},
-    { MN_STOCK_NO_MAIL,		"no-mail.png", NULL		},
-    { MN_STOCK_NO_MAIL_ERROR,	"no-mail-error.png", NULL	},
+    { MN_STOCK_MAIL,		NULL, "stock_mail"		},
     { MN_STOCK_LOCAL,		NULL, "stock_folder"		},
     { MN_STOCK_REMOTE,		NULL, "stock_internet"		},
     { MN_STOCK_UNSUPPORTED,	"unsupported.png", NULL		},
 #ifdef WITH_GMAIL
     { MN_STOCK_GMAIL,		"gmail.png", NULL		},
 #endif
+    { MN_STOCK_SYSTEM_MAILBOX,	NULL, "gnome-system"		},
+    { MN_STOCK_SELECT_ALL,	NULL, "stock_select-all"	}
   };
   GtkIconFactory *factory;
   GtkIconTheme *icon_theme;
@@ -81,4 +87,6 @@ mn_stock_init (void)
     }
   
   g_object_unref(factory);
+
+  gtk_stock_add_static(items, G_N_ELEMENTS(items));
 }

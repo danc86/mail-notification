@@ -1,0 +1,646 @@
+/* 
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include <gtk/gtk.h>
+%}
+%{
+#include "config.h"
+#include <glib/gi18n-lib.h>
+#include <gdk/gdkkeysyms.h>
+#include "mn-util.h"
+#include "mn-shell.h"
+#include "mn-stock.h"
+#include "mn-mailbox-properties-dialog.h"
+#include "mn-conf.h"
+#include "mn-dialog.h"
+#include "mn-uri.h"
+
+#define GNOME_COPIED_FILES		"x-special/gnome-copied-files"
+
+  enum {
+    COLUMN_URI,
+    COLUMN_MAILBOX_ICON,
+    COLUMN_MAILBOX,
+    COLUMN_FORMAT,
+    N_COLUMNS
+  };
+
+  static GtkClipboard *global_clipboard;
+  static GdkAtom gnome_copied_files_atom;
+%}
+
+class MN:Mailbox:View from Gtk:Tree:View
+{
+  private GtkWidget *menu = {gtk_menu_new()} destroywith gtk_widget_destroy;
+  private GtkWidget *remove_item;
+  private GtkWidget *cut_item;
+  private GtkWidget *copy_item;
+  private GtkWidget *paste_item;
+  private GtkWidget *properties_item;
+
+  signal (ACTION) public NONE (NONE)
+    void activate_add (self)
+  {
+    GtkWidget *toplevel;
+    GtkWidget *dialog;
+
+    toplevel = gtk_widget_get_toplevel(GTK_WIDGET(self));
+    dialog = mn_mailbox_properties_dialog_new((GtkWindow *) toplevel, MN_MAILBOX_PROPERTIES_DIALOG_MODE_ADD);
+
+  run:
+    switch (gtk_dialog_run(GTK_DIALOG(dialog)))
+      {
+      case GTK_RESPONSE_HELP:
+	mn_display_help("mailbox-properties");
+	goto run;
+
+      case GTK_RESPONSE_ACCEPT:
+	{
+	  char *uri;
+	
+	  uri = mn_mailbox_properties_dialog_get_uri(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
+	  g_return_if_fail(uri != NULL);
+      
+	  if (! mn_mailboxes_find(mn_shell->mailboxes, uri))
+	    {
+	      GSList *gconf_mailboxes;
+	    
+	      gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
+	      gconf_mailboxes = g_slist_append(gconf_mailboxes, uri);
+	      eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
+	      mn_pointers_free(gconf_mailboxes);
+	    }
+	  else
+	    {
+	      mn_error_dialog(NULL, _("Unable to add mailbox"), _("The mailbox is already in the list."));
+	      g_free(uri);
+	      goto run;
+	    }
+	}
+	break;
+      }
+
+    gtk_widget_destroy(dialog);
+  }
+
+  signal (ACTION) public NONE (NONE)
+    void activate_remove (self)
+  {
+    self_remove_mailbox(self);
+  }
+
+  signal (ACTION) public NONE (NONE)
+    void activate_cut (self)
+  {
+    self_copy_mailbox(self);
+    self_remove_mailbox(self);
+  }
+
+  signal (ACTION) public NONE (NONE)
+    void activate_copy (self)
+  {
+    self_copy_mailbox(self);
+  }
+  
+  signal (ACTION) public NONE (NONE)
+    void activate_paste (self)
+  {
+    gtk_clipboard_request_contents(global_clipboard,
+				   gnome_copied_files_atom,
+				   self_activate_paste_receive_cb,
+				   NULL);
+  }
+
+  private void
+    activate_paste_receive_cb (GtkClipboard *clipboard (check null),
+			       GtkSelectionData *selection_data (check null),
+			       gpointer data)
+  {
+    if (selection_data->type == gnome_copied_files_atom
+	&& selection_data->format == 8
+	&& selection_data->length > 0)
+      {
+	char *gnome_copied_files;
+	gboolean status;
+	MNGnomeCopiedFilesType type;
+	GSList *uri_list;
+
+	gnome_copied_files = g_strndup(selection_data->data, selection_data->length);
+	status = mn_parse_gnome_copied_files(gnome_copied_files, &type, &uri_list);
+	g_free(gnome_copied_files);
+
+	if (status)
+	  {
+	    if (type == MN_GNOME_COPIED_FILES_COPY)
+	      {
+		GSList *new_mailboxes = NULL;
+		GSList *l;
+		
+		MN_LIST_FOREACH(l, uri_list)
+	          {
+		    const char *uri = l->data;
+		    
+		    if (! mn_mailboxes_find(mn_shell->mailboxes, uri))
+		      new_mailboxes = g_slist_append(new_mailboxes, g_strdup(uri));
+		  }
+
+		if (new_mailboxes)
+		  {
+		    GSList *gconf_mailboxes;
+		    
+		    gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
+		    gconf_mailboxes = g_slist_concat(gconf_mailboxes, new_mailboxes);
+		    eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
+		    mn_pointers_free(gconf_mailboxes);
+		  }
+	      }
+
+	    mn_pointers_free(uri_list);
+	  }
+      }
+  }
+  
+  signal (ACTION) public NONE (NONE)
+    void activate_properties (self)
+  {
+    GtkTreeSelection *selection;
+
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
+    gtk_tree_selection_selected_foreach(selection, self_activate_properties_cb, self);
+  }
+  
+  private void
+    activate_properties_cb (Gtk:Tree:Model *model (check null type),
+			    GtkTreePath *path (check null),
+			    GtkTreeIter *iter (check null),
+			    gpointer data (check null))
+  {
+    Self *self = data;
+    GtkWidget *toplevel;
+    GtkWidget *dialog;
+    char *uri;
+
+    toplevel = gtk_widget_get_toplevel(GTK_WIDGET(self));
+    dialog = mn_mailbox_properties_dialog_new((GtkWindow *) toplevel, MN_MAILBOX_PROPERTIES_DIALOG_MODE_EDIT);
+
+    gtk_tree_model_get(model, iter, COLUMN_URI, &uri, -1);
+    mn_mailbox_properties_dialog_set_uri(MN_MAILBOX_PROPERTIES_DIALOG(dialog), uri);
+    g_free(uri);
+    
+    g_signal_connect(G_OBJECT(dialog),
+		     "response",
+		     G_CALLBACK(self_properties_response_h),
+		     NULL);
+
+    gtk_widget_show(dialog);
+  }
+
+  class_init (class)
+  {
+    GtkBindingSet *binding_set;
+
+    global_clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+    gnome_copied_files_atom = gdk_atom_intern(GNOME_COPIED_FILES, FALSE);
+
+    binding_set = gtk_binding_set_by_class(class);
+
+    /* Delete removes a row */
+    gtk_binding_entry_add_signal(binding_set, GDK_Delete, 0, "activate-remove", 0);
+    gtk_binding_entry_add_signal(binding_set, GDK_KP_Delete, 0, "activate-remove", 0);
+
+    /* HIG 2.0 cut/copy/paste shortcuts */
+    gtk_binding_entry_add_signal(binding_set, GDK_x, GDK_CONTROL_MASK, "activate-cut", 0);
+    gtk_binding_entry_add_signal(binding_set, GDK_c, GDK_CONTROL_MASK, "activate-copy", 0);
+    gtk_binding_entry_add_signal(binding_set, GDK_v, GDK_CONTROL_MASK, "activate-paste", 0);
+    
+    /* cut/copy/paste shortcuts taken from gtkentry.c */
+    gtk_binding_entry_add_signal(binding_set, GDK_Delete, GDK_SHIFT_MASK, "activate-cut", 0);
+    gtk_binding_entry_add_signal(binding_set, GDK_Insert, GDK_CONTROL_MASK, "activate-copy", 0);
+    gtk_binding_entry_add_signal(binding_set, GDK_Insert, GDK_SHIFT_MASK, "activate-paste", 0);
+
+    /* HIG 2.0 properties */
+    gtk_binding_entry_add_signal(binding_set, GDK_Return, GDK_MOD1_MASK, "activate-properties", 0);
+    gtk_binding_entry_add_signal(binding_set, GDK_ISO_Enter, GDK_MOD1_MASK, "activate-properties", 0);
+    gtk_binding_entry_add_signal(binding_set, GDK_KP_Enter, GDK_MOD1_MASK, "activate-properties", 0);
+  }
+  
+  init (self)
+  {
+    GtkMenuShell *shell;
+    GtkWidget *add_item;
+    GtkWidget *select_all_item;
+    GtkListStore *store;
+    GtkTreeViewColumn *column;
+    GtkCellRenderer *renderer;
+    GtkTreeSelection *selection;
+
+    shell = GTK_MENU_SHELL(selfp->menu);
+    
+    add_item = mn_menu_shell_append(shell, GTK_STOCK_ADD, NULL);
+    selfp->remove_item = mn_menu_shell_append(shell, GTK_STOCK_REMOVE, NULL);
+    mn_menu_shell_append(shell, NULL, NULL);
+    selfp->cut_item = mn_menu_shell_append(shell, GTK_STOCK_CUT, NULL);
+    selfp->copy_item = mn_menu_shell_append(shell, GTK_STOCK_COPY, NULL);
+    selfp->paste_item = mn_menu_shell_append(shell, GTK_STOCK_PASTE, NULL);
+    mn_menu_shell_append(shell, NULL, NULL);
+    select_all_item = mn_menu_shell_append(shell, MN_STOCK_SELECT_ALL, NULL);
+    mn_menu_shell_append(shell, NULL, NULL);
+    selfp->properties_item = mn_menu_shell_append(shell, GTK_STOCK_PROPERTIES, NULL);
+    
+    g_signal_connect_swapped(G_OBJECT(add_item), "activate", G_CALLBACK(self_activate_add), self);
+    g_signal_connect_swapped(G_OBJECT(selfp->remove_item), "activate", G_CALLBACK(self_activate_remove), self);
+    g_signal_connect_swapped(G_OBJECT(selfp->cut_item), "activate", G_CALLBACK(self_activate_cut), self);
+    g_signal_connect_swapped(G_OBJECT(selfp->copy_item), "activate", G_CALLBACK(self_activate_copy), self);
+    g_signal_connect_swapped(G_OBJECT(selfp->paste_item), "activate", G_CALLBACK(self_activate_paste), self);
+    g_signal_connect_swapped(G_OBJECT(select_all_item), "activate", G_CALLBACK(self_select_all), self);
+    g_signal_connect_swapped(G_OBJECT(selfp->properties_item), "activate", G_CALLBACK(self_activate_properties), self);
+
+    store = gtk_list_store_new(N_COLUMNS,
+			       G_TYPE_STRING,
+			       G_TYPE_STRING,
+			       G_TYPE_STRING,
+			       G_TYPE_STRING);
+    gtk_tree_view_set_model(GTK_TREE_VIEW(self), GTK_TREE_MODEL(store));
+    g_object_unref(store);
+    
+    column = gtk_tree_view_column_new();
+    gtk_tree_view_column_set_title(column, _("Mailbox"));
+    gtk_tree_view_column_set_resizable(column, TRUE);
+    gtk_tree_view_column_set_sort_column_id(column, COLUMN_MAILBOX);
+
+    renderer = gtk_cell_renderer_pixbuf_new();
+    gtk_tree_view_column_pack_start(column, renderer, FALSE);
+    gtk_tree_view_column_add_attribute(column, renderer, "stock-id", COLUMN_MAILBOX_ICON);
+
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_column_pack_start(column, renderer, TRUE);
+    gtk_tree_view_column_add_attribute(column, renderer, "text", COLUMN_MAILBOX);
+    
+    gtk_tree_view_append_column(GTK_TREE_VIEW(self), column);
+
+    column = gtk_tree_view_column_new_with_attributes(_("Format"),
+						      gtk_cell_renderer_text_new(),
+						      "text", COLUMN_FORMAT,
+						      NULL);
+
+    gtk_tree_view_column_set_resizable(column, TRUE);
+    gtk_tree_view_column_set_sort_column_id(column, COLUMN_FORMAT);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(self), column);
+
+    gtk_tree_view_set_search_column(GTK_TREE_VIEW(self), COLUMN_MAILBOX);
+
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
+    gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
+    
+    self_update(self);
+    self_update_sensitivity(self);
+
+    g_signal_connect_swapped(G_OBJECT(mn_shell->mailboxes), "list-changed", G_CALLBACK(self_update), self);
+    g_signal_connect_swapped(G_OBJECT(selection), "changed", G_CALLBACK(self_update_sensitivity), self);
+
+    g_signal_connect(G_OBJECT(self), "popup-menu", G_CALLBACK(self_popup_menu_h), NULL);
+    g_signal_connect(G_OBJECT(self), "button-press-event", G_CALLBACK(self_button_press_event_h), NULL);
+    g_signal_connect(G_OBJECT(self), "row-activated", G_CALLBACK(self_row_activated_h), NULL);
+  }
+
+  override (G:Object) void
+    finalize (G:Object *object (check null type))
+  {
+    g_signal_handlers_disconnect_by_func(mn_shell->mailboxes, self_update, object);
+    PARENT_HANDLER(object);
+  }
+  
+  private void
+    update (self)
+  {
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+    gboolean valid;
+    MNMailbox *mailbox;
+    GSList *l;
+      
+    model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
+
+    /* first step: remove or update old mailboxes */
+
+    valid = gtk_tree_model_get_iter_first(model, &iter);
+    while (valid)
+      {
+	char *uri;
+      
+	gtk_tree_model_get(model, &iter, COLUMN_URI, &uri, -1);
+	mailbox = mn_mailboxes_find(mn_shell->mailboxes, uri);
+	g_free(uri);
+      
+	if (mailbox)
+	  {
+	    self_update_iter(self, &iter, mailbox);
+	    valid = gtk_tree_model_iter_next(model, &iter);
+	  }
+	else
+	  valid = gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+      }
+  
+    /* second step: add new mailboxes */
+
+    MN_LIST_FOREACH(l, mn_mailboxes_get(mn_shell->mailboxes))
+      {
+	mailbox = l->data;
+
+	if (! self_has_mailbox(self, mailbox))
+	{
+	  gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+	  self_update_iter(self, &iter, mailbox);
+	}
+      }
+  }
+  
+  private void
+    update_iter (self,
+		 GtkTreeIter *iter (check null),
+		 MN:Mailbox *mailbox (check null type))
+  {
+    MNMailboxClass *class;
+    const char *uri;
+    const char *system_uri;
+    const char *stock_id;
+    GtkTreeModel *model;
+
+    class = MN_MAILBOX_GET_CLASS(mailbox);
+    uri = mn_mailbox_get_uri(mailbox);
+    system_uri = mn_uri_get_system_mailbox();
+  
+    if (system_uri && ! mn_uri_cmp(uri, system_uri))
+      stock_id = MN_STOCK_SYSTEM_MAILBOX;
+    else
+    {
+      if (class->stock_id)
+	stock_id = class->stock_id;
+      else
+	stock_id = mn_uri_is_local(uri) ? MN_STOCK_LOCAL : MN_STOCK_REMOTE;
+    }
+
+    model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
+    gtk_list_store_set(GTK_LIST_STORE(model), iter,
+		       COLUMN_URI, uri,
+		       COLUMN_MAILBOX_ICON, stock_id,
+		       COLUMN_MAILBOX, mn_mailbox_get_name(mailbox),
+		       COLUMN_FORMAT, class->format,
+		       -1);
+  }
+
+  private gboolean
+    has_mailbox (self, MN:Mailbox *mailbox (check null type))
+  {
+    const char *uri;
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+    gboolean valid;
+    gboolean has = FALSE;
+
+    uri = mn_mailbox_get_uri(mailbox);
+
+    model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
+    valid = gtk_tree_model_get_iter_first(model, &iter);
+    while (valid)
+      {
+	char *this_uri;
+	
+	gtk_tree_model_get(model, &iter, COLUMN_URI, &this_uri, -1);
+	has = ! mn_uri_cmp(this_uri, uri);
+	g_free(this_uri);
+
+	if (has)
+	  break;
+
+	valid = gtk_tree_model_iter_next(model, &iter);
+      }
+
+    return has;
+  }
+
+  private void
+    update_sensitivity (self)
+  {
+    GtkTreeSelection *selection;
+    gboolean has_selection;
+    
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
+    has_selection = gtk_tree_selection_count_selected_rows(selection) > 0;
+
+    gtk_widget_set_sensitive(selfp->remove_item, has_selection);
+    gtk_widget_set_sensitive(selfp->cut_item, has_selection);
+    gtk_widget_set_sensitive(selfp->copy_item, has_selection);
+    gtk_widget_set_sensitive(selfp->properties_item, has_selection);
+  }
+
+  private void
+    remove_mailbox (self)
+  {
+    GtkTreeSelection *selection;
+    GSList *gconf_mailboxes;
+    
+    gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
+    
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
+    gtk_tree_selection_selected_foreach(selection, self_remove_mailbox_cb, &gconf_mailboxes);
+    eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
+    mn_pointers_free(gconf_mailboxes);
+  }
+
+  private void
+    remove_mailbox_cb (Gtk:Tree:Model *model (check null type),
+		       GtkTreePath *path (check null),
+		       GtkTreeIter *iter (check null),
+		       gpointer data (check null))
+  {
+    GSList **gconf_mailboxes = data;
+    char *uri;
+    GSList *elem;
+  
+    gtk_tree_model_get(model, iter, COLUMN_URI, &uri, -1);
+
+    /* remove all the mailboxes with that URI */
+    while ((elem = g_slist_find_custom(*gconf_mailboxes, uri, (GCompareFunc) mn_uri_cmp)))
+      {
+	*gconf_mailboxes = g_slist_remove_link(*gconf_mailboxes, elem);
+	g_free(elem->data);
+	g_slist_free(elem);
+      }
+
+    g_free(uri);
+  }
+
+  private void
+    copy_mailbox (self)
+  {
+    GtkTreeSelection *selection;
+    GSList *uri_list = NULL;
+    char *gnome_copied_files;
+    const GtkTargetEntry target = { GNOME_COPIED_FILES, 0, 0 };
+    gboolean status;
+
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
+    gtk_tree_selection_selected_foreach(selection, self_copy_mailbox_cb, &uri_list);
+
+    gnome_copied_files = mn_build_gnome_copied_files(MN_GNOME_COPIED_FILES_COPY, uri_list);
+    mn_pointers_free(uri_list);
+
+    status = gtk_clipboard_set_with_data(global_clipboard,
+					 &target,
+					 1,
+					 self_get_clipboard_cb,
+					 self_clear_clipboard_cb,
+					 gnome_copied_files);
+    g_return_if_fail(status == TRUE);
+  }
+
+  private void
+    copy_mailbox_cb (Gtk:Tree:Model *model (check null type),
+		     GtkTreePath *path (check null),
+		     GtkTreeIter *iter (check null),
+		     gpointer data (check null))
+  {
+    GSList **uri_list = data;
+    char *uri;
+
+    gtk_tree_model_get(model, iter, COLUMN_URI, &uri, -1);
+    *uri_list = g_slist_append(*uri_list, uri);
+    /* uri is now owned by uri_list, do not free */
+  }
+
+  private void
+    get_clipboard_cb (GtkClipboard *clipboard (check null),
+		      GtkSelectionData *selection_data (check null),
+		      unsigned int info,
+		      gpointer user_data_or_owner (check null))
+  {
+    const char *gnome_copied_files = user_data_or_owner;
+    gtk_selection_data_set(selection_data, gnome_copied_files_atom, 8, gnome_copied_files, strlen(gnome_copied_files));
+  }
+
+  private void
+    clear_clipboard_cb (GtkClipboard *clipboard (check null),
+			gpointer user_data_or_owner (check null))
+  {
+    char *gnome_copied_files = user_data_or_owner;
+    g_free(gnome_copied_files);
+  }
+
+  private void
+    select_all (self)
+  {
+    GtkTreeSelection *selection;
+    
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
+    gtk_tree_selection_select_all(selection);
+  }
+
+  private void
+    properties_response_h (Gtk:Dialog *dialog (check null type),
+			   int response,
+			   gpointer user_data)
+  {
+    if (response == GTK_RESPONSE_HELP)
+      mn_display_help("mailbox-properties");
+    else
+      {
+	if (response == GTK_RESPONSE_APPLY || response == GTK_RESPONSE_OK)
+	  mn_mailbox_properties_dialog_apply(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
+	if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_OK)
+	  gtk_widget_destroy(GTK_WIDGET(dialog));
+      }
+  }
+  
+  private void
+    popup_menu (self, unsigned int button, guint32 activate_time)
+  {
+    gtk_clipboard_request_contents(global_clipboard,
+				   gnome_copied_files_atom,
+				   self_popup_menu_receive_cb,
+				   self);
+    gtk_menu_popup(GTK_MENU(selfp->menu), NULL, NULL, NULL, NULL, button, activate_time);
+  }
+
+  private void
+    popup_menu_receive_cb (GtkClipboard *clipboard (check null),
+			   GtkSelectionData *selection_data (check null),
+			   gpointer data (check null))
+  {
+    Self *self = data;
+    gboolean can_paste = FALSE;
+
+    if (selection_data->type == gnome_copied_files_atom
+	&& selection_data->format == 8
+	&& selection_data->length > 0)
+      {
+	char *gnome_copied_files;
+	gboolean status;
+	MNGnomeCopiedFilesType type;
+	GSList *uri_list;
+	
+	gnome_copied_files = g_strndup(selection_data->data, selection_data->length);
+	status = mn_parse_gnome_copied_files(gnome_copied_files, &type, &uri_list);
+	g_free(gnome_copied_files);
+
+	if (status)
+	  {
+	    if (type == MN_GNOME_COPIED_FILES_COPY && uri_list)
+	      can_paste = TRUE;
+	    mn_pointers_free(uri_list);
+	  }
+      }
+
+    gtk_widget_set_sensitive(selfp->paste_item, can_paste);
+  }
+
+  private gboolean
+    popup_menu_h (Gtk:Widget *widget (check null type),
+		  gpointer user_data)
+  {
+    self_popup_menu(SELF(widget), 0, gtk_get_current_event_time());
+    return TRUE;		/* a menu was activated */
+  }
+
+  private gboolean
+    button_press_event_h (Gtk:Widget *widget (check null type),
+			  GdkEventButton *event (check null),
+			  gpointer user_data)
+  {
+    if (event->button == 3)
+      self_popup_menu(SELF(widget), event->button, event->time);
+    
+    return FALSE;			/* propagate event */
+  }
+
+  private void
+    row_activated_h (Gtk:Tree:View *treeview (check null type),
+		     GtkTreePath *path (check null),
+		     Gtk:Tree:View:Column *column (check null type),
+		     gpointer user_data)
+  {
+    self_activate_properties(SELF(treeview));
+  }
+
+  public GtkWidget *
+    new (void)
+  {
+    return GTK_WIDGET(GET_NEW);
+  }
+}

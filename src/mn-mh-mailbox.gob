@@ -1,0 +1,129 @@
+/* 
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include "mn-mailbox.h"
+%}
+%{
+#include "config.h"
+#include <stdio.h>
+#include <string.h>
+#include <glib/gi18n-lib.h>
+#include <gdk/gdk.h>
+#include "mn-mailbox-private.h"
+#include "mn-vfs.h"
+%}
+
+class MN:MH:Mailbox from MN:Mailbox
+{
+  class_init (class)
+  {
+    MN_MAILBOX_CLASS(class)->format = "MH";
+  }
+  
+  override (G:Object) GObject *
+    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    MNMailbox *self;
+    char *sequences_uri;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    self = MN_MAILBOX(object);
+
+    sequences_uri = g_build_path("/", mn_mailbox_get_uri(self), ".mh_sequences", NULL);
+    mn_mailbox_monitor(self,
+		       sequences_uri,
+		       GNOME_VFS_MONITOR_FILE,
+		       MN_MAILBOX_MONITOR_EVENT_CHANGED
+		       | MN_MAILBOX_MONITOR_EVENT_DELETED
+		       | MN_MAILBOX_MONITOR_EVENT_CREATED);
+    g_free(sequences_uri);
+
+    return object;
+  }
+
+  override (MN:Mailbox) gboolean
+    impl_is (MNMailbox *dummy, const char *uri (check null))
+  {
+    char *sequences_uri;
+    gboolean is;
+
+    sequences_uri = g_build_path("/", uri, ".mh_sequences", NULL);
+    is = mn_vfs_test(sequences_uri, G_FILE_TEST_IS_REGULAR);
+    g_free(sequences_uri);
+    
+    return is;
+  }
+  
+  override (MN:Mailbox) void
+    impl_threaded_check (MN:Mailbox *self (check null type))
+  {
+    char *sequences_uri;
+    GnomeVFSResult result;
+    GnomeVFSHandle *handle;
+  
+    sequences_uri = g_build_path("/", mn_mailbox_get_uri(self), ".mh_sequences", NULL);
+    result = gnome_vfs_open(&handle, sequences_uri, GNOME_VFS_OPEN_READ);
+    g_free(sequences_uri);
+
+    if (result == GNOME_VFS_OK)
+      {
+	MNVFSReadLineContext *context = NULL;
+	const char *line;
+	gboolean has_new = FALSE;
+	
+	while ((result = mn_vfs_read_line(&context, handle, &line)) == GNOME_VFS_OK)
+	  if (! strncmp(line, "unseen", 6))
+	    {
+	      int first;
+	      
+	      if (sscanf(line, "unseen: %d", &first) == 1)
+		{
+		  has_new = TRUE;
+		  break;
+		}
+	    }
+
+	mn_vfs_read_line_context_free(context);
+	gnome_vfs_close(handle);
+
+	GDK_THREADS_ENTER();
+      
+	if (result == GNOME_VFS_OK || result == GNOME_VFS_ERROR_EOF)
+	  mn_mailbox_set_has_new(self, has_new);
+	else
+	  mn_mailbox_set_error(self, _("error while reading .mh_sequences: %s"), gnome_vfs_result_to_string(result));
+	
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+      }
+    else
+      {
+	GDK_THREADS_ENTER();
+	mn_mailbox_set_error(self, _("unable to open .mh_sequences: %s"), gnome_vfs_result_to_string(result));
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+      }
+
+    GDK_THREADS_ENTER();
+    mn_mailbox_end_check(self);
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+  }
+}

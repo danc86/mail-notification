@@ -1,0 +1,132 @@
+/* 
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include <gtk/gtk.h>
+%}
+%{
+#include "config.h"
+#include <glib/gi18n-lib.h>
+#include "mn-mailbox-properties.h"
+#include "mn-mailbox-properties-util.h"
+#include "mn-uri.h"
+#include "mn-util.h"
+%}
+
+class MN:Gmail:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
+{
+  property STRING label (override)
+    get { g_value_set_string(VAL, "Gmail"); };
+
+  private GtkSizeGroup *size_group unrefwith g_object_unref;
+  property OBJECT size_group (override, link);
+
+  property BOOLEAN complete (override)
+    get
+    {
+      const char *username;
+      const char *password;
+
+      username = gtk_entry_get_text(GTK_ENTRY(selfp->username_entry));
+      password = gtk_entry_get_text(GTK_ENTRY(selfp->password_entry));
+      
+      g_value_set_boolean(VAL, *username && *password);
+    };
+      
+  private GtkWidget *username_entry;
+  private GtkWidget *password_entry;
+  private GtkTooltips *tooltips = {mn_tooltips_new()} unrefwith g_object_unref;
+  
+  override (G:Object) GObject *
+    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    Self *self;
+    GtkWidget *label1;
+    GtkWidget *label2;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    self = SELF(object);
+
+    gtk_box_set_spacing(GTK_BOX(self), 6);
+
+    mn_mailbox_properties_credentials_new(GTK_VBOX(self),
+					  &label1,
+					  &selfp->username_entry,
+					  &label2,
+					  &selfp->password_entry);
+
+    gtk_size_group_add_widget(selfp->size_group, label1);
+    gtk_size_group_add_widget(selfp->size_group, label2);
+
+    mn_tooltips_set_tips(selfp->tooltips,
+			 selfp->username_entry, _("Your Gmail username"),
+			 selfp->password_entry, _("Your Gmail password"),
+			 NULL);
+
+    mn_mailbox_properties_link_entries(GTK_ENTRY(selfp->username_entry),
+				       GTK_ENTRY(selfp->password_entry),
+				       NULL);
+
+    g_signal_connect(G_OBJECT(selfp->username_entry), "changed", G_CALLBACK(self_entry_changed_h), self);
+    g_signal_connect(G_OBJECT(selfp->password_entry), "changed", G_CALLBACK(self_entry_changed_h), self);
+    
+    return object;
+  }
+
+  private void
+    entry_changed_h (Gtk:Editable *editable (check null type),
+		     gpointer user_data (check null))
+  {
+    Self *self = user_data;
+    g_object_notify(G_OBJECT(self), "complete");
+  }
+  
+  interface MN:Mailbox:Properties private gboolean
+    set_uri (MN:Mailbox:Properties *self (check null type),
+	     const char *uri (check null))
+  {
+    char *username;
+    char *password;
+
+    if (mn_uri_parse_gmail(uri, &username, &password))
+      {
+	gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->username_entry), username);
+	gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->password_entry), password);
+
+	g_free(username);
+	g_free(password);
+
+	return TRUE;
+      }
+    else
+      return FALSE;
+  }
+  
+  interface MN:Mailbox:Properties private char *
+    get_uri (MN:Mailbox:Properties *self (check null type))
+  {
+    const char *username;
+    const char *password;
+
+    username = gtk_entry_get_text(GTK_ENTRY(SELF(self)->_priv->username_entry));
+    password = gtk_entry_get_text(GTK_ENTRY(SELF(self)->_priv->password_entry));
+
+    return mn_uri_build_gmail(username, password);
+  }
+}

@@ -6,11 +6,12 @@ Index
 
 	0. About this document
 	1. About Mail Notification
-	2. Installation instructions
+	2. Release notes
+	3. Installation instructions
 
 0. About this document
 
-	$Id: README,v 1.14 2004/07/21 17:56:33 jylefort Exp $
+	$Id: README,v 1.16 2004/08/16 16:11:07 jylefort Exp $
 
 	Copyright (c) 2003, 2004 Jean-Yves Lefort.
 
@@ -29,12 +30,25 @@ Index
 
 	Mail Notification features include:
 
-		- multiple mailbox support
-		- mbox, MH, Maildir, Sylpheed, POP3 and Gmail support
-		- automatic detection of mailbox format
-		- automatic notification
-		- HIG compliance
+		* multiple mailbox support
+		* mbox, MH, Maildir, Sylpheed, POP3, IMAP and Gmail
+		  support
+		* SASL authentication support
+		* APOP authentication support
+		* SSL support
+		* automatic detection of mailbox format
+		* automatic notification
+		* HIG 2.0 compliance
 
-2. Installation instructions
+2. Release notes
+
+	Some configuration keys have been obsoleted. For the sake of
+	cleanliness, you should remove them:
+
+		$ gconftool-2 --recursive-unset \
+			/apps/mail-notification/commands/clicked \
+			/apps/mail-notification/preferences-dialog
+
+3. Installation instructions
 
 	See the INSTALL file.

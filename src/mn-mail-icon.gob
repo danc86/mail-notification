@@ -1,0 +1,181 @@
+/* 
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include <gtk/gtk.h>
+#include "eggtrayicon.h"
+#include "mn-blinking-image.h"
+%}
+%{
+#include "config.h"
+#include <gdk/gdkkeysyms.h>
+#include <gnome.h>
+#include "mn-stock.h"
+#include "mn-util.h"
+%}
+
+class MN:Mail:Icon from Egg:Tray:Icon
+{
+  public GtkTooltips *tooltips = {mn_tooltips_new()} unrefwith g_object_unref;
+  public GtkWidget *image = {mn_blinking_image_new_from_stock(MN_STOCK_MAIL, GTK_ICON_SIZE_LARGE_TOOLBAR)};
+
+  private GtkWidget *menu = {gtk_menu_new()} destroywith gtk_widget_destroy;
+  private GtkWidget *run_item;
+  public GtkWidget *update_item;
+  
+  signal (ACTION) private NONE (NONE)
+    void activate (self);
+  signal (ACTION) private NONE (NONE)
+    void activate_run (self);
+  signal (ACTION) private NONE (NONE)
+    void activate_update (self);
+  signal (ACTION) private NONE (NONE)
+    void activate_properties (self);
+  signal (ACTION) private NONE (NONE)
+    void activate_help (self);
+  signal (ACTION) private NONE (NONE)
+    void activate_about (self);
+  signal (ACTION) private NONE (NONE)
+    void activate_remove (self);
+  
+  class_init (class)
+  {
+    GtkBindingSet *binding_set;
+
+    binding_set = gtk_binding_set_by_class(class);
+
+    /* HIG 2.0 key bindings */
+
+    gtk_binding_entry_add_signal(binding_set, GDK_space, 0, "activate", 0);
+
+    gtk_binding_entry_add_signal(binding_set, GDK_Return, GDK_MOD1_MASK, "activate-properties", 0);
+    gtk_binding_entry_add_signal(binding_set, GDK_ISO_Enter, GDK_MOD1_MASK, "activate-properties", 0);
+    gtk_binding_entry_add_signal(binding_set, GDK_KP_Enter, GDK_MOD1_MASK, "activate-properties", 0);
+  }
+  
+  init (self)
+  {
+    GtkMenuShell *shell;
+    GtkWidget *event_box;
+    GtkWidget *properties_item;
+    GtkWidget *help_item;
+    GtkWidget *about_item;
+    GtkWidget *remove_item;
+    
+    shell = GTK_MENU_SHELL(selfp->menu);
+    self->update_item = mn_menu_shell_append(shell, GTK_STOCK_REFRESH, _("_Update"));
+    mn_menu_shell_append(shell, NULL, NULL);
+    properties_item = mn_menu_shell_append(shell, GTK_STOCK_PROPERTIES, NULL);
+    help_item = mn_menu_shell_append(shell, GTK_STOCK_HELP, NULL);
+    about_item = mn_menu_shell_append(shell, GNOME_STOCK_ABOUT, NULL);
+    mn_menu_shell_append(shell, NULL, NULL);
+    remove_item = mn_menu_shell_append(shell, GTK_STOCK_REMOVE, _("R_emove From Notification Area"));
+    
+    g_signal_connect_swapped(G_OBJECT(self->update_item), "activate", G_CALLBACK(self_activate_update), self);
+    g_signal_connect_swapped(G_OBJECT(properties_item), "activate", G_CALLBACK(self_activate_properties), self);
+    g_signal_connect_swapped(G_OBJECT(help_item), "activate", G_CALLBACK(self_activate_help), self);
+    g_signal_connect_swapped(G_OBJECT(about_item), "activate", G_CALLBACK(self_activate_about), self);
+    g_signal_connect_swapped(G_OBJECT(remove_item), "activate", G_CALLBACK(self_activate_remove), self);
+
+    event_box = gtk_event_box_new();
+    GTK_WIDGET_SET_FLAGS(event_box, GTK_CAN_FOCUS);
+    mn_setup_dnd(event_box);
+
+    gtk_container_add(GTK_CONTAINER(event_box), self->image);
+    gtk_container_add(GTK_CONTAINER(self), event_box);
+  
+    g_signal_connect(G_OBJECT(event_box), "button-press-event",
+		     G_CALLBACK(self_button_press_event_h), self);
+    g_signal_connect(G_OBJECT(event_box), "button-release-event",
+		     G_CALLBACK(self_button_release_event_h), self);
+    g_signal_connect(G_OBJECT(event_box), "popup-menu",
+		     G_CALLBACK(self_popup_menu_h), self);
+
+    gtk_widget_show(self->image);
+    gtk_widget_show(event_box);
+  }
+
+  private gboolean
+    button_press_event_h (Gtk:Widget *widget (check null type),
+			  GdkEventButton *event (check null),
+			  gpointer user_data (check null))
+  {
+    Self *self = user_data;
+
+    if (event->button == 1 && event->type == GDK_2BUTTON_PRESS)
+      self_activate(self);
+    else if (event->button == 3)
+      {
+	gtk_menu_popup(GTK_MENU(selfp->menu), NULL, NULL, NULL, NULL, event->button, event->time);
+	return TRUE;		/* do not propagate event */
+      }
+
+    return FALSE;		/* propagate event */
+  }
+
+  private gboolean
+    button_release_event_h (Gtk:Widget *widget (check null type),
+			    GdkEventButton *event (check null),
+			    gpointer user_data (check null))
+  {
+    Self *self = user_data;
+
+    if (event->button == 3)
+      {
+	gtk_menu_popdown(GTK_MENU(selfp->menu));
+	return TRUE;		/* do not propagate event */
+      }
+    
+    return FALSE;		/* propagate event */
+  }
+  
+  private gboolean
+    popup_menu_h (Gtk:Widget *widget (check null type),
+		  gpointer user_data (check null))
+  {
+    Self *self = user_data;
+
+    gtk_menu_popup(GTK_MENU(selfp->menu), NULL, NULL, NULL, NULL, 0, gtk_get_current_event_time());
+    return TRUE;		/* a menu was activated */
+  }
+  
+  public GtkWidget *
+    new (void)
+  {
+    return g_object_new(TYPE_SELF, "title", _("Mail Notification"), NULL);
+  }
+
+  public void
+    set_command (self, const char *command)
+  {
+    char *mnemonic;
+
+    if (selfp->run_item)
+      gtk_widget_destroy(selfp->run_item);
+
+    mnemonic = command
+      ? g_strdup_printf(_("_Run %s"), command)
+      : g_strdup(_("_Run Default Action"));
+
+    selfp->run_item = mn_menu_shell_prepend(GTK_MENU_SHELL(selfp->menu), GTK_STOCK_EXECUTE, mnemonic);
+    g_free(mnemonic);
+
+    gtk_widget_set_sensitive(selfp->run_item, command != NULL);
+    g_signal_connect_swapped(G_OBJECT(selfp->run_item), "activate", G_CALLBACK(self_activate_run), self);
+  }
+}

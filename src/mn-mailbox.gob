@@ -1,0 +1,438 @@
+/* 
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include <stdarg.h>
+%}
+
+%privateheader{
+#include <libgnomevfs/gnome-vfs.h>
+
+  typedef enum
+  {
+    MN_MAILBOX_MONITOR_EVENT_CHANGED		= 1 << GNOME_VFS_MONITOR_EVENT_CHANGED,
+    MN_MAILBOX_MONITOR_EVENT_DELETED		= 1 << GNOME_VFS_MONITOR_EVENT_DELETED,
+    MN_MAILBOX_MONITOR_EVENT_STARTEXECUTING	= 1 << GNOME_VFS_MONITOR_EVENT_STARTEXECUTING,
+    MN_MAILBOX_MONITOR_EVENT_STOPEXECUTING	= 1 << GNOME_VFS_MONITOR_EVENT_STOPEXECUTING,
+    MN_MAILBOX_MONITOR_EVENT_CREATED		= 1 << GNOME_VFS_MONITOR_EVENT_CREATED,
+    MN_MAILBOX_MONITOR_EVENT_METADATA_CHANGED	= 1 << GNOME_VFS_MONITOR_EVENT_METADATA_CHANGED
+  } MNMailboxMonitorEventType;
+%}
+
+%h{
+#define MN_MAILBOX_CAN_CHECK(self) \
+  (MN_MAILBOX_GET_CLASS((self))->impl_check != NULL || MN_MAILBOX_GET_CLASS((self))->impl_threaded_check != NULL)
+%}
+  
+%{
+#include "config.h"
+#include <glib/gi18n-lib.h>
+#ifdef WITH_MBOX
+#include "mn-mbox-mailbox.h"
+#endif
+#ifdef WITH_MH
+#include "mn-mh-mailbox.h"
+#endif
+#ifdef WITH_MAILDIR
+#include "mn-maildir-mailbox.h"
+#endif
+#ifdef WITH_POP3
+#include "mn-pop3-mailbox.h"
+#endif
+#ifdef WITH_IMAP
+#include "mn-imap-mailbox.h"
+#endif
+#ifdef WITH_SYLPHEED
+#include "mn-sylpheed-mailbox.h"
+#endif
+#ifdef WITH_GMAIL
+#include "mn-gmail-mailbox.h"
+#endif
+#include "mn-vfs.h"
+#include "mn-util.h"
+#include "mn-unsupported-mailbox.h"
+#include "mn-conf.h"
+#include "mn-dialog.h"
+#include "mn-uri.h"
+
+typedef struct
+{
+  char		*uri;
+  void		(*callback)	(MNMailbox	*self,
+				 gpointer	user_data);
+  gpointer	user_data;
+} NewInfo;
+%}
+
+class MN:Mailbox from G:Object
+{
+  classwide const char *stock_id;
+  classwide const char *format;
+
+  private char *uri destroywith g_free;
+  property STRING uri (blurb = _("The mailbox URI"), flags = CONSTRUCT_ONLY)
+    set
+    {
+      g_return_if_fail(selfp->uri == NULL);
+      selfp->uri = g_value_dup_string(VAL);
+      selfp->name = mn_uri_format_for_display(selfp->uri);
+    };
+  public const char *get_uri (self) { return selfp->uri; }
+  
+  private char *name destroywith g_free;
+  property STRING name (blurb = _("The mailbox human-readable name"), link);
+  public const char *get_name (self) { return selfp->name; }
+  
+  private gboolean automatic;
+  property BOOLEAN automatic (blurb = _("Whether the mailbox has to be manually checked or not"),
+			      link,
+			      export);
+
+  private gboolean has_new;
+  property BOOLEAN has_new (blurb = _("Whether the mailbox has new mail or not"),
+			    link,
+			    export);
+
+  private char *error destroywith g_free;
+  property STRING error (blurb = _("The mailbox error, if any"), link);
+  protected void
+    set_error (self, const char *format, ...)
+  {
+    va_list args;
+    char *error = NULL;
+
+    if (format)
+      {
+	va_start(args, format);
+	error = g_strdup_vprintf(format, args);
+	va_end(args);
+      }
+    
+    g_object_set(G_OBJECT(self), MN_MAILBOX_PROP_ERROR(error), NULL);
+    g_free(error);
+  }
+  public const char *get_error (self) { return selfp->error; }
+  
+  private GnomeVFSMonitorHandle *monitor_handle destroywith gnome_vfs_monitor_cancel;
+  private char *monitor_uri destroywith g_free;
+  private MNMailboxMonitorEventType monitor_events;
+  
+  private gboolean checking;
+  
+  public const GType *
+    get_types (void)
+  {
+    static GType *types = NULL;
+    G_LOCK_DEFINE_STATIC(types);
+    
+    G_LOCK(types);
+    if (! types)
+      {
+	GType tmp_types[7];
+	int n_types = 0;
+	int i;
+	
+#ifdef WITH_MBOX
+	tmp_types[n_types++] = MN_TYPE_MBOX_MAILBOX;
+#endif
+#ifdef WITH_MH
+	tmp_types[n_types++] = MN_TYPE_MH_MAILBOX;
+#endif
+#ifdef WITH_MAILDIR
+	tmp_types[n_types++] = MN_TYPE_MAILDIR_MAILBOX;
+#endif
+#ifdef WITH_POP3
+	tmp_types[n_types++] = MN_TYPE_POP3_MAILBOX;
+#endif
+#ifdef WITH_IMAP
+	tmp_types[n_types++] = MN_TYPE_IMAP_MAILBOX;
+#endif
+#ifdef WITH_SYLPHEED
+	tmp_types[n_types++] = MN_TYPE_SYLPHEED_MAILBOX;
+#endif
+#ifdef WITH_GMAIL
+	tmp_types[n_types++] = MN_TYPE_GMAIL_MAILBOX;
+#endif
+	
+	types = g_new(GType, n_types + 1);
+	for (i = 0; i < n_types; i++)
+	  types[i] = tmp_types[i];
+	types[n_types] = 0;
+      }
+    G_UNLOCK(types);
+    
+    return types;
+  }
+
+  /**
+   * new_async:
+   * @uri: location of the mailbox
+   * @callback: a function like
+   *            "void (callback) (#MNMailbox *self, gpointer user_data)"
+   * @user_data: data to pass to @callback
+   *
+   * Creates a new #MNMailbox asynchronously. The newly created
+   * #MNMailbox will be passed to @callback.
+   **/
+  public void
+    new_async (const char *uri (check null),
+	       gpointer callback (check null),
+	       gpointer user_data)
+  {
+    NewInfo *info;
+
+    info = g_new(NewInfo, 1);
+    info->uri = g_strdup(uri);
+    info->callback = callback;
+    info->user_data = user_data;
+
+    mn_thread_create(self_new_async_thread, info);
+  }
+
+  private gpointer
+    new_async_thread (gpointer data)
+  {
+    NewInfo *info = data;
+    GnomeVFSURI *vfs_uri;
+    Self *mailbox = NULL;
+
+    vfs_uri = gnome_vfs_uri_new(info->uri);
+    if (vfs_uri) /* the scheme is supported by GnomeVFS, therefore we require that the URI exists */
+    {
+      if (! mn_vfs_test(info->uri, G_FILE_TEST_EXISTS))
+	mailbox = mn_unsupported_mailbox_new(info->uri, _("does not exist"));
+      gnome_vfs_uri_unref(vfs_uri);
+    }
+
+    if (! mailbox)
+      {
+	const GType *types;
+	int i;
+	
+	types = self_get_types();
+	for (i = 0; types[i]; i++)
+	  {
+	    SelfClass *class;
+	    gboolean is;
+
+	    class = g_type_class_ref(types[i]);
+	    is = class->impl_is(NULL, info->uri);
+	    g_type_class_unref(class);
+
+	    if (is)
+	      {
+		mailbox = g_object_new(types[i], MN_MAILBOX_PROP_URI(info->uri), NULL);
+		if (mailbox->_priv->init_error)
+		  {
+		    MNMailbox *old_mailbox;
+		  
+		    old_mailbox = mailbox;
+		    mailbox = mn_unsupported_mailbox_new(info->uri, old_mailbox->_priv->init_error);
+		    g_object_unref(old_mailbox);
+		  }
+		
+		break;
+	      }
+	  }
+      }
+
+    if (! mailbox)
+      mailbox = mn_unsupported_mailbox_new(info->uri, _("unknown format"));
+
+    GDK_THREADS_ENTER();
+    info->callback(mailbox, info->user_data);
+    /*
+     * A note on gdk_flush(): as adviced in the GDK threads
+     * documentation, we only call gdk_flush() from a thread other
+     * than our main thread (so we do not call it in idle and timeout
+     * callbacks).
+     */
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+
+    /* mailbox is now owned by the callback, do not unref it */
+    
+    g_free(info->uri);
+    g_free(info);
+
+    return NULL;
+  }
+  
+  private char *init_error destroywith g_free;
+  protected void
+    set_init_error (self, const char *format (check null), ...)
+  {
+    va_list args;
+
+    g_return_if_fail(selfp->init_error == NULL);
+
+    va_start(args, format);
+    selfp->init_error = g_strdup_vprintf(format, args);
+    va_end(args);
+  }
+
+  protected void
+    monitor (self,
+	     const char *uri (check null),
+	     GnomeVFSMonitorType monitor_type,
+	     MNMailboxMonitorEventType events)
+  {
+    GnomeVFSResult result;
+
+    g_return_if_fail(MN_MAILBOX_CAN_CHECK(self));
+    g_return_if_fail(selfp->monitor_handle == NULL);
+    
+    result = gnome_vfs_monitor_add(&selfp->monitor_handle,
+				   uri,
+				   monitor_type,
+				   self_monitor_cb,
+				   self);
+    
+    if (result == GNOME_VFS_OK)
+      {
+	selfp->monitor_uri = g_strdup(uri);
+	selfp->monitor_events = events;
+	self_set_automatic(self, TRUE);
+      }
+    else
+      {
+	static gboolean first_time = TRUE;
+
+	g_warning(_("unable to monitor %s: %s"), uri, gnome_vfs_result_to_string(result));
+
+	if (first_time)
+	  {
+	    int minutes;
+	    int seconds;
+	    char *str;
+	    
+	    first_time = FALSE;
+	    
+	    minutes = eel_gconf_get_integer(MN_CONF_DELAY_MINUTES);
+	    seconds = eel_gconf_get_integer(MN_CONF_DELAY_SECONDS);
+	    
+	    if (minutes == 0)
+	      str = g_strdup_printf(ngettext("As a fallback, they will be "
+					     "checked every %i second (this "
+					     "delay is configurable from the "
+					     "Properties Dialog).",
+					     "As a fallback, they will be "
+					     "checked every %i seconds (this "
+					     "delay is configurable from the "
+					     "Properties Dialog).",
+					     seconds),
+				    seconds);
+	    else if (seconds == 0)
+	      str = g_strdup_printf(ngettext("As a fallback, they will be "
+					     "checked every %i minute (this "
+					     "delay is configurable from the "
+					     "Properties Dialog).",
+					     "As a fallback, they will be "
+					     "checked every %i minutes (this "
+					     "delay is configurable from the "
+					     "Properties Dialog).",
+					     minutes),
+				    minutes);
+	    else
+	      str = g_strdup_printf(ngettext("As a fallback, they will be "
+					     "checked approximately every %i "
+					     "minute (this delay is "
+					     "configurable from the "
+					     "Properties Dialog).",
+					     "As a fallback, they will be "
+					     "checked approximately every %i "
+					     "minutes (this delay is "
+					     "configurable from the "
+					     "Properties Dialog).",
+					     minutes),
+				    minutes);
+	    
+	    mn_error_dialog("automatic-notification",
+			    _("A monitoring error has occurred"),
+			    _("Mail Notification was unable to enable automatic "
+			      "notification for one or more mailboxes. %s"), str);
+	    g_free(str);
+	  }
+      }
+  }
+
+  private void
+    monitor_cb (GnomeVFSMonitorHandle *handle,
+		const char *monitor_uri,
+		const char *info_uri,
+		GnomeVFSMonitorEventType event_type,
+		gpointer user_data (check null))
+  {
+    Self *self = user_data;
+
+    if (selfp->monitor_events & (1 << event_type))
+      self_check(self);
+  }
+
+  virtual private gboolean
+    impl_is (self, const char *uri);
+  virtual private void
+    impl_check (self);
+  virtual private void
+    impl_threaded_check (self);
+  
+  public void
+    check (self)
+  {
+    g_return_if_fail(MN_MAILBOX_CAN_CHECK(self));
+
+    if (! selfp->checking)
+      {
+	g_object_ref(self);
+	selfp->checking = TRUE;
+	self_set_error(self, NULL);
+
+	if (SELF_GET_CLASS(self)->impl_threaded_check)
+	  mn_thread_create((GThreadFunc) SELF_GET_CLASS(self)->impl_threaded_check, self);
+	else
+	  SELF_GET_CLASS(self)->impl_check(self);
+      }
+  }
+  
+  protected void
+    end_check (self)
+  {
+    g_return_if_fail(selfp->checking == TRUE);
+
+    selfp->checking = FALSE;
+    g_object_unref(self);
+  }
+  
+  protected void
+    notice (self, const char *format (check null), ...)
+  {
+    va_list args;
+    char *notice;
+    char *prefixed_notice;
+    
+    va_start(args, format);
+    notice = g_strdup_vprintf(format, args);
+    va_end(args);
+
+    prefixed_notice = g_strdup_printf("%s: %s", selfp->uri, notice);
+    g_free(notice);
+    
+    mn_info("%s", prefixed_notice);
+    g_free(prefixed_notice);
+  }
+}

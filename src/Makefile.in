@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-SOURCES = $(mail_notification_SOURCES)
+SOURCES = $(mail_notification_SOURCES) $(nodist_mail_notification_SOURCES)
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -40,7 +40,8 @@ bin_PROGRAMS = mail-notification$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/pkg.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/openssl.m4 \
+	$(top_srcdir)/m4/pkg.m4 $(top_srcdir)/m4/sasl2.m4 \
 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -50,59 +51,143 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am__mail_notification_SOURCES_DIST = eggtrayicon.c eggtrayicon.h \
-	mn-conf.c mn-conf.h mn-dialog.c mn-dialog.h mn-mail-icon.c \
-	mn-mail-icon.h mn-mailbox-properties-dialog.c \
-	mn-mailbox-properties-dialog.h mn-mailbox.c mn-mailbox.h \
-	mn-mailboxes.c mn-mailboxes.h mn-mbox-mailbox.c \
-	mn-mbox-mailbox.h mn-mh-mailbox.c mn-mh-mailbox.h \
-	mn-maildir-mailbox.c mn-maildir-mailbox.h mn-pop3-mailbox.c \
-	mn-pop3-mailbox.h mn-sylpheed-mailbox.c mn-sylpheed-mailbox.h \
-	mn-gmail-mailbox.c mn-gmail-mailbox.h mn-soup.c mn-soup.h \
-	mn-main.c mn-pending-mailbox.c mn-pending-mailbox.h \
-	mn-preferences.c mn-preferences.h mn-stock.c mn-stock.h \
-	mn-ui.c mn-ui.h mn-unsupported-mailbox.c \
-	mn-unsupported-mailbox.h mn-uri.c mn-uri.h mn-util.c mn-util.h \
-	mn-vfs.c mn-vfs.h
-@WITH_MBOX_TRUE@am__objects_1 = mn-mbox-mailbox.$(OBJEXT)
-@WITH_MH_TRUE@am__objects_2 = mn-mh-mailbox.$(OBJEXT)
-@WITH_MAILDIR_TRUE@am__objects_3 = mn-maildir-mailbox.$(OBJEXT)
-@WITH_POP3_TRUE@am__objects_4 = mn-pop3-mailbox.$(OBJEXT)
-@WITH_SYLPHEED_TRUE@am__objects_5 = mn-sylpheed-mailbox.$(OBJEXT)
-@WITH_GMAIL_TRUE@am__objects_6 = mn-gmail-mailbox.$(OBJEXT)
-@HAVE_SOUP_TRUE@am__objects_7 = mn-soup.$(OBJEXT)
-am_mail_notification_OBJECTS = eggtrayicon.$(OBJEXT) mn-conf.$(OBJEXT) \
-	mn-dialog.$(OBJEXT) mn-mail-icon.$(OBJEXT) \
-	mn-mailbox-properties-dialog.$(OBJEXT) mn-mailbox.$(OBJEXT) \
-	mn-mailboxes.$(OBJEXT) $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3) $(am__objects_4) $(am__objects_5) \
-	$(am__objects_6) $(am__objects_7) mn-main.$(OBJEXT) \
-	mn-pending-mailbox.$(OBJEXT) mn-preferences.$(OBJEXT) \
-	mn-stock.$(OBJEXT) mn-ui.$(OBJEXT) \
-	mn-unsupported-mailbox.$(OBJEXT) mn-uri.$(OBJEXT) \
+am__mail_notification_SOURCES_DIST = MNAutomation.idl \
+	mn-mbox-mailbox.gob mn-mh-mailbox.gob mn-maildir-mailbox.gob \
+	mn-pop3-mailbox-properties.gob mn-pop3-mailbox.gob \
+	mn-imap-mailbox-properties.gob mn-imap-mailbox.gob \
+	mn-auth-combo-box.gob mn-pi-mailbox-properties.gob \
+	mn-sylpheed-mailbox.gob mn-gmail-mailbox-properties.gob \
+	mn-gmail-mailbox.gob mn-about-dialog.gob \
+	mn-autodetect-mailbox-properties.gob mn-automation.gob \
+	mn-blinking-image.gob mn-mail-icon.gob mn-mailbox-view.gob \
+	mn-mailbox.gob mn-mailboxes.gob mn-pending-mailbox.gob \
+	mn-shell.gob mn-system-mailbox-properties.gob \
+	mn-unsupported-mailbox.gob mn-mbox-mailbox-private.h \
+	mn-mbox-mailbox.c mn-mbox-mailbox.h mn-mh-mailbox-private.h \
+	mn-mh-mailbox.c mn-mh-mailbox.h mn-maildir-mailbox-private.h \
+	mn-maildir-mailbox.c mn-maildir-mailbox.h \
+	mn-pop3-mailbox-properties-private.h \
+	mn-pop3-mailbox-properties.c mn-pop3-mailbox-properties.h \
+	mn-pop3-mailbox-private.h mn-pop3-mailbox.c mn-pop3-mailbox.h \
+	mn-imap-mailbox-properties-private.h \
+	mn-imap-mailbox-properties.c mn-imap-mailbox-properties.h \
+	mn-imap-mailbox-private.h mn-imap-mailbox.c mn-imap-mailbox.h \
+	mn-auth-combo-box-private.h mn-auth-combo-box.c \
+	mn-auth-combo-box.h mn-pi-mailbox-properties-private.h \
+	mn-pi-mailbox-properties.c mn-pi-mailbox-properties.h \
+	mn-sylpheed-mailbox-private.h mn-sylpheed-mailbox.c \
+	mn-sylpheed-mailbox.h mn-gmail-mailbox-properties-private.h \
+	mn-gmail-mailbox-properties.c mn-gmail-mailbox-properties.h \
+	mn-gmail-mailbox-private.h mn-gmail-mailbox.c \
+	mn-gmail-mailbox.h mn-about-dialog-private.h mn-about-dialog.c \
+	mn-about-dialog.h mn-autodetect-mailbox-properties-private.h \
+	mn-autodetect-mailbox-properties.c \
+	mn-autodetect-mailbox-properties.h mn-automation-private.h \
+	mn-automation.c mn-automation.h mn-blinking-image-private.h \
+	mn-blinking-image.c mn-blinking-image.h mn-mail-icon-private.h \
+	mn-mail-icon.c mn-mail-icon.h mn-mailbox-view-private.h \
+	mn-mailbox-view.c mn-mailbox-view.h mn-mailbox-private.h \
+	mn-mailbox.c mn-mailbox.h mn-mailboxes-private.h \
+	mn-mailboxes.c mn-mailboxes.h mn-pending-mailbox-private.h \
+	mn-pending-mailbox.c mn-pending-mailbox.h mn-shell-private.h \
+	mn-shell.c mn-shell.h mn-system-mailbox-properties-private.h \
+	mn-system-mailbox-properties.c mn-system-mailbox-properties.h \
+	mn-unsupported-mailbox-private.h mn-unsupported-mailbox.c \
+	mn-unsupported-mailbox.h mn-md5.c mn-md5.h mn-client-session.c \
+	mn-client-session.h mn-soup.c mn-soup.h mn-ssl.c mn-ssl.h \
+	mn-sasl.c mn-sasl.h eggtrayicon.c eggtrayicon.h mn-conf.c \
+	mn-conf.h mn-dialog.c mn-dialog.h \
+	mn-mailbox-properties-dialog.c mn-mailbox-properties-dialog.h \
+	mn-mailbox-properties-util.c mn-mailbox-properties-util.h \
+	mn-mailbox-properties.c mn-mailbox-properties.h mn-main.c \
+	mn-properties.c mn-properties.h mn-stock.c mn-stock.h mn-uri.c \
+	mn-uri.h mn-util.c mn-util.h mn-vfs.c mn-vfs.h
+am__objects_1 =
+am__objects_2 = $(am__objects_1) $(am__objects_1) $(am__objects_1) \
+	$(am__objects_1) $(am__objects_1) $(am__objects_1) \
+	$(am__objects_1) $(am__objects_1)
+@WITH_MBOX_TRUE@am__objects_3 = mn-mbox-mailbox.$(OBJEXT)
+@WITH_MH_TRUE@am__objects_4 = mn-mh-mailbox.$(OBJEXT)
+@WITH_MAILDIR_TRUE@am__objects_5 = mn-maildir-mailbox.$(OBJEXT)
+@WITH_POP3_TRUE@am__objects_6 = mn-pop3-mailbox-properties.$(OBJEXT) \
+@WITH_POP3_TRUE@	mn-pop3-mailbox.$(OBJEXT)
+@WITH_IMAP_TRUE@am__objects_7 = mn-imap-mailbox-properties.$(OBJEXT) \
+@WITH_IMAP_TRUE@	mn-imap-mailbox.$(OBJEXT)
+@WITH_POP3_OR_IMAP_TRUE@am__objects_8 = mn-auth-combo-box.$(OBJEXT) \
+@WITH_POP3_OR_IMAP_TRUE@	mn-pi-mailbox-properties.$(OBJEXT)
+@WITH_SYLPHEED_TRUE@am__objects_9 = mn-sylpheed-mailbox.$(OBJEXT)
+@WITH_GMAIL_TRUE@am__objects_10 =  \
+@WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties.$(OBJEXT) \
+@WITH_GMAIL_TRUE@	mn-gmail-mailbox.$(OBJEXT)
+am__objects_11 = $(am__objects_3) $(am__objects_4) $(am__objects_5) \
+	$(am__objects_6) $(am__objects_7) $(am__objects_8) \
+	$(am__objects_9) $(am__objects_10) mn-about-dialog.$(OBJEXT) \
+	mn-autodetect-mailbox-properties.$(OBJEXT) \
+	mn-automation.$(OBJEXT) mn-blinking-image.$(OBJEXT) \
+	mn-mail-icon.$(OBJEXT) mn-mailbox-view.$(OBJEXT) \
+	mn-mailbox.$(OBJEXT) mn-mailboxes.$(OBJEXT) \
+	mn-pending-mailbox.$(OBJEXT) mn-shell.$(OBJEXT) \
+	mn-system-mailbox-properties.$(OBJEXT) \
+	mn-unsupported-mailbox.$(OBJEXT)
+@WITH_POP3_TRUE@am__objects_12 = mn-md5.$(OBJEXT)
+@WITH_POP3_OR_IMAP_TRUE@am__objects_13 = mn-client-session.$(OBJEXT)
+@HAVE_SOUP_TRUE@am__objects_14 = mn-soup.$(OBJEXT)
+@WITH_SSL_TRUE@am__objects_15 = mn-ssl.$(OBJEXT)
+@WITH_SASL_TRUE@am__objects_16 = mn-sasl.$(OBJEXT)
+am_mail_notification_OBJECTS = $(am__objects_1) $(am__objects_2) \
+	$(am__objects_11) $(am__objects_12) $(am__objects_13) \
+	$(am__objects_14) $(am__objects_15) $(am__objects_16) \
+	eggtrayicon.$(OBJEXT) mn-conf.$(OBJEXT) mn-dialog.$(OBJEXT) \
+	mn-mailbox-properties-dialog.$(OBJEXT) \
+	mn-mailbox-properties-util.$(OBJEXT) \
+	mn-mailbox-properties.$(OBJEXT) mn-main.$(OBJEXT) \
+	mn-properties.$(OBJEXT) mn-stock.$(OBJEXT) mn-uri.$(OBJEXT) \
 	mn-util.$(OBJEXT) mn-vfs.$(OBJEXT)
-mail_notification_OBJECTS = $(am_mail_notification_OBJECTS)
+am__objects_17 = MNAutomation-common.$(OBJEXT) \
+	MNAutomation-stubs.$(OBJEXT) MNAutomation-skels.$(OBJEXT)
+nodist_mail_notification_OBJECTS = $(am__objects_17)
+mail_notification_OBJECTS = $(am_mail_notification_OBJECTS) \
+	$(nodist_mail_notification_OBJECTS)
 mail_notification_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/eggtrayicon.Po \
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/MNAutomation-common.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/MNAutomation-skels.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/MNAutomation-stubs.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/eggtrayicon.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-about-dialog.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-auth-combo-box.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-autodetect-mailbox-properties.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-automation.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-blinking-image.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-client-session.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-conf.Po ./$(DEPDIR)/mn-dialog.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-gmail-mailbox-properties.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-gmail-mailbox.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-imap-mailbox-properties.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-imap-mailbox.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-mail-icon.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-mailbox-properties-dialog.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-mailbox-properties-util.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-mailbox-properties.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-mailbox-view.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-mailbox.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-mailboxes.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-maildir-mailbox.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-main.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-mbox-mailbox.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mn-mh-mailbox.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-md5.Po ./$(DEPDIR)/mn-mh-mailbox.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-pending-mailbox.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-pi-mailbox-properties.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-pop3-mailbox-properties.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-pop3-mailbox.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mn-preferences.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mn-soup.Po ./$(DEPDIR)/mn-stock.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-properties.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-sasl.Po ./$(DEPDIR)/mn-shell.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-soup.Po ./$(DEPDIR)/mn-ssl.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-stock.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-sylpheed-mailbox.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mn-ui.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-system-mailbox-properties.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-unsupported-mailbox.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-uri.Po ./$(DEPDIR)/mn-util.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-vfs.Po
@@ -110,7 +195,8 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(mail_notification_SOURCES)
+SOURCES = $(mail_notification_SOURCES) \
+	$(nodist_mail_notification_SOURCES)
 DIST_SOURCES = $(am__mail_notification_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
@@ -123,6 +209,7 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+BONOBO_ACTIVATION_IDL = @BONOBO_ACTIVATION_IDL@
 CATALOGS = @CATALOGS@
 CATOBJEXT = @CATOBJEXT@
 CC = @CC@
@@ -147,10 +234,9 @@ GCONF_SCHEMA_FILE_DIR = @GCONF_SCHEMA_FILE_DIR@
 GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
-GNET_CFLAGS = @GNET_CFLAGS@
-GNET_LIBS = @GNET_LIBS@
 GNOME_CFLAGS = @GNOME_CFLAGS@
 GNOME_LIBS = @GNOME_LIBS@
+GOB2 = @GOB2@
 GTK_CFLAGS = @GTK_CFLAGS@
 GTK_LIBS = @GTK_LIBS@
 G_ASSERTIONS = @G_ASSERTIONS@
@@ -183,6 +269,7 @@ INTLTOOL_UPDATE = @INTLTOOL_UPDATE@
 INTLTOOL_XAM_RULE = @INTLTOOL_XAM_RULE@
 INTLTOOL_XML_RULE = @INTLTOOL_XML_RULE@
 LDFLAGS = @LDFLAGS@
+LIBBONOBO_IDL = @LIBBONOBO_IDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LTLIBOBJS = @LTLIBOBJS@
@@ -193,6 +280,9 @@ MAKEINFO = @MAKEINFO@
 MKINSTALLDIRS = @MKINSTALLDIRS@
 MSGFMT = @MSGFMT@
 OBJEXT = @OBJEXT@
+OPENSSL_CFLAGS = @OPENSSL_CFLAGS@
+OPENSSL_LIBS = @OPENSSL_LIBS@
+ORBIT_IDL = @ORBIT_IDL@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -205,6 +295,8 @@ POFILES = @POFILES@
 POSUB = @POSUB@
 PO_IN_DATADIR_FALSE = @PO_IN_DATADIR_FALSE@
 PO_IN_DATADIR_TRUE = @PO_IN_DATADIR_TRUE@
+SASL_CFLAGS = @SASL_CFLAGS@
+SASL_LIBS = @SASL_LIBS@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOUP_CFLAGS = @SOUP_CFLAGS@
@@ -215,6 +307,8 @@ VERSION = @VERSION@
 WARN_CFLAGS = @WARN_CFLAGS@
 WITH_GMAIL_FALSE = @WITH_GMAIL_FALSE@
 WITH_GMAIL_TRUE = @WITH_GMAIL_TRUE@
+WITH_IMAP_FALSE = @WITH_IMAP_FALSE@
+WITH_IMAP_TRUE = @WITH_IMAP_TRUE@
 WITH_MAILDIR_FALSE = @WITH_MAILDIR_FALSE@
 WITH_MAILDIR_TRUE = @WITH_MAILDIR_TRUE@
 WITH_MBOX_FALSE = @WITH_MBOX_FALSE@
@@ -222,7 +316,15 @@ WITH_MBOX_TRUE = @WITH_MBOX_TRUE@
 WITH_MH_FALSE = @WITH_MH_FALSE@
 WITH_MH_TRUE = @WITH_MH_TRUE@
 WITH_POP3_FALSE = @WITH_POP3_FALSE@
+WITH_POP3_OR_IMAP_FALSE = @WITH_POP3_OR_IMAP_FALSE@
+WITH_POP3_OR_IMAP_TRUE = @WITH_POP3_OR_IMAP_TRUE@
 WITH_POP3_TRUE = @WITH_POP3_TRUE@
+WITH_REGRESSION_TESTS_FALSE = @WITH_REGRESSION_TESTS_FALSE@
+WITH_REGRESSION_TESTS_TRUE = @WITH_REGRESSION_TESTS_TRUE@
+WITH_SASL_FALSE = @WITH_SASL_FALSE@
+WITH_SASL_TRUE = @WITH_SASL_TRUE@
+WITH_SSL_FALSE = @WITH_SSL_FALSE@
+WITH_SSL_TRUE = @WITH_SSL_TRUE@
 WITH_SYLPHEED_FALSE = @WITH_SYLPHEED_FALSE@
 WITH_SYLPHEED_TRUE = @WITH_SYLPHEED_TRUE@
 XGETTEXT = @XGETTEXT@
@@ -253,46 +355,185 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-@WITH_MBOX_TRUE@mbox_sources = mn-mbox-mailbox.c mn-mbox-mailbox.h
-@WITH_MH_TRUE@mh_sources = mn-mh-mailbox.c mn-mh-mailbox.h
-@WITH_MAILDIR_TRUE@maildir_sources = mn-maildir-mailbox.c mn-maildir-mailbox.h
-@WITH_POP3_TRUE@pop3_sources = mn-pop3-mailbox.c mn-pop3-mailbox.h
-@WITH_SYLPHEED_TRUE@sylpheed_sources = mn-sylpheed-mailbox.c mn-sylpheed-mailbox.h
-@WITH_GMAIL_TRUE@gmail_sources = mn-gmail-mailbox.c mn-gmail-mailbox.h
+@WITH_MBOX_TRUE@mbox_gob_sources = mn-mbox-mailbox.gob
+@WITH_MBOX_TRUE@mbox_gob_built_sources = \
+@WITH_MBOX_TRUE@	mn-mbox-mailbox-private.h	\
+@WITH_MBOX_TRUE@	mn-mbox-mailbox.c		\
+@WITH_MBOX_TRUE@	mn-mbox-mailbox.h
+
+@WITH_MH_TRUE@mh_gob_sources = mn-mh-mailbox.gob
+@WITH_MH_TRUE@mh_gob_built_sources = \
+@WITH_MH_TRUE@	mn-mh-mailbox-private.h		\
+@WITH_MH_TRUE@	mn-mh-mailbox.c			\
+@WITH_MH_TRUE@	mn-mh-mailbox.h
+
+@WITH_MAILDIR_TRUE@maildir_gob_sources = mn-maildir-mailbox.gob
+@WITH_MAILDIR_TRUE@maildir_gob_built_sources = \
+@WITH_MAILDIR_TRUE@	mn-maildir-mailbox-private.h	\
+@WITH_MAILDIR_TRUE@	mn-maildir-mailbox.c		\
+@WITH_MAILDIR_TRUE@	mn-maildir-mailbox.h
+
+@WITH_POP3_TRUE@pop3_gob_sources = \
+@WITH_POP3_TRUE@	mn-pop3-mailbox-properties.gob	\
+@WITH_POP3_TRUE@	mn-pop3-mailbox.gob
+
+@WITH_POP3_TRUE@pop3_gob_built_sources = \
+@WITH_POP3_TRUE@	mn-pop3-mailbox-properties-private.h	\
+@WITH_POP3_TRUE@	mn-pop3-mailbox-properties.c		\
+@WITH_POP3_TRUE@	mn-pop3-mailbox-properties.h		\
+@WITH_POP3_TRUE@	mn-pop3-mailbox-private.h		\
+@WITH_POP3_TRUE@	mn-pop3-mailbox.c			\
+@WITH_POP3_TRUE@	mn-pop3-mailbox.h
+
+@WITH_POP3_TRUE@md5_sources = mn-md5.c mn-md5.h
+@WITH_IMAP_TRUE@imap_gob_sources = \
+@WITH_IMAP_TRUE@	mn-imap-mailbox-properties.gob	\
+@WITH_IMAP_TRUE@	mn-imap-mailbox.gob
+
+@WITH_IMAP_TRUE@imap_gob_built_sources = \
+@WITH_IMAP_TRUE@	mn-imap-mailbox-properties-private.h	\
+@WITH_IMAP_TRUE@	mn-imap-mailbox-properties.c		\
+@WITH_IMAP_TRUE@	mn-imap-mailbox-properties.h		\
+@WITH_IMAP_TRUE@	mn-imap-mailbox-private.h		\
+@WITH_IMAP_TRUE@	mn-imap-mailbox.c			\
+@WITH_IMAP_TRUE@	mn-imap-mailbox.h
+
+@WITH_POP3_OR_IMAP_TRUE@client_session_sources = mn-client-session.c mn-client-session.h
+@WITH_POP3_OR_IMAP_TRUE@pi_gob_sources = \
+@WITH_POP3_OR_IMAP_TRUE@	mn-auth-combo-box.gob			\
+@WITH_POP3_OR_IMAP_TRUE@	mn-pi-mailbox-properties.gob
+
+@WITH_POP3_OR_IMAP_TRUE@pi_gob_built_sources = \
+@WITH_POP3_OR_IMAP_TRUE@	mn-auth-combo-box-private.h		\
+@WITH_POP3_OR_IMAP_TRUE@	mn-auth-combo-box.c			\
+@WITH_POP3_OR_IMAP_TRUE@	mn-auth-combo-box.h			\
+@WITH_POP3_OR_IMAP_TRUE@	mn-pi-mailbox-properties-private.h	\
+@WITH_POP3_OR_IMAP_TRUE@	mn-pi-mailbox-properties.c		\
+@WITH_POP3_OR_IMAP_TRUE@	mn-pi-mailbox-properties.h
+
+@WITH_SYLPHEED_TRUE@sylpheed_gob_sources = mn-sylpheed-mailbox.gob
+@WITH_SYLPHEED_TRUE@sylpheed_gob_built_sources = \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox-private.h	\
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox.c		\
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox.h
+
+@WITH_GMAIL_TRUE@gmail_gob_sources = \
+@WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties.gob	\
+@WITH_GMAIL_TRUE@	mn-gmail-mailbox.gob
+
+@WITH_GMAIL_TRUE@gmail_gob_built_sources = \
+@WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties-private.h	\
+@WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties.c		\
+@WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties.h		\
+@WITH_GMAIL_TRUE@	mn-gmail-mailbox-private.h		\
+@WITH_GMAIL_TRUE@	mn-gmail-mailbox.c			\
+@WITH_GMAIL_TRUE@	mn-gmail-mailbox.h
+
 @HAVE_SOUP_TRUE@soup_sources = mn-soup.c mn-soup.h
+@WITH_SSL_TRUE@ssl_sources = mn-ssl.c mn-ssl.h
+@WITH_SASL_TRUE@sasl_sources = mn-sasl.c mn-sasl.h
+idl_sources = MNAutomation.idl
+idl_built_sources = \
+	MNAutomation-common.c			\
+	MNAutomation-stubs.c			\
+	MNAutomation-skels.c			\
+	MNAutomation.h
+
+gob_sources = \
+	$(mbox_gob_sources)			\
+	$(mh_gob_sources)			\
+	$(maildir_gob_sources)			\
+	$(pop3_gob_sources)			\
+	$(imap_gob_sources)			\
+	$(pi_gob_sources)			\
+	$(sylpheed_gob_sources)			\
+	$(gmail_gob_sources)			\
+	mn-about-dialog.gob			\
+	mn-autodetect-mailbox-properties.gob	\
+	mn-automation.gob			\
+	mn-blinking-image.gob			\
+	mn-mail-icon.gob			\
+	mn-mailbox-view.gob			\
+	mn-mailbox.gob				\
+	mn-mailboxes.gob			\
+	mn-pending-mailbox.gob			\
+	mn-shell.gob				\
+	mn-system-mailbox-properties.gob	\
+	mn-unsupported-mailbox.gob
+
+gob_built_sources = \
+	$(mbox_gob_built_sources)			\
+	$(mh_gob_built_sources)				\
+	$(maildir_gob_built_sources)			\
+	$(pop3_gob_built_sources)			\
+	$(imap_gob_built_sources)			\
+	$(pi_gob_built_sources)				\
+	$(sylpheed_gob_built_sources)			\
+	$(gmail_gob_built_sources)			\
+	mn-about-dialog-private.h			\
+	mn-about-dialog.c				\
+	mn-about-dialog.h				\
+	mn-autodetect-mailbox-properties-private.h	\
+	mn-autodetect-mailbox-properties.c		\
+	mn-autodetect-mailbox-properties.h		\
+	mn-automation-private.h				\
+	mn-automation.c					\
+	mn-automation.h					\
+	mn-blinking-image-private.h			\
+	mn-blinking-image.c				\
+	mn-blinking-image.h				\
+	mn-mail-icon-private.h				\
+	mn-mail-icon.c					\
+	mn-mail-icon.h					\
+	mn-mailbox-view-private.h			\
+	mn-mailbox-view.c				\
+	mn-mailbox-view.h				\
+	mn-mailbox-private.h				\
+	mn-mailbox.c					\
+	mn-mailbox.h					\
+	mn-mailboxes-private.h				\
+	mn-mailboxes.c					\
+	mn-mailboxes.h					\
+	mn-pending-mailbox-private.h			\
+	mn-pending-mailbox.c				\
+	mn-pending-mailbox.h				\
+	mn-shell-private.h				\
+	mn-shell.c					\
+	mn-shell.h					\
+	mn-system-mailbox-properties-private.h		\
+	mn-system-mailbox-properties.c			\
+	mn-system-mailbox-properties.h			\
+	mn-unsupported-mailbox-private.h		\
+	mn-unsupported-mailbox.c			\
+	mn-unsupported-mailbox.h
+
+nodist_mail_notification_SOURCES = $(idl_built_sources)
 mail_notification_SOURCES = \
+	$(idl_sources)			\
+	$(gob_sources)			\
+	$(gob_built_sources)		\
+	$(md5_sources)			\
+	$(client_session_sources)	\
+	$(soup_sources)			\
+	$(ssl_sources)			\
+	$(sasl_sources)			\
 	eggtrayicon.c			\
 	eggtrayicon.h			\
 	mn-conf.c			\
 	mn-conf.h			\
 	mn-dialog.c			\
 	mn-dialog.h			\
-	mn-mail-icon.c			\
-	mn-mail-icon.h			\
 	mn-mailbox-properties-dialog.c	\
 	mn-mailbox-properties-dialog.h	\
-	mn-mailbox.c			\
-	mn-mailbox.h			\
-	mn-mailboxes.c			\
-	mn-mailboxes.h			\
-	$(mbox_sources)			\
-	$(mh_sources)			\
-	$(maildir_sources)		\
-	$(pop3_sources)			\
-	$(sylpheed_sources)		\
-	$(gmail_sources)		\
-	$(soup_sources)			\
+	mn-mailbox-properties-util.c	\
+	mn-mailbox-properties-util.h	\
+	mn-mailbox-properties.c		\
+	mn-mailbox-properties.h		\
 	mn-main.c			\
-	mn-pending-mailbox.c		\
-	mn-pending-mailbox.h		\
-	mn-preferences.c		\
-	mn-preferences.h		\
+	mn-properties.c			\
+	mn-properties.h			\
 	mn-stock.c			\
 	mn-stock.h			\
-	mn-ui.c				\
-	mn-ui.h				\
-	mn-unsupported-mailbox.c	\
-	mn-unsupported-mailbox.h	\
 	mn-uri.c			\
 	mn-uri.h			\
 	mn-util.c			\
@@ -300,18 +541,23 @@ mail_notification_SOURCES = \
 	mn-vfs.c			\
 	mn-vfs.h
 
-mail_notification_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(GNET_LIBS) $(SOUP_LIBS)
+BUILT_SOURCES = $(idl_built_sources) $(gob_built_sources)
+mail_notification_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(SOUP_LIBS) $(OPENSSL_LIBS) $(SASL_LIBS)
 gnomelocaledir = $(datadir)/locale
-AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) $(GNET_CFLAGS) $(SOUP_CFLAGS) \
+AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) $(SOUP_CFLAGS) $(OPENSSL_CFLAGS) $(SASL_CFLAGS) \
 	-I$(top_srcdir) \
 	-DPREFIX="\"$(prefix)\"" \
 	-DSYSCONFDIR="\"$(sysconfdir)\"" \
 	-DDATADIR="\"$(datadir)\"" \
 	-DLIBDIR="\"$(libdir)\"" \
 	-DGNOMELOCALEDIR="\"$(gnomelocaledir)\"" \
-	-DUIDIR="\"$(pkgdatadir)/ui\""
+	-DUIDIR="\"$(pkgdatadir)/ui\"" \
+	-DG_LOG_DOMAIN="\"$(PACKAGE)\""
 
-all: all-am
+CLEANFILES = $(idl_built_sources)
+MAINTAINERCLEANFILES = $(gob_built_sources)
+all: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
 .SUFFIXES: .c .o .obj
@@ -377,25 +623,46 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MNAutomation-common.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MNAutomation-skels.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MNAutomation-stubs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eggtrayicon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-about-dialog.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-auth-combo-box.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-autodetect-mailbox-properties.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-automation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-blinking-image.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-client-session.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-dialog.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-gmail-mailbox-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-gmail-mailbox.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-imap-mailbox-properties.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-imap-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-mail-icon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-mailbox-properties-dialog.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-mailbox-properties-util.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-mailbox-properties.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-mailbox-view.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-mailboxes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-maildir-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-mbox-mailbox.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-md5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-mh-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-pending-mailbox.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-pi-mailbox-properties.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-pop3-mailbox-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-pop3-mailbox.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-preferences.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-properties.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-sasl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-shell.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-soup.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-ssl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-stock.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-sylpheed-mailbox.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-ui.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-system-mailbox-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-unsupported-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-uri.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-util.Po@am__quote@
@@ -494,13 +761,15 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-check: check-am
+check: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(PROGRAMS)
 installdirs:
 	for dir in "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
-install: install-am
+install: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -517,6 +786,7 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-rm -f $(CONFIG_CLEAN_FILES)
@@ -524,6 +794,8 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
@@ -584,6 +856,11 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-binPROGRAMS uninstall-info-am
 
+
+%.c %.h %-private.h: %.gob
+	$(GOB2) --always-private-header --exit-on-warn $<
+%-common.c %-stubs.c %-skels.c %.h: %.idl $(ORBIT_IDL)
+	$(ORBIT_IDL) -I$(LIBBONOBO_IDL) -I$(BONOBO_ACTIVATION_IDL) $<
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

@@ -30,7 +30,7 @@ for ((var) = (head);				\
 
 void		mn_info				(const char	*format,
 						 ...);
-void		mn_slist_free			(GSList		*list);
+void		mn_pointers_free		(GSList		*list);
 
 gboolean	mn_str_isnumeric		(const char	*str);
 
@@ -56,5 +56,21 @@ gboolean	mn_parse_gnome_copied_files	(const char	*gnome_copied_files,
 						 GSList		**uri_list);
 
 void		mn_display_help			(const char	*link_id);
+void		mn_thread_create		(GThreadFunc	func,
+						 gpointer	data);
+
+GtkTooltips	*mn_tooltips_new		(void);
+void		mn_tooltips_set_tips		(GtkTooltips	*tooltips,
+						 ...);
+
+#define mn_tooltips_set_tip(tooltips, widget, tip) \
+  gtk_tooltips_set_tip((tooltips), (widget), (tip), NULL)
+
+GtkWidget	*mn_menu_shell_append		(GtkMenuShell	*shell,
+						 const char	*stock_id,
+						 const char	*mnemonic);
+GtkWidget	*mn_menu_shell_prepend		(GtkMenuShell	*shell,
+						 const char	*stock_id,
+						 const char	*mnemonic);
 
 #endif /* _MN_UTIL_H */

@@ -19,7 +19,6 @@
 #include "config.h"
 #include <stdarg.h>
 #include <eel/eel.h>
-#include "mn-mailboxes.h"
 #include "mn-util.h"
 #include "mn-conf.h"
 
@@ -29,15 +28,6 @@
 #define WINDOW_HEIGHT_KEY		"mn-conf-window-height-key"
 
 /*** functions ***************************************************************/
-
-static void	mn_conf_notify_delay_cb		(GConfClient	*client,
-						 guint		cnxn_id,
-						 GConfEntry	*entry,
-						 gpointer	user_data);
-static void	mn_conf_notify_mailboxes_cb	(GConfClient	*client,
-						 guint		cnxn_id,
-						 GConfEntry	*entry,
-						 gpointer	user_data);
 
 static gboolean mn_conf_link_window_h (GtkWidget *widget,
 				       GdkEventConfigure *event,
@@ -72,24 +62,6 @@ static void mn_conf_link_weak_notify_cb (gpointer data,
 
 /*** implementation **********************************************************/
 
-static void
-mn_conf_notify_delay_cb (GConfClient *client,
-			 guint cnxn_id,
-			 GConfEntry *entry,
-			 gpointer user_data)
-{
-  mn_mailboxes_install_timeout();
-}
-
-static void
-mn_conf_notify_mailboxes_cb (GConfClient *client,
-			     guint cnxn_id,
-			     GConfEntry *entry,
-			     gpointer user_data)
-{
-  mn_mailboxes_register();
-}
-
 void
 mn_conf_init (void)
 {
@@ -115,14 +87,11 @@ mn_conf_init (void)
       l->data = uri;
     }
   eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
-  mn_slist_free(gconf_mailboxes);
+  mn_pointers_free(gconf_mailboxes);
   
-  /* monitor some keys */
+  /* monitor our namespace */
 
   eel_gconf_monitor_add(MN_CONF_NAMESPACE);
-
-  eel_gconf_notification_add(MN_CONF_DELAY_NAMESPACE, mn_conf_notify_delay_cb, NULL);
-  eel_gconf_notification_add(MN_CONF_MAILBOXES, mn_conf_notify_mailboxes_cb, NULL);
 }
 
 void
@@ -290,9 +259,10 @@ mn_conf_link_entry_notify_cb (GConfClient *client,
 {
   GConfValue *value = gconf_entry_get_value(entry);
   GtkEntry *entry_widget = user_data;
-  const char *str;
+  const char *str = NULL;
 
-  str = gconf_value_get_string(value);
+  if (value)
+    str = gconf_value_get_string(value);
   gtk_entry_set_text(entry_widget, str ? str : "");
 }
 

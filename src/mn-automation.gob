@@ -1,0 +1,65 @@
+/* 
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include <libbonobo.h>
+#include "MNAutomation.h"
+%}
+%{
+#include "mn-properties.h"
+#include "mn-shell.h"
+%}
+  
+class MN:Automation from Bonobo:Object (BonoboObject GNOME_MNAutomation)
+{
+  BonoboObject private void
+    update (PortableServer_Servant servant, CORBA_Environment *env)
+  {
+    g_return_if_fail(mn_shell != NULL);
+    mn_mailboxes_check(mn_shell->mailboxes);
+  }
+
+  BonoboObject private void
+    report (PortableServer_Servant servant,
+	    CORBA_char **report,
+	    CORBA_Environment *env)
+  {
+    g_return_if_fail(mn_shell != NULL);
+    mn_shell_report(mn_shell, report);
+  }
+
+  BonoboObject private void
+    displayProperties (PortableServer_Servant servant, CORBA_Environment *env)
+  {
+    g_return_if_fail(mn_shell != NULL);
+    mn_properties_display();
+  }
+
+  BonoboObject private void
+    displayAbout (PortableServer_Servant servant, CORBA_Environment *env)
+  {
+    g_return_if_fail(mn_shell != NULL);
+    mn_shell_display_about(mn_shell);
+  }
+
+  public MNAutomation *
+    new (void)
+  {
+    return GET_NEW;
+  }
+}

@@ -23,40 +23,13 @@
 #include <glib.h>
 #include <libgnomevfs/gnome-vfs.h>
 
-typedef struct _MNVFSAsyncHandle MNVFSAsyncHandle;
+typedef struct _MNVFSReadLineContext MNVFSReadLineContext;
 
-typedef void (MNVFSAsyncCallback) (MNVFSAsyncHandle *handle,
-				   GnomeVFSResult result,
-				   gpointer user_data);
+GnomeVFSResult mn_vfs_read_line (MNVFSReadLineContext **context,
+				 GnomeVFSHandle *handle,
+				 const char **line);
+void mn_vfs_read_line_context_free (MNVFSReadLineContext *context);
 
-typedef MNVFSAsyncCallback MNVFSAsyncOpenCallback;
-typedef MNVFSAsyncCallback MNVFSAsyncCloseCallback;
-
-typedef void (MNVFSAsyncReadLineCallback) (MNVFSAsyncHandle *handle,
-					   GnomeVFSResult result,
-					   const char *line,
-					   gpointer user_data);
-
-typedef void (MNVFSAsyncTestCallback) (gboolean result, gpointer user_data);
-
-#define MN_VFS_PASS_NEWLINE		(1 << 0)
-
-void mn_vfs_async_open (MNVFSAsyncHandle **handle,
-			const char *text_uri,
-			GnomeVFSOpenMode open_mode,
-			MNVFSAsyncOpenCallback *callback,
-			gpointer user_data);
-void mn_vfs_async_close (MNVFSAsyncHandle *handle,
-			 MNVFSAsyncCloseCallback *callback,
-			 gpointer user_data);
-void mn_vfs_async_read_line (MNVFSAsyncHandle *handle,
-			     unsigned int flags,
-			     MNVFSAsyncReadLineCallback *callback,
-			     gpointer user_data);
-
-void mn_vfs_async_test (const char *uri,
-			GFileTest test,
-			MNVFSAsyncTestCallback *callback,
-			gpointer user_data);
+gboolean mn_vfs_test (const char *uri, GFileTest test);
 
 #endif /* _MN_VFS_H */

@@ -21,9 +21,11 @@
 
 #include <stdarg.h>
 
-void mn_error_dialog	(const char	*help_link_id,
-			 const char	*primary,
-			 const char	*format,
-			 ...);
+void mn_error_dialog		(const char	*help_link_id,
+				 const char	*primary,
+				 const char	*format,
+				 ...);
+void mn_fatal_error_dialog	(const char	*format,
+				 ...);
 
 #endif /* _MN_DIALOG_H */

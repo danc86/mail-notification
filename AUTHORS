@@ -2,15 +2,13 @@
  mail-notification credits
 -------------------------------------------------------------------------------
 
-Jean-Yves Lefort <jylefort@brutele.be> has created and is the
-copyright holder for all the files in the distribution, except:
+Developed by Jean-Yves Lefort <jylefort@brutele.be>.
 
-	* files saying otherwise in their top notice
+Contributors:
+	* Dan Korostelev <dan@ats.energo.ru> (russian translations)
 
-	* art/about-icon.png
-	  art/gmail.png
-	  art/logo.png
-	  art/mail-notification.png
-	  art/mail.png
-	  art/no-mail.png
-	  art/preferences-icon.png
+External art sources:
+	* GNOME (about-icon.png)
+	* Google (gmail.png)
+	* Evolution (mail-notification.png, properties-icon.png)
+	* GTK+ (unsupported.png)

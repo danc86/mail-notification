@@ -1,0 +1,98 @@
+/* 
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include <gtk/gtk.h>
+%}
+%{
+#include "config.h"
+#include <glib/gi18n-lib.h>
+%}
+
+class MN:Blinking:Image from Gtk:Image
+{
+  private gboolean blinking;
+  property BOOLEAN blinking (blurb = _("Whether the image is blinking or not"),
+			     export)
+    set
+    {
+      if (selfp->blinking)
+	{
+	  g_source_remove(selfp->timeout_id);
+	  self_update(self, TRUE);
+	}
+
+      selfp->blinking = g_value_get_boolean(VAL);
+      if (selfp->blinking)
+	selfp->timeout_id = g_timeout_add(500, self_timeout_cb, self);
+    }
+    get
+    {
+      g_value_set_boolean(VAL, selfp->blinking);
+    };
+
+  private unsigned int timeout_id destroy { g_source_remove(VAR); };
+  private gboolean is_on = TRUE; /* is currently displaying the on pixbuf? */
+  private GdkPixbuf *on_pixbuf unrefwith g_object_unref;
+  private GdkPixbuf *off_pixbuf unrefwith g_object_unref;
+
+  private void
+    update (self, gboolean is_on)
+  {
+    gtk_image_set_from_pixbuf(GTK_IMAGE(self), is_on ? selfp->on_pixbuf : selfp->off_pixbuf);
+    selfp->is_on = is_on;
+  }
+
+  private gboolean
+    timeout_cb (gpointer data (check null))
+  {
+    Self *self = data;
+
+    GDK_THREADS_ENTER();
+    self_update(self, ! selfp->is_on);
+    GDK_THREADS_LEAVE();
+
+    return TRUE;
+  }
+
+  public GtkWidget *
+    new_from_stock (const char *stock_id (check null),
+		    GtkIconSize icon_size)
+  {
+    Self *self;
+    int width, height;
+
+    self = GET_NEW;
+
+    selfp->on_pixbuf = gtk_widget_render_icon(GTK_WIDGET(self),
+					      stock_id,
+					      icon_size,
+					      NULL);
+    g_return_val_if_fail(selfp->on_pixbuf != NULL, NULL);
+
+    width = gdk_pixbuf_get_width(selfp->on_pixbuf);
+    height = gdk_pixbuf_get_height(selfp->on_pixbuf);
+    
+    selfp->off_pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, width, height);
+    gdk_pixbuf_fill(selfp->off_pixbuf, 0); /* fill with transparency */
+
+    self_update(self, selfp->is_on);
+
+    return GTK_WIDGET(self);
+  }
+}

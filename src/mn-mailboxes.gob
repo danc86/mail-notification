@@ -1,0 +1,254 @@
+/* 
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include "mn-mailbox.h"
+%}
+%{
+#include "config.h"
+#include <glib/gi18n-lib.h>
+#include "mn-conf.h"
+#include "mn-util.h"
+#include "mn-uri.h"
+#include "mn-pending-mailbox.h"
+#include "mn-unsupported-mailbox.h"
+%}
+
+class MN:Mailboxes from G:Object
+{
+  private GSList *list;
+  private unsigned int timeout_id;
+
+  signal private NONE (NONE)
+    void list_changed (self);
+  signal private NONE (NONE)
+    void status_changed (self);
+
+  init (self)
+  {
+    self_update_from_conf(self);
+    self_install_timeout(self);
+
+    eel_gconf_notification_add(MN_CONF_DELAY_NAMESPACE, self_notify_delay_cb, self);
+    eel_gconf_notification_add(MN_CONF_MAILBOXES, self_notify_mailboxes_cb, self);
+  }
+  
+  private void
+    notify_delay_cb (GConfClient *client,
+		     guint cnxn_id,
+		     GConfEntry *entry,
+		     gpointer user_data (check null))
+  {
+    Self *self = user_data;
+    self_install_timeout(self);
+  }
+
+  private void
+    notify_mailboxes_cb (GConfClient *client,
+			 guint cnxn_id,
+			 GConfEntry *entry,
+			 gpointer user_data (check null))
+  {
+    Self *self = user_data;
+    self_update_from_conf(self);
+  }
+  
+  private void
+    update_from_conf (self)
+  {
+    GSList *gconf_mailboxes;
+    GSList *l;
+    gboolean changed = FALSE;
+
+    gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
+
+    /* first step: remove old mailboxes */
+
+  loop:
+    MN_LIST_FOREACH(l, selfp->list)
+      {
+	MNMailbox *mailbox = l->data;
+
+	if (! g_slist_find_custom(gconf_mailboxes, mn_mailbox_get_uri(mailbox), (GCompareFunc) mn_uri_cmp))
+	  {
+	    g_object_unref(mailbox);
+	    selfp->list = g_slist_delete_link(selfp->list, l);
+	    changed = TRUE;
+	    goto loop;
+	  }
+      }
+
+    /* second step: add new mailboxes */
+
+    MN_LIST_FOREACH(l, gconf_mailboxes)
+      {
+	const char *uri = l->data;
+      
+	if (! self_find(self, uri))
+	  {
+	    MNMailbox *mailbox;
+	    
+	    mailbox = mn_pending_mailbox_new(uri);
+	    selfp->list = g_slist_append(selfp->list, mailbox);
+	    changed = TRUE;
+	    
+	    mn_mailbox_new_async(uri, self_new_cb, self);
+	  }
+      }
+
+    mn_pointers_free(gconf_mailboxes);
+    if (changed)
+      self_list_changed(self);
+  }
+
+  private void
+    new_cb (MN:Mailbox *mailbox (check null type),
+	    gpointer user_data (check null))
+  {
+    Self *self = user_data;
+    GSList *elem;
+
+    elem = g_slist_find_custom(selfp->list, mn_mailbox_get_uri(mailbox), self_compare_func);
+    if (elem)
+      {
+	if (MN_IS_UNSUPPORTED_MAILBOX(mailbox))
+	  mn_info(_("%s is unsupported: %s"), mn_mailbox_get_name(mailbox), mn_unsupported_mailbox_get_reason(MN_UNSUPPORTED_MAILBOX(mailbox)));
+	
+	g_signal_connect(G_OBJECT(mailbox), "notify::has-new", G_CALLBACK(self_notify_has_new_h), self);
+	g_signal_connect(G_OBJECT(mailbox), "notify::error", G_CALLBACK(self_notify_error_h), self);
+
+	if (MN_MAILBOX_CAN_CHECK(mailbox))
+	  mn_mailbox_check(mailbox);
+
+	g_object_unref(elem->data);
+	elem->data = mailbox;
+
+	self_list_changed(self);
+      }
+    else
+      g_object_unref(mailbox);
+  }
+
+  private void
+    notify_has_new_h (G:Object *object (check null type),
+		      GParamSpec *pspec (check null),
+		      gpointer user_data (check null))
+  {
+    Self *self = user_data;
+    MNMailbox *mailbox = MN_MAILBOX(object);
+    gboolean has_new;
+
+    has_new = mn_mailbox_get_has_new(mailbox);
+    mn_info(has_new ? _("%s has new mail") : _("%s has no new mail"), mn_mailbox_get_name(mailbox));
+
+    self_status_changed(self);
+  }
+
+  private void
+    notify_error_h (G:Object *object (check null type),
+		    GParamSpec *pspec (check null),
+		    gpointer user_data (check null))
+  {
+    Self *self = user_data;
+    MNMailbox *mailbox = MN_MAILBOX(object);
+    const char *error;
+
+    error = mn_mailbox_get_error(mailbox);
+    if (error)
+      mn_info(_("%s reported an error: %s"), mn_mailbox_get_name(mailbox), error);
+
+    self_status_changed(self);
+  }
+
+  private void
+    install_timeout (self)
+  {
+    int minutes;
+    int seconds;
+
+    if (selfp->timeout_id)
+      {
+	g_source_remove(selfp->timeout_id);
+	selfp->timeout_id = 0;
+      }
+    
+    minutes = eel_gconf_get_integer(MN_CONF_DELAY_MINUTES);
+    seconds = eel_gconf_get_integer(MN_CONF_DELAY_SECONDS);
+    
+    if (minutes != 0 || seconds != 0)
+      selfp->timeout_id = g_timeout_add(((minutes * 60) + seconds) * 1000,
+					self_timeout_cb,
+					self);
+  }
+
+  private gboolean
+    timeout_cb (gpointer data (check null))
+  {
+    Self *self = data;
+
+    GDK_THREADS_ENTER();
+    self_check(self);
+    GDK_THREADS_LEAVE();
+    
+    return TRUE;		/* continue */
+  }
+
+  public void
+    check (self)
+  {
+    GSList *l;
+
+    MN_LIST_FOREACH(l, selfp->list)
+      {
+	MNMailbox *mailbox = l->data;
+
+	if (MN_MAILBOX_CAN_CHECK(mailbox))
+	  mn_mailbox_check(mailbox);
+      }
+  }
+
+  public GSList *
+    get (self)
+  {
+    return selfp->list;
+  }
+
+  public MNMailbox *
+    find (self, const char *uri (check null))
+  {
+    GSList *elem;
+
+    elem = g_slist_find_custom(selfp->list, uri, self_compare_func);
+    return elem ? elem->data : NULL;
+  }
+
+  private int
+    compare_func (gconstpointer a, gconstpointer b)
+  {
+    MNMailbox *mailbox = (MNMailbox *) a;
+    const char *uri = b;
+
+    return mn_uri_cmp(mn_mailbox_get_uri(mailbox), uri);
+  }
+
+  public MNMailboxes *
+    new (void)
+  {
+    return MN_MAILBOXES(GET_NEW);
+  }
+}

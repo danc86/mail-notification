@@ -36,11 +36,14 @@
 #define MN_CONF_DELAY_SECONDS			MN_CONF_DELAY_NAMESPACE "/seconds"
 #define MN_CONF_COMMANDS_NEW_MAIL_ENABLED	MN_CONF_NAMESPACE "/commands/new-mail/enabled"
 #define MN_CONF_COMMANDS_NEW_MAIL_COMMAND	MN_CONF_NAMESPACE "/commands/new-mail/command"
-#define MN_CONF_COMMANDS_CLICKED_ENABLED	MN_CONF_NAMESPACE "/commands/clicked/enabled"
-#define MN_CONF_COMMANDS_CLICKED_COMMAND	MN_CONF_NAMESPACE "/commands/clicked/command"
+#define MN_CONF_COMMANDS_CLICKED_ENABLED	MN_CONF_NAMESPACE "/commands/clicked/enabled"	/* obsolete */
+#define MN_CONF_COMMANDS_CLICKED_COMMAND	MN_CONF_NAMESPACE "/commands/clicked/command"	/* obsolete */
+#define MN_CONF_COMMANDS_DOUBLE_CLICKED_ENABLED	MN_CONF_NAMESPACE "/commands/double-clicked/enabled"
+#define MN_CONF_COMMANDS_DOUBLE_CLICKED_COMMAND	MN_CONF_NAMESPACE "/commands/double-clicked/command"
 #define MN_CONF_MAILBOXES			MN_CONF_NAMESPACE "/mailboxes"
 #define MN_CONF_UI_NAMESPACE			MN_CONF_NAMESPACE "/ui"
-#define MN_CONF_PREFERENCES_DIALOG		MN_CONF_UI_NAMESPACE "/preferences-dialog"
+#define MN_CONF_PREFERENCES_DIALOG		MN_CONF_UI_NAMESPACE "/preferences-dialog"	/* obsolete */
+#define MN_CONF_PROPERTIES_DIALOG		MN_CONF_UI_NAMESPACE "/properties-dialog"
 
 void		mn_conf_init		(void);
 

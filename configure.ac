@@ -1,4 +1,4 @@
-AC_INIT(mail-notification, 0.5.0, jylefort@brutele.be)
+AC_INIT(mail-notification, 0.6.0, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mn-main.c)
 
 AC_PREREQ(2.59)
@@ -33,6 +33,27 @@ AC_HELP_STRING([--disable-pop3], [disable POP3 support]),
 	*) AC_MSG_ERROR([bad value $enableval for --enable-pop3]) ;;
 esac], [enable_pop3=yes])
 
+AC_ARG_ENABLE(imap,
+AC_HELP_STRING([--disable-imap], [disable IMAP support]),
+[case "$enableval" in
+	yes|no) enable_imap=$enableval ;;
+	*) AC_MSG_ERROR([bad value $enableval for --enable-imap]) ;;
+esac], [enable_imap=yes])
+
+AC_ARG_ENABLE(ssl,
+AC_HELP_STRING([--disable-ssl], [disable SSL support]),
+[case "$enableval" in
+	yes|no) enable_ssl=$enableval ;;
+	*) AC_MSG_ERROR([bad value $enableval for --enable-ssl]) ;;
+esac], [enable_ssl=yes])
+
+AC_ARG_ENABLE(sasl,
+AC_HELP_STRING([--disable-sasl], [disable SASL authentication support]),
+[case "$enableval" in
+	yes|no) enable_sasl=$enableval ;;
+	*) AC_MSG_ERROR([bad value $enableval for --enable-sasl]) ;;
+esac], [enable_sasl=yes])
+
 AC_ARG_ENABLE(sylpheed,
 AC_HELP_STRING([--disable-sylpheed], [disable Sylpheed support]),
 [case "$enableval" in
@@ -47,8 +68,22 @@ AC_HELP_STRING([--disable-gmail], [disable Gmail support]),
 	*) AC_MSG_ERROR([bad value $enableval for --enable-gmail]) ;;
 esac], [enable_gmail=yes])
 
+AC_ARG_ENABLE(ipv6,
+AC_HELP_STRING([--disable-ipv6], [disable IPv6 support]),
+[case "$enableval" in
+	yes|no) enable_ipv6=$enableval ;;
+	*) AC_MSG_ERROR([bad value $enableval for --enable-ipv6]) ;;
+esac], [enable_ipv6=yes])
+
 AC_ARG_G_ASSERTIONS
 AC_ARG_COMPILE_WARNINGS
+
+AC_ARG_ENABLE(regression-tests,
+AC_HELP_STRING([--enable-regression-tests], [build and run regression tests [[no]]]),
+[case "$enableval" in
+	yes|no) enable_regression_tests=$enableval ;;
+	*) AC_MSG_ERROR([bad value $enableval for --enable-regression-tests]) ;;
+esac], [enable_regression_tests=no])
 
 ### initialization
 
@@ -72,14 +107,38 @@ AC_PROG_INTLTOOL
 AC_PROG_CC
 AC_SYS_LARGEFILE
 
-AC_CHECK_HEADERS(errno.h stdarg.h stdio.h stdlib.h string.h,, [AC_MSG_ERROR([header not found])])
-AC_CHECK_FUNCS(atoi exit sscanf strchr strcmp strlen strncmp,, [AC_MSG_ERROR([library function not found])])
+# the order of these tests matters
+AC_CHECK_HEADERS(errno.h signal.h stdarg.h stdio.h stdlib.h string.h sys/types.h,, [AC_MSG_ERROR([header not found])])
+AC_CHECK_HEADER(sys/uio.h,, [AC_MSG_ERROR([header not found])],
+[#include <sys/types.h>])
+AC_CHECK_HEADER(sys/socket.h,, [AC_MSG_ERROR([header not found])],
+[#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>])
+AC_CHECK_HEADER(netdb.h,, [AC_MSG_ERROR([header not found])],
+[#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>])
+AC_CHECK_HEADER(netinet/in.h,, [AC_MSG_ERROR([header not found])],
+[#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>])
+AC_CHECK_HEADER(arpa/inet.h,, [AC_MSG_ERROR([header not found])],
+[#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>])
+
+AC_CHECK_FUNCS(atoi exit freeaddrinfo gai_strerror getaddrinfo getnameinfo getpeername getsockname memcpy memset read signal sleep socket sscanf strchr strcmp strlen strncmp strstr write,, [AC_MSG_ERROR([library function not found])])
 
 ### build dependencies
 
 AM_PATH_GTK_2_0(2.4.0,, [AC_MSG_ERROR([unable to find the GTK+ library])])
 
-AM_PATH_PKG(GNOME, [libgnomeui-2.0 gnome-vfs-2.0 libglade-2.0 eel-2.0],, [AC_MSG_ERROR([unable to find the GNOME libraries])])
+AM_PATH_PKG(GNOME, [gthread-2.0 libgnomeui-2.0 gnome-vfs-2.0 libglade-2.0 eel-2.0 bonobo-activation-2.0],, [AC_MSG_ERROR([unable to find the GNOME libraries])])
 AC_SUBST(GNOME_CFLAGS)
 AC_SUBST(GNOME_LIBS)
 
@@ -90,8 +149,25 @@ if test -z "$GCONFTOOL"; then
 	AC_MSG_ERROR([unable to find the gconftool-2 program])
 fi
 
-if test $enable_pop3 = yes; then
-	AM_PATH_PKG(GNET, gnet-2.0,, [AC_MSG_WARN([unable to find the GNet library: forcing --disable-pop3]); enable_pop3=no; disable_pop3_reason="(GNet not found)"])
+if test $enable_pop3 = no && test $enable_imap = no; then
+	if test $enable_ssl = yes; then
+		AC_MSG_NOTICE([POP3 and IMAP support disabled: forcing --disable-ssl])
+		enable_ssl=no
+		disable_ssl_reason="(not needed)"
+	fi
+	if test $enable_sasl = yes; then
+		AC_MSG_NOTICE([POP3 and IMAP support disabled: forcing --disable-sasl])
+		enable_sasl=no
+		disable_sasl_reason="(not needed)"
+	fi
+fi
+
+if test $enable_ssl = yes; then
+	AM_PATH_OPENSSL(,, [AC_MSG_WARN([unable to find the OpenSSL library: forcing --disable-ssl]); enable_ssl=no; disable_ssl_reason="(OpenSSL not found)"])
+fi
+
+if test $enable_sasl = yes; then
+	AM_PATH_SASL2(,, [AC_MSG_WARN([unable to find the Cyrus SASL library: forcing --disable-sasl]); enable_sasl=no; disable_sasl_reason="(Cyrus SASL not found)"])
 fi
 
 have_soup=no
@@ -99,19 +175,33 @@ if test $enable_gmail = yes; then
 	AM_PATH_PKG(SOUP, soup-2.0, have_soup=yes, [AC_MSG_WARN([unable to find the soup library: forcing --disable-gmail]); enable_gmail=no; disable_gmail_reason="(libsoup not found)"])
 fi	
 
+ORBIT_IDL="`$PKG_CONFIG --variable=orbit_idl ORBit-2.0`"
+AC_SUBST(ORBIT_IDL)
+
+LIBBONOBO_IDL="`$PKG_CONFIG --variable=idldir libbonobo-2.0`"
+AC_SUBST(LIBBONOBO_IDL)
+
+BONOBO_ACTIVATION_IDL="`$PKG_CONFIG --variable=idldir bonobo-activation-2.0`"
+AC_SUBST(BONOBO_ACTIVATION_IDL)
+
+AC_PATH_PROG(GOB2, gob2)
+
 ### Automake conditionals
 
-AM_CONDITIONAL(WITH_MBOX, [test $enable_mbox != no])
-AM_CONDITIONAL(WITH_MH, [test $enable_mh != no])
-AM_CONDITIONAL(WITH_MAILDIR, [test $enable_maildir != no])
-AM_CONDITIONAL(WITH_POP3, [test $enable_pop3 != no])
-AM_CONDITIONAL(WITH_SYLPHEED, [test $enable_sylpheed != no])
-AM_CONDITIONAL(WITH_GMAIL, [test $enable_gmail != no])
-AM_CONDITIONAL(HAVE_SOUP, [test $have_soup != no])
+AM_CONDITIONAL(WITH_MBOX, [test $enable_mbox = yes])
+AM_CONDITIONAL(WITH_MH, [test $enable_mh = yes])
+AM_CONDITIONAL(WITH_MAILDIR, [test $enable_maildir = yes])
+AM_CONDITIONAL(WITH_POP3, [test $enable_pop3 = yes])
+AM_CONDITIONAL(WITH_IMAP, [test $enable_imap = yes])
+AM_CONDITIONAL(WITH_POP3_OR_IMAP, [test $enable_pop3 = yes || test $enable_imap = yes])
+AM_CONDITIONAL(WITH_SSL, [test $enable_ssl = yes])
+AM_CONDITIONAL(WITH_SASL, [test $enable_sasl = yes])
+AM_CONDITIONAL(WITH_SYLPHEED, [test $enable_sylpheed = yes])
+AM_CONDITIONAL(WITH_GMAIL, [test $enable_gmail = yes])
+AM_CONDITIONAL(HAVE_SOUP, [test $have_soup = yes])
+AM_CONDITIONAL(WITH_REGRESSION_TESTS, [test $enable_regression_tests = yes])
 
 ### config.h definitions
-
-AC_DEFINE(G_LOG_DOMAIN, ["AC_PACKAGE_NAME"], [log domain])
 
 if test $enable_mbox = yes; then
 	AC_DEFINE(WITH_MBOX, 1, [Define to 1 if mbox support is enabled])
@@ -125,11 +215,23 @@ fi
 if test $enable_pop3 = yes; then
 	AC_DEFINE(WITH_POP3, 1, [Define to 1 if POP3 support is enabled])
 fi
+if test $enable_imap = yes; then
+	AC_DEFINE(WITH_IMAP, 1, [Define to 1 if IMAP support is enabled])
+fi
+if test $enable_ssl = yes; then
+	AC_DEFINE(WITH_SSL, 1, [Define to 1 if SSL support is enabled])
+fi
+if test $enable_sasl = yes; then
+	AC_DEFINE(WITH_SASL, 1, [Define to 1 if SASL support is enabled])
+fi
 if test $enable_sylpheed = yes; then
 	AC_DEFINE(WITH_SYLPHEED, 1, [Define to 1 if Sylpheed support is enabled])
 fi
 if test $enable_gmail = yes; then
 	AC_DEFINE(WITH_GMAIL, 1, [Define to 1 if Gmail support is enabled])
+fi
+if test $enable_ipv6 = yes; then
+	AC_DEFINE(WITH_IPV6, 1, [Define to 1 if IPv6 support is enabled])
 fi
 
 ### output
@@ -142,6 +244,7 @@ AC_CONFIG_FILES(Makefile
 		m4/Makefile 
 		po/Makefile.in
 		src/Makefile
+		tests/Makefile
 		ui/Makefile)
 AC_OUTPUT
 
@@ -166,6 +269,10 @@ Features
   --enable-mh                   $enable_mh
   --enable-maildir              $enable_maildir
   --enable-pop3                 $enable_pop3 $disable_pop3_reason
+  --enable-imap                 $enable_imap $disable_imap_reason
+  --enable-ssl                  $enable_ssl $disable_ssl_reason
+  --enable-sasl                 $enable_sasl $disable_sasl_reason
   --enable-sylpheed             $enable_sylpheed
   --enable-gmail                $enable_gmail $disable_gmail_reason
+  --enable-ipv6                 $enable_ipv6
 EOF

@@ -18,13 +18,20 @@
 
 #include "config.h"
 #include <stdlib.h>
+#include <signal.h>
 #include <gnome.h>
 #include <libgnomevfs/gnome-vfs.h>
 #include "mn-conf.h"
-#include "mn-mailboxes.h"
-#include "mn-ui.h"
 #include "mn-util.h"
 #include "mn-stock.h"
+#include "mn-automation.h"
+#include "mn-dialog.h"
+#include "mn-shell.h"
+
+/*** cpp *********************************************************************/
+
+#define AUTOMATION_IID			"OAFIID:GNOME_MailNotification_Automation"
+#define AUTOMATION_FACTORY_IID		"OAFIID:GNOME_MailNotification_Automation_Factory"
 
 /*** variables ***************************************************************/
 
@@ -32,7 +39,10 @@ static gboolean arg_enable_info = FALSE;
 
 /*** functions ***************************************************************/
 
-static void	mn_main_list_handlers	(void);
+static BonoboObject *mn_main_automation_factory_cb (BonoboGenericFactory *factory,
+						    const char *iid,
+						    gpointer closure);
+static void	mn_main_list_features	(void);
 static void	mn_main_info_log_cb	(const char	*log_domain,
 					 GLogLevelFlags	log_level,
 					 const char	*message,
@@ -40,23 +50,59 @@ static void	mn_main_info_log_cb	(const char	*log_domain,
 
 /*** implementation **********************************************************/
 
-static void
-mn_main_list_handlers (void)
+static BonoboObject *
+mn_main_automation_factory_cb (BonoboGenericFactory *factory,
+			       const char *iid,
+			       gpointer closure)
 {
+  if (! strcmp(iid, AUTOMATION_IID))
+    return BONOBO_OBJECT(mn_automation_new());
+
+  g_return_val_if_reached(NULL);
+}
+
+static void
+mn_main_list_features (void)
+{
+  GString *backends;
+  GString *features;
   const GType *types;
   int i;
 
-  g_print(_("Compiled in handlers:\n"));
-
+  backends = g_string_new(NULL);
   types = mn_mailbox_get_types();
+
   for (i = 0; types[i]; i++)
     {
       MNMailboxClass *class;
       
       class = g_type_class_ref(types[i]);
-      g_print("  %s\n", class->format);
+      if (*backends->str)
+	g_string_append(backends, ", ");
+      g_string_append(backends, class->format);
       g_type_class_unref(class);
     }
+
+  g_print(_("Compiled-in mailbox backends: %s\n"), backends->str);
+  g_string_free(backends, TRUE);
+
+  features = g_string_new(NULL);
+#ifdef WITH_SSL
+  g_string_append(features, "SSL");
+#endif /* WITH_SSL */
+#ifdef WITH_SASL
+  if (*features->str)
+    g_string_append(features, ", ");
+  g_string_append(features, "SASL");
+#endif /* WITH_SASL */
+#ifdef WITH_IPV6
+  if (*features->str)
+    g_string_append(features, ", ");
+  g_string_append(features, "IPv6");
+#endif /* WITH_IPV6 */
+
+  g_print(_("Compiled-in features: %s\n"), features->str);
+  g_string_free(features, TRUE);
 }
 
 static void
@@ -72,11 +118,15 @@ mn_main_info_log_cb (const char *log_domain,
 int
 main (int argc, char **argv)
 {
-  gboolean arg_list_handlers = FALSE;
+  gboolean arg_list_features = FALSE;
+  gboolean arg_display_properties = FALSE;
+  gboolean arg_display_about = FALSE;
+  gboolean arg_update = FALSE;
+  gboolean arg_report = FALSE;
   const struct poptOption popt_options[] = {
     {
       "enable-info",
-      0,
+      'i',
       POPT_ARG_NONE,
       &arg_enable_info,
       0,
@@ -84,16 +134,57 @@ main (int argc, char **argv)
       NULL
     },
     {
-      "list-handlers",
-      0,
+      "list-features",
+      'l',
       POPT_ARG_NONE,
-      &arg_list_handlers,
+      &arg_list_features,
       0,
-      N_("List compiled-in handlers and exit"),
+      N_("List compiled-in features and exit"),
+      NULL
+    },
+    {
+      "display-properties",
+      'p',
+      POPT_ARG_NONE,
+      &arg_display_properties,
+      0,
+      N_("Display the properties dialog"),
+      NULL
+    },
+    {
+      "display-about",
+      'a',
+      POPT_ARG_NONE,
+      &arg_display_about,
+      0,
+      N_("Display the about dialog"),
+      NULL
+    },
+    {
+      "update",
+      'u',
+      POPT_ARG_NONE,
+      &arg_update,
+      0,
+      N_("Update the mail status"),
+      NULL
+    },
+    {
+      "report",
+      'r',
+      POPT_ARG_NONE,
+      &arg_report,
+      0,
+      N_("Report the mail status"),
       NULL
     },
     POPT_TABLEEND
   };
+  BonoboGenericFactory *automation_factory;
+  GClosure *automation_factory_closure;
+  CORBA_Environment ev;
+  GNOME_MNAutomation automation;
+  Bonobo_RegistrationResult result;
       
   g_log_set_fatal_mask(G_LOG_DOMAIN, G_LOG_LEVEL_CRITICAL);
   g_log_set_handler(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, mn_main_info_log_cb, NULL);
@@ -103,6 +194,15 @@ main (int argc, char **argv)
   bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
   textdomain(GETTEXT_PACKAGE);
 #endif
+
+  g_thread_init(NULL);
+  if (! g_thread_supported())
+    /*
+     * We can't use mn_error_dialog() because gtk_init() has not been
+     * called yet.
+     */
+    g_critical(_("multi-threading is not available"));
+  gdk_threads_init();
 
   gnome_program_init(PACKAGE,
 		     VERSION,
@@ -114,22 +214,92 @@ main (int argc, char **argv)
 		     GNOME_PARAM_POPT_TABLE, popt_options,
 		     NULL);
 
-  if (arg_list_handlers)
+  if (arg_list_features)
     {
-      mn_main_list_handlers();
+      mn_main_list_features();
       exit(0);
     }
 
-  if (! gnome_vfs_init())
-    g_critical(_("unable to initialize GnomeVFS"));
+  /* mn-client-session uses sockets, we don't want to die on SIGPIPE */
+  signal(SIGPIPE, SIG_IGN);
 
-  mn_conf_init();
+  GDK_THREADS_ENTER();
+
   mn_stock_init();
-  mn_ui_init();
+  bonobo_activate();
+
+  automation_factory = g_object_new(bonobo_generic_factory_get_type(), NULL);
+  automation_factory_closure = g_cclosure_new(G_CALLBACK(mn_main_automation_factory_cb), NULL, NULL);
+  bonobo_generic_factory_construct_noreg(automation_factory, AUTOMATION_FACTORY_IID, automation_factory_closure);
+
+  CORBA_exception_init(&ev);
+  result = bonobo_activation_register_active_server(AUTOMATION_FACTORY_IID, BONOBO_OBJREF(automation_factory), NULL);
+  switch (result)
+    {
+    case Bonobo_ACTIVATION_REG_ALREADY_ACTIVE:
+    case Bonobo_ACTIVATION_REG_SUCCESS:
+      if (result != Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
+	{
+	  if (! gnome_vfs_init())
+	    mn_fatal_error_dialog(_("Unable to initialize the GnomeVFS library."));
+
+	  mn_conf_init();
+	  mn_shell = mn_shell_new();
+	}
+      
+      automation = bonobo_activation_activate_from_id(AUTOMATION_IID, 0, NULL, &ev);
+      if (CORBA_Object_is_nil(automation, &ev))
+	mn_fatal_error_dialog(_("Bonobo could not locate the automation object. Please check your Mail Notification installation."));
+
+      if (arg_display_properties)
+	GNOME_MNAutomation_displayProperties(automation, &ev);
+      if (arg_display_about)
+	GNOME_MNAutomation_displayAbout(automation, &ev);
+
+      if (result == Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
+	{
+	  if (arg_update)
+	    {
+	      g_message(_("updating the mail status"));
+	      GNOME_MNAutomation_update(automation, &ev);
+	    }
+	  if (arg_report)
+	    {
+	      CORBA_char *report;
+
+	      GNOME_MNAutomation_report(automation, &report, &ev);
+	      g_print("%s", report);
+	      CORBA_free(report);
+	    }
+
+	  if (! (arg_display_properties
+		 || arg_display_about
+		 || arg_update
+		 || arg_report))
+	    g_message(_("Mail Notification is already running"));
+	}
+      
+      bonobo_object_release_unref(automation, &ev);
+      break;
+
+    case Bonobo_ACTIVATION_REG_NOT_LISTED:
+      mn_fatal_error_dialog(_("Bonobo could not locate the GNOME_MailNotification_Automation.server file. Please check your Mail Notification installation."));
+      break;
+
+    case Bonobo_ACTIVATION_REG_ERROR:
+      mn_fatal_error_dialog(_("Bonobo was unable to register the automation server. Please check your Mail Notification installation."));
+      break;
+
+    default:
+      g_return_val_if_reached(1);
+    }
+  CORBA_exception_free(&ev);
+  gdk_notify_startup_complete();
   
-  mn_mailboxes_register();
-  mn_mailboxes_install_timeout();
-  gtk_main();
+  if (result != Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
+    gtk_main();
+
+  GDK_THREADS_LEAVE();
 
   return 0;
 }

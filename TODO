@@ -1,1 +1,1 @@
-- implement pop3s, imap and imaps support
+* add STARTTLS support to the IMAP backend

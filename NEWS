@@ -1,3 +1,23 @@
+0.6.0					16 August 2004
+
+	* Added IMAP support
+	* Added SSL support for POP3 and IMAP (requires OpenSSL)
+	* Added SASL authentication support for POP3 and IMAP
+	  (requires Cyrus SASL 2)
+	* Added APOP authentication support
+	* Gmail support has been fixed
+	* If there is no new mail, the icon is now hidden
+	* Now complies with the HIG 2.0
+	* Now installs a GNOME sound event
+	* The user interface has been improved
+	* The mail icon is now taken from the icon theme
+	* The command line arguments have been modified
+	* The POP3 handler now honours the LOGIN-DELAY capability
+	* Objects are now generated with GOB
+	* Some cleanups have been performed
+	* A few minor bugs have been fixed
+	* Does not depend on GNet anymore
+
 0.5.0					21 July 2004
 
 	* Added Gmail support (requires libsoup)

@@ -1,0 +1,412 @@
+/* 
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include "mn-mailbox.h"
+%}
+%{
+#include "config.h"
+#include <string.h>
+#include <stdlib.h>
+#include <glib/gi18n-lib.h>
+#include <libgnomevfs/gnome-vfs-utils.h>
+#include <libsoup/soup.h>
+#include "mn-mailbox-private.h"
+#include "mn-uri.h"
+#include "mn-util.h"
+#include "mn-stock.h"
+#include "mn-soup.h"
+%}
+
+class MN:Gmail:Mailbox from MN:Mailbox
+{
+  private char *username destroywith g_free;
+  private char *password destroywith g_free;
+  private GHashTable *cookies destroywith g_hash_table_destroy;
+  private gboolean logged_in;
+
+  class_init (class)
+  {
+    MN_MAILBOX_CLASS(class)->stock_id = MN_STOCK_GMAIL;
+    MN_MAILBOX_CLASS(class)->format = "Gmail";
+  }
+
+  override (G:Object) GObject *
+    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    MNMailbox *mailbox;
+    Self *self;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    mailbox = MN_MAILBOX(object);
+    self = SELF(object);
+    
+    mn_soup_use();
+
+    if (! mn_uri_parse_gmail(mn_mailbox_get_uri(mailbox),
+			     &selfp->username,
+			     &selfp->password))
+      mn_mailbox_set_init_error(mailbox, _("unable to parse Gmail URI"));
+    
+    return object;
+  }
+
+  override (G:Object) void
+    finalize (GObject *object)
+  {
+    mn_soup_unuse();
+    PARENT_HANDLER(object);
+  }
+
+  override (MN:Mailbox) gboolean
+    impl_is (MNMailbox *dummy, const char *uri (check null))
+  {
+    char *scheme;
+    gboolean is;
+    
+    scheme = gnome_vfs_get_uri_scheme(uri);
+    is = scheme && ! strcmp(scheme, "gmail");
+    g_free(scheme);
+    
+    return is;
+  }
+
+  override (MN:Mailbox) void
+    impl_check (MN:Mailbox *mailbox (check null type))
+  {
+    Self *self = SELF(mailbox);
+
+    if (selfp->logged_in)
+      self_check_internal(self);
+    else
+      self_login(self);
+  }
+  
+  private void
+    get (self,
+	 const char *uri (check null),
+	 SoupCallbackFn callback (check null))
+  {
+    SoupContext *context;
+    SoupMessage *message;
+    char *cookie;
+
+    context = soup_context_get(uri);
+    message = soup_message_new(context, SOUP_METHOD_GET);
+    soup_context_unref(context);
+
+    soup_message_add_header(message->request_headers, "User-Agent", "Mail Notification");
+    cookie = self_build_cookie(self);
+    if (cookie)
+      {
+	soup_message_add_header(message->request_headers, "Cookie", cookie);
+	g_free(cookie);
+      }
+    
+    soup_message_queue(message, callback, self);
+    /* message will be freed by libsoup after invoking the callback */
+  }
+  
+  /**
+   * get_token:
+   * @str: the string to search
+   * @pre: the start of the token
+   * @post: the end of the token
+   * @include_pre: whether to include @pre in the result or not
+   * @include_post: whether to include @post in the result or not
+   *
+   * Gets the first token of @str included between @pre and @post.
+   *
+   * Return value: a newly allocated string containing the token or
+   *               NULL if not found.
+   */
+  private char *
+    get_token (const char *str (check null),
+	       const char *pre (check null),
+	       const char *post (check null),
+	       gboolean include_pre,
+	       gboolean include_post)
+  {
+    char *token = NULL;
+    char *pre_loc;
+    
+    pre_loc = strstr(str, pre);
+    if (pre_loc)
+      {
+	char *after_pre_loc;
+	char *post_loc;
+	
+	after_pre_loc = pre_loc + strlen(pre);
+	post_loc = strstr(after_pre_loc, post);
+	if (post_loc)
+	  {
+	    char *start = include_pre ? pre_loc : after_pre_loc;
+	    char *end = include_post ? post_loc + strlen(post) : post_loc;
+	    
+	    token = g_strndup(start, end - start);
+	  }
+      }
+    
+    return token;
+  }
+
+  private void
+    login (self)
+  {
+    char *uri;
+
+    g_return_if_fail(selfp->logged_in == FALSE);
+
+    if (selfp->cookies)
+      g_hash_table_destroy(selfp->cookies);
+    selfp->cookies = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+	
+    mn_mailbox_notice(MN_MAILBOX(self), _("logging in"));
+
+    uri = g_strdup_printf("https://www.google.com/accounts/ServiceLoginBoxAuth?service=mail&continue=http://gmail.google.com/gmail&Email=%s&Passwd=%s", selfp->username, selfp->password);
+    self_get(self, uri, self_login_cb1);
+    g_free(uri);
+  }
+  
+  private void
+    login_cb1 (SoupMessage *message (check null),
+	       gpointer user_data (check null))
+  {
+    Self *self = user_data;
+
+    if (SOUP_MESSAGE_IS_ERROR(message))
+      mn_mailbox_set_error(MN_MAILBOX(self), _("unable to transfer data: %s"), message->errorphrase);
+    else
+      {
+	char *body;
+	char *next_location;
+
+	self_update_cookies(self, message);
+
+	body = g_strndup(message->response.body, message->response.length);
+	next_location = self_get_token(body, "top.location = \"", "\"", FALSE, FALSE);
+	g_free(body);
+
+	if (next_location)
+	  {
+	    char *uri;
+
+	    uri = g_strdup_printf("https://www.google.com/accounts/%s", next_location);
+	    g_free(next_location);
+
+	    self_get(self, uri, self_login_cb2);
+	    g_free(uri);
+
+	    return;
+	  }
+
+	mn_mailbox_set_error(MN_MAILBOX(self), _("login failed"));
+      }
+    
+    /* if this point is reached, an error occurred */
+    mn_mailbox_end_check(MN_MAILBOX(self));
+  }
+  
+  private void
+    login_cb2 (SoupMessage *message (check null),
+	       gpointer user_data (check null))
+  {
+    Self *self = user_data;
+
+    if (SOUP_MESSAGE_IS_ERROR(message))
+      mn_mailbox_set_error(MN_MAILBOX(self), _("unable to transfer data: %s"), message->errorphrase);
+    else
+      {
+	char *body;
+	char *next_location;
+
+	self_update_cookies(self, message);
+	
+	body = g_strndup(message->response.body, message->response.length);
+	next_location = self_get_token(body, "location.replace(\"", "\")", FALSE, FALSE);
+	g_free(body);
+
+	if (next_location)
+	  {
+	    self_get(self, next_location, self_login_cb3);
+	    g_free(next_location);
+	    return;
+	  }
+
+	mn_mailbox_set_error(MN_MAILBOX(self), _("login failed"));
+      }
+
+    /* if this point is reached, an error occurred */
+    mn_mailbox_end_check(MN_MAILBOX(self));
+  }
+  
+  private void
+    login_cb3 (SoupMessage *message (check null),
+	       gpointer user_data (check null))
+  {
+    Self *self = user_data;
+
+    if (SOUP_MESSAGE_IS_ERROR(message))
+      mn_mailbox_set_error(MN_MAILBOX(self), _("unable to transfer data: %s"), message->errorphrase);
+    else
+      {
+	char *body;
+	char *token;
+
+	self_update_cookies(self, message);
+
+	body = g_strndup(message->response.body, message->response.length);
+	token = strstr(body, "frame name=js src=/gmail");
+	
+	if (token)
+	  {
+	    selfp->logged_in = TRUE;
+	    mn_mailbox_notice(MN_MAILBOX(self), _("successfully logged in"));
+	    self_check_internal(self);
+	    
+	    return;
+	  }
+
+	mn_mailbox_set_error(MN_MAILBOX(self), _("login failed"));
+      }
+
+    /* if this point is reached, an error occurred */
+    mn_mailbox_end_check(MN_MAILBOX(self));
+  }
+
+  private void
+    update_cookies (self, SoupMessage *message (check null))
+  {
+    const GSList *set_cookie_headers;
+    const GSList *l;
+    
+    set_cookie_headers = soup_message_get_header_list(message->response_headers, "Set-Cookie");
+    MN_LIST_FOREACH(l, set_cookie_headers)
+      {
+	const char *value = l->data;
+	char *equal;
+
+	equal = strchr(value, '=');
+	if (equal)
+	  {
+	    char *end;
+	    char *cookie_name;
+	    char *cookie_value;
+
+	    end = strchr(equal, ';');
+
+	    cookie_name = g_strndup(value, equal - value);
+	    cookie_value = end
+	      ? g_strndup(equal + 1, end - equal - 1)
+	      : g_strdup(equal + 1);
+
+	    g_hash_table_insert(selfp->cookies, cookie_name, cookie_value);
+	  }
+      }
+  }
+
+  private char *
+    build_cookie (self)
+  {
+    GString *cookie;
+    char *str;
+
+    cookie = g_string_new(NULL);
+    g_hash_table_foreach(selfp->cookies, self_build_cookie_cb, cookie);
+
+    if (*cookie->str)
+      str = g_string_free(cookie, FALSE);
+    else
+      {
+	str = NULL;
+	g_string_free(cookie, TRUE);
+      }
+
+    return str;
+  }
+
+  private void
+    build_cookie_cb (gpointer key, gpointer value, gpointer user_data)
+  {
+    GString *cookie = user_data;
+
+    if (*cookie->str)
+      g_string_append(cookie, "; ");
+
+    g_string_append_printf(cookie, "%s=%s", (const char *) key, (const char *) value);
+  }
+  
+  private void
+    check_internal (self)
+  {
+    mn_mailbox_notice(MN_MAILBOX(self), _("searching for unread mail"));
+
+    self_get(self, "https://gmail.google.com/gmail?search=adv&as_subset=unread&view=tl&start=0", self_check_internal_cb);
+  }
+
+  private void
+    check_internal_cb (SoupMessage *message (check null),
+		       gpointer user_data)
+  {
+    Self *self = user_data;
+
+    if (SOUP_MESSAGE_IS_ERROR(message))
+      mn_mailbox_set_error(MN_MAILBOX(self), _("unable to transfer data: %s"), message->errorphrase);
+    else
+      {
+	int count;
+	
+	count = self_get_unread_count(message);
+	if (count == -1)
+	  mn_mailbox_set_error(MN_MAILBOX(self), _("unable to parse Gmail data"));
+	else
+	  mn_mailbox_set_has_new(MN_MAILBOX(self), count != 0);
+    }
+
+    mn_mailbox_end_check(MN_MAILBOX(self));
+  }
+
+  private int
+    get_unread_count (SoupMessage *message (check null))
+  {
+    int count = -1;
+    char *body;
+    char *results;
+  
+    body = g_strndup(message->response.body, message->response.length);
+    
+    results = strstr(body, "Search results for: is:unread\",\"");
+    if (results)
+      {
+	char *count_str;
+	
+	count_str = self_get_token(results + 32, "\",", "]", FALSE, FALSE);
+	if (count_str)
+	  {
+	    if (mn_str_isnumeric(count_str))
+	      count = atoi(count_str);
+	    g_free(count_str);
+	  }
+      }
+  
+    g_free(body);
+    
+    return count;
+  }
+}

@@ -1,0 +1,150 @@
+/* 
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include "mn-pi-mailbox-properties.h"
+%}
+%{
+#include "config.h"
+#include <glib/gi18n-lib.h>
+#include "mn-mailbox-properties.h"
+#include "mn-mailbox-properties-util.h"
+#include "mn-uri.h"
+#include "mn-auth-combo-box.h"
+#include "mn-util.h"
+%}
+
+class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mailbox:Properties)
+{
+  property BOOLEAN complete (override)
+    get
+    {
+      MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
+      gboolean complete;
+      const char *username;
+      const char *password;
+      const char *hostname;
+      
+      mn_pi_mailbox_properties_get_contents(pi,
+					    NULL,
+					    &username,
+					    &password,
+					    NULL,
+					    &hostname,
+					    NULL);
+
+      complete = *username && *password && *hostname;
+#ifndef WITH_SSL
+      if (complete)
+	complete = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[0]));
+#endif /* WITH_SSL */
+
+      g_value_set_boolean(VAL, complete);
+    };
+  
+  class_init (class)
+  {
+    MNPIMailboxPropertiesClass *pi_class = MN_PI_MAILBOX_PROPERTIES_CLASS(class);
+
+    pi_class->label = "POP3";
+    pi_class->default_port[0] = MN_URI_POP3_PORT(FALSE);
+    pi_class->default_port[1] = MN_URI_POP3_PORT(TRUE);
+  }
+  
+  override (G:Object) GObject *
+    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    Self *self;
+    MNPIMailboxProperties *pi;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    self = SELF(object);
+    pi = MN_PI_MAILBOX_PROPERTIES(object);
+
+    mn_auth_combo_box_append(MN_AUTH_COMBO_BOX(pi->auth_combo), "+APOP", "APOP");
+    mn_auth_combo_box_append(MN_AUTH_COMBO_BOX(pi->auth_combo), "+USERPASS", "USER/PASS");
+
+    mn_tooltips_set_tips(pi->tooltips,
+			 pi->hostname_entry, _("The hostname or IP address of the POP3 server"),
+			 pi->username_entry, _("Your username on the POP3 server"),
+			 pi->password_entry, _("Your password on the POP3 server"),
+			 pi->port_spin[0], _("The port number of the POP3 server"),
+			 pi->port_spin[1], _("The port number of the POP3 server"),
+			 NULL);
+
+    return object;
+  }
+  
+  interface MN:Mailbox:Properties private gboolean
+    set_uri (MN:Mailbox:Properties *properties (check null type),
+	     const char *uri (check null))
+  {
+    gboolean ssl;
+    char *username;
+    char *password;
+    char *authmech;
+    char *hostname;
+    int port;
+    
+    if (mn_uri_parse_pop(uri, &ssl, &username, &password, &authmech, &hostname, &port))
+      {
+	mn_pi_mailbox_properties_set_contents(MN_PI_MAILBOX_PROPERTIES(properties),
+					      ssl,
+					      username,
+					      password,
+					      authmech,
+					      hostname,
+					      port);
+					      
+	g_free(username);
+	g_free(password);
+	g_free(authmech);
+	g_free(hostname);
+
+	return TRUE;
+      }
+    else
+      return FALSE;
+  }
+
+  interface MN:Mailbox:Properties private char *
+    get_uri (MN:Mailbox:Properties *properties (check null type))
+  {
+    gboolean ssl;
+    const char *username;
+    const char *password;
+    char *authmech;
+    const char *hostname;
+    int port;
+    char *uri;
+
+    mn_pi_mailbox_properties_get_contents(MN_PI_MAILBOX_PROPERTIES(properties),
+					  &ssl,
+					  &username,
+					  &password,
+					  &authmech,
+					  &hostname,
+					  &port);
+
+    uri = mn_uri_build_pop(ssl, username, password, authmech, hostname, port);
+    g_free(authmech);
+
+    return uri;
+  }
+}

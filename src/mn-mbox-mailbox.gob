@@ -1,0 +1,184 @@
+/* 
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include "mn-mailbox.h"
+%}
+%privateheader{
+#include <time.h>
+%}
+%{
+#include "config.h"
+#include <string.h>
+#include <glib/gi18n-lib.h>
+#include <gdk/gdk.h>
+#include "mn-mailbox-private.h"
+#include "mn-vfs.h"
+%}
+
+class MN:mbox:Mailbox from MN:Mailbox
+{
+  private time_t last_mtime;
+
+  class_init (class)
+  {
+    MN_MAILBOX_CLASS(class)->format = "mbox";
+  }
+
+  override (G:Object) GObject *
+    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    MNMailbox *self;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    self = MN_MAILBOX(object);
+    
+    mn_mailbox_monitor(self,
+		       mn_mailbox_get_uri(self),
+		       GNOME_VFS_MONITOR_FILE,
+		       MN_MAILBOX_MONITOR_EVENT_CHANGED
+		       | MN_MAILBOX_MONITOR_EVENT_DELETED
+		       | MN_MAILBOX_MONITOR_EVENT_CREATED);
+
+    return object;
+  }
+
+  override (MN:Mailbox) gboolean
+    impl_is (MNMailbox *dummy, const char *uri (check null))
+  {
+    GnomeVFSFileInfo *file_info;
+    gboolean is = FALSE;
+    
+    file_info = gnome_vfs_file_info_new();
+    if (gnome_vfs_get_file_info(uri, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS) == GNOME_VFS_OK
+	&& file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_TYPE
+	&& file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_SIZE
+	&& file_info->type == GNOME_VFS_FILE_TYPE_REGULAR)
+      {
+	if (file_info->size == 0) /* can be an empty mbox */
+	  is = TRUE;
+	else
+	  {
+	    GnomeVFSHandle *handle;
+	    
+	    if (gnome_vfs_open(&handle, uri, GNOME_VFS_OPEN_READ) == GNOME_VFS_OK)
+	      {
+		char buf[5];
+		GnomeVFSFileSize bytes_read;
+		
+		if (gnome_vfs_read(handle, buf, sizeof(buf), &bytes_read) == GNOME_VFS_OK
+		    && bytes_read == sizeof(buf)
+		    && ! strncmp(buf, "From ", sizeof(buf)))
+		  is = TRUE;
+		
+		gnome_vfs_close(handle);
+	      }
+	  }
+      }
+    gnome_vfs_file_info_unref(file_info);
+    
+    return is;
+  }
+
+  override (MN:Mailbox) void
+    impl_threaded_check (MN:Mailbox *mailbox (check null type))
+  {
+    Self *self = SELF(mailbox);
+    const char *uri;
+    gboolean check = TRUE;
+    
+    uri = mn_mailbox_get_uri(mailbox);
+    
+    if (! mn_mailbox_get_automatic(mailbox))
+      {
+	GnomeVFSFileInfo *file_info;
+
+	/* we're polling, so check only if the mailbox has changed since our last check */
+
+	file_info = gnome_vfs_file_info_new();
+	if (gnome_vfs_get_file_info(uri, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS) == GNOME_VFS_OK)
+	{
+	  if (file_info->mtime == selfp->last_mtime)
+	    check = FALSE;
+	  else
+	    selfp->last_mtime = file_info->mtime;
+	}
+	gnome_vfs_file_info_unref(file_info);
+      }
+
+    if (check)
+      {
+	GnomeVFSResult result;
+	GnomeVFSHandle *handle;
+
+	result = gnome_vfs_open(&handle, uri, GNOME_VFS_OPEN_READ);
+	if (result == GNOME_VFS_OK)
+	  {
+	    MNVFSReadLineContext *context = NULL;
+	    const char *line;
+	    gboolean in_header = FALSE;
+	    gboolean seen = TRUE;	/* empty mailboxes have no new mail */
+	  
+	    while ((result = mn_vfs_read_line(&context, handle, &line)) == GNOME_VFS_OK)
+	      {
+		if (! *line)
+		  {
+		    if (! seen)
+		      break;
+		    in_header = FALSE;
+		  }
+		else if (! strncmp(line, "From ", 5))
+		  {
+		    in_header = TRUE;
+		    seen = FALSE;
+		  }
+		else if (in_header
+			 && ! strncmp(line, "Status:", 7)
+			 && (strchr(line, 'O') || strchr(line, 'R')))
+		  seen = TRUE;
+	      }
+	    
+	    mn_vfs_read_line_context_free(context);
+	    gnome_vfs_close(handle);
+
+	    GDK_THREADS_ENTER();
+
+	    if (result == GNOME_VFS_OK || result == GNOME_VFS_ERROR_EOF)
+	      mn_mailbox_set_has_new(mailbox, ! seen);
+	    else
+	      mn_mailbox_set_error(mailbox, _("error while reading mailbox: %s"), gnome_vfs_result_to_string(result));
+
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	  }
+	else
+	  {
+	    GDK_THREADS_ENTER();
+	    mn_mailbox_set_error(mailbox, _("unable to open mailbox: %s"), gnome_vfs_result_to_string(result));
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	  }
+      }
+
+    GDK_THREADS_ENTER();
+    mn_mailbox_end_check(mailbox);
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+  }
+}

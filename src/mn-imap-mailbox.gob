@@ -1,0 +1,635 @@
+/* 
+ * mn-imap-mailbox.gob - IMAP 4rev1 support for Mail Notification
+ * Complies with RFC 3501
+ *
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include "mn-mailbox.h"
+%}
+%{
+#include "config.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
+#include <glib/gi18n-lib.h>
+#include <libgnomevfs/gnome-vfs-utils.h>
+#include "mn-mailbox-private.h"
+#include "mn-util.h"
+#include "mn-uri.h"
+#include "mn-client-session.h"
+
+#define HAS_CURRENT_TAG(response, priv)	(! strcmp((response)->tag, (priv)->tag))
+#define IS(response, token)		(! strcmp((response)->response, (token)))
+#define IS_OK(response)			IS(response, "OK")
+#define IS_NO(response)			IS(response, "NO")
+#define IS_BAD(response)		IS(response, "BAD")
+#define IS_BYE(response)		IS(response, "BYE")
+
+  enum
+  {
+    STATE_GREETING = MN_CLIENT_SESSION_INITIAL_STATE,
+    STATE_CAPABILITY,
+#ifdef WITH_SASL
+    STATE_AUTHENTICATE,
+#endif
+    STATE_LOGIN,
+    STATE_STATUS,
+    STATE_LOGOUT
+  };
+  
+  enum
+  {
+    RESULT_ERROR_LOGOUT		= -1, /* server reported an error, logout normally */
+    RESULT_ERROR_END		= -2, /* server reported an error, close the connection */
+    RESULT_DEFAULT_HANDLER	= -3  /* invoke the default response handler */
+  };
+
+  struct _MNClientSessionPrivate
+  {
+    MNIMAPMailbox	*mailbox;
+    MNClientSession	*session;
+    int			numeric_tag;
+    char		*tag;
+    char		**capabilities;
+    GSList		*auth_mechanisms;
+    gboolean		status_received;
+#ifdef WITH_SASL
+    const char		*sasl_mechanism;
+#endif
+  };
+
+  struct _MNClientSessionResponse
+  {
+    char		*continuation;
+    char		*tag;
+    char		*response;
+    char		*code;
+    char		*arguments;
+  };
+%}
+
+class MN:IMAP:Mailbox from MN:Mailbox
+{
+  private char *hostname destroywith g_free;
+  private int port;
+  private char *username destroywith g_free;
+  private char *password destroywith g_free;
+  private char *authmech destroywith g_free;
+  private char *mailbox destroywith g_free;
+  private gboolean ssl;
+
+  class_init (class)
+  {
+    MN_MAILBOX_CLASS(class)->format = "IMAP";
+  }
+
+  override (G:Object) GObject *
+    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    MNMailbox *mailbox;
+    Self *self;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    mailbox = MN_MAILBOX(object);
+    self = SELF(object);
+
+    if (mn_uri_parse_imap(mn_mailbox_get_uri(mailbox),
+			  &selfp->ssl,
+			  &selfp->username,
+			  &selfp->password,
+			  &selfp->authmech,
+			  &selfp->hostname,
+			  &selfp->port,
+			  &selfp->mailbox))
+      {
+#ifndef WITH_SSL
+	if (selfp->ssl)
+	  mn_mailbox_set_init_error(mailbox, _("SSL support has not been compiled in"));
+#endif /* WITH_SSL */
+      }
+    else
+      mn_mailbox_set_init_error(mailbox, _("unable to parse IMAP URI"));
+
+    return object;
+  }
+
+  override (MN:Mailbox) gboolean
+    impl_is (MNMailbox *dummy, const char *uri (check null))
+  {
+    char *scheme;
+    gboolean is;
+
+    scheme = gnome_vfs_get_uri_scheme(uri);
+    is = scheme && (! strcmp(scheme, "imap") || ! strcmp(scheme, "imaps"));
+    g_free(scheme);
+
+    return is;
+  }
+
+  private int
+    handle_greeting_cb (MNClientSession *session (check null),
+			MNClientSessionResponse *response (check null),
+			MNClientSessionPrivate *priv (check null))
+  {
+    priv->session = session;
+
+    if (! response->tag && IS_OK(response))
+      {
+	if (response->code)
+	  {
+	    if (! strcmp(response->code, "CAPABILITY"))
+	      self_session_parse_capabilities(priv, NULL);
+	    else if (! strncmp(response->code, "CAPABILITY ", 11))
+	      self_session_parse_capabilities(priv, response->code + 11);
+	  }
+	
+	return priv->capabilities
+	  ? self_session_authenticate(priv)
+	  : STATE_CAPABILITY;
+      }
+    else if (! response->tag && IS(response, "PREAUTH"))
+      return STATE_STATUS;
+    else if (! response->tag && IS_BYE(response))
+      return RESULT_ERROR_END;
+    else
+      return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+  }
+
+  private int
+    enter_capability_cb (MNClientSession *session (check null),
+			 MNClientSessionPrivate *priv (check null))
+  {
+    return self_session_write(priv, "CAPABILITY");
+  }
+
+  private int
+    handle_capability_cb (MNClientSession *session (check null),
+			  MNClientSessionResponse *response (check null),
+			  MNClientSessionPrivate *priv (check null))
+  {
+    if (response->tag)
+      {
+	if (HAS_CURRENT_TAG(response, priv))
+	  {
+	    if (IS_OK(response))
+	      {
+		return priv->capabilities
+		  ? self_session_authenticate(priv)
+		  : mn_client_session_error(session, _("server did not send capabilities"));
+	      }
+	    else if (IS_BAD(response))
+	      return RESULT_ERROR_LOGOUT;
+	    else
+	      return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+	  }
+      }
+    else if (IS(response, "CAPABILITY"))
+      {
+	self_session_parse_capabilities(priv, response->arguments);
+	return MN_CLIENT_SESSION_RESULT_CONTINUE;
+      }
+    
+    return RESULT_DEFAULT_HANDLER;
+  }
+  
+  private int
+    enter_authenticate_cb (MNClientSession *session (check null),
+			   MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_SASL
+    if (mn_client_session_sasl_authentication_start(priv->session,
+						    "imap",
+						    priv->auth_mechanisms,
+						    priv->mailbox->_priv->authmech,
+						    &priv->sasl_mechanism))
+      return self_session_write(priv, "AUTHENTICATE %s", priv->sasl_mechanism);
+    else
+      return self_session_authenticate_fallback(priv);
+#else
+    g_return_val_if_reached(0);
+#endif /* WITH_SASL */
+  }
+  
+  private int
+    handle_authenticate_cb (MNClientSession *session (check null),
+			    MNClientSessionResponse *response (check null),
+			    MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_SASL
+    if (response->tag)
+      {
+	if (HAS_CURRENT_TAG(response, priv))
+	  {
+	    if (IS_OK(response))
+	      {
+		return mn_client_session_sasl_authentication_done(session)
+		  ? STATE_STATUS
+		  : MN_CLIENT_SESSION_RESULT_END;
+	      }
+	    else if (IS_NO(response) || IS_BAD(response))
+	      return self_session_authenticate_fallback(priv);
+	    else
+	      return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+	  }
+      }
+    else if (response->continuation)
+      return mn_client_session_sasl_authentication_step(session, response->continuation);
+    
+    return RESULT_DEFAULT_HANDLER;
+#else
+    g_return_val_if_reached(0);
+#endif /* WITH_SASL */
+  }
+  
+  private int
+    enter_login_cb (MNClientSession *session (check null),
+		    MNClientSessionPrivate *priv (check null))
+  {
+    if (self_session_has_capability(priv, "LOGINDISABLED"))
+    {
+      mn_client_session_notice(session, _("server advertised LOGINDISABLED, not using LOGIN authentication"));
+      mn_client_session_error(session, _("unable to login"));
+      return STATE_LOGOUT;
+    }
+    else
+      return self_session_write(priv, "LOGIN %s %s",
+				priv->mailbox->_priv->username,
+				priv->mailbox->_priv->password);
+  }
+  
+  private int
+    handle_login_cb (MNClientSession *session (check null),
+		     MNClientSessionResponse *response (check null),
+		     MNClientSessionPrivate *priv (check null))
+  {
+    if (response->tag)
+      {
+	if (HAS_CURRENT_TAG(response, priv))
+	  {
+	    if (IS_OK(response))
+	      return STATE_STATUS;
+	    else if (IS_NO(response) || IS_BAD(response))
+	      return RESULT_ERROR_LOGOUT;
+	    else
+	      return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+	  }
+      }
+    
+    return RESULT_DEFAULT_HANDLER;
+  }
+  
+  private int
+    enter_status_cb (MNClientSession *session (check null),
+		     MNClientSessionPrivate *priv (check null))
+  {
+    return self_session_write(priv, "STATUS \"%s\" (UNSEEN)", priv->mailbox->_priv->mailbox);
+  }
+  
+  private int
+    handle_status_cb (MNClientSession *session (check null),
+		      MNClientSessionResponse *response (check null),
+		      MNClientSessionPrivate *priv (check null))
+  {
+    if (response->tag)
+      {
+	if (HAS_CURRENT_TAG(response, priv))
+	  {
+	    if (IS_OK(response))
+	      {
+		if (priv->status_received)
+		  return STATE_LOGOUT;
+		else		/* compliance error */
+		  return mn_client_session_error(session, _("server did not send status"));
+	      }
+	    else if (IS_NO(response) || IS_BAD(response))
+	      return RESULT_ERROR_LOGOUT;
+	    else
+	      return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+	  }
+      }
+    else if (IS(response, "STATUS"))
+      {
+	int count;
+	
+	if (response->arguments && sscanf(response->arguments, "%*s (UNSEEN %i)", &count) == 1)
+	  {
+	    priv->status_received = TRUE;
+	    
+	    GDK_THREADS_ENTER();
+	    mn_mailbox_set_has_new(MN_MAILBOX(priv->mailbox), count != 0);
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	    
+	    return MN_CLIENT_SESSION_RESULT_CONTINUE;
+	  }
+	else
+	  return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+      }
+    
+    return RESULT_DEFAULT_HANDLER;
+  }
+  
+  private int
+    enter_logout_cb (MNClientSession *session (check null),
+		     MNClientSessionPrivate *priv (check null))
+  {
+    return self_session_write(priv, "LOGOUT");
+  }
+
+  private int
+    handle_logout_cb (MNClientSession *session (check null),
+		      MNClientSessionResponse *response (check null),
+		      MNClientSessionPrivate *priv (check null))
+  {
+    if (response->tag && HAS_CURRENT_TAG(response, priv))
+      {
+	if (IS_OK(response))
+	  return MN_CLIENT_SESSION_RESULT_END;
+	else if (IS_BAD(response))
+	  return RESULT_ERROR_END;
+	else
+	  return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+      }
+    else
+      return MN_CLIENT_SESSION_RESULT_CONTINUE;
+  }
+  
+  override (MN:Mailbox) void
+    impl_threaded_check (MN:Mailbox *mailbox (check null type))
+  {
+    Self *self = SELF(mailbox);
+    MNClientSessionState states[] = {
+      { STATE_GREETING,		NULL,				self_handle_greeting_cb },
+      { STATE_CAPABILITY,	self_enter_capability_cb,	self_handle_capability_cb },
+#ifdef WITH_SASL
+      { STATE_AUTHENTICATE,	self_enter_authenticate_cb,	self_handle_authenticate_cb },
+#endif
+      { STATE_LOGIN,		self_enter_login_cb,		self_handle_login_cb },
+      { STATE_STATUS,		self_enter_status_cb,		self_handle_status_cb },
+      { STATE_LOGOUT,		self_enter_logout_cb,		self_handle_logout_cb },
+      
+      MN_CLIENT_SESSION_STATES_END
+    };
+    MNClientSessionCallbacks callbacks = {
+      self_notice_cb,
+      self_response_new_cb,
+      self_response_free_cb,
+      self_custom_handler_cb
+    };
+    MNClientSessionPrivate priv;
+    GError *err = NULL;
+
+    memset(&priv, 0, sizeof(priv));
+    priv.mailbox = self;
+    
+    if (! mn_client_session_run(states,
+				&callbacks,
+#ifdef WITH_SSL
+				selfp->ssl,
+#endif
+				selfp->hostname,
+				selfp->port,
+				selfp->username,
+				selfp->password,
+				&priv,
+				&err))
+      {
+	GDK_THREADS_ENTER();
+	mn_mailbox_set_error(mailbox, "%s", err->message);
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+	g_error_free(err);
+      }
+    
+    GDK_THREADS_ENTER();
+    mn_mailbox_end_check(mailbox);
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+    
+    g_free(priv.tag);
+    g_strfreev(priv.capabilities);
+    mn_pointers_free(priv.auth_mechanisms);
+  }
+  
+  private void
+    notice_cb (MNClientSession *session (check null),
+	       const char *str (check null),
+	       MNClientSessionPrivate *priv (check null))
+  {
+    mn_mailbox_notice(MN_MAILBOX(priv->mailbox), "%s", str);
+  }
+  
+  private MNClientSessionResponse *
+    response_new_cb (MNClientSession *session (check null),
+		     const char *input (check null),
+		     MNClientSessionPrivate *priv (check null))
+  {
+    MNClientSessionResponse *response = NULL;
+
+    if (! strncmp(input, "+ ", 2))
+      {
+	response = g_new0(MNClientSessionResponse, 1);
+	response->continuation = g_strdup(input + 2);
+      }
+    else
+      {
+	char **tokens;
+	
+	tokens = g_strsplit(input, " ", 3);
+	if (tokens[0] && tokens[1])
+	  {
+	    if (tokens[2] && tokens[2][0] == '[')
+	      {
+		char *code_start;
+		char *code_end;
+		
+		code_start = tokens[2] + 1;
+		code_end = strchr(code_start, ']');
+		if (code_end)
+		  {
+		    response = g_new0(MNClientSessionResponse, 1);
+		    response->code = g_strndup(code_start, code_end - code_start);
+		    response->arguments = code_end[1] ? g_strdup(code_end + 2) : NULL;
+		  }
+	      }
+	    else
+	      {
+		response = g_new0(MNClientSessionResponse, 1);
+		response->arguments = g_strdup(tokens[2]);
+	      }
+	    
+	    if (response)
+	      {
+		response->tag = ! strcmp(tokens[0], "*") ? NULL : g_strdup(tokens[0]);
+		response->response = g_strdup(tokens[1]);
+	      }
+	  }
+	g_strfreev(tokens);
+      }
+    
+    return response;
+  }
+
+  private void
+    response_free_cb (MNClientSession *session (check null),
+		      MNClientSessionResponse *response (check null),
+		      MNClientSessionPrivate *priv (check null))
+  {
+    g_free(response->tag);
+    g_free(response->continuation);
+    g_free(response->response);
+    g_free(response->code);
+    g_free(response->arguments);
+    g_free(response);
+  }
+  
+  private int
+    custom_handler_cb (MNClientSession *session (check null),
+		       MNClientSessionResponse *response (check null),
+		       int result,
+		       MNClientSessionPrivate *priv (check null))
+  {
+    switch (result)
+      {
+      case RESULT_ERROR_LOGOUT:
+	self_session_set_error_from_arguments(priv, response);
+	return STATE_LOGOUT;
+
+      case RESULT_ERROR_END:
+	self_session_set_error_from_arguments(priv, response);
+	return MN_CLIENT_SESSION_RESULT_END;
+
+      case RESULT_DEFAULT_HANDLER:
+	if (! response->tag && IS_BYE(response))
+	  return RESULT_ERROR_END;
+	else
+	  return MN_CLIENT_SESSION_RESULT_CONTINUE;
+	
+      default:
+	g_return_val_if_reached(0);
+      }
+  }
+
+  private void
+    session_set_error_from_arguments (MNClientSessionPrivate *priv (check null),
+				      MNClientSessionResponse *response (check null))
+  {
+    if (response->arguments)
+      mn_client_session_error(priv->session, "\"%s\"", response->arguments);
+    else
+      mn_client_session_error(priv->session, _("unknown server error"));
+  }
+
+  private int
+    session_write (MNClientSessionPrivate *priv (check null),
+		   const char *format (check null),
+		   ...)
+  {
+    va_list args;
+    char *command;
+
+    va_start(args, format);
+    command = g_strdup_vprintf(format, args);
+    va_end(args);
+    
+    if (priv->numeric_tag == 1000)
+      priv->numeric_tag = 0;
+    g_free(priv->tag);
+    priv->tag = g_strdup_printf("a%03i", priv->numeric_tag++);
+
+    return mn_client_session_write(priv->session, "%s %s", priv->tag, command);
+  }
+
+  private void
+    session_parse_capabilities (MNClientSessionPrivate *priv (check null),
+				const char *capabilities)
+  {
+    if (capabilities)
+      {
+	int i;
+	
+	priv->capabilities = g_strsplit(capabilities, " ", 0);
+	
+	for (i = 0; priv->capabilities[i]; i++)
+	  if (! strncmp(priv->capabilities[i], "AUTH=", 5))
+	    priv->auth_mechanisms = g_slist_append(priv->auth_mechanisms, g_strdup(priv->capabilities[i] + 5));
+      }
+    else
+      priv->capabilities = g_new0(char *, 1);
+  }
+
+  private gboolean
+    session_has_capability (MNClientSessionPrivate *priv (check null),
+			    const char *capability (check null))
+  {
+    int i;
+
+    g_return_val_if_fail(priv->capabilities != NULL, FALSE);
+
+    for (i = 0; priv->capabilities[i]; i++)
+      if (! strcmp(priv->capabilities[i], capability))
+	return TRUE;
+    
+    return FALSE;
+  }
+  
+  private int
+    session_authenticate (MNClientSessionPrivate *priv (check null))
+  {
+    if (priv->mailbox->_priv->authmech)
+      {
+	if (*priv->mailbox->_priv->authmech != '+')
+	  {
+#ifdef WITH_SASL
+	    return STATE_AUTHENTICATE;
+#else
+	    return mn_client_session_error(priv->session, _("a SASL authentication mechanism was selected but SASL support has not been compiled in"));
+#endif /* WITH_SASL */
+	  }
+	else
+	  {
+	    if (! strcmp(priv->mailbox->_priv->authmech, "+LOGIN"))
+	      return STATE_LOGIN;
+	    else
+	      return mn_client_session_error(priv->session, _("unknown authentication mechanism \"%s\""), priv->mailbox->_priv->authmech);
+	  }
+      }
+    else
+      {
+#ifdef WITH_SASL
+	if (priv->auth_mechanisms)
+	  return STATE_AUTHENTICATE;
+#endif /* WITH_SASL */
+	return STATE_LOGIN;
+      }
+  }
+
+  private int
+    session_authenticate_fallback (MNClientSessionPrivate *priv (check null))
+  {
+    if (! priv->mailbox->_priv->authmech)
+      {
+	mn_client_session_notice(priv->session, _("falling back to IMAP LOGIN authentication"));
+	return STATE_LOGIN;
+      }
+
+    return mn_client_session_error(priv->session, _("authentication failed"));
+  }
+}

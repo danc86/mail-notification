@@ -6,9 +6,6 @@
 /* Define to the gettext package name */
 #undef GETTEXT_PACKAGE
 
-/* log domain */
-#undef G_LOG_DOMAIN
-
 /* Define to 1 if you have the `atoi' function. */
 #undef HAVE_ATOI
 
@@ -24,6 +21,24 @@
 /* Define to 1 if you have the `exit' function. */
 #undef HAVE_EXIT
 
+/* Define to 1 if you have the `freeaddrinfo' function. */
+#undef HAVE_FREEADDRINFO
+
+/* Define to 1 if you have the `gai_strerror' function. */
+#undef HAVE_GAI_STRERROR
+
+/* Define to 1 if you have the `getaddrinfo' function. */
+#undef HAVE_GETADDRINFO
+
+/* Define to 1 if you have the `getnameinfo' function. */
+#undef HAVE_GETNAMEINFO
+
+/* Define to 1 if you have the `getpeername' function. */
+#undef HAVE_GETPEERNAME
+
+/* Define to 1 if you have the `getsockname' function. */
+#undef HAVE_GETSOCKNAME
+
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #undef HAVE_GETTEXT
 
@@ -36,8 +51,29 @@
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
 
+/* Define to 1 if you have the `memcpy' function. */
+#undef HAVE_MEMCPY
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `memset' function. */
+#undef HAVE_MEMSET
+
+/* Define to 1 if you have the `read' function. */
+#undef HAVE_READ
+
+/* Define to 1 if you have the `signal' function. */
+#undef HAVE_SIGNAL
+
+/* Define to 1 if you have the <signal.h> header file. */
+#undef HAVE_SIGNAL_H
+
+/* Define to 1 if you have the `sleep' function. */
+#undef HAVE_SLEEP
+
+/* Define to 1 if you have the `socket' function. */
+#undef HAVE_SOCKET
 
 /* Define to 1 if you have the `sscanf' function. */
 #undef HAVE_SSCANF
@@ -72,6 +108,9 @@
 /* Define to 1 if you have the `strncmp' function. */
 #undef HAVE_STRNCMP
 
+/* Define to 1 if you have the `strstr' function. */
+#undef HAVE_STRSTR
+
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
 
@@ -80,6 +119,9 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `write' function. */
+#undef HAVE_WRITE
 
 /* Name of package */
 #undef PACKAGE
@@ -108,6 +150,12 @@
 /* Define to 1 if Gmail support is enabled */
 #undef WITH_GMAIL
 
+/* Define to 1 if IMAP support is enabled */
+#undef WITH_IMAP
+
+/* Define to 1 if IPv6 support is enabled */
+#undef WITH_IPV6
+
 /* Define to 1 if Maildir support is enabled */
 #undef WITH_MAILDIR
 
@@ -119,6 +167,12 @@
 
 /* Define to 1 if POP3 support is enabled */
 #undef WITH_POP3
+
+/* Define to 1 if SASL support is enabled */
+#undef WITH_SASL
+
+/* Define to 1 if SSL support is enabled */
+#undef WITH_SSL
 
 /* Define to 1 if Sylpheed support is enabled */
 #undef WITH_SYLPHEED

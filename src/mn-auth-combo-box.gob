@@ -1,0 +1,144 @@
+/* 
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include <gtk/gtk.h>
+%}
+%{
+#include "config.h"
+#include <glib/gi18n-lib.h>
+#ifdef WITH_SASL
+#include <sasl/sasl.h>
+#include "mn-sasl.h"
+#endif /* WITH_SASL */
+
+  enum 
+  {
+    COLUMN_MECHANISM,
+    COLUMN_LABEL,
+    N_COLUMNS
+  };
+%}
+
+class MN:Auth:Combo:Box from Gtk:Combo:Box
+{
+  property STRING active_mechanism (export)
+    set
+    {
+      const char *mechanism = g_value_get_string(VAL);
+      GtkTreeModel *model;
+      GtkTreeIter iter;
+      gboolean valid;
+
+      model = gtk_combo_box_get_model(GTK_COMBO_BOX(self));
+      valid = gtk_tree_model_get_iter_first(model, &iter);
+    
+      while (valid)
+	{
+	  char *this_mech;
+	  gboolean found;
+	  
+	  gtk_tree_model_get(model, &iter, COLUMN_MECHANISM, &this_mech, -1);
+	  found = (! this_mech && ! mechanism)
+	    || (this_mech && mechanism && ! strcmp(this_mech, mechanism));
+	  g_free(this_mech);
+	  
+	  if (found)
+	    {
+	      gtk_combo_box_set_active_iter(GTK_COMBO_BOX(self), &iter);
+	      break;
+	    }
+	  
+	  valid = gtk_tree_model_iter_next(model, &iter);
+	}
+    }
+    get
+    {
+      char *mechanism = NULL;
+      GtkTreeModel *model;
+      GtkTreeIter iter;
+
+      model = gtk_combo_box_get_model(GTK_COMBO_BOX(self));
+      if (gtk_combo_box_get_active_iter(GTK_COMBO_BOX(self), &iter))
+	gtk_tree_model_get(model, &iter, COLUMN_MECHANISM, &mechanism, -1);
+
+      g_value_set_string(VAL, mechanism);
+      g_free(mechanism);
+    };
+  
+  init (self)
+  {
+    GtkListStore *store;
+    GtkCellRenderer *renderer;
+
+    store = gtk_list_store_new(N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING);
+    gtk_combo_box_set_model(GTK_COMBO_BOX(self), GTK_TREE_MODEL(store));
+    g_object_unref(store);
+
+    renderer = gtk_cell_renderer_text_new();
+    gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(self), renderer, TRUE);
+    gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(self), renderer,
+				   "markup", COLUMN_LABEL,
+				   NULL);
+    
+    self_append(self, NULL, _("<span style=\"italic\">autodetect</span>"));
+#ifdef WITH_SASL
+    if (mn_sasl_use(NULL))
+      {
+        const char **mechanisms;
+
+	mechanisms = sasl_global_listmech();
+	if (mechanisms)
+	  {
+	    int i;
+
+	    for (i = 0; mechanisms[i]; i++)
+	      {
+		char *escaped = g_markup_escape_text(mechanisms[i], -1);
+		self_append(self, mechanisms[i], escaped);
+		g_free(escaped);
+	      }
+	  }
+	mn_sasl_unuse();
+      }
+#endif /* WITH_SASL */
+
+    self_set_active_mechanism(self, NULL);
+  }
+
+  public void
+    append (self, const char *mechanism, const char *label (check null))
+  {
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+
+    model = gtk_combo_box_get_model(GTK_COMBO_BOX(self));
+    
+    gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+    gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+		       COLUMN_MECHANISM, mechanism,
+		       COLUMN_LABEL, label,
+		       -1);
+  }
+
+  public GtkWidget *
+    new (void)
+  {
+    return GTK_WIDGET(GET_NEW);
+  }
+}

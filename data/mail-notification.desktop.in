@@ -4,6 +4,6 @@ _Name=Mail Notification
 Icon=mail-notification.png
 _Comment=Get notified when new mail arrives
 Type=Application
-Categories=GTK;Application;Network;
+Categories=GNOME;Application;Network;
 Exec=mail-notification
 Terminal=false

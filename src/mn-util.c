@@ -25,6 +25,7 @@
 #include "mn-conf.h"
 #include "mn-mailboxes.h"
 #include "mn-dialog.h"
+#include "mn-shell.h"
 
 /*** types *******************************************************************/
 
@@ -50,6 +51,8 @@ static void mn_drag_data_received_h (GtkWidget *widget,
 				     unsigned int time,
 				     gpointer user_data);
 
+static GtkWidget *mn_menu_item_new (const char *stock_id, const char *mnemonic);
+
 /*** implementation **********************************************************/
 
 void
@@ -68,7 +71,7 @@ mn_info (const char *format, ...)
  * Free a singly linked list of heap pointers.
  */
 void
-mn_slist_free (GSList *list)
+mn_pointers_free (GSList *list)
 {
   GSList *l;
 
@@ -264,7 +267,7 @@ mn_drag_data_received_h (GtkWidget *widget,
 	g_free(str);
 	
 	for (i = 0; uriv[i]; i++)
-	  if (*uriv[i] && *uriv[i] != '#' && ! mn_mailboxes_find(uriv[i]))
+	  if (*uriv[i] && *uriv[i] != '#' && ! mn_mailboxes_find(mn_shell->mailboxes, uriv[i]))
 	    new_mailboxes = g_slist_append(new_mailboxes, g_strdup(uriv[i]));
 
 	g_strfreev(uriv);
@@ -276,7 +279,7 @@ mn_drag_data_received_h (GtkWidget *widget,
 	    gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
 	    gconf_mailboxes = g_slist_concat(gconf_mailboxes, new_mailboxes);
 	    eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
-	    mn_slist_free(gconf_mailboxes);
+	    mn_pointers_free(gconf_mailboxes);
 	  }
       }
       break;
@@ -302,14 +305,14 @@ mn_drag_data_received_h (GtkWidget *widget,
 	for (i = 0; i < char_len && char_data[i] != '\n'; i++)
 	  g_string_append_unichar(url, char_data[i]);
 
-	if (! mn_mailboxes_find(url->str))
+	if (! mn_mailboxes_find(mn_shell->mailboxes, url->str))
 	  {
 	    GSList *gconf_mailboxes;
 		  
 	    gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
 	    gconf_mailboxes = g_slist_append(gconf_mailboxes, g_strdup(url->str));
 	    eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
-	    mn_slist_free(gconf_mailboxes);
+	    mn_pointers_free(gconf_mailboxes);
 	  }
 	
 	g_string_free(url, TRUE);
@@ -383,7 +386,136 @@ mn_display_help (const char *link_id)
 
   if (! gnome_help_display("mail-notification.xml", link_id, &err))
     {
-      mn_error_dialog(NULL, _("Unable to display help."), "%s", err->message);
+      mn_error_dialog(NULL, _("Unable to display help"), "%s", err->message);
       g_error_free(err);
     }
+}
+
+void
+mn_thread_create (GThreadFunc func, gpointer data)
+{
+  GError *err = NULL;
+
+  g_return_if_fail(func != NULL);
+  
+  if (! g_thread_create(func, data, FALSE, &err))
+    {
+      mn_fatal_error_dialog(_("Unable to create a thread: %s."), err->message);
+      g_error_free(err);
+    }
+}
+
+GtkTooltips *
+mn_tooltips_new (void)
+{
+  GtkTooltips *tooltips;
+
+  tooltips = gtk_tooltips_new();
+  g_object_ref(tooltips);
+  gtk_object_sink(GTK_OBJECT(tooltips));
+
+  return tooltips;
+}
+
+void
+mn_tooltips_set_tips (GtkTooltips *tooltips, ...)
+{
+  va_list args;
+  GtkWidget *widget;
+
+  g_return_if_fail(GTK_IS_TOOLTIPS(tooltips));
+  
+  va_start(args, tooltips);
+  while ((widget = va_arg(args, GtkWidget *)))
+    {
+      const char *tip;
+
+      g_return_if_fail(GTK_IS_WIDGET(widget));
+
+      tip = va_arg(args, const char *);
+      g_return_if_fail(tip != NULL);
+
+      mn_tooltips_set_tip(tooltips, widget, tip);
+    }
+  va_end(args);
+}
+
+/**
+ * mn_menu_shell_append:
+ * @shell: the #GtkMenuShell to append to
+ * @stock_id: the stock ID of the item, or NULL
+ * @mnemonic: the mnemonic of the item, or NULL
+ *
+ * Creates a new menu item, shows it and appends it to @shell.
+ *
+ * If both @stock_id and @mnemonic are provided, a #GtkImageMenuItem
+ * will be created using the text of @mnemonic and the icon of
+ * @stock_id.
+ *
+ * If only @stock_id is provided, a #GtkImageMenuitem will be created
+ * using the text and icon of @stock_id.
+ *
+ * If only @mnemonic is provided, a #GtkMenuItem will be created using
+ * the text of @mnemonic.
+ *
+ * If @stock_id and @mnemonic are both NULL, a #GtkSeparatorMenuItem
+ * will be created.
+ *
+ * Return value: the new menu item
+ */
+GtkWidget *
+mn_menu_shell_append (GtkMenuShell *shell,
+		      const char *stock_id,
+		      const char *mnemonic)
+{
+  GtkWidget *item;
+
+  g_return_val_if_fail(GTK_IS_MENU_SHELL(shell), NULL);
+
+  item = mn_menu_item_new(stock_id, mnemonic);
+  gtk_menu_shell_append(shell, item);
+  gtk_widget_show(item);
+  
+  return item;
+}
+
+GtkWidget *
+mn_menu_shell_prepend (GtkMenuShell *shell,
+		       const char *stock_id,
+		       const char *mnemonic)
+{
+  GtkWidget *item;
+
+  g_return_val_if_fail(GTK_IS_MENU_SHELL(shell), NULL);
+
+  item = mn_menu_item_new(stock_id, mnemonic);
+  gtk_menu_shell_prepend(shell, item);
+  gtk_widget_show(item);
+  
+  return item;
+}
+
+static GtkWidget *
+mn_menu_item_new (const char *stock_id, const char *mnemonic)
+{
+  GtkWidget *item;
+
+  if (stock_id && mnemonic)
+    {
+      GtkWidget *image;
+
+      item = gtk_image_menu_item_new_with_mnemonic(mnemonic);
+      
+      image = gtk_image_new_from_stock(stock_id, GTK_ICON_SIZE_MENU);
+      gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), image);
+      gtk_widget_show(image);
+    }
+  else if (stock_id)
+    item = gtk_image_menu_item_new_from_stock(stock_id, NULL);
+  else if (mnemonic)
+    item = gtk_menu_item_new_with_mnemonic(mnemonic);
+  else
+    item = gtk_separator_menu_item_new();
+  
+  return item;
 }

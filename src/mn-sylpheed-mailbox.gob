@@ -1,0 +1,120 @@
+/* 
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include "mn-mailbox.h"
+%}
+%{
+#include "config.h"
+#include <glib/gi18n-lib.h>
+#include "mn-mailbox-private.h"
+#include "mn-vfs.h"
+#include "mn-util.h"
+%}
+
+class MN:Sylpheed:Mailbox from MN:Mailbox
+{
+  class_init (class) 
+  {
+    MN_MAILBOX_CLASS(class)->format = "Sylpheed";
+  }
+
+  override (G:Object) GObject *
+    constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    MNMailbox *self;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    self = MN_MAILBOX(object);
+    
+    mn_mailbox_monitor(self,
+		       mn_mailbox_get_uri(self),
+		       GNOME_VFS_MONITOR_DIRECTORY,
+		       MN_MAILBOX_MONITOR_EVENT_CHANGED
+		       | MN_MAILBOX_MONITOR_EVENT_DELETED
+		       | MN_MAILBOX_MONITOR_EVENT_CREATED);
+
+    return object;
+  }
+  
+  override (MN:Mailbox) gboolean
+    impl_is (MNMailbox *dummy, const char *uri (check null))
+  {
+    char *markfile_uri;
+    gboolean is;
+
+    markfile_uri = g_build_path("/", uri, ".sylpheed_mark", NULL);
+    is = mn_vfs_test(markfile_uri, G_FILE_TEST_IS_REGULAR);
+    g_free(markfile_uri);
+
+    return is;
+  }
+
+  override (MN:Mailbox) void
+    impl_threaded_check (MN:Mailbox *self (check null type))
+  {
+    GnomeVFSResult result;
+    GnomeVFSDirectoryHandle *handle;
+    GnomeVFSFileInfo *file_info;
+    int total_count = 0;
+    int mark_count = 0;
+
+    result = gnome_vfs_directory_open(&handle, mn_mailbox_get_uri(self), GNOME_VFS_FILE_INFO_FOLLOW_LINKS);
+    if (result != GNOME_VFS_OK)
+      {
+	GDK_THREADS_ENTER();
+	
+	mn_mailbox_set_error(self, _("unable to open folder: %s"), gnome_vfs_result_to_string(result));
+	mn_mailbox_end_check(self);
+	
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+	
+	return;
+      }
+
+    file_info = gnome_vfs_file_info_new();
+    while ((result = gnome_vfs_directory_read_next(handle, file_info)) == GNOME_VFS_OK)
+      {
+	if (file_info->name[0] != '.')
+	  {
+	    if (mn_str_isnumeric(file_info->name))
+	      total_count++;
+	  }
+	else if (! strcmp(file_info->name, ".sylpheed_mark") && file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_SIZE)
+	  /*
+	   * Format of a Sylpheed markfile:
+	   * int version, int num, int flags, int num, int flags, ...
+	   */
+	  mark_count = (file_info->size - sizeof(int)) / (sizeof(int) * 2);
+      }
+    gnome_vfs_file_info_unref(file_info);
+    
+    GDK_THREADS_ENTER();
+    
+    if (result == GNOME_VFS_ERROR_EOF)
+      mn_mailbox_set_has_new(self, total_count != mark_count);
+    else
+      mn_mailbox_set_error(self, _("error while reading folder: %s"), gnome_vfs_result_to_string(result));
+    mn_mailbox_end_check(self);
+
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+  }
+}

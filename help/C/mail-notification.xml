@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "0.5.0">
-  <!ENTITY manrevision "2.1">
-  <!ENTITY date "Wednesday, July 21, 2004">
+  <!ENTITY appversion "0.6.0">
+  <!ENTITY manrevision "2.2">
+  <!ENTITY date "Monday, August 16, 2004">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -17,12 +17,15 @@
   <!ENTITY mbox "<link linkend=&#34;mbox&#34;>mbox</link>">
   <!ENTITY mh "<link linkend=&#34;mh&#34;>MH</link>">
   <!ENTITY pop3 "<link linkend=&#34;pop3&#34;>POP3</link>">
+  <!ENTITY imap "<link linkend=&#34;imap&#34;>IMAP</link>">
+  <!ENTITY sasl "<link linkend=&#34;sasl&#34;>SASL</link>">
+  <!ENTITY ssl "<link linkend=&#34;pop3&#34;>SSL</link>">
   <!ENTITY sylpheed "<link linkend=&#34;sylpheed&#34;>Sylpheed</link>">
   <!ENTITY gmail "<link linkend=&#34;gmail&#34;>Gmail</link>">
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.13 2004/07/21 16:00:41 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.36 2004/08/16 15:58:56 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (c) 2004 Jean-Yves Lefort -->
@@ -130,6 +133,17 @@
 	</revdescription>
       </revision>
       <revision>
+	<revnumber>Mail Notification Manual V2.1</revnumber>
+	<date>Wednesday, July 21, 2004</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
 	<revnumber>Mail Notification Manual V2.0</revnumber>
 	<date>Tuesday, June 29, 2004</date>
 	<revdescription>
@@ -167,7 +181,7 @@
     </para>
     <para>
       It works with system trays implementing the freedesktop.org
-      <ulink url="http://www.freedesktop.org/Standards/systemtray-spec">System Tray Specification</ulink>, such as the
+      <ulink url="http://www.freedesktop.org/Standards/systemtray-spec" type="http">System Tray Specification</ulink>, such as the
       GNOME Panel Notification Area, the Xfce Notification Area and the KDE System Tray.
     </para>
     <para>
@@ -175,10 +189,13 @@
     </para>
     <itemizedlist>
       <listitem><para>multiple mailbox support</para></listitem>
-      <listitem><para>&mbox;, &mh;, &maildir;, &sylpheed;, &pop3; and &gmail; support</para></listitem>
+      <listitem><para>&mbox;, &mh;, &maildir;, &sylpheed;, &pop3;, &imap; and &gmail; support</para></listitem>
+      <listitem><para>&sasl; authentication support</para></listitem>
+      <listitem><para>APOP authentication support</para></listitem>
+      <listitem><para>&ssl; support</para></listitem>
       <listitem><para>automatic detection of mailbox format</para></listitem>
       <listitem><para><link linkend="automatic-notification">automatic notification</link></para></listitem>
-      <listitem><para><ulink url="http://developer.gnome.org/projects/gup/hig">HIG</ulink> compliance</para></listitem>
+      <listitem><para><ulink url="http://developer.gnome.org/projects/gup/hig" type="http">HIG</ulink> 2.0 compliance</para></listitem>
     </itemizedlist>
   </sect1>
 
@@ -222,12 +239,44 @@
 	    <variablelist>
 	      <varlistentry>
 		<term>--enable-info</term>
-		<listitem><para>Enable informational output</para></listitem>
+		<listitem>
+		  <para>
+		    Enable informational output
+		  </para>
+		  <warning>
+		    <title>Security</title>
+		    <para>
+		      The output of --enable-info may contain
+		      sensitive information such as passwords and
+		      session transcripts.
+		    </para>
+		  </warning>
+		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term>--list-handlers</term>
-		<listitem><para>List compiled-in handlers and exit</para></listitem>
+		<term>--list-features</term>
+		<listitem><para>List compiled-in features and exit</para></listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term>--display-properties</term>
+		<listitem><para>Display the properties dialog</para></listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term>--display-about</term>
+		<listitem><para>Display the about dialog</para></listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term>--update</term>
+		<listitem><para>Update the mail status</para></listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term>--report</term>
+		<listitem><para>Report the mail status</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
@@ -243,118 +292,45 @@
     <sect2 id="when-start">
       <title>When You Start &app;</title>
       <para>
-	When you start <application>&app;</application>, the following
-	icon is displayed in the notification area (&aka; system
-	tray).
+	When you start <application>&app;</application>, it stays in
+	the background and monitors the status of your mailboxes.
       </para>
-
+      <para>
+	When new mail arrives, an icon similar to the following one is
+	displayed in the notification area (&aka; system tray):
+      </para>
       <figure id="no-mail-fig">
-	<title>&app; status icon</title>
+	<title>&app; when there is new mail</title>
 	<screenshot>
 	  <mediaobject> 
 	    <imageobject>
-	      <imagedata fileref="figures/no-mail.png" format="PNG"/>
+	      <imagedata fileref="figures/mail.png" format="PNG"/>
 	    </imageobject>
-	    <!-- EPS versions of the figures are not required at the moment. -->
-            <!-- 
-		    <imageobject>
-      		<imagedata fileref="figures/image.eps" format="EPS"/>
-    		    </imageobject>
-	    -->
 	    <textobject>
 	      <phrase>Shows the &app; status icon.</phrase>
 	    </textobject>
 	  </mediaobject>
 	</screenshot>
       </figure>
+      <para>
+	If an error is detected, the icon blinks.
+      </para>
+      <para>
+	Leaving your mouse over the icon will reveal more details
+	about the status of your mailboxes.
+      </para>
     </sect2>
   </sect1>
 
-  <sect1 id="usage"> 
-    <title>Usage</title>
-    <para>
-      &app; will monitor the state of your mailboxes and update its
-      status icon according to <xref linkend="icons" />.
-    </para>
-    <para>
-      You can add mailboxes from the
-      <link linkend="preferences">Preferences</link>, or by dragging a
-      file or folder into the icon.
-    </para>
-    <table frame="topbot" id="icons">
-      <title>&app; Icons</title>
-      <tgroup cols="2">
-	<thead>
-	  <row rowsep="1">
-	    <entry><para>Icon</para></entry>
-	    <entry><para>Meaning</para></entry>
-	  </row>
-	</thead>
-	<tbody>
-	  <row>
-	    <entry><screenshot>
-		<mediaobject> 
-		  <imageobject>
-		    <imagedata fileref="figures/no-mail.png" format="PNG"/>
-		  </imageobject>
-		  <textobject>
-		    <phrase>Shows the &app; status icon when you have no new mail.</phrase>
-		  </textobject>
-		</mediaobject>
-	      </screenshot></entry>
-	    <entry><para>you have no new mail</para></entry>
-	  </row>
-	  <row>
-	    <entry><screenshot>
-		<mediaobject> 
-		  <imageobject>
-		    <imagedata fileref="figures/no-mail-error.png" format="PNG"/>
-		  </imageobject>
-		  <textobject>
-		    <phrase>Shows the &app; status icon when you have no new mail and there are one or more errors.</phrase>
-		  </textobject>
-		</mediaobject>
-	      </screenshot></entry>
-	    <entry><para>you have no new mail and there are one or more errors</para></entry>
-	  </row>
-	  <row>
-	    <entry><screenshot>
-		<mediaobject> 
-		  <imageobject>
-		    <imagedata fileref="figures/mail.png" format="PNG"/>
-		  </imageobject>
-		  <textobject>
-		    <phrase>Shows the &app; status icon when you have new mail.</phrase>
-		  </textobject>
-		</mediaobject>
-	      </screenshot></entry>
-	    <entry><para>you have new mail</para></entry>
-	  </row>
-	  <row>
-	    <entry><screenshot>
-		<mediaobject> 
-		  <imageobject>
-		    <imagedata fileref="figures/mail-error.png" format="PNG"/>
-		  </imageobject>
-		  <textobject>
-		    <phrase>Shows the &app; status icon when you have new mail and there are one or more errors.</phrase>
-		  </textobject>
-		</mediaobject>
-	      </screenshot></entry>
-	    <entry><para>you have new mail and there are one or more errors</para></entry>
-	  </row>
-	</tbody>
-      </tgroup>
-    </table>
-  </sect1>
-
-  <sect1 id="preferences"> 
-    <title>Preferences</title> 
-    <para>To configure &app;, right-click the status icon and choose
-      <menuchoice> 
-	<guimenuitem>Preferences</guimenuitem> 
+  <sect1 id="properties"> 
+    <title>Properties</title> 
+    <para>To configure &app;, choose
+      <menuchoice>
+	<guimenu>Applications</guimenu>
+	<guisubmenu>Desktop Preferences</guisubmenu>
+	<guimenuitem>Mail Notification</guimenuitem> 
       </menuchoice>. The
-      <guilabel>Preferences</guilabel> dialog contains the following
+      <guilabel>Properties</guilabel> dialog contains the following
       settings:
     </para>
 
@@ -401,10 +377,10 @@
 	</listitem>
       </varlistentry>
       <varlistentry>
-	<term><guilabel>When clicked:</guilabel></term>
+	<term><guilabel>When double-clicked:</guilabel></term>
 	<listitem>
 	  <para>
-	    This is the command to execute when the icon is clicked.
+	    This is the command to execute when the icon is double-clicked.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -421,7 +397,7 @@
 
     <variablelist>
       <varlistentry>
-	<term><guilabel>Type</guilabel></term>
+	<term><guilabel>Mailbox type</guilabel></term>
 	<listitem>
 	  <para>
 	    This is the type of the mailbox. If you select <guilabel>autodetect</guilabel>,
@@ -460,14 +436,15 @@
       </varlistentry>
 
       <varlistentry>
-	<term>When <guilabel>POP3</guilabel> is selected:</term>
+	<term>When <guilabel>POP3</guilabel> or <guilabel>IMAP</guilabel> is selected:</term>
 	<listitem>
 	  <variablelist>
 	    <varlistentry>
 	      <term><guilabel>Hostname</guilabel></term>
 	      <listitem>
 		<para>
-		  This is the hostname or IP address of the &pop3; server.
+		  This is the hostname or IP address of the &pop3; or
+		  &imap; server.
 		  <note>
 		    <para>
 		      Symbolic names aswell as IPv4 and IPv6 addresses
@@ -478,23 +455,10 @@
 	      </listitem>
 	    </varlistentry>
 	    <varlistentry>
-	      <term><guilabel>Port</guilabel></term>
-	      <listitem>
-		<para>
-		  This is the port number of the &pop3; server.
-		  <tip>
-		    <para>
-		      &pop3; servers usually listen on port 110.
-		    </para>
-		  </tip>
-		</para>
-	      </listitem>
-	    </varlistentry>
-	    <varlistentry>
 	      <term><guilabel>Username</guilabel></term>
 	      <listitem>
 		<para>
-		  This is your username on the &pop3; server.
+		  This is your username on the &pop3; or &imap; server.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -502,14 +466,82 @@
 	      <term><guilabel>Password</guilabel></term>
 	      <listitem>
 		<para>
-		  This is your password on the &pop3; server.
+		  This is your password on the &pop3; or &imap; server.
 		</para>
+		<warning>
+		  <title>Security</title>
+		  <para>
+		    To avoid sending your password over the network in
+		    clear text, you must eitheir use a SSL connection
+		    or select a secure authentication mechanism.  See
+		    below for more details.
+		  </para>
+		</warning>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><guilabel>Connection type</guilabel> and <guilabel>Port</guilabel></term>
+	      <listitem>
+		<para>
+		  This is the type of connection to use and the port
+		  number to connect to.
+		</para>
+		<note>
+		  <para>
+		    The security considerations listed below do not
+		    apply if you select <guilabel>SSL</guilabel>.
+		  </para>
+		</note>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><guilabel>Authentication mechanism</guilabel></term>
+	      <listitem>
+		<para>
+		  This is the authentication mechanism to use.
+		  If you select <guilabel>autodetect</guilabel>,
+		  all the authentication mechanisms supported by the &pop3;
+		  or &imap; server will be tried, in descending order of
+		  security. Otherwise, the selected mechanism (and
+		  <emphasis>only</emphasis> the selected mechanism) will
+		  be used.
+		</para>
+		<warning>
+		  <title>Security</title>
+		  <para>
+		    If <guilabel>autodetect</guilabel> is selected and
+		    secure authentication fails, your credentials may
+		    be sent over the network in clear text (unless you
+		    use a &ssl; connection).
+		  </para>
+		  <para>
+		    If this is a concern, select the appropriate
+		    secure authentication mechanism from the drop-down
+		    list.
+		  </para>
+		</warning>
 	      </listitem>
 	    </varlistentry>
 	  </variablelist>
 	</listitem>
       </varlistentry>
       
+      <varlistentry>
+	<term>When <guilabel>IMAP</guilabel> is selected:</term>
+	<listitem>
+	  <variablelist>
+	    <varlistentry>
+	      <term><guilabel>Mailbox</guilabel></term>
+	      <listitem>
+		<para>
+		  This is the &imap; mailbox to use.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	  </variablelist>
+	</listitem>
+      </varlistentry>
+
       <varlistentry>
 	<term>When <guilabel>Gmail</guilabel> is selected:</term>
 	<listitem>
@@ -536,32 +568,127 @@
     </variablelist>
   </sect1>
 
-  <sect1 id="automatic-notification">
-    <title>Automatic Notification</title>
+  <sect1 id="troubleshooting">
+    <title>Troubleshooting</title>
     <para>
-      Automatic notification is the ability to detect changes to a
-      mailbox without needing to poll it periodically. It allows the
-      status icon to be updated within seconds after a mailbox
-      receives new mail.
+      If &app; does not work as expected, remember that you can obtain
+      more details by leaving your mouse over its icon.
     </para>
     <para>
-      For automatic notification to be supported, &gnomevfs; must be compiled
-      with <ulink url="http://oss.sgi.com/projects/fam">FAM</ulink> support,
-      and FAM must be configured properly.
+      Additionally, a very efficient way to identify and solve
+      problems is to run &app; using the --enable-info option and
+      examine the output.
+      <warning>
+	<title>Security</title>
+	<para>
+	  The output of --enable-info may contain sensitive
+	  information such as passwords and session transcripts.
+	</para>
+      </warning>
     </para>
-    <para>
-      Refer to the
-      <citerefentry><refentrytitle>fam</refentrytitle><manvolnum>1</manvolnum></citerefentry>
-      manual page for more details.
-    </para>
-    <note>
+  </sect1>
+  
+  <sect1 id="technical-information">
+    <title>Technical Information</title>
+    
+    <sect2 id="automatic-notification">
+      <title>Automatic Notification</title>
       <para>
-	Automatic notification is only supported for local mailboxes.
-	Mailboxes which do not support it will be checked periodically
-	according to the <link linkend="delay-between-mail-checks">Delay between mail checks</link>
-	setting.
+	Automatic notification is the ability to detect changes to a
+	mailbox without needing to poll it periodically. It allows the
+	status icon to be updated within seconds after a mailbox
+	receives new mail.
       </para>
-    </note>
+      <para>
+	For automatic notification to be supported, &gnomevfs; must be compiled
+	with <ulink url="http://oss.sgi.com/projects/fam" type="http">FAM</ulink> support,
+	and FAM must be configured properly.
+      </para>
+      <para>
+	Refer to the
+	<citerefentry><refentrytitle>fam</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+	manual page for more details.
+      </para>
+      <note>
+	<para>
+	  Automatic notification is only supported for local mailboxes.
+	  Mailboxes which do not support it will be checked periodically
+	  according to the <link linkend="delay-between-mail-checks">Delay between mail checks</link>
+	  setting.
+	</para>
+      </note>
+    </sect2>
+
+    <sect2>
+      <title>POP3 Implementation</title>
+      <para>
+	The &app; &pop3; implementation strictly conforms to
+	<ulink url="http://www.ietf.org/rfc/rfc1939.txt" type="http">RFC 1939</ulink>,
+	<ulink url="http://www.ietf.org/rfc/rfc2449.txt" type="http">RFC 2449</ulink> and
+	<ulink url="http://www.ietf.org/rfc/rfc1734.txt" type="http">RFC 1734</ulink>.
+      </para>
+      <para>
+	The AUTH, APOP and USER/PASS authentication mechanisms are
+	supported, and the LOGIN-DELAY capability is honoured.
+      </para>
+      <para>
+	The authentication logic can be represented with the following
+	pseudo-code:
+      </para>
+      <programlisting>if has-user-selected-mechanism then
+  if server-supports-user-selected-mechanism then
+    attempt authentication using user-selected-mechanism
+  endif
+else
+  if has-sasl-support and server-supports-sasl then
+    if is-ssl-connection then
+      sasl-mechanism = any
+    else
+      sasl-mechanism = any-non-plaintext
+    endif
+    attempt authentication using sasl-mechanism
+  endif
+  if authentication-failed and server-supports-apop then
+    attempt authentication using apop
+  endif
+  if authentication-failed then
+    attempt authentication using user/pass
+  endif
+endif</programlisting>
+    </sect2>
+
+    <sect2>
+      <title>IMAP Implementation</title>
+      <para>
+	The &app; &imap; implementation strictly conforms to
+	<ulink url="http://www.ietf.org/rfc/rfc3501.txt" type="http">RFC 3501</ulink>.
+      </para>
+      <para>
+	The AUTHENTICATE and LOGIN authentication mechanisms are
+	supported.
+      </para>
+      <para>
+	The authentication logic can be represented with the following
+	pseudo-code:
+      </para>
+      <programlisting>if has-user-selected-mechanism then
+  if server-supports-user-selected-mechanism then
+    attempt authentication using user-selected-mechanism
+  endif
+else
+  if has-sasl-support and server-supports-sasl then
+    if is-ssl-connection then
+      sasl-mechanism = any
+    else
+      sasl-mechanism = any-non-plaintext
+    endif
+    attempt authentication using sasl-mechanism
+  endif
+  if authentication-failed and server-supports-login then
+    attempt authentication using login
+  endif
+endif</programlisting>
+    </sect2>
   </sect1>
     
   <sect1 id="about">
@@ -576,7 +703,7 @@
       <title>Reporting Bugs and Other Feedback</title>
       <para>
 	Bug reports and feedback should be sent to Jean-Yves Lefort
-	(<email>jylefort@brutele.be></email>).
+	(<email>jylefort@brutele.be</email>).
       </para>
     </sect2>
 
@@ -603,8 +730,8 @@
 	<glossterm>Gmail</glossterm>
 	<glossdef>
 	  <para>
-	    A free webmail service operated by <ulink url="http://www.google.com">Google</ulink>.
-	    More information can be found on the <ulink url="http://gmail.google.com">Gmail web page</ulink>.
+	    A free webmail service operated by <ulink url="http://www.google.com" type="http">Google</ulink>.
+	    More information can be found on the <ulink url="http://gmail.google.com" type="http">Gmail web page</ulink>.
 	  </para>
 	</glossdef>
       </glossentry>
@@ -615,8 +742,28 @@
 	  <para>
 	    A filesystem abstraction library allowing applications to access
 	    local, remote and virtual resources in a transparent fashion.
-	    <ulink url="http://developer.gnome.org/doc/API/2.0/gnome-vfs-2.0">GnomeVFS</ulink>
-	    is part of the <ulink url="http://www.gnome.org">GNOME Desktop Environment</ulink>.
+	    <ulink url="http://developer.gnome.org/doc/API/2.0/gnome-vfs-2.0" type="http">GnomeVFS</ulink>
+	    is part of the <ulink url="http://www.gnome.org" type="http">GNOME Desktop Environment</ulink>.
+	  </para>
+	</glossdef>
+      </glossentry>
+    </glossdiv>
+
+    <glossdiv><title>I</title>
+      <glossentry>
+	<glossterm>IMAP</glossterm>
+	<glosssee otherterm="imap"/>
+      </glossentry>
+
+      <glossentry id="imap">
+	<glossterm>Internet Message Access Protocol</glossterm>
+	<acronym>IMAP</acronym>
+	<glossdef>
+	  <para>
+	    A protocol allowing a client to access and manipulate
+	    electronic mail messages on a server. &app; implements
+	    version 4rev1 of the protocol, as defined by
+	    <ulink url="http://www.ietf.org/rfc/rfc3501.txt" type="http">RFC 3501</ulink>.
 	  </para>
 	</glossdef>
       </glossentry>
@@ -627,7 +774,7 @@
 	<glossterm>Maildir</glossterm>
 	<glossdef>
 	  <para>
-	    A mailbox format popularized by the <ulink url="http://www.qmail.org">qmail</ulink> mail transfer agent.
+	    A mailbox format popularized by the <ulink url="http://www.qmail.org" type="http">qmail</ulink> mail transfer agent.
 	    Messages are stored in a structure of directories for reliability.
 	  </para>
 	</glossdef>
@@ -648,7 +795,7 @@
 	<glossdef>
 	  <para>
 	    A mailbox format popularized by the
-	    <ulink url="http://www.ics.uci.edu/~mh">MH</ulink> mail user agent.
+	    <ulink url="http://www.ics.uci.edu/~mh" type="http">MH</ulink> mail user agent.
 	    Messages are stored as separate files for flexibility and performance.
 	  </para>
 	</glossdef>
@@ -656,8 +803,14 @@
     </glossdiv>
 
     <glossdiv><title>P</title>
-      <glossentry id="pop3">
+      <glossentry>
 	<glossterm>POP3</glossterm>
+	<glosssee otherterm="pop3"/>
+      </glossentry>
+
+      <glossentry id="pop3">
+	<glossterm>Post Office Protocol Version 3</glossterm>
+	<acronym>POP3</acronym>
 	<glossdef>
 	  <para>
 	    A protocol allowing a workstation to dynamically access
@@ -669,11 +822,44 @@
     </glossdiv>
 
     <glossdiv><title>S</title>
+      <glossentry>
+	<glossterm>SASL</glossterm>
+	<glosssee otherterm="sasl"/>
+      </glossentry>
+
+      <glossentry id="ssl">
+	<glossterm>Secure Sockets Layer</glossterm>
+	<acronym>SSL</acronym>
+	<glossdef>
+	  <para>
+	    A protocol securing a connection through the use of
+	    cryptographic techniques.
+	  </para>
+	</glossdef>
+      </glossentry>
+
+      <glossentry id="sasl">
+	<glossterm>Simple Authentication and Security Layer</glossterm>
+	<acronym>SASL</acronym>
+	<glossdef>
+	  <para>
+	    A method for adding authentication support to
+	    connection-based protocols, as defined by
+	    <ulink url="http://www.ietf.org/rfc/rfc2222.txt" type="http">RFC 2222</ulink>.
+	  </para>
+	</glossdef>
+      </glossentry>
+
+      <glossentry>
+	<glossterm>SSL</glossterm>
+	<glosssee otherterm="ssl"/>
+      </glossentry>
+
       <glossentry id="sylpheed">
 	<glossterm>Sylpheed</glossterm>
 	<glossdef>
 	  <para>
-	    The mailbox format used by the <ulink url="http://sylpheed.good-day.net">Sylpheed</ulink>
+	    The mailbox format used by the <ulink url="http://sylpheed.good-day.net" type="http">Sylpheed</ulink>
 	    mail user agent. The Sylpheed format adds a binary cache to MH folders
 	    for faster indexing.
 	  </para>
@@ -682,11 +868,6 @@
     </glossdiv>
 
     <glossdiv><title>U</title>
-      <glossentry>
-	<glossterm>URI</glossterm>
-	<glosssee otherterm="uri"/>
-      </glossentry>
-
       <glossentry id="uri">
 	<glossterm>Uniform Resource Identifier</glossterm>
 	<acronym>URI</acronym>
@@ -697,6 +878,11 @@
 	    by <ulink url="http://www.ietf.org/rfc/rfc2396.txt" type="http">RFC 2396</ulink>.
 	  </para>
 	</glossdef>
+      </glossentry>
+
+      <glossentry>
+	<glossterm>URI</glossterm>
+	<glosssee otherterm="uri"/>
       </glossentry>
     </glossdiv>
   </glossary>

@@ -37,7 +37,8 @@ POST_UNINSTALL = :
 subdir = data
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/pkg.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/openssl.m4 \
+	$(top_srcdir)/m4/pkg.m4 $(top_srcdir)/m4/sasl2.m4 \
 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -46,10 +47,14 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 SOURCES =
 DIST_SOURCES =
-am__installdirs = "$(DESTDIR)$(applicationsdir)" "$(DESTDIR)$(schemasdir)"
+am__installdirs = "$(DESTDIR)$(applicationsdir)" "$(DESTDIR)$(schemasdir)" "$(DESTDIR)$(serverdir)" "$(DESTDIR)$(settingsdir)" "$(DESTDIR)$(soundlistdir)"
 applicationsDATA_INSTALL = $(INSTALL_DATA)
 schemasDATA_INSTALL = $(INSTALL_DATA)
-DATA = $(applications_DATA) $(schemas_DATA)
+serverDATA_INSTALL = $(INSTALL_DATA)
+settingsDATA_INSTALL = $(INSTALL_DATA)
+soundlistDATA_INSTALL = $(INSTALL_DATA)
+DATA = $(applications_DATA) $(schemas_DATA) $(server_DATA) \
+	$(settings_DATA) $(soundlist_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMDEP_FALSE = @AMDEP_FALSE@
@@ -59,6 +64,7 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+BONOBO_ACTIVATION_IDL = @BONOBO_ACTIVATION_IDL@
 CATALOGS = @CATALOGS@
 CATOBJEXT = @CATOBJEXT@
 CC = @CC@
@@ -83,10 +89,9 @@ GCONF_SCHEMA_FILE_DIR = @GCONF_SCHEMA_FILE_DIR@
 GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
-GNET_CFLAGS = @GNET_CFLAGS@
-GNET_LIBS = @GNET_LIBS@
 GNOME_CFLAGS = @GNOME_CFLAGS@
 GNOME_LIBS = @GNOME_LIBS@
+GOB2 = @GOB2@
 GTK_CFLAGS = @GTK_CFLAGS@
 GTK_LIBS = @GTK_LIBS@
 G_ASSERTIONS = @G_ASSERTIONS@
@@ -119,6 +124,7 @@ INTLTOOL_UPDATE = @INTLTOOL_UPDATE@
 INTLTOOL_XAM_RULE = @INTLTOOL_XAM_RULE@
 INTLTOOL_XML_RULE = @INTLTOOL_XML_RULE@
 LDFLAGS = @LDFLAGS@
+LIBBONOBO_IDL = @LIBBONOBO_IDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LTLIBOBJS = @LTLIBOBJS@
@@ -129,6 +135,9 @@ MAKEINFO = @MAKEINFO@
 MKINSTALLDIRS = @MKINSTALLDIRS@
 MSGFMT = @MSGFMT@
 OBJEXT = @OBJEXT@
+OPENSSL_CFLAGS = @OPENSSL_CFLAGS@
+OPENSSL_LIBS = @OPENSSL_LIBS@
+ORBIT_IDL = @ORBIT_IDL@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -141,6 +150,8 @@ POFILES = @POFILES@
 POSUB = @POSUB@
 PO_IN_DATADIR_FALSE = @PO_IN_DATADIR_FALSE@
 PO_IN_DATADIR_TRUE = @PO_IN_DATADIR_TRUE@
+SASL_CFLAGS = @SASL_CFLAGS@
+SASL_LIBS = @SASL_LIBS@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOUP_CFLAGS = @SOUP_CFLAGS@
@@ -151,6 +162,8 @@ VERSION = @VERSION@
 WARN_CFLAGS = @WARN_CFLAGS@
 WITH_GMAIL_FALSE = @WITH_GMAIL_FALSE@
 WITH_GMAIL_TRUE = @WITH_GMAIL_TRUE@
+WITH_IMAP_FALSE = @WITH_IMAP_FALSE@
+WITH_IMAP_TRUE = @WITH_IMAP_TRUE@
 WITH_MAILDIR_FALSE = @WITH_MAILDIR_FALSE@
 WITH_MAILDIR_TRUE = @WITH_MAILDIR_TRUE@
 WITH_MBOX_FALSE = @WITH_MBOX_FALSE@
@@ -158,7 +171,15 @@ WITH_MBOX_TRUE = @WITH_MBOX_TRUE@
 WITH_MH_FALSE = @WITH_MH_FALSE@
 WITH_MH_TRUE = @WITH_MH_TRUE@
 WITH_POP3_FALSE = @WITH_POP3_FALSE@
+WITH_POP3_OR_IMAP_FALSE = @WITH_POP3_OR_IMAP_FALSE@
+WITH_POP3_OR_IMAP_TRUE = @WITH_POP3_OR_IMAP_TRUE@
 WITH_POP3_TRUE = @WITH_POP3_TRUE@
+WITH_REGRESSION_TESTS_FALSE = @WITH_REGRESSION_TESTS_FALSE@
+WITH_REGRESSION_TESTS_TRUE = @WITH_REGRESSION_TESTS_TRUE@
+WITH_SASL_FALSE = @WITH_SASL_FALSE@
+WITH_SASL_TRUE = @WITH_SASL_TRUE@
+WITH_SSL_FALSE = @WITH_SSL_FALSE@
+WITH_SSL_TRUE = @WITH_SSL_TRUE@
 WITH_SYLPHEED_FALSE = @WITH_SYLPHEED_FALSE@
 WITH_SYLPHEED_TRUE = @WITH_SYLPHEED_TRUE@
 XGETTEXT = @XGETTEXT@
@@ -192,11 +213,33 @@ target_alias = @target_alias@
 applicationsdir = $(datadir)/applications
 applications_in_files = mail-notification.desktop.in
 applications_DATA = mail-notification.desktop
+settingsdir = $(datadir)/control-center-2.0/capplets
+settings_in_files = mail-notification-properties.desktop.in
+settings_DATA = mail-notification-properties.desktop
+serverdir = $(libdir)/bonobo/servers
+server_in_files = GNOME_MailNotification_Automation.server.in
+server_DATA = GNOME_MailNotification_Automation.server
 schemasdir = $(sysconfdir)/gconf/schemas
 schemas_in_files = mail-notification.schemas.in
 schemas_DATA = mail-notification.schemas
-EXTRA_DIST = mail-notification.desktop.in mail-notification.schemas.in
-CLEANFILES = mail-notification.desktop mail-notification.schemas
+soundlistdir = $(sysconfdir)/sound/events
+soundlist_in_files = mail-notification.soundlist.in
+soundlist_DATA = mail-notification.soundlist
+EXTRA_DIST = \
+	mail-notification.desktop.in			\
+	mail-notification-properties.desktop.in		\
+	GNOME_MailNotification_Automation.server.in.in	\
+	mail-notification.schemas.in			\
+	mail-notification.soundlist.in
+
+CLEANFILES = \
+	mail-notification.desktop			\
+	mail-notification-properties.desktop		\
+	GNOME_MailNotification_Automation.server	\
+	GNOME_MailNotification_Automation.server.in	\
+	mail-notification.schemas			\
+	mail-notification.soundlist
+
 all: all-am
 
 .SUFFIXES:
@@ -264,6 +307,57 @@ uninstall-schemasDATA:
 	  echo " rm -f '$(DESTDIR)$(schemasdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(schemasdir)/$$f"; \
 	done
+install-serverDATA: $(server_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(serverdir)" || $(mkdir_p) "$(DESTDIR)$(serverdir)"
+	@list='$(server_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " $(serverDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(serverdir)/$$f'"; \
+	  $(serverDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(serverdir)/$$f"; \
+	done
+
+uninstall-serverDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(server_DATA)'; for p in $$list; do \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " rm -f '$(DESTDIR)$(serverdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(serverdir)/$$f"; \
+	done
+install-settingsDATA: $(settings_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(settingsdir)" || $(mkdir_p) "$(DESTDIR)$(settingsdir)"
+	@list='$(settings_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " $(settingsDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(settingsdir)/$$f'"; \
+	  $(settingsDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(settingsdir)/$$f"; \
+	done
+
+uninstall-settingsDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(settings_DATA)'; for p in $$list; do \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " rm -f '$(DESTDIR)$(settingsdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(settingsdir)/$$f"; \
+	done
+install-soundlistDATA: $(soundlist_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(soundlistdir)" || $(mkdir_p) "$(DESTDIR)$(soundlistdir)"
+	@list='$(soundlist_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " $(soundlistDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(soundlistdir)/$$f'"; \
+	  $(soundlistDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(soundlistdir)/$$f"; \
+	done
+
+uninstall-soundlistDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(soundlist_DATA)'; for p in $$list; do \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " rm -f '$(DESTDIR)$(soundlistdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(soundlistdir)/$$f"; \
+	done
 tags: TAGS
 TAGS:
 
@@ -302,7 +396,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(applicationsdir)" "$(DESTDIR)$(schemasdir)"; do \
+	for dir in "$(DESTDIR)$(applicationsdir)" "$(DESTDIR)$(schemasdir)" "$(DESTDIR)$(serverdir)" "$(DESTDIR)$(settingsdir)" "$(DESTDIR)$(soundlistdir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-am
@@ -349,7 +443,8 @@ info: info-am
 info-am:
 
 install-data-am: install-applicationsDATA install-data-local \
-	install-schemasDATA
+	install-schemasDATA install-serverDATA install-settingsDATA \
+	install-soundlistDATA
 
 install-exec-am:
 
@@ -376,27 +471,36 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-applicationsDATA uninstall-info-am \
-	uninstall-schemasDATA
+	uninstall-schemasDATA uninstall-serverDATA \
+	uninstall-settingsDATA uninstall-soundlistDATA
 
 .PHONY: all all-am check check-am clean clean-generic distclean \
 	distclean-generic distdir dvi dvi-am html html-am info info-am \
 	install install-am install-applicationsDATA install-data \
 	install-data-am install-data-local install-exec \
 	install-exec-am install-info install-info-am install-man \
-	install-schemasDATA install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic pdf pdf-am ps ps-am uninstall \
-	uninstall-am uninstall-applicationsDATA uninstall-info-am \
-	uninstall-schemasDATA
+	install-schemasDATA install-serverDATA install-settingsDATA \
+	install-soundlistDATA install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
+	pdf-am ps ps-am uninstall uninstall-am \
+	uninstall-applicationsDATA uninstall-info-am \
+	uninstall-schemasDATA uninstall-serverDATA \
+	uninstall-settingsDATA uninstall-soundlistDATA
 
 
 @INTLTOOL_DESKTOP_RULE@
+@INTLTOOL_SERVER_RULE@
 @INTLTOOL_SCHEMAS_RULE@
+@INTLTOOL_SOUNDLIST_RULE@
 
 @GCONF_SCHEMAS_INSTALL_TRUE@install-data-local: install-schemas
 @GCONF_SCHEMAS_INSTALL_TRUE@install-schemas:
 @GCONF_SCHEMAS_INSTALL_TRUE@	GCONF_CONFIG_SOURCE=$(GCONF_SCHEMA_CONFIG_SOURCE) \
 @GCONF_SCHEMAS_INSTALL_TRUE@		$(GCONFTOOL) --makefile-install-rule mail-notification.schemas
+
+GNOME_MailNotification_Automation.server.in: GNOME_MailNotification_Automation.server.in.in
+	sed -e 's|\@bindir\@|$(bindir)|' GNOME_MailNotification_Automation.server.in.in > GNOME_MailNotification_Automation.server.in
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

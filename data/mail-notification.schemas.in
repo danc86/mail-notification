@@ -44,24 +44,24 @@
       </locale>
     </schema>
     <schema>
-      <key>/schemas/apps/mail-notification/commands/clicked/enabled</key>
-      <applyto>/apps/mail-notification/commands/clicked/enabled</applyto>
+      <key>/schemas/apps/mail-notification/commands/double-clicked/enabled</key>
+      <applyto>/apps/mail-notification/commands/double-clicked/enabled</applyto>
       <owner>mail-notification</owner>
       <type>bool</type>
       <default>0</default>
       <locale name="C">
-        <short>Run a command when the icon is clicked</short>
-	<long>Whether to run a command when the icon is clicked or not.</long>
+        <short>Run a command when the icon is double-clicked</short>
+	<long>Whether to run a command when the icon is double-clicked or not.</long>
       </locale>
     </schema> 
     <schema>
-      <key>/schemas/apps/mail-notification/commands/clicked/command</key>
-      <applyto>/apps/mail-notification/commands/clicked/command</applyto>
+      <key>/schemas/apps/mail-notification/commands/double-clicked/command</key>
+      <applyto>/apps/mail-notification/commands/double-clicked/command</applyto>
       <owner>mail-notification</owner>
       <type>string</type>
       <locale name="C">
-        <short>Clicked command</short>
-	<long>The command to run when the icon is clicked.</long>
+        <short>Double-clicked command</short>
+	<long>The command to run when the icon is double-clicked.</long>
       </locale>
     </schema>
     <schema>
@@ -76,25 +76,25 @@
       </locale>
     </schema>
     <schema>
-      <key>/schemas/apps/mail-notification/ui/preferences-dialog/height</key>
-      <applyto>/apps/mail-notification/ui/preferences-dialog/height</applyto>
+      <key>/schemas/apps/mail-notification/ui/properties-dialog/height</key>
+      <applyto>/apps/mail-notification/ui/properties-dialog/height</applyto>
       <owner>mail-notification</owner>
       <type>int</type>
       <default>420</default>
       <locale name="C">
-        <short>Height of preferences dialog</short>
-        <long>The height of the preferences dialog in pixels.</long>
+        <short>Height of properties dialog</short>
+        <long>The height of the properties dialog in pixels.</long>
       </locale>
     </schema>
     <schema>
-      <key>/schemas/apps/mail-notification/ui/preferences-dialog/width</key>
-      <applyto>/apps/mail-notification/ui/preferences-dialog/width</applyto>
+      <key>/schemas/apps/mail-notification/ui/properties-dialog/width</key>
+      <applyto>/apps/mail-notification/ui/properties-dialog/width</applyto>
       <owner>mail-notification</owner>
       <type>int</type>
       <default>-1</default>
       <locale name="C">
-        <short>Width of preferences dialog</short>
-        <long>The width of the preferences dialog in pixels.</long>
+        <short>Width of properties dialog</short>
+        <long>The width of the properties dialog in pixels.</long>
       </locale>
     </schema>
   </schemalist>

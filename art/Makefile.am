@@ -3,11 +3,7 @@ APP_IMAGES = \
 	about-icon.png		\
 	logo.png		\
 	gmail.png		\
-	mail-error.png		\
-	mail.png		\
-	no-mail-error.png	\
-	no-mail.png		\
-	preferences-icon.png	\
+	properties-icon.png	\
 	unsupported.png
 
 gnome_pixmapsdir = $(datadir)/pixmaps

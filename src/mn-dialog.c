@@ -92,3 +92,21 @@ mn_error_dialog (const char *help_link_id,
 
   gtk_widget_destroy(dialog);
 }
+
+void
+mn_fatal_error_dialog (const char *format, ...)
+{
+  va_list args;
+  char *secondary;
+
+  g_return_if_fail(format != NULL);
+
+  va_start(args, format);
+  secondary = g_strdup_vprintf(format, args);
+  va_end(args);
+
+  mn_error_dialog(NULL, _("A fatal error has occurred in Mail Notification"), "%s", secondary);
+  g_free(secondary);
+
+  exit(1);  
+}

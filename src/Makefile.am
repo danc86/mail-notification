@@ -125,7 +125,8 @@ gob_sources = \
 	mn-pending-mailbox.gob			\
 	mn-shell.gob				\
 	mn-system-mailbox-properties.gob	\
-	mn-unsupported-mailbox.gob
+	mn-unsupported-mailbox.gob		\
+	mn-uri.gob
 gob_built_sources = \
 	$(mbox_gob_built_sources)			\
 	$(mh_gob_built_sources)				\
@@ -170,7 +171,10 @@ gob_built_sources = \
 	mn-system-mailbox-properties.h			\
 	mn-unsupported-mailbox-private.h		\
 	mn-unsupported-mailbox.c			\
-	mn-unsupported-mailbox.h
+	mn-unsupported-mailbox.h			\
+	mn-uri-private.h				\
+	mn-uri.c					\
+	mn-uri.h
 
 nodist_mail_notification_SOURCES = $(idl_built_sources)
 mail_notification_SOURCES = \
@@ -186,8 +190,6 @@ mail_notification_SOURCES = \
 	eggtrayicon.h			\
 	mn-conf.c			\
 	mn-conf.h			\
-	mn-dialog.c			\
-	mn-dialog.h			\
 	mn-mailbox-properties-dialog.c	\
 	mn-mailbox-properties-dialog.h	\
 	mn-mailbox-properties-util.c	\
@@ -199,8 +201,6 @@ mail_notification_SOURCES = \
 	mn-properties.h			\
 	mn-stock.c			\
 	mn-stock.h			\
-	mn-uri.c			\
-	mn-uri.h			\
 	mn-util.c			\
 	mn-util.h			\
 	mn-vfs.c			\

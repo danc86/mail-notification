@@ -1,5 +1,5 @@
 tests = \
-	test-uri.output				\
+	test-uri.stamp				\
 	test-vfs-read-line1-smallblock.output	\
 	test-vfs-read-line1-largeblock.output	\
 	test-vfs-read-line2-smallblock.output	\
@@ -34,9 +34,9 @@ AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-DMN_REGRESSION_TEST
 
-test-uri.output: test-uri test-uri.expected
-	./test-uri > test-uri.output
-	@if cmp test-uri.output test-uri.expected > /dev/null; then echo "+++ URI TEST PASSED"; else echo "--- URI TEST FAILED"; exit 1; fi
+test-uri.stamp: test-uri
+	./test-uri
+	@touch test-uri.stamp
 
 test-vfs-read-line1-smallblock.output: test-vfs-read-line-smallblock test-vfs-read-line1.input test-vfs-read-line1.expected
 	./test-vfs-read-line-smallblock file://`pwd`/test-vfs-read-line1.input > test-vfs-read-line1-smallblock.output
@@ -57,7 +57,6 @@ test-vfs-read-line2-largeblock.output: test-vfs-read-line-largeblock test-vfs-re
 MOSTLYCLEANFILES = $(tests)
 
 EXTRA_DIST = \
-	test-uri.expected			\
 	test-vfs-read-line1.input		\
 	test-vfs-read-line1.expected		\
 	test-vfs-read-line2.input		\

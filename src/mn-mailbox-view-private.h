@@ -10,17 +10,17 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNMailboxViewPrivate {
-#line 50 "mn-mailbox-view.gob"
+#line 49 "mn-mailbox-view.gob"
 	GtkWidget * menu;
-#line 51 "mn-mailbox-view.gob"
+#line 50 "mn-mailbox-view.gob"
 	GtkWidget * remove_item;
-#line 52 "mn-mailbox-view.gob"
+#line 51 "mn-mailbox-view.gob"
 	GtkWidget * cut_item;
-#line 53 "mn-mailbox-view.gob"
+#line 52 "mn-mailbox-view.gob"
 	GtkWidget * copy_item;
-#line 54 "mn-mailbox-view.gob"
+#line 53 "mn-mailbox-view.gob"
 	GtkWidget * paste_item;
-#line 55 "mn-mailbox-view.gob"
+#line 54 "mn-mailbox-view.gob"
 	GtkWidget * properties_item;
 #line 26 "mn-mailbox-view-private.h"
 };

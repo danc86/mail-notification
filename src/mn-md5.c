@@ -22,7 +22,7 @@
  * These notices must be retained in any copies of any part of this
  * documentation and/or software.
  *
- * This code is the same as the code published by RSA Inc.  It has been
+ * This code is the same as the code published by RSA Inc. It has been
  * edited for clarity and style only.
  */
 
@@ -33,16 +33,16 @@
 
 /*** cpp *********************************************************************/
 
-#ifdef i386
+#if defined(i386) || defined(__i386) || defined(__i386__)
 #define mn_md5_encode memcpy
 #define mn_md5_decode memcpy
-#else /* i386 */
+#else /* i386 || __i386 || __i386__ */
 /*
  * Encodes input (u_int32_t) into output (unsigned char). Assumes len
  * is a multiple of 4.
  */
 static void
-mn_md5_encode (unsigned char *output, u_int32_t input, unsigned int len)
+mn_md5_encode (unsigned char *output, u_int32_t *input, unsigned int len)
 {
   unsigned int i, j;
 
@@ -68,7 +68,7 @@ mn_md5_decode (u_int32_t *output, const unsigned char *input, unsigned int len)
     output[i] = ((u_int32_t) input[j]) | (((u_int32_t) input[j + 1]) << 8) |
       (((u_int32_t) input[j + 2]) << 16) | (((u_int32_t) input[j + 3]) << 24);
 }
-#endif /* i386 */
+#endif /* i386 || __i386 || __i386__ */
 
 /* F, G, H and I are basic MD5 functions */
 #define F(x, y, z) (((x) & (y)) | ((~x) & (z)))

@@ -10,15 +10,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNGmailMailboxPrivate {
-#line 38 "mn-gmail-mailbox.gob"
-	char * username;
-#line 39 "mn-gmail-mailbox.gob"
-	char * password;
-#line 40 "mn-gmail-mailbox.gob"
+#line 37 "mn-gmail-mailbox.gob"
 	GHashTable * cookies;
-#line 41 "mn-gmail-mailbox.gob"
+#line 38 "mn-gmail-mailbox.gob"
 	gboolean logged_in;
-#line 22 "mn-gmail-mailbox-private.h"
+#line 18 "mn-gmail-mailbox-private.h"
 };
 
 #ifdef __cplusplus

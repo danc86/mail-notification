@@ -16,7 +16,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <signal.h>
 #include <eel/eel.h>
 #include <libsoup/soup.h>
 
@@ -40,7 +39,6 @@ static int use_count = 0;
 G_LOCK_DEFINE_STATIC(use_count);
 static unsigned int http_proxy_notification_id;
 static unsigned int proxy_notification_id;
-static gpointer chld_handler;
 
 /*** functions ***************************************************************/
 
@@ -58,14 +56,6 @@ mn_soup_use (void)
   G_LOCK(use_count);
   if (++use_count == 1)
     {
-      /*
-       * libsoup use a child process for name resolution (see
-       * soup-address.c) but does not handle the SIGCHLD signal, which
-       * can interrupt our connect(), read() etc system calls: we
-       * therefore ignore the SIGCHLD signal.
-       */
-      chld_handler = signal(SIGCHLD, SIG_IGN);
-
       eel_gconf_monitor_add(CONF_HTTP_PROXY_NAMESPACE);
       eel_gconf_monitor_add(CONF_PROXY_NAMESPACE);
 
@@ -90,9 +80,6 @@ mn_soup_unuse (void)
       eel_gconf_monitor_remove(CONF_PROXY_NAMESPACE);
 
       soup_shutdown();
-
-      /* restore default handler of SIGCHLD */
-      signal(SIGCHLD, chld_handler);
     }
   G_UNLOCK(use_count);
 }
@@ -103,7 +90,9 @@ mn_soup_notify_proxy_cb (GConfClient *client,
 			 GConfEntry *entry,
 			 gpointer user_data)
 {
+  GDK_THREADS_ENTER();
   mn_soup_update_proxy();
+  GDK_THREADS_LEAVE();
 }
  
 static void

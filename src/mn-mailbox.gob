@@ -18,6 +18,7 @@
 
 %headertop{
 #include <stdarg.h>
+#include "mn-uri.h"
 %}
 
 %privateheader{
@@ -36,7 +37,8 @@
 
 %h{
 #define MN_MAILBOX_CAN_CHECK(self) \
-  (MN_MAILBOX_GET_CLASS((self))->impl_check != NULL || MN_MAILBOX_GET_CLASS((self))->impl_threaded_check != NULL)
+  (MN_MAILBOX_GET_CLASS((self))->impl_check != NULL \
+   || MN_MAILBOX_GET_CLASS((self))->impl_threaded_check != NULL)
 %}
   
 %{
@@ -67,32 +69,65 @@
 #include "mn-util.h"
 #include "mn-unsupported-mailbox.h"
 #include "mn-conf.h"
-#include "mn-dialog.h"
-#include "mn-uri.h"
 
 typedef struct
 {
-  char		*uri;
+  MNURI		*uri;
   void		(*callback)	(MNMailbox	*self,
 				 gpointer	user_data);
   gpointer	user_data;
 } NewInfo;
 %}
 
+/******************************************************************************
+ *** IMPORTANT REMARKS ABOUT GDK LOCKING AND MULTI-THREADING ******************
+ ******************************************************************************
+ *
+ * MNMailbox API functions must be called with the GDK lock
+ * held. Exceptions are:
+ *
+ *	mn_mailbox_get_types()
+ *	mn_mailbox_notice()
+ *	mn_mailbox_set_init_error()
+ *
+ * (No code can be hooked to these functions through signals or other
+ * means, therefore we are sure GDK will never be used from these
+ * functions.)
+ *
+ * Mailboxes are constructed with the GDK lock not held. Use
+ * GDK_THREADS_ENTER() and GDK_THREADS_LEAVE() where appropriate in
+ * the construction phase.
+ *
+ * Virtual methods called with the GDK lock held:
+ *
+ *	mn_mailbox_impl_check()
+ *
+ * Virtual methods called with the GDK lock not held:
+ *
+ *	mn_mailbox_impl_is()
+ *	mn_mailbox_impl_threaded_check()
+ *
+ * Do not assume anything about the thread from which a virtual method
+ * is called. For instance, mn_mailbox_impl_check() may be called both
+ * from the thread running the GTK+ main loop and from a separate
+ * thread.
+ */
+
 class MN:Mailbox from G:Object
 {
   classwide const char *stock_id;
   classwide const char *format;
 
-  private char *uri destroywith g_free;
-  property STRING uri (blurb = _("The mailbox URI"), flags = CONSTRUCT_ONLY)
+  public MNURI *uri = NULL unrefwith g_object_unref;
+  property OBJECT uri (blurb = _("The mailbox URI"),
+		       object_type = MN:URI,
+		       flags = CONSTRUCT_ONLY)
     set
     {
-      g_return_if_fail(selfp->uri == NULL);
-      selfp->uri = g_value_dup_string(VAL);
-      selfp->name = mn_uri_format_for_display(selfp->uri);
+      g_return_if_fail(self->uri == NULL);
+      self->uri = MN_URI(g_value_dup_object(VAL));
+      selfp->name = g_strdup(self->uri->human_readable);
     };
-  public const char *get_uri (self) { return selfp->uri; }
   
   private char *name destroywith g_free;
   property STRING name (blurb = _("The mailbox human-readable name"), link);
@@ -190,14 +225,14 @@ class MN:Mailbox from G:Object
    * #MNMailbox will be passed to @callback.
    **/
   public void
-    new_async (const char *uri (check null),
+    new_async (MN:URI *uri (check null type),
 	       gpointer callback (check null),
 	       gpointer user_data)
   {
     NewInfo *info;
 
     info = g_new(NewInfo, 1);
-    info->uri = g_strdup(uri);
+    info->uri = g_object_ref(uri);
     info->callback = callback;
     info->user_data = user_data;
 
@@ -208,15 +243,12 @@ class MN:Mailbox from G:Object
     new_async_thread (gpointer data)
   {
     NewInfo *info = data;
-    GnomeVFSURI *vfs_uri;
     Self *mailbox = NULL;
 
-    vfs_uri = gnome_vfs_uri_new(info->uri);
-    if (vfs_uri) /* the scheme is supported by GnomeVFS, therefore we require that the URI exists */
+    if (info->uri->vfs)
       {
-	if (! mn_vfs_test(info->uri, G_FILE_TEST_EXISTS))
+	if (! mn_vfs_test(info->uri->vfs, G_FILE_TEST_EXISTS))
 	  mailbox = mn_unsupported_mailbox_new(info->uri, _("does not exist"));
-	gnome_vfs_uri_unref(vfs_uri);
       }
 
     if (! mailbox)
@@ -236,7 +268,7 @@ class MN:Mailbox from G:Object
 
 	    if (is)
 	      {
-		mailbox = g_object_new(types[i], MN_MAILBOX_PROP_URI(info->uri), NULL);
+		mailbox = g_object_new(types[i], MN_MAILBOX_PROP_URI(G_OBJECT(info->uri)), NULL);
 		if (mailbox->_priv->init_error)
 		  {
 		    MNMailbox *old_mailbox;
@@ -255,7 +287,9 @@ class MN:Mailbox from G:Object
       mailbox = mn_unsupported_mailbox_new(info->uri, _("unknown format"));
 
     GDK_THREADS_ENTER();
+
     info->callback(mailbox, info->user_data);
+
     /*
      * A note on gdk_flush(): as adviced in the GDK threads
      * documentation, we only call gdk_flush() from a thread other
@@ -267,7 +301,7 @@ class MN:Mailbox from G:Object
 
     /* mailbox is now owned by the callback, do not unref it */
     
-    g_free(info->uri);
+    g_object_unref(info->uri);
     g_free(info);
 
     return NULL;
@@ -297,11 +331,16 @@ class MN:Mailbox from G:Object
     g_return_if_fail(MN_MAILBOX_CAN_CHECK(self));
     g_return_if_fail(selfp->monitor_handle == NULL);
     
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+
     result = gnome_vfs_monitor_add(&selfp->monitor_handle,
 				   uri,
 				   monitor_type,
 				   self_monitor_cb,
 				   self);
+
+    GDK_THREADS_ENTER();
     
     if (result == GNOME_VFS_OK)
       {
@@ -362,9 +401,9 @@ class MN:Mailbox from G:Object
 					     minutes),
 				    minutes);
 	    
-	    mn_error_dialog("automatic-notification",
+	    mn_error_dialog("immediate-notification",
 			    _("A monitoring error has occurred"),
-			    _("Mail Notification was unable to enable automatic "
+			    _("Mail Notification was unable to enable immediate "
 			      "notification for one or more mailboxes. %s"), str);
 	    g_free(str);
 	  }
@@ -380,12 +419,14 @@ class MN:Mailbox from G:Object
   {
     Self *self = user_data;
 
+    GDK_THREADS_ENTER();
     if (selfp->monitor_events & (1 << event_type))
       self_check(self);
+    GDK_THREADS_LEAVE();
   }
 
   virtual private gboolean
-    impl_is (self, const char *uri);
+    impl_is (self, MNURI *uri);
   virtual private void
     impl_check (self);
   virtual private void
@@ -429,7 +470,7 @@ class MN:Mailbox from G:Object
     notice = g_strdup_vprintf(format, args);
     va_end(args);
 
-    prefixed_notice = g_strdup_printf("%s: %s", selfp->uri, notice);
+    prefixed_notice = g_strdup_printf("%s: %s", self->uri->text, notice);
     g_free(notice);
     
     mn_info("%s", prefixed_notice);

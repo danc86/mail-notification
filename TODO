@@ -1,3 +1,2 @@
-* add STARTTLS support to the IMAP backend
-* implement RFC 2965 cookie support
-* implement a MNURI object
+* Check the SSL certificate's hostname against the hostname we used
+  (RFC 3501, section 11.1)

@@ -10,7 +10,7 @@ Index
 
 0. About this document
 
-	$Id: INSTALL,v 1.8 2004/08/18 22:45:35 jylefort Exp $
+	$Id: INSTALL,v 1.10 2004/09/08 23:35:47 jylefort Exp $
 
 	Copyright (c) 2003, 2004 Jean-Yves Lefort.
 
@@ -24,7 +24,7 @@ Index
 		* GTK+ (version 2.4.0 or superior)
 		  http://www.gtk.org/
 
-		* GNOME (version 2.0 or superior)
+		* GNOME (version 2.6.0 or superior)
 		  http://www.gnome.org/
 
 	Optional libraries:
@@ -34,7 +34,7 @@ Index
 		  libsoup (version 1.99.28)
 		  ftp://ftp.gnome.org/pub/GNOME/sources/libsoup/1.99/
 
-		* for SSL support:
+		* for SSL/TLS support:
 
 		  OpenSSL (version 0.9.5b or superior)
 		  http://www.openssl.org/
@@ -54,9 +54,19 @@ Index
 		<get root privileges, if needed>
 		$ make install
 
-	IMPORTANT: you must install Mail Notification in the same
-	prefix as GNOME (commonly /usr or /opt/gnome).
+	IMPORTANT:
 
+		* You must install Mail Notification in the same
+		  prefix as GNOME (commonly /usr or /opt/gnome). To
+		  know where GNOME is installed on your system, type:
+
+			$ pkg-config --variable prefix libgnome-2.0
+
+		* Due to a bug in bonobo-activation
+		  (http://bugzilla.gnome.org/show_bug.cgi?id=151082),
+		  your session must be restarted after installing Mail
+		  Notification.
+	
 	The ./configure script behaviour can be changed using
 	command-line options: type "./configure --help" for an
 	exhaustive list.

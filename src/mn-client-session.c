@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <glib.h>
 #include <glib/gi18n-lib.h>
+#include <eel/eel-alert-dialog.h>
 #ifdef WITH_SSL
 #include <openssl/err.h>
 #include "mn-ssl.h"
@@ -42,6 +43,7 @@
 #endif /* WITH_SASL */
 #include "mn-util.h"
 #include "mn-client-session.h"
+#include "mn-conf.h"
 
 /*** cpp *********************************************************************/
 
@@ -63,7 +65,6 @@ struct _MNClientSession
   MNClientSessionPrivate	*private;
   
 #ifdef WITH_SSL
-  gboolean			use_ssl;
   SSL				*ssl;
 #endif
 
@@ -97,7 +98,9 @@ static struct addrinfo *mn_client_session_resolve (MNClientSession *session);
 static int mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo);
 
 #ifdef WITH_SSL
-static gboolean mn_client_session_init_ssl (MNClientSession *session);
+static gboolean mn_client_session_ssl_verify (MNClientSession *session);
+static gboolean mn_client_session_run_untrusted_dialog (const char *hostname,
+							const char *reason);
 #endif
 
 static int mn_client_session_enter_state (MNClientSession *session, int id);
@@ -148,10 +151,6 @@ mn_client_session_run (MNClientSessionState *states,
   session.password = g_strdup(password);
   session.private = private;
 
-#ifdef WITH_SSL
-  session.use_ssl = use_ssl;
-#endif
-
   addrinfo = mn_client_session_resolve(&session);
   if (! addrinfo)
     goto end;
@@ -162,9 +161,9 @@ mn_client_session_run (MNClientSessionState *states,
     goto end;
 
 #ifdef WITH_SSL
-  if (session.use_ssl)
+  if (use_ssl)
     {
-      if (! mn_client_session_init_ssl(&session))
+      if (! mn_client_session_enable_ssl(&session))
 	goto end;
     }
 #endif /* WITH_SSL */
@@ -182,17 +181,19 @@ mn_client_session_run (MNClientSessionState *states,
       gboolean cont = TRUE;
 
 #ifdef WITH_SSL
-      if (session.use_ssl)
+      if (session.ssl)
 	bytes_read = SSL_read(session.ssl, buf, sizeof(buf));
       else
 #endif /* WITH_SSL */
-	bytes_read = read(session.s, buf, sizeof(buf));
+	do
+	  bytes_read = read(session.s, buf, sizeof(buf));
+	while (bytes_read < 0 && errno == EINTR);
 	  
       if (bytes_read <= 0)
 	{
 #ifdef WITH_SSL
-	  if (session.use_ssl)
-	    mn_client_session_error(&session, _("unable to read from server: %s"), ERR_reason_error_string(ERR_get_error()));
+	  if (session.ssl)
+	    mn_client_session_error(&session, _("unable to read from server: %s"), mn_ssl_get_error());
 	  else
 #endif /* WITH_SSL */
 	    {
@@ -239,13 +240,10 @@ mn_client_session_run (MNClientSessionState *states,
   g_free(session.username);
   g_free(session.password);
   if (session.s >= 0)
-    close(session.s);
+    while (close(session.s) < 0 && errno == EINTR);
 #ifdef WITH_SSL
-  if (session.use_ssl)
-    {
-      if (session.ssl)
-	SSL_free(session.ssl);
-    }
+  if (session.ssl)
+    SSL_free(session.ssl);
 #endif /* WITH_SSL */
 #ifdef WITH_SASL
   if (session.sasl_available)
@@ -360,8 +358,8 @@ mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo)
 }
 
 #ifdef WITH_SSL
-static gboolean
-mn_client_session_init_ssl (MNClientSession *session)
+gboolean
+mn_client_session_enable_ssl (MNClientSession *session)
 {
   SSL_CTX *ctx;
   GError *err = NULL;
@@ -379,19 +377,162 @@ mn_client_session_init_ssl (MNClientSession *session)
   session->ssl = SSL_new(ctx);
   if (! session->ssl)
     {
-      mn_client_session_error(session, _("unable to create a SSL object: %s"), ERR_reason_error_string(ERR_get_error()));
+      mn_client_session_error(session, _("unable to create a SSL/TLS object: %s"), mn_ssl_get_error());
       return FALSE;
     }
 
   if (! SSL_set_fd(session->ssl, session->s))
     {
-      mn_client_session_error(session, _("unable to set the SSL file descriptor: %s"), ERR_reason_error_string(ERR_get_error()));
+      mn_client_session_error(session, _("unable to set the SSL/TLS file descriptor: %s"), mn_ssl_get_error());
       return FALSE;
     }
 
-  SSL_set_connect_state(session->ssl);
+  if (SSL_connect(session->ssl) != 1)
+    {
+      mn_client_session_error(session, _("unable to perform the SSL/TLS handshake: %s"), mn_ssl_get_error());
+      return FALSE;
+    }
+  
+  if (! mn_client_session_ssl_verify(session))
+    {
+      mn_client_session_error(session, _("untrusted server"));
+      return FALSE;
+    }
+  
+  mn_client_session_notice(session, _("a SSL/TLS layer is now active (%s, %s %i-bit)"),
+			   SSL_get_version(session->ssl),
+			   SSL_get_cipher(session->ssl),
+			   SSL_get_cipher_bits(session->ssl, NULL));
 
   return TRUE;
+}
+
+static gboolean
+mn_client_session_ssl_verify (MNClientSession *session)
+{
+  X509 *cert;
+  gboolean status = FALSE;
+
+  g_return_val_if_fail(session->ssl != NULL, FALSE);
+
+  cert = SSL_get_peer_certificate(session->ssl);
+  if (cert)
+    {
+      long verify_result;
+
+      verify_result = SSL_get_verify_result(session->ssl);
+      if (verify_result == X509_V_OK)
+	status = TRUE;
+      else
+	{
+	  unsigned char md5sum[16];
+	  unsigned char fingerprint[40];
+	  int md5len;
+	  int i;
+	  unsigned char *f;
+	  GSList *gconf_fingerprints;
+
+	  /* calculate the MD5 hash of the raw certificate */
+	  md5len = sizeof(md5sum);
+	  X509_digest(cert, EVP_md5(), md5sum, &md5len);
+	  for (i = 0, f = fingerprint; i < 16; i++, f += 3)
+	    sprintf(f, "%.2x%c", md5sum[i], i != 15 ? ':' : '\0');
+
+	  gconf_fingerprints = eel_gconf_get_string_list(MN_CONF_TRUSTED_X509_CERTIFICATES);
+
+	  if (mn_g_str_slist_find(gconf_fingerprints, fingerprint) != NULL)
+	    status = TRUE;
+	  else
+	    {
+	      char *reason;
+
+	      reason = g_strdup_printf(_("%s, fingerprint: %s"),
+				       X509_verify_cert_error_string(verify_result),
+				       fingerprint);
+
+	      if (mn_client_session_run_untrusted_dialog(session->hostname, reason))
+		{
+		  status = TRUE;
+		  gconf_fingerprints = g_slist_append(gconf_fingerprints, g_strdup(fingerprint));
+		  eel_gconf_set_string_list(MN_CONF_TRUSTED_X509_CERTIFICATES, gconf_fingerprints);
+		}
+	    }
+	  
+	  eel_g_slist_free_deep(gconf_fingerprints);
+	}
+
+      X509_free(cert);
+    }
+  else
+    {
+      char *server;
+      GSList *gconf_servers = NULL;
+
+      server = g_strdup_printf("%s:%i", session->hostname, session->port);
+      gconf_servers = eel_gconf_get_string_list(MN_CONF_TRUSTED_SERVERS);
+
+      if (mn_g_str_slist_find(gconf_servers, server) != NULL)
+	status = TRUE;
+      else
+	{
+	  if (mn_client_session_run_untrusted_dialog(session->hostname, _("missing certificate")))
+	    {
+	      status = TRUE;
+	      gconf_servers = g_slist_append(gconf_servers, g_strdup(server));
+	      eel_gconf_set_string_list(MN_CONF_TRUSTED_SERVERS, gconf_servers);
+	    }
+	}
+
+      g_free(server);
+      eel_g_slist_free_deep(gconf_servers);
+    }
+
+  return status;
+}
+
+static gboolean
+mn_client_session_run_untrusted_dialog (const char *hostname,
+					const char *reason)
+{
+  GtkWidget *dialog;
+  char *secondary;
+  gboolean status;
+
+  g_return_val_if_fail(hostname != NULL, FALSE);
+  g_return_val_if_fail(reason != NULL, FALSE);
+
+  secondary = g_strdup_printf(_("Mail Notification was unable to trust \"%s\" "
+				"(%s). It is possible that someone is "
+				"intercepting your communication to obtain "
+				"your confidential information.\n"
+				"\n"
+				"You should only connect to the server if you "
+				"are certain you are connected to \"%s\". "
+				"If you choose to connect to the server, this "
+				"message will not be shown again."),
+			      hostname, reason, hostname);
+  
+  GDK_THREADS_ENTER();
+
+  dialog = eel_alert_dialog_new(NULL,
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_MESSAGE_WARNING,
+				GTK_BUTTONS_NONE,
+				_("Connect to untrusted server?"),
+				secondary,
+				NULL);
+
+  gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
+  gtk_dialog_add_button(GTK_DIALOG(dialog), _("Co_nnect"), GTK_RESPONSE_OK);
+			
+  status = gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK;
+  gtk_widget_destroy(dialog);
+  
+  gdk_flush();
+  GDK_THREADS_LEAVE();
+
+  g_free(secondary);
+  return status;
 }
 #endif /* WITH_SSL */
 
@@ -532,17 +673,19 @@ mn_client_session_write (MNClientSession *session,
     }
   
 #ifdef WITH_SSL
-  if (session->use_ssl)
+  if (session->ssl)
     bytes_written = SSL_write(session->ssl, array->data, array->len);
   else
 #endif /* WITH_SSL */
-    bytes_written = write(session->s, array->data, array->len);
+    do
+      bytes_written = write(session->s, array->data, array->len);
+    while (bytes_written < 0 && errno == EINTR);
 
   if (bytes_written <= 0)
     {
 #ifdef WITH_SSL
-      if (session->use_ssl)
-	result = mn_client_session_error(session, _("unable to write to server: %s"), ERR_reason_error_string(ERR_get_error()));
+      if (session->ssl)
+	result = mn_client_session_error(session, _("unable to write to server: %s"), mn_ssl_get_error());
       else
 #endif /* WITH_SSL */
 	{
@@ -722,7 +865,7 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
       security.maxbufsize = READ_BUFSIZE;
       /* only permit plaintext mechanisms if SSL is in use */
 #ifdef WITH_SSL
-      if (session->use_ssl)
+      if (session->ssl)
 	security.security_flags = 0;
       else
 #endif /* WITH_SSL */

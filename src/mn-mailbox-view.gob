@@ -28,7 +28,6 @@
 #include "mn-stock.h"
 #include "mn-mailbox-properties-dialog.h"
 #include "mn-conf.h"
-#include "mn-dialog.h"
 #include "mn-uri.h"
 
 #define GNOME_COPIED_FILES		"x-special/gnome-copied-files"
@@ -63,40 +62,12 @@ class MN:Mailbox:View from Gtk:Tree:View
     toplevel = gtk_widget_get_toplevel(GTK_WIDGET(self));
     dialog = mn_mailbox_properties_dialog_new((GtkWindow *) toplevel, MN_MAILBOX_PROPERTIES_DIALOG_MODE_ADD);
 
-  run:
-    switch (gtk_dialog_run(GTK_DIALOG(dialog)))
-      {
-      case GTK_RESPONSE_HELP:
-	mn_display_help("mailbox-properties");
-	goto run;
-
-      case GTK_RESPONSE_ACCEPT:
-	{
-	  char *uri;
-	
-	  uri = mn_mailbox_properties_dialog_get_uri(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
-	  g_return_if_fail(uri != NULL);
-      
-	  if (! mn_mailboxes_find(mn_shell->mailboxes, uri))
-	    {
-	      GSList *gconf_mailboxes;
-	    
-	      gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
-	      gconf_mailboxes = g_slist_append(gconf_mailboxes, uri);
-	      eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
-	      mn_pointers_free(gconf_mailboxes);
-	    }
-	  else
-	    {
-	      mn_error_dialog(NULL, _("Unable to add mailbox"), _("The mailbox is already in the list."));
-	      g_free(uri);
-	      goto run;
-	    }
-	}
-	break;
-      }
-
-    gtk_widget_destroy(dialog);
+    g_signal_connect(G_OBJECT(dialog),
+		     "response",
+		     G_CALLBACK(self_properties_add_response_h),
+		     NULL);
+    
+    gtk_widget_show(dialog);
   }
 
   signal (ACTION) public NONE (NONE)
@@ -167,11 +138,11 @@ class MN:Mailbox:View from Gtk:Tree:View
 		    gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
 		    gconf_mailboxes = g_slist_concat(gconf_mailboxes, new_mailboxes);
 		    eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
-		    mn_pointers_free(gconf_mailboxes);
+		    eel_g_slist_free_deep(gconf_mailboxes);
 		  }
 	      }
 
-	    mn_pointers_free(uri_list);
+	    eel_g_slist_free_deep(uri_list);
 	  }
       }
   }
@@ -194,18 +165,18 @@ class MN:Mailbox:View from Gtk:Tree:View
     Self *self = data;
     GtkWidget *toplevel;
     GtkWidget *dialog;
-    char *uri;
+    MNURI *uri;
 
     toplevel = gtk_widget_get_toplevel(GTK_WIDGET(self));
     dialog = mn_mailbox_properties_dialog_new((GtkWindow *) toplevel, MN_MAILBOX_PROPERTIES_DIALOG_MODE_EDIT);
 
     gtk_tree_model_get(model, iter, COLUMN_URI, &uri, -1);
     mn_mailbox_properties_dialog_set_uri(MN_MAILBOX_PROPERTIES_DIALOG(dialog), uri);
-    g_free(uri);
+    g_object_unref(uri);
     
     g_signal_connect(G_OBJECT(dialog),
 		     "response",
-		     G_CALLBACK(self_properties_response_h),
+		     G_CALLBACK(self_properties_edit_response_h),
 		     NULL);
 
     gtk_widget_show(dialog);
@@ -272,7 +243,7 @@ class MN:Mailbox:View from Gtk:Tree:View
     g_signal_connect_swapped(G_OBJECT(selfp->properties_item), "activate", G_CALLBACK(self_activate_properties), self);
 
     store = gtk_list_store_new(N_COLUMNS,
-			       G_TYPE_STRING,
+			       MN_TYPE_URI,
 			       G_TYPE_STRING,
 			       G_TYPE_STRING,
 			       G_TYPE_STRING);
@@ -332,7 +303,6 @@ class MN:Mailbox:View from Gtk:Tree:View
     GtkTreeModel *model;
     GtkTreeIter iter;
     gboolean valid;
-    MNMailbox *mailbox;
     GSList *l;
       
     model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
@@ -342,15 +312,16 @@ class MN:Mailbox:View from Gtk:Tree:View
     valid = gtk_tree_model_get_iter_first(model, &iter);
     while (valid)
       {
-	char *uri;
+	MNURI *uri;
+	GSList *elem;
       
 	gtk_tree_model_get(model, &iter, COLUMN_URI, &uri, -1);
-	mailbox = mn_mailboxes_find(mn_shell->mailboxes, uri);
-	g_free(uri);
+	elem = mn_mailboxes_find_uri(mn_shell->mailboxes, uri);
+	g_object_unref(uri);
       
-	if (mailbox)
+	if (elem)
 	  {
-	    self_update_iter(self, &iter, mailbox);
+	    self_update_iter(self, &iter, elem->data);
 	    valid = gtk_tree_model_iter_next(model, &iter);
 	  }
 	else
@@ -361,7 +332,7 @@ class MN:Mailbox:View from Gtk:Tree:View
 
     MN_LIST_FOREACH(l, mn_mailboxes_get(mn_shell->mailboxes))
       {
-	mailbox = l->data;
+	MNMailbox *mailbox = l->data;
 
 	if (! self_has_mailbox(self, mailbox))
 	  {
@@ -377,28 +348,24 @@ class MN:Mailbox:View from Gtk:Tree:View
 		 MN:Mailbox *mailbox (check null type))
   {
     MNMailboxClass *class;
-    const char *uri;
-    const char *system_uri;
     const char *stock_id;
     GtkTreeModel *model;
 
     class = MN_MAILBOX_GET_CLASS(mailbox);
-    uri = mn_mailbox_get_uri(mailbox);
-    system_uri = mn_uri_get_system_mailbox();
   
-    if (system_uri && ! mn_uri_cmp(uri, system_uri))
+    if (MN_URI_IS_SYSTEM_MAILBOX(mailbox->uri))
       stock_id = MN_STOCK_SYSTEM_MAILBOX;
     else
     {
       if (class->stock_id)
 	stock_id = class->stock_id;
       else
-	stock_id = mn_uri_is_local(uri) ? MN_STOCK_LOCAL : MN_STOCK_REMOTE;
+	stock_id = MN_URI_IS_LOCAL(mailbox->uri) ? MN_STOCK_LOCAL : MN_STOCK_REMOTE;
     }
 
     model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
     gtk_list_store_set(GTK_LIST_STORE(model), iter,
-		       COLUMN_URI, uri,
+		       COLUMN_URI, mailbox->uri,
 		       COLUMN_MAILBOX_ICON, stock_id,
 		       COLUMN_MAILBOX, mn_mailbox_get_name(mailbox),
 		       COLUMN_FORMAT, class->format,
@@ -408,23 +375,20 @@ class MN:Mailbox:View from Gtk:Tree:View
   private gboolean
     has_mailbox (self, MN:Mailbox *mailbox (check null type))
   {
-    const char *uri;
     GtkTreeModel *model;
     GtkTreeIter iter;
     gboolean valid;
     gboolean has = FALSE;
 
-    uri = mn_mailbox_get_uri(mailbox);
-
     model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
     valid = gtk_tree_model_get_iter_first(model, &iter);
     while (valid)
       {
-	char *this_uri;
+	MNURI *uri;
 	
-	gtk_tree_model_get(model, &iter, COLUMN_URI, &this_uri, -1);
-	has = ! mn_uri_cmp(this_uri, uri);
-	g_free(this_uri);
+	gtk_tree_model_get(model, &iter, COLUMN_URI, &uri, -1);
+	has = ! strcmp(uri->text, mailbox->uri->text);
+	g_object_unref(uri);
 
 	if (has)
 	  break;
@@ -461,7 +425,7 @@ class MN:Mailbox:View from Gtk:Tree:View
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
     gtk_tree_selection_selected_foreach(selection, self_remove_mailbox_cb, &gconf_mailboxes);
     eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
-    mn_pointers_free(gconf_mailboxes);
+    eel_g_slist_free_deep(gconf_mailboxes);
   }
 
   private void
@@ -471,20 +435,16 @@ class MN:Mailbox:View from Gtk:Tree:View
 		       gpointer data (check null))
   {
     GSList **gconf_mailboxes = data;
-    char *uri;
+    MNURI *uri;
     GSList *elem;
   
     gtk_tree_model_get(model, iter, COLUMN_URI, &uri, -1);
 
     /* remove all the mailboxes with that URI */
-    while ((elem = g_slist_find_custom(*gconf_mailboxes, uri, (GCompareFunc) mn_uri_cmp)))
-      {
-	*gconf_mailboxes = g_slist_remove_link(*gconf_mailboxes, elem);
-	g_free(elem->data);
-	g_slist_free(elem);
-      }
+    while ((elem = mn_mailboxes_conf_find_uri(*gconf_mailboxes, uri)))
+      *gconf_mailboxes = mn_g_slist_delete_link_deep(*gconf_mailboxes, elem);
 
-    g_free(uri);
+    g_object_unref(uri);
   }
 
   private void
@@ -500,7 +460,7 @@ class MN:Mailbox:View from Gtk:Tree:View
     gtk_tree_selection_selected_foreach(selection, self_copy_mailbox_cb, &uri_list);
 
     gnome_copied_files = mn_build_gnome_copied_files(MN_GNOME_COPIED_FILES_COPY, uri_list);
-    mn_pointers_free(uri_list);
+    eel_g_slist_free_deep(uri_list);
 
     status = gtk_clipboard_set_with_data(global_clipboard,
 					 &target,
@@ -518,11 +478,11 @@ class MN:Mailbox:View from Gtk:Tree:View
 		     gpointer data (check null))
   {
     GSList **uri_list = data;
-    char *uri;
+    MNURI *uri;
 
     gtk_tree_model_get(model, iter, COLUMN_URI, &uri, -1);
-    *uri_list = g_slist_append(*uri_list, uri);
-    /* uri is now owned by uri_list, do not free */
+    *uri_list = g_slist_append(*uri_list, g_strdup(uri->text));
+    g_object_unref(uri);
   }
 
   private void
@@ -553,9 +513,43 @@ class MN:Mailbox:View from Gtk:Tree:View
   }
 
   private void
-    properties_response_h (Gtk:Dialog *dialog (check null type),
-			   int response,
-			   gpointer user_data)
+    properties_add_response_h (Gtk:Dialog *dialog (check null type),
+			       int response,
+			       gpointer user_data)
+  {
+    if (response == GTK_RESPONSE_HELP)
+      mn_display_help("mailbox-properties");
+    else if (response == GTK_RESPONSE_CANCEL)
+      gtk_widget_destroy(GTK_WIDGET(dialog));
+    else if (response == GTK_RESPONSE_ACCEPT)
+      {
+	MNURI *uri;
+	
+	uri = mn_mailbox_properties_dialog_get_uri(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
+	g_return_if_fail(MN_IS_URI(uri));
+      
+	if (! mn_mailboxes_find_uri(mn_shell->mailboxes, uri))
+	  {
+	    GSList *gconf_mailboxes;
+	    
+	    gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
+	    gconf_mailboxes = g_slist_append(gconf_mailboxes, g_strdup(uri->text));
+	    eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
+	    eel_g_slist_free_deep(gconf_mailboxes);
+	    
+	    gtk_widget_destroy(GTK_WIDGET(dialog));
+	  }
+	else
+	  mn_error_dialog(NULL, _("Unable to add mailbox"), _("The mailbox is already in the list."));
+
+	g_object_unref(uri);
+      }
+  }
+  
+  private void
+    properties_edit_response_h (Gtk:Dialog *dialog (check null type),
+				int response,
+				gpointer user_data)
   {
     if (response == GTK_RESPONSE_HELP)
       mn_display_help("mailbox-properties");
@@ -603,7 +597,7 @@ class MN:Mailbox:View from Gtk:Tree:View
 	  {
 	    if (type == MN_GNOME_COPIED_FILES_COPY && uri_list)
 	      can_paste = TRUE;
-	    mn_pointers_free(uri_list);
+	    eel_g_slist_free_deep(uri_list);
 	  }
       }
 
@@ -641,6 +635,7 @@ class MN:Mailbox:View from Gtk:Tree:View
   public GtkWidget *
     new (void)
   {
+    g_return_val_if_fail(mn_shell != NULL, NULL);
     return GTK_WIDGET(GET_NEW);
   }
 }

@@ -6,12 +6,11 @@ Index
 
 	0. About this document
 	1. About Mail Notification
-	2. Release notes
-	3. Installation instructions
+	2. Installation instructions
 
 0. About this document
 
-	$Id: README,v 1.18 2004/08/18 01:00:25 jylefort Exp $
+	$Id: README,v 1.21 2004/09/08 23:35:47 jylefort Exp $
 
 	Copyright (c) 2003, 2004 Jean-Yves Lefort.
 
@@ -35,23 +34,12 @@ Index
 		  support
 		* SASL authentication support
 		* APOP authentication support
-		* SSL support
+		* SSL/TLS support
 		* automatic detection of mailbox format
-		* automatic notification
+		* immediate notification (the status icon is updated
+		  within seconds after a mailbox changes)
 		* HIG 2.0 compliance
 
-2. Release notes
-
-	In this release or in previous ones, some configuration keys
-	have been obsoleted. For the sake of cleanliness, you should
-	remove them, by typing:
-
-		$ gconftool-2 --recursive-unset \
-			/apps/mail-notification/local \
-			/apps/mail-notification/remote \
-			/apps/mail-notification/commands/clicked \
-			/apps/mail-notification/ui/preferences-dialog
-
-3. Installation instructions
+2. Installation instructions
 
 	See the INSTALL file.

@@ -16,8 +16,6 @@ src/mn-client-session.c
 src/mn-client-session.h
 src/mn-conf.c
 src/mn-conf.h
-src/mn-dialog.c
-src/mn-dialog.h
 src/mn-gmail-mailbox-properties.gob
 src/mn-gmail-mailbox.gob
 src/mn-imap-mailbox-properties.gob
@@ -56,13 +54,11 @@ src/mn-stock.h
 src/mn-sylpheed-mailbox.gob
 src/mn-system-mailbox-properties.gob
 src/mn-unsupported-mailbox.gob
-src/mn-uri.c
-src/mn-uri.h
+src/mn-uri.gob
 src/mn-util.c
 src/mn-util.h
 src/mn-vfs.c
 src/mn-vfs.h
-ui/dialog.glade
 ui/mailbox-properties.glade
 ui/properties.glade
 ui/welcome.glade

@@ -1,0 +1,540 @@
+/* 
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+%headertop{
+#include <libgnomevfs/gnome-vfs.h>
+%}
+
+%h{
+  typedef enum
+  {
+    MN_URI_VFS,
+    MN_URI_POP,
+    MN_URI_IMAP,
+    MN_URI_GMAIL,
+    MN_URI_UNKNOWN
+  } MNURIType;
+
+  typedef enum
+  {
+    MN_URI_LOCAL		= 1 << 0,
+    MN_URI_SYSTEM_MAILBOX	= 1 << 1,
+    MN_URI_SSL			= 1 << 2,
+    MN_URI_INBAND_SSL		= 1 << 3
+  } MNURIFlags;
+
+#define MN_URI_IS_VFS(uri)		((uri)->type == MN_URI_VFS)
+#define MN_URI_IS_POP(uri)		((uri)->type == MN_URI_POP)
+#define MN_URI_IS_IMAP(uri)		((uri)->type == MN_URI_IMAP)
+#define MN_URI_IS_GMAIL(uri)		((uri)->type == MN_URI_GMAIL)
+
+#define MN_URI_IS_LOCAL(uri)		(((uri)->flags & MN_URI_LOCAL) != 0)
+#define MN_URI_IS_SYSTEM_MAILBOX(uri)	(((uri)->flags & MN_URI_SYSTEM_MAILBOX) != 0)
+#define MN_URI_IS_SSL(uri)		(((uri)->flags & MN_URI_SSL) != 0)
+#define MN_URI_IS_INBAND_SSL(uri)	(((uri)->flags & MN_URI_INBAND_SSL) != 0)
+%}
+
+%{
+#include "config.h"
+#include <stdio.h>		/* required by stdlib.h on Darwin */
+#include <stdlib.h>		/* required by sys/socket.h on Darwin */
+#include <stdarg.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <glib/gi18n-lib.h>
+#include <libgnomevfs/gnome-vfs-utils.h>
+#include <eel/eel.h>
+#include "mn-util.h"
+
+  typedef struct
+  {
+    const char		*name;
+
+    MNURIType		type;
+    MNURIFlags		flags;
+
+    int			default_port;
+    const char		*default_path;
+  } SchemeInfo;
+    
+  static const SchemeInfo our_schemes[] = {
+    { "pop",	MN_URI_POP,	0,		110,	NULL },
+    { "pops",	MN_URI_POP,	MN_URI_SSL,	995,	NULL },
+    { "imap",	MN_URI_IMAP,	0,		143,	"INBOX" },
+    { "imaps",	MN_URI_IMAP,	MN_URI_SSL,	993,	"INBOX" },
+    { "gmail",	MN_URI_GMAIL,	0,		-1,	NULL }
+  };
+%}
+
+class MN:URI from G:Object
+{
+  public char *text = NULL destroywith g_free;			/* always defined */
+  public GnomeVFSURI *vfs = NULL unrefwith gnome_vfs_uri_unref;
+  public char *human_readable = NULL destroywith g_free;	/* always defined */
+  
+  public char *scheme = NULL destroywith g_free;
+  public char *username = NULL destroywith g_free; /* if scheme is defined, always defined */
+  public char *password = NULL destroywith g_free; /* if scheme is defined, always defined */
+  public char *authmech = NULL destroywith g_free;
+  public char *hostname = NULL destroywith g_free;
+  public int port = -1;
+  public char *path = NULL destroywith g_free;
+  public char **queries = NULL destroywith g_strfreev;
+
+  public MNURIType type = MN_URI_UNKNOWN;
+  public MNURIFlags flags = 0;
+
+  private gboolean
+    is_ipv6_address (const char *hostname)
+  {
+    char dummy[16];		/* sizeof(struct in6_addr) */
+
+    g_return_val_if_fail(hostname != NULL, FALSE);
+
+    return inet_pton(AF_INET6, hostname, dummy) == 1;
+  }
+  
+  public gboolean
+    has_query (self, const char *query (check null))
+  {
+    return self->queries && eel_g_strv_find(self->queries, query) != -1;
+  }
+  
+  public const char *
+    get_system_mailbox (void)
+  {
+    static char *global_uri = NULL;
+    G_LOCK_DEFINE_STATIC(global_uri);
+    const char *uri;
+
+    G_LOCK(global_uri);
+    if (! global_uri)
+      {
+	const char *mail = g_getenv("MAIL");
+	if (mail)
+	  global_uri = gnome_vfs_get_uri_from_local_path(mail);
+      }
+    uri = global_uri;
+    G_UNLOCK(global_uri);
+
+    return uri;
+  }
+    
+  private const SchemeInfo *
+    get_scheme_info (const char *scheme)
+  {
+    int i;
+
+    for (i = 0; i < G_N_ELEMENTS(our_schemes); i++)
+      if (! strcmp(scheme, our_schemes[i].name))
+	return &our_schemes[i];
+
+    return NULL;
+  }
+  
+  public int
+    get_default_port (const char *scheme (check null))
+  {
+    const SchemeInfo *scheme_info;
+
+    scheme_info = self_get_scheme_info(scheme);
+    return scheme_info ? scheme_info->default_port : -1;
+  }
+  
+  public const char *
+    get_default_path (const char *scheme (check null))
+  {
+    const SchemeInfo *scheme_info;
+
+    scheme_info = self_get_scheme_info(scheme);
+    return scheme_info ? scheme_info->default_path : NULL;
+  }
+  
+  private void
+    parse (self)
+  {
+    int len;
+    int buflen;
+
+    if (self->vfs || ! self->text) /* no need to parse, or already parsed */
+      return;
+
+    len = strlen(self->text);
+    buflen = len + 1;
+
+    {
+      char *pat;
+      char scheme_buf[buflen];
+      char auth_buf[buflen];
+      char location_buf[buflen];
+      char username_buf[buflen];
+      char password_buf[buflen];
+      char authmech_buf[buflen];
+      char hostname_buf[buflen];
+      int _port;
+      char path_buf[buflen];
+      char queries_buf[buflen];
+      gboolean has_location = FALSE;
+      gboolean has_authmech = FALSE;
+      gboolean has_port = FALSE;
+      gboolean has_path = FALSE;
+      gboolean has_queries = FALSE;
+      int n;
+
+      /* split URI in 3 parts: scheme, auth and location */
+
+      pat = g_strdup_printf("%%%i[^:]://%%%i[^@]@%%%is", len, len, len);
+      n = sscanf(self->text, pat, scheme_buf, auth_buf, location_buf);
+      g_free(pat);
+
+      if (n >= 2)
+	{
+	  if (n == 3)
+	    has_location = TRUE;
+	}
+      else
+	return;			/* unparsable */
+
+      /* split auth part in 3 subparts: username, password and authmech */
+
+      /*
+       * For backward compatibility with previous versions of Mail
+       * Notification, we also support ;auth= (in lowercase).
+       */
+      pat = g_strdup_printf("%%%i[^:]:%%%i[^;];%%*1[aA]%%*1[uU]%%*1[tT]%%*1[hH]=%%%is", len, len, len);
+      n = sscanf(auth_buf, pat, username_buf, password_buf, authmech_buf);
+      g_free(pat);
+
+      if (n >= 2)
+	{
+	  if (n == 3)
+	    has_authmech = TRUE;
+	}
+      else
+	return;			/* unparsable */
+
+      if (has_location)
+	{
+	  char hostport_buf[buflen];
+
+	  /* split location part in 3 subparts: hostport, path and queries */
+
+	  pat = g_strdup_printf("%%%i[^/]/%%%i[^?]?%%%is", len, len, len);
+	  n = sscanf(location_buf, pat, hostport_buf, path_buf, queries_buf);
+	  g_free(pat);
+
+	  if (n >= 2)
+	    {
+	      has_path = TRUE;
+	      if (n == 3)
+		has_queries = TRUE;
+	    }
+	  else
+	    {
+	      pat = g_strdup_printf("%%%i[^?]?%%%is", len, len);
+	      n = sscanf(location_buf, pat, hostport_buf, queries_buf);
+	      g_free(pat);
+
+	      if (n == 2)
+		has_queries = TRUE;
+	    }
+
+	  /* split hostport in 2 subparts: host and port */
+
+	  pat = g_strdup_printf("[%%%i[^]]]:%%u", len);
+	  n = sscanf(hostport_buf, pat, hostname_buf, &_port);
+	  g_free(pat);
+	
+	  if (n < 1)
+	    {
+	      pat = g_strdup_printf("%%%i[^:]:%%u", len);
+	      n = sscanf(hostport_buf, pat, hostname_buf, &_port);
+	      g_free(pat);
+	    }
+	
+	  if (n == 2)
+	    has_port = TRUE;
+	}
+
+      self->scheme = gnome_vfs_unescape_string(scheme_buf, NULL);
+      self->username = gnome_vfs_unescape_string(username_buf, NULL);
+      self->password = gnome_vfs_unescape_string(password_buf, NULL);
+      if (has_authmech)
+	self->authmech = gnome_vfs_unescape_string(authmech_buf, NULL);
+      if (has_location)
+	self->hostname = gnome_vfs_unescape_string(hostname_buf, NULL);
+      self->port = has_port ? _port : self_get_default_port(self->scheme);
+      self->path = has_path ? gnome_vfs_unescape_string(path_buf, NULL) : g_strdup(self_get_default_path(self->scheme));
+      if (has_queries)
+	{
+	  int i;
+	    
+	  self->queries = g_strsplit(queries_buf, "&", 0);
+	  for (i = 0; self->queries[i]; i++)
+	    {
+	      char *unescaped;
+
+	      unescaped = gnome_vfs_unescape_string(self->queries[i], NULL);
+
+	      g_free(self->queries[i]);
+	      self->queries[i] = unescaped;
+	    }
+	}
+    }
+  }
+  
+  private void
+    build (self)
+  {
+    char *canonical = NULL;
+
+    if (self->vfs)
+      {
+	g_return_if_fail(self->text != NULL);
+	canonical = gnome_vfs_make_uri_canonical(self->text);
+      }
+    else if (self->scheme)
+      {
+	GString *string;
+	char *escaped;
+	int i;
+	
+	g_return_if_fail(self->username != NULL);
+	g_return_if_fail(self->password != NULL);
+
+	escaped = gnome_vfs_escape_string(self->scheme);
+	string = g_string_new(escaped);
+	g_free(escaped);
+
+	escaped = gnome_vfs_escape_string(self->username);
+	g_string_append_printf(string, "://%s", escaped);
+	g_free(escaped);
+
+	escaped = gnome_vfs_escape_string(self->password);
+	g_string_append_printf(string, ":%s", escaped);
+	g_free(escaped);
+
+	if (self->authmech)
+	  {
+	    escaped = gnome_vfs_escape_string(self->authmech);
+	    g_string_append_printf(string, ";AUTH=%s", escaped);
+	    g_free(escaped);
+	  }
+
+	if (self->hostname)
+	  {
+	    escaped = gnome_vfs_escape_host_and_path_string(self->hostname);
+	    g_string_append_printf(string, self_is_ipv6_address(self->hostname) ? "@[%s]" : "@%s", escaped);
+	    g_free(escaped);
+	  }
+
+	if (self->port >= 0 && self->port != self_get_default_port(self->scheme))
+	  g_string_append_printf(string, ":%i", self->port);
+
+	if (self->path)
+	  {
+	    const char *default_path;
+
+	    default_path = self_get_default_path(self->scheme);
+	    if (! default_path || strcmp(self->path, default_path))
+	      {
+		escaped = gnome_vfs_escape_path_string(self->path);
+		g_string_append_printf(string, "/%s", escaped);
+		g_free(escaped);
+	      }
+	  }
+
+	if (self->queries)
+	  for (i = 0; self->queries[i]; i++)
+	    {
+	      g_string_append_c(string, i == 0 ? '?' : '&');
+
+	      escaped = gnome_vfs_escape_string(self->queries[i]);
+	      g_string_append(string, escaped);
+	      g_free(escaped);
+	    }
+
+	canonical = g_string_free(string, FALSE);
+      }
+
+    if (canonical)
+      {
+	g_free(self->text);
+	self->text = canonical;
+      }
+  }
+
+  private void
+    set_human_readable (self)
+  {
+    g_return_if_fail(self->human_readable == NULL);
+
+    if (MN_URI_IS_SYSTEM_MAILBOX(self))
+      self->human_readable = g_strdup(_("System Mailbox"));
+    else if (self->vfs)
+      {
+	char *path;
+	
+	path = gnome_vfs_get_local_path_from_uri(self->text);
+	if (path)
+	  {
+	    self->human_readable = g_filename_to_utf8(path, -1, NULL, NULL, NULL);
+	    g_free(path);
+	  }
+	else
+	  self->human_readable = gnome_vfs_uri_to_string(self->vfs, GNOME_VFS_URI_HIDE_PASSWORD);
+      }
+    else if (MN_URI_IS_POP(self) || MN_URI_IS_IMAP(self))
+      self->human_readable = g_strdup_printf("%s@%s", self->username, self->hostname);
+    else if (MN_URI_IS_GMAIL(self))
+      self->human_readable = g_strdup_printf("%s@gmail.com", self->username);
+    else
+      self->human_readable = g_strdup(self->text);
+  }
+  
+  private void
+    post_init (self)
+  {
+    const char *system_uri;
+
+    self_parse(self);
+    self_build(self);
+    
+    if (self->vfs)
+      {
+	self->type = MN_URI_VFS;
+	if (gnome_vfs_uri_is_local(self->vfs))
+	  self->flags |= MN_URI_LOCAL;
+      }
+    else if (self->scheme)
+      {
+	const SchemeInfo *scheme_info;
+
+	scheme_info = self_get_scheme_info(self->scheme);
+	if (scheme_info)
+	  {
+	    self->type = scheme_info->type;
+	    self->flags |= scheme_info->flags;
+	  }
+
+	if ((MN_URI_IS_POP(self) && self_has_query(self, "STLS"))
+	    || (MN_URI_IS_IMAP(self) && self_has_query(self, "STARTTLS")))
+	  self->flags |= MN_URI_INBAND_SSL;
+      }
+
+    system_uri = self_get_system_mailbox();
+    if (system_uri && ! strcmp(system_uri, self->text))
+      self->flags |= MN_URI_SYSTEM_MAILBOX;
+
+    self_set_human_readable(self);
+  }
+  
+  public MNURI *
+    new (const char *text_uri (check null))
+  {
+    Self *self;
+    char *scheme;
+
+    self = GET_NEW;
+    self->text = ! strncmp(text_uri, "pop3:", 5) /* also handle obsolete pop3 locators */
+      ? g_strconcat("pop://", text_uri + 5, NULL)
+      : g_strdup(text_uri);
+
+    /* only use GnomeVFS if we can't handle it ourselves */
+    scheme = gnome_vfs_get_uri_scheme(self->text);
+    if (! scheme || ! self_get_scheme_info(scheme))
+      self->vfs = gnome_vfs_uri_new(self->text);
+    g_free(scheme);
+    
+    self_post_init(self);
+    return self;
+  }
+
+  public MNURI *
+    new_pop (gboolean ssl,
+	     gboolean stls,
+	     const char *username (check null),
+	     const char *password (check null),
+	     const char *authmech,
+	     const char *hostname (check null),
+	     int port)
+  {
+    Self *self;
+
+    self = GET_NEW;
+
+    self->scheme = g_strdup(ssl ? "pops" : "pop");
+    self->username = g_strdup(username);
+    self->password = g_strdup(password);
+    self->authmech = g_strdup(authmech);
+    self->hostname = g_strdup(hostname);
+    self->port = port;
+    if (stls)
+      self->queries = g_strsplit("STLS", " ", 0);
+    
+    self_post_init(self);
+    return self;
+  }
+
+  public MNURI *
+    new_imap (gboolean ssl,
+	      gboolean starttls,
+	      const char *username (check null),
+	      const char *password (check null),
+	      const char *authmech,
+	      const char *hostname (check null),
+	      int port,
+	      const char *mailbox (check null))
+  {
+    Self *self;
+
+    self = GET_NEW;
+
+    self->scheme = g_strdup(ssl ? "imaps" : "imap");
+    self->username = g_strdup(username);
+    self->password = g_strdup(password);
+    self->authmech = g_strdup(authmech);
+    self->hostname = g_strdup(hostname);
+    self->port = port;
+    self->path = g_strdup(mailbox);
+    if (starttls)
+      self->queries = g_strsplit("STARTTLS", " ", 0);
+    
+    self_post_init(self);
+    return self;
+  }
+
+  public MNURI *
+    new_gmail (const char *username (check null),
+	       const char *password (check null))
+  {
+    Self *self;
+
+    self = GET_NEW;
+
+    self->scheme = g_strdup("gmail");
+    self->username = g_strdup(username);
+    self->password = g_strdup(password);
+    
+    self_post_init(self);
+    return self;
+  }
+}

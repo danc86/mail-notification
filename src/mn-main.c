@@ -25,7 +25,6 @@
 #include "mn-util.h"
 #include "mn-stock.h"
 #include "mn-automation.h"
-#include "mn-dialog.h"
 #include "mn-shell.h"
 
 /*** cpp *********************************************************************/
@@ -88,7 +87,7 @@ mn_main_list_features (void)
 
   features = g_string_new(NULL);
 #ifdef WITH_SSL
-  g_string_append(features, "SSL");
+  g_string_append(features, "SSL/TLS");
 #endif /* WITH_SSL */
 #ifdef WITH_SASL
   if (*features->str)
@@ -123,6 +122,7 @@ main (int argc, char **argv)
   gboolean arg_display_about = FALSE;
   gboolean arg_update = FALSE;
   gboolean arg_report = FALSE;
+  gboolean arg_unset_obsolete_configuration = FALSE;
   const struct poptOption popt_options[] = {
     {
       "enable-info",
@@ -178,6 +178,15 @@ main (int argc, char **argv)
       N_("Report the mail status"),
       NULL
     },
+    {
+      "unset-obsolete-configuration",
+      '\0',
+      POPT_ARG_NONE,
+      &arg_unset_obsolete_configuration,
+      0,
+      N_("Unset obsolete GConf configuration and exit"),
+      NULL
+    },
     POPT_TABLEEND
   };
   BonoboGenericFactory *automation_factory;
@@ -220,6 +229,12 @@ main (int argc, char **argv)
       exit(0);
     }
 
+  if (arg_unset_obsolete_configuration)
+    {
+      mn_conf_unset_obsolete();
+      exit(0);
+    }
+  
   /* mn-client-session uses sockets, we don't want to die on SIGPIPE */
   signal(SIGPIPE, SIG_IGN);
 

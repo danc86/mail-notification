@@ -24,9 +24,9 @@
 %}
 %{
 #include "config.h"
+#include <errno.h>
 #include <gnome.h>
 #include "mn-properties.h"
-#include "mn-dialog.h"
 #include "mn-util.h"
 #include "mn-conf.h"
 #include "mn-mailboxes.h"
@@ -49,6 +49,7 @@ class MN:Shell from G:Object
 
     self_init_icon(self);
     eel_gconf_notification_add(MN_CONF_COMMANDS_DOUBLE_CLICKED_COMMAND, self_notify_double_clicked_command_cb, self);
+    eel_gconf_notification_add(MN_CONF_BLINK_ON_ERRORS, self_notify_blink_on_errors_cb, self);
 
     g_signal_connect(G_OBJECT(self->mailboxes), "list-changed", G_CALLBACK(self_mailboxes_list_changed_h), self);
     g_signal_connect(G_OBJECT(self->mailboxes), "status-changed", G_CALLBACK(self_mailboxes_status_changed_h), self);
@@ -107,9 +108,24 @@ class MN:Shell from G:Object
   {
     Self *self = user_data;
 
+    GDK_THREADS_ENTER();
     self_update_command(self);
+    GDK_THREADS_LEAVE();
   }
 
+  private void
+    notify_blink_on_errors_cb (GConfClient *client,
+			       guint cnxn_id,
+			       GConfEntry *entry,
+			       gpointer user_data (check null))
+  {
+    Self *self = user_data;
+
+    GDK_THREADS_ENTER();
+    self_update_icon(self);
+    GDK_THREADS_LEAVE();
+  }
+  
   private void
     icon_activate_h (MN:Mail:Icon *icon (check null type),
 		     gpointer user_data (check null))
@@ -183,16 +199,11 @@ class MN:Shell from G:Object
     command = eel_gconf_get_string(MN_CONF_COMMANDS_DOUBLE_CLICKED_COMMAND);
     if (command)
       {
-	GError *err = NULL;
-	
-	if (! g_spawn_command_line_async(command, &err))
-	  {
-	    mn_error_dialog(NULL,
-			    _("A command error has occurred"),
-			    _("Unable to execute double-clicked command: %s."),
-			    err->message);
-	    g_error_free(err);
-	  }
+	if (gnome_execute_shell(NULL, command) < 0)
+	  mn_error_dialog(NULL,
+			  _("A command error has occurred"),
+			  _("Unable to execute double-clicked command: %s."),
+			  g_strerror(errno));
 	
 	g_free(command);
       }
@@ -211,21 +222,7 @@ class MN:Shell from G:Object
   private void
     update_sensitivity (self)
   {
-    gboolean has_manual = FALSE;
-    GSList *l;
-  
-    MN_LIST_FOREACH(l, mn_mailboxes_get(self->mailboxes))
-      {
-	MNMailbox *mailbox = l->data;
-	
-	if (MN_MAILBOX_CAN_CHECK(mailbox) && ! mn_mailbox_get_automatic(mailbox))
-	  {
-	    has_manual = TRUE;
-	    break;
-	  }
-      }
-
-    gtk_widget_set_sensitive(selfp->icon->update_item, has_manual);
+    gtk_widget_set_sensitive(selfp->icon->update_item, mn_mailboxes_has_manual(self->mailboxes));
   }
 
   private void
@@ -286,12 +283,10 @@ class MN:Shell from G:Object
 	      }
 	  }
 
-	if (n_new > 0 || n_error > 0 || n_unsupported > 0)
-	  {
-	    show = TRUE;
-	    if (n_error > 0 || n_unsupported > 0)
-	      blink = TRUE;
-	  }
+	if (n_new > 0)
+	  show = TRUE;
+	if ((n_error > 0 || n_unsupported > 0) && eel_gconf_get_boolean(MN_CONF_BLINK_ON_ERRORS))
+	  blink = TRUE;
 	
 	if (n_new > 0)
 	  g_string_prepend(new_string, ngettext("The following mailbox has new mail:\n",
@@ -330,16 +325,11 @@ class MN:Shell from G:Object
 		command = eel_gconf_get_string(MN_CONF_COMMANDS_NEW_MAIL_COMMAND);
 		if (command)
 		  {
-		    GError *err = NULL;
-		    
-		    if (! g_spawn_command_line_async(command, &err))
-		      {
-			mn_error_dialog(NULL,
-					_("A command error has occurred in Mail Notification"),
-					_("Unable to execute new mail command: %s."),
-					err->message);
-			g_error_free(err);
-		      }
+		    if (gnome_execute_shell(NULL, command) < 0)
+		      mn_error_dialog(NULL,
+				      _("A command error has occurred in Mail Notification"),
+				      _("Unable to execute new mail command: %s."),
+				      g_strerror(errno));
 		    
 		    g_free(command);
 		  }
@@ -348,7 +338,7 @@ class MN:Shell from G:Object
 	old_n_new = n_new;
       }
     
-    if (show)
+    if (show || blink)
       {
 	mn_tooltips_set_tip(selfp->icon->tooltips, GTK_WIDGET(selfp->icon), tooltip->str);
 	mn_blinking_image_set_blinking(MN_BLINKING_IMAGE(selfp->icon->image), blink);
@@ -407,13 +397,11 @@ class MN:Shell from G:Object
     MN_LIST_FOREACH(l, mn_mailboxes_get(self->mailboxes))
       {
 	MNMailbox *mailbox = l->data;
-	const char *uri;
 	const char *error;
 
-	uri = mn_mailbox_get_uri(mailbox);
 	error = mn_mailbox_get_error(mailbox);
 
-	g_string_append_printf(string, "%s\n", uri);
+	g_string_append_printf(string, "%s\n", mailbox->uri->text);
 
 	if (mn_mailbox_get_has_new(mailbox))
 	  g_string_append(string, " has-new\n");

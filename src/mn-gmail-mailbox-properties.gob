@@ -24,7 +24,6 @@
 #include <glib/gi18n-lib.h>
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-util.h"
-#include "mn-uri.h"
 #include "mn-util.h"
 %}
 
@@ -99,18 +98,12 @@ class MN:Gmail:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties
   
   interface MN:Mailbox:Properties private gboolean
     set_uri (MN:Mailbox:Properties *self (check null type),
-	     const char *uri (check null))
+	     MN:URI *uri (check null type))
   {
-    char *username;
-    char *password;
-
-    if (mn_uri_parse_gmail(uri, &username, &password))
+    if (MN_URI_IS_GMAIL(uri))
       {
-	gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->username_entry), username);
-	gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->password_entry), password);
-
-	g_free(username);
-	g_free(password);
+	gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->username_entry), uri->username);
+	gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->password_entry), uri->password);
 
 	return TRUE;
       }
@@ -118,7 +111,7 @@ class MN:Gmail:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties
       return FALSE;
   }
   
-  interface MN:Mailbox:Properties private char *
+  interface MN:Mailbox:Properties private MNURI *
     get_uri (MN:Mailbox:Properties *self (check null type))
   {
     const char *username;
@@ -127,6 +120,6 @@ class MN:Gmail:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties
     username = gtk_entry_get_text(GTK_ENTRY(SELF(self)->_priv->username_entry));
     password = gtk_entry_get_text(GTK_ENTRY(SELF(self)->_priv->password_entry));
 
-    return mn_uri_build_gmail(username, password);
+    return mn_uri_new_gmail(username, password);
   }
 }

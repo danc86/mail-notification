@@ -44,8 +44,8 @@ subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/openssl.m4 \
-	$(top_srcdir)/m4/pkg.m4 $(top_srcdir)/m4/sasl2.m4 \
-	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/sasl2.m4 $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -243,7 +243,7 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 tests = \
-	test-uri.output				\
+	test-uri.stamp				\
 	test-vfs-read-line1-smallblock.output	\
 	test-vfs-read-line1-largeblock.output	\
 	test-vfs-read-line2-smallblock.output	\
@@ -275,7 +275,6 @@ AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) \
 
 MOSTLYCLEANFILES = $(tests)
 EXTRA_DIST = \
-	test-uri.expected			\
 	test-vfs-read-line1.input		\
 	test-vfs-read-line1.expected		\
 	test-vfs-read-line2.input		\
@@ -602,9 +601,9 @@ uninstall-am: uninstall-info-am
 	uninstall-am uninstall-info-am
 
 
-test-uri.output: test-uri test-uri.expected
-	./test-uri > test-uri.output
-	@if cmp test-uri.output test-uri.expected > /dev/null; then echo "+++ URI TEST PASSED"; else echo "--- URI TEST FAILED"; exit 1; fi
+test-uri.stamp: test-uri
+	./test-uri
+	@touch test-uri.stamp
 
 test-vfs-read-line1-smallblock.output: test-vfs-read-line-smallblock test-vfs-read-line1.input test-vfs-read-line1.expected
 	./test-vfs-read-line-smallblock file://`pwd`/test-vfs-read-line1.input > test-vfs-read-line1-smallblock.output

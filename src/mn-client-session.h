@@ -81,6 +81,10 @@ int mn_client_session_write (MNClientSession *session,
 			     const char *format,
 			     ...);
 
+#ifdef WITH_SSL
+gboolean mn_client_session_enable_ssl (MNClientSession *session);
+#endif
+
 #ifdef WITH_SASL
 gboolean mn_client_session_sasl_authentication_start (MNClientSession *session,
 						      const char *service,

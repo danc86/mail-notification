@@ -10,11 +10,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNAutodetectMailboxPropertiesPrivate {
-#line 38 "mn-autodetect-mailbox-properties.gob"
+#line 37 "mn-autodetect-mailbox-properties.gob"
 	GtkSizeGroup * size_group;
-#line 50 "mn-autodetect-mailbox-properties.gob"
+#line 49 "mn-autodetect-mailbox-properties.gob"
 	GtkTooltips * tooltips;
-#line 51 "mn-autodetect-mailbox-properties.gob"
+#line 50 "mn-autodetect-mailbox-properties.gob"
 	GtkWidget * location_entry;
 #line 20 "mn-autodetect-mailbox-properties-private.h"
 };

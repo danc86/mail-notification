@@ -1,3 +1,28 @@
+0.6.2					09 September 2004
+
+	* Added STARTTLS support to the IMAP backend
+	* Added STLS support to the POP3 backend
+	* Now prompts the user before connecting to untrusted SSL/TLS
+	  servers
+	* Added a "Start Mail Notification on GNOME login" option
+	* Added a "Blink on errors" option
+	* Commands are now executed in the user's shell
+	* The Gmail log is now dumped when --enable-info is in use
+	* Added a --unset-obsolete-configuration command line argument
+	* An obsolete mailbox list is now handled without being
+	  rewritten (a step towards full forward compatibility of
+	  GConf keys)
+	* "SSL" is now called "SSL/TLS", as we provide SSLv2, SSLv3
+	  and TLSv1 support
+	* Fixed a typo in the MD5 code which prevented builds on some
+	  platforms (reported by Andy Shaw)
+	* Automatic mailboxes were also polled: fixed
+	* Added german translations (Henrik Brandt)
+	* Added portuguese translations (Duarte Henriques)
+	* A few minor issues have been fixed
+	* Some cleanups have been performed
+	* Now requires GNOME version 2.6 or superior
+
 0.6.1					19 August 2004
 
 	* File descriptor leaks in the Sylpheed and Maildir backends

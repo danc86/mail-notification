@@ -34,8 +34,8 @@ class MN:Pending:Mailbox from MN:Mailbox
   }
 
   public MNMailbox *
-    new (const char *uri (check null))
+    new (MN:URI *uri (check null type))
   {
-    return g_object_new(TYPE_SELF, MN_MAILBOX_PROP_URI((char *) uri), NULL);
+    return g_object_new(TYPE_SELF, MN_MAILBOX_PROP_URI(G_OBJECT(uri)), NULL);
   }
 }

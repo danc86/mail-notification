@@ -118,7 +118,7 @@ mn_vfs_read_line_context_free (MNVFSReadLineContext *context)
 }
 
 gboolean
-mn_vfs_test (const char *uri, GFileTest test)
+mn_vfs_test (GnomeVFSURI *uri, GFileTest test)
 {
   GnomeVFSFileInfoOptions options;
   GnomeVFSFileInfo *file_info;
@@ -133,7 +133,7 @@ mn_vfs_test (const char *uri, GFileTest test)
     options |= GNOME_VFS_FILE_INFO_GET_ACCESS_RIGHTS;
   
   file_info = gnome_vfs_file_info_new();
-  if (gnome_vfs_get_file_info(uri, file_info, options) == GNOME_VFS_OK)
+  if (gnome_vfs_get_file_info_uri(uri, file_info, options) == GNOME_VFS_OK)
     {
       if (file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_TYPE)
 	{

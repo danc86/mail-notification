@@ -16,9 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
 #include <glib.h>
+#include <glib/gi18n-lib.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include "mn-ssl.h"
 
 /*** variables ***************************************************************/
 
@@ -47,8 +50,10 @@ mn_ssl_init (GError **err)
       SSL_load_error_strings();
 
       global_ctx = SSL_CTX_new(SSLv23_client_method());
-      if (! global_ctx)
-	init_error = g_strdup(ERR_reason_error_string(ERR_get_error()));
+      if (global_ctx)
+	SSL_CTX_set_mode(global_ctx, SSL_MODE_AUTO_RETRY);
+      else
+	init_error = g_strdup(mn_ssl_get_error());
 
       initialized = TRUE;
     }
@@ -62,4 +67,16 @@ mn_ssl_init (GError **err)
   G_UNLOCK(initialized);
 
   return ctx;
+}
+
+const char *
+mn_ssl_get_error (void)
+{
+  const char *error;
+
+  error = ERR_reason_error_string(ERR_get_error());
+  if (! error)
+    error = _("unknown SSL/TLS error");
+
+  return error;
 }

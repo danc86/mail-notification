@@ -23,5 +23,6 @@
 #include <openssl/ssl.h>
 
 SSL_CTX *mn_ssl_init (GError **err);
+const char *mn_ssl_get_error (void);
 
 #endif /* _MN_SSL_H */

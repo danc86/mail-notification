@@ -65,6 +65,8 @@ mn_mailbox_properties_credentials_new (GtkVBox *vbox,
 				       GtkWidget **password_label,
 				       GtkWidget **password_entry)
 {
+  const char *username;
+
   g_return_if_fail(GTK_IS_VBOX(vbox));
   g_return_if_fail(username_label != NULL);
   g_return_if_fail(username_entry != NULL);
@@ -75,6 +77,12 @@ mn_mailbox_properties_credentials_new (GtkVBox *vbox,
 				  _("_Username:"),
 				  username_label,
 				  username_entry);
+
+  /* defaults to the login name */
+  username = g_get_user_name();
+  if (username)
+    gtk_entry_set_text(GTK_ENTRY(*username_entry), username);
+
   mn_mailbox_properties_field_new(vbox,
 				  _("_Password:"),
 				  password_label,
@@ -153,6 +161,7 @@ mn_mailbox_properties_connection_type_new (GtkVBox *vbox,
   port_label = gtk_label_new(_("Port:"));
 
   *spin = gtk_spin_button_new_with_range(0, 0xFFFF, 1);
+  gtk_entry_set_activates_default(GTK_ENTRY(*spin), TRUE);
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(*spin), default_port);
   gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(*spin), TRUE);
 

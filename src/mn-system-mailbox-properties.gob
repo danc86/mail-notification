@@ -24,7 +24,6 @@
 #include <glib/gi18n-lib.h>
 #include <libgnomevfs/gnome-vfs-utils.h>
 #include "mn-mailbox-properties.h"
-#include "mn-uri.h"
 %}
 
 class MN:System:Mailbox:Properties from Gtk:Label (interface MN:Mailbox:Properties)
@@ -65,15 +64,14 @@ class MN:System:Mailbox:Properties from Gtk:Label (interface MN:Mailbox:Properti
 
   interface MN:Mailbox:Properties private gboolean
     set_uri (MN:Mailbox:Properties *self (check null type),
-	     const char *uri (check null))
+	     MN:URI *uri (check null))
   {
-    return SELF(self)->_priv->system_uri
-      && ! mn_uri_cmp(uri, SELF(self)->_priv->system_uri);
+    return MN_URI_IS_SYSTEM_MAILBOX(uri);
   }
 
-  interface MN:Mailbox:Properties private char *
+  interface MN:Mailbox:Properties private MNURI *
     get_uri (MN:Mailbox:Properties *self (check null type))
   {
-    return g_strdup(SELF(self)->_priv->system_uri);
+    return mn_uri_new(SELF(self)->_priv->system_uri);
   }
 }

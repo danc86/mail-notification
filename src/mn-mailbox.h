@@ -5,6 +5,7 @@
 
 
 #include <stdarg.h>
+#include "mn-uri.h"
 
 #ifndef __MN_MAILBOX_H__
 #define __MN_MAILBOX_H__
@@ -16,7 +17,8 @@ extern "C" {
 
 
 #define MN_MAILBOX_CAN_CHECK(self) \
-  (MN_MAILBOX_GET_CLASS((self))->impl_check != NULL || MN_MAILBOX_GET_CLASS((self))->impl_threaded_check != NULL)
+  (MN_MAILBOX_GET_CLASS((self))->impl_check != NULL \
+   || MN_MAILBOX_GET_CLASS((self))->impl_threaded_check != NULL)
 
 
 /*
@@ -42,6 +44,8 @@ typedef struct _MNMailbox MNMailbox;
 #endif
 struct _MNMailbox {
 	GObject __parent__;
+	/*< public >*/
+	MNURI * uri;
 	/*< private >*/
 	MNMailboxPrivate *_priv;
 };
@@ -52,7 +56,7 @@ struct _MNMailbox {
 typedef struct _MNMailboxClass MNMailboxClass;
 struct _MNMailboxClass {
 	GObjectClass __parent__;
-	gboolean (* impl_is) (MNMailbox * self, const char * uri);
+	gboolean (* impl_is) (MNMailbox * self, MNURI * uri);
 	void (* impl_check) (MNMailbox * self);
 	void (* impl_threaded_check) (MNMailbox * self);
 	const char * stock_id;
@@ -64,7 +68,6 @@ struct _MNMailboxClass {
  * Public methods
  */
 GType	mn_mailbox_get_type	(void);
-const char * 	mn_mailbox_get_uri	(MNMailbox * self);
 const char * 	mn_mailbox_get_name	(MNMailbox * self);
 gboolean 	mn_mailbox_get_automatic	(MNMailbox * self);
 void 	mn_mailbox_set_automatic	(MNMailbox * self,
@@ -74,7 +77,7 @@ void 	mn_mailbox_set_has_new	(MNMailbox * self,
 					gboolean val);
 const char * 	mn_mailbox_get_error	(MNMailbox * self);
 const GType * 	mn_mailbox_get_types	(void);
-void 	mn_mailbox_new_async	(const char * uri,
+void 	mn_mailbox_new_async	(MNURI * uri,
 					gpointer callback,
 					gpointer user_data);
 void 	mn_mailbox_check	(MNMailbox * self);
@@ -83,7 +86,7 @@ void 	mn_mailbox_check	(MNMailbox * self);
  * Argument wrapping macros
  */
 #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
-#define MN_MAILBOX_PROP_URI(arg)    	"uri", __extension__ ({gchar *z = (arg); z;})
+#define MN_MAILBOX_PROP_URI(arg)    	"uri", __extension__ ({GObject *z = (arg); z;})
 #define MN_MAILBOX_PROP_NAME(arg)    	"name", __extension__ ({gchar *z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_NAME(arg)	"name", __extension__ ({gchar **z = (arg); z;})
 #define MN_MAILBOX_PROP_AUTOMATIC(arg)    	"automatic", __extension__ ({gboolean z = (arg); z;})
@@ -93,7 +96,7 @@ void 	mn_mailbox_check	(MNMailbox * self);
 #define MN_MAILBOX_PROP_ERROR(arg)    	"error", __extension__ ({gchar *z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_ERROR(arg)	"error", __extension__ ({gchar **z = (arg); z;})
 #else /* __GNUC__ && !__STRICT_ANSI__ */
-#define MN_MAILBOX_PROP_URI(arg)    	"uri",(gchar *)(arg)
+#define MN_MAILBOX_PROP_URI(arg)    	"uri",(GObject *)(arg)
 #define MN_MAILBOX_PROP_NAME(arg)    	"name",(gchar *)(arg)
 #define MN_MAILBOX_GET_PROP_NAME(arg)	"name",(gchar **)(arg)
 #define MN_MAILBOX_PROP_AUTOMATIC(arg)    	"automatic",(gboolean )(arg)

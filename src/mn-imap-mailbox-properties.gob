@@ -25,7 +25,6 @@
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-util.h"
 #include "mn-pi-mailbox-properties-private.h"
-#include "mn-uri.h"
 #include "mn-auth-combo-box.h"
 #include "mn-util.h"
 %}
@@ -44,6 +43,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
       const char *mailbox;
       
       mn_pi_mailbox_properties_get_contents(pi,
+					    NULL,
 					    NULL,
 					    &username,
 					    &password,
@@ -72,8 +72,8 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
     MNPIMailboxPropertiesClass *pi_class = MN_PI_MAILBOX_PROPERTIES_CLASS(class);
 
     pi_class->label = "IMAP";
-    pi_class->default_port[0] = MN_URI_IMAP_PORT(FALSE);
-    pi_class->default_port[1] = MN_URI_IMAP_PORT(TRUE);
+    pi_class->default_port[0] = mn_uri_get_default_port("imap");
+    pi_class->default_port[1] = mn_uri_get_default_port("imaps");
   }
 
   override (G:Object) GObject *
@@ -107,6 +107,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
     selfp->other_radio = gtk_radio_button_new_with_mnemonic_from_widget(GTK_RADIO_BUTTON(selfp->inbox_radio), _("oth_er:"));
     selfp->mailbox_entry = gtk_entry_new();
     gtk_widget_set_sensitive(selfp->mailbox_entry, FALSE);
+    gtk_entry_set_activates_default(GTK_ENTRY(selfp->mailbox_entry), TRUE);
 
     hbox = gtk_hbox_new(FALSE, 12);
     gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
@@ -145,40 +146,28 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
   
   interface MN:Mailbox:Properties private gboolean
     set_uri (MN:Mailbox:Properties *properties (check null type),
-	     const char *uri (check null))
+	     MN:URI *uri (check null type))
   {
     Self *self = SELF(properties);
-    gboolean ssl;
-    char *username;
-    char *password;
-    char *authmech;
-    char *hostname;
-    int port;
-    char *mailbox;
     
-    if (mn_uri_parse_imap(uri, &ssl, &username, &password, &authmech, &hostname, &port, &mailbox))
+    if (MN_URI_IS_IMAP(uri))
       {
 	mn_pi_mailbox_properties_set_contents(MN_PI_MAILBOX_PROPERTIES(properties),
-					      ssl,
-					      username,
-					      password,
-					      authmech,
-					      hostname,
-					      port);
+					      MN_URI_IS_SSL(uri),
+					      MN_URI_IS_INBAND_SSL(uri),
+					      uri->username,
+					      uri->password,
+					      uri->authmech,
+					      uri->hostname,
+					      uri->port);
 	
-	if (! strcmp(mailbox, "INBOX"))
+	if (! strcmp(uri->path, "INBOX"))
 	  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->inbox_radio), TRUE);
 	else
 	  {
 	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->other_radio), TRUE);
-	    gtk_entry_set_text(GTK_ENTRY(selfp->mailbox_entry), mailbox);
+	    gtk_entry_set_text(GTK_ENTRY(selfp->mailbox_entry), uri->path);
 	  }
-
-	g_free(username);
-	g_free(password);
-	g_free(authmech);
-	g_free(hostname);
-	g_free(mailbox);
 
 	return TRUE;
       }
@@ -186,21 +175,23 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
       return FALSE;
   }
 
-  interface MN:Mailbox:Properties private char *
+  interface MN:Mailbox:Properties private MNURI *
     get_uri (MN:Mailbox:Properties *properties (check null type))
   {
     Self *self = SELF(properties);
     gboolean ssl;
+    gboolean inband_ssl;
     const char *username;
     const char *password;
     char *authmech;
     const char *hostname;
     int port;
     const char *mailbox = NULL;
-    char *uri;
+    MNURI *uri;
 
     mn_pi_mailbox_properties_get_contents(MN_PI_MAILBOX_PROPERTIES(properties),
 					  &ssl,
+					  &inband_ssl,
 					  &username,
 					  &password,
 					  &authmech,
@@ -211,7 +202,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
       ? "INBOX"
       : gtk_entry_get_text(GTK_ENTRY(selfp->mailbox_entry));
 
-    uri = mn_uri_build_imap(ssl, username, password, authmech, hostname, port, mailbox);
+    uri = mn_uri_new_imap(ssl, inband_ssl, username, password, authmech, hostname, port, mailbox);
     g_free(authmech);
 
     return uri;

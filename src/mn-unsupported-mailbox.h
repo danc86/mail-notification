@@ -55,7 +55,7 @@ struct _MNUnsupportedMailboxClass {
  */
 GType	mn_unsupported_mailbox_get_type	(void);
 const char * 	mn_unsupported_mailbox_get_reason	(MNUnsupportedMailbox * self);
-MNMailbox * 	mn_unsupported_mailbox_new	(const char * uri,
+MNMailbox * 	mn_unsupported_mailbox_new	(MNURI * uri,
 					const char * reason);
 
 /*

@@ -29,9 +29,9 @@
 #include <stdarg.h>
 #include <glib/gi18n-lib.h>
 #include <libgnomevfs/gnome-vfs-utils.h>
+#include <eel/eel.h>
 #include "mn-mailbox-private.h"
 #include "mn-util.h"
-#include "mn-uri.h"
 #include "mn-client-session.h"
 
 #define HAS_CURRENT_TAG(response, priv)	(! strcmp((response)->tag, (priv)->tag))
@@ -45,6 +45,9 @@
   {
     STATE_GREETING = MN_CLIENT_SESSION_INITIAL_STATE,
     STATE_CAPABILITY,
+#ifdef WITH_SSL
+    STATE_STARTTLS,
+#endif
 #ifdef WITH_SASL
     STATE_AUTHENTICATE,
 #endif
@@ -62,18 +65,22 @@
 
   struct _MNClientSessionPrivate
   {
-    MNIMAPMailbox	*mailbox;
+    MNMailbox		*mailbox;
+    MNIMAPMailbox	*self;
     MNClientSession	*session;
     int			numeric_tag;
     char		*tag;
     char		**capabilities;
     GSList		*auth_mechanisms;
     gboolean		status_received;
+#ifdef WITH_SSL
+    gboolean		starttls_completed;
+#endif
 #ifdef WITH_SASL
     const char		*sasl_mechanism;
 #endif
   };
-
+  
   struct _MNClientSessionResponse
   {
     char		*continuation;
@@ -86,14 +93,6 @@
 
 class MN:IMAP:Mailbox from MN:Mailbox
 {
-  private char *hostname destroywith g_free;
-  private int port;
-  private char *username destroywith g_free;
-  private char *password destroywith g_free;
-  private char *authmech destroywith g_free;
-  private char *mailbox destroywith g_free;
-  private gboolean ssl;
-
   class_init (class)
   {
     MN_MAILBOX_CLASS(class)->format = "IMAP";
@@ -104,43 +103,22 @@ class MN:IMAP:Mailbox from MN:Mailbox
   {
     GObject *object;
     MNMailbox *mailbox;
-    Self *self;
 
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
     mailbox = MN_MAILBOX(object);
-    self = SELF(object);
 
-    if (mn_uri_parse_imap(mn_mailbox_get_uri(mailbox),
-			  &selfp->ssl,
-			  &selfp->username,
-			  &selfp->password,
-			  &selfp->authmech,
-			  &selfp->hostname,
-			  &selfp->port,
-			  &selfp->mailbox))
-      {
 #ifndef WITH_SSL
-	if (selfp->ssl)
-	  mn_mailbox_set_init_error(mailbox, _("SSL support has not been compiled in"));
+    if (MN_URI_IS_SSL(mailbox->uri) || MN_URI_IS_INBAND_SSL(mailbox->uri))
+      mn_mailbox_set_init_error(mailbox, _("SSL/TLS support has not been compiled in"));
 #endif /* WITH_SSL */
-      }
-    else
-      mn_mailbox_set_init_error(mailbox, _("unable to parse IMAP URI"));
 
     return object;
   }
 
   override (MN:Mailbox) gboolean
-    impl_is (MNMailbox *dummy, const char *uri (check null))
+    impl_is (MNMailbox *dummy, MN:URI *uri (check null type))
   {
-    char *scheme;
-    gboolean is;
-
-    scheme = gnome_vfs_get_uri_scheme(uri);
-    is = scheme && (! strcmp(scheme, "imap") || ! strcmp(scheme, "imaps"));
-    g_free(scheme);
-
-    return is;
+    return MN_URI_IS_IMAP(uri);
   }
 
   private int
@@ -161,7 +139,7 @@ class MN:IMAP:Mailbox from MN:Mailbox
 	  }
 	
 	return priv->capabilities
-	  ? self_session_authenticate(priv)
+	  ? self_session_after_capability(priv)
 	  : STATE_CAPABILITY;
       }
     else if (! response->tag && IS(response, "PREAUTH"))
@@ -176,6 +154,12 @@ class MN:IMAP:Mailbox from MN:Mailbox
     enter_capability_cb (MNClientSession *session (check null),
 			 MNClientSessionPrivate *priv (check null))
   {
+    g_strfreev(priv->capabilities);
+    priv->capabilities = NULL;
+
+    eel_g_slist_free_deep(priv->auth_mechanisms);
+    priv->auth_mechanisms = NULL;
+
     return self_session_write(priv, "CAPABILITY");
   }
 
@@ -191,7 +175,7 @@ class MN:IMAP:Mailbox from MN:Mailbox
 	    if (IS_OK(response))
 	      {
 		return priv->capabilities
-		  ? self_session_authenticate(priv)
+		  ? self_session_after_capability(priv)
 		  : mn_client_session_error(session, _("server did not send capabilities"));
 	      }
 	    else if (IS_BAD(response))
@@ -210,6 +194,47 @@ class MN:IMAP:Mailbox from MN:Mailbox
   }
   
   private int
+    enter_starttls_cb (MNClientSession *session (check null),
+		       MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_SSL
+    return self_session_write(priv, "STARTTLS");
+#else
+    g_return_val_if_reached(0);
+#endif /* WITH_SSL */
+  }
+  
+  private int
+    handle_starttls_cb (MNClientSession *session (check null),
+			MNClientSessionResponse *response (check null),
+			MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_SSL
+    if (response->tag)
+      {
+	if (HAS_CURRENT_TAG(response, priv))
+	  {
+	    if (IS_OK(response))
+	      {
+		priv->starttls_completed = TRUE;
+		return mn_client_session_enable_ssl(session)
+		  ? STATE_CAPABILITY
+		  : RESULT_ERROR_END;
+	      }
+	    else if (IS_BAD(response))
+	      return self_session_authenticate(priv);
+	    else
+	      return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+	  }
+      }
+
+    return RESULT_DEFAULT_HANDLER;
+#else
+    g_return_val_if_reached(0);
+#endif /* WITH_SSL */
+  }
+  
+  private int
     enter_authenticate_cb (MNClientSession *session (check null),
 			   MNClientSessionPrivate *priv (check null))
   {
@@ -217,7 +242,7 @@ class MN:IMAP:Mailbox from MN:Mailbox
     if (mn_client_session_sasl_authentication_start(priv->session,
 						    "imap",
 						    priv->auth_mechanisms,
-						    priv->mailbox->_priv->authmech,
+						    priv->mailbox->uri->authmech,
 						    &priv->sasl_mechanism))
       return self_session_write(priv, "AUTHENTICATE %s", priv->sasl_mechanism);
     else
@@ -263,19 +288,19 @@ class MN:IMAP:Mailbox from MN:Mailbox
 		    MNClientSessionPrivate *priv (check null))
   {
     if (self_session_has_capability(priv, "LOGINDISABLED"))
-    {
-      mn_client_session_notice(session, _("server advertised LOGINDISABLED, not using LOGIN authentication"));
-      mn_client_session_error(session, _("unable to login"));
-      return STATE_LOGOUT;
-    }
+      {
+	mn_client_session_notice(session, _("server advertised LOGINDISABLED, not using LOGIN authentication"));
+	mn_client_session_error(session, _("unable to login"));
+	return STATE_LOGOUT;
+      }
     else
       {
 	char *quoted_username;
 	char *quoted_password;
 	int result;
 
-	quoted_username = self_quote(priv->mailbox->_priv->username);
-	quoted_password = self_quote(priv->mailbox->_priv->password);
+	quoted_username = self_quote(priv->mailbox->uri->username);
+	quoted_password = self_quote(priv->mailbox->uri->password);
 	result = self_session_write(priv, "LOGIN %s %s", quoted_username, quoted_password);
 	g_free(quoted_username);
 	g_free(quoted_password);
@@ -312,7 +337,7 @@ class MN:IMAP:Mailbox from MN:Mailbox
     char *quoted_mailbox;
     int result;
 
-    quoted_mailbox = self_quote(priv->mailbox->_priv->mailbox);
+    quoted_mailbox = self_quote(priv->mailbox->uri->path);
     result = self_session_write(priv, "STATUS %s (UNSEEN)", quoted_mailbox);
     g_free(quoted_mailbox);
 
@@ -350,7 +375,7 @@ class MN:IMAP:Mailbox from MN:Mailbox
 	    priv->status_received = TRUE;
 	    
 	    GDK_THREADS_ENTER();
-	    mn_mailbox_set_has_new(MN_MAILBOX(priv->mailbox), count != 0);
+	    mn_mailbox_set_has_new(priv->mailbox, count != 0);
 	    gdk_flush();
 	    GDK_THREADS_LEAVE();
 	    
@@ -395,6 +420,9 @@ class MN:IMAP:Mailbox from MN:Mailbox
     MNClientSessionState states[] = {
       { STATE_GREETING,		NULL,				self_handle_greeting_cb },
       { STATE_CAPABILITY,	self_enter_capability_cb,	self_handle_capability_cb },
+#ifdef WITH_SSL
+      { STATE_STARTTLS,		self_enter_starttls_cb,		self_handle_starttls_cb },
+#endif
 #ifdef WITH_SASL
       { STATE_AUTHENTICATE,	self_enter_authenticate_cb,	self_handle_authenticate_cb },
 #endif
@@ -414,17 +442,18 @@ class MN:IMAP:Mailbox from MN:Mailbox
     GError *err = NULL;
 
     memset(&priv, 0, sizeof(priv));
-    priv.mailbox = self;
+    priv.mailbox = mailbox;
+    priv.self = self;
     
     if (! mn_client_session_run(states,
 				&callbacks,
 #ifdef WITH_SSL
-				selfp->ssl,
+				MN_URI_IS_SSL(mailbox->uri),
 #endif
-				selfp->hostname,
-				selfp->port,
-				selfp->username,
-				selfp->password,
+				mailbox->uri->hostname,
+				mailbox->uri->port,
+				mailbox->uri->username,
+				mailbox->uri->password,
 				&priv,
 				&err))
       {
@@ -442,7 +471,7 @@ class MN:IMAP:Mailbox from MN:Mailbox
     
     g_free(priv.tag);
     g_strfreev(priv.capabilities);
-    mn_pointers_free(priv.auth_mechanisms);
+    eel_g_slist_free_deep(priv.auth_mechanisms);
   }
   
   private void
@@ -450,7 +479,7 @@ class MN:IMAP:Mailbox from MN:Mailbox
 	       const char *str (check null),
 	       MNClientSessionPrivate *priv (check null))
   {
-    mn_mailbox_notice(MN_MAILBOX(priv->mailbox), "%s", str);
+    mn_mailbox_notice(priv->mailbox, "%s", str);
   }
   
   private MNClientSessionResponse *
@@ -613,11 +642,32 @@ class MN:IMAP:Mailbox from MN:Mailbox
   }
   
   private int
+    session_after_capability (MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_SSL
+    if (MN_URI_IS_INBAND_SSL(priv->mailbox->uri)
+	&& ! MN_URI_IS_SSL(priv->mailbox->uri)
+	&& ! priv->starttls_completed)
+      {
+	if (self_session_has_capability(priv, "STARTTLS"))
+	  return STATE_STARTTLS;
+	else
+	  {
+	    mn_client_session_error(priv->session, _("server does not support in-band SSL/TLS"));
+	    return STATE_LOGOUT;
+	  }
+      }
+    else
+#endif /* WITH_SSL */
+      return self_session_authenticate(priv);
+  }
+  
+  private int
     session_authenticate (MNClientSessionPrivate *priv (check null))
   {
-    if (priv->mailbox->_priv->authmech)
+    if (priv->mailbox->uri->authmech)
       {
-	if (*priv->mailbox->_priv->authmech != '+')
+	if (*priv->mailbox->uri->authmech != '+')
 	  {
 #ifdef WITH_SASL
 	    return STATE_AUTHENTICATE;
@@ -627,10 +677,10 @@ class MN:IMAP:Mailbox from MN:Mailbox
 	  }
 	else
 	  {
-	    if (! strcmp(priv->mailbox->_priv->authmech, "+LOGIN"))
+	    if (! strcmp(priv->mailbox->uri->authmech, "+LOGIN"))
 	      return STATE_LOGIN;
 	    else
-	      return mn_client_session_error(priv->session, _("unknown authentication mechanism \"%s\""), priv->mailbox->_priv->authmech);
+	      return mn_client_session_error(priv->session, _("unknown authentication mechanism \"%s\""), priv->mailbox->uri->authmech);
 	  }
       }
     else
@@ -646,7 +696,7 @@ class MN:IMAP:Mailbox from MN:Mailbox
   private int
     session_authenticate_fallback (MNClientSessionPrivate *priv (check null))
   {
-    if (! priv->mailbox->_priv->authmech)
+    if (! priv->mailbox->uri->authmech)
       {
 	mn_client_session_notice(priv->session, _("falling back to IMAP LOGIN authentication"));
 	return STATE_LOGIN;

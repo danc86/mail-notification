@@ -108,5 +108,38 @@
 	<long>Whether Mail Notification has already been run or not.</long>
       </locale>
     </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/blink-on-errors</key>
+      <applyto>/apps/mail-notification/blink-on-errors</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>1</default>
+      <locale name="C">
+        <short>Blink on errors</short>
+	<long>Whether the status icon should blink on errors or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/trusted-x509-certificates</key>
+      <applyto>/apps/mail-notification/trusted-x509-certificates</applyto>
+      <owner>mail-notification</owner>
+      <type>list</type>
+      <list_type>string</list_type>
+      <locale name="C">
+        <short>Fingerprints of trusted X509 certificates</short>
+	<long>The list of trusted X509 certificates, represented by their MD5 fingerprint.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/trusted-servers</key>
+      <applyto>/apps/mail-notification/trusted-servers</applyto>
+      <owner>mail-notification</owner>
+      <type>list</type>
+      <list_type>string</list_type>
+      <locale name="C">
+        <short>Trusted servers list</short>
+	<long>The list of trusted SSL/TLS servers (hostname:port) lacking a X509 certificate.</long>
+      </locale>
+    </schema>
   </schemalist>
 </gconfschemafile>

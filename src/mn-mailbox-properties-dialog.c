@@ -33,8 +33,8 @@
 #endif
 #include "mn-conf.h"
 #include "mn-util.h"
-#include "mn-uri.h"
 #include "mn-stock.h"
+#include "mn-mailboxes.h"
 
 /*** types *******************************************************************/
 
@@ -45,7 +45,7 @@ typedef struct
   GtkWidget				*properties_event_box;
   
   MNMailboxPropertiesDialogMode		mode;
-  char					*uri;
+  MNURI					*uri;
   GtkWidget				*apply_button;
   GtkWidget				*accept_button;
   GtkListStore				*store;
@@ -73,7 +73,7 @@ static void mn_mailbox_properties_dialog_set_active_properties (MNMailboxPropert
 static MNMailboxProperties *mn_mailbox_properties_dialog_get_active_properties (MNMailboxPropertiesDialog *dialog);
 static MNMailboxProperties *mn_mailbox_properties_dialog_get_properties_by_type (MNMailboxPropertiesDialog *dialog, GType type);
 
-static void mn_mailbox_properties_dialog_set_uri_internal (MNMailboxPropertiesDialog *dialog, const char *uri);
+static void mn_mailbox_properties_dialog_set_uri_internal (MNMailboxPropertiesDialog *dialog, MNURI *uri);
 static void mn_mailbox_properties_dialog_update_sensitivity (MNMailboxPropertiesDialog *dialog);
 
 /*** implementation **********************************************************/
@@ -168,7 +168,8 @@ mn_mailbox_properties_dialog_private_free (Private *private)
 {
   g_return_if_fail(private != NULL);
 
-  g_free(private->uri);
+  if (private->uri)
+    g_object_unref(private->uri);
   g_object_unref(private->store);
   g_free(private);
 }
@@ -314,30 +315,27 @@ mn_mailbox_properties_dialog_get_properties_by_type (MNMailboxPropertiesDialog *
 
 static void
 mn_mailbox_properties_dialog_set_uri_internal (MNMailboxPropertiesDialog *dialog,
-					       const char *uri)
+					       MNURI *uri)
 {
   Private *private;
-  char *name;
   char *title;
 
   g_return_if_fail(MN_IS_MAILBOX_PROPERTIES_DIALOG(dialog));
-  g_return_if_fail(uri != NULL);
+  g_return_if_fail(MN_IS_URI(uri));
   private = MN_MAILBOX_PROPERTIES_DIALOG_PRIVATE(dialog);
 
-  g_free(private->uri);
-  private->uri = g_strdup(uri);
+  if (private->uri)
+    g_object_unref(private->uri);
+  private->uri = g_object_ref(uri);
 
-  name = mn_uri_format_for_display(private->uri);
-  title = g_strdup_printf(_("%s Properties"), name);
-  g_free(name);
-
+  title = g_strdup_printf(_("%s Properties"), uri->human_readable);
   gtk_window_set_title(GTK_WINDOW(dialog), title);
   g_free(title);
 }
 
 void
 mn_mailbox_properties_dialog_set_uri (MNMailboxPropertiesDialog *dialog,
-				      const char *uri)
+				      MNURI *uri)
 {
   Private *private;
   gboolean valid;
@@ -375,7 +373,7 @@ mn_mailbox_properties_dialog_set_uri (MNMailboxPropertiesDialog *dialog,
   mn_mailbox_properties_dialog_set_active_properties(dialog, properties);
 }
 
-char *
+MNURI *
 mn_mailbox_properties_dialog_get_uri (MNMailboxPropertiesDialog *dialog)
 {
   Private *private;
@@ -392,34 +390,34 @@ void
 mn_mailbox_properties_dialog_apply (MNMailboxPropertiesDialog *dialog)
 {
   Private *private;
-  char *new_uri;
+  MNURI *new_uri;
 
   g_return_if_fail(MN_IS_MAILBOX_PROPERTIES_DIALOG(dialog));
   private = MN_MAILBOX_PROPERTIES_DIALOG_PRIVATE(dialog);
 
   new_uri = mn_mailbox_properties_dialog_get_uri(dialog);
-  g_return_if_fail(new_uri != NULL);
+  g_return_if_fail(MN_IS_URI(new_uri));
 
-  if (mn_uri_cmp(new_uri, private->uri))
+  if (strcmp(new_uri->text, private->uri->text))
     {
       GSList *gconf_mailboxes;
       GSList *elem;
 
       gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
 
-      elem = g_slist_find_custom(gconf_mailboxes, private->uri, (GCompareFunc) mn_uri_cmp);
+      elem = mn_mailboxes_conf_find_uri(gconf_mailboxes, private->uri);
       if (elem)
 	{
 	  g_free(elem->data);
-	  elem->data = g_strdup(new_uri);
+	  elem->data = g_strdup(new_uri->text);
 	}
       
       eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
-      mn_pointers_free(gconf_mailboxes);
+      eel_g_slist_free_deep(gconf_mailboxes);
       
       mn_mailbox_properties_dialog_set_uri_internal(dialog, new_uri);
     }
-  g_free(new_uri);
+  g_object_unref(new_uri);
 }
 
 static void

@@ -10,7 +10,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 23 "mn-mailbox.gob"
+#line 24 "mn-mailbox.gob"
 
 #include <libgnomevfs/gnome-vfs.h>
 
@@ -26,27 +26,25 @@ extern "C" {
 
 #line 28 "mn-mailbox-private.h"
 struct _MNMailboxPrivate {
-#line 87 "mn-mailbox.gob"
-	char * uri;
-#line 97 "mn-mailbox.gob"
-	char * name;
-#line 101 "mn-mailbox.gob"
-	gboolean automatic;
-#line 106 "mn-mailbox.gob"
-	gboolean has_new;
-#line 111 "mn-mailbox.gob"
-	char * error;
-#line 131 "mn-mailbox.gob"
-	GnomeVFSMonitorHandle * monitor_handle;
 #line 132 "mn-mailbox.gob"
+	char * name;
+#line 136 "mn-mailbox.gob"
+	gboolean automatic;
+#line 141 "mn-mailbox.gob"
+	gboolean has_new;
+#line 146 "mn-mailbox.gob"
+	char * error;
+#line 166 "mn-mailbox.gob"
+	GnomeVFSMonitorHandle * monitor_handle;
+#line 167 "mn-mailbox.gob"
 	char * monitor_uri;
-#line 133 "mn-mailbox.gob"
+#line 168 "mn-mailbox.gob"
 	MNMailboxMonitorEventType monitor_events;
-#line 135 "mn-mailbox.gob"
+#line 170 "mn-mailbox.gob"
 	gboolean checking;
-#line 276 "mn-mailbox.gob"
+#line 310 "mn-mailbox.gob"
 	char * init_error;
-#line 50 "mn-mailbox-private.h"
+#line 48 "mn-mailbox-private.h"
 };
 void 	mn_mailbox_set_error	(MNMailbox * self, const char * format, ...);
 void 	mn_mailbox_set_init_error	(MNMailbox * self, const char * format, ...);

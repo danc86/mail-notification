@@ -20,6 +20,7 @@
 #define _MN_MAILBOX_PROPERTIES_DIALOG_H
 
 #include <gtk/gtk.h>
+#include "mn-uri.h"
 
 #define MN_MAILBOX_PROPERTIES_DIALOG_PRIVATE_KEY	"mn-mailbox-properties-dialog-private"
 #define MN_MAILBOX_PROPERTIES_DIALOG_PRIVATE(obj)	(g_object_get_data(G_OBJECT(obj), MN_MAILBOX_PROPERTIES_DIALOG_PRIVATE_KEY))
@@ -44,8 +45,8 @@ GtkWidget *mn_mailbox_properties_dialog_new (GtkWindow *parent,
 					     MNMailboxPropertiesDialogMode mode);
 
 void mn_mailbox_properties_dialog_set_uri (MNMailboxPropertiesDialog *dialog,
-					   const char *uri);
-char *mn_mailbox_properties_dialog_get_uri (MNMailboxPropertiesDialog *dialog);
+					   MNURI *uri);
+MNURI *mn_mailbox_properties_dialog_get_uri (MNMailboxPropertiesDialog *dialog);
 
 void mn_mailbox_properties_dialog_apply (MNMailboxPropertiesDialog *dialog);
 

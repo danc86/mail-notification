@@ -46,27 +46,38 @@ class MN:MH:Mailbox from MN:Mailbox
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
     self = MN_MAILBOX(object);
 
-    sequences_uri = g_build_path("/", mn_mailbox_get_uri(self), ".mh_sequences", NULL);
+    sequences_uri = g_build_path("/", self->uri->text, ".mh_sequences", NULL);
+
+    GDK_THREADS_ENTER();
+
     mn_mailbox_monitor(self,
 		       sequences_uri,
 		       GNOME_VFS_MONITOR_FILE,
 		       MN_MAILBOX_MONITOR_EVENT_CHANGED
 		       | MN_MAILBOX_MONITOR_EVENT_DELETED
 		       | MN_MAILBOX_MONITOR_EVENT_CREATED);
+
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+
     g_free(sequences_uri);
 
     return object;
   }
 
   override (MN:Mailbox) gboolean
-    impl_is (MNMailbox *dummy, const char *uri (check null))
+    impl_is (MNMailbox *dummy, MN:URI *uri (check null type))
   {
-    char *sequences_uri;
-    gboolean is;
+    gboolean is = FALSE;
 
-    sequences_uri = g_build_path("/", uri, ".mh_sequences", NULL);
-    is = mn_vfs_test(sequences_uri, G_FILE_TEST_IS_REGULAR);
-    g_free(sequences_uri);
+    if (uri->vfs)
+      {
+	GnomeVFSURI *sequences_uri;
+
+	sequences_uri = gnome_vfs_uri_append_file_name(uri->vfs, ".mh_sequences");
+	is = mn_vfs_test(sequences_uri, G_FILE_TEST_IS_REGULAR);
+	gnome_vfs_uri_unref(sequences_uri);
+      }
     
     return is;
   }
@@ -74,13 +85,13 @@ class MN:MH:Mailbox from MN:Mailbox
   override (MN:Mailbox) void
     impl_threaded_check (MN:Mailbox *self (check null type))
   {
-    char *sequences_uri;
+    GnomeVFSURI *sequences_uri;
     GnomeVFSResult result;
     GnomeVFSHandle *handle;
   
-    sequences_uri = g_build_path("/", mn_mailbox_get_uri(self), ".mh_sequences", NULL);
-    result = gnome_vfs_open(&handle, sequences_uri, GNOME_VFS_OPEN_READ);
-    g_free(sequences_uri);
+    sequences_uri = gnome_vfs_uri_append_file_name(self->uri->vfs, ".mh_sequences");
+    result = gnome_vfs_open_uri(&handle, sequences_uri, GNOME_VFS_OPEN_READ);
+    gnome_vfs_uri_unref(sequences_uri);
 
     if (result == GNOME_VFS_OK)
       {

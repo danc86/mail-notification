@@ -25,9 +25,6 @@ extern "C" {
 
 #define MN_IMAP_MAILBOX_GET_CLASS(obj)	G_TYPE_INSTANCE_GET_CLASS((obj), mn_imap_mailbox_get_type(), MNIMAPMailboxClass)
 
-/* Private structure type */
-typedef struct _MNIMAPMailboxPrivate MNIMAPMailboxPrivate;
-
 /*
  * Main object structure
  */
@@ -37,8 +34,6 @@ typedef struct _MNIMAPMailbox MNIMAPMailbox;
 #endif
 struct _MNIMAPMailbox {
 	MNMailbox __parent__;
-	/*< private >*/
-	MNIMAPMailboxPrivate *_priv;
 };
 
 /*

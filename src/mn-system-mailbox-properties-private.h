@@ -10,9 +10,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNSystemMailboxPropertiesPrivate {
-#line 35 "mn-system-mailbox-properties.gob"
+#line 34 "mn-system-mailbox-properties.gob"
 	GtkSizeGroup * size_group;
-#line 41 "mn-system-mailbox-properties.gob"
+#line 40 "mn-system-mailbox-properties.gob"
 	const char * system_uri;
 #line 18 "mn-system-mailbox-properties-private.h"
 };

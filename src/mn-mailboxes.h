@@ -58,8 +58,15 @@ struct _MNMailboxesClass {
 GType	mn_mailboxes_get_type	(void);
 void 	mn_mailboxes_check	(MNMailboxes * self);
 GSList * 	mn_mailboxes_get	(MNMailboxes * self);
-MNMailbox * 	mn_mailboxes_find	(MNMailboxes * self,
-					const char * uri);
+GSList * 	mn_mailboxes_find	(MNMailboxes * self,
+					const char * text_uri);
+GSList * 	mn_mailboxes_find_uri	(MNMailboxes * self,
+					MNURI * uri);
+GSList * 	mn_mailboxes_conf_find	(GSList * gconf_mailboxes,
+					const char * text_uri);
+GSList * 	mn_mailboxes_conf_find_uri	(GSList * gconf_mailboxes,
+					MNURI * uri);
+gboolean 	mn_mailboxes_has_manual	(MNMailboxes * self);
 MNMailboxes * 	mn_mailboxes_new	(void);
 
 /*

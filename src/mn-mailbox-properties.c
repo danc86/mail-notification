@@ -104,15 +104,15 @@ mn_mailbox_properties_get_label (MNMailboxProperties *properties)
 
 gboolean
 mn_mailbox_properties_set_uri (MNMailboxProperties *properties,
-			       const char *uri)
+			       MNURI *uri)
 {
   g_return_val_if_fail(MN_IS_MAILBOX_PROPERTIES(properties), FALSE);
-  g_return_val_if_fail(uri != NULL, FALSE);
+  g_return_val_if_fail(MN_IS_URI(uri), FALSE);
 
   return MN_MAILBOX_PROPERTIES_GET_IFACE(properties)->set_uri(properties, uri);
 }
 
-char *
+MNURI *
 mn_mailbox_properties_get_uri (MNMailboxProperties *properties)
 {
   g_return_val_if_fail(MN_IS_MAILBOX_PROPERTIES(properties), NULL);

@@ -6,6 +6,7 @@
  *	- RFC 1939
  *	- RFC 2449
  *	- RFC 1734
+ *	- RFC 2595
  *
  * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
@@ -36,19 +37,22 @@
 #include <unistd.h>
 #include <glib/gi18n-lib.h>
 #include <libgnomevfs/gnome-vfs-utils.h>
+#include <eel/eel.h>
 #include "mn-mailbox-private.h"
 #include "mn-client-session.h"
 #include "mn-util.h"
-#include "mn-uri.h"
 #include "mn-md5.h"
 
   enum
   {
     STATE_GREETING = MN_CLIENT_SESSION_INITIAL_STATE,
     STATE_CAPA,
+#ifdef WITH_SSL
+    STATE_STLS,
+#endif
 #ifdef WITH_SASL
     STATE_AUTH,
-#endif /* WITH_SASL */
+#endif
     STATE_APOP,
     STATE_USER,
     STATE_PASS,
@@ -64,14 +68,19 @@
 
   struct _MNClientSessionPrivate
   {
-    MNPOP3Mailbox	*mailbox;
+    MNMailbox		*mailbox;
+    MNPOP3Mailbox	*self;
     MNClientSession	*session;
     gboolean		in_list;
     char		*apop_timestamp;
     GSList		*auth_mechanisms;
+#ifdef WITH_SSL
+    gboolean		stls_supported;
+    gboolean		stls_completed;
+#endif
 #ifdef WITH_SASL
     const char		*sasl_mechanism;
-#endif /* WITH_SASL */
+#endif
     gboolean		authenticated;
     gboolean		login_delay_user;
   };
@@ -94,13 +103,6 @@
 
 class MN:POP3:Mailbox from MN:Mailbox
 {
-  private char *hostname destroywith g_free;
-  private int port;
-  private char *username destroywith g_free;
-  private char *password destroywith g_free;
-  private char *authmech destroywith g_free;
-  private gboolean ssl;
-
   private int login_delay;
   private GTimer *authentication_timer;
 
@@ -114,42 +116,22 @@ class MN:POP3:Mailbox from MN:Mailbox
   {
     GObject *object;
     MNMailbox *mailbox;
-    Self *self;
 
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
     mailbox = MN_MAILBOX(object);
-    self = SELF(object);
 
-    if (mn_uri_parse_pop(mn_mailbox_get_uri(mailbox),
-			 &selfp->ssl,
-			 &selfp->username,
-			 &selfp->password,
-			 &selfp->authmech,
-			 &selfp->hostname,
-			 &selfp->port))
-      {
 #ifndef WITH_SSL
-	if (selfp->ssl)
-	  mn_mailbox_set_init_error(mailbox, _("SSL support has not been compiled in"));
+    if (MN_URI_IS_SSL(mailbox->uri) || MN_URI_IS_INBAND_SSL(mailbox->uri))
+      mn_mailbox_set_init_error(mailbox, _("SSL/TLS support has not been compiled in"));
 #endif /* WITH_SSL */
-      }
-    else
-      mn_mailbox_set_init_error(mailbox, _("unable to parse POP3 URI"));
   
     return object;
   }
 
   override (MN:Mailbox) gboolean
-    impl_is (MNMailbox *dummy, const char *uri (check null))
+    impl_is (MNMailbox *dummy, MN:URI *uri (check null type))
   {
-    char *scheme;
-    gboolean is;
-
-    scheme = gnome_vfs_get_uri_scheme(uri);
-    is = scheme && (! strcmp(scheme, "pop") || ! strcmp(scheme, "pops"));
-    g_free(scheme);
-
-    return is;
+    return MN_URI_IS_POP(uri);
   }
 
   private int
@@ -200,10 +182,13 @@ class MN:POP3:Mailbox from MN:Mailbox
       case RESPONSE_OK:
 	priv->in_list = TRUE;
       
-	mn_pointers_free(priv->auth_mechanisms);
+	eel_g_slist_free_deep(priv->auth_mechanisms);
 	priv->auth_mechanisms = NULL;
-	priv->mailbox->_priv->login_delay = 0;
+	priv->self->_priv->login_delay = 0;
 	priv->login_delay_user = FALSE;
+#ifdef WITH_SSL
+	priv->stls_supported = FALSE;
+#endif
 
 	return MN_CLIENT_SESSION_RESULT_CONTINUE;
 	
@@ -212,7 +197,22 @@ class MN:POP3:Mailbox from MN:Mailbox
 	priv->in_list = FALSE;
 	if (priv->authenticated)
 	  return STATE_STAT;
+
+#ifdef WITH_SSL
+	if (MN_URI_IS_INBAND_SSL(priv->mailbox->uri)
+	    && ! MN_URI_IS_SSL(priv->mailbox->uri)
+	    && ! priv->stls_completed)
+	  {
+	    if (priv->stls_supported)
+	      return STATE_STLS;
+	    else
+	      {
+		mn_client_session_error(priv->session, _("server does not support in-band SSL/TLS"));
+		return STATE_QUIT;
+	      }
+	  }
 	else
+#endif /* WITH_SSL */
 	  return self_session_authenticate(priv);
       
       case RESPONSE_LIST_ITEM:
@@ -230,32 +230,21 @@ class MN:POP3:Mailbox from MN:Mailbox
 		  for (i = 1; tokens[i]; i++)
 		    priv->auth_mechanisms = g_slist_append(priv->auth_mechanisms, g_strdup(tokens[i]));
 		}
+#ifdef WITH_SSL
+	      else if (! strcmp(tokens[0], "STLS"))
+		priv->stls_supported = TRUE;
+#endif /* WITH_SSL */
 	      else if (! strcmp(tokens[0], "LOGIN-DELAY"))
 		{
-		  if (tokens[1])
+		  if (tokens[1] && mn_str_isnumeric(tokens[1])
+		      && (! tokens[2]
+			  || (! tokens[3]
+			      && ! priv->authenticated
+			      && ! strcmp(tokens[2], "USER"))))
 		    {
-		      if (mn_str_isnumeric(tokens[1]))
-			{
-			  priv->mailbox->_priv->login_delay = atoi(tokens[1]);
-			  if (tokens[2])
-			    {
-			      if (! priv->authenticated)
-				{
-				  if (! strcmp(tokens[2], "USER"))
-				    {
-				      priv->login_delay_user = TRUE;
-				      if (tokens[3])
-					login_delay_error = TRUE;
-				    }
-				  else
-				    login_delay_error = TRUE;
-				}
-			      else
-				login_delay_error = TRUE;
-			    }
-			}
-		      else
-			login_delay_error = TRUE;
+		      priv->self->_priv->login_delay = atoi(tokens[1]);
+		      if (tokens[2])
+			priv->login_delay_user = TRUE;
 		    }
 		  else
 		    login_delay_error = TRUE;
@@ -275,6 +264,42 @@ class MN:POP3:Mailbox from MN:Mailbox
   }
 
   private int
+    enter_stls_cb (MNClientSession *session (check null),
+		   MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_SSL
+    return mn_client_session_write(session, "STLS");
+#else
+    g_return_val_if_reached(0);
+#endif /* WITH_SSL */
+  }
+  
+  private int
+    handle_stls_cb (MNClientSession *session (check null),
+		    MNClientSessionResponse *response (check null),
+		    MNClientSessionPrivate *priv (check null))
+  {
+#ifdef WITH_SSL
+    switch (response->type)
+      {
+      case RESPONSE_OK:
+	priv->stls_completed = TRUE;
+	return mn_client_session_enable_ssl(session)
+	  ? STATE_CAPA
+	  : RESULT_ERROR_END;
+
+      case RESPONSE_ERR:
+	return self_session_authenticate(priv);
+
+      default:
+	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+      }
+#else
+    g_return_val_if_reached(0);
+#endif /* WITH_SSL */
+  }
+  
+  private int
     enter_auth_cb (MNClientSession *session (check null),
 		   MNClientSessionPrivate *priv (check null))
   {
@@ -282,7 +307,7 @@ class MN:POP3:Mailbox from MN:Mailbox
     if (mn_client_session_sasl_authentication_start(priv->session,
 						    "pop",
 						    priv->auth_mechanisms,
-						    priv->mailbox->_priv->authmech,
+						    priv->mailbox->uri->authmech,
 						    &priv->sasl_mechanism))
       return mn_client_session_write(session, "AUTH %s", priv->sasl_mechanism);
     else
@@ -330,10 +355,10 @@ class MN:POP3:Mailbox from MN:Mailbox
     
     mn_md5_init(&context);
     mn_md5_update(&context, priv->apop_timestamp, strlen(priv->apop_timestamp));
-    mn_md5_update(&context, priv->mailbox->_priv->password, strlen(priv->mailbox->_priv->password));
+    mn_md5_update(&context, priv->mailbox->uri->password, strlen(priv->mailbox->uri->password));
     mn_md5_end(&context, buf);
 
-    return mn_client_session_write(session, "APOP %s %s", priv->mailbox->_priv->username, buf);
+    return mn_client_session_write(session, "APOP %s %s", priv->mailbox->uri->username, buf);
   }
 
   private int
@@ -358,7 +383,7 @@ class MN:POP3:Mailbox from MN:Mailbox
     enter_user_cb (MNClientSession *session (check null),
 		   MNClientSessionPrivate *priv (check null))
   {
-    return mn_client_session_write(session, "USER %s", priv->mailbox->_priv->username);
+    return mn_client_session_write(session, "USER %s", priv->mailbox->uri->username);
   }
   
   private int
@@ -378,7 +403,7 @@ class MN:POP3:Mailbox from MN:Mailbox
     enter_pass_cb (MNClientSession *session (check null),
 		   MNClientSessionPrivate *priv (check null))
   {
-    return mn_client_session_write(session, "PASS %s", priv->mailbox->_priv->password);
+    return mn_client_session_write(session, "PASS %s", priv->mailbox->uri->password);
   }
 
   private int
@@ -416,7 +441,7 @@ class MN:POP3:Mailbox from MN:Mailbox
 	  if (response->arguments && sscanf(response->arguments, "%d %d", &count, &size) == 2)
 	    {
 	      GDK_THREADS_ENTER();
-	      mn_mailbox_set_has_new(MN_MAILBOX(priv->mailbox), count != 0);
+	      mn_mailbox_set_has_new(priv->mailbox, count != 0);
 	      gdk_flush();
 	      GDK_THREADS_LEAVE();
 	      
@@ -459,9 +484,12 @@ class MN:POP3:Mailbox from MN:Mailbox
     MNClientSessionState states[] = {
       { STATE_GREETING,		NULL,			self_handle_greeting_cb },
       { STATE_CAPA,		self_enter_capa_cb,	self_handle_capa_cb },
+#ifdef WITH_SSL
+      { STATE_STLS,		self_enter_stls_cb,	self_handle_stls_cb },
+#endif
 #ifdef WITH_SASL
       { STATE_AUTH,		self_enter_auth_cb,	self_handle_auth_cb },
-#endif /* WITH_SASL */
+#endif
       { STATE_APOP,		self_enter_apop_cb,	self_handle_apop_cb },
       { STATE_USER,		self_enter_user_cb,	self_handle_user_cb },
       { STATE_PASS,		self_enter_pass_cb,	self_handle_pass_cb },
@@ -501,17 +529,18 @@ class MN:POP3:Mailbox from MN:Mailbox
       }
   
     memset(&priv, 0, sizeof(priv));
-    priv.mailbox = self;
+    priv.mailbox = mailbox;
+    priv.self = self;
 
     if (! mn_client_session_run(states,
 				&callbacks,
 #ifdef WITH_SSL
-				selfp->ssl,
+				MN_URI_IS_SSL(mailbox->uri),
 #endif
-				selfp->hostname,
-				selfp->port,
-				selfp->username,
-				selfp->password,
+				mailbox->uri->hostname,
+				mailbox->uri->port,
+				mailbox->uri->username,
+				mailbox->uri->password,
 				&priv,
 				&err))
       {
@@ -528,7 +557,7 @@ class MN:POP3:Mailbox from MN:Mailbox
     GDK_THREADS_LEAVE();
 
     g_free(priv.apop_timestamp);
-    mn_pointers_free(priv.auth_mechanisms);
+    eel_g_slist_free_deep(priv.auth_mechanisms);
   }
 
   private void
@@ -536,7 +565,7 @@ class MN:POP3:Mailbox from MN:Mailbox
 	       const char *str (check null),
 	       MNClientSessionPrivate *priv (check null))
   {
-    mn_mailbox_notice(MN_MAILBOX(priv->mailbox), "%s", str);
+    mn_mailbox_notice(priv->mailbox, "%s", str);
   }
 
   private MNClientSessionResponse *
@@ -635,9 +664,9 @@ class MN:POP3:Mailbox from MN:Mailbox
   private int
     session_authenticate (MNClientSessionPrivate *priv (check null))
   {
-    if (priv->mailbox->_priv->authmech)
+    if (priv->mailbox->uri->authmech)
       {
-	if (*priv->mailbox->_priv->authmech != '+')
+	if (*priv->mailbox->uri->authmech != '+')
 	  {
 #ifdef WITH_SASL
 	    return STATE_AUTH;
@@ -647,14 +676,14 @@ class MN:POP3:Mailbox from MN:Mailbox
 	  }
 	else
 	  {
-	    if (! strcmp(priv->mailbox->_priv->authmech, "+APOP"))
+	    if (! strcmp(priv->mailbox->uri->authmech, "+APOP"))
 	      return priv->apop_timestamp
 		? STATE_APOP
 		: mn_client_session_error(priv->session, _("server does not support APOP authentication"));
-	    else if (! strcmp(priv->mailbox->_priv->authmech, "+USERPASS"))
+	    else if (! strcmp(priv->mailbox->uri->authmech, "+USERPASS"))
 	      return STATE_USER;
 	    else
-	      return mn_client_session_error(priv->session, _("unknown authentication mechanism \"%s\""), priv->mailbox->_priv->authmech);
+	      return mn_client_session_error(priv->session, _("unknown authentication mechanism \"%s\""), priv->mailbox->uri->authmech);
 	  }
       }
     else
@@ -674,7 +703,7 @@ class MN:POP3:Mailbox from MN:Mailbox
     session_authenticate_fallback (MNClientSessionPrivate *priv (check null),
 				   gboolean tried_apop)
   {
-    if (! priv->mailbox->_priv->authmech)
+    if (! priv->mailbox->uri->authmech)
       {
 	if (! tried_apop && priv->apop_timestamp)
 	  {
@@ -695,12 +724,12 @@ class MN:POP3:Mailbox from MN:Mailbox
     session_authenticated (MNClientSessionPrivate *priv (check null))
   {
     priv->authenticated = TRUE;
-    if (priv->mailbox->_priv->login_delay)
+    if (priv->self->_priv->login_delay)
       {
-	if (priv->mailbox->_priv->authentication_timer)
-	  g_timer_start(priv->mailbox->_priv->authentication_timer);
+	if (priv->self->_priv->authentication_timer)
+	  g_timer_start(priv->self->_priv->authentication_timer);
 	else
-	  priv->mailbox->_priv->authentication_timer = g_timer_new();
+	  priv->self->_priv->authentication_timer = g_timer_new();
       }
     return priv->login_delay_user ? STATE_CAPA : STATE_STAT;
   }

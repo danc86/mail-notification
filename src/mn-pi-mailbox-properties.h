@@ -42,8 +42,8 @@ struct _MNPIMailboxProperties {
 	GtkTooltips * tooltips; /* protected */
 	GtkWidget * details_vbox; /* protected */
 	GtkSizeGroup * details_size_group; /* protected */
-	GtkWidget * conn_radio[2]; /* protected */
-	GtkWidget * port_spin[2]; /* protected */
+	GtkWidget * conn_radio[3]; /* protected */
+	GtkWidget * port_spin[3]; /* protected */
 	GtkWidget * auth_combo; /* protected */
 };
 
@@ -64,6 +64,7 @@ struct _MNPIMailboxPropertiesClass {
 GType	mn_pi_mailbox_properties_get_type	(void);
 void 	mn_pi_mailbox_properties_set_contents	(MNPIMailboxProperties * self,
 					gboolean ssl,
+					gboolean inband_ssl,
 					const char * username,
 					const char * password,
 					const char * authmech,
@@ -71,6 +72,7 @@ void 	mn_pi_mailbox_properties_set_contents	(MNPIMailboxProperties * self,
 					int port);
 void 	mn_pi_mailbox_properties_get_contents	(MNPIMailboxProperties * self,
 					gboolean * ssl,
+					gboolean * inband_ssl,
 					const char ** username,
 					const char ** password,
 					char ** authmech,

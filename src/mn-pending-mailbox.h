@@ -49,7 +49,7 @@ struct _MNPendingMailboxClass {
  * Public methods
  */
 GType	mn_pending_mailbox_get_type	(void);
-MNMailbox * 	mn_pending_mailbox_new	(const char * uri);
+MNMailbox * 	mn_pending_mailbox_new	(MNURI * uri);
 
 #ifdef __cplusplus
 }

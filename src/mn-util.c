@@ -19,12 +19,14 @@
 #include "config.h"
 #include <string.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <gnome.h>
 #include <glade/glade.h>
+#include <eel/eel.h>
+#include <eel/eel-alert-dialog.h>
 #include "mn-util.h"
 #include "mn-conf.h"
 #include "mn-mailboxes.h"
-#include "mn-dialog.h"
 #include "mn-shell.h"
 
 /*** types *******************************************************************/
@@ -35,6 +37,8 @@ enum {
 };
 
 /*** functions ***************************************************************/
+
+static int mn_g_str_slist_compare_func (gconstpointer a, gconstpointer b);
 
 static void mn_file_chooser_dialog_file_activated_h (GtkFileChooser *chooser,
 						     gpointer user_data);
@@ -67,20 +71,99 @@ mn_info (const char *format, ...)
   va_end(args);
 }
 
-/*
- * Free a singly linked list of heap pointers.
- */
-void
-mn_pointers_free (GSList *list)
+/**
+ * mn_g_slist_delete_link_deep:
+ * @list: a #GSList of g_free'able objects
+ * @link_: an element in the #GSList
+ *
+ * Equivalent of g_slist_delete_link() for a list of g_free'able
+ * objects.
+ *
+ * Return value: new head of @list.
+ **/
+GSList *
+mn_g_slist_delete_link_deep (GSList *list, GSList *link_)
 {
-  GSList *l;
-
-  MN_LIST_FOREACH(l, list)
-    g_free(l->data);
-
-  g_slist_free(list);
+  return mn_g_slist_delete_link_deep_custom(list, link_, (GFunc) g_free, NULL);
 }
 
+/**
+ * mn_g_slist_delete_link_deep_custom:
+ * @list: a #GSList of @element_free_func-freeable objects
+ * @link_: an element in the #GSList
+ * @element_free_func: a function to free @link_->data
+ * @user_data: user data to pass to @element_free_func
+ *
+ * Equivalent of g_slist_delete_link() for a list of
+ * @element_free_func-freeable objects.
+ *
+ * Return value: new head of @list.
+ **/
+GSList *
+mn_g_slist_delete_link_deep_custom (GSList *list,
+				    GSList *link_,
+				    GFunc element_free_func,
+				    gpointer user_data)
+{
+  g_return_val_if_fail(element_free_func != NULL, NULL);
+
+  if (link_)
+    element_free_func(link_->data, user_data);
+
+  return g_slist_delete_link(list, link_);
+}
+
+GSList *
+mn_g_str_slist_find (GSList *list, const char *str)
+{
+  g_return_val_if_fail(str != NULL, NULL);
+
+  return g_slist_find_custom(list, str, mn_g_str_slist_compare_func);
+}
+
+static int
+mn_g_str_slist_compare_func (gconstpointer a, gconstpointer b)
+{
+  return strcmp(a, b);
+}
+
+/**
+ * mn_g_object_slist_free:
+ * @list: a #GSList of #GObject instances
+ *
+ * Equivalent of eel_g_object_list_free() for a singly-linked list.
+ **/
+void
+mn_g_object_slist_free (GSList *list)
+{
+  eel_g_slist_free_deep_custom(list, (GFunc) g_object_unref, NULL);
+}
+
+/**
+ * mn_g_object_slist_delete_link:
+ * @list: a #GSList of #GObject instances
+ * @link_: an element in the #GSList
+ *
+ * Equivalent of g_slist_delete_link() for a list of GObject
+ * instances.
+ *
+ * Return value: new head of @list.
+ **/
+GSList *
+mn_g_object_slist_delete_link (GSList *list, GSList *link_)
+{
+  return mn_g_slist_delete_link_deep_custom(list, link_, (GFunc) g_object_unref, NULL);
+}
+
+/**
+ * mn_str_isnumeric:
+ * @str: the ASCII string to test
+ *
+ * Tests if the ASCII string @str is numeric. Implemented by calling
+ * g_ascii_isdigit() on each character of @str.
+ *
+ * Return value: %TRUE if the ASCII string @str only consists of digits
+ **/
 gboolean
 mn_str_isnumeric (const char *str)
 {
@@ -158,13 +241,17 @@ mn_create_interface (const char *name, ...)
   g_object_unref(xml);
 }
 
-/*
- * The GtkFileChooser API does not allow a chooser to pick a file
- * (GTK_FILE_CHOOSER_ACTION_OPEN) and select a folder
- * (GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER) at the same time.
+/**
+ * mn_file_chooser_dialog_allow_select_folder:
+ * @dialog: a #GtkFileChooserDialog
+ * @accept_id: the "accept" response ID (must not be
+ *             GTK_RESPONSE_ACCEPT, GTK_RESPONSE_OK, GTK_RESPONSE_YES
+ *             or GTK_RESPONSE_APPLY)
  *
- * This function provides a workaround.
- */
+ * Allows @dialog to pick a file (%GTK_FILE_CHOOSER_ACTION_OPEN) or
+ * select a folder (%GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER) at the
+ * same time.
+ **/
 void
 mn_file_chooser_dialog_allow_select_folder (GtkFileChooserDialog *dialog,
 					    int accept_id)
@@ -214,6 +301,13 @@ mn_file_chooser_dialog_response_h (GtkDialog *dialog,
     }
 }
 
+/**
+ * mn_setup_dnd:
+ * @widget: a widget to setup mailbox drag-and-drop for
+ *
+ * Configures @widget so that when mailboxes are dropped on it, they
+ * will be added to the Mail Notification mailbox list.
+ **/
 void
 mn_setup_dnd (GtkWidget *widget)
 {
@@ -279,7 +373,7 @@ mn_drag_data_received_h (GtkWidget *widget,
 	    gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
 	    gconf_mailboxes = g_slist_concat(gconf_mailboxes, new_mailboxes);
 	    eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
-	    mn_pointers_free(gconf_mailboxes);
+	    eel_g_slist_free_deep(gconf_mailboxes);
 	  }
       }
       break;
@@ -305,6 +399,7 @@ mn_drag_data_received_h (GtkWidget *widget,
 	for (i = 0; i < char_len && char_data[i] != '\n'; i++)
 	  g_string_append_unichar(url, char_data[i]);
 
+	g_return_if_fail(mn_shell != NULL);
 	if (! mn_mailboxes_find(mn_shell->mailboxes, url->str))
 	  {
 	    GSList *gconf_mailboxes;
@@ -312,7 +407,7 @@ mn_drag_data_received_h (GtkWidget *widget,
 	    gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
 	    gconf_mailboxes = g_slist_append(gconf_mailboxes, g_strdup(url->str));
 	    eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
-	    mn_pointers_free(gconf_mailboxes);
+	    eel_g_slist_free_deep(gconf_mailboxes);
 	  }
 	
 	g_string_free(url, TRUE);
@@ -405,6 +500,14 @@ mn_thread_create (GThreadFunc func, gpointer data)
     }
 }
 
+/**
+ * mn_tooltips_new:
+ *
+ * Creates and sinks a #GtkTooltips object.
+ *
+ * Return value: the new #GtkTooltips object (sunk and with a
+ *               reference count of 1).
+ **/
 GtkTooltips *
 mn_tooltips_new (void)
 {
@@ -417,6 +520,20 @@ mn_tooltips_new (void)
   return tooltips;
 }
 
+/**
+ * mn_tooltips_set_tips:
+ * @tooltips: a #GtkTooltips object
+ * @...: a %NULL-terminated list of widget-tip pairs
+ *
+ * Sets the tooltips of several widgets at once.
+ *
+ * <example>
+ * mn_tooltips_set_tips(tooltips,
+ *                      button, "Click here to proceed",
+ *                      entry, "Your username",
+ *                      NULL);
+ * </example>
+ **/
 void
 mn_tooltips_set_tips (GtkTooltips *tooltips, ...)
 {
@@ -443,8 +560,8 @@ mn_tooltips_set_tips (GtkTooltips *tooltips, ...)
 /**
  * mn_menu_shell_append:
  * @shell: the #GtkMenuShell to append to
- * @stock_id: the stock ID of the item, or NULL
- * @mnemonic: the mnemonic of the item, or NULL
+ * @stock_id: the stock ID of the item or %NULL
+ * @mnemonic: the mnemonic of the item or %NULL
  *
  * Creates a new menu item, shows it and appends it to @shell.
  *
@@ -458,11 +575,11 @@ mn_tooltips_set_tips (GtkTooltips *tooltips, ...)
  * If only @mnemonic is provided, a #GtkMenuItem will be created using
  * the text of @mnemonic.
  *
- * If @stock_id and @mnemonic are both NULL, a #GtkSeparatorMenuItem
+ * If @stock_id and @mnemonic are both %NULL, a #GtkSeparatorMenuItem
  * will be created.
  *
- * Return value: the new menu item
- */
+ * Return value: the new menu item.
+ **/
 GtkWidget *
 mn_menu_shell_append (GtkMenuShell *shell,
 		      const char *stock_id,
@@ -479,6 +596,17 @@ mn_menu_shell_append (GtkMenuShell *shell,
   return item;
 }
 
+/**
+ * mn_menu_shell_prepend:
+ * @shell: the #GtkMenuShell to prepend to
+ * @stock_id: the stock ID of the item or %NULL
+ * @mnemonic: the mnemonic of the item or %NULL
+ *
+ * Same as mn_menu_shell_append(), but prepends the item instead of
+ * appending it.
+ *
+ * Return value: the new menu item.
+ **/
 GtkWidget *
 mn_menu_shell_prepend (GtkMenuShell *shell,
 		       const char *stock_id,
@@ -518,4 +646,60 @@ mn_menu_item_new (const char *stock_id, const char *mnemonic)
     item = gtk_separator_menu_item_new();
   
   return item;
+}
+
+void
+mn_error_dialog (const char *help_link_id,
+		 const char *primary,
+		 const char *format,
+		 ...)
+{
+  GtkWidget *dialog;
+  char *secondary = NULL;
+
+  if (format)
+    {
+      va_list args;
+      
+      va_start(args, format);
+      secondary = g_strdup_vprintf(format, args);
+      va_end(args);
+    }
+
+  dialog = eel_alert_dialog_new(NULL,
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_MESSAGE_ERROR,
+				GTK_BUTTONS_NONE,
+				primary,
+				secondary,
+				NULL);
+
+  if (help_link_id != NULL)
+    gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_HELP, GTK_RESPONSE_HELP);
+  gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_OK, GTK_RESPONSE_OK);
+
+  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
+
+  while (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_HELP)
+    mn_display_help(help_link_id);
+
+  gtk_widget_destroy(dialog);
+}
+
+void
+mn_fatal_error_dialog (const char *format, ...)
+{
+  va_list args;
+  char *secondary;
+
+  g_return_if_fail(format != NULL);
+
+  va_start(args, format);
+  secondary = g_strdup_vprintf(format, args);
+  va_end(args);
+
+  mn_error_dialog(NULL, _("A fatal error has occurred in Mail Notification"), "%s", secondary);
+  g_free(secondary);
+
+  exit(1);  
 }

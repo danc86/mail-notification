@@ -23,6 +23,7 @@
 #include "mn-properties.h"
 #include "mn-util.h"
 #include "mn-mailbox-view.h"
+#include "mn-shell.h"
 
 /*** types *******************************************************************/
 
@@ -33,6 +34,9 @@ typedef struct
   GtkWidget		*delay_label;
   GtkWidget		*minutes_spin;
   GtkWidget		*seconds_spin;
+
+  GtkWidget		*autostart_check;
+  GtkWidget		*blink_check;
 
   GtkWidget		*scrolled;
   GtkWidget		*list;
@@ -57,6 +61,11 @@ static void mn_properties_update_sensitivity (void);
 
 static void mn_properties_selection_changed_h (GtkTreeSelection *selection,
 					       gpointer user_data);
+static void mn_properties_mailboxes_list_changed_h (MNMailboxes *mailboxes,
+						    gpointer user_data);
+
+static void mn_properties_weak_notify_cb (gpointer data,
+					  GObject *former_properties);
 
 /*** implementation **********************************************************/
 
@@ -65,6 +74,8 @@ mn_properties_display (void)
 {
   GtkSizeGroup *size_group;
   GtkTreeSelection *selection;
+
+  g_return_if_fail(mn_shell != NULL);
 
   if (properties.dialog)
     {
@@ -77,6 +88,8 @@ mn_properties_display (void)
 		      "delay_label", &properties.delay_label,
 		      "minutes_spin", &properties.minutes_spin,
 		      "seconds_spin", &properties.seconds_spin,
+		      "autostart_check", &properties.autostart_check,
+		      "blink_check", &properties.blink_check,
 		      "scrolled", &properties.scrolled,
 		      "selected_label", &properties.selected_label,
 		      "remove", &properties.remove,
@@ -104,9 +117,12 @@ mn_properties_display (void)
   gtk_size_group_add_widget(size_group, properties.command_double_clicked_check);
   g_object_unref(size_group);
 
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(properties.autostart_check), mn_conf_get_autostart());
+
   mn_conf_link(properties.dialog, MN_CONF_PROPERTIES_DIALOG,
 	       properties.minutes_spin, MN_CONF_DELAY_MINUTES,
 	       properties.seconds_spin, MN_CONF_DELAY_SECONDS,
+	       properties.blink_check, MN_CONF_BLINK_ON_ERRORS,
 	       properties.command_new_mail_check, MN_CONF_COMMANDS_NEW_MAIL_ENABLED,
 	       properties.command_new_mail_entry, MN_CONF_COMMANDS_NEW_MAIL_COMMAND,
 	       properties.command_double_clicked_check, MN_CONF_COMMANDS_DOUBLE_CLICKED_ENABLED,
@@ -115,6 +131,9 @@ mn_properties_display (void)
 
   mn_properties_update_selected_label();
   mn_properties_update_sensitivity();
+
+  g_signal_connect(G_OBJECT(mn_shell->mailboxes), "list-changed", G_CALLBACK(mn_properties_mailboxes_list_changed_h), NULL);
+  g_object_weak_ref(G_OBJECT(properties.dialog), mn_properties_weak_notify_cb, NULL);
 
   gtk_widget_show(properties.dialog);
 }
@@ -145,10 +164,15 @@ mn_properties_update_selected_label (void)
 static void
 mn_properties_update_sensitivity (void)
 {
+  gboolean has_manual;
   GtkTreeSelection *selection;
   gboolean has_selection;
   gboolean command_new_mail_enabled;
   gboolean command_double_clicked_enabled;
+
+  has_manual = mn_mailboxes_has_manual(mn_shell->mailboxes);
+  gtk_widget_set_sensitive(properties.minutes_spin, has_manual);
+  gtk_widget_set_sensitive(properties.seconds_spin, has_manual);
 
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(properties.list));
   has_selection = gtk_tree_selection_count_selected_rows(selection) > 0;
@@ -171,7 +195,27 @@ mn_properties_selection_changed_h (GtkTreeSelection *selection,
   mn_properties_update_sensitivity();
 }
 
+static void
+mn_properties_mailboxes_list_changed_h (MNMailboxes *mailboxes,
+					gpointer user_data)
+{
+  mn_properties_update_sensitivity();
+}
+
+static void
+mn_properties_weak_notify_cb (gpointer data, GObject *former_properties)
+{
+  g_signal_handlers_disconnect_by_func(mn_shell->mailboxes, mn_properties_mailboxes_list_changed_h, NULL);
+}
+
 /* libglade callbacks */
+
+void
+mn_properties_autostart_toggled_h (GtkToggleButton *togglebutton,
+				   gpointer user_data)
+{
+  mn_conf_set_autostart(gtk_toggle_button_get_active(togglebutton));
+}
 
 void
 mn_properties_toggled_h (GtkToggleButton *togglebutton, gpointer user_data)

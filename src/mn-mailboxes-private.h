@@ -14,7 +14,11 @@ struct _MNMailboxesPrivate {
 	GSList * list;
 #line 35 "mn-mailboxes.gob"
 	unsigned int timeout_id;
-#line 18 "mn-mailboxes-private.h"
+#line 37 "mn-mailboxes.gob"
+	unsigned int delay_notification_id;
+#line 39 "mn-mailboxes.gob"
+	unsigned int mailboxes_notification_id;
+#line 22 "mn-mailboxes-private.h"
 };
 
 #ifdef __cplusplus

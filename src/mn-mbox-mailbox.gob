@@ -49,49 +49,58 @@ class MN:mbox:Mailbox from MN:Mailbox
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
     self = MN_MAILBOX(object);
     
+    GDK_THREADS_ENTER();
+
     mn_mailbox_monitor(self,
-		       mn_mailbox_get_uri(self),
+		       self->uri->text,
 		       GNOME_VFS_MONITOR_FILE,
 		       MN_MAILBOX_MONITOR_EVENT_CHANGED
 		       | MN_MAILBOX_MONITOR_EVENT_DELETED
 		       | MN_MAILBOX_MONITOR_EVENT_CREATED);
 
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+
     return object;
   }
 
   override (MN:Mailbox) gboolean
-    impl_is (MNMailbox *dummy, const char *uri (check null))
+    impl_is (MNMailbox *dummy, MN:URI *uri (check null type))
   {
-    GnomeVFSFileInfo *file_info;
     gboolean is = FALSE;
     
-    file_info = gnome_vfs_file_info_new();
-    if (gnome_vfs_get_file_info(uri, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS) == GNOME_VFS_OK
-	&& file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_TYPE
-	&& file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_SIZE
-	&& file_info->type == GNOME_VFS_FILE_TYPE_REGULAR)
+    if (uri->vfs)
       {
-	if (file_info->size == 0) /* can be an empty mbox */
-	  is = TRUE;
-	else
+	GnomeVFSFileInfo *file_info;
+	
+	file_info = gnome_vfs_file_info_new();
+	if (gnome_vfs_get_file_info_uri(uri->vfs, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS) == GNOME_VFS_OK
+	    && file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_TYPE
+	    && file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_SIZE
+	    && file_info->type == GNOME_VFS_FILE_TYPE_REGULAR)
 	  {
-	    GnomeVFSHandle *handle;
-	    
-	    if (gnome_vfs_open(&handle, uri, GNOME_VFS_OPEN_READ) == GNOME_VFS_OK)
+	    if (file_info->size == 0) /* can be an empty mbox */
+	      is = TRUE;
+	    else
 	      {
-		char buf[5];
-		GnomeVFSFileSize bytes_read;
+		GnomeVFSHandle *handle;
 		
-		if (gnome_vfs_read(handle, buf, sizeof(buf), &bytes_read) == GNOME_VFS_OK
-		    && bytes_read == sizeof(buf)
-		    && ! strncmp(buf, "From ", sizeof(buf)))
-		  is = TRUE;
+		if (gnome_vfs_open_uri(&handle, uri->vfs, GNOME_VFS_OPEN_READ) == GNOME_VFS_OK)
+		  {
+		    char buf[5];
+		    GnomeVFSFileSize bytes_read;
 		
-		gnome_vfs_close(handle);
+		    if (gnome_vfs_read(handle, buf, sizeof(buf), &bytes_read) == GNOME_VFS_OK
+			&& bytes_read == sizeof(buf)
+			&& ! strncmp(buf, "From ", sizeof(buf)))
+		      is = TRUE;
+		
+		    gnome_vfs_close(handle);
+		  }
 	      }
 	  }
+	gnome_vfs_file_info_unref(file_info);
       }
-    gnome_vfs_file_info_unref(file_info);
     
     return is;
   }
@@ -100,10 +109,7 @@ class MN:mbox:Mailbox from MN:Mailbox
     impl_threaded_check (MN:Mailbox *mailbox (check null type))
   {
     Self *self = SELF(mailbox);
-    const char *uri;
     gboolean check = TRUE;
-    
-    uri = mn_mailbox_get_uri(mailbox);
     
     if (! mn_mailbox_get_automatic(mailbox))
       {
@@ -112,7 +118,7 @@ class MN:mbox:Mailbox from MN:Mailbox
 	/* we're polling, so check only if the mailbox has changed since our last check */
 
 	file_info = gnome_vfs_file_info_new();
-	if (gnome_vfs_get_file_info(uri, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS) == GNOME_VFS_OK)
+	if (gnome_vfs_get_file_info_uri(mailbox->uri->vfs, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS) == GNOME_VFS_OK)
 	{
 	  if (file_info->mtime == selfp->last_mtime)
 	    check = FALSE;
@@ -127,7 +133,7 @@ class MN:mbox:Mailbox from MN:Mailbox
 	GnomeVFSResult result;
 	GnomeVFSHandle *handle;
 
-	result = gnome_vfs_open(&handle, uri, GNOME_VFS_OPEN_READ);
+	result = gnome_vfs_open_uri(&handle, mailbox->uri->vfs, GNOME_VFS_OPEN_READ);
 	if (result == GNOME_VFS_OK)
 	  {
 	    MNVFSReadLineContext *context = NULL;

@@ -24,7 +24,6 @@
 #include <glib/gi18n-lib.h>
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-util.h"
-#include "mn-uri.h"
 #include "mn-auth-combo-box.h"
 #include "mn-util.h"
 %}
@@ -41,6 +40,7 @@ class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
       const char *hostname;
       
       mn_pi_mailbox_properties_get_contents(pi,
+					    NULL,
 					    NULL,
 					    &username,
 					    &password,
@@ -62,8 +62,8 @@ class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
     MNPIMailboxPropertiesClass *pi_class = MN_PI_MAILBOX_PROPERTIES_CLASS(class);
 
     pi_class->label = "POP3";
-    pi_class->default_port[0] = MN_URI_POP3_PORT(FALSE);
-    pi_class->default_port[1] = MN_URI_POP3_PORT(TRUE);
+    pi_class->default_port[0] = mn_uri_get_default_port("pop");
+    pi_class->default_port[1] = mn_uri_get_default_port("pops");
   }
   
   override (G:Object) GObject *
@@ -93,56 +93,46 @@ class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
   
   interface MN:Mailbox:Properties private gboolean
     set_uri (MN:Mailbox:Properties *properties (check null type),
-	     const char *uri (check null))
+	     MN:URI *uri (check null type))
   {
-    gboolean ssl;
-    char *username;
-    char *password;
-    char *authmech;
-    char *hostname;
-    int port;
-    
-    if (mn_uri_parse_pop(uri, &ssl, &username, &password, &authmech, &hostname, &port))
+    if (MN_URI_IS_POP(uri))
       {
 	mn_pi_mailbox_properties_set_contents(MN_PI_MAILBOX_PROPERTIES(properties),
-					      ssl,
-					      username,
-					      password,
-					      authmech,
-					      hostname,
-					      port);
-					      
-	g_free(username);
-	g_free(password);
-	g_free(authmech);
-	g_free(hostname);
-
+					      MN_URI_IS_SSL(uri),
+					      MN_URI_IS_INBAND_SSL(uri),
+					      uri->username,
+					      uri->password,
+					      uri->authmech,
+					      uri->hostname,
+					      uri->port);
 	return TRUE;
       }
     else
       return FALSE;
   }
 
-  interface MN:Mailbox:Properties private char *
+  interface MN:Mailbox:Properties private MNURI *
     get_uri (MN:Mailbox:Properties *properties (check null type))
   {
     gboolean ssl;
+    gboolean inband_ssl;
     const char *username;
     const char *password;
     char *authmech;
     const char *hostname;
     int port;
-    char *uri;
+    MNURI *uri;
 
     mn_pi_mailbox_properties_get_contents(MN_PI_MAILBOX_PROPERTIES(properties),
 					  &ssl,
+					  &inband_ssl,
 					  &username,
 					  &password,
 					  &authmech,
 					  &hostname,
 					  &port);
 
-    uri = mn_uri_build_pop(ssl, username, password, authmech, hostname, port);
+    uri = mn_uri_new_pop(ssl, inband_ssl, username, password, authmech, hostname, port);
     g_free(authmech);
 
     return uri;

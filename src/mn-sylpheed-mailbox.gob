@@ -43,25 +43,34 @@ class MN:Sylpheed:Mailbox from MN:Mailbox
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
     self = MN_MAILBOX(object);
     
+    GDK_THREADS_ENTER();
+
     mn_mailbox_monitor(self,
-		       mn_mailbox_get_uri(self),
+		       self->uri->text,
 		       GNOME_VFS_MONITOR_DIRECTORY,
 		       MN_MAILBOX_MONITOR_EVENT_CHANGED
 		       | MN_MAILBOX_MONITOR_EVENT_DELETED
 		       | MN_MAILBOX_MONITOR_EVENT_CREATED);
 
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+
     return object;
   }
   
   override (MN:Mailbox) gboolean
-    impl_is (MNMailbox *dummy, const char *uri (check null))
+    impl_is (MNMailbox *dummy, MN:URI *uri (check null type))
   {
-    char *markfile_uri;
-    gboolean is;
+    gboolean is = FALSE;
 
-    markfile_uri = g_build_path("/", uri, ".sylpheed_mark", NULL);
-    is = mn_vfs_test(markfile_uri, G_FILE_TEST_IS_REGULAR);
-    g_free(markfile_uri);
+    if (uri->vfs)
+      {
+	GnomeVFSURI *markfile_uri;
+
+	markfile_uri = gnome_vfs_uri_append_file_name(uri->vfs, ".sylpheed_mark");
+	is = mn_vfs_test(markfile_uri, G_FILE_TEST_IS_REGULAR);
+	gnome_vfs_uri_unref(markfile_uri);
+      }
 
     return is;
   }
@@ -76,7 +85,7 @@ class MN:Sylpheed:Mailbox from MN:Mailbox
     int total_count = 0;
     int mark_count = 0;
 
-    result = gnome_vfs_directory_open(&handle, mn_mailbox_get_uri(self), GNOME_VFS_FILE_INFO_FOLLOW_LINKS);
+    result = gnome_vfs_directory_open_from_uri(&handle, self->uri->vfs, GNOME_VFS_FILE_INFO_FOLLOW_LINKS);
     if (result != GNOME_VFS_OK)
       {
 	GDK_THREADS_ENTER();

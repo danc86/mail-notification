@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "0.6.1">
-  <!ENTITY manrevision "2.3">
-  <!ENTITY date "Thursday, August 19, 2004">
+  <!ENTITY appversion "0.6.2">
+  <!ENTITY manrevision "2.4">
+  <!ENTITY date "Thursday, September 9, 2004">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -20,12 +20,13 @@
   <!ENTITY imap "<link linkend=&#34;imap&#34;>IMAP</link>">
   <!ENTITY sasl "<link linkend=&#34;sasl&#34;>SASL</link>">
   <!ENTITY ssl "<link linkend=&#34;pop3&#34;>SSL</link>">
+  <!ENTITY tls "<link linkend=&#34;pop3&#34;>TLS</link>">
   <!ENTITY sylpheed "<link linkend=&#34;sylpheed&#34;>Sylpheed</link>">
   <!ENTITY gmail "<link linkend=&#34;gmail&#34;>Gmail</link>">
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.37 2004/08/18 22:37:58 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.49 2004/09/08 23:26:57 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (c) 2004 Jean-Yves Lefort -->
@@ -133,6 +134,17 @@
 	</revdescription>
       </revision>
       <revision>
+	<revnumber>Mail Notification Manual V2.3</revnumber>
+	<date>Thursday, August 19, 2004</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
 	<revnumber>Mail Notification Manual V2.2</revnumber>
 	<date>Monday, August 16, 2004</date>
 	<revdescription>
@@ -203,9 +215,9 @@
       <listitem><para>&mbox;, &mh;, &maildir;, &sylpheed;, &pop3;, &imap; and &gmail; support</para></listitem>
       <listitem><para>&sasl; authentication support</para></listitem>
       <listitem><para>APOP authentication support</para></listitem>
-      <listitem><para>&ssl; support</para></listitem>
+      <listitem><para>&ssl;/&tls; support</para></listitem>
       <listitem><para>automatic detection of mailbox format</para></listitem>
-      <listitem><para><link linkend="automatic-notification">automatic notification</link></para></listitem>
+      <listitem><para><link linkend="immediate-notification">immediate notification</link> (the status icon is updated within seconds after a mailbox changes)</para></listitem>
       <listitem><para><ulink url="http://developer.gnome.org/projects/gup/hig" type="http">HIG</ulink> 2.0 compliance</para></listitem>
     </itemizedlist>
   </sect1>
@@ -291,6 +303,11 @@
 	      </varlistentry>
 
 	      <varlistentry>
+		<term>--unset-obsolete-configuration</term>
+		<listitem><para>Unset obsolete GConf configuration and exit</para></listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term>--help</term>
 		<listitem><para>Show help and exit</para></listitem>
 	      </varlistentry>
@@ -324,7 +341,8 @@
 	</screenshot>
       </figure>
       <para>
-	If an error is detected, the icon blinks.
+	If an error is detected, the icon blinks (unless the
+	<link linkend="blink-on-errors">Blink on errors</link> setting is disabled).
       </para>
       <para>
 	Leaving your mouse over the icon will reveal more details
@@ -339,27 +357,64 @@
       <menuchoice>
 	<guimenu>Applications</guimenu>
 	<guisubmenu>Desktop Preferences</guisubmenu>
-	<guimenuitem>Mail Notification</guimenuitem> 
-      </menuchoice>. The
-      <guilabel>Properties</guilabel> dialog contains the following
-      settings:
+	<guimenuitem>Mail Notification</guimenuitem>
+      </menuchoice> (or on some systems
+      <menuchoice>
+	<guimenu>Applications</guimenu>
+	<guisubmenu>Preferences</guisubmenu>
+	<guisubmenu>More Preferences</guisubmenu>
+	<guimenuitem>Mail Notification</guimenuitem>
+      </menuchoice>).
+    </para>
+    <para>
+      The <guilabel>Properties</guilabel> dialog contains the
+      following settings:
     </para>
 
     <variablelist>
-      <varlistentry id="delay-between-mail-checks">
-	<term><guilabel>Delay between mail checks</guilabel></term>
+      <varlistentry>
+	<term><guilabel>General</guilabel></term>
 	<listitem>
-	  <para>
-	    This is the amount of time to wait between mail checks.
-	    <note>
-	      <para>
-		This delay only applies to mailboxes which do not
-		support <link linkend="automatic-notification">automatic notification</link> of changes.
-	      </para>
-	    </note>
-	  </para>
+	  <variablelist>
+	    <varlistentry id="delay-between-mail-checks">
+	      <term><guilabel>Delay between mail checks</guilabel></term>
+	      <listitem>
+		<para>
+		  This is the amount of time to wait between mail
+		  checks.
+		  <note>
+		    <para>
+		      This delay only applies to mailboxes which do
+		      not support <link linkend="immediate-notification">immediate notification</link> of changes.
+		    </para>
+		  </note>
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><guilabel>Start Mail Notification on GNOME login</guilabel></term>
+	      <listitem>
+		<para>
+		  If this option is enabled, &app; will be started
+		  along with your GNOME session.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry id="blink-on-errors">
+	      <term><guilabel>Blink on errors</guilabel></term>
+	      <listitem>
+		<para>
+		  If this option is enabled, &app; will show the
+		  status icon and make it blink on errors. Disabling
+		  this option is useful if some of your mailboxes are
+		  not permanently accessible.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	  </variablelist>
 	</listitem>
       </varlistentry>
+      
       <varlistentry>
 	<term><guilabel>Mailboxes</guilabel></term>
 	<listitem>
@@ -373,26 +428,36 @@
 	  </para>
 	</listitem>
       </varlistentry>
+
       <varlistentry>
-	<term><guilabel>When new mail arrives:</guilabel></term>
+	<term><guilabel>Commands</guilabel></term>
 	<listitem>
-	  <para>
-	    This is the command to execute when new mail arrives.
-	    <note>
-	      <para>
-		This command will not be executed if you already have
-		new mail.
-	      </para>
-	    </note>
-	  </para>
-	</listitem>
-      </varlistentry>
-      <varlistentry>
-	<term><guilabel>When double-clicked:</guilabel></term>
-	<listitem>
-	  <para>
-	    This is the command to execute when the icon is double-clicked.
-	  </para>
+	  <variablelist>
+	    <varlistentry>
+	      <term><guilabel>When new mail arrives:</guilabel></term>
+	      <listitem>
+		<para>
+		  This is the command to execute when new mail
+		  arrives.
+		  <note>
+		    <para>
+		      This command will not be executed if you already
+		      have new mail.
+		    </para>
+		  </note>
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><guilabel>When double-clicked:</guilabel></term>
+	      <listitem>
+		<para>
+		  This is the command to execute when the icon is
+		  double-clicked.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	  </variablelist>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -483,10 +548,13 @@
 		  <title>Security</title>
 		  <para>
 		    To avoid sending your password over the network in
-		    clear text, you must eitheir use a SSL connection
-		    or select a secure authentication mechanism.  See
-		    below for more details.
+		    clear text, you must eitheir use a SSL/TLS
+		    connection or select a secure authentication
+		    mechanism. See below for more details.
 		  </para>
+		  <!-- simplified on purpose: actually, a weak SSL/TLS -->
+		  <!-- algorithm could be used, but this is beyond the -->
+		  <!-- scope of this document -->
 		</warning>
 	      </listitem>
 	    </varlistentry>
@@ -497,11 +565,28 @@
 		  This is the type of connection to use and the port
 		  number to connect to.
 		</para>
+		<para>
+		  <guilabel>In-band SSL/TLS</guilabel> refers to a
+		  &ssl;/&tls; connection negotiated inside of the
+		  protocol (using the <literal>STLS</literal> &pop3;
+		  command or the <literal>STARTTLS</literal> &imap;
+		  command).
+		</para>
+		<para>
+		  <guilabel>SSL/TLS on separate port</guilabel> refers to
+		  the most widespread method for establishing a
+		  &ssl;/&tls; connection: using a separate port.
+		</para>
 		<note>
 		  <para>
 		    The security considerations listed below do not
-		    apply if you select <guilabel>SSL</guilabel>.
+		    apply if you select <guilabel>SSL/TLS</guilabel>
+		    (eitheir <guilabel>in-band</guilabel> or
+		    <guilabel>on separate port</guilabel>).
 		  </para>
+		  <!-- simplified on purpose: actually, a weak SSL/TLS -->
+		  <!-- algorithm could be used, but this is beyond the -->
+		  <!-- scope of this document -->
 		</note>
 	      </listitem>
 	    </varlistentry>
@@ -523,7 +608,7 @@
 		    If <guilabel>autodetect</guilabel> is selected and
 		    secure authentication fails, your credentials may
 		    be sent over the network in clear text (unless you
-		    use a &ssl; connection).
+		    use a &ssl;/&tls; connection).
 		  </para>
 		  <para>
 		    If this is a concern, select the appropriate
@@ -602,16 +687,16 @@
   <sect1 id="technical-information">
     <title>Technical Information</title>
     
-    <sect2 id="automatic-notification">
-      <title>Automatic Notification</title>
+    <sect2 id="immediate-notification">
+      <title>Immediate Notification</title>
       <para>
-	Automatic notification is the ability to detect changes to a
+	Immediate notification is the ability to detect changes to a
 	mailbox without needing to poll it periodically. It allows the
 	status icon to be updated within seconds after a mailbox
-	receives new mail.
+	changes.
       </para>
       <para>
-	For automatic notification to be supported, &gnomevfs; must be compiled
+	For immediate notification to be supported, &gnomevfs; must be compiled
 	with <ulink url="http://oss.sgi.com/projects/fam" type="http">FAM</ulink> support,
 	and FAM must be configured properly.
       </para>
@@ -622,7 +707,7 @@
       </para>
       <note>
 	<para>
-	  Automatic notification is only supported for local mailboxes.
+	  Immediate notification is only supported for local mailboxes.
 	  Mailboxes which do not support it will be checked periodically
 	  according to the <link linkend="delay-between-mail-checks">Delay between mail checks</link>
 	  setting.
@@ -635,8 +720,9 @@
       <para>
 	The &app; &pop3; implementation strictly conforms to
 	<ulink url="http://www.ietf.org/rfc/rfc1939.txt" type="http">RFC 1939</ulink>,
-	<ulink url="http://www.ietf.org/rfc/rfc2449.txt" type="http">RFC 2449</ulink> and
-	<ulink url="http://www.ietf.org/rfc/rfc1734.txt" type="http">RFC 1734</ulink>.
+	<ulink url="http://www.ietf.org/rfc/rfc2449.txt" type="http">RFC 2449</ulink>,
+	<ulink url="http://www.ietf.org/rfc/rfc1734.txt" type="http">RFC 1734</ulink> and
+	<ulink url="http://www.ietf.org/rfc/rfc2595.txt" type="http">RFC 2595</ulink>.
       </para>
       <para>
 	The AUTH, APOP and USER/PASS authentication mechanisms are
@@ -723,6 +809,8 @@ endif</programlisting>
       <itemizedlist>
 	<!-- We don't use <firstname> and <surname> because we can't -->
 	<!-- unambiguously split some names. -->
+	<listitem><para>Hendrik Brandt</para></listitem>
+	<listitem><para>Duarte Henriques</para></listitem>
 	<listitem><para>Dan Korostelev</para></listitem>
 	<listitem><para>Phil Nelson</para></listitem>
       </itemizedlist>
@@ -874,6 +962,26 @@ endif</programlisting>
 	    The mailbox format used by the <ulink url="http://sylpheed.good-day.net" type="http">Sylpheed</ulink>
 	    mail user agent. The Sylpheed format adds a binary cache to MH folders
 	    for faster indexing.
+	  </para>
+	</glossdef>
+      </glossentry>
+    </glossdiv>
+
+    <glossdiv><title>T</title>
+      <glossentry>
+	<glossterm>TLS</glossterm>
+	<glosssee otherterm="tls"/>
+      </glossentry>
+
+      <glossentry id="tls">
+	<glossterm>Transport Layer Security</glossterm>
+	<acronym>TLS</acronym>
+	<glossdef>
+	  <para>
+	    A protocol securing a connection through the use of
+	    cryptographic techniques, as defined by
+	    <ulink url="http://www.ietf.org/rfc/rfc2246.txt" type="http">RFC 2246</ulink>.
+	    TLS is the successor of &ssl;.
 	  </para>
 	</glossdef>
       </glossentry>

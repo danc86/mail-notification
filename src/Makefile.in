@@ -41,8 +41,8 @@ subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/openssl.m4 \
-	$(top_srcdir)/m4/pkg.m4 $(top_srcdir)/m4/sasl2.m4 \
-	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/sasl2.m4 $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -62,11 +62,11 @@ am__mail_notification_SOURCES_DIST = MNAutomation.idl \
 	mn-blinking-image.gob mn-mail-icon.gob mn-mailbox-view.gob \
 	mn-mailbox.gob mn-mailboxes.gob mn-pending-mailbox.gob \
 	mn-shell.gob mn-system-mailbox-properties.gob \
-	mn-unsupported-mailbox.gob mn-mbox-mailbox-private.h \
-	mn-mbox-mailbox.c mn-mbox-mailbox.h mn-mh-mailbox-private.h \
-	mn-mh-mailbox.c mn-mh-mailbox.h mn-maildir-mailbox-private.h \
-	mn-maildir-mailbox.c mn-maildir-mailbox.h \
-	mn-pop3-mailbox-properties-private.h \
+	mn-unsupported-mailbox.gob mn-uri.gob \
+	mn-mbox-mailbox-private.h mn-mbox-mailbox.c mn-mbox-mailbox.h \
+	mn-mh-mailbox-private.h mn-mh-mailbox.c mn-mh-mailbox.h \
+	mn-maildir-mailbox-private.h mn-maildir-mailbox.c \
+	mn-maildir-mailbox.h mn-pop3-mailbox-properties-private.h \
 	mn-pop3-mailbox-properties.c mn-pop3-mailbox-properties.h \
 	mn-pop3-mailbox-private.h mn-pop3-mailbox.c mn-pop3-mailbox.h \
 	mn-imap-mailbox-properties-private.h \
@@ -93,15 +93,15 @@ am__mail_notification_SOURCES_DIST = MNAutomation.idl \
 	mn-shell.c mn-shell.h mn-system-mailbox-properties-private.h \
 	mn-system-mailbox-properties.c mn-system-mailbox-properties.h \
 	mn-unsupported-mailbox-private.h mn-unsupported-mailbox.c \
-	mn-unsupported-mailbox.h mn-md5.c mn-md5.h mn-client-session.c \
-	mn-client-session.h mn-soup.c mn-soup.h mn-ssl.c mn-ssl.h \
-	mn-sasl.c mn-sasl.h eggtrayicon.c eggtrayicon.h mn-conf.c \
-	mn-conf.h mn-dialog.c mn-dialog.h \
+	mn-unsupported-mailbox.h mn-uri-private.h mn-uri.c mn-uri.h \
+	mn-md5.c mn-md5.h mn-client-session.c mn-client-session.h \
+	mn-soup.c mn-soup.h mn-ssl.c mn-ssl.h mn-sasl.c mn-sasl.h \
+	eggtrayicon.c eggtrayicon.h mn-conf.c mn-conf.h \
 	mn-mailbox-properties-dialog.c mn-mailbox-properties-dialog.h \
 	mn-mailbox-properties-util.c mn-mailbox-properties-util.h \
 	mn-mailbox-properties.c mn-mailbox-properties.h mn-main.c \
-	mn-properties.c mn-properties.h mn-stock.c mn-stock.h mn-uri.c \
-	mn-uri.h mn-util.c mn-util.h mn-vfs.c mn-vfs.h
+	mn-properties.c mn-properties.h mn-stock.c mn-stock.h \
+	mn-util.c mn-util.h mn-vfs.c mn-vfs.h
 am__objects_1 =
 am__objects_2 = $(am__objects_1) $(am__objects_1) $(am__objects_1) \
 	$(am__objects_1) $(am__objects_1) $(am__objects_1) \
@@ -128,7 +128,7 @@ am__objects_11 = $(am__objects_3) $(am__objects_4) $(am__objects_5) \
 	mn-mailbox.$(OBJEXT) mn-mailboxes.$(OBJEXT) \
 	mn-pending-mailbox.$(OBJEXT) mn-shell.$(OBJEXT) \
 	mn-system-mailbox-properties.$(OBJEXT) \
-	mn-unsupported-mailbox.$(OBJEXT)
+	mn-unsupported-mailbox.$(OBJEXT) mn-uri.$(OBJEXT)
 @WITH_POP3_TRUE@am__objects_12 = mn-md5.$(OBJEXT)
 @WITH_POP3_OR_IMAP_TRUE@am__objects_13 = mn-client-session.$(OBJEXT)
 @HAVE_SOUP_TRUE@am__objects_14 = mn-soup.$(OBJEXT)
@@ -137,12 +137,12 @@ am__objects_11 = $(am__objects_3) $(am__objects_4) $(am__objects_5) \
 am_mail_notification_OBJECTS = $(am__objects_1) $(am__objects_2) \
 	$(am__objects_11) $(am__objects_12) $(am__objects_13) \
 	$(am__objects_14) $(am__objects_15) $(am__objects_16) \
-	eggtrayicon.$(OBJEXT) mn-conf.$(OBJEXT) mn-dialog.$(OBJEXT) \
+	eggtrayicon.$(OBJEXT) mn-conf.$(OBJEXT) \
 	mn-mailbox-properties-dialog.$(OBJEXT) \
 	mn-mailbox-properties-util.$(OBJEXT) \
 	mn-mailbox-properties.$(OBJEXT) mn-main.$(OBJEXT) \
-	mn-properties.$(OBJEXT) mn-stock.$(OBJEXT) mn-uri.$(OBJEXT) \
-	mn-util.$(OBJEXT) mn-vfs.$(OBJEXT)
+	mn-properties.$(OBJEXT) mn-stock.$(OBJEXT) mn-util.$(OBJEXT) \
+	mn-vfs.$(OBJEXT)
 am__objects_17 = MNAutomation-common.$(OBJEXT) \
 	MNAutomation-stubs.$(OBJEXT) MNAutomation-skels.$(OBJEXT)
 nodist_mail_notification_OBJECTS = $(am__objects_17)
@@ -162,7 +162,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/mn-automation.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-blinking-image.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-client-session.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mn-conf.Po ./$(DEPDIR)/mn-dialog.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mn-conf.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-gmail-mailbox-properties.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-gmail-mailbox.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mn-imap-mailbox-properties.Po \
@@ -459,7 +459,8 @@ gob_sources = \
 	mn-pending-mailbox.gob			\
 	mn-shell.gob				\
 	mn-system-mailbox-properties.gob	\
-	mn-unsupported-mailbox.gob
+	mn-unsupported-mailbox.gob		\
+	mn-uri.gob
 
 gob_built_sources = \
 	$(mbox_gob_built_sources)			\
@@ -505,7 +506,10 @@ gob_built_sources = \
 	mn-system-mailbox-properties.h			\
 	mn-unsupported-mailbox-private.h		\
 	mn-unsupported-mailbox.c			\
-	mn-unsupported-mailbox.h
+	mn-unsupported-mailbox.h			\
+	mn-uri-private.h				\
+	mn-uri.c					\
+	mn-uri.h
 
 nodist_mail_notification_SOURCES = $(idl_built_sources)
 mail_notification_SOURCES = \
@@ -521,8 +525,6 @@ mail_notification_SOURCES = \
 	eggtrayicon.h			\
 	mn-conf.c			\
 	mn-conf.h			\
-	mn-dialog.c			\
-	mn-dialog.h			\
 	mn-mailbox-properties-dialog.c	\
 	mn-mailbox-properties-dialog.h	\
 	mn-mailbox-properties-util.c	\
@@ -534,8 +536,6 @@ mail_notification_SOURCES = \
 	mn-properties.h			\
 	mn-stock.c			\
 	mn-stock.h			\
-	mn-uri.c			\
-	mn-uri.h			\
 	mn-util.c			\
 	mn-util.h			\
 	mn-vfs.c			\
@@ -633,7 +633,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-blinking-image.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-client-session.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-conf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-dialog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-gmail-mailbox-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-gmail-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mn-imap-mailbox-properties.Po@am__quote@

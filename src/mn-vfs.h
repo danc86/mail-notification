@@ -30,6 +30,6 @@ GnomeVFSResult mn_vfs_read_line (MNVFSReadLineContext **context,
 				 const char **line);
 void mn_vfs_read_line_context_free (MNVFSReadLineContext *context);
 
-gboolean mn_vfs_test (const char *uri, GFileTest test);
+gboolean mn_vfs_test (GnomeVFSURI *uri, GFileTest test);
 
 #endif /* _MN_VFS_H */

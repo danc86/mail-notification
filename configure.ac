@@ -1,4 +1,4 @@
-AC_INIT(mail-notification, 0.6.1, jylefort@brutele.be)
+AC_INIT(mail-notification, 0.6.2, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mn-main.c)
 
 AC_PREREQ(2.59)
@@ -41,7 +41,7 @@ AC_HELP_STRING([--disable-imap], [disable IMAP support]),
 esac], [enable_imap=yes])
 
 AC_ARG_ENABLE(ssl,
-AC_HELP_STRING([--disable-ssl], [disable SSL support]),
+AC_HELP_STRING([--disable-ssl], [disable SSL/TLS support]),
 [case "$enableval" in
 	yes|no) enable_ssl=$enableval ;;
 	*) AC_MSG_ERROR([bad value $enableval for --enable-ssl]) ;;
@@ -97,7 +97,7 @@ GETTEXT_PACKAGE=AC_PACKAGE_NAME
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", [Define to the gettext package name])
 AC_SUBST(GETTEXT_PACKAGE)
 
-ALL_LINGUAS="fr ru"
+ALL_LINGUAS="de fr pt ru"
 AM_GLIB_GNU_GETTEXT
 
 AC_PROG_INTLTOOL
@@ -138,7 +138,7 @@ AC_CHECK_FUNCS(atoi close connect exit freeaddrinfo gai_strerror getaddrinfo get
 
 AM_PATH_GTK_2_0(2.4.0,, [AC_MSG_ERROR([unable to find the GTK+ library])])
 
-AM_PATH_PKG(GNOME, [gthread-2.0 libgnomeui-2.0 gnome-vfs-2.0 libglade-2.0 eel-2.0 bonobo-activation-2.0],, [AC_MSG_ERROR([unable to find the GNOME libraries])])
+PKG_CHECK_MODULES(GNOME, [gthread-2.0 gconf-2.0 >= 2.4.0 libgnomeui-2.0 gnome-vfs-2.0 libglade-2.0 eel-2.0 >= 2.6.0 bonobo-activation-2.0],, [AC_MSG_ERROR([unable to find the GNOME libraries])])
 AC_SUBST(GNOME_CFLAGS)
 AC_SUBST(GNOME_LIBS)
 
@@ -172,7 +172,7 @@ fi
 
 have_soup=no
 if test $enable_gmail = yes; then
-	AM_PATH_PKG(SOUP, soup-2.0, have_soup=yes, [AC_MSG_WARN([unable to find the soup library: forcing --disable-gmail]); enable_gmail=no; disable_gmail_reason="(libsoup not found)"])
+	PKG_CHECK_MODULES(SOUP, soup-2.0, have_soup=yes, [AC_MSG_WARN([unable to find the soup library: forcing --disable-gmail]); enable_gmail=no; disable_gmail_reason="(libsoup not found)"])
 fi	
 
 ORBIT_IDL="`$PKG_CONFIG --variable=orbit_idl ORBit-2.0`"
@@ -219,7 +219,7 @@ if test $enable_imap = yes; then
 	AC_DEFINE(WITH_IMAP, 1, [Define to 1 if IMAP support is enabled])
 fi
 if test $enable_ssl = yes; then
-	AC_DEFINE(WITH_SSL, 1, [Define to 1 if SSL support is enabled])
+	AC_DEFINE(WITH_SSL, 1, [Define to 1 if SSL/TLS support is enabled])
 fi
 if test $enable_sasl = yes; then
 	AC_DEFINE(WITH_SASL, 1, [Define to 1 if SASL support is enabled])

@@ -24,7 +24,6 @@
 #include <glib/gi18n-lib.h>
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-util.h"
-#include "mn-uri.h"
 #include "mn-auth-combo-box.h"
 #include "mn-util.h"
 %}
@@ -32,7 +31,7 @@
 class MN:PI:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
 {
   classwide const char *label;
-  classwide int default_port[2]; /* 0: standard, 1: SSL */
+  classwide int default_port[2]; /* 0: standard, 1: SSL/TLS */
 
   property BOOLEAN complete (override)
     get {};			/* dummy, implemented by subclasses */
@@ -49,8 +48,8 @@ class MN:PI:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
   protected GtkTooltips *tooltips = {mn_tooltips_new()} unrefwith g_object_unref;
   protected GtkWidget *details_vbox;
   protected GtkSizeGroup *details_size_group;
-  protected GtkWidget *conn_radio[2];
-  protected GtkWidget *port_spin[2];
+  protected GtkWidget *conn_radio[3];
+  protected GtkWidget *port_spin[3];
   protected GtkWidget *auth_combo;
 
   override (G:Object) GObject *
@@ -112,8 +111,8 @@ class MN:PI:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
     gtk_size_group_add_widget(radio_size_group, self->conn_radio[0]);
 
     mn_mailbox_properties_connection_type_new(GTK_VBOX(self->details_vbox),
-					      _("_SSL"),
-					      SELF_GET_CLASS(self)->default_port[1],
+					      _("_in-band SSL/TLS"),
+					      SELF_GET_CLASS(self)->default_port[0],
 					      GTK_RADIO_BUTTON(self->conn_radio[0]),
 					      &label1,
 					      &self->conn_radio[1],
@@ -121,14 +120,26 @@ class MN:PI:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
     gtk_size_group_add_widget(self->details_size_group, label1);
     gtk_size_group_add_widget(radio_size_group, self->conn_radio[1]);
 
+    mn_mailbox_properties_connection_type_new(GTK_VBOX(self->details_vbox),
+					      _("SSL/TLS on sepa_rate port"),
+					      SELF_GET_CLASS(self)->default_port[1],
+					      GTK_RADIO_BUTTON(self->conn_radio[0]),
+					      &label1,
+					      &self->conn_radio[2],
+					      &self->port_spin[2]);
+    gtk_size_group_add_widget(self->details_size_group, label1);
+    gtk_size_group_add_widget(radio_size_group, self->conn_radio[2]);
+
     g_object_unref(radio_size_group);
     
 #ifndef WITH_SSL
     gtk_widget_set_sensitive(self->conn_radio[1], FALSE);
+    gtk_widget_set_sensitive(self->conn_radio[2], FALSE);
 #endif
 
     /* by default, standard is enabled */
     gtk_widget_set_sensitive(self->port_spin[1], FALSE);
+    gtk_widget_set_sensitive(self->port_spin[2], FALSE);
 
     mn_mailbox_properties_authentication_new(GTK_VBOX(self->details_vbox),
 					     &label1,
@@ -142,7 +153,7 @@ class MN:PI:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
 
     g_signal_connect(G_OBJECT(expander), "notify::expanded", G_CALLBACK(self_notify_expanded_h), self);
 
-    for (i = 0; i < 2; i++)
+    for (i = 0; i < 3; i++)
       g_signal_connect(G_OBJECT(self->conn_radio[i]), "toggled", G_CALLBACK(self_radio_toggled_h), self);
     
     g_signal_connect(G_OBJECT(self->hostname_entry), "changed", G_CALLBACK(self_entry_changed_h), self);
@@ -180,30 +191,34 @@ class MN:PI:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
     Self *self = user_data;
     int i;
 
-    for (i = 0; i < 2; i++)
-      gtk_widget_set_sensitive(self->port_spin[i], gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->conn_radio[i])));
+    for (i = 0; i < 3; i++)
+      gtk_widget_set_sensitive(self->port_spin[i], GTK_WIDGET_SENSITIVE(self->conn_radio[i]) && gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->conn_radio[i])));
+
+    g_object_notify(G_OBJECT(self), "complete");
   }
 
   public void
     set_contents (self,
 		  gboolean ssl,
+		  gboolean inband_ssl,
 		  const char *username (check null),
 		  const char *password (check null),
 		  const char *authmech,
 		  const char *hostname (check null),
 		  int port (check >= 0 <= 0xFFFF))
   {
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->conn_radio[ssl ? 1 : 0]), TRUE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->conn_radio[ssl ? 2 : (inband_ssl ? 1 : 0)]), TRUE);
     gtk_entry_set_text(GTK_ENTRY(self->username_entry), username);
     gtk_entry_set_text(GTK_ENTRY(self->password_entry), password);
     mn_auth_combo_box_set_active_mechanism(MN_AUTH_COMBO_BOX(self->auth_combo), (char *) authmech);
     gtk_entry_set_text(GTK_ENTRY(self->hostname_entry), hostname);
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(self->port_spin[ssl ? 1 : 0]), port);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(self->port_spin[ssl ? 2 : (inband_ssl ? 1 : 0)]), port);
   }
 
   public void
     get_contents (self,
 		  gboolean *ssl,
+		  gboolean *inband_ssl,
 		  const char **username,
 		  const char **password,
 		  char **authmech,
@@ -211,11 +226,15 @@ class MN:PI:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
 		  int *port)
   {
     gboolean _ssl;
+    gboolean _inband_ssl;
 
-    _ssl = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->conn_radio[1]));
+    _ssl = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->conn_radio[2]));
+    _inband_ssl = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->conn_radio[1]));
 
     if (ssl)
       *ssl = _ssl;
+    if (inband_ssl)
+      *inband_ssl = _inband_ssl;
     if (username)
       *username = gtk_entry_get_text(GTK_ENTRY(self->username_entry));
     if (password)
@@ -225,6 +244,6 @@ class MN:PI:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
     if (hostname)
       *hostname = gtk_entry_get_text(GTK_ENTRY(self->hostname_entry));
     if (port)
-      *port = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(self->port_spin[_ssl ? 1 : 0]));
+      *port = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(self->port_spin[_ssl ? 2 : (_inband_ssl ? 1 : 0)]));
   }
 }

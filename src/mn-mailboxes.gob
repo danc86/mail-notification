@@ -22,18 +22,23 @@
 %{
 #include "config.h"
 #include <glib/gi18n-lib.h>
+#include <eel/eel.h>
 #include "mn-conf.h"
 #include "mn-util.h"
-#include "mn-uri.h"
 #include "mn-pending-mailbox.h"
 #include "mn-unsupported-mailbox.h"
 %}
 
 class MN:Mailboxes from G:Object
 {
-  private GSList *list;
-  private unsigned int timeout_id;
-
+  private GSList *list destroywith mn_g_object_slist_free;
+  private unsigned int timeout_id
+    destroy { if (VAR) g_source_remove(VAR); };
+  private unsigned int delay_notification_id
+    destroy { eel_gconf_notification_remove(VAR); };
+  private unsigned int mailboxes_notification_id
+    destroy { eel_gconf_notification_remove(VAR); };
+    
   signal private NONE (NONE)
     void list_changed (self);
   signal private NONE (NONE)
@@ -44,8 +49,8 @@ class MN:Mailboxes from G:Object
     self_update_from_conf(self);
     self_install_timeout(self);
 
-    eel_gconf_notification_add(MN_CONF_DELAY_NAMESPACE, self_notify_delay_cb, self);
-    eel_gconf_notification_add(MN_CONF_MAILBOXES, self_notify_mailboxes_cb, self);
+    selfp->delay_notification_id = eel_gconf_notification_add(MN_CONF_DELAY_NAMESPACE, self_notify_delay_cb, self);
+    selfp->mailboxes_notification_id = eel_gconf_notification_add(MN_CONF_MAILBOXES, self_notify_mailboxes_cb, self);
   }
   
   private void
@@ -55,7 +60,10 @@ class MN:Mailboxes from G:Object
 		     gpointer user_data (check null))
   {
     Self *self = user_data;
+
+    GDK_THREADS_ENTER();
     self_install_timeout(self);
+    GDK_THREADS_LEAVE();
   }
 
   private void
@@ -65,7 +73,10 @@ class MN:Mailboxes from G:Object
 			 gpointer user_data (check null))
   {
     Self *self = user_data;
+
+    GDK_THREADS_ENTER();
     self_update_from_conf(self);
+    GDK_THREADS_LEAVE();
   }
   
   private void
@@ -84,10 +95,9 @@ class MN:Mailboxes from G:Object
       {
 	MNMailbox *mailbox = l->data;
 
-	if (! g_slist_find_custom(gconf_mailboxes, mn_mailbox_get_uri(mailbox), (GCompareFunc) mn_uri_cmp))
+	if (! self_conf_find_uri(gconf_mailboxes, mailbox->uri))
 	  {
-	    g_object_unref(mailbox);
-	    selfp->list = g_slist_delete_link(selfp->list, l);
+	    selfp->list = mn_g_object_slist_delete_link(selfp->list, l);
 	    changed = TRUE;
 	    goto loop;
 	  }
@@ -97,21 +107,24 @@ class MN:Mailboxes from G:Object
 
     MN_LIST_FOREACH(l, gconf_mailboxes)
       {
-	const char *uri = l->data;
+	const char *text_uri = l->data;
+	MNURI *uri;
       
-	if (! self_find(self, uri))
+	uri = mn_uri_new(text_uri);
+	if (! self_find_uri(self, uri))
 	  {
 	    MNMailbox *mailbox;
-	    
+
 	    mailbox = mn_pending_mailbox_new(uri);
 	    selfp->list = g_slist_append(selfp->list, mailbox);
 	    changed = TRUE;
 	    
 	    mn_mailbox_new_async(uri, self_new_cb, self);
 	  }
+	g_object_unref(uri);
       }
 
-    mn_pointers_free(gconf_mailboxes);
+    eel_g_slist_free_deep(gconf_mailboxes);
     if (changed)
       self_list_changed(self);
   }
@@ -123,7 +136,7 @@ class MN:Mailboxes from G:Object
     Self *self = user_data;
     GSList *elem;
 
-    elem = g_slist_find_custom(selfp->list, mn_mailbox_get_uri(mailbox), self_compare_func);
+    elem = self_find_uri(self, mailbox->uri);
     if (elem)
       {
 	if (MN_IS_UNSUPPORTED_MAILBOX(mailbox))
@@ -217,7 +230,7 @@ class MN:Mailboxes from G:Object
       {
 	MNMailbox *mailbox = l->data;
 
-	if (MN_MAILBOX_CAN_CHECK(mailbox))
+	if (MN_MAILBOX_CAN_CHECK(mailbox) && ! mn_mailbox_get_automatic(mailbox))
 	  mn_mailbox_check(mailbox);
       }
   }
@@ -228,24 +241,87 @@ class MN:Mailboxes from G:Object
     return selfp->list;
   }
 
-  public MNMailbox *
-    find (self, const char *uri (check null))
+  public GSList *
+    find (self, const char *text_uri (check null))
   {
+    MNURI *uri;
     GSList *elem;
 
-    elem = g_slist_find_custom(selfp->list, uri, self_compare_func);
-    return elem ? elem->data : NULL;
-  }
+    uri = mn_uri_new(text_uri);
+    elem = self_find_uri(self, uri);
+    g_object_unref(uri);
 
+    return elem;
+  }
+  
+  public GSList *
+    find_uri (self, MN:URI *uri (check null type))
+  {
+    return g_slist_find_custom(selfp->list, uri, self_find_compare_func);
+  }
+  
   private int
-    compare_func (gconstpointer a, gconstpointer b)
+    find_compare_func (gconstpointer a, gconstpointer b)
   {
     MNMailbox *mailbox = (MNMailbox *) a;
-    const char *uri = b;
+    MNURI *uri = (MNURI *) b;
 
-    return mn_uri_cmp(mn_mailbox_get_uri(mailbox), uri);
+    return strcmp(mailbox->uri->text, uri->text);
   }
 
+  public GSList *
+    conf_find (GSList *gconf_mailboxes, const char *text_uri (check null))
+  {
+    MNURI *uri;
+    GSList *elem;
+
+    uri = mn_uri_new(text_uri);
+    elem = self_conf_find_uri(gconf_mailboxes, uri);
+    g_object_unref(uri);
+
+    return elem;
+  }
+
+  public GSList *
+    conf_find_uri (GSList *gconf_mailboxes, MN:URI *uri (check null type))
+  {
+    return g_slist_find_custom(gconf_mailboxes, uri, self_conf_find_compare_func);
+  }
+  
+  private int
+    conf_find_compare_func (gconstpointer a, gconstpointer b)
+  {
+    MNURI *uri_a;
+    MNURI *uri_b = (MNURI *) b;
+    int cmp;
+
+    uri_a = mn_uri_new(a);
+    cmp = strcmp(uri_a->text, uri_b->text);
+    g_object_unref(uri_a);
+
+    return cmp;
+  }
+  
+  public gboolean
+    has_manual (self)
+  {
+    gboolean has_manual = FALSE;
+    GSList *l;
+  
+    MN_LIST_FOREACH(l, selfp->list)
+      {
+	MNMailbox *mailbox = l->data;
+	
+	if (MN_MAILBOX_CAN_CHECK(mailbox) && ! mn_mailbox_get_automatic(mailbox))
+	  {
+	    has_manual = TRUE;
+	    break;
+	  }
+      }
+
+    return has_manual;
+  }
+  
   public MNMailboxes *
     new (void)
   {

@@ -30,7 +30,20 @@ for ((var) = (head);				\
 
 void		mn_info				(const char	*format,
 						 ...);
-void		mn_pointers_free		(GSList		*list);
+
+GSList		*mn_g_slist_delete_link_deep	(GSList		*list,
+						 GSList		*link_);
+GSList		*mn_g_slist_delete_link_deep_custom (GSList	*list,
+						     GSList	*link_,
+						     GFunc	element_free_func,
+						     gpointer	user_data);
+
+GSList		*mn_g_str_slist_find		(GSList		*list,
+						 const char	*str);
+
+void		mn_g_object_slist_free		(GSList		*list);
+GSList		*mn_g_object_slist_delete_link	(GSList		*list,
+						 GSList		*link_);
 
 gboolean	mn_str_isnumeric		(const char	*str);
 
@@ -72,5 +85,12 @@ GtkWidget	*mn_menu_shell_append		(GtkMenuShell	*shell,
 GtkWidget	*mn_menu_shell_prepend		(GtkMenuShell	*shell,
 						 const char	*stock_id,
 						 const char	*mnemonic);
+
+void		mn_error_dialog			(const char	*help_link_id,
+						 const char	*primary,
+						 const char	*format,
+						 ...);
+void		mn_fatal_error_dialog		(const char	*format,
+						 ...);
 
 #endif /* _MN_UTIL_H */

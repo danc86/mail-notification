@@ -10,23 +10,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNPOP3MailboxPrivate {
-#line 97 "mn-pop3-mailbox.gob"
-	char * hostname;
-#line 98 "mn-pop3-mailbox.gob"
-	int port;
-#line 99 "mn-pop3-mailbox.gob"
-	char * username;
-#line 100 "mn-pop3-mailbox.gob"
-	char * password;
-#line 101 "mn-pop3-mailbox.gob"
-	char * authmech;
-#line 102 "mn-pop3-mailbox.gob"
-	gboolean ssl;
-#line 104 "mn-pop3-mailbox.gob"
+#line 106 "mn-pop3-mailbox.gob"
 	int login_delay;
-#line 105 "mn-pop3-mailbox.gob"
+#line 107 "mn-pop3-mailbox.gob"
 	GTimer * authentication_timer;
-#line 30 "mn-pop3-mailbox-private.h"
+#line 18 "mn-pop3-mailbox-private.h"
 };
 
 #ifdef __cplusplus

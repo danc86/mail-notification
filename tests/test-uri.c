@@ -18,236 +18,138 @@
 
 #include "mn-uri.h"
 
+static char *
+build_uri (const char *scheme,
+	   const char *authmech,
+	   const char *hostname,
+	   int port,
+	   const char *path,
+	   const char *queries)
+{
+  GString *uri;
+
+  uri = g_string_new(scheme);
+  g_string_append(uri, "://username:password");
+
+  if (authmech)
+    g_string_append_printf(uri, ";AUTH=%s", authmech);
+  if (hostname)
+    g_string_append_printf(uri, "@%s", hostname);
+  if (port != -1)
+    g_string_append_printf(uri, ":%i", port);
+  if (path)
+    g_string_append_printf(uri, "/%s", path);
+  if (queries)
+    g_string_append_printf(uri, "?%s", queries);
+
+  return g_string_free(uri, FALSE);
+}
+
+static char *
+build_canonical_uri (const char *scheme,
+		     const char *authmech,
+		     const char *hostname,
+		     int port,
+		     const char *path,
+		     const char *queries)
+{
+  int default_port = -1;
+  const char *default_path = NULL;
+  
+  if (! strcmp(scheme, "pop") || ! strcmp(scheme, "pops"))
+    {
+      if (! hostname || path)
+	return NULL;
+    }
+  else if (! strcmp(scheme, "imap") || ! strcmp(scheme, "imaps"))
+    {
+      if (! hostname)
+	return NULL;
+    }
+  else if (! strcmp(scheme, "gmail"))
+    {
+      if (authmech || hostname || port != -1 || path || queries)
+	return NULL;
+    }
+  
+  if (! strcmp(scheme, "pop"))
+    default_port = 110;
+  else if (! strcmp(scheme, "pops"))
+    default_port = 995;
+  else if (! strcmp(scheme, "imap"))
+    default_port = 143;
+  else if (! strcmp(scheme, "imaps"))
+    default_port = 993;
+
+  if (! strcmp(scheme, "imap") || ! strcmp(scheme, "imaps"))
+    default_path = "INBOX";
+
+  return build_uri(scheme,
+		   authmech,
+		   hostname,
+		   port != default_port ? port : -1,
+		   (! path || ! default_path || strcmp(path, default_path)) ? path : NULL,
+		   queries);
+}
+
+static void
+assert_strequal (const char *uri, const char *str1, const char *str2)
+{
+  if (! ((! str1 && ! str2) || (str1 && str2 && ! strcmp(str1, str2))))
+    {
+      g_print("%s and %s differ\n", str1, str2);
+      g_print("uri was %s\n", uri);
+      exit(1);
+    }
+}
+
 int
 main (int argc, char **argv)
 {
-  /*
-   * The parser is very lax (unsuitable for handling untrusted URIs),
-   * we are only interested in making sure it can handle all the URIs
-   * we'll have to deal with.
-   */
-  const char *pop_uri_list[] = {
-    "pop://invalid",
+#define FOR(iterator, var) \
+  for (iterator = 0; iterator < G_N_ELEMENTS(var); iterator++)
 
-    "pop://usern%40me:password@hostname",
-    "pop://usern%40me:password@hostname:110",
-    "pop://usern%40me:password@hostname:555",
-
-    "pop://usern%40me:password@[::1]",
-    "pop://usern%40me:password@[::1]:110",
-    "pop://usern%40me:password@[::1]:555",
-
-    "pop://usern%40me:password;auth=MECH@hostname",
-    "pop://usern%40me:password;auth=MECH@hostname:110",
-    "pop://usern%40me:password;auth=MECH@hostname:555",
-
-    "pop://usern%40me:password;auth=MECH@[::1]",
-    "pop://usern%40me:password;auth=MECH@[::1]:110",
-    "pop://usern%40me:password;auth=MECH@[::1]:555",
-      
-    "pops://invalid",
-
-    "pops://usern%40me:password@hostname",
-    "pops://usern%40me:password@hostname:995",
-    "pops://usern%40me:password@hostname:555",
-
-    "pops://usern%40me:password@[::1]",
-    "pops://usern%40me:password@[::1]:995",
-    "pops://usern%40me:password@[::1]:555",
-
-    "pops://usern%40me:password;auth=MECH@hostname",
-    "pops://usern%40me:password;auth=MECH@hostname:995",
-    "pops://usern%40me:password;auth=MECH@hostname:555",
-
-    "pops://usern%40me:password;auth=MECH@[::1]",
-    "pops://usern%40me:password;auth=MECH@[::1]:995",
-    "pops://usern%40me:password;auth=MECH@[::1]:555",
-  };
-  const char *imap_uri_list[] = {
-    "imap://invalid",
-
-    "imap://usern%40me:password@hostname",
-    "imap://usern%40me:password@hostname/mailbox",
-    "imap://usern%40me:password@hostname:143",
-    "imap://usern%40me:password@hostname:143/mailbox",
-    "imap://usern%40me:password@hostname:555",
-    "imap://usern%40me:password@hostname:555/mailbox",
-    
-    "imap://usern%40me:password@[::1]",
-    "imap://usern%40me:password@[::1]/mailbox",
-    "imap://usern%40me:password@[::1]:143",
-    "imap://usern%40me:password@[::1]:143/mailbox",
-    "imap://usern%40me:password@[::1]:555",
-    "imap://usern%40me:password@[::1]:555/mailbox",
-
-    "imap://usern%40me:password;auth=MECH@hostname",
-    "imap://usern%40me:password;auth=MECH@hostname/mailbox",
-    "imap://usern%40me:password;auth=MECH@hostname:143",
-    "imap://usern%40me:password;auth=MECH@hostname:143/mailbox",
-    "imap://usern%40me:password;auth=MECH@hostname:555",
-    "imap://usern%40me:password;auth=MECH@hostname:555/mailbox",
-      
-    "imap://usern%40me:password;auth=MECH@[::1]",
-    "imap://usern%40me:password;auth=MECH@[::1]/mailbox",
-    "imap://usern%40me:password;auth=MECH@[::1]:143",
-    "imap://usern%40me:password;auth=MECH@[::1]:143/mailbox",
-    "imap://usern%40me:password;auth=MECH@[::1]:555",
-    "imap://usern%40me:password;auth=MECH@[::1]:555/mailbox",
-
-    "imaps://invalid",
-
-    "imaps://usern%40me:password@hostname",
-    "imaps://usern%40me:password@hostname/mailbox",
-    "imaps://usern%40me:password@hostname:993",
-    "imaps://usern%40me:password@hostname:993/mailbox",
-    "imaps://usern%40me:password@hostname:555",
-    "imaps://usern%40me:password@hostname:555/mailbox",
-    
-    "imaps://usern%40me:password@[::1]",
-    "imaps://usern%40me:password@[::1]/mailbox",
-    "imaps://usern%40me:password@[::1]:993",
-    "imaps://usern%40me:password@[::1]:993/mailbox",
-    "imaps://usern%40me:password@[::1]:555",
-    "imaps://usern%40me:password@[::1]:555/mailbox",
-
-    "imaps://usern%40me:password;auth=MECH@hostname",
-    "imaps://usern%40me:password;auth=MECH@hostname/mailbox",
-    "imaps://usern%40me:password;auth=MECH@hostname:993",
-    "imaps://usern%40me:password;auth=MECH@hostname:993/mailbox",
-    "imaps://usern%40me:password;auth=MECH@hostname:555",
-    "imaps://usern%40me:password;auth=MECH@hostname:555/mailbox",
-      
-    "imaps://usern%40me:password;auth=MECH@[::1]",
-    "imaps://usern%40me:password;auth=MECH@[::1]/mailbox",
-    "imaps://usern%40me:password;auth=MECH@[::1]:993",
-    "imaps://usern%40me:password;auth=MECH@[::1]:993/mailbox",
-    "imaps://usern%40me:password;auth=MECH@[::1]:555",
-    "imaps://usern%40me:password;auth=MECH@[::1]:555/mailbox",
-  };
-  const char *gmail_uri_list[] = {
-    "gmail://invalid",
-
-    "gmail://usern%40me:password"
-  };
-  int i;
-      
-  for (i = 0; i < G_N_ELEMENTS(pop_uri_list); i++)
-    {
-      gboolean ssl = FALSE;
-      char *username = NULL;
-      char *password = NULL;
-      char *authmech = NULL;
-      char *hostname = NULL;
-      int port = -1;
-
-      g_print("pop %i: ", i);
-      if (mn_uri_parse_pop(pop_uri_list[i], &ssl, &username, &password, &authmech, &hostname, &port))
-	{
-	  char *uri;
-	  char *canonicalized;
-	  
-	  uri = mn_uri_build_pop(ssl, username, password, authmech, hostname, port);
-	  g_assert(uri != NULL);
-	  
-	  canonicalized = mn_uri_canonicalize(uri);
-	  g_assert(strcmp(canonicalized, uri) == 0);
-	  g_free(canonicalized);
-
-	  g_free(username);
-	  g_free(password);
-	  g_free(authmech);
-	  g_free(hostname);
-
-	  g_print("%s\n", uri);
-	  g_free(uri);
-	}
-      else
-	{
-	  g_assert(ssl == FALSE
-		   && username == NULL
-		   && password == NULL
-		   && authmech == NULL
-		   && hostname == NULL
-		   && port == -1);
-	  g_print("invalid\n");
-	}
-    }
+  int a, b, c, d, e, f;
+  const char *schemes[] = { "pop", "pops", "imap", "imaps", "gmail" };
+  const char *authmechs[] = { NULL, "CRAM-MD5" };
+  const char *hostnames[] = { NULL, "hostname", "[::1]" };
+  int ports[] = { -1, 110, 995, 143, 993, 555 };
+  const char *paths[] = { NULL, "INBOX", "foo-path" };
+  const char *queries[] = { NULL, "STARTTLS", "STLS", "foo-query" };
+  int n_uri = 0;
+  int n_canonical = 0;
   
-  for (i = 0; i < G_N_ELEMENTS(imap_uri_list); i++)
-    {
-      gboolean ssl = FALSE;
-      char *username = NULL;
-      char *password = NULL;
-      char *authmech = NULL;
-      char *hostname = NULL;
-      int port = -1;
-      char *mailbox = NULL;
+  g_type_init();
 
-      g_print("imap %i: ", i);
-      if (mn_uri_parse_imap(imap_uri_list[i], &ssl, &username, &password, &authmech, &hostname, &port, &mailbox))
-	{
-	  char *uri;
-	  char *canonicalized;
-	  
-	  uri = mn_uri_build_imap(ssl, username, password, authmech, hostname, port, mailbox);
-	  g_assert(uri != NULL);
-	  
-	  canonicalized = mn_uri_canonicalize(uri);
-	  g_assert(strcmp(canonicalized, uri) == 0);
-	  g_free(canonicalized);
+  FOR(a, schemes)
+    FOR(b, authmechs)
+    FOR(c, hostnames)
+    FOR(d, ports)
+    FOR(e, paths)
+    FOR(f, queries)
+  {
+    char *uri;
+    char *canonical_uri;
+    MNURI *obj;
 
-	  g_free(username);
-	  g_free(password);
-	  g_free(authmech);
-	  g_free(hostname);
-	  g_free(mailbox);
+    n_uri++;
 
-	  g_print("%s\n", uri);
-	  g_free(uri);
-	}
-      else
-	{
-	  g_assert(ssl == FALSE
-		   && username == NULL
-		   && password == NULL
-		   && authmech == NULL
-		   && hostname == NULL
-		   && port == -1
-		   && mailbox == NULL);
-	  g_print("invalid\n");
-	}
-    }
+    uri = build_uri(schemes[a], authmechs[b], hostnames[c], ports[d], paths[e], queries[f]);
+    canonical_uri = build_canonical_uri(schemes[a], authmechs[b], hostnames[c], ports[d], paths[e], queries[f]);
 
-  for (i = 0; i < G_N_ELEMENTS(gmail_uri_list); i++)
-    {
-      char *username = NULL;
-      char *password = NULL;
+    obj = mn_uri_new(uri);
+    if (canonical_uri)
+      {
+	n_canonical++;
+	assert_strequal(uri, obj->text, canonical_uri);
+      }
 
-      g_print("gmail %i: ", i);
-      if (mn_uri_parse_gmail(gmail_uri_list[i], &username, &password))
-	{
-	  char *uri;
-	  char *canonicalized;
-	  
-	  uri = mn_uri_build_gmail(username, password);
-	  g_assert(uri != NULL);
-	  
-	  canonicalized = mn_uri_canonicalize(uri);
-	  g_assert(strcmp(canonicalized, uri) == 0);
-	  g_free(canonicalized);
+    g_free(uri);
+    g_free(canonical_uri);
+    g_object_unref(obj);
+  }
 
-	  g_free(username);
-	  g_free(password);
-
-	  g_print("%s\n", uri);
-	  g_free(uri);
-	}
-      else
-	{
-	  g_assert(username == NULL && password == NULL);
-	  g_print("invalid\n");
-	}
-    }
+  g_print("+++ URI TEST PASSED (%i URI tested, %i could be canonicalized)\n", n_uri, n_canonical);
 
   return 0;
 }

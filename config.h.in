@@ -177,7 +177,7 @@
 /* Define to 1 if SASL support is enabled */
 #undef WITH_SASL
 
-/* Define to 1 if SSL support is enabled */
+/* Define to 1 if SSL/TLS support is enabled */
 #undef WITH_SSL
 
 /* Define to 1 if Sylpheed support is enabled */

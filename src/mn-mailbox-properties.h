@@ -20,6 +20,7 @@
 #define _MN_MAILBOX_PROPERTIES_H
 
 #include <glib-object.h>
+#include "mn-uri.h"
 
 #define MN_TYPE_MAILBOX_PROPERTIES		(mn_mailbox_properties_get_type ())
 #define MN_MAILBOX_PROPERTIES(obj)		(G_TYPE_CHECK_INSTANCE_CAST((obj), MN_TYPE_MAILBOX_PROPERTIES, MNMailboxProperties))
@@ -33,8 +34,8 @@ typedef struct
   GTypeInterface	parent;
 
   gboolean	(* set_uri)		(MNMailboxProperties	*properties,
-					 const char		*uri);
-  char *	(* get_uri)		(MNMailboxProperties	*properties);
+					 MNURI			*uri);
+  MNURI	*	(* get_uri)		(MNMailboxProperties	*properties);
 } MNMailboxPropertiesIface;
 
 GType mn_mailbox_properties_get_type (void);
@@ -42,7 +43,7 @@ GType mn_mailbox_properties_get_type (void);
 GtkSizeGroup *mn_mailbox_properties_get_size_group (MNMailboxProperties *properties);
 char *mn_mailbox_properties_get_label (MNMailboxProperties *properties);
 gboolean mn_mailbox_properties_set_uri (MNMailboxProperties *properties,
-					const char *uri);
-char *mn_mailbox_properties_get_uri (MNMailboxProperties *properties);
+					MNURI *uri);
+MNURI *mn_mailbox_properties_get_uri (MNMailboxProperties *properties);
 
 #endif /* _MN_MAILBOX_PROPERTIES_H */

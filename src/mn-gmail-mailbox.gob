@@ -27,7 +27,6 @@
 #include <libgnomevfs/gnome-vfs-utils.h>
 #include <libsoup/soup.h>
 #include "mn-mailbox-private.h"
-#include "mn-uri.h"
 #include "mn-util.h"
 #include "mn-stock.h"
 #include "mn-soup.h"
@@ -35,8 +34,6 @@
 
 class MN:Gmail:Mailbox from MN:Mailbox
 {
-  private char *username destroywith g_free;
-  private char *password destroywith g_free;
   private GHashTable *cookies destroywith g_hash_table_destroy;
   private gboolean logged_in;
 
@@ -50,20 +47,11 @@ class MN:Gmail:Mailbox from MN:Mailbox
     constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
   {
     GObject *object;
-    MNMailbox *mailbox;
-    Self *self;
 
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    mailbox = MN_MAILBOX(object);
-    self = SELF(object);
     
     mn_soup_use();
 
-    if (! mn_uri_parse_gmail(mn_mailbox_get_uri(mailbox),
-			     &selfp->username,
-			     &selfp->password))
-      mn_mailbox_set_init_error(mailbox, _("unable to parse Gmail URI"));
-    
     return object;
   }
 
@@ -75,16 +63,9 @@ class MN:Gmail:Mailbox from MN:Mailbox
   }
 
   override (MN:Mailbox) gboolean
-    impl_is (MNMailbox *dummy, const char *uri (check null))
+    impl_is (MNMailbox *dummy, MN:URI *uri (check null type))
   {
-    char *scheme;
-    gboolean is;
-    
-    scheme = gnome_vfs_get_uri_scheme(uri);
-    is = scheme && ! strcmp(scheme, "gmail");
-    g_free(scheme);
-    
-    return is;
+    return MN_URI_IS_GMAIL(uri);
   }
 
   override (MN:Mailbox) void
@@ -119,10 +100,67 @@ class MN:Gmail:Mailbox from MN:Mailbox
 	g_free(cookie);
       }
     
+    self_dump_request(self, message);
     soup_message_queue(message, callback, self);
     /* message will be freed by libsoup after invoking the callback */
   }
   
+  private void
+    dump_request (self, SoupMessage *message (check null))
+  {
+    const SoupUri *suri;
+    char *uri;
+
+    suri = soup_context_get_uri(message->context);
+    uri = soup_uri_to_string(suri, TRUE);
+    mn_mailbox_notice(MN_MAILBOX(self), "> GET %s", uri);
+    g_free(uri);
+
+    soup_message_foreach_header(message->request_headers, self_dump_request_cb, self);
+  }
+
+  private void
+    dump_request_cb (gpointer key (check null),
+		     gpointer value (check null),
+		     gpointer user_data (check null))
+  {
+    Self *self = user_data;
+    const char *header_name = key;
+    const char *header_value = value;
+
+    mn_mailbox_notice(MN_MAILBOX(self), "> %s: %s", header_name, header_value);
+  }
+  
+  private void
+    dump_response (self, SoupMessage *message (check null))
+  {
+    char *body;
+    char **lines;
+    int i;
+    
+    soup_message_foreach_header(message->response_headers, self_dump_response_cb, self);
+
+    body = g_strndup(message->response.body, message->response.length);
+    lines = g_strsplit(body, "\n", 0);
+    g_free(body);
+
+    for (i = 0; lines[i]; i++)
+      mn_mailbox_notice(MN_MAILBOX(self), "< %s", lines[i]);
+    g_strfreev(lines);
+  }
+
+  private void
+    dump_response_cb (gpointer key (check null),
+		      gpointer value (check null),
+		      gpointer user_data (check null))
+  {
+    Self *self = user_data;
+    const char *header_name = key;
+    const char *header_value = value;
+
+    mn_mailbox_notice(MN_MAILBOX(self), "< %s: %s", header_name, header_value);
+  }
+
   /**
    * get_token:
    * @str: the string to search
@@ -134,8 +172,8 @@ class MN:Gmail:Mailbox from MN:Mailbox
    * Gets the first token of @str included between @pre and @post.
    *
    * Return value: a newly allocated string containing the token or
-   *               NULL if not found.
-   */
+   *               %NULL if not found.
+   **/
   private char *
     get_token (const char *str (check null),
 	       const char *pre (check null),
@@ -181,8 +219,8 @@ class MN:Gmail:Mailbox from MN:Mailbox
 	
     mn_mailbox_notice(MN_MAILBOX(self), _("logging in"));
 
-    escaped_username = gnome_vfs_escape_string(selfp->username);
-    escaped_password = gnome_vfs_escape_string(selfp->password);
+    escaped_username = gnome_vfs_escape_string(MN_MAILBOX(self)->uri->username);
+    escaped_password = gnome_vfs_escape_string(MN_MAILBOX(self)->uri->password);
     uri = g_strdup_printf("https://www.google.com/accounts/ServiceLoginBoxAuth?service=mail&continue=http://gmail.google.com/gmail&Email=%s&Passwd=%s", escaped_username, escaped_password);
     g_free(escaped_username);
     g_free(escaped_password);
@@ -204,6 +242,7 @@ class MN:Gmail:Mailbox from MN:Mailbox
 	char *body;
 	char *next_location;
 
+	self_dump_response(self, message);
 	self_update_cookies(self, message);
 
 	body = g_strndup(message->response.body, message->response.length);
@@ -243,6 +282,7 @@ class MN:Gmail:Mailbox from MN:Mailbox
 	char *body;
 	char *next_location;
 
+	self_dump_response(self, message);
 	self_update_cookies(self, message);
 	
 	body = g_strndup(message->response.body, message->response.length);
@@ -276,6 +316,7 @@ class MN:Gmail:Mailbox from MN:Mailbox
 	char *body;
 	char *token;
 
+	self_dump_response(self, message);
 	self_update_cookies(self, message);
 
 	body = g_strndup(message->response.body, message->response.length);
@@ -379,6 +420,8 @@ class MN:Gmail:Mailbox from MN:Mailbox
       {
 	int count;
 	
+	self_dump_response(self, message);
+
 	count = self_get_unread_count(message);
 	if (count == -1)
 	  mn_mailbox_set_error(MN_MAILBOX(self), _("unable to parse Gmail data"));

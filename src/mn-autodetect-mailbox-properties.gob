@@ -24,7 +24,6 @@
 #include <glib/gi18n-lib.h>
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-util.h"
-#include "mn-uri.h"
 #include "mn-util.h"
 
   static char *current_folder_uri = NULL;
@@ -155,18 +154,18 @@ class MN:Autodetect:Mailbox:Properties from Gtk:HBox (interface MN:Mailbox:Prope
   
   interface MN:Mailbox:Properties private gboolean
     set_uri (MN:Mailbox:Properties *self (check null type),
-	     const char *uri (check null))
+	     MN:URI *uri (check null type))
   {
-    gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->location_entry), uri);
+    gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->location_entry), uri->text);
     return TRUE;
   }
 
-  interface MN:Mailbox:Properties private char *
+  interface MN:Mailbox:Properties private MNURI *
     get_uri (MN:Mailbox:Properties *self (check null type))
   {
     const char *location;
 
     location = gtk_entry_get_text(GTK_ENTRY(SELF(self)->_priv->location_entry));
-    return g_strdup(location);
+    return mn_uri_new(location);
   }
 }

@@ -402,28 +402,36 @@ mn_preferences_add_mailbox (void)
   add_mailbox = mn_mailbox_properties_dialog_new(GTK_WINDOW(preferences.dialog), MN_MAILBOX_PROPERTIES_DIALOG_MODE_ADD);
 
  run:
-  if (gtk_dialog_run(GTK_DIALOG(add_mailbox)) == GTK_RESPONSE_ACCEPT)
+  switch (gtk_dialog_run(GTK_DIALOG(add_mailbox)))
     {
-      char *uri;
+    case GTK_RESPONSE_HELP:
+      mn_display_help("mailbox-properties");
+      goto run;
 
-      uri = mn_mailbox_properties_dialog_get_uri(MN_MAILBOX_PROPERTIES_DIALOG(add_mailbox));
-      g_return_if_fail(uri != NULL);
+    case GTK_RESPONSE_ACCEPT:
+      {
+	char *uri;
+	
+	uri = mn_mailbox_properties_dialog_get_uri(MN_MAILBOX_PROPERTIES_DIALOG(add_mailbox));
+	g_return_if_fail(uri != NULL);
       
-      if (! mn_mailboxes_find(uri))
-	{
-	  GSList *gconf_mailboxes;
-
-	  gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
-	  gconf_mailboxes = g_slist_append(gconf_mailboxes, uri);
-	  eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
-	  mn_slist_free(gconf_mailboxes);
-	}
-      else
-	{
-	  mn_error_dialog(NULL, _("Unable to add mailbox."), _("The mailbox is already in the list."));
-	  g_free(uri);
-	  goto run;
-	}
+	if (! mn_mailboxes_find(uri))
+	  {
+	    GSList *gconf_mailboxes;
+	    
+	    gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
+	    gconf_mailboxes = g_slist_append(gconf_mailboxes, uri);
+	    eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
+	    mn_slist_free(gconf_mailboxes);
+	  }
+	else
+	  {
+	    mn_error_dialog(NULL, _("Unable to add mailbox."), _("The mailbox is already in the list."));
+	    g_free(uri);
+	    goto run;
+	  }
+      }
+      break;
     }
 
   gtk_widget_destroy(add_mailbox);
@@ -632,10 +640,15 @@ mn_preferences_mailbox_properties_response_h (GtkDialog *dialog,
 					      int response,
 					      gpointer user_data)
 {
-  if (response == GTK_RESPONSE_APPLY || response == GTK_RESPONSE_OK)
-    mn_mailbox_properties_dialog_apply(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
-  if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_OK)
-    gtk_widget_destroy(GTK_WIDGET(dialog));
+  if (response == GTK_RESPONSE_HELP)
+    mn_display_help("mailbox-properties");
+  else
+    {
+      if (response == GTK_RESPONSE_APPLY || response == GTK_RESPONSE_OK)
+	mn_mailbox_properties_dialog_apply(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
+      if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_OK)
+	gtk_widget_destroy(GTK_WIDGET(dialog));
+    }
 }
 
 static void

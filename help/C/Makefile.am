@@ -7,3 +7,4 @@ entities = documentation-license.xml software-license.xml
 include $(top_srcdir)/help/xmldocs.make
 
 dist-hook: app-dist-hook
+	SGML_CATALOG_FILES=/usr/local/share/sgml/catalog xmllint --noout --valid --catalogs $(docname).xml

@@ -12,12 +12,6 @@ projects =					\
 	menu.gladep				\
 	preferences.gladep
 
-strings =					\
-	dialog-strings.c			\
-	mailbox-properties-strings.c		\
-	menu-strings.c				\
-	preferences-strings.c
-
 dist_ui_DATA = $(interfaces)
 
-EXTRA_DIST = $(projects) $(strings)
+EXTRA_DIST = $(projects)

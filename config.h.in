@@ -3,7 +3,7 @@
 /* always defined to indicate that i18n is enabled */
 #undef ENABLE_NLS
 
-/* gettext package name */
+/* Define to the gettext package name */
 #undef GETTEXT_PACKAGE
 
 /* log domain */
@@ -26,9 +26,6 @@
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #undef HAVE_GETTEXT
-
-/* Define to 1 if the GNet library is available */
-#undef HAVE_GNET
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -107,6 +104,9 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* Define to 1 if Gmail support is enabled */
+#undef WITH_GMAIL
 
 /* Define to 1 if Maildir support is enabled */
 #undef WITH_MAILDIR

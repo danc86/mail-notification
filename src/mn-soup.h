@@ -16,18 +16,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _MN_STOCK_H
-#define _MN_STOCK_H
+#ifndef _MN_SOUP_H
+#define _MN_SOUP_H
 
-#define MN_STOCK_MAIL			"mail-notification-mail"
-#define MN_STOCK_MAIL_ERROR		"mail-notification-mail-error"
-#define MN_STOCK_NO_MAIL		"mail-notification-no-mail"
-#define MN_STOCK_NO_MAIL_ERROR		"mail-notification-no-mail-error"
-#define MN_STOCK_LOCAL			"mail-notification-local"
-#define MN_STOCK_REMOTE			"mail-notification-remote"
-#define MN_STOCK_UNSUPPORTED		"mail-notification-unsupported"
-#define MN_STOCK_GMAIL			"mail-notification-gmail"
+void mn_soup_use (void);
+void mn_soup_unuse (void);
 
-void mn_stock_init (void);
-
-#endif /* _MN_STOCK_H */
+#endif /* _MN_SOUP_H */

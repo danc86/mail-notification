@@ -43,26 +43,28 @@
 	  <property name="border_width">5</property>
 	  <property name="visible">True</property>
 	  <property name="homogeneous">False</property>
-	  <property name="spacing">12</property>
+	  <property name="spacing">6</property>
 
 	  <child>
-	    <widget class="GtkVBox" id="vbox2">
+	    <widget class="GtkHBox" id="hbox16">
 	      <property name="visible">True</property>
 	      <property name="homogeneous">False</property>
-	      <property name="spacing">6</property>
+	      <property name="spacing">12</property>
 
 	      <child>
-		<widget class="GtkRadioButton" id="file_radio">
+		<widget class="GtkLabel" id="type_label">
 		  <property name="visible">True</property>
-		  <property name="can_focus">True</property>
-		  <property name="label" translatable="yes">_File or folder</property>
+		  <property name="label" translatable="yes">_Type:</property>
 		  <property name="use_underline">True</property>
-		  <property name="relief">GTK_RELIEF_NORMAL</property>
-		  <property name="focus_on_click">True</property>
-		  <property name="active">False</property>
-		  <property name="inconsistent">False</property>
-		  <property name="draw_indicator">True</property>
-		  <signal name="toggled" handler="mn_mailbox_properties_dialog_radio_toggled_h" object="dialog" last_modification_time="Mon, 07 Jun 2004 16:45:29 GMT"/>
+		  <property name="use_markup">False</property>
+		  <property name="justify">GTK_JUSTIFY_LEFT</property>
+		  <property name="wrap">False</property>
+		  <property name="selectable">False</property>
+		  <property name="xalign">0</property>
+		  <property name="yalign">0.5</property>
+		  <property name="xpad">0</property>
+		  <property name="ypad">0</property>
+		  <property name="mnemonic_widget">type_combo</property>
 		</widget>
 		<packing>
 		  <property name="padding">0</property>
@@ -72,24 +74,50 @@
 	      </child>
 
 	      <child>
-		<widget class="GtkHBox" id="hbox2">
+		<widget class="GtkComboBox" id="type_combo">
+		  <property name="visible">True</property>
+		  <signal name="changed" handler="mn_mailbox_properties_dialog_type_changed_h" object="dialog" last_modification_time="Tue, 20 Jul 2004 21:55:29 GMT"/>
+		</widget>
+		<packing>
+		  <property name="padding">0</property>
+		  <property name="expand">True</property>
+		  <property name="fill">True</property>
+		</packing>
+	      </child>
+	    </widget>
+	    <packing>
+	      <property name="padding">0</property>
+	      <property name="expand">True</property>
+	      <property name="fill">True</property>
+	    </packing>
+	  </child>
+
+	  <child>
+	    <widget class="GtkVBox" id="autodetect_vbox">
+	      <property name="visible">True</property>
+	      <property name="homogeneous">False</property>
+	      <property name="spacing">0</property>
+
+	      <child>
+		<widget class="GtkHBox" id="hbox17">
 		  <property name="visible">True</property>
 		  <property name="homogeneous">False</property>
-		  <property name="spacing">0</property>
+		  <property name="spacing">12</property>
 
 		  <child>
-		    <widget class="GtkLabel" id="label2">
+		    <widget class="GtkLabel" id="location_label">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">    </property>
-		      <property name="use_underline">False</property>
+		      <property name="label" translatable="yes">_Location:</property>
+		      <property name="use_underline">True</property>
 		      <property name="use_markup">False</property>
 		      <property name="justify">GTK_JUSTIFY_LEFT</property>
 		      <property name="wrap">False</property>
 		      <property name="selectable">False</property>
-		      <property name="xalign">0.5</property>
+		      <property name="xalign">0</property>
 		      <property name="yalign">0.5</property>
 		      <property name="xpad">0</property>
 		      <property name="ypad">0</property>
+		      <property name="mnemonic_widget">location_entry</property>
 		    </widget>
 		    <packing>
 		      <property name="padding">0</property>
@@ -99,94 +127,46 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkVBox" id="vbox5">
+		    <widget class="GtkHBox" id="hbox18">
 		      <property name="visible">True</property>
 		      <property name="homogeneous">False</property>
 		      <property name="spacing">6</property>
 
 		      <child>
-			<widget class="GtkHBox" id="hbox12">
+			<widget class="GtkEntry" id="location_entry">
 			  <property name="visible">True</property>
-			  <property name="homogeneous">False</property>
-			  <property name="spacing">12</property>
-
-			  <child>
-			    <widget class="GtkLabel" id="location_label">
-			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">_Location:</property>
-			      <property name="use_underline">True</property>
-			      <property name="use_markup">False</property>
-			      <property name="justify">GTK_JUSTIFY_LEFT</property>
-			      <property name="wrap">False</property>
-			      <property name="selectable">False</property>
-			      <property name="xalign">0</property>
-			      <property name="yalign">0.5</property>
-			      <property name="xpad">0</property>
-			      <property name="ypad">0</property>
-			      <property name="mnemonic_widget">location_entry</property>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">False</property>
-			      <property name="fill">False</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkHBox" id="hbox13">
-			      <property name="visible">True</property>
-			      <property name="homogeneous">False</property>
-			      <property name="spacing">6</property>
-
-			      <child>
-				<widget class="GtkEntry" id="location_entry">
-				  <property name="visible">True</property>
-				  <property name="tooltip" translatable="yes">The URI of the file or folder</property>
-				  <property name="can_focus">True</property>
-				  <property name="editable">True</property>
-				  <property name="visibility">True</property>
-				  <property name="max_length">0</property>
-				  <property name="text" translatable="yes"></property>
-				  <property name="has_frame">True</property>
-				  <property name="invisible_char" translatable="yes">*</property>
-				  <property name="activates_default">True</property>
-				  <signal name="changed" handler="mn_mailbox_properties_dialog_entry_changed_h" object="dialog" last_modification_time="Mon, 07 Jun 2004 16:44:58 GMT"/>
-				</widget>
-				<packing>
-				  <property name="padding">0</property>
-				  <property name="expand">True</property>
-				  <property name="fill">True</property>
-				</packing>
-			      </child>
-
-			      <child>
-				<widget class="GtkButton" id="browse">
-				  <property name="visible">True</property>
-				  <property name="can_focus">True</property>
-				  <property name="label" translatable="yes">_Browse...</property>
-				  <property name="use_underline">True</property>
-				  <property name="relief">GTK_RELIEF_NORMAL</property>
-				  <property name="focus_on_click">True</property>
-				  <signal name="clicked" handler="mn_mailbox_properties_dialog_browse_clicked_h" object="dialog" last_modification_time="Mon, 07 Jun 2004 13:05:17 GMT"/>
-				</widget>
-				<packing>
-				  <property name="padding">0</property>
-				  <property name="expand">False</property>
-				  <property name="fill">False</property>
-				</packing>
-			      </child>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">True</property>
-			      <property name="fill">True</property>
-			    </packing>
-			  </child>
+			  <property name="tooltip" translatable="yes">The URI of the mailbox</property>
+			  <property name="can_focus">True</property>
+			  <property name="editable">True</property>
+			  <property name="visibility">True</property>
+			  <property name="max_length">0</property>
+			  <property name="text" translatable="yes"></property>
+			  <property name="has_frame">True</property>
+			  <property name="invisible_char" translatable="yes">*</property>
+			  <property name="activates_default">True</property>
+			  <signal name="changed" handler="mn_mailbox_properties_dialog_entry_changed_h" object="dialog" last_modification_time="Mon, 07 Jun 2004 16:44:58 GMT"/>
 			</widget>
 			<packing>
 			  <property name="padding">0</property>
 			  <property name="expand">True</property>
 			  <property name="fill">True</property>
+			</packing>
+		      </child>
+
+		      <child>
+			<widget class="GtkButton" id="browse_button">
+			  <property name="visible">True</property>
+			  <property name="can_focus">True</property>
+			  <property name="label" translatable="yes">_Browse...</property>
+			  <property name="use_underline">True</property>
+			  <property name="relief">GTK_RELIEF_NORMAL</property>
+			  <property name="focus_on_click">True</property>
+			  <signal name="clicked" handler="mn_mailbox_properties_dialog_browse_clicked_h" object="dialog" last_modification_time="Mon, 07 Jun 2004 13:05:17 GMT"/>
+			</widget>
+			<packing>
+			  <property name="padding">0</property>
+			  <property name="expand">False</property>
+			  <property name="fill">False</property>
 			</packing>
 		      </child>
 		    </widget>
@@ -206,57 +186,37 @@
 	    </widget>
 	    <packing>
 	      <property name="padding">0</property>
-	      <property name="expand">False</property>
-	      <property name="fill">False</property>
+	      <property name="expand">True</property>
+	      <property name="fill">True</property>
 	    </packing>
 	  </child>
 
 	  <child>
-	    <widget class="GtkVBox" id="vbox3">
+	    <widget class="GtkVBox" id="pop3_vbox">
 	      <property name="visible">True</property>
 	      <property name="homogeneous">False</property>
 	      <property name="spacing">6</property>
 
 	      <child>
-		<widget class="GtkRadioButton" id="pop3_radio">
-		  <property name="visible">True</property>
-		  <property name="can_focus">True</property>
-		  <property name="label" translatable="yes">_POP3 mailbox</property>
-		  <property name="use_underline">True</property>
-		  <property name="relief">GTK_RELIEF_NORMAL</property>
-		  <property name="focus_on_click">True</property>
-		  <property name="active">False</property>
-		  <property name="inconsistent">False</property>
-		  <property name="draw_indicator">True</property>
-		  <property name="group">file_radio</property>
-		  <signal name="toggled" handler="mn_mailbox_properties_dialog_radio_toggled_h" object="dialog" last_modification_time="Mon, 07 Jun 2004 16:45:44 GMT"/>
-		</widget>
-		<packing>
-		  <property name="padding">0</property>
-		  <property name="expand">False</property>
-		  <property name="fill">False</property>
-		</packing>
-	      </child>
-
-	      <child>
-		<widget class="GtkHBox" id="hbox3">
+		<widget class="GtkHBox" id="hbox19">
 		  <property name="visible">True</property>
 		  <property name="homogeneous">False</property>
-		  <property name="spacing">0</property>
+		  <property name="spacing">12</property>
 
 		  <child>
-		    <widget class="GtkLabel" id="label3">
+		    <widget class="GtkLabel" id="pop3_hostname_label">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">    </property>
-		      <property name="use_underline">False</property>
+		      <property name="label" translatable="yes">_Hostname:</property>
+		      <property name="use_underline">True</property>
 		      <property name="use_markup">False</property>
 		      <property name="justify">GTK_JUSTIFY_LEFT</property>
 		      <property name="wrap">False</property>
 		      <property name="selectable">False</property>
-		      <property name="xalign">0.5</property>
+		      <property name="xalign">0</property>
 		      <property name="yalign">0.5</property>
 		      <property name="xpad">0</property>
 		      <property name="ypad">0</property>
+		      <property name="mnemonic_widget">pop3_hostname_entry</property>
 		    </widget>
 		    <packing>
 		      <property name="padding">0</property>
@@ -266,211 +226,119 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkVBox" id="vbox4">
+		    <widget class="GtkEntry" id="pop3_hostname_entry">
 		      <property name="visible">True</property>
-		      <property name="homogeneous">False</property>
-		      <property name="spacing">6</property>
+		      <property name="tooltip" translatable="yes">The hostname or IP address of the POP3 server</property>
+		      <property name="can_focus">True</property>
+		      <property name="editable">True</property>
+		      <property name="visibility">True</property>
+		      <property name="max_length">0</property>
+		      <property name="text" translatable="yes"></property>
+		      <property name="has_frame">True</property>
+		      <property name="invisible_char" translatable="yes">*</property>
+		      <property name="activates_default">False</property>
+		      <signal name="activate" handler="mn_mailbox_properties_dialog_entry_activate_h" object="pop3_port_spin" last_modification_time="Fri, 16 Jul 2004 22:55:26 GMT"/>
+		      <signal name="changed" handler="mn_mailbox_properties_dialog_entry_changed_h" object="dialog" last_modification_time="Mon, 07 Jun 2004 13:26:45 GMT"/>
+		    </widget>
+		    <packing>
+		      <property name="padding">0</property>
+		      <property name="expand">True</property>
+		      <property name="fill">True</property>
+		    </packing>
+		  </child>
 
-		      <child>
-			<widget class="GtkHBox" id="hbox10">
-			  <property name="visible">True</property>
-			  <property name="homogeneous">False</property>
-			  <property name="spacing">12</property>
+		  <child>
+		    <widget class="GtkLabel" id="pop3_port_label">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">P_ort:</property>
+		      <property name="use_underline">True</property>
+		      <property name="use_markup">False</property>
+		      <property name="justify">GTK_JUSTIFY_LEFT</property>
+		      <property name="wrap">False</property>
+		      <property name="selectable">False</property>
+		      <property name="xalign">0</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xpad">0</property>
+		      <property name="ypad">0</property>
+		      <property name="mnemonic_widget">pop3_port_spin</property>
+		    </widget>
+		    <packing>
+		      <property name="padding">0</property>
+		      <property name="expand">False</property>
+		      <property name="fill">False</property>
+		    </packing>
+		  </child>
 
-			  <child>
-			    <widget class="GtkLabel" id="hostname_label">
-			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">_Hostname:</property>
-			      <property name="use_underline">True</property>
-			      <property name="use_markup">False</property>
-			      <property name="justify">GTK_JUSTIFY_LEFT</property>
-			      <property name="wrap">False</property>
-			      <property name="selectable">False</property>
-			      <property name="xalign">0</property>
-			      <property name="yalign">0.5</property>
-			      <property name="xpad">0</property>
-			      <property name="ypad">0</property>
-			      <property name="mnemonic_widget">hostname_entry</property>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">False</property>
-			      <property name="fill">False</property>
-			    </packing>
-			  </child>
+		  <child>
+		    <widget class="GtkSpinButton" id="pop3_port_spin">
+		      <property name="visible">True</property>
+		      <property name="tooltip" translatable="yes">The port number of the POP3 server</property>
+		      <property name="can_focus">True</property>
+		      <property name="climb_rate">1</property>
+		      <property name="digits">0</property>
+		      <property name="numeric">True</property>
+		      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
+		      <property name="snap_to_ticks">False</property>
+		      <property name="wrap">False</property>
+		      <property name="adjustment">110 0 65535 1 10 10</property>
+		      <signal name="activate" handler="mn_mailbox_properties_dialog_entry_activate_h" object="pop3_username_entry" last_modification_time="Fri, 16 Jul 2004 22:55:40 GMT"/>
+		    </widget>
+		    <packing>
+		      <property name="padding">0</property>
+		      <property name="expand">False</property>
+		      <property name="fill">True</property>
+		    </packing>
+		  </child>
+		</widget>
+		<packing>
+		  <property name="padding">0</property>
+		  <property name="expand">True</property>
+		  <property name="fill">True</property>
+		</packing>
+	      </child>
 
-			  <child>
-			    <widget class="GtkEntry" id="hostname_entry">
-			      <property name="visible">True</property>
-			      <property name="tooltip" translatable="yes">The hostname or IP address of the POP3 server</property>
-			      <property name="can_focus">True</property>
-			      <property name="editable">True</property>
-			      <property name="visibility">True</property>
-			      <property name="max_length">0</property>
-			      <property name="text" translatable="yes"></property>
-			      <property name="has_frame">True</property>
-			      <property name="invisible_char" translatable="yes">*</property>
-			      <property name="activates_default">False</property>
-			      <signal name="activate" handler="mn_mailbox_properties_dialog_pop3_entry_activate_h" object="port_spin" last_modification_time="Mon, 07 Jun 2004 16:45:55 GMT"/>
-			      <signal name="changed" handler="mn_mailbox_properties_dialog_entry_changed_h" object="dialog" last_modification_time="Mon, 07 Jun 2004 13:26:45 GMT"/>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">True</property>
-			      <property name="fill">True</property>
-			    </packing>
-			  </child>
+	      <child>
+		<widget class="GtkHBox" id="hbox20">
+		  <property name="visible">True</property>
+		  <property name="homogeneous">False</property>
+		  <property name="spacing">12</property>
 
-			  <child>
-			    <widget class="GtkLabel" id="port_label">
-			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">P_ort:</property>
-			      <property name="use_underline">True</property>
-			      <property name="use_markup">False</property>
-			      <property name="justify">GTK_JUSTIFY_LEFT</property>
-			      <property name="wrap">False</property>
-			      <property name="selectable">False</property>
-			      <property name="xalign">0</property>
-			      <property name="yalign">0.5</property>
-			      <property name="xpad">0</property>
-			      <property name="ypad">0</property>
-			      <property name="mnemonic_widget">port_spin</property>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">False</property>
-			      <property name="fill">False</property>
-			    </packing>
-			  </child>
+		  <child>
+		    <widget class="GtkLabel" id="pop3_username_label">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">_Username:</property>
+		      <property name="use_underline">True</property>
+		      <property name="use_markup">False</property>
+		      <property name="justify">GTK_JUSTIFY_LEFT</property>
+		      <property name="wrap">False</property>
+		      <property name="selectable">False</property>
+		      <property name="xalign">0</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xpad">0</property>
+		      <property name="ypad">0</property>
+		      <property name="mnemonic_widget">pop3_username_entry</property>
+		    </widget>
+		    <packing>
+		      <property name="padding">0</property>
+		      <property name="expand">False</property>
+		      <property name="fill">False</property>
+		    </packing>
+		  </child>
 
-			  <child>
-			    <widget class="GtkSpinButton" id="port_spin">
-			      <property name="visible">True</property>
-			      <property name="tooltip" translatable="yes">The port number of the POP3 server</property>
-			      <property name="can_focus">True</property>
-			      <property name="climb_rate">1</property>
-			      <property name="digits">0</property>
-			      <property name="numeric">True</property>
-			      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
-			      <property name="snap_to_ticks">False</property>
-			      <property name="wrap">False</property>
-			      <property name="adjustment">110 0 65535 1 10 10</property>
-			      <signal name="activate" handler="mn_mailbox_properties_dialog_pop3_entry_activate_h" object="username_entry" last_modification_time="Mon, 07 Jun 2004 16:46:04 GMT"/>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">False</property>
-			      <property name="fill">True</property>
-			    </packing>
-			  </child>
-			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">True</property>
-			  <property name="fill">True</property>
-			</packing>
-		      </child>
-
-		      <child>
-			<widget class="GtkHBox" id="hbox11">
-			  <property name="visible">True</property>
-			  <property name="homogeneous">False</property>
-			  <property name="spacing">12</property>
-
-			  <child>
-			    <widget class="GtkLabel" id="username_label">
-			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Us_ername:</property>
-			      <property name="use_underline">True</property>
-			      <property name="use_markup">False</property>
-			      <property name="justify">GTK_JUSTIFY_LEFT</property>
-			      <property name="wrap">False</property>
-			      <property name="selectable">False</property>
-			      <property name="xalign">0</property>
-			      <property name="yalign">0.5</property>
-			      <property name="xpad">0</property>
-			      <property name="ypad">0</property>
-			      <property name="mnemonic_widget">username_entry</property>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">False</property>
-			      <property name="fill">False</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkEntry" id="username_entry">
-			      <property name="visible">True</property>
-			      <property name="tooltip" translatable="yes">Your username on the POP3 server</property>
-			      <property name="can_focus">True</property>
-			      <property name="editable">True</property>
-			      <property name="visibility">True</property>
-			      <property name="max_length">0</property>
-			      <property name="text" translatable="yes"></property>
-			      <property name="has_frame">True</property>
-			      <property name="invisible_char" translatable="yes">*</property>
-			      <property name="activates_default">False</property>
-			      <signal name="activate" handler="mn_mailbox_properties_dialog_pop3_entry_activate_h" object="password_entry" last_modification_time="Mon, 07 Jun 2004 16:46:10 GMT"/>
-			      <signal name="changed" handler="mn_mailbox_properties_dialog_entry_changed_h" object="dialog" last_modification_time="Mon, 07 Jun 2004 13:29:30 GMT"/>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">True</property>
-			      <property name="fill">True</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkLabel" id="password_label">
-			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">P_assword:</property>
-			      <property name="use_underline">True</property>
-			      <property name="use_markup">False</property>
-			      <property name="justify">GTK_JUSTIFY_LEFT</property>
-			      <property name="wrap">False</property>
-			      <property name="selectable">False</property>
-			      <property name="xalign">0</property>
-			      <property name="yalign">0.5</property>
-			      <property name="xpad">0</property>
-			      <property name="ypad">0</property>
-			      <property name="mnemonic_widget">password_entry</property>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">False</property>
-			      <property name="fill">False</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkEntry" id="password_entry">
-			      <property name="visible">True</property>
-			      <property name="tooltip" translatable="yes">Your password on the POP3 server</property>
-			      <property name="can_focus">True</property>
-			      <property name="editable">True</property>
-			      <property name="visibility">False</property>
-			      <property name="max_length">0</property>
-			      <property name="text" translatable="yes"></property>
-			      <property name="has_frame">True</property>
-			      <property name="invisible_char" translatable="yes">*</property>
-			      <property name="activates_default">False</property>
-			      <signal name="activate" handler="mn_mailbox_properties_dialog_pop3_entry_activate_h" object="hostname_entry" last_modification_time="Mon, 07 Jun 2004 16:46:16 GMT"/>
-			      <signal name="changed" handler="mn_mailbox_properties_dialog_entry_changed_h" object="dialog" last_modification_time="Mon, 07 Jun 2004 13:29:45 GMT"/>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">True</property>
-			      <property name="fill">True</property>
-			    </packing>
-			  </child>
-			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">True</property>
-			  <property name="fill">True</property>
-			</packing>
-		      </child>
+		  <child>
+		    <widget class="GtkEntry" id="pop3_username_entry">
+		      <property name="visible">True</property>
+		      <property name="tooltip" translatable="yes">Your username on the POP3 server</property>
+		      <property name="can_focus">True</property>
+		      <property name="editable">True</property>
+		      <property name="visibility">True</property>
+		      <property name="max_length">0</property>
+		      <property name="text" translatable="yes"></property>
+		      <property name="has_frame">True</property>
+		      <property name="invisible_char" translatable="yes">*</property>
+		      <property name="activates_default">False</property>
+		      <signal name="activate" handler="mn_mailbox_properties_dialog_entry_activate_h" object="pop3_password_entry" last_modification_time="Fri, 16 Jul 2004 22:55:46 GMT"/>
+		      <signal name="changed" handler="mn_mailbox_properties_dialog_entry_changed_h" object="dialog" last_modification_time="Mon, 07 Jun 2004 13:29:30 GMT"/>
 		    </widget>
 		    <packing>
 		      <property name="padding">0</property>
@@ -485,6 +353,211 @@
 		  <property name="fill">True</property>
 		</packing>
 	      </child>
+
+	      <child>
+		<widget class="GtkHBox" id="hbox22">
+		  <property name="visible">True</property>
+		  <property name="homogeneous">False</property>
+		  <property name="spacing">12</property>
+
+		  <child>
+		    <widget class="GtkLabel" id="pop3_password_label">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">_Password:</property>
+		      <property name="use_underline">True</property>
+		      <property name="use_markup">False</property>
+		      <property name="justify">GTK_JUSTIFY_LEFT</property>
+		      <property name="wrap">False</property>
+		      <property name="selectable">False</property>
+		      <property name="xalign">0</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xpad">0</property>
+		      <property name="ypad">0</property>
+		      <property name="mnemonic_widget">pop3_password_entry</property>
+		    </widget>
+		    <packing>
+		      <property name="padding">0</property>
+		      <property name="expand">False</property>
+		      <property name="fill">False</property>
+		    </packing>
+		  </child>
+
+		  <child>
+		    <widget class="GtkEntry" id="pop3_password_entry">
+		      <property name="visible">True</property>
+		      <property name="tooltip" translatable="yes">Your password on the POP3 server</property>
+		      <property name="can_focus">True</property>
+		      <property name="editable">True</property>
+		      <property name="visibility">False</property>
+		      <property name="max_length">0</property>
+		      <property name="text" translatable="yes"></property>
+		      <property name="has_frame">True</property>
+		      <property name="invisible_char" translatable="yes">*</property>
+		      <property name="activates_default">False</property>
+		      <signal name="activate" handler="mn_mailbox_properties_dialog_entry_activate_h" object="pop3_hostname_entry" last_modification_time="Fri, 16 Jul 2004 22:55:55 GMT"/>
+		      <signal name="changed" handler="mn_mailbox_properties_dialog_entry_changed_h" object="dialog" last_modification_time="Mon, 07 Jun 2004 13:29:45 GMT"/>
+		    </widget>
+		    <packing>
+		      <property name="padding">0</property>
+		      <property name="expand">True</property>
+		      <property name="fill">True</property>
+		    </packing>
+		  </child>
+		</widget>
+		<packing>
+		  <property name="padding">0</property>
+		  <property name="expand">True</property>
+		  <property name="fill">True</property>
+		</packing>
+	      </child>
+	    </widget>
+	    <packing>
+	      <property name="padding">0</property>
+	      <property name="expand">True</property>
+	      <property name="fill">True</property>
+	    </packing>
+	  </child>
+
+	  <child>
+	    <widget class="GtkVBox" id="gmail_vbox">
+	      <property name="visible">True</property>
+	      <property name="homogeneous">False</property>
+	      <property name="spacing">6</property>
+
+	      <child>
+		<widget class="GtkHBox" id="hbox21">
+		  <property name="visible">True</property>
+		  <property name="homogeneous">False</property>
+		  <property name="spacing">12</property>
+
+		  <child>
+		    <widget class="GtkLabel" id="gmail_username_label">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">_Username:</property>
+		      <property name="use_underline">True</property>
+		      <property name="use_markup">False</property>
+		      <property name="justify">GTK_JUSTIFY_LEFT</property>
+		      <property name="wrap">False</property>
+		      <property name="selectable">False</property>
+		      <property name="xalign">0</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xpad">0</property>
+		      <property name="ypad">0</property>
+		      <property name="mnemonic_widget">gmail_username_entry</property>
+		    </widget>
+		    <packing>
+		      <property name="padding">0</property>
+		      <property name="expand">False</property>
+		      <property name="fill">False</property>
+		    </packing>
+		  </child>
+
+		  <child>
+		    <widget class="GtkEntry" id="gmail_username_entry">
+		      <property name="visible">True</property>
+		      <property name="tooltip" translatable="yes">Your Gmail username</property>
+		      <property name="can_focus">True</property>
+		      <property name="editable">True</property>
+		      <property name="visibility">True</property>
+		      <property name="max_length">0</property>
+		      <property name="text" translatable="yes"></property>
+		      <property name="has_frame">True</property>
+		      <property name="invisible_char" translatable="yes">*</property>
+		      <property name="activates_default">False</property>
+		      <signal name="activate" handler="mn_mailbox_properties_dialog_entry_activate_h" object="gmail_password_entry" last_modification_time="Fri, 16 Jul 2004 22:56:20 GMT"/>
+		      <signal name="changed" handler="mn_mailbox_properties_dialog_entry_changed_h" object="dialog" last_modification_time="Fri, 16 Jul 2004 23:00:28 GMT"/>
+		    </widget>
+		    <packing>
+		      <property name="padding">0</property>
+		      <property name="expand">True</property>
+		      <property name="fill">True</property>
+		    </packing>
+		  </child>
+		</widget>
+		<packing>
+		  <property name="padding">0</property>
+		  <property name="expand">True</property>
+		  <property name="fill">True</property>
+		</packing>
+	      </child>
+
+	      <child>
+		<widget class="GtkHBox" id="hbox23">
+		  <property name="visible">True</property>
+		  <property name="homogeneous">False</property>
+		  <property name="spacing">12</property>
+
+		  <child>
+		    <widget class="GtkLabel" id="gmail_password_label">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">_Password:</property>
+		      <property name="use_underline">True</property>
+		      <property name="use_markup">False</property>
+		      <property name="justify">GTK_JUSTIFY_LEFT</property>
+		      <property name="wrap">False</property>
+		      <property name="selectable">False</property>
+		      <property name="xalign">0</property>
+		      <property name="yalign">0.5</property>
+		      <property name="xpad">0</property>
+		      <property name="ypad">0</property>
+		      <property name="mnemonic_widget">gmail_password_entry</property>
+		    </widget>
+		    <packing>
+		      <property name="padding">0</property>
+		      <property name="expand">False</property>
+		      <property name="fill">False</property>
+		    </packing>
+		  </child>
+
+		  <child>
+		    <widget class="GtkEntry" id="gmail_password_entry">
+		      <property name="visible">True</property>
+		      <property name="tooltip" translatable="yes">Your Gmail password</property>
+		      <property name="can_focus">True</property>
+		      <property name="editable">True</property>
+		      <property name="visibility">False</property>
+		      <property name="max_length">0</property>
+		      <property name="text" translatable="yes"></property>
+		      <property name="has_frame">True</property>
+		      <property name="invisible_char" translatable="yes">*</property>
+		      <property name="activates_default">False</property>
+		      <signal name="activate" handler="mn_mailbox_properties_dialog_entry_activate_h" object="gmail_username_entry" last_modification_time="Fri, 16 Jul 2004 22:57:42 GMT"/>
+		      <signal name="changed" handler="mn_mailbox_properties_dialog_entry_changed_h" object="dialog" last_modification_time="Fri, 16 Jul 2004 22:57:55 GMT"/>
+		    </widget>
+		    <packing>
+		      <property name="padding">0</property>
+		      <property name="expand">True</property>
+		      <property name="fill">True</property>
+		    </packing>
+		  </child>
+		</widget>
+		<packing>
+		  <property name="padding">0</property>
+		  <property name="expand">True</property>
+		  <property name="fill">True</property>
+		</packing>
+	      </child>
+	    </widget>
+	    <packing>
+	      <property name="padding">0</property>
+	      <property name="expand">True</property>
+	      <property name="fill">True</property>
+	    </packing>
+	  </child>
+
+	  <child>
+	    <widget class="GtkLabel" id="unsupported_label">
+	      <property name="visible">True</property>
+	      <property name="label" translatable="yes">This mailbox type has not been compiled in and is therefore unsupported.</property>
+	      <property name="use_underline">False</property>
+	      <property name="use_markup">False</property>
+	      <property name="justify">GTK_JUSTIFY_LEFT</property>
+	      <property name="wrap">True</property>
+	      <property name="selectable">False</property>
+	      <property name="xalign">0</property>
+	      <property name="yalign">0.5</property>
+	      <property name="xpad">0</property>
+	      <property name="ypad">0</property>
 	    </widget>
 	    <packing>
 	      <property name="padding">0</property>
@@ -495,8 +568,8 @@
 	</widget>
 	<packing>
 	  <property name="padding">0</property>
-	  <property name="expand">True</property>
-	  <property name="fill">True</property>
+	  <property name="expand">False</property>
+	  <property name="fill">False</property>
 	</packing>
       </child>
     </widget>

@@ -10,7 +10,7 @@ Index
 
 0. About this document
 
-	$Id: INSTALL,v 1.5 2004/06/29 15:02:04 jylefort Exp $
+	$Id: INSTALL,v 1.6 2004/07/21 18:52:06 jylefort Exp $
 
 	Copyright (c) 2003, 2004 Jean-Yves Lefort.
 
@@ -30,6 +30,9 @@ Index
 		* for POP3 support: GNet (version 2.0 or superior)
 		  http://www.gnetlibrary.org/
 
+		* for Gmail support: libsoup (version 1.99.28)
+		  ftp://ftp.gnome.org/pub/GNOME/sources/libsoup/1.99/
+
 2. Instructions
 
 	Mail Notification uses the well-known GNU build system. Hence,
@@ -44,13 +47,14 @@ Index
 	command-line options: type "./configure --help" for an
 	exhaustive list.
 
-	Five options are specific to Mail Notification:
+	Six options are specific to Mail Notification:
 
 		--enable-mbox
 		--enable-mh
 		--enable-maildir
 		--enable-pop3
 		--enable-sylpheed
+		--enable-gmail
 
 	They may be used to disable the compilation of some format
 	handlers. They are all enabled by default.

@@ -36,6 +36,9 @@
 #ifdef WITH_SYLPHEED
 #include "mn-sylpheed-mailbox.h"
 #endif
+#ifdef WITH_GMAIL
+#include "mn-gmail-mailbox.h"
+#endif
 #include "mn-unsupported-mailbox.h"
 #include "mn-util.h"
 #include "mn-uri.h"
@@ -119,7 +122,7 @@ mn_mailbox_get_types (void)
 
   if (! types)
     {
-      GType tmp_types[5];
+      GType tmp_types[6];
       int n_types = 0;
       int i;
 
@@ -137,6 +140,9 @@ mn_mailbox_get_types (void)
 #endif
 #ifdef WITH_SYLPHEED
       tmp_types[n_types++] = MN_TYPE_SYLPHEED_MAILBOX;
+#endif
+#ifdef WITH_GMAIL
+      tmp_types[n_types++] = MN_TYPE_GMAIL_MAILBOX;
 #endif
 
       types = g_new(GType, n_types + 1);

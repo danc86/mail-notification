@@ -1,4 +1,7 @@
 /* 
+ * mn-pop3-mailbox.c - POP3 support for Mail Notification
+ * Fully complies with RFC 1939
+ *
  * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -158,7 +161,7 @@ mn_pop3_mailbox_constructor (GType type,
 			 &pop3_mailbox->priv->password,
 			 &pop3_mailbox->priv->hostname,
 			 &pop3_mailbox->priv->port))
-    mn_mailbox_set_init_error(mailbox, _("unable to parse URI"));
+    mn_mailbox_set_init_error(mailbox, _("unable to parse POP3 URI"));
   
   return object;
 }
@@ -184,7 +187,7 @@ mn_pop3_mailbox_check (MNMailbox *mailbox)
   MNPOP3Mailbox *pop3_mailbox = MN_POP3_MAILBOX(mailbox);
   GConn *conn;
 
-  mn_info(_("connecting to POP3 server %s:%i"), pop3_mailbox->priv->hostname, pop3_mailbox->priv->port);
+  mn_info(_("connecting to POP3 server %s"), pop3_mailbox->priv->hostname);
 
   pop3_mailbox->priv->state = STATE_CONNECT;
   conn = gnet_conn_new(pop3_mailbox->priv->hostname, pop3_mailbox->priv->port, mn_pop3_mailbox_conn_cb, mailbox);
@@ -221,7 +224,7 @@ mn_pop3_mailbox_conn_cb (GConn *conn, GConnEvent *event, gpointer user_data)
   switch (event->type)
     {
     case GNET_CONN_CONNECT:
-      mn_info(_("successfully connected to %s:%i"), mailbox->priv->hostname, mailbox->priv->port);
+      mn_info(_("successfully connected to %s"), mailbox->priv->hostname);
       mailbox->priv->state = STATE_ACK;
       gnet_conn_readline(conn);
       break;
@@ -285,10 +288,12 @@ mn_pop3_mailbox_conn_cb (GConn *conn, GConnEvent *event, gpointer user_data)
 	    default:
 	      g_return_if_reached();
 	    }
-	else			/* error reply */
+	else if (! strcmp(event->buffer, "-ERR") || ! strncmp(event->buffer, "-ERR ", 5))
 	  {
-	    if (! mn_mailbox_get_error(MN_MAILBOX(mailbox)))
-	      mn_mailbox_set_error(MN_MAILBOX(mailbox), "%s", event->buffer);
+	    if (event->buffer[4])
+	      mn_mailbox_set_error(MN_MAILBOX(mailbox), "\"%s\"", event->buffer + 5);
+	    else
+	      mn_mailbox_set_error(MN_MAILBOX(mailbox), _("unknown error"));
 
 	    switch (mailbox->priv->state)
 	      {
@@ -306,6 +311,12 @@ mn_pop3_mailbox_conn_cb (GConn *conn, GConnEvent *event, gpointer user_data)
 	      default:
 		g_return_if_reached();
 	      }
+	  }
+	else
+	  {
+	    mn_mailbox_set_error(MN_MAILBOX(mailbox), _("invalid reply \"%s\""), event->buffer);
+	    /* the server is uncompliant, we do not send a QUIT */
+	    goto unref;
 	  }
       }
       break;

@@ -38,7 +38,10 @@ mn_stock_init (void)
     { MN_STOCK_NO_MAIL_ERROR,	"no-mail-error.png", NULL	},
     { MN_STOCK_LOCAL,		NULL, "stock_folder"		},
     { MN_STOCK_REMOTE,		NULL, "stock_internet"		},
-    { MN_STOCK_UNSUPPORTED,	"unsupported.png", NULL		}
+    { MN_STOCK_UNSUPPORTED,	"unsupported.png", NULL		},
+#ifdef WITH_GMAIL
+    { MN_STOCK_GMAIL,		"gmail.png", NULL		},
+#endif
   };
   GtkIconFactory *factory;
   GtkIconTheme *icon_theme;

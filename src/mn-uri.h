@@ -31,6 +31,11 @@ gboolean mn_uri_parse_pop (const char *uri,
 			   char **hostname,
 			   int *port);
 
+char *mn_uri_build_gmail (const char *username, const char *password);
+gboolean mn_uri_parse_gmail (const char *uri,
+			     char **username,
+			     char **password);
+
 char *mn_uri_canonicalize (const char *uri);
 int mn_uri_cmp (const char *uri1, const char *uri2);
 

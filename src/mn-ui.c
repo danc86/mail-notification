@@ -125,90 +125,102 @@ mn_ui_update_sensitivity (void)
 void
 mn_ui_update_icon (void)
 {
-  GSList *l;
-  int n_new = 0;
-  int n_error = 0;
-  int n_unsupported = 0;
-  GString *new_string;
-  GString *error_string;
-  GString *unsupported_string;
+  GSList *mailboxes;
   const char *stock_id;
   GString *tooltip;
 
-  new_string = g_string_new(NULL);
-  error_string = g_string_new(NULL);
-  unsupported_string = g_string_new(NULL);
-
-  MN_LIST_FOREACH(l, mn_mailboxes_get())
+  mailboxes = mn_mailboxes_get();
+  if (mailboxes)
     {
-      MNMailbox *mailbox = l->data;
-      const char *name;
-      const char *error;
+      GSList *l;
+      int n_new = 0;
+      int n_error = 0;
+      int n_unsupported = 0;
+      GString *new_string;
+      GString *error_string;
+      GString *unsupported_string;
 
-      name = mn_mailbox_get_name(mailbox);
-      error = mn_mailbox_get_error(mailbox);
+      new_string = g_string_new(NULL);
+      error_string = g_string_new(NULL);
+      unsupported_string = g_string_new(NULL);
 
-      if (mn_mailbox_get_has_new(mailbox))
-	{
-	  n_new++;
-	  if (*new_string->str)
-	    g_string_append_c(new_string, '\n');
-	  g_string_append_printf(new_string, "    %s", name);
+      MN_LIST_FOREACH(l, mn_mailboxes_get())
+        {
+	  MNMailbox *mailbox = l->data;
+	  const char *name;
+	  const char *error;
+
+	  name = mn_mailbox_get_name(mailbox);
+	  error = mn_mailbox_get_error(mailbox);
+
+	  if (mn_mailbox_get_has_new(mailbox))
+	    {
+	      n_new++;
+	      if (*new_string->str)
+		g_string_append_c(new_string, '\n');
+	      g_string_append_printf(new_string, "    %s", name);
+	    }
+	  
+	  if (error)
+	    {
+	      n_error++;
+	      if (*error_string->str)
+		g_string_append_c(error_string, '\n');
+	      g_string_append_printf(error_string, "    %s (%s)", name, error);
+	    }
+	  
+	  if (MN_IS_UNSUPPORTED_MAILBOX(mailbox))
+	    {
+	      n_unsupported++;
+	      if (*unsupported_string->str)
+		g_string_append_c(unsupported_string, '\n');
+	      g_string_append_printf(unsupported_string, "    %s (%s)", name, mn_unsupported_mailbox_get_reason(MN_UNSUPPORTED_MAILBOX(mailbox)));
+	    }
 	}
 
-      if (error)
+      if (n_new > 0)
 	{
-	  n_error++;
-	  if (*error_string->str)
-	    g_string_append_c(error_string, '\n');
-	  g_string_append_printf(error_string, "    %s (%s)", name, error);
+	  stock_id = n_error > 0 ? MN_STOCK_MAIL_ERROR : MN_STOCK_MAIL;
+	  g_string_prepend(new_string, ngettext("The following mailbox has new mail:\n",
+						"The following mailboxes have new mail:\n",
+						n_new));
 	}
-
-      if (MN_IS_UNSUPPORTED_MAILBOX(mailbox))
+      else
 	{
-	  n_unsupported++;
-	  if (*unsupported_string->str)
-	    g_string_append_c(unsupported_string, '\n');
-	  g_string_append_printf(unsupported_string, "    %s (%s)", name, mn_unsupported_mailbox_get_reason(MN_UNSUPPORTED_MAILBOX(mailbox)));
+	  stock_id = n_error > 0 ? MN_STOCK_NO_MAIL_ERROR : MN_STOCK_NO_MAIL;
+	  g_string_prepend(new_string, _("You have no new mail."));
 	}
-    }
+      
+      if (n_error > 0)
+	g_string_prepend(error_string, ngettext("The following mailbox reported an error:\n",
+						"The following mailboxes reported an error:\n",
+						n_error));
+      
+      if (n_unsupported > 0)
+	g_string_prepend(unsupported_string, ngettext("The following mailbox is unsupported:\n",
+						      "The following mailboxes are unsupported:\n",
+						      n_unsupported));
 
-  if (n_new > 0)
-    {
-      stock_id = n_error > 0 ? MN_STOCK_MAIL_ERROR : MN_STOCK_MAIL;
-      g_string_prepend(new_string, ngettext("The following mailbox has new mail:\n",
-					    "The following mailboxes have new mail:\n",
-					    n_new));
+      tooltip = g_string_new(new_string->str);
+      if (n_error > 0)
+	g_string_append_printf(tooltip, "\n\n%s", error_string->str);
+      if (n_unsupported > 0)
+	g_string_append_printf(tooltip, "\n\n%s", unsupported_string->str);
+
+      g_string_free(new_string, TRUE);
+      g_string_free(error_string, TRUE);
+      g_string_free(unsupported_string, TRUE);
     }
   else
     {
-      stock_id = n_error > 0 ? MN_STOCK_NO_MAIL_ERROR : MN_STOCK_NO_MAIL;
-      g_string_prepend(new_string, _("You have no new mail."));
+      stock_id = MN_STOCK_NO_MAIL;
+      tooltip = g_string_new(_("No mailboxes are being monitored."));
     }
-
-  if (n_error > 0)
-    g_string_prepend(error_string, ngettext("The following mailbox reported an error:\n",
-					    "The following mailboxes reported an error:\n",
-					    n_error));
-
-  if (n_unsupported > 0)
-    g_string_prepend(unsupported_string, ngettext("The following mailbox is unsupported:\n",
-						  "The following mailboxes are unsupported:\n",
-						  n_unsupported));
-
-  tooltip = g_string_new(new_string->str);
-  if (n_error > 0)
-    g_string_append_printf(tooltip, "\n\n%s", error_string->str);
-  if (n_unsupported > 0)
-    g_string_append_printf(tooltip, "\n\n%s", unsupported_string->str);
-
+  
   mn_mail_icon_set_from_stock(mail_icon, stock_id);
   mn_mail_icon_set_tooltip(mail_icon, tooltip->str);
 
   g_string_free(tooltip, TRUE);
-  g_string_free(new_string, TRUE);
-  g_string_free(error_string, TRUE);
-  g_string_free(unsupported_string, TRUE);
 }
 
 /* libglade callbacks */
@@ -235,6 +247,7 @@ void
 mn_ui_about_activate_h (GtkMenuItem *menuitem, gpointer user_data)
 {
   static const char *authors[] = { "Jean-Yves Lefort <jylefort@brutele.be>", NULL };
+  static const char *documenters[] = { "Jean-Yves Lefort <jylefort@brutele.be>", NULL };
   GdkPixbuf *logo;
   GdkPixbuf *icon;
   static GtkWidget *about = NULL;
@@ -251,8 +264,8 @@ mn_ui_about_activate_h (GtkMenuItem *menuitem, gpointer user_data)
 			  "Copyright \302\251 2003, 2004 Jean-Yves Lefort",
 			  _("A Mail Notification Icon"),
 			  authors,
-			  NULL,
-			  NULL,
+			  documenters,
+			  _("Jean-Yves Lefort <jylefort@brutele.be>"),
 			  logo);
   g_object_unref(logo);
 

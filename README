@@ -6,12 +6,11 @@ Index
 
 	0. About this document
 	1. About Mail Notification
-	2. Release notes
-	3. Documentation map
+	2. Installation instructions
 
 0. About this document
 
-	$Id: README,v 1.13 2004/06/29 16:33:36 jylefort Exp $
+	$Id: README,v 1.14 2004/07/21 17:56:33 jylefort Exp $
 
 	Copyright (c) 2003, 2004 Jean-Yves Lefort.
 
@@ -31,33 +30,11 @@ Index
 	Mail Notification features include:
 
 		- multiple mailbox support
-		- mbox, MH, Maildir, Sylpheed and POP3 support
+		- mbox, MH, Maildir, Sylpheed, POP3 and Gmail support
 		- automatic detection of mailbox format
 		- automatic notification
 		- HIG compliance
 
-2. Release notes
+2. Installation instructions
 
-	Some configuration keys have been obsoleted. For the sake of
-	cleanliness, you should remove them:
-
-		$ gconftool-2 --recursive-unset /apps/mail-notification/local /apps/mail-notification/remote
-
-3. Documentation map
-
-	The following documents are included in the distribution:
-
-		COPYING		licensing information
-
-		README		this document
-
-		INSTALL		installation instructions
-
-		NEWS		reverse chronology of changes,
-				manually edited
-
-		ChangeLog	reverse chronology of changes,
-				automatically generated from CVS
-				commit messages
-
-		TODO		to-do list, mostly useful for developers
+	See the INSTALL file.

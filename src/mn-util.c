@@ -85,6 +85,9 @@ mn_str_isnumeric (const char *str)
 
   g_return_val_if_fail(str != NULL, FALSE);
 
+  if (! *str)
+    return FALSE;
+
   for (i = 0; str[i]; i++)
     if (! g_ascii_isdigit(str[i]))
       return FALSE;

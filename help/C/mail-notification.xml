@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "0.4.0">
-  <!ENTITY manrevision "2.0">
-  <!ENTITY date "Tuesday, June 29, 2004">
+  <!ENTITY appversion "0.5.0">
+  <!ENTITY manrevision "2.1">
+  <!ENTITY date "Wednesday, July 21, 2004">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -12,9 +12,17 @@
   <!ENTITY software-license SYSTEM "software-license.xml">
 
   <!ENTITY aka "<acronym>aka</acronym>">
+  <!ENTITY uri "<link linkend=&#34;uri&#34;>URI</link>">
+  <!ENTITY maildir "<link linkend=&#34;maildir&#34;>Maildir</link>">
+  <!ENTITY mbox "<link linkend=&#34;mbox&#34;>mbox</link>">
+  <!ENTITY mh "<link linkend=&#34;mh&#34;>MH</link>">
+  <!ENTITY pop3 "<link linkend=&#34;pop3&#34;>POP3</link>">
+  <!ENTITY sylpheed "<link linkend=&#34;sylpheed&#34;>Sylpheed</link>">
+  <!ENTITY gmail "<link linkend=&#34;gmail&#34;>Gmail</link>">
+  <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.5 2004/06/29 13:50:42 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.13 2004/07/21 16:00:41 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (c) 2004 Jean-Yves Lefort -->
@@ -121,6 +129,17 @@
 	  <para role="publisher">&project;</para>
 	</revdescription>
       </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.0</revnumber>
+	<date>Tuesday, June 29, 2004</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
     </revhistory>
 
     <releaseinfo>
@@ -156,7 +175,7 @@
     </para>
     <itemizedlist>
       <listitem><para>multiple mailbox support</para></listitem>
-      <listitem><para>mbox, MH, Maildir, Sylpheed and POP3 support</para></listitem>
+      <listitem><para>&mbox;, &mh;, &maildir;, &sylpheed;, &pop3; and &gmail; support</para></listitem>
       <listitem><para>automatic detection of mailbox format</para></listitem>
       <listitem><para><link linkend="automatic-notification">automatic notification</link></para></listitem>
       <listitem><para><ulink url="http://developer.gnome.org/projects/gup/hig">HIG</ulink> compliance</para></listitem>
@@ -264,7 +283,7 @@
     </para>
     <table frame="topbot" id="icons">
       <title>&app; Icons</title>
-      <tgroup>
+      <tgroup cols="2">
 	<thead>
 	  <row rowsep="1">
 	    <entry><para>Icon</para></entry>
@@ -392,6 +411,131 @@
     </variablelist>
   </sect1>
 
+  <sect1 id="mailbox-properties">
+    <title>Mailbox Properties</title>
+    <para>
+      The <guilabel>Mailbox Properties</guilabel> dialog is displayed
+      when you add a new mailbox or when you edit an existing one.
+      It contains the following global setting:
+    </para>
+
+    <variablelist>
+      <varlistentry>
+	<term><guilabel>Type</guilabel></term>
+	<listitem>
+	  <para>
+	    This is the type of the mailbox. If you select <guilabel>autodetect</guilabel>,
+	    the type will be autodetected using the mailbox &uri; and/or contents.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      The rest of the window depends on the selected mailbox type:
+    </para>
+
+    <variablelist>
+      <varlistentry>
+	<term>When <guilabel>autodetect</guilabel> is selected:</term>
+	<listitem>
+	  <variablelist>
+	    <varlistentry>
+	      <term><guilabel>Location</guilabel></term>
+	      <listitem>
+		<para>
+		  This is the &uri; of the mailbox.
+		  <note>
+		    <para>
+		      &app; abstracts file operations by using &gnomevfs;.
+		      All the schemes (http, ftp, ...) supported by &gnomevfs;
+		      are therefore supported by &app;.
+		    </para>
+		  </note>
+		</para>
+	      </listitem>
+	    </varlistentry>
+	  </variablelist>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>When <guilabel>POP3</guilabel> is selected:</term>
+	<listitem>
+	  <variablelist>
+	    <varlistentry>
+	      <term><guilabel>Hostname</guilabel></term>
+	      <listitem>
+		<para>
+		  This is the hostname or IP address of the &pop3; server.
+		  <note>
+		    <para>
+		      Symbolic names aswell as IPv4 and IPv6 addresses
+		      are supported.
+		    </para>
+		  </note>
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><guilabel>Port</guilabel></term>
+	      <listitem>
+		<para>
+		  This is the port number of the &pop3; server.
+		  <tip>
+		    <para>
+		      &pop3; servers usually listen on port 110.
+		    </para>
+		  </tip>
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><guilabel>Username</guilabel></term>
+	      <listitem>
+		<para>
+		  This is your username on the &pop3; server.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><guilabel>Password</guilabel></term>
+	      <listitem>
+		<para>
+		  This is your password on the &pop3; server.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	  </variablelist>
+	</listitem>
+      </varlistentry>
+      
+      <varlistentry>
+	<term>When <guilabel>Gmail</guilabel> is selected:</term>
+	<listitem>
+	  <variablelist>
+	    <varlistentry>
+	      <term><guilabel>Username</guilabel></term>
+	      <listitem>
+		<para>
+		  This is your username on &gmail;.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><guilabel>Password</guilabel></term>
+	      <listitem>
+		<para>
+		  This is your password on &gmail;.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	  </variablelist>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
   <sect1 id="automatic-notification">
     <title>Automatic Notification</title>
     <para>
@@ -401,7 +545,7 @@
       receives new mail.
     </para>
     <para>
-      For automatic notification to be supported, GnomeVFS must be compiled
+      For automatic notification to be supported, &gnomevfs; must be compiled
       with <ulink url="http://oss.sgi.com/projects/fam">FAM</ulink> support,
       and FAM must be configured properly.
     </para>
@@ -436,9 +580,124 @@
       </para>
     </sect2>
 
+    <sect2 id="acknowledgements">
+      <title>Acknowledgements</title>
+      <itemizedlist>
+	<!-- We don't use <firstname> and <surname> because we can't -->
+	<!-- unambiguously split some names. -->
+	<listitem><para>Dan Korostelev</para></listitem>
+      </itemizedlist>
+    </sect2>
+
     <sect2 id="licensing-terms">
       <title>Licensing Terms</title>
       &software-license;
     </sect2>
   </sect1>
+
+  <glossary id="glossary">
+    <title>Glossary</title>
+
+    <glossdiv><title>G</title>
+      <glossentry id="gmail">
+	<glossterm>Gmail</glossterm>
+	<glossdef>
+	  <para>
+	    A free webmail service operated by <ulink url="http://www.google.com">Google</ulink>.
+	    More information can be found on the <ulink url="http://gmail.google.com">Gmail web page</ulink>.
+	  </para>
+	</glossdef>
+      </glossentry>
+
+      <glossentry id="gnomevfs">
+	<glossterm>GnomeVFS</glossterm>
+	<glossdef>
+	  <para>
+	    A filesystem abstraction library allowing applications to access
+	    local, remote and virtual resources in a transparent fashion.
+	    <ulink url="http://developer.gnome.org/doc/API/2.0/gnome-vfs-2.0">GnomeVFS</ulink>
+	    is part of the <ulink url="http://www.gnome.org">GNOME Desktop Environment</ulink>.
+	  </para>
+	</glossdef>
+      </glossentry>
+    </glossdiv>
+
+    <glossdiv><title>M</title>
+      <glossentry id="maildir">
+	<glossterm>Maildir</glossterm>
+	<glossdef>
+	  <para>
+	    A mailbox format popularized by the <ulink url="http://www.qmail.org">qmail</ulink> mail transfer agent.
+	    Messages are stored in a structure of directories for reliability.
+	  </para>
+	</glossdef>
+      </glossentry>
+
+      <glossentry id="mbox">
+	<glossterm>mbox</glossterm>
+	<glossdef>
+	  <para>
+	    The traditional UNIX mailbox format. Messages are
+	    stored in a single file.
+	  </para>
+	</glossdef>
+      </glossentry>
+
+      <glossentry id="mh">
+	<glossterm>MH</glossterm>
+	<glossdef>
+	  <para>
+	    A mailbox format popularized by the
+	    <ulink url="http://www.ics.uci.edu/~mh">MH</ulink> mail user agent.
+	    Messages are stored as separate files for flexibility and performance.
+	  </para>
+	</glossdef>
+      </glossentry>
+    </glossdiv>
+
+    <glossdiv><title>P</title>
+      <glossentry id="pop3">
+	<glossterm>POP3</glossterm>
+	<glossdef>
+	  <para>
+	    A protocol allowing a workstation to dynamically access
+	    a maildrop on a server host, as defined by
+	    <ulink url="http://www.ietf.org/rfc/rfc1939.txt" type="http">RFC 1939</ulink>.
+	  </para>
+	</glossdef>
+      </glossentry>
+    </glossdiv>
+
+    <glossdiv><title>S</title>
+      <glossentry id="sylpheed">
+	<glossterm>Sylpheed</glossterm>
+	<glossdef>
+	  <para>
+	    The mailbox format used by the <ulink url="http://sylpheed.good-day.net">Sylpheed</ulink>
+	    mail user agent. The Sylpheed format adds a binary cache to MH folders
+	    for faster indexing.
+	  </para>
+	</glossdef>
+      </glossentry>
+    </glossdiv>
+
+    <glossdiv><title>U</title>
+      <glossentry>
+	<glossterm>URI</glossterm>
+	<glosssee otherterm="uri"/>
+      </glossentry>
+
+      <glossentry id="uri">
+	<glossterm>Uniform Resource Identifier</glossterm>
+	<acronym>URI</acronym>
+	<glossdef>
+	  <para>
+	    A <quote>compact string of characters for identifying an
+	      abtract or physical resource</quote>, as defined
+	    by <ulink url="http://www.ietf.org/rfc/rfc2396.txt" type="http">RFC 2396</ulink>.
+	  </para>
+	</glossdef>
+      </glossentry>
+    </glossdiv>
+  </glossary>
 </article>

@@ -1,4 +1,4 @@
-AC_INIT(mail-notification, 0.4.0, jylefort@brutele.be)
+AC_INIT(mail-notification, 0.5.0, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mn-main.c)
 
 AC_PREREQ(2.59)
@@ -40,6 +40,13 @@ AC_HELP_STRING([--disable-sylpheed], [disable Sylpheed support]),
 	*) AC_MSG_ERROR([bad value $enableval for --enable-sylpheed]) ;;
 esac], [enable_sylpheed=yes])
 
+AC_ARG_ENABLE(gmail,
+AC_HELP_STRING([--disable-gmail], [disable Gmail support]),
+[case "$enableval" in
+	yes|no) enable_gmail=$enableval ;;
+	*) AC_MSG_ERROR([bad value $enableval for --enable-gmail]) ;;
+esac], [enable_gmail=yes])
+
 AC_ARG_G_ASSERTIONS
 AC_ARG_COMPILE_WARNINGS
 
@@ -51,12 +58,14 @@ AM_CONFIG_HEADER(config.h)
 
 ### i18n
 
-AC_DEFINE(GETTEXT_PACKAGE, ["AC_PACKAGE_NAME"], [gettext package name])
-AC_SUBST(GETTEXT_PACKAGE)
 GETTEXT_PACKAGE=AC_PACKAGE_NAME
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", [Define to the gettext package name])
+AC_SUBST(GETTEXT_PACKAGE)
 
-ALL_LINGUAS="fr"
+ALL_LINGUAS="fr ru"
 AM_GLIB_GNU_GETTEXT
+
+AC_PROG_INTLTOOL
 
 ### system features
 
@@ -82,10 +91,13 @@ if test -z "$GCONFTOOL"; then
 fi
 
 if test $enable_pop3 = yes; then
-	AM_PATH_GNET_2_0(,
-		[AC_DEFINE(HAVE_GNET, 1, [Define to 1 if the GNet library is available])],
-		[AC_MSG_WARN([unable to find the GNet library: forcing --disable-pop3]); enable_pop3=no])
+	AM_PATH_PKG(GNET, gnet-2.0,, [AC_MSG_WARN([unable to find the GNet library: forcing --disable-pop3]); enable_pop3=no; disable_pop3_reason="(GNet not found)"])
 fi
+
+have_soup=no
+if test $enable_gmail = yes; then
+	AM_PATH_PKG(SOUP, soup-2.0, have_soup=yes, [AC_MSG_WARN([unable to find the soup library: forcing --disable-gmail]); enable_gmail=no; disable_gmail_reason="(libsoup not found)"])
+fi	
 
 ### Automake conditionals
 
@@ -94,6 +106,8 @@ AM_CONDITIONAL(WITH_MH, [test $enable_mh != no])
 AM_CONDITIONAL(WITH_MAILDIR, [test $enable_maildir != no])
 AM_CONDITIONAL(WITH_POP3, [test $enable_pop3 != no])
 AM_CONDITIONAL(WITH_SYLPHEED, [test $enable_sylpheed != no])
+AM_CONDITIONAL(WITH_GMAIL, [test $enable_gmail != no])
+AM_CONDITIONAL(HAVE_SOUP, [test $have_soup != no])
 
 ### config.h definitions
 
@@ -113,6 +127,9 @@ if test $enable_pop3 = yes; then
 fi
 if test $enable_sylpheed = yes; then
 	AC_DEFINE(WITH_SYLPHEED, 1, [Define to 1 if Sylpheed support is enabled])
+fi
+if test $enable_gmail = yes; then
+	AC_DEFINE(WITH_GMAIL, 1, [Define to 1 if Gmail support is enabled])
 fi
 
 ### output
@@ -142,16 +159,13 @@ Installation prefixes
 Installation directories
   --bindir                      $bindir
   --datadir                     $datadir
-  --libdir                      $libdir
-  --includedir                  $includedir
-  --mandir                      $mandir
+  --sysconfdir                  $sysconfdir
 
 Features
   --enable-mbox                 $enable_mbox
   --enable-mh                   $enable_mh
   --enable-maildir              $enable_maildir
-  --enable-pop3                 $enable_pop3
+  --enable-pop3                 $enable_pop3 $disable_pop3_reason
   --enable-sylpheed             $enable_sylpheed
-  --enable-assertions           $enable_assertions
-  --enable-compile-warnings     $enable_compile_warnings
+  --enable-gmail                $enable_gmail $disable_gmail_reason
 EOF

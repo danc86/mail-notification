@@ -1,4 +1,4 @@
-# generated automatically by aclocal 1.8.4 -*- Autoconf -*-
+# generated automatically by aclocal 1.8.5 -*- Autoconf -*-
 
 # Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 # Free Software Foundation, Inc.
@@ -33,9 +33,7 @@ AC_DEFUN([AM_GCONF_SOURCE_2],
   AC_MSG_RESULT([Using config source $GCONF_SCHEMA_CONFIG_SOURCE for schema installation])
 
   if test "x$GCONF_SCHEMA_FILE_DIR" = "x"; then
-    GCONF_SCHEMA_FILE_DIR='$(sysconfdir)/gconf/schemas/'
-  else
-    GCONF_SCHEMA_FILE_DIR=$GCONF_SCHEMA_FILE_DIR
+    GCONF_SCHEMA_FILE_DIR='$(sysconfdir)/gconf/schemas'
   fi
 
   AC_ARG_WITH(gconf-schema-file-dir, 
@@ -632,193 +630,146 @@ AC_DEFUN([AM_GLIB_GNU_GETTEXT],[GLIB_GNU_GETTEXT($@)])
 AC_DEFUN([AM_GLIB_DEFINE_LOCALEDIR],[GLIB_DEFINE_LOCALEDIR($@)])
 ])dnl
 
-# Configure paths for Gnet
-# A hacked up version of Owen Taylor's glib-2.0.m4 (Copyright 1997-2001)
+ll## intltool.m4 - Configure intltool for the target system. -*-Shell-script-*-
 
-dnl AM_PATH_GNET_2_0([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND [, MODULES]]]])
-dnl Test for GNET, and define GNET_CFLAGS and GNET_LIBS, if gmodule, gobject or 
-dnl gthread is specified in MODULES, pass to pkg-config
-dnl
-AC_DEFUN([AM_PATH_GNET_2_0],
-[dnl 
-dnl Get the cflags and libraries from pkg-config
-dnl
-AC_ARG_ENABLE(gnettest, [  --disable-gnettest      do not try to compile and run a test GNET program],
-		    , enable_gnettest=yes)
+dnl AC_PROG_INTLTOOL([MINIMUM-VERSION], [no-xml])
+# serial 1 AC_PROG_INTLTOOL
+AC_DEFUN([AC_PROG_INTLTOOL],
+[
 
-  pkg_config_args=gnet-2.0
+if test -n "$1"; then
+    AC_MSG_CHECKING(for intltool >= $1)
 
-  AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+    INTLTOOL_REQUIRED_VERSION_AS_INT=`echo $1 | awk -F. '{ printf "%d", $[1] * 100 + $[2]; }'`
+    INTLTOOL_APPLIED_VERSION=`awk -F\" '/\\$VERSION / { printf $[2]; }'  < ${ac_aux_dir}/intltool-update.in`
+    changequote({{,}})
+    INTLTOOL_APPLIED_VERSION_AS_INT=`awk -F\" '/\\$VERSION / { split(${{2}}, VERSION, "."); printf "%d\n", VERSION[1] * 100 + VERSION[2];}' < ${ac_aux_dir}/intltool-update.in`
+    changequote([,])
 
-  no_gnet=""
-
-  if test x$PKG_CONFIG != xno ; then
-    if $PKG_CONFIG --atleast-pkgconfig-version 0.7 ; then
-      :
+    if test "$INTLTOOL_APPLIED_VERSION_AS_INT" -ge "$INTLTOOL_REQUIRED_VERSION_AS_INT"; then
+	AC_MSG_RESULT([$INTLTOOL_APPLIED_VERSION found])
     else
-      echo *** pkg-config too old; version 0.7 or better required.
-      no_gnet=yes
-      PKG_CONFIG=no
+	AC_MSG_RESULT([$INTLTOOL_APPLIED_VERSION found. Your intltool is too old.  You need intltool $1 or later.])
+	exit 1
     fi
-  else
-    no_gnet=yes
-  fi
+fi
 
-  min_gnet_version=ifelse([$1], , 2.0.0, $1)
-  AC_MSG_CHECKING(for GNET - version >= $min_gnet_version)
+  INTLTOOL_DESKTOP_RULE='%.desktop:   %.desktop.in   $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -d -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+INTLTOOL_DIRECTORY_RULE='%.directory: %.directory.in $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -d -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+     INTLTOOL_KEYS_RULE='%.keys:      %.keys.in      $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -k -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+     INTLTOOL_PROP_RULE='%.prop:      %.prop.in      $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -d -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+      INTLTOOL_OAF_RULE='%.oaf:       %.oaf.in       $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -o -p $(top_srcdir)/po $< [$]@'
+     INTLTOOL_PONG_RULE='%.pong:      %.pong.in      $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -x -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+   INTLTOOL_SERVER_RULE='%.server:    %.server.in    $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -o -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+    INTLTOOL_SHEET_RULE='%.sheet:     %.sheet.in     $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -x -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+INTLTOOL_SOUNDLIST_RULE='%.soundlist: %.soundlist.in $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -d -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+       INTLTOOL_UI_RULE='%.ui:        %.ui.in        $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -x -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+      INTLTOOL_XML_RULE='%.xml:       %.xml.in       $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -x -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+      INTLTOOL_XAM_RULE='%.xam:       %.xml.in       $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -x -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+      INTLTOOL_KBD_RULE='%.kbd:       %.kbd.in       $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -x -u -m -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+    INTLTOOL_CAVES_RULE='%.caves:     %.caves.in     $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -d -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+  INTLTOOL_SCHEMAS_RULE='%.schemas:   %.schemas.in   $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -s -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
+    INTLTOOL_THEME_RULE='%.theme:     %.theme.in     $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*.po) ; LC_ALL=C $(INTLTOOL_MERGE) -d -u -c $(top_builddir)/po/.intltool-merge-cache $(top_srcdir)/po $< [$]@' 
 
-  if test x$PKG_CONFIG != xno ; then
-    ## don't try to run the test against uninstalled libtool libs
-    if $PKG_CONFIG --uninstalled $pkg_config_args; then
-	  echo "Will use uninstalled version of GNet found in PKG_CONFIG_PATH"
-	  enable_gnettest=no
-    fi
+AC_SUBST(INTLTOOL_DESKTOP_RULE)
+AC_SUBST(INTLTOOL_DIRECTORY_RULE)
+AC_SUBST(INTLTOOL_KEYS_RULE)
+AC_SUBST(INTLTOOL_PROP_RULE)
+AC_SUBST(INTLTOOL_OAF_RULE)
+AC_SUBST(INTLTOOL_PONG_RULE)
+AC_SUBST(INTLTOOL_SERVER_RULE)
+AC_SUBST(INTLTOOL_SHEET_RULE)
+AC_SUBST(INTLTOOL_SOUNDLIST_RULE)
+AC_SUBST(INTLTOOL_UI_RULE)
+AC_SUBST(INTLTOOL_XAM_RULE)
+AC_SUBST(INTLTOOL_KBD_RULE)
+AC_SUBST(INTLTOOL_XML_RULE)
+AC_SUBST(INTLTOOL_CAVES_RULE)
+AC_SUBST(INTLTOOL_SCHEMAS_RULE)
+AC_SUBST(INTLTOOL_THEME_RULE)
 
-    if $PKG_CONFIG --atleast-version $min_gnet_version $pkg_config_args; then
-	  :
-    else
-	  no_gnet=yes
-    fi
-  fi
+# Use the tools built into the package, not the ones that are installed.
 
-  if test x"$no_gnet" = x ; then
-    GNET_CFLAGS=`$PKG_CONFIG --cflags $pkg_config_args`
-    GNET_LIBS=`$PKG_CONFIG --libs $pkg_config_args`
-    gnet_config_major_version=`$PKG_CONFIG --modversion gnet-2.0 | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
-    gnet_config_minor_version=`$PKG_CONFIG --modversion gnet-2.0 | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
-    gnet_config_micro_version=`$PKG_CONFIG --modversion gnet-2.0 | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
-    if test "x$enable_gnettest" = "xyes" ; then
-      ac_save_CFLAGS="$CFLAGS"
-      ac_save_LIBS="$LIBS"
-      CFLAGS="$CFLAGS $GNET_CFLAGS"
-      LIBS="$GNET_LIBS $LIBS"
-dnl
-dnl Now check if the installed GNET is sufficiently new. (Also sanity
-dnl checks the results of pkg-config to some extent)
-dnl
-      rm -f conf.gnettest
-      AC_TRY_RUN([
-#include <gnet.h>
-#include <stdio.h>
-#include <stdlib.h>
+INTLTOOL_EXTRACT='$(top_builddir)/intltool-extract'
+INTLTOOL_MERGE='$(top_builddir)/intltool-merge'
+INTLTOOL_UPDATE='$(top_builddir)/intltool-update'
 
-int 
-main ()
-{
-  int major, minor, micro;
-  char *tmp_version;
+AC_SUBST(INTLTOOL_EXTRACT)
+AC_SUBST(INTLTOOL_MERGE)
+AC_SUBST(INTLTOOL_UPDATE)
 
-  system ("touch conf.gnettest");
+AC_PATH_PROG(INTLTOOL_PERL, perl)
+if test -z "$INTLTOOL_PERL"; then
+   AC_MSG_ERROR([perl not found; required for intltool])
+fi
+if test -z "`$INTLTOOL_PERL -v | fgrep '5.' 2> /dev/null`"; then
+   AC_MSG_ERROR([perl 5.x required for intltool])
+fi
+if test "x$2" != "xno-xml"; then
+   AC_MSG_CHECKING([for XML::Parser])
+   if `$INTLTOOL_PERL -e "require XML::Parser" 2>/dev/null`; then
+       AC_MSG_RESULT([ok])
+   else
+       AC_MSG_ERROR([XML::Parser perl module is required for intltool])
+   fi
+fi
 
-  /* HP/UX 9 (%@#!) writes to sscanf strings */
-  tmp_version = g_strdup("$min_gnet_version");
-  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
-     printf("%s, bad version string\n", "$min_gnet_version");
-     exit(1);
-   }
+# Remove file type tags (using []) from po/POTFILES.
 
-  if ((gnet_major_version != $gnet_config_major_version) ||
-      (gnet_minor_version != $gnet_config_minor_version) ||
-      (gnet_micro_version != $gnet_config_micro_version))
-    {
-      printf("\n*** 'pkg-config --modversion gnet-2.0' returned %d.%d.%d, but GNET (%d.%d.%d)\n", 
-             $gnet_config_major_version, $gnet_config_minor_version, $gnet_config_micro_version,
-             gnet_major_version, gnet_minor_version, gnet_micro_version);
-      printf ("*** was found! If pkg-config was correct, then it is best\n");
-      printf ("*** to remove the old version of GNet. You may also be able to fix the error\n");
-      printf("*** by modifying your LD_LIBRARY_PATH enviroment variable, or by editing\n");
-      printf("*** /etc/ld.so.conf. Make sure you have run ldconfig if that is\n");
-      printf("*** required on your system.\n");
-      printf("*** If pkg-config was wrong, set the environment variable PKG_CONFIG_PATH\n");
-      printf("*** to point to the correct configuration files\n");
-    } 
-  else if ((gnet_major_version != GNET_MAJOR_VERSION) ||
-	   (gnet_minor_version != GNET_MINOR_VERSION) ||
-           (gnet_micro_version != GNET_MICRO_VERSION))
-    {
-      printf("*** GNET header files (version %d.%d.%d) do not match\n",
-	     GNET_MAJOR_VERSION, GNET_MINOR_VERSION, GNET_MICRO_VERSION);
-      printf("*** library (version %d.%d.%d)\n",
-	     gnet_major_version, gnet_minor_version, gnet_micro_version);
-    }
-  else
-    {
-      if ((gnet_major_version > major) ||
-        ((gnet_major_version == major) && (gnet_minor_version > minor)) ||
-        ((gnet_major_version == major) && (gnet_minor_version == minor) && (gnet_micro_version >= micro)))
-      {
-        return 0;
-       }
-     else
-      {
-        printf("\n*** An old version of GNET (%d.%d.%d) was found.\n",
-               gnet_major_version, gnet_minor_version, gnet_micro_version);
-        printf("*** You need a version of GNET newer than %d.%d.%d. The latest version of\n",
-	       major, minor, micro);
-        printf("*** GNET is always available from ftp://ftp.gtk.org.\n");
-        printf("***\n");
-        printf("*** If you have already installed a sufficiently new version, this error\n");
-        printf("*** probably means that the wrong copy of the pkg-config shell script is\n");
-        printf("*** being found. The easiest way to fix this is to remove the old version\n");
-        printf("*** of GNET, but you can also set the PKG_CONFIG environment to point to the\n");
-        printf("*** correct copy of pkg-config. (In this case, you will have to\n");
-        printf("*** modify your LD_LIBRARY_PATH enviroment variable, or edit /etc/ld.so.conf\n");
-        printf("*** so that the correct libraries are found at run-time))\n");
-      }
-    }
-  return 1;
-}
-],, no_gnet=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
-       CFLAGS="$ac_save_CFLAGS"
-       LIBS="$ac_save_LIBS"
-     fi
-  fi
-  if test "x$no_gnet" = x ; then
-     AC_MSG_RESULT(yes (version $gnet_config_major_version.$gnet_config_minor_version.$gnet_config_micro_version))
-     ifelse([$2], , :, [$2])     
-  else
-     AC_MSG_RESULT(no)
-     if test "$PKG_CONFIG" = "no" ; then
-       echo "*** A new enough version of pkg-config was not found."
-       echo "*** See http://www.freedesktop.org/software/pkgconfig/"
-     else
-       if test -f conf.gnettest ; then
-        :
-       else
-          echo "*** Could not run GNET test program, checking why..."
-          ac_save_CFLAGS="$CFLAGS"
-          ac_save_LIBS="$LIBS"
-          CFLAGS="$CFLAGS $GNET_CFLAGS"
-          LIBS="$LIBS $GNET_LIBS"
-          AC_TRY_LINK([
-#include <gnet.h>
-#include <stdio.h>
-],      [ return ((gnet_major_version) || (gnet_minor_version) || (gnet_micro_version)); ],
-        [ echo "*** The test program compiled, but did not run. This usually means"
-          echo "*** that the run-time linker is not finding GNET or finding the wrong"
-          echo "*** version of GNET. If it is not finding GNET, you'll need to set your"
-          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
-          echo "*** to the installed location  Also, make sure you have run ldconfig if that"
-          echo "*** is required on your system"
-	  echo "***"
-          echo "*** If you have an old version installed, it is best to remove it, although"
-          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH" ],
-        [ echo "*** The test program failed to compile or link. See the file config.log for the"
-          echo "*** exact error that occured. This usually means GNET is incorrectly installed."])
-          CFLAGS="$ac_save_CFLAGS"
-          LIBS="$ac_save_LIBS"
-       fi
-     fi
-     GNET_CFLAGS=""
-     GNET_LIBS=""
-     ifelse([$3], , :, [$3])
-  fi
-  AC_SUBST(GNET_CFLAGS)
-  AC_SUBST(GNET_LIBS)
-  rm -f conf.gnettest
+ifdef([AC_DIVERSION_ICMDS],[
+  AC_DIVERT_PUSH(AC_DIVERSION_ICMDS)
+      changequote(,)
+      mv -f po/POTFILES po/POTFILES.tmp
+      sed -e '/\[encoding.*\]/d' -e 's/\[.*\] *//' < po/POTFILES.tmp > po/POTFILES
+      rm -f po/POTFILES.tmp
+      changequote([,])
+  AC_DIVERT_POP()
+],[
+  ifdef([AC_CONFIG_COMMANDS_PRE],[
+    AC_CONFIG_COMMANDS_PRE([
+        changequote(,)
+        mv -f po/POTFILES po/POTFILES.tmp
+        sed -e '/\[encoding.*\]/d' -e 's/\[.*\] *//' < po/POTFILES.tmp > po/POTFILES
+        rm -f po/POTFILES.tmp
+        changequote([,])
+    ])
+  ])
+])
+
+# Manually sed perl in so people don't have to put the intltool scripts in AC_OUTPUT.
+
+AC_OUTPUT_COMMANDS([
+
+sed -e "s:@INTLTOOL_PERL@:${INTLTOOL_PERL}:;" < ${ac_aux_dir}/intltool-extract.in > intltool-extract.out
+if cmp -s intltool-extract intltool-extract.out 2>/dev/null; then
+  rm -f intltool-extract.out
+else
+  mv -f intltool-extract.out intltool-extract
+fi
+chmod ugo+x intltool-extract
+chmod u+w intltool-extract
+
+sed -e "s:@INTLTOOL_PERL@:${INTLTOOL_PERL}:;" \
+    < ${ac_aux_dir}/intltool-merge.in > intltool-merge.out
+if cmp -s intltool-merge intltool-merge.out 2>/dev/null; then
+  rm -f intltool-merge.out
+else
+  mv -f intltool-merge.out intltool-merge
+fi
+chmod ugo+x intltool-merge
+chmod u+w intltool-merge
+
+sed -e "s:@INTLTOOL_PERL@:${INTLTOOL_PERL}:;" < ${ac_aux_dir}/intltool-update.in > intltool-update.out
+if cmp -s intltool-update intltool-update.out 2>/dev/null; then
+  rm -f intltool-update.out
+else
+  mv -f intltool-update.out intltool-update
+fi
+chmod ugo+x intltool-update
+chmod u+w intltool-update
+
+], INTLTOOL_PERL=${INTLTOOL_PERL} ac_aux_dir=${ac_aux_dir})
+
 ])
 
 #                                                        -*- Autoconf -*-
@@ -850,7 +801,7 @@ AC_DEFUN([AM_AUTOMAKE_VERSION], [am__api_version="1.8"])
 # Call AM_AUTOMAKE_VERSION so it can be traced.
 # This function is AC_REQUIREd by AC_INIT_AUTOMAKE.
 AC_DEFUN([AM_SET_CURRENT_AUTOMAKE_VERSION],
-	 [AM_AUTOMAKE_VERSION([1.8.4])])
+	 [AM_AUTOMAKE_VERSION([1.8.5])])
 
 # AM_AUX_DIR_EXPAND
 

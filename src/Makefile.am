@@ -15,6 +15,12 @@ endif
 if WITH_SYLPHEED
 sylpheed_sources = mn-sylpheed-mailbox.c mn-sylpheed-mailbox.h
 endif
+if WITH_GMAIL
+gmail_sources = mn-gmail-mailbox.c mn-gmail-mailbox.h
+endif
+if HAVE_SOUP
+soup_sources = mn-soup.c mn-soup.h
+endif
 
 mail_notification_SOURCES = \
 	eggtrayicon.c			\
@@ -36,6 +42,8 @@ mail_notification_SOURCES = \
 	$(maildir_sources)		\
 	$(pop3_sources)			\
 	$(sylpheed_sources)		\
+	$(gmail_sources)		\
+	$(soup_sources)			\
 	mn-main.c			\
 	mn-pending-mailbox.c		\
 	mn-pending-mailbox.h		\
@@ -54,11 +62,11 @@ mail_notification_SOURCES = \
 	mn-vfs.c			\
 	mn-vfs.h
 
-mail_notification_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(GNET_LIBS)
+mail_notification_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(GNET_LIBS) $(SOUP_LIBS)
 
 gnomelocaledir = $(datadir)/locale
 
-AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) $(GNET_CFLAGS) \
+AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) $(GNET_CFLAGS) $(SOUP_CFLAGS) \
 	-I$(top_srcdir) \
 	-DPREFIX="\"$(prefix)\"" \
 	-DSYSCONFDIR="\"$(sysconfdir)\"" \

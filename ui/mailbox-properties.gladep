@@ -10,6 +10,5 @@
   <output_main_file>FALSE</output_main_file>
   <output_support_files>FALSE</output_support_files>
   <output_build_files>FALSE</output_build_files>
-  <output_translatable_strings>TRUE</output_translatable_strings>
   <translatable_strings_file>mailbox-properties-strings.c</translatable_strings_file>
 </glade-project>

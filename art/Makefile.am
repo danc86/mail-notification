@@ -2,6 +2,7 @@ GNOME_IMAGES = mail-notification.png
 APP_IMAGES = \
 	about-icon.png		\
 	logo.png		\
+	gmail.png		\
 	mail-error.png		\
 	mail.png		\
 	no-mail-error.png	\

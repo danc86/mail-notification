@@ -1,10 +1,10 @@
-# French translations for mail-notification.
+# Russian translations for mail-notification.
 # Copyright (c) 2003, 2004 Jean-Yves Lefort.
 #
 # This file is distributed under the same license as the
 # mail-notification package.
 #
-# Jean-Yves Lefort <jylefort@brutele.be>, 2004.
+# Dan Korostelev <dan@ats.energo.ru>, 2004.
 #
 msgid ""
 msgstr ""
@@ -12,214 +12,219 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2004-07-21 18:10+0200\n"
 "PO-Revision-Date: 2004-07-21 21:58+0200\n"
-"Last-Translator: Jean-Yves Lefort <jylefort@brutele.be>\n"
-"Language-Team: Jean-Yves Lefort <jylefort@brutele.be>\n"
+"Last-Translator: Dan Korostelev <dan@ats.energo.ru>\n"
+"Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n>1;\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
+"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: data/mail-notification.desktop.in.h:1
 msgid "Get notified when new mail arrives"
-msgstr "Etre notifi√© lorsque du nouveau courrier arrive"
+msgstr ""
+"–ò–∫–æ–Ω–∫–∞ –≤ –æ–±–ª–∞—Å—Ç–∏ —É–≤–µ–¥–æ–º–ª–µ–Ω–∏—è –ø–∞–Ω–µ–ª–∏, —É–≤–µ–¥–æ–º–ª—è—é—â–∞—è –æ –ø—Ä–∏—Ö–æ–¥–µ –Ω–æ–≤–æ–π –ø–æ—á—Ç—ã."
 
 #: data/mail-notification.desktop.in.h:2 src/mn-main.c:112 src/mn-ui.c:262
 msgid "Mail Notification"
-msgstr "Notification de Courrier"
+msgstr "–ò–∫–æ–Ω–∫–∞ –≤—Ö–æ–¥—è—â–∏—Ö —Å–æ–æ–±—â–µ–Ω–∏–π"
 
 #: data/mail-notification.schemas.in.h:1
 msgid "Clicked command"
-msgstr "Commande du click sur l'Ócone"
+msgstr ""
 
 #: data/mail-notification.schemas.in.h:2
 msgid "Delay between mail checks (minutes part)."
-msgstr "DÈlai entre les vÈrifications de courrier (partie minutes)."
+msgstr ""
 
 #: data/mail-notification.schemas.in.h:3
 msgid "Delay between mail checks (seconds part)."
-msgstr "DÈlai entre les vÈrifications de courrier (partie secondes)."
+msgstr ""
 
 #: data/mail-notification.schemas.in.h:4
 msgid "Height of preferences dialog"
-msgstr "Hauteur de la boÓte de dialogue contenant les prÈfÈrences"
+msgstr ""
 
 #: data/mail-notification.schemas.in.h:5
 msgid "Mailboxes list"
-msgstr "Liste des boÓtes aux lettres"
+msgstr ""
 
 #: data/mail-notification.schemas.in.h:6
 msgid "Minutes between mail checks"
-msgstr "Minutes entre les vÈrifications de courrier"
+msgstr ""
 
 #: data/mail-notification.schemas.in.h:7
 msgid "New mail command"
-msgstr "Commande de nouveau message"
+msgstr ""
 
 #: data/mail-notification.schemas.in.h:8
+#, fuzzy
 msgid "Run a command when new mail arrives"
-msgstr "ExÈcuter une commande lorsque du nouveau courrier arrive"
+msgstr ""
+"–ò–∫–æ–Ω–∫–∞ –≤ –æ–±–ª–∞—Å—Ç–∏ —É–≤–µ–¥–æ–º–ª–µ–Ω–∏—è –ø–∞–Ω–µ–ª–∏, —É–≤–µ–¥–æ–º–ª—è—é—â–∞—è –æ –ø—Ä–∏—Ö–æ–¥–µ –Ω–æ–≤–æ–π –ø–æ—á—Ç—ã."
 
 #: data/mail-notification.schemas.in.h:9
 msgid "Run a command when the icon is clicked"
-msgstr "ExÈcuter une commande lorsque l'Ócone est cliquÈe"
+msgstr ""
 
 #: data/mail-notification.schemas.in.h:10
 msgid "Seconds between mail checks"
-msgstr "Secondes entre les vÈrifications de courrier"
+msgstr ""
 
 #: data/mail-notification.schemas.in.h:11
+#, fuzzy
 msgid "The command to run when new mail arrives."
-msgstr "La commande ‡ exÈcuter lorsque du nouveau courrier arrive."
+msgstr ""
+"–ò–∫–æ–Ω–∫–∞ –≤ –æ–±–ª–∞—Å—Ç–∏ —É–≤–µ–¥–æ–º–ª–µ–Ω–∏—è –ø–∞–Ω–µ–ª–∏, —É–≤–µ–¥–æ–º–ª—è—é—â–∞—è –æ –ø—Ä–∏—Ö–æ–¥–µ –Ω–æ–≤–æ–π –ø–æ—á—Ç—ã."
 
 #: data/mail-notification.schemas.in.h:12
 msgid "The command to run when the icon is clicked."
-msgstr "La commande ‡ exÈcuter lorsque l'Ócone est cliquÈe."
+msgstr ""
 
 #: data/mail-notification.schemas.in.h:13
 msgid "The height of the preferences dialog in pixels."
 msgstr ""
-"La hauteur de la boÓte de dialogue contenant les prÈfÈrences en pixels."
 
 #: data/mail-notification.schemas.in.h:14
 msgid "The list of mailboxes to monitor."
-msgstr "La liste des boÓtes aux lettres ‡ surveiller."
+msgstr ""
 
 #: data/mail-notification.schemas.in.h:15
 msgid "The width of the preferences dialog in pixels."
 msgstr ""
-"La largeur de la boÓte de dialogue contenant les prÈfÈrences en pixels."
 
 #: data/mail-notification.schemas.in.h:16
+#, fuzzy
 msgid "Whether to run a command when new mail arrives or not."
 msgstr ""
-"Si une commande doit Ítre exÈcutÈe lorsque du nouveau courrier arrive ou pas."
+"–ò–∫–æ–Ω–∫–∞ –≤ –æ–±–ª–∞—Å—Ç–∏ —É–≤–µ–¥–æ–º–ª–µ–Ω–∏—è –ø–∞–Ω–µ–ª–∏, —É–≤–µ–¥–æ–º–ª—è—é—â–∞—è –æ –ø—Ä–∏—Ö–æ–¥–µ –Ω–æ–≤–æ–π –ø–æ—á—Ç—ã."
 
 #: data/mail-notification.schemas.in.h:17
 msgid "Whether to run a command when the icon is clicked or not."
-msgstr "Si une commande doit Ítre exÈcutÈe lorsque l'Ócone est cliquÈe ou pas."
+msgstr ""
 
 #: data/mail-notification.schemas.in.h:18
 msgid "Width of preferences dialog"
-msgstr "Largeur de la boÓte de dialogue contenant les prÈfÈrences"
+msgstr ""
 
 #: src/eggtrayicon.c:109
 msgid "Orientation"
-msgstr "Orientation"
+msgstr ""
 
 #: src/eggtrayicon.c:110
 msgid "The orientation of the tray."
-msgstr "L'orientation du plateau."
+msgstr ""
 
 #: src/mn-gmail-mailbox.c:165
 msgid "unable to parse Gmail URI"
-msgstr "impossible d'interprÈter l'URI Gmail"
+msgstr ""
 
 #: src/mn-gmail-mailbox.c:261
 #, c-format
 msgid "logging into Gmail as user %s"
-msgstr "ouverture de la session Gmail en tant que %s"
+msgstr ""
 
 #: src/mn-gmail-mailbox.c:277 src/mn-gmail-mailbox.c:356
 #, c-format
 msgid "unable to transfer data: %s"
-msgstr "impossible de transfÈrer des donnÈes: %s"
+msgstr ""
 
 #: src/mn-gmail-mailbox.c:283
 #, c-format
 msgid "successfully logged into Gmail as user %s"
-msgstr "ouverture de la session Gmail en tant que %s effectuÈe avec succËs"
+msgstr ""
 
 #: src/mn-gmail-mailbox.c:288
 msgid "login failed"
-msgstr "l'ouverture de session a ÈchouÈ"
+msgstr ""
 
 #: src/mn-gmail-mailbox.c:341
 #, c-format
 msgid "searching for unread mail in %s"
-msgstr "recherche du courrier non lu dans %s"
+msgstr ""
 
 #: src/mn-gmail-mailbox.c:363
 msgid "unable to parse Gmail data"
-msgstr "impossible d'interprÈter les donnÈes Gmail"
+msgstr ""
 
 #: src/mn-mail-icon.c:130
 msgid "You have no new mail"
-msgstr "Vous n'avez pas de courrier"
+msgstr ""
 
 #: src/mn-mailbox-properties-dialog.c:155
 msgid "Add a Mailbox"
-msgstr "Ajouter une BoÓte aux Lettres"
+msgstr ""
 
 #: src/mn-mailbox-properties-dialog.c:182
 msgid "autodetect"
-msgstr "dÈtecter automatiquement"
+msgstr ""
 
 #: src/mn-mailbox-properties-dialog.c:394
 #, c-format
 msgid "%s Properties"
-msgstr "PropriÈtÈs de %s"
+msgstr ""
 
 #: src/mn-mailbox-properties-dialog.c:580
 msgid "Select a File or Folder"
-msgstr "SÈlectionnez un Fichier ou Dossier"
+msgstr ""
 
 #: src/mn-mailbox.c:199
 msgid "URI"
-msgstr "URI"
+msgstr ""
 
 #: src/mn-mailbox.c:200
 msgid "The mailbox URI"
-msgstr "L'URI de la boÓte aux lettres"
+msgstr ""
 
 #: src/mn-mailbox.c:206
 msgid "Name"
-msgstr "Nom"
+msgstr ""
 
 #: src/mn-mailbox.c:207
 msgid "The mailbox human-readable name"
-msgstr "Le nom, lisible par un humain, de la boÓte aux lettres"
+msgstr ""
 
 #: src/mn-mailbox.c:213
 msgid "Automatic"
-msgstr "Automatique"
+msgstr ""
 
 #: src/mn-mailbox.c:214
 msgid "Whether the mailbox has to be manually checked or not"
-msgstr "Si la boÓte aux lettres doit Ítre vÈrifiÈe manuellement ou pas"
+msgstr ""
 
 #: src/mn-mailbox.c:220
 msgid "Has new"
-msgstr "A du nouveau"
+msgstr ""
 
 #: src/mn-mailbox.c:221
 msgid "Whether the mailbox has new mail or not"
-msgstr "Si la boÓte aux lettres a du nouveau courrier ou pas"
+msgstr ""
 
 #: src/mn-mailbox.c:227
 msgid "Error"
-msgstr "Erreur"
+msgstr ""
 
 #: src/mn-mailbox.c:228
 msgid "The mailbox error if any"
-msgstr "L'erreur de la boÓte aux lettres si il y en a une"
+msgstr ""
 
 #: src/mn-mailbox.c:254
 #, c-format
 msgid "unable to cancel monitoring of %s: %s"
-msgstr "impossible d'annuler la surveillance de %s: %s"
+msgstr ""
 
 #: src/mn-mailbox.c:443
 msgid "does not exist"
-msgstr "n'existe pas"
+msgstr ""
 
 #: src/mn-mailbox.c:460
 msgid "unknown format"
-msgstr "format inconnu"
+msgstr ""
 
 #: src/mn-mailbox.c:553
 #, c-format
 msgid "unable to monitor %s: %s"
-msgstr "impossible de surveiller %s: %s"
+msgstr ""
 
 #: src/mn-mailbox.c:567
 #, c-format
@@ -230,11 +235,7 @@ msgid_plural ""
 "As a fallback, they will be checked every %i seconds (this delay is "
 "configurable from the Preferences Dialog)."
 msgstr[0] ""
-"Comme solution de secours, elles seront vÈrifiÈes toutes les %i seconde (ce "
-"dÈlai est configurable depuis les PrÈfÈrences)."
 msgstr[1] ""
-"Comme solution de secours, elles seront vÈrifiÈes toutes les %i secondes (ce "
-"dÈlai est configurable depuis les PrÈfÈrences)."
 
 #: src/mn-mailbox.c:578
 #, c-format
@@ -245,11 +246,7 @@ msgid_plural ""
 "As a fallback, they will be checked every %i minutes (this delay is "
 "configurable from the Preferences Dialog)."
 msgstr[0] ""
-"Comme solution de secours, elles seront vÈrifiÈes toutes les %i minutes (ce "
-"dÈlai est configurable depuis les PrÈfÈrences)."
 msgstr[1] ""
-"Comme solution de secours, elles seront vÈrifiÈes toutes les %i minutes (ce "
-"dÈlai est configurable depuis les PrÈfÈrences)."
 
 #: src/mn-mailbox.c:589
 #, c-format
@@ -260,15 +257,11 @@ msgid_plural ""
 "As a fallback, they will be checked approximately every %i minutes (this "
 "delay is configurable from the Preferences Dialog)."
 msgstr[0] ""
-"Comme solution de secours, elles seront vÈrifiÈes approximativement toutes "
-"les %i minute (ce dÈlai est configurable depuis les PrÈfÈrences)."
 msgstr[1] ""
-"Comme solution de secours, elles seront vÈrifiÈes approximativement toutes "
-"les %i minutes (ce dÈlai est configurable depuis les PrÈfÈrences)."
 
 #: src/mn-mailbox.c:603
 msgid "A monitoring error has occurred."
-msgstr "Une erreur de surveillance s'est produite."
+msgstr ""
 
 #: src/mn-mailbox.c:604
 #, c-format
@@ -276,372 +269,367 @@ msgid ""
 "Mail Notification was unable to enable automatic notification for one or "
 "more mailboxes. %s"
 msgstr ""
-"Notification de Courrier n'a pas ÈtÈ en mesure d'activer la notification "
-"automatique pour une ou plusieures boÓtes aux lettres. %s"
 
 #: src/mn-mailboxes.c:133
 #, c-format
 msgid "%s has new mail"
-msgstr "%s a du nouveau courrier"
+msgstr ""
 
 #: src/mn-mailboxes.c:133
 #, c-format
 msgid "%s has no new mail"
-msgstr "%s n'a pas de nouveau courrier"
+msgstr ""
 
 #: src/mn-mailboxes.c:143
 #, c-format
 msgid "%s reported an error: %s"
-msgstr "%s a indiquÈ une erreur: %s"
+msgstr ""
 
 #: src/mn-maildir-mailbox.c:226 src/mn-sylpheed-mailbox.c:209
 #, c-format
 msgid "error while reading folder: %s"
-msgstr "erreur lors de la lecture du dossier: %s"
+msgstr ""
 
 #: src/mn-main.c:49
 msgid "Compiled in handlers:\n"
-msgstr "Prises en charge disponibles:\n"
+msgstr ""
 
 #: src/mn-main.c:83
 msgid "Enable informational output"
-msgstr "Activer la sortie informationelle"
+msgstr ""
 
 #: src/mn-main.c:92
 msgid "List compiled-in handlers and exit"
-msgstr "Afficher les prises en charge disponibles et quitter"
+msgstr ""
 
 #: src/mn-main.c:124
 msgid "unable to initialize GnomeVFS"
-msgstr "impossible d'initialiser GnomeVFS"
+msgstr ""
 
 #: src/mn-mbox-mailbox.c:339
 #, c-format
 msgid "unable to get mailbox information: %s"
-msgstr "impossible d'obtenir les informations de la boÓte aux lettres: %s"
+msgstr ""
 
 #: src/mn-mbox-mailbox.c:364
 #, c-format
 msgid "unable to open mailbox: %s"
-msgstr "impossible d'ouvrir la boÓte aux lettres: %s"
+msgstr ""
 
 #: src/mn-mbox-mailbox.c:401
 #, c-format
 msgid "error while reading mailbox: %s"
-msgstr "erreur lors de la lecture de la boÓte aux lettres: %s"
+msgstr ""
 
 #: src/mn-mbox-mailbox.c:417
 #, c-format
 msgid "unable to close mailbox: %s"
-msgstr "impossible de fermer la boÓte aux lettres: %s"
+msgstr ""
 
 #: src/mn-mh-mailbox.c:185
 #, c-format
 msgid "unable to open .mh_sequences: %s"
-msgstr "impossible d'ouvrir .mh_sequences: %s"
+msgstr ""
 
 #: src/mn-mh-mailbox.c:215
 #, c-format
 msgid "error while reading .mh_sequences: %s"
-msgstr "erreur lors de la lecture de .mh_sequences: %s"
+msgstr ""
 
 #: src/mn-mh-mailbox.c:231
 #, c-format
 msgid "unable to close .mh_sequences: %s"
-msgstr "impossible de fermer .mh_sequences: %s"
+msgstr ""
 
 #: src/mn-pending-mailbox.c:64
 msgid "detecting..."
-msgstr "en cours de dÈtection..."
+msgstr ""
 
 #: src/mn-pop3-mailbox.c:164
 msgid "unable to parse POP3 URI"
-msgstr "impossible d'interprÈter l'URI POP3"
+msgstr ""
 
 #: src/mn-pop3-mailbox.c:190
 #, c-format
 msgid "connecting to POP3 server %s"
-msgstr "connection au server POP3 %s en cours"
+msgstr ""
 
 #: src/mn-pop3-mailbox.c:227
 #, c-format
 msgid "successfully connected to %s"
-msgstr "connectÈ ‡ %s"
+msgstr ""
 
 #: src/mn-pop3-mailbox.c:233
 msgid "unable to connect to server"
-msgstr "impossible de se connecter au serveur"
+msgstr ""
 
 #: src/mn-pop3-mailbox.c:238
 msgid "connection to server unexpectedly closed"
-msgstr "la connection au serveur s'est close de maniËre inattendue"
+msgstr ""
 
 #: src/mn-pop3-mailbox.c:277
 #, c-format
 msgid "invalid STAT reply \"%s\""
-msgstr "rÈponse STAT \"%s\" invalide"
+msgstr ""
 
 #: src/mn-pop3-mailbox.c:296
 msgid "unknown error"
-msgstr "erreur inconnue"
+msgstr ""
 
 #: src/mn-pop3-mailbox.c:317
 #, c-format
 msgid "invalid reply \"%s\""
-msgstr "rÈponse \"%s\" invalide"
+msgstr ""
 
 #: src/mn-preferences.c:195
 msgid "Mailbox"
-msgstr "BoÓte aux lettres"
+msgstr ""
 
 #: src/mn-preferences.c:209
 msgid "Format"
-msgstr "Format"
+msgstr ""
 
 #: src/mn-preferences.c:361
 msgid "No mailbox selected."
-msgstr "Pas de boÓte aux lettres sÈlectionnÈe."
+msgstr ""
 
 #: src/mn-preferences.c:366
 #, c-format
 msgid "%i mailbox selected."
 msgid_plural "%i mailboxes selected."
-msgstr[0] "%i boÓte aux lettres sÈlectionnÈe"
-msgstr[1] "%i boÓtes aux lettres sÈlectionnÈes"
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/mn-preferences.c:429
 msgid "Unable to add mailbox."
-msgstr "Impossible d'ajouter la boÓte aux lettres."
+msgstr ""
 
 #: src/mn-preferences.c:429
 msgid "The mailbox is already in the list."
-msgstr "La boÓte aux lettres est dÈj‡ dans la liste."
+msgstr ""
 
 #: src/mn-ui.c:87
 msgid "A command error has occurred."
-msgstr "Une erreur de commande s'est produite."
+msgstr ""
 
 #: src/mn-ui.c:88
 #, c-format
 msgid "Unable to execute clicked command: %s."
-msgstr "Impossible d'exÈcuter la commande associÈe au click sur l'icÙne: %s."
+msgstr ""
 
 #: src/mn-ui.c:184
 msgid "The following mailbox has new mail:\n"
 msgid_plural "The following mailboxes have new mail:\n"
-msgstr[0] "La boÓte aux lettres suivante a du nouveau courrier:\n"
-msgstr[1] "Les boÓtes aux lettres suivantes ont du nouveau courrier:\n"
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/mn-ui.c:191
 msgid "You have no new mail."
-msgstr "Vous n'avez pas de nouveau courrier."
+msgstr ""
 
 #: src/mn-ui.c:195
 msgid "The following mailbox reported an error:\n"
 msgid_plural "The following mailboxes reported an error:\n"
-msgstr[0] "La boÓte aux lettres suivante a indiquÈ une erreur:\n"
-msgstr[1] "Les boÓtes aux lettres suivantes ont indiquÈ une erreur:\n"
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/mn-ui.c:200
 msgid "The following mailbox is unsupported:\n"
 msgid_plural "The following mailboxes are unsupported:\n"
-msgstr[0] "La boÓte aux lettres suivante n'est pas prise en charge:\n"
-msgstr[1] "Les boÓtes aux lettres suivantes ne sont pas prises en charge:\n"
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/mn-ui.c:217
 msgid "No mailboxes are being monitored."
-msgstr "Aucune boÓte aux lettres n'est surveillÈe."
+msgstr ""
 
 #: src/mn-ui.c:265
 msgid "A Mail Notification Icon"
-msgstr "Une IcÙne de Notification de Courrier"
+msgstr ""
 
 #: src/mn-ui.c:268
 msgid "Jean-Yves Lefort <jylefort@brutele.be>"
-msgstr "Jean-Yves Lefort <jylefort@brutele.be>"
+msgstr "Dan Korostelev <dan@ats.energo.ru>"
 
 #: src/mn-unsupported-mailbox.c:98
 msgid "unsupported"
-msgstr "non pris en charge"
+msgstr ""
 
 #: src/mn-unsupported-mailbox.c:103
 msgid "Reason"
-msgstr "Raison"
+msgstr ""
 
 #: src/mn-unsupported-mailbox.c:104
 msgid "The reason why the mailbox is unsupported"
-msgstr "La raison pour laquelle la boÓte aux lettres n'est pas prise en charge"
+msgstr ""
 
 #: src/mn-util.c:113
 #, c-format
 msgid "error loading image: %s"
-msgstr "erreur de chargement d'image: %s"
+msgstr ""
 
 #: src/mn-util.c:151
 #, c-format
 msgid "widget %s not found in interface %s"
-msgstr "ÈlÈment %s non trouvÈ dans interface %s"
+msgstr ""
 
 #: src/mn-util.c:258
 msgid "received an invalid URI list"
-msgstr "une liste d'URI invalide a ÈtÈ reÁue"
+msgstr ""
 
 #: src/mn-util.c:294
 msgid "received an invalid Mozilla URL"
-msgstr "une URL Mozilla invalide a ÈtÈ reÁue"
+msgstr ""
 
 #: src/mn-util.c:386
 msgid "Unable to display help."
-msgstr "Impossible d'afficher l'aide."
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:1 ui/preferences.glade.h:2
 msgid "*"
-msgstr "*"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:2
 msgid "P_ort:"
-msgstr "P_ort:"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:3
 msgid "The URI of the mailbox"
-msgstr "L'URI de la boÓte aux lettres"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:4
 msgid "The hostname or IP address of the POP3 server"
-msgstr "Le nom d'hÙte ou adresse IP du serveur POP3"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:5
 msgid "The port number of the POP3 server"
-msgstr "Le numÈro de port du serveur POP3"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:6
 msgid ""
 "This mailbox type has not been compiled in and is therefore unsupported."
 msgstr ""
-"Ce type de boÓte aux lettres n'a pas ÈtÈ inclus lors de la compilation et "
-"n'est donc pas pris en charge."
 
 #: ui/mailbox-properties.glade.h:7
 msgid "Your Gmail password"
-msgstr "Votre mot de passe Gmail"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:8
 msgid "Your Gmail username"
-msgstr "Votre nom d'utilisateur Gmail"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:9
 msgid "Your password on the POP3 server"
-msgstr "Votre mot de passe sur le serveur POP3"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:10
 msgid "Your username on the POP3 server"
-msgstr "Votre nom d'utilisateur sur le serveur POP3"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:11
 msgid "_Browse..."
-msgstr "_Parcourir..."
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:12
 msgid "_Hostname:"
-msgstr "Nom d'_hÙte:"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:13
 msgid "_Location:"
-msgstr "_Emplacement:"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:14
 msgid "_Password:"
-msgstr "_Mot de passe:"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:15
 msgid "_Type:"
-msgstr "_Type:"
+msgstr ""
 
 #: ui/mailbox-properties.glade.h:16
 msgid "_Username:"
-msgstr "_Nom d'utilisateur:"
+msgstr ""
 
 #: ui/menu.glade.h:1
 msgid "Show help"
-msgstr "Afficher l'aide"
+msgstr ""
 
 #: ui/menu.glade.h:2
 msgid "Update the icon"
-msgstr "Mettre l'icÙne ‡ jour"
+msgstr ""
 
 #: ui/menu.glade.h:3
 msgid "_Help"
-msgstr "_Aide"
+msgstr ""
 
 #: ui/menu.glade.h:4
 msgid "_Update"
-msgstr "_Mettre ‡ jour"
+msgstr ""
 
 #: ui/preferences.glade.h:1
 msgid "    "
-msgstr "    "
+msgstr ""
 
 #: ui/preferences.glade.h:3
 msgid "<span weight=\"bold\">Commands</span>"
-msgstr "<span weight=\"bold\">Commandes</span>"
+msgstr ""
 
 #: ui/preferences.glade.h:4
 msgid "<span weight=\"bold\">General</span>"
-msgstr "<span weight=\"bold\">GÈnÈral</span>"
+msgstr ""
 
 #: ui/preferences.glade.h:5
 msgid "<span weight=\"bold\">Mailboxes</span>"
-msgstr "<span weight=\"bold\">BoÓtes aux lettres</span>"
+msgstr ""
 
 #: ui/preferences.glade.h:6
 msgid "Mail Notification Preferences"
-msgstr "PrÈfÈrences de la Notification de Courrier"
+msgstr ""
 
 #: ui/preferences.glade.h:7
 msgid "The amount of time to wait between mail checks"
-msgstr "La quantitÈ de temps ‡ attendre entre les vÈrifications de courrier"
+msgstr ""
 
 #: ui/preferences.glade.h:8
 msgid "The command to run when new mail arrives"
-msgstr "La commande ‡ exÈcuter lorsque du nouveau courrier arrive"
+msgstr ""
 
 #: ui/preferences.glade.h:9
 msgid "The command to run when the icon is clicked"
-msgstr "La commande ‡ exÈcuter lorsque l'Ócone est cliquÈe"
+msgstr ""
 
 #: ui/preferences.glade.h:10
 msgid "When _new mail arrives:"
-msgstr "Lorsque du _nouveau courrier arrive:"
+msgstr ""
 
 #: ui/preferences.glade.h:11
 msgid "When click_ed:"
-msgstr "Lorsque l'Ócone est cliquÈ_e:"
+msgstr ""
 
 #: ui/preferences.glade.h:12
 msgid "Whether to run a command when new mail arrives or not"
 msgstr ""
-"Si une commande doit Ítre exÈcutÈe lorsque du nouveau courrier arrive ou pas"
 
 #: ui/preferences.glade.h:13
 msgid "Whether to run a command when the icon is clicked or not"
-msgstr "Si une commande doit Ítre exÈcutÈe lorsque l'Ócone est cliquÈe ou pas"
+msgstr ""
 
 #: ui/preferences.glade.h:14
 msgid "_Add"
-msgstr "_Ajouter"
+msgstr ""
 
 #: ui/preferences.glade.h:15
 msgid "_Delay between mail checks:"
-msgstr "_DÈlai entre les vÈrifications de courrier:"
+msgstr ""
 
 #: ui/preferences.glade.h:16
 msgid "_Remove"
-msgstr "_Enlever"
+msgstr ""
 
 #: ui/preferences.glade.h:17
 msgid "minutes"
-msgstr "minutes"
+msgstr ""
 
 #: ui/preferences.glade.h:18
 msgid "seconds"
-msgstr "secondes"
+msgstr ""

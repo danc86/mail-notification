@@ -21,6 +21,9 @@
 #include <signal.h>
 #include <gnome.h>
 #include <libgnomevfs/gnome-vfs.h>
+#ifdef WITH_GMAIL
+#include <libsoup/soup.h>
+#endif
 #ifdef WITH_MIME
 #include <gmime/gmime.h>
 #include "mn-gmime-stream-vfs.h"
@@ -132,7 +135,10 @@ mn_main_init_classes (void)
   g_type_class_ref(MN_TYPE_AUTOMATION);
 #ifdef WITH_MIME
   g_type_class_ref(MN_TYPE_GMIME_STREAM_VFS);
-#endif
+  g_type_class_ref(GMIME_TYPE_PARSER);
+  g_type_class_ref(GMIME_TYPE_STREAM_MEM);
+  g_type_class_ref(GMIME_TYPE_MESSAGE);
+#endif /* WITH_MIME */
   g_type_class_ref(MN_TYPE_MAILBOX);
   for (i = 0; mn_mailbox_types[i]; i++)
     g_type_class_ref(mn_mailbox_types[i]);
@@ -142,6 +148,10 @@ mn_main_init_classes (void)
   g_type_class_ref(MN_TYPE_SHELL);
   g_type_class_ref(MN_TYPE_UNSUPPORTED_MAILBOX);
   g_type_class_ref(MN_TYPE_URI);
+#ifdef WITH_GMAIL
+  g_type_class_ref(SOUP_TYPE_SESSION_SYNC);
+  g_type_class_ref(SOUP_TYPE_MESSAGE);
+#endif /* WITH_GMAIL */
 }
 
 int

@@ -8,10 +8,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mail-notification 0.7.1\n"
+"Project-Id-Version: mail-notification 0.8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-10-31 18:42+0100\n"
-"PO-Revision-Date: 2004-10-18 20:04+0100\n"
+"POT-Creation-Date: 2004-11-04 11:04+0100\n"
+"PO-Revision-Date: 2004-11-01 23:00+0100\n"
 "Last-Translator: Filip Miletić <filmil@gmail.com>\n"
 "Language-Team: Serbian (sr) <gnu@prevod.org>\n"
 "MIME-Version: 1.0\n"
@@ -35,7 +35,7 @@ msgstr "Podesi dojavu prispeća pošte"
 #: data/mail-notification-properties.desktop.in.h:2
 #: data/mail-notification.desktop.in.h:2
 #: data/mail-notification.soundlist.in.h:1 src/mn-about-dialog.gob:40
-#: src/mn-mail-icon.gob:194 src/mn-main.c:271
+#: src/mn-mail-icon.gob:194 src/mn-main.c:281
 msgid "Mail Notification"
 msgstr "Dojava pošte"
 
@@ -64,7 +64,6 @@ msgid "Do not show the immediate notification error dialog"
 msgstr "Ne pokazuj prozor sa obaveštenjem o greškama"
 
 #: data/mail-notification.schemas.in.h:6
-#, fuzzy
 msgid "Double-click action"
 msgstr "Izvrši na dvostruki klik"
 
@@ -93,121 +92,139 @@ msgid "Mail read command"
 msgstr "Komanda za čitanje pošte"
 
 #: data/mail-notification.schemas.in.h:13
-#, fuzzy
 msgid "Mail reader command"
 msgstr "Komanda za čitanje pošte"
 
 #: data/mail-notification.schemas.in.h:14
+#, fuzzy
+msgid "Mail summary popup contents font"
+msgstr "Broj horizontalnih tačaka za prozor sa sažetkom poruka"
+
+#: data/mail-notification.schemas.in.h:15
 msgid "Mail summary popup horizontal offset"
 msgstr "Pomeraj horizontalnih tačaka za prozor sa sažetkom poruka"
 
-#: data/mail-notification.schemas.in.h:15
+#: data/mail-notification.schemas.in.h:16
 msgid "Mail summary popup position"
 msgstr "Broj horizontalnih tačaka za prozor sa sažetkom poruka"
 
-#: data/mail-notification.schemas.in.h:16
+#: data/mail-notification.schemas.in.h:17
+#, fuzzy
+msgid "Mail summary popup title font"
+msgstr "Broj horizontalnih tačaka za prozor sa sažetkom poruka"
+
+#: data/mail-notification.schemas.in.h:18
 msgid "Mail summary popup vertical offset"
 msgstr "Pomeraj vertikalnih tačaka ѕa prozor sa sažetkom poruka"
 
-#: data/mail-notification.schemas.in.h:17
+#: data/mail-notification.schemas.in.h:19
 msgid "Mailbox list"
 msgstr "Spisak sandučića"
 
-#: data/mail-notification.schemas.in.h:18
+#: data/mail-notification.schemas.in.h:20
 msgid "Minutes between mail checks"
 msgstr "Minuta između dve provere"
 
-#: data/mail-notification.schemas.in.h:19
+#: data/mail-notification.schemas.in.h:21
 msgid "Minutes to wait before closing the mail summary popup"
 msgstr ""
 "Broj minuta koji treba da protekne pre zatvaranja prozora sa sažetkom poruka"
 
-#: data/mail-notification.schemas.in.h:20
+#: data/mail-notification.schemas.in.h:22
 msgid "New mail command"
 msgstr "Izvrši kada pošta stigne"
 
-#: data/mail-notification.schemas.in.h:21
-#, fuzzy
+#: data/mail-notification.schemas.in.h:23
 msgid "Only display recent mail in mail summary popup"
-msgstr "Zatvori prozor sa sažetkom poruka"
+msgstr "Prikaži samo skoro prispele poruke u sažetku"
 
-#: data/mail-notification.schemas.in.h:22
+#: data/mail-notification.schemas.in.h:24
 msgid "Run a command when all mail is read"
 msgstr "Pokreni komandu kada je sva pošta pročitana"
 
-#: data/mail-notification.schemas.in.h:23
+#: data/mail-notification.schemas.in.h:25
 msgid "Run a command when new mail arrives"
 msgstr "Pokreni komandu kada stigne nova pošta"
 
-#: data/mail-notification.schemas.in.h:24
+#: data/mail-notification.schemas.in.h:26
 msgid "Seconds between mail checks"
 msgstr "Sekundi između dve provere"
 
-#: data/mail-notification.schemas.in.h:25
+#: data/mail-notification.schemas.in.h:27
 msgid "Seconds to wait before closing the mail summary popup"
 msgstr "Broj sekundi koji treba da protekne pre zatvaranja sažetka poruka"
 
-#: data/mail-notification.schemas.in.h:26
-#, fuzzy
+#: data/mail-notification.schemas.in.h:28
 msgid "Set a mail reader"
-msgstr "Izaberite datoteku ili direktorijum"
+msgstr "Izaberite čitač pošte"
 
-#: data/mail-notification.schemas.in.h:27
+#: data/mail-notification.schemas.in.h:29
 msgid ""
 "The action to perform when the icon is double-clicked. Must be \"display-"
 "mail-summary\" or \"launch-mail-reader\"."
 msgstr ""
+"Postavljanje naredbe koja se izvršava pri dvostrukom kliku na sličicu. "
+"Mogući izbori su: „prikaži-sažetak-pošte‟ ili „pokreni-čitač-pošte‟."
 
-#: data/mail-notification.schemas.in.h:28
+#: data/mail-notification.schemas.in.h:30
 msgid ""
 "The amount of time to wait before closing the mail summary popup (minutes "
 "part)."
 msgstr "Pauza pre zatvaranja prozora sa sažetkom poruka (minuti)."
 
-#: data/mail-notification.schemas.in.h:29
+#: data/mail-notification.schemas.in.h:31
 msgid ""
 "The amount of time to wait before closing the mail summary popup (seconds "
 "part)."
 msgstr "Pauza pre zatvaranja prozora sa sažetkom poruka (sekunde)."
 
-#: data/mail-notification.schemas.in.h:30
-#, fuzzy
+#: data/mail-notification.schemas.in.h:32
 msgid "The command to run to launch the mail reader."
-msgstr "Komanda koju treba pokrenuti kada je sva pošta pročitana."
+msgstr "Komanda kojom se pokreće čitač pošte"
 
-#: data/mail-notification.schemas.in.h:31
+#: data/mail-notification.schemas.in.h:33
 msgid "The command to run when all mail is read."
 msgstr "Komanda koju treba pokrenuti kada je sva pošta pročitana."
 
-#: data/mail-notification.schemas.in.h:32
+#: data/mail-notification.schemas.in.h:34
 msgid "The command to run when new mail arrives."
 msgstr "Pokreni ovu komandu kada stigne nova pošta."
 
-#: data/mail-notification.schemas.in.h:33
+#: data/mail-notification.schemas.in.h:35
+#, fuzzy
+msgid "The custom font to use for the contents of the mail summary popup."
+msgstr "Pauza pre zatvaranja prozora sa sažetkom poruka"
+
+#: data/mail-notification.schemas.in.h:36
+#, fuzzy
+msgid "The custom font to use for the title of the mail summary popup."
+msgstr "Pauza pre zatvaranja prozora sa sažetkom poruka"
+
+#: data/mail-notification.schemas.in.h:37
 msgid "The height of the mail summary dialog in pixels."
 msgstr "Visina prozora sa sažetkom poruka izražena u tačkama."
 
-#: data/mail-notification.schemas.in.h:34
+#: data/mail-notification.schemas.in.h:38
 msgid "The height of the properties dialog in pixels."
 msgstr "Visina prozora sa postavkama izražena u tačkama."
 
-#: data/mail-notification.schemas.in.h:35
+#: data/mail-notification.schemas.in.h:39
 msgid "The list of mailboxes to monitor."
 msgstr "Spisak sandučića koji se prate."
 
-#: data/mail-notification.schemas.in.h:36
+#: data/mail-notification.schemas.in.h:40
 msgid ""
 "The list of trusted SSL/TLS servers (hostname:port) lacking a X509 "
 "certificate."
 msgstr ""
 "Spisak proverenih SSL/TLS servera (računar:port) koji nemaju X509 sertifikat."
 
-#: data/mail-notification.schemas.in.h:37
+#: data/mail-notification.schemas.in.h:41
 msgid ""
 "The list of trusted X509 certificates, represented by their MD5 fingerprint."
 msgstr "Spisak proverenih X509 sertifikata, predstavljenih MD5 otiskom."
 
-#: data/mail-notification.schemas.in.h:38
+#: data/mail-notification.schemas.in.h:42
 msgid ""
 "The number of pixels to leave between the left or right side of the screen "
 "and the mail summary popup."
@@ -215,7 +232,7 @@ msgstr ""
 "Broj tačaka koje treba ostaviti između leve, odn. desne strane ekrana i "
 "prozora sa sažetkom poruka."
 
-#: data/mail-notification.schemas.in.h:39
+#: data/mail-notification.schemas.in.h:43
 msgid ""
 "The number of pixels to leave between the top or bottom side of the screen "
 "and the mail summary popup."
@@ -223,7 +240,7 @@ msgstr ""
 "Broj tačaka koje treba ostaviti između vrha, odn. dna ekrana i prozora sa "
 "sažetkom poruka."
 
-#: data/mail-notification.schemas.in.h:40
+#: data/mail-notification.schemas.in.h:44
 msgid ""
 "The position of the mail summary popup. Must be \"top-left\", \"top-right\", "
 "\"bottom-left\" or \"bottom-right\"."
@@ -231,68 +248,90 @@ msgstr ""
 "Položaj prozora sa sažetkom poruka. Može biti: „gore-levo‟, „gore-desno‟, "
 "„dole-levo‟ ili „dole-desno‟."
 
-#: data/mail-notification.schemas.in.h:41
+#: data/mail-notification.schemas.in.h:45
 msgid "The width of the mail summary dialog in pixels."
 msgstr "Širina prozora sa sažetkom poruka izražena u tačkama."
 
-#: data/mail-notification.schemas.in.h:42
+#: data/mail-notification.schemas.in.h:46
 msgid "The width of the properties dialog in pixels."
 msgstr "Širina prozora sa postavkama izražena u tačkama."
 
-#: data/mail-notification.schemas.in.h:43
+#: data/mail-notification.schemas.in.h:47
 msgid "Trusted servers list"
 msgstr "Spisak proverenih servera"
 
-#: data/mail-notification.schemas.in.h:44
+#: data/mail-notification.schemas.in.h:48
+#, fuzzy
+msgid "Use a custom font for the contents of the mail summary popup"
+msgstr "Broj sekundi koji treba da protekne pre zatvaranja sažetka poruka"
+
+#: data/mail-notification.schemas.in.h:49
+#, fuzzy
+msgid "Use a custom font for the title of the mail summary popup"
+msgstr "Pauza pre zatvaranja prozora sa sažetkom poruka"
+
+#: data/mail-notification.schemas.in.h:50
 msgid "Whether Mail Notification has already been run or not."
 msgstr "Da li je program pokretan pre ili nije."
 
-#: data/mail-notification.schemas.in.h:45
+#: data/mail-notification.schemas.in.h:51
 msgid "Whether the status icon should blink on errors or not."
 msgstr "Da li sličica treba da treperi ako dođe do greške ili ne."
 
-#: data/mail-notification.schemas.in.h:46
+#: data/mail-notification.schemas.in.h:52
 msgid "Whether to automatically close the mail summary popup or not."
 msgstr ""
 "Da li treba ili ne treba automatski zatvoriti prozor sa sažetkom pošte."
 
-#: data/mail-notification.schemas.in.h:47
+#: data/mail-notification.schemas.in.h:53
 msgid "Whether to display the mail summary popup when new mail arrives or not."
 msgstr "Da li treba prikazati sažetak poruka kada stigne nova pošta."
 
-#: data/mail-notification.schemas.in.h:48
-#, fuzzy
+#: data/mail-notification.schemas.in.h:54
 msgid ""
 "Whether to hide previously displayed mail in the mail summary popup or not."
 msgstr ""
-"Da li treba ili ne treba automatski zatvoriti prozor sa sažetkom pošte."
+"Da li iz sažetka treba ukloniti poruke koje su se u njemu već pre pojavile."
 
-#: data/mail-notification.schemas.in.h:49
+#: data/mail-notification.schemas.in.h:55
 msgid ""
 "Whether to prevent the immediate notification error dialog from being "
 "displayed or not."
 msgstr "Da li treba ili ne treba sprečiti pojavu prozora sa opisom grešaka."
 
-#: data/mail-notification.schemas.in.h:50
+#: data/mail-notification.schemas.in.h:56
 msgid "Whether to run a command when all mail is read or not."
 msgstr ""
 "Da li treba ili ne treba pokrenuti neku komandu kada je sva pošta pročitana."
 
-#: data/mail-notification.schemas.in.h:51
+#: data/mail-notification.schemas.in.h:57
 msgid "Whether to run a command when new mail arrives or not."
 msgstr "Da li treba pokrenuti neku komandu kada stigne nova pošta."
 
-#: data/mail-notification.schemas.in.h:52
-#, fuzzy
+#: data/mail-notification.schemas.in.h:58
 msgid "Whether to set a mail reader or not."
-msgstr ""
-"Da li treba ili ne treba pokrenuti neku komandu kada je sva pošta pročitana."
+msgstr "Da li treba postaviti čitač pošte ili ne."
 
-#: data/mail-notification.schemas.in.h:53
+#: data/mail-notification.schemas.in.h:59
+#, fuzzy
+msgid ""
+"Whether to use a custom font for the contents of the mail summary popup or "
+"not."
+msgstr ""
+"Da li treba ili ne treba automatski zatvoriti prozor sa sažetkom pošte."
+
+#: data/mail-notification.schemas.in.h:60
+#, fuzzy
+msgid ""
+"Whether to use a custom font for the title of the mail summary popup or not."
+msgstr ""
+"Da li treba ili ne treba automatski zatvoriti prozor sa sažetkom pošte."
+
+#: data/mail-notification.schemas.in.h:61
 msgid "Width of mail summary dialog"
 msgstr "Širina prozora sa sažetkom poruka"
 
-#: data/mail-notification.schemas.in.h:54
+#: data/mail-notification.schemas.in.h:62
 msgid "Width of properties dialog"
 msgstr "Širina prozora sa postavkama"
 
@@ -587,32 +626,32 @@ msgid ""
 msgstr ""
 "server nije poslao SASL razgovor, ali nije bilo ni odgovora od klijenta."
 
-#: src/mn-client-session.c:1122
+#: src/mn-client-session.c:1124
 #, c-format
 msgid "a SASL security layer of strength factor %i is now active"
 msgstr "SASL sigurnosni sloj nivoa snage %i je uspostavljen"
 
 #. a security layer is active but we can't retrieve maxoutbuf -> fatal
-#: src/mn-client-session.c:1127
+#: src/mn-client-session.c:1129
 #, c-format
 msgid "unable to get SASL_MAXOUTBUF property: %s"
 msgstr "ne mogu da pročitam postavku SASL_MAXOUTBUF: %s"
 
-#: src/mn-client-session.c:1133
+#: src/mn-client-session.c:1135
 #, c-format
 msgid "warning: unable to get SASL_SSF property: %s"
 msgstr "upozorenje: ne mogu da pročitam postavku SASL_SSF: %s"
 
-#: src/mn-conf.c:136
+#: src/mn-conf.c:145
 #, c-format
 msgid "recursively unsetting %s"
 msgstr "rekurzivno poništavam %s"
 
-#: src/mn-conf.c:140
+#: src/mn-conf.c:149
 msgid "syncing the GConf database"
 msgstr "usklađujem GConf bazu podataka"
 
-#: src/mn-conf.c:143
+#: src/mn-conf.c:152
 msgid "completed"
 msgstr "urađeno"
 
@@ -786,7 +825,7 @@ msgstr "prijava nije uspela"
 
 #: src/mn-mail-icon.gob:92 ui/summary-dialog.glade.h:2
 msgid "_Launch Mail Reader"
-msgstr ""
+msgstr "_Pokreni čitač pošte"
 
 #: src/mn-mail-icon.gob:93 ui/summary-dialog.glade.h:3
 msgid "_Update"
@@ -849,7 +888,7 @@ msgstr "Gotovo"
 msgid "Whether the properties are completely filled or not"
 msgstr "Da li su postavke sasvim popunjene ili ne"
 
-#: src/mn-mailbox-view.gob:263 src/mn-message-box.gob:58
+#: src/mn-mailbox-view.gob:263 src/mn-message-box.gob:61
 msgid "Mailbox"
 msgstr "Sanduče"
 
@@ -875,7 +914,6 @@ msgid "The mailbox human-readable name"
 msgstr "Ime sandučeta"
 
 #: src/mn-mailbox.gob:145
-#, fuzzy
 msgid "Whether the mailbox has to be polled or not"
 msgstr "Da li se ovo sanduče ručno proverava ili ne"
 
@@ -1011,49 +1049,49 @@ msgstr "nije moguće zatvoriti direktorijum \"new\": %s"
 msgid "error while reading folder \"new\": %s"
 msgstr "greška pri čitanju direktorijuma \"new\": %s"
 
-#: src/mn-main.c:96
+#: src/mn-main.c:99
 #, c-format
 msgid "Compiled-in mailbox backends: %s\n"
 msgstr "Program ume da čita sandučiće u formatima: %s\n"
 
-#: src/mn-main.c:113
+#: src/mn-main.c:116
 #, c-format
 msgid "Compiled-in features: %s\n"
 msgstr "Ugrađene mogućnosti: %s\n"
 
-#: src/mn-main.c:165
+#: src/mn-main.c:175
 msgid "Enable informational output"
 msgstr "Dozvoli rečitiji izlaz"
 
-#: src/mn-main.c:174
+#: src/mn-main.c:184
 msgid "List compiled-in features and exit"
 msgstr "Ispiši ugrađene mogućnosti i izađi"
 
-#: src/mn-main.c:183
+#: src/mn-main.c:193
 msgid "Display the mail summary dialog"
 msgstr "Prikaži prozor sa sažetkom poruka"
 
-#: src/mn-main.c:192
+#: src/mn-main.c:202
 msgid "Display the properties dialog"
 msgstr "Prikaži prozor sa postavkama"
 
-#: src/mn-main.c:201
+#: src/mn-main.c:211
 msgid "Display the about dialog"
 msgstr "Prikaži podatke o programu"
 
-#: src/mn-main.c:210
+#: src/mn-main.c:220
 msgid "Close the mail summary popup"
 msgstr "Zatvori prozor sa sažetkom poruka"
 
-#: src/mn-main.c:219
+#: src/mn-main.c:229
 msgid "Update the mail status"
 msgstr "Osveži podatke o pošti"
 
-#: src/mn-main.c:228
+#: src/mn-main.c:238
 msgid "Report the mail status"
 msgstr "Proveri poštu"
 
-#: src/mn-main.c:237
+#: src/mn-main.c:247
 msgid "Unset obsolete GConf configuration and exit"
 msgstr "Poništi zastarela GConf podešavanja i izađi"
 
@@ -1061,11 +1099,11 @@ msgstr "Poništi zastarela GConf podešavanja i izađi"
 #. * We can't use mn_error_dialog() because gtk_init() has not been
 #. * called yet.
 #.
-#: src/mn-main.c:263
+#: src/mn-main.c:273
 msgid "multi-threading is not available"
 msgstr "višenitni rad nije podržan"
 
-#: src/mn-main.c:310
+#: src/mn-main.c:320
 msgid ""
 "Bonobo could not locate the automation object. Please check your Mail "
 "Notification installation."
@@ -1075,19 +1113,19 @@ msgstr ""
 "Bonobo u Gnomu 2.6, kada instalirate program za obaveštenja, treba da se "
 "odjavite i ponovo prijavite na sistem da bi sve počelo da radi)"
 
-#: src/mn-main.c:315
+#: src/mn-main.c:325
 msgid "Unable to initialize the GnomeVFS library."
 msgstr "Nije moguće pokrenuti biblioteku GnomeVFS."
 
-#: src/mn-main.c:351
+#: src/mn-main.c:361
 msgid "updating the mail status"
 msgstr "Proveravam poštu"
 
-#: src/mn-main.c:369
+#: src/mn-main.c:379
 msgid "Mail Notification is already running"
 msgstr "Program za dojavu pošte je već pokrenut."
 
-#: src/mn-main.c:376
+#: src/mn-main.c:386
 msgid ""
 "Bonobo could not locate the GNOME_MailNotification_Automation.server file. "
 "Please check your Mail Notification installation."
@@ -1097,7 +1135,7 @@ msgstr ""
 "Bonobo u Gnomu 2.6, kada instalirate program za obaveštenja, treba da se "
 "odjavite i ponovo prijavite na sistem da bi sve počelo da radi)"
 
-#: src/mn-main.c:380
+#: src/mn-main.c:390
 msgid ""
 "Bonobo was unable to register the automation server. Please check your Mail "
 "Notification installation."
@@ -1117,23 +1155,23 @@ msgstr "greška pri čitanju sandučeta: %s"
 msgid "unable to open mailbox: %s"
 msgstr "nije moguće otvoriti sanduče: %s"
 
-#: src/mn-message-box.gob:61
+#: src/mn-message-box.gob:64
 msgid "Unreadable message"
 msgstr "Nečitljiva poruka"
 
-#: src/mn-message-box.gob:66
+#: src/mn-message-box.gob:69
 msgid "From"
 msgstr "Od"
 
-#: src/mn-message-box.gob:67
+#: src/mn-message-box.gob:70
 msgid "Subject"
 msgstr "Tema"
 
-#: src/mn-message-box.gob:72
+#: src/mn-message-box.gob:75
 msgid "Sent"
 msgstr "Poslato"
 
-#: src/mn-message-box.gob:184
+#: src/mn-message-box.gob:192
 #, c-format
 msgid "%i second ago"
 msgid_plural "%i seconds ago"
@@ -1141,7 +1179,7 @@ msgstr[0] "pre %i sekundu"
 msgstr[1] "pre %i sekunde"
 msgstr[2] "pre %i sekundi"
 
-#: src/mn-message-box.gob:188
+#: src/mn-message-box.gob:196
 #, c-format
 msgid "%i minute ago"
 msgid_plural "%i minutes ago"
@@ -1149,7 +1187,7 @@ msgstr[0] "pre %i minut"
 msgstr[1] "pre %i minuta"
 msgstr[2] "pre %i minuta"
 
-#: src/mn-message-box.gob:193
+#: src/mn-message-box.gob:201
 #, c-format
 msgid "%i hour ago"
 msgid_plural "%i hours ago"
@@ -1157,7 +1195,7 @@ msgstr[0] "pre %i sat"
 msgstr[1] "pre %i sata"
 msgstr[2] "pre %i sati"
 
-#: src/mn-message-box.gob:198
+#: src/mn-message-box.gob:206
 #, c-format
 msgid "%i day ago"
 msgid_plural "%i days ago"
@@ -1165,7 +1203,7 @@ msgstr[0] "pre %i dan"
 msgstr[1] "pre %i dana"
 msgstr[2] "pre %i dana"
 
-#: src/mn-message-box.gob:203
+#: src/mn-message-box.gob:211
 #, c-format
 msgid "%i week ago"
 msgid_plural "%i weeks ago"
@@ -1263,27 +1301,27 @@ msgstr "prelazim na  APOP prijavu"
 msgid "falling back to USER/PASS authentication"
 msgstr "prelazim na prijavu pomoću imena i lozinke"
 
-#: src/mn-properties.c:181
+#: src/mn-properties.c:191
 msgid "top left"
 msgstr "gore-levo"
 
-#: src/mn-properties.c:182
+#: src/mn-properties.c:192
 msgid "top right"
 msgstr "gore-desno"
 
-#: src/mn-properties.c:183
+#: src/mn-properties.c:193
 msgid "bottom left"
 msgstr "dole-levo"
 
-#: src/mn-properties.c:184
+#: src/mn-properties.c:194
 msgid "bottom right"
 msgstr "dole-desno"
 
-#: src/mn-properties.c:270
+#: src/mn-properties.c:284
 msgid "No mailbox selected."
 msgstr "Nijedno sanduče nije izabrano."
 
-#: src/mn-properties.c:275
+#: src/mn-properties.c:289
 #, c-format
 msgid "%i mailbox selected."
 msgid_plural "%i mailboxes selected."
@@ -1297,16 +1335,15 @@ msgstr "Imate novu poštu."
 
 #: src/mn-shell.gob:347
 msgid "Mailboxes Having New Mail"
-msgstr ""
+msgstr "Sandučići sa novom poštom"
 
 #: src/mn-shell.gob:349
 msgid "Errors"
-msgstr ""
+msgstr "Greške"
 
 #: src/mn-shell.gob:351
-#, fuzzy
 msgid "Unsupported Mailboxes"
-msgstr "Lokalno sanduče"
+msgstr "Nepodržani sandučići"
 
 #: src/mn-shell.gob:364 ui/summary-dialog.glade.h:1
 msgid "Mail Summary"
@@ -1444,72 +1481,75 @@ msgid "<span weight=\"bold\">Commands</span>"
 msgstr "<span weight=\"bold\">Naredbe</span>"
 
 #: ui/properties.glade.h:4
-#, fuzzy
 msgid "<span weight=\"bold\">Double-click Action</span>"
-msgstr "<span weight=\"bold\">Mesto</span>"
+msgstr "<span weight=\"bold\">Naredba za dupli klik</span>"
 
 #: ui/properties.glade.h:5
+#, fuzzy
+msgid "<span weight=\"bold\">Fonts</span>"
+msgstr "<span weight=\"bold\">Naredbe</span>"
+
+#: ui/properties.glade.h:6
 msgid "<span weight=\"bold\">General</span>"
 msgstr "<span weight=\"bold\">Opšte</span>"
 
-#: ui/properties.glade.h:6
+#: ui/properties.glade.h:7
 msgid "<span weight=\"bold\">Mailbox List</span>"
 msgstr "<span weight=\"bold\">Sandučići</span>"
 
-#: ui/properties.glade.h:7
+#: ui/properties.glade.h:8
 msgid "<span weight=\"bold\">Position</span>"
 msgstr "<span weight=\"bold\">Mesto</span>"
 
-#: ui/properties.glade.h:8
+#: ui/properties.glade.h:9
 msgid "General"
 msgstr "Opšte"
 
-#: ui/properties.glade.h:9
+#: ui/properties.glade.h:10
 msgid "Hori_zontal offset:"
 msgstr "Hori_zontalni pomak:"
 
-#: ui/properties.glade.h:10
+#: ui/properties.glade.h:11
 msgid "Mail Notification Properties"
 msgstr "Postavke za dojavu"
 
-#: ui/properties.glade.h:11
+#: ui/properties.glade.h:12
 msgid "Mail Summary Popup"
 msgstr "Sažetak poruka"
 
-#: ui/properties.glade.h:12
+#: ui/properties.glade.h:13
 msgid "Mailboxes"
 msgstr "Sandučići"
 
-#: ui/properties.glade.h:13
-msgid "Only display _recent mail"
-msgstr ""
-
 #: ui/properties.glade.h:14
+msgid "Only display _recent mail"
+msgstr "Prikaži samo skorašnje poruke"
+
+#: ui/properties.glade.h:15
 msgid "P_osition:"
 msgstr "_Mesto:"
 
-#: ui/properties.glade.h:15
+#: ui/properties.glade.h:16
 msgid "The amount of time to wait before closing the mail summary popup"
 msgstr "Pauza pre zatvaranja prozora sa sažetkom poruka"
 
-#: ui/properties.glade.h:16
+#: ui/properties.glade.h:17
 msgid "The amount of time to wait between mail checks"
 msgstr "Pauza između dve uzastopne provere"
 
-#: ui/properties.glade.h:17
-#, fuzzy
-msgid "The command to run to launch the mail reader"
-msgstr "Naredba koja se pokreće kada je sva pošta pročitana"
-
 #: ui/properties.glade.h:18
+msgid "The command to run to launch the mail reader"
+msgstr "Naredba za pokretanje čitača pošte"
+
+#: ui/properties.glade.h:19
 msgid "The command to run when all mail is read"
 msgstr "Naredba koja se pokreće kada je sva pošta pročitana"
 
-#: ui/properties.glade.h:19
+#: ui/properties.glade.h:20
 msgid "The command to run when new mail arrives"
 msgstr "Naredba koja se pokreće kada stiže nova pošta"
 
-#: ui/properties.glade.h:20
+#: ui/properties.glade.h:21
 msgid ""
 "The number of pixels to leave between the left or right side of the screen "
 "and the mail summary popup"
@@ -1517,7 +1557,7 @@ msgstr ""
 "Broj tačaka koje treba ostaviti između leve, odn. desne strane ekrana i "
 "prozora sa sažetkom poruka"
 
-#: ui/properties.glade.h:21
+#: ui/properties.glade.h:22
 msgid ""
 "The number of pixels to leave between the top or bottom side of the screen "
 "and the mail summary popup"
@@ -1525,99 +1565,118 @@ msgstr ""
 "Broj tačaka koje treba ostaviti između vrha, odn. dna ekrana i prozora sa "
 "sažetkom poruka"
 
-#: ui/properties.glade.h:22
+#: ui/properties.glade.h:23
 msgid "When _all mail is read:"
 msgstr "Kada je s_va pošta pročitana:"
 
-#: ui/properties.glade.h:23
+#: ui/properties.glade.h:24
 msgid "When _new mail arrives:"
 msgstr "Kada _stigne nova pošta:"
 
-#: ui/properties.glade.h:24
+#: ui/properties.glade.h:25
 msgid "Whether the status icon should blink on errors or not"
 msgstr "Da li statusna sličica treperi pri greškama ili ne"
 
-#: ui/properties.glade.h:25
+#: ui/properties.glade.h:26
 msgid "Whether to automatically close the mail summary popup or not"
 msgstr ""
 "Da li treba ili ne treba automatski zatvoriti prozor sa sažetkom poruka"
 
-#: ui/properties.glade.h:26
+#: ui/properties.glade.h:27
 msgid "Whether to display the mail summary popup when new mail arrives or not"
 msgstr ""
 "Da li treba ili ne treba prikazivati sažetak poruka kada stigne nova pošta"
 
-#: ui/properties.glade.h:27
-#, fuzzy
-msgid "Whether to hide previously displayed mail or not"
-msgstr "Da li u sandučetu stoji nova pošta ili ne"
-
 #: ui/properties.glade.h:28
+msgid "Whether to hide previously displayed mail or not"
+msgstr "Da li treba prikazivati prethodno prikazane poruke ili ne"
+
+#: ui/properties.glade.h:29
 msgid "Whether to run a command when all mail is read or not"
 msgstr "Da li se pokreće ili ne pokreće komanda kada je sva pošta pročitana"
 
-#: ui/properties.glade.h:29
+#: ui/properties.glade.h:30
 msgid "Whether to run a command when new mail arrives or not"
 msgstr "Da li se pokreće komanda kada stigne pošta ili ne"
 
-#: ui/properties.glade.h:30
-#, fuzzy
-msgid "Whether to set a mail reader or not"
-msgstr "Da li se pokreće ili ne pokreće komanda kada je sva pošta pročitana"
-
 #: ui/properties.glade.h:31
+msgid "Whether to set a mail reader or not"
+msgstr "Da li treba postaviti čitač pošte"
+
+#: ui/properties.glade.h:32
 msgid ""
 "Whether to start Mail Notification when you log into your GNOME session or "
 "not"
 msgstr "Da li pokrenuti dojavu pošte kada se prijavite na sistem"
 
-#: ui/properties.glade.h:32
+#: ui/properties.glade.h:33
+#, fuzzy
+msgid ""
+"Whether to use a custom font for the contents of the mail summary popup or "
+"not"
+msgstr ""
+"Da li treba ili ne treba automatski zatvoriti prozor sa sažetkom poruka"
+
+#: ui/properties.glade.h:34
+#, fuzzy
+msgid ""
+"Whether to use a custom font for the title of the mail summary popup or not"
+msgstr ""
+"Da li treba ili ne treba automatski zatvoriti prozor sa sažetkom poruka"
+
+#: ui/properties.glade.h:35
 msgid "_Automatically close after:"
 msgstr "_Automatski zatvori posle:"
 
-#: ui/properties.glade.h:33
+#: ui/properties.glade.h:36
 msgid "_Blink on errors"
 msgstr "_Treperi pri greškama"
 
-#: ui/properties.glade.h:34
-msgid "_Delay between mail checks:"
-msgstr "_Pauza između provera:"
-
-#: ui/properties.glade.h:35
-#, fuzzy
-msgid "_Display the mail summary dialog"
-msgstr "Prikaži prozor sa sažetkom poruka"
-
-#: ui/properties.glade.h:36
-msgid "_Enable mail summary popup"
-msgstr "Dozvoli prikaz sažetka poruka"
-
 #: ui/properties.glade.h:37
-msgid "_Launch the mail reader"
+msgid "_Contents font:"
 msgstr ""
 
 #: ui/properties.glade.h:38
-#, fuzzy
-msgid "_Mail reader:"
-msgstr "_Sažetak poruka"
+msgid "_Delay between mail checks:"
+msgstr "_Pauza između provera:"
 
 #: ui/properties.glade.h:39
+msgid "_Display the mail summary dialog"
+msgstr "Prikaži prozor sa sažetkom poruka"
+
+#: ui/properties.glade.h:40
+msgid "_Enable mail summary popup"
+msgstr "Dozvoli prikaz sažetka poruka"
+
+#: ui/properties.glade.h:41
+msgid "_Launch the mail reader"
+msgstr "P_okreni čitač pošte"
+
+#: ui/properties.glade.h:42
+msgid "_Mail reader:"
+msgstr "_Čitač pošte:"
+
+#: ui/properties.glade.h:43
 msgid "_Start Mail Notification on GNOME login"
 msgstr "Pokreni _dojavu pri prijavi"
 
-#: ui/properties.glade.h:40
+#: ui/properties.glade.h:44
+msgid "_Title font:"
+msgstr ""
+
+#: ui/properties.glade.h:45
 msgid "_Vertical offset:"
 msgstr "_Vertikalni pomak:"
 
-#: ui/properties.glade.h:41
+#: ui/properties.glade.h:46
 msgid "minutes"
 msgstr "minuta"
 
-#: ui/properties.glade.h:42
+#: ui/properties.glade.h:47
 msgid "pixels"
 msgstr "tačaka"
 
-#: ui/properties.glade.h:43
+#: ui/properties.glade.h:48
 msgid "seconds"
 msgstr "sekundi"
 

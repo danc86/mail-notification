@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "0.8.0">
-  <!ENTITY manrevision "2.7">
-  <!ENTITY date "Sunday, October 31, 2004">
+  <!ENTITY appversion "0.8.1">
+  <!ENTITY manrevision "2.8">
+  <!ENTITY date "Thursday, November 4, 2004">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,7 +26,7 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.72 2004/10/31 17:38:57 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.78 2004/11/04 10:52:35 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (c) 2004 Jean-Yves Lefort -->
@@ -134,6 +134,17 @@
 	</revdescription>
       </revision>
       <revision>
+	<revnumber>Mail Notification Manual V2.7</revnumber>
+	<date>Sunday, October 31, 2004</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
 	<revnumber>Mail Notification Manual V2.6</revnumber>
 	<date>Monday, October 25, 2004</date>
 	<revdescription>
@@ -219,7 +230,7 @@
       <title>Feedback</title>
       <para>To report a bug or make a suggestion regarding the &app;
 	application or this manual, follow the directions in
-	<xref linkend="problem-reports" />.
+	<xref linkend="problem-reports"/>.
       </para>
       <!-- Translators may also add here feedback address for translations -->
     </legalnotice>
@@ -645,6 +656,45 @@
 	    </variablelist>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term><guilabel>Fonts</guilabel></term>
+	  <listitem>
+	    <para>
+	      You can choose to override your default desktop font and
+	      use custom fonts in the mail summary popup. To further
+	      customise the appearance of &app;, see <xref linkend="modifying-appearance"/>.
+	    </para>
+	    <variablelist>
+	      <varlistentry>
+		<term><guilabel>Title font</guilabel></term>
+		<listitem>
+		  <para>
+		    If this option is enabled, the title of the mail
+		    summary popup will use the specified font.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Contents font</guilabel></term>
+		<listitem>
+		  <para>
+		    If this option is enabled, the contents of the
+		    mail summary popup will use the specified font.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
+	    <note>
+	      <para>
+		The specified fonts are relative to the text
+		properties hard-coded into &app;, which cannot be
+		modified: the title is printed in bold and uses a
+		larger font size than the contents, and the message
+		headers are printed in bold.
+	      </para>
+	    </note>
+	  </listitem>
+	</varlistentry>
       </variablelist>
     </sect2>
   </sect1>
@@ -1033,6 +1083,171 @@ else
     attempt authentication using login
   endif
 endif</programlisting>
+    </sect2>
+
+    <sect2 id="modifying-appearance">
+      <title>Modifying the Appearance of &app;</title>
+      <para>
+	&app; sets names for several widgets and icons, so that they
+	can easily be matched in a GTK+ resource file.
+      </para>
+
+      <table><title>Widget Names</title>
+	<tgroup cols="2">
+	  <thead>
+	    <row>
+	      <entry>Widget</entry>
+	      <entry>Name</entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry>mail summary popup</entry>
+	      <entry>mn-mail-summary-popup</entry>
+	    </row>
+	    <row>
+	      <entry>mail summary popup title</entry>
+	      <entry>mn-mail-summary-popup-title</entry>
+	    </row>
+	    <row>
+	      <entry>message box</entry>
+	      <entry>mn-message-box</entry>
+	    </row>
+	    <row>
+	      <entry>message header name</entry>
+	      <entry>name</entry>
+	    </row>
+	    <row>
+	      <entry>message header value</entry>
+	      <entry>value</entry>
+	    </row>
+	    <row>
+	      <entry>tooltip section title</entry>
+	      <entry>mn-tooltip-section-title</entry>
+	    </row>
+	    <row>
+	      <entry>tooltip section body</entry>
+	      <entry>mn-tooltip-section-body</entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table><title>Icon Names</title>
+	<tgroup cols="2">
+	  <thead>
+	    <row>
+	      <entry>Icon</entry>
+	      <entry>Name</entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry>status icon</entry>
+	      <entry>mn-mail</entry>
+	    </row>
+	    <row>
+	      <entry>local mailbox</entry>
+	      <entry>mn-local</entry>
+	    </row>
+	    <row>
+	      <entry>remote mailbox</entry>
+	      <entry>mn-remote</entry>
+	    </row>
+	    <row>
+	      <entry>unsupported mailbox</entry>
+	      <entry>mn-unsupported</entry>
+	    </row>
+	    <row>
+	      <entry>Gmail mailbox</entry>
+	      <entry>mn-gmail</entry>
+	    </row>
+	    <row>
+	      <entry>system mailbox</entry>
+	      <entry>mn-system-mailbox</entry>
+	    </row>
+	    <row>
+	      <entry>select all</entry>
+	      <entry>mn-select-all</entry>
+	    </row>
+	    <row>
+	      <entry>mail summary</entry>
+	      <entry>mn-mail-summary</entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>
+	More information about GTK+ resource files, including a
+	description of their format, can be found in the <ulink	url="http://developer.gnome.org/doc/API/2.0/gtk/gtk-Resource-Files.html" type="http">Resource Files</ulink>
+	section of the GTK+ Reference Manual.
+      </para>
+      <sect3>
+	<title>Examples</title>
+	<para>
+	  You can modify the appearance of &app; by editing the
+	  <filename>~/.gtkrc-2.0</filename> file.
+	</para>
+	<para>
+	  To use a large font for the mail summary popup title:
+	</para>
+	<programlisting>style "mn-mail-summary-popup-title"
+{
+  font_name = "Sans 14"
+}
+
+widget "*.mn-mail-summary-popup-title"
+  style "mn-mail-summary-popup-title"</programlisting>
+	<para>
+	  To use a small font for the mail summary popup messages:
+	</para>
+	<programlisting>style "mn-mail-summary-popup-messages"
+{
+  font_name = "Sans 8"
+}
+
+widget "mn-mail-summary-popup.*.mn-message-box.*"
+  style "mn-mail-summary-popup-messages"</programlisting>
+	<para>
+	  To use a small font for the mail summary tooltip messages:
+	</para>
+	<programlisting>style "mn-mail-summary-tooltip-messages"
+{
+  font_name = "Sans 8"
+}
+
+widget "gtk-tooltips.*.mn-message-box.*"
+  style "mn-mail-summary-tooltip-messages"</programlisting>
+	<para>
+	  To use italic for the message header names:
+	</para>
+	<programlisting>style "mn-message-header-name"
+{
+  font_name = "Italic"
+}
+
+widget "*.mn-message-box.*.name"
+  style "mn-message-header-name"</programlisting>
+	<para>
+	  To use some custom icons:
+	</para>
+	<programlisting>pixmap_path "/home/myaccount/icons"
+
+style "mn-icons"
+{
+  stock["mn-local"] =
+  {
+    { "local.png" }
+  }
+  stock["mn-remote"] =
+  {
+    { "remote.png" }
+  }
+}
+
+widget "*" style "mn-icons"</programlisting>
+      </sect3>
     </sect2>
   </sect1>
     

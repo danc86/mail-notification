@@ -21,16 +21,16 @@
 
 #include "config.h"
 
-#define MN_STOCK_MAIL			"mail-notification-mail"
-#define MN_STOCK_LOCAL			"mail-notification-local"
-#define MN_STOCK_REMOTE			"mail-notification-remote"
-#define MN_STOCK_UNSUPPORTED		"mail-notification-unsupported"
+#define MN_STOCK_MAIL			"mn-mail"
+#define MN_STOCK_LOCAL			"mn-local"
+#define MN_STOCK_REMOTE			"mn-remote"
+#define MN_STOCK_UNSUPPORTED		"mn-unsupported"
 #ifdef WITH_GMAIL
-#define MN_STOCK_GMAIL			"mail-notification-gmail"
+#define MN_STOCK_GMAIL			"mn-gmail"
 #endif
-#define MN_STOCK_SYSTEM_MAILBOX		"mail-notification-system-mailbox"
-#define MN_STOCK_SELECT_ALL		"mail-notification-select-all"
-#define MN_STOCK_MAIL_SUMMARY		"mail-notification-mail-summary"
+#define MN_STOCK_SYSTEM_MAILBOX		"mn-system-mailbox"
+#define MN_STOCK_SELECT_ALL		"mn-select-all"
+#define MN_STOCK_MAIL_SUMMARY		"mn-mail-summary"
 
 void mn_stock_init (void);
 

@@ -1103,18 +1103,20 @@ mn_client_session_sasl_authentication_step (MNClientSession *session,
 gboolean
 mn_client_session_sasl_authentication_done (MNClientSession *session)
 {
-  int *ssf;
+  gconstpointer ptr;
 
   g_return_val_if_fail(session != NULL, FALSE);
 
-  if (sasl_getprop(session->sasl_conn, SASL_SSF, (const void **) &ssf) == SASL_OK)
+  if (sasl_getprop(session->sasl_conn, SASL_SSF, &ptr) == SASL_OK)
     {
+      const int *ssf = ptr;
+
       if (*ssf)
 	{
-	  unsigned int *maxoutbuf;
-
-	  if (sasl_getprop(session->sasl_conn, SASL_MAXOUTBUF, (const void **) &maxoutbuf) == SASL_OK)
+	  if (sasl_getprop(session->sasl_conn, SASL_MAXOUTBUF, &ptr) == SASL_OK)
 	    {
+	      const unsigned int *maxoutbuf = ptr;
+
 	      session->sasl_ssf = *ssf;
 	      session->sasl_maxoutbuf = *maxoutbuf;
 

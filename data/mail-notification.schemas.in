@@ -285,6 +285,50 @@
       </locale>
     </schema> 
     <schema>
+      <key>/schemas/apps/mail-notification/mail-summary-popup/fonts/title/enabled</key>
+      <applyto>/apps/mail-notification/mail-summary-popup/fonts/title/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Use a custom font for the title of the mail summary popup</short>
+	<long>Whether to use a custom font for the title of the mail summary popup or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/mail-summary-popup/fonts/title/font</key>
+      <applyto>/apps/mail-notification/mail-summary-popup/fonts/title/font</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>Sans 10</default>
+      <locale name="C">
+        <short>Mail summary popup title font</short>
+	<long>The custom font to use for the title of the mail summary popup.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/mail-summary-popup/fonts/contents/enabled</key>
+      <applyto>/apps/mail-notification/mail-summary-popup/fonts/contents/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Use a custom font for the contents of the mail summary popup</short>
+	<long>Whether to use a custom font for the contents of the mail summary popup or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/mail-summary-popup/fonts/contents/font</key>
+      <applyto>/apps/mail-notification/mail-summary-popup/fonts/contents/font</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>Sans 10</default>
+      <locale name="C">
+        <short>Mail summary popup contents font</short>
+	<long>The custom font to use for the contents of the mail summary popup.</long>
+      </locale>
+    </schema>
+    <schema>
       <key>/schemas/apps/mail-notification/double-click-action</key>
       <applyto>/apps/mail-notification/double-click-action</applyto>
       <owner>mail-notification</owner>

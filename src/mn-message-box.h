@@ -58,6 +58,7 @@ GType	mn_message_box_get_type	(void);
 GtkWidget * 	mn_message_box_new	(GtkSizeGroup * size_group,
 					MNMessage * message,
 					gboolean selectable);
+GSList * 	mn_message_box_get_labels	(MNMessageBox * self);
 
 /*
  * Argument wrapping macros

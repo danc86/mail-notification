@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mail-notification 0.7.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-10-31 18:42+0100\n"
+"POT-Creation-Date: 2004-11-04 11:04+0100\n"
 "PO-Revision-Date: 2004-10-24 10:59+0200\n"
 "Last-Translator: Hendrik Brandt <eru@gmx.li>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
@@ -34,7 +34,7 @@ msgstr "Die E-Mail-Eingangsüberwachung einstellen"
 #: data/mail-notification-properties.desktop.in.h:2
 #: data/mail-notification.desktop.in.h:2
 #: data/mail-notification.soundlist.in.h:1 src/mn-about-dialog.gob:40
-#: src/mn-mail-icon.gob:194 src/mn-main.c:271
+#: src/mn-mail-icon.gob:194 src/mn-main.c:281
 msgid "Mail Notification"
 msgstr "E-Mail-Eingangsüberwachung"
 
@@ -96,105 +96,125 @@ msgid "Mail reader command"
 msgstr "Befehl zum Lesen einer Nachricht"
 
 #: data/mail-notification.schemas.in.h:14
+#, fuzzy
+msgid "Mail summary popup contents font"
+msgstr "Position der Nachrichtenübersicht"
+
+#: data/mail-notification.schemas.in.h:15
 msgid "Mail summary popup horizontal offset"
 msgstr "Horizontaler Abstand der Nachrichtenübersicht"
 
-#: data/mail-notification.schemas.in.h:15
+#: data/mail-notification.schemas.in.h:16
 msgid "Mail summary popup position"
 msgstr "Position der Nachrichtenübersicht"
 
-#: data/mail-notification.schemas.in.h:16
+#: data/mail-notification.schemas.in.h:17
+#, fuzzy
+msgid "Mail summary popup title font"
+msgstr "Position der Nachrichtenübersicht"
+
+#: data/mail-notification.schemas.in.h:18
 msgid "Mail summary popup vertical offset"
 msgstr "Vertikaler"
 
-#: data/mail-notification.schemas.in.h:17
+#: data/mail-notification.schemas.in.h:19
 msgid "Mailbox list"
 msgstr "Liste der Postfächer"
 
-#: data/mail-notification.schemas.in.h:18
+#: data/mail-notification.schemas.in.h:20
 msgid "Minutes between mail checks"
 msgstr "Minuten zwischen den Aktualisierungen"
 
-#: data/mail-notification.schemas.in.h:19
+#: data/mail-notification.schemas.in.h:21
 msgid "Minutes to wait before closing the mail summary popup"
 msgstr "Wartezeit bis zum Schließen der Nachrichtenübersicht"
 
-#: data/mail-notification.schemas.in.h:20
+#: data/mail-notification.schemas.in.h:22
 msgid "New mail command"
 msgstr "Befehl bei neuer Nachricht"
 
-#: data/mail-notification.schemas.in.h:21
+#: data/mail-notification.schemas.in.h:23
 #, fuzzy
 msgid "Only display recent mail in mail summary popup"
 msgstr "Die Nachrichtenübersicht schließen"
 
-#: data/mail-notification.schemas.in.h:22
+#: data/mail-notification.schemas.in.h:24
 msgid "Run a command when all mail is read"
 msgstr "Einen Befehl ausführen, wenn alle Nachrichten gelesen sind"
 
-#: data/mail-notification.schemas.in.h:23
+#: data/mail-notification.schemas.in.h:25
 msgid "Run a command when new mail arrives"
 msgstr "Einen Befehl ausführen, wenn eine neue Nachricht eintrifft"
 
-#: data/mail-notification.schemas.in.h:24
+#: data/mail-notification.schemas.in.h:26
 msgid "Seconds between mail checks"
 msgstr "Sekunden zwischen den Aktualisierungen"
 
-#: data/mail-notification.schemas.in.h:25
+#: data/mail-notification.schemas.in.h:27
 msgid "Seconds to wait before closing the mail summary popup"
 msgstr "Wartezeit in Sekunden bis zum Schließen der Nachrichtenübersicht"
 
-#: data/mail-notification.schemas.in.h:26
+#: data/mail-notification.schemas.in.h:28
 #, fuzzy
 msgid "Set a mail reader"
 msgstr "Wählen Sie eine Datei oder ein Verzeichnis"
 
-#: data/mail-notification.schemas.in.h:27
+#: data/mail-notification.schemas.in.h:29
 msgid ""
 "The action to perform when the icon is double-clicked. Must be \"display-"
 "mail-summary\" or \"launch-mail-reader\"."
 msgstr ""
 
-#: data/mail-notification.schemas.in.h:28
+#: data/mail-notification.schemas.in.h:30
 msgid ""
 "The amount of time to wait before closing the mail summary popup (minutes "
 "part)."
 msgstr ""
 "Die Zeitspanne bis zum Schließen der Nachrichtenübersicht (Minutenteil)."
 
-#: data/mail-notification.schemas.in.h:29
+#: data/mail-notification.schemas.in.h:31
 msgid ""
 "The amount of time to wait before closing the mail summary popup (seconds "
 "part)."
 msgstr ""
 "Die Zeitspanne bis zum Schließen der Nachrichtenübersicht (Sekundenteil)."
 
-#: data/mail-notification.schemas.in.h:30
+#: data/mail-notification.schemas.in.h:32
 #, fuzzy
 msgid "The command to run to launch the mail reader."
 msgstr "Der Befehl der ausgeführt wird, wenn alle Nachrichten gelesen wurden"
 
-#: data/mail-notification.schemas.in.h:31
+#: data/mail-notification.schemas.in.h:33
 msgid "The command to run when all mail is read."
 msgstr "Der Befehl der ausgeführt wird, wenn alle Nachrichten gelesen wurden"
 
-#: data/mail-notification.schemas.in.h:32
+#: data/mail-notification.schemas.in.h:34
 msgid "The command to run when new mail arrives."
 msgstr "Der Befehl der ausgeführt wird, wenn eine neue Nachricht eintrifft."
 
-#: data/mail-notification.schemas.in.h:33
+#: data/mail-notification.schemas.in.h:35
+#, fuzzy
+msgid "The custom font to use for the contents of the mail summary popup."
+msgstr "Die Wartedauer ehe die Nachrichtenübersicht geschlossen wurde"
+
+#: data/mail-notification.schemas.in.h:36
+#, fuzzy
+msgid "The custom font to use for the title of the mail summary popup."
+msgstr "Die Wartedauer ehe die Nachrichtenübersicht geschlossen wurde"
+
+#: data/mail-notification.schemas.in.h:37
 msgid "The height of the mail summary dialog in pixels."
 msgstr "Die Höhe der Nachrichtenübersicht in Pixel."
 
-#: data/mail-notification.schemas.in.h:34
+#: data/mail-notification.schemas.in.h:38
 msgid "The height of the properties dialog in pixels."
 msgstr "Die Höhe des Einstellungsdialogs in Pixel."
 
-#: data/mail-notification.schemas.in.h:35
+#: data/mail-notification.schemas.in.h:39
 msgid "The list of mailboxes to monitor."
 msgstr "Die Liste der zu überwachenden Postfächer."
 
-#: data/mail-notification.schemas.in.h:36
+#: data/mail-notification.schemas.in.h:40
 msgid ""
 "The list of trusted SSL/TLS servers (hostname:port) lacking a X509 "
 "certificate."
@@ -202,14 +222,14 @@ msgstr ""
 "Die Liste vertrauensvoller SSL/TLS-Server (Host-Name:Port) ohne X509-"
 "Zertifikat."
 
-#: data/mail-notification.schemas.in.h:37
+#: data/mail-notification.schemas.in.h:41
 msgid ""
 "The list of trusted X509 certificates, represented by their MD5 fingerprint."
 msgstr ""
 "Die Liste vertrauensvoller X509-Zertifikate, repräsentiert durch ihre MD5-"
 "Fingerabdrücke."
 
-#: data/mail-notification.schemas.in.h:38
+#: data/mail-notification.schemas.in.h:42
 msgid ""
 "The number of pixels to leave between the left or right side of the screen "
 "and the mail summary popup."
@@ -217,7 +237,7 @@ msgstr ""
 "Die Anzahl an Pixeln die zwischen dem linken oder rechten Bildschirmrand und "
 "der Nachrichtenübersicht."
 
-#: data/mail-notification.schemas.in.h:39
+#: data/mail-notification.schemas.in.h:43
 msgid ""
 "The number of pixels to leave between the top or bottom side of the screen "
 "and the mail summary popup."
@@ -225,7 +245,7 @@ msgstr ""
 "Die Anzahl an Pixeln die zwischen dem oberen oder runteren Bildschirmrand "
 "und der Nachrichtenübersicht."
 
-#: data/mail-notification.schemas.in.h:40
+#: data/mail-notification.schemas.in.h:44
 msgid ""
 "The position of the mail summary popup. Must be \"top-left\", \"top-right\", "
 "\"bottom-left\" or \"bottom-right\"."
@@ -233,76 +253,101 @@ msgstr ""
 "Die Position der Nachrichtenübersicht. Der Wert muss »oben-links«, »oben-"
 "rechts«, »unten-links« oder »unten-rechts« sein."
 
-#: data/mail-notification.schemas.in.h:41
+#: data/mail-notification.schemas.in.h:45
 msgid "The width of the mail summary dialog in pixels."
 msgstr "Die Breite der Nachrichtenübersicht in Pixel."
 
-#: data/mail-notification.schemas.in.h:42
+#: data/mail-notification.schemas.in.h:46
 msgid "The width of the properties dialog in pixels."
 msgstr "Die Breite des Einstellungen-Dialogs in Pixel."
 
-#: data/mail-notification.schemas.in.h:43
+#: data/mail-notification.schemas.in.h:47
 msgid "Trusted servers list"
 msgstr "Liste vertrauensvoller Server"
 
-#: data/mail-notification.schemas.in.h:44
+#: data/mail-notification.schemas.in.h:48
+#, fuzzy
+msgid "Use a custom font for the contents of the mail summary popup"
+msgstr "Wartezeit in Sekunden bis zum Schließen der Nachrichtenübersicht"
+
+#: data/mail-notification.schemas.in.h:49
+#, fuzzy
+msgid "Use a custom font for the title of the mail summary popup"
+msgstr "Die Wartedauer ehe die Nachrichtenübersicht geschlossen wurde"
+
+#: data/mail-notification.schemas.in.h:50
 msgid "Whether Mail Notification has already been run or not."
 msgstr ""
 "Legt fest, ob die E-Mail-Eingangsüberwachnung schon einmal gestartet wurde."
 
-#: data/mail-notification.schemas.in.h:45
+#: data/mail-notification.schemas.in.h:51
 msgid "Whether the status icon should blink on errors or not."
 msgstr ""
 "Legt fest, ob das  Nachrichtensymbol bei Auftreten eines Fehlers blinkt."
 
-#: data/mail-notification.schemas.in.h:46
+#: data/mail-notification.schemas.in.h:52
 msgid "Whether to automatically close the mail summary popup or not."
 msgstr ""
 "Legt fest, ob ein Befehl ausgeführt wird, wenn eine neue Nachricht eintrifft."
 
-#: data/mail-notification.schemas.in.h:47
+#: data/mail-notification.schemas.in.h:53
 msgid "Whether to display the mail summary popup when new mail arrives or not."
 msgstr ""
 "Legt fest, ob die Nachrichtenübersicht angezeigt wird, wenn eine neue "
 "Nachricht eintrifft."
 
-#: data/mail-notification.schemas.in.h:48
+#: data/mail-notification.schemas.in.h:54
 #, fuzzy
 msgid ""
 "Whether to hide previously displayed mail in the mail summary popup or not."
 msgstr ""
 "Legt fest, ob ein Befehl ausgeführt wird, wenn eine neue Nachricht eintrifft."
 
-#: data/mail-notification.schemas.in.h:49
+#: data/mail-notification.schemas.in.h:55
 msgid ""
 "Whether to prevent the immediate notification error dialog from being "
 "displayed or not."
 msgstr ""
 "Legt fest, ob der Fehlerdialog der Sofortbenachrichtigung angezeigt wird."
 
-#: data/mail-notification.schemas.in.h:50
+#: data/mail-notification.schemas.in.h:56
 msgid "Whether to run a command when all mail is read or not."
 msgstr ""
 "Legt fest, ob ein Befehl ausgeführt wird, wenn alle Nachrichten gelesen "
 "wurden."
 
-#: data/mail-notification.schemas.in.h:51
+#: data/mail-notification.schemas.in.h:57
 msgid "Whether to run a command when new mail arrives or not."
 msgstr ""
 "Legt fest, ob ein Befehl ausgeführt wird, wenn eine neue Nachricht eintrifft."
 
-#: data/mail-notification.schemas.in.h:52
+#: data/mail-notification.schemas.in.h:58
 #, fuzzy
 msgid "Whether to set a mail reader or not."
 msgstr ""
 "Legt fest, ob ein Befehl ausgeführt wird, wenn alle Nachrichten gelesen "
 "wurden."
 
-#: data/mail-notification.schemas.in.h:53
+#: data/mail-notification.schemas.in.h:59
+#, fuzzy
+msgid ""
+"Whether to use a custom font for the contents of the mail summary popup or "
+"not."
+msgstr ""
+"Legt fest, ob ein Befehl ausgeführt wird, wenn eine neue Nachricht eintrifft."
+
+#: data/mail-notification.schemas.in.h:60
+#, fuzzy
+msgid ""
+"Whether to use a custom font for the title of the mail summary popup or not."
+msgstr ""
+"Legt fest, ob ein Befehl ausgeführt wird, wenn eine neue Nachricht eintrifft."
+
+#: data/mail-notification.schemas.in.h:61
 msgid "Width of mail summary dialog"
 msgstr "Breite der Nachrichtenübersicht"
 
-#: data/mail-notification.schemas.in.h:54
+#: data/mail-notification.schemas.in.h:62
 msgid "Width of properties dialog"
 msgstr "Breite des Einstellungen-Dialogs"
 
@@ -607,32 +652,32 @@ msgstr ""
 "Der Server hat kein SASL-Problem gesendet, während noch eine Client-seitige "
 "SASL-Reaktion begonnen wurde"
 
-#: src/mn-client-session.c:1122
+#: src/mn-client-session.c:1124
 #, c-format
 msgid "a SASL security layer of strength factor %i is now active"
 msgstr "Die SASL-Sicherheitsebene der Stärke %i ist jetzt aktiv"
 
 #. a security layer is active but we can't retrieve maxoutbuf -> fatal
-#: src/mn-client-session.c:1127
+#: src/mn-client-session.c:1129
 #, c-format
 msgid "unable to get SASL_MAXOUTBUF property: %s"
 msgstr "Der Wert SASL_MAXOUTBUF wurde nicht gefunden: %s"
 
-#: src/mn-client-session.c:1133
+#: src/mn-client-session.c:1135
 #, c-format
 msgid "warning: unable to get SASL_SSF property: %s"
 msgstr "Warnung: Der Wert SASL_SSF wurde nicht gefunden: %s"
 
-#: src/mn-conf.c:136
+#: src/mn-conf.c:145
 #, c-format
 msgid "recursively unsetting %s"
 msgstr "%s rekursiv zurück setzen"
 
-#: src/mn-conf.c:140
+#: src/mn-conf.c:149
 msgid "syncing the GConf database"
 msgstr "Synchronisiere mit der GConf-Datenbank"
 
-#: src/mn-conf.c:143
+#: src/mn-conf.c:152
 msgid "completed"
 msgstr "Abgeschlossen"
 
@@ -873,7 +918,7 @@ msgstr "Vollständig"
 msgid "Whether the properties are completely filled or not"
 msgstr "Legt fest, ob die Einstellungen vollständig ausgefüllt sind"
 
-#: src/mn-mailbox-view.gob:263 src/mn-message-box.gob:58
+#: src/mn-mailbox-view.gob:263 src/mn-message-box.gob:61
 msgid "Mailbox"
 msgstr "Postfach"
 
@@ -1037,49 +1082,49 @@ msgstr "Der Ordner »new« konnte nicht geschlossen werden: %s"
 msgid "error while reading folder \"new\": %s"
 msgstr "Fehler beim Lesen des Ordners »new«: %s"
 
-#: src/mn-main.c:96
+#: src/mn-main.c:99
 #, c-format
 msgid "Compiled-in mailbox backends: %s\n"
 msgstr "Eingebaute Postfacharten: %s\n"
 
-#: src/mn-main.c:113
+#: src/mn-main.c:116
 #, c-format
 msgid "Compiled-in features: %s\n"
 msgstr "Eingebaute Programmfähigkeiten: %s\n"
 
-#: src/mn-main.c:165
+#: src/mn-main.c:175
 msgid "Enable informational output"
 msgstr "Ausgabe von Informationen aktivieren"
 
-#: src/mn-main.c:174
+#: src/mn-main.c:184
 msgid "List compiled-in features and exit"
 msgstr "Eingebaute Programmfähigkeiten anzeigen und beenden"
 
-#: src/mn-main.c:183
+#: src/mn-main.c:193
 msgid "Display the mail summary dialog"
 msgstr "Die Nachrichtenübersicht anzeigen"
 
-#: src/mn-main.c:192
+#: src/mn-main.c:202
 msgid "Display the properties dialog"
 msgstr "Den Dialog zum Einstellen der E-Mail-Eingangsüberwachung anzeigen"
 
-#: src/mn-main.c:201
+#: src/mn-main.c:211
 msgid "Display the about dialog"
 msgstr "Den Info-Dialog anzeigen"
 
-#: src/mn-main.c:210
+#: src/mn-main.c:220
 msgid "Close the mail summary popup"
 msgstr "Die Nachrichtenübersicht schließen"
 
-#: src/mn-main.c:219
+#: src/mn-main.c:229
 msgid "Update the mail status"
 msgstr "Nach neuen Nachrichten sehen"
 
-#: src/mn-main.c:228
+#: src/mn-main.c:238
 msgid "Report the mail status"
 msgstr "Den aktuellen Nachrichten anzeigen"
 
-#: src/mn-main.c:237
+#: src/mn-main.c:247
 msgid "Unset obsolete GConf configuration and exit"
 msgstr "Veraltete GConf-Konfiguration zurücksetzen und beenden"
 
@@ -1087,11 +1132,11 @@ msgstr "Veraltete GConf-Konfiguration zurücksetzen und beenden"
 #. * We can't use mn_error_dialog() because gtk_init() has not been
 #. * called yet.
 #.
-#: src/mn-main.c:263
+#: src/mn-main.c:273
 msgid "multi-threading is not available"
 msgstr "Multi-Threading steht nicht zur Verfügung"
 
-#: src/mn-main.c:310
+#: src/mn-main.c:320
 msgid ""
 "Bonobo could not locate the automation object. Please check your Mail "
 "Notification installation."
@@ -1099,19 +1144,19 @@ msgstr ""
 "Bonobo konnte das Automatisierungsobjekt nicht finden. Bitte überprüfen Sie "
 "Ihre Installation der E-Mail-Eingangsüberwachung."
 
-#: src/mn-main.c:315
+#: src/mn-main.c:325
 msgid "Unable to initialize the GnomeVFS library."
 msgstr "Die GnomeVFS-Bibliothek konnte nicht initializiert werden."
 
-#: src/mn-main.c:351
+#: src/mn-main.c:361
 msgid "updating the mail status"
 msgstr "Nachrichtenstatus wird aktualisiert"
 
-#: src/mn-main.c:369
+#: src/mn-main.c:379
 msgid "Mail Notification is already running"
 msgstr "Die E-Mail-Eingangsüberwachung ist bereits aktiv"
 
-#: src/mn-main.c:376
+#: src/mn-main.c:386
 msgid ""
 "Bonobo could not locate the GNOME_MailNotification_Automation.server file. "
 "Please check your Mail Notification installation."
@@ -1120,7 +1165,7 @@ msgstr ""
 "finden. Bitte überprüfen Sie Ihre Installation der E-Mail-"
 "Eingangsüberwachung."
 
-#: src/mn-main.c:380
+#: src/mn-main.c:390
 msgid ""
 "Bonobo was unable to register the automation server. Please check your Mail "
 "Notification installation."
@@ -1138,47 +1183,47 @@ msgstr "Postfach konnte nicht neu geladen werden: %s"
 msgid "unable to open mailbox: %s"
 msgstr "Postfach konnte nicht geöffnet werden: %s"
 
-#: src/mn-message-box.gob:61
+#: src/mn-message-box.gob:64
 msgid "Unreadable message"
 msgstr "Nichtlesbare Nachricht"
 
-#: src/mn-message-box.gob:66
+#: src/mn-message-box.gob:69
 msgid "From"
 msgstr "Von"
 
-#: src/mn-message-box.gob:67
+#: src/mn-message-box.gob:70
 msgid "Subject"
 msgstr "Betreff"
 
-#: src/mn-message-box.gob:72
+#: src/mn-message-box.gob:75
 msgid "Sent"
 msgstr "Gesendet"
 
-#: src/mn-message-box.gob:184
+#: src/mn-message-box.gob:192
 #, c-format
 msgid "%i second ago"
 msgid_plural "%i seconds ago"
 msgstr[0] "Vor %i Sekunde"
 
-#: src/mn-message-box.gob:188
+#: src/mn-message-box.gob:196
 #, c-format
 msgid "%i minute ago"
 msgid_plural "%i minutes ago"
 msgstr[0] "Vor %i Minute"
 
-#: src/mn-message-box.gob:193
+#: src/mn-message-box.gob:201
 #, c-format
 msgid "%i hour ago"
 msgid_plural "%i hours ago"
 msgstr[0] "Vor %i Stunde"
 
-#: src/mn-message-box.gob:198
+#: src/mn-message-box.gob:206
 #, c-format
 msgid "%i day ago"
 msgid_plural "%i days ago"
 msgstr[0] "Vor %i Tag"
 
-#: src/mn-message-box.gob:203
+#: src/mn-message-box.gob:211
 #, c-format
 msgid "%i week ago"
 msgid_plural "%i weeks ago"
@@ -1277,27 +1322,27 @@ msgid "falling back to USER/PASS authentication"
 msgstr ""
 "Es wird auf Authentifizierung per Nutzername und Passwort zurück gegriffen."
 
-#: src/mn-properties.c:181
+#: src/mn-properties.c:191
 msgid "top left"
 msgstr "oben links"
 
-#: src/mn-properties.c:182
+#: src/mn-properties.c:192
 msgid "top right"
 msgstr "oben rechts"
 
-#: src/mn-properties.c:183
+#: src/mn-properties.c:193
 msgid "bottom left"
 msgstr "unten links"
 
-#: src/mn-properties.c:184
+#: src/mn-properties.c:194
 msgid "bottom right"
 msgstr "unten rechts"
 
-#: src/mn-properties.c:270
+#: src/mn-properties.c:284
 msgid "No mailbox selected."
 msgstr "Kein Postfach ausgewählt."
 
-#: src/mn-properties.c:275
+#: src/mn-properties.c:289
 #, c-format
 msgid "%i mailbox selected."
 msgid_plural "%i mailboxes selected."
@@ -1467,69 +1512,74 @@ msgid "<span weight=\"bold\">Double-click Action</span>"
 msgstr "<span weight=\"bold\">Position</span>"
 
 #: ui/properties.glade.h:5
+#, fuzzy
+msgid "<span weight=\"bold\">Fonts</span>"
+msgstr "<span weight=\"bold\">Befehle</span>"
+
+#: ui/properties.glade.h:6
 msgid "<span weight=\"bold\">General</span>"
 msgstr "<span weight=\"bold\">Allgemein</span>"
 
-#: ui/properties.glade.h:6
+#: ui/properties.glade.h:7
 msgid "<span weight=\"bold\">Mailbox List</span>"
 msgstr "<span weight=\"bold\">Postfächer</span>"
 
-#: ui/properties.glade.h:7
+#: ui/properties.glade.h:8
 msgid "<span weight=\"bold\">Position</span>"
 msgstr "<span weight=\"bold\">Position</span>"
 
-#: ui/properties.glade.h:8
+#: ui/properties.glade.h:9
 msgid "General"
 msgstr "Allgemein"
 
-#: ui/properties.glade.h:9
+#: ui/properties.glade.h:10
 msgid "Hori_zontal offset:"
 msgstr "_Horizontaler Abstand:"
 
-#: ui/properties.glade.h:10
+#: ui/properties.glade.h:11
 msgid "Mail Notification Properties"
 msgstr "Einstellung der E-Mail-Eingangsüberwachung"
 
-#: ui/properties.glade.h:11
+#: ui/properties.glade.h:12
 msgid "Mail Summary Popup"
 msgstr "Aufklappende Nachrichtenübersicht"
 
-#: ui/properties.glade.h:12
+#: ui/properties.glade.h:13
 msgid "Mailboxes"
 msgstr "Postfächer"
 
-#: ui/properties.glade.h:13
+#: ui/properties.glade.h:14
 msgid "Only display _recent mail"
 msgstr ""
 
-#: ui/properties.glade.h:14
+#: ui/properties.glade.h:15
 msgid "P_osition:"
 msgstr "P_osition:"
 
-#: ui/properties.glade.h:15
+#: ui/properties.glade.h:16
 msgid "The amount of time to wait before closing the mail summary popup"
 msgstr "Die Wartedauer ehe die Nachrichtenübersicht geschlossen wurde"
 
-#: ui/properties.glade.h:16
+#: ui/properties.glade.h:17
 msgid "The amount of time to wait between mail checks"
 msgstr "Die Zeit die zwischen zwei Überprüfungen auf neue Nachrichten vergeht"
 
-#: ui/properties.glade.h:17
+#: ui/properties.glade.h:18
 #, fuzzy
 msgid "The command to run to launch the mail reader"
 msgstr "Der auszuführende Befehl wenn alle Nachrichten gelesen wurden"
 
-#: ui/properties.glade.h:18
+#: ui/properties.glade.h:19
 msgid "The command to run when all mail is read"
 msgstr "Der auszuführende Befehl wenn alle Nachrichten gelesen wurden"
 
-#: ui/properties.glade.h:19
+#: ui/properties.glade.h:20
 msgid "The command to run when new mail arrives"
 msgstr ""
 "Geben Sie hier den Befehl ein, der ausgeführt wird sobald eine neue "
 "Nachricht eintrifft."
 
-#: ui/properties.glade.h:20
+#: ui/properties.glade.h:21
 msgid ""
 "The number of pixels to leave between the left or right side of the screen "
 "and the mail summary popup"
@@ -1537,7 +1587,7 @@ msgstr ""
 "Die Anzahl an Pixeln die zwischen dem linken oder rechten Bildschirmrand und "
 "der Nachrichtenübersicht."
 
-#: ui/properties.glade.h:21
+#: ui/properties.glade.h:22
 msgid ""
 "The number of pixels to leave between the top or bottom side of the screen "
 "and the mail summary popup"
@@ -1545,53 +1595,53 @@ msgstr ""
 "Die Anzahl an Pixel zwischen dem oberen oder unteren Bildschirmrand und der "
 "Nachrichtenübersicht."
 
-#: ui/properties.glade.h:22
+#: ui/properties.glade.h:23
 msgid "When _all mail is read:"
 msgstr "Wenn alle Nachricht _gelesen wurden:"
 
-#: ui/properties.glade.h:23
+#: ui/properties.glade.h:24
 msgid "When _new mail arrives:"
 msgstr "Wenn neue Nachricht _eintrifft:"
 
-#: ui/properties.glade.h:24
+#: ui/properties.glade.h:25
 msgid "Whether the status icon should blink on errors or not"
 msgstr ""
 "Wenn diese Option gewählt ist, blinkt das  Nachrichtensymbol bei Auftreten "
 "eines Fehlers."
 
-#: ui/properties.glade.h:25
+#: ui/properties.glade.h:26
 msgid "Whether to automatically close the mail summary popup or not"
 msgstr "Legt fest, ob die Nachrichtenübersicht automatisch geschlossen wird"
 
-#: ui/properties.glade.h:26
+#: ui/properties.glade.h:27
 msgid "Whether to display the mail summary popup when new mail arrives or not"
 msgstr ""
 "Legt fest, ob die Nachrichtenübersicht aufklappt wenn eine neue Nachricht "
 "eintrifft"
 
-#: ui/properties.glade.h:27
+#: ui/properties.glade.h:28
 #, fuzzy
 msgid "Whether to hide previously displayed mail or not"
 msgstr "Legt fest, ob das Postfach neue Nachrichten enthält"
 
-#: ui/properties.glade.h:28
+#: ui/properties.glade.h:29
 msgid "Whether to run a command when all mail is read or not"
 msgstr ""
 "Legt fest, ob ein Befehl ausgeführt wird wenn alle Nachrichten gelesen wurden"
 
-#: ui/properties.glade.h:29
+#: ui/properties.glade.h:30
 msgid "Whether to run a command when new mail arrives or not"
 msgstr ""
 "Wenn diese Option ausgewählt ist, können Sie einen Befehl angeben der "
 "ausgeführt wird, sobald eine neue Nachricht eintrifft."
 
-#: ui/properties.glade.h:30
+#: ui/properties.glade.h:31
 #, fuzzy
 msgid "Whether to set a mail reader or not"
 msgstr ""
 "Legt fest, ob ein Befehl ausgeführt wird wenn alle Nachrichten gelesen wurden"
 
-#: ui/properties.glade.h:31
+#: ui/properties.glade.h:32
 msgid ""
 "Whether to start Mail Notification when you log into your GNOME session or "
 "not"
@@ -1599,53 +1649,74 @@ msgstr ""
 "Wenn diese Option ausgewählt ist, wird die E-Mail-Eingangsüberwachnung beim "
 "Starten von GNOME ebenfalls gestartet."
 
-#: ui/properties.glade.h:32
+#: ui/properties.glade.h:33
+#, fuzzy
+msgid ""
+"Whether to use a custom font for the contents of the mail summary popup or "
+"not"
+msgstr "Legt fest, ob die Nachrichtenübersicht automatisch geschlossen wird"
+
+#: ui/properties.glade.h:34
+#, fuzzy
+msgid ""
+"Whether to use a custom font for the title of the mail summary popup or not"
+msgstr "Legt fest, ob die Nachrichtenübersicht automatisch geschlossen wird"
+
+#: ui/properties.glade.h:35
 msgid "_Automatically close after:"
 msgstr "_Automatisch schließen nach:"
 
-#: ui/properties.glade.h:33
+#: ui/properties.glade.h:36
 msgid "_Blink on errors"
 msgstr "_Bei Fehler blinken"
 
-#: ui/properties.glade.h:34
+#: ui/properties.glade.h:37
+msgid "_Contents font:"
+msgstr ""
+
+#: ui/properties.glade.h:38
 msgid "_Delay between mail checks:"
 msgstr "_Nach neuen Nachrichten sehen alle:"
 
-#: ui/properties.glade.h:35
+#: ui/properties.glade.h:39
 #, fuzzy
 msgid "_Display the mail summary dialog"
 msgstr "Die Nachrichtenübersicht anzeigen"
 
-#: ui/properties.glade.h:36
+#: ui/properties.glade.h:40
 msgid "_Enable mail summary popup"
 msgstr "_Aufklappende Nachrichtenübersicht aktivieren"
 
-#: ui/properties.glade.h:37
+#: ui/properties.glade.h:41
 msgid "_Launch the mail reader"
 msgstr ""
 
-#: ui/properties.glade.h:38
+#: ui/properties.glade.h:42
 #, fuzzy
 msgid "_Mail reader:"
 msgstr "_Nachrichtenübersicht"
 
-#: ui/properties.glade.h:39
+#: ui/properties.glade.h:43
 msgid "_Start Mail Notification on GNOME login"
 msgstr "_Laden beim Starten von  GNOME"
 
-#: ui/properties.glade.h:40
+#: ui/properties.glade.h:44
+msgid "_Title font:"
+msgstr ""
+
+#: ui/properties.glade.h:45
 msgid "_Vertical offset:"
 msgstr "_Vertikaler Abstand:"
 
-#: ui/properties.glade.h:41
+#: ui/properties.glade.h:46
 msgid "minutes"
 msgstr "Minuten"
 
-#: ui/properties.glade.h:42
+#: ui/properties.glade.h:47
 msgid "pixels"
 msgstr "Pixel"
 
-#: ui/properties.glade.h:43
+#: ui/properties.glade.h:48
 msgid "seconds"
 msgstr "Sekunden"
 

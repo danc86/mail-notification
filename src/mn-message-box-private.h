@@ -20,7 +20,9 @@ struct _MNMessageBoxPrivate {
 	MNMessage * message;
 #line 46 "mn-message-box.gob"
 	gboolean selectable;
-#line 24 "mn-message-box-private.h"
+#line 49 "mn-message-box.gob"
+	GSList * labels;
+#line 26 "mn-message-box-private.h"
 };
 
 #ifdef __cplusplus

@@ -364,6 +364,8 @@ class MN:Shell from G:Object
 	hbox = self_tooltip_section_new(GTK_VBOX(vbox), _("Mail Summary"));
 
 	messages_vbox = gtk_vbox_new(FALSE, 0);
+	gtk_widget_set_name(messages_vbox, "mn-tooltip-section-body");
+
 	mn_summary_update(GTK_VBOX(messages_vbox), messages, FALSE);
 	mn_g_object_slist_free(messages);
 
@@ -389,6 +391,7 @@ class MN:Shell from G:Object
     label = gtk_label_new(markup);
     g_free(markup);
 
+    gtk_widget_set_name(label, "mn-tooltip-section-title");
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
     gtk_label_set_use_markup(GTK_LABEL(label), TRUE);
 
@@ -416,6 +419,7 @@ class MN:Shell from G:Object
     hbox = self_tooltip_section_new(GTK_VBOX(vbox), title);
 
     label = gtk_label_new(text);
+    gtk_widget_set_name(label, "mn-tooltip-section-body");
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 
     gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, TRUE, 0);

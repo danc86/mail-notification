@@ -46,6 +46,8 @@ class MN:Message:Box from Gtk:VBox
   private gboolean selectable;
   property BOOLEAN selectable (flags = CONSTRUCT_ONLY, link);
 
+  private GSList *labels destroywith g_slist_free;
+
   override (G:Object) GObject *
     constructor (GType type, guint n_construct_properties, GObjectConstructParam *construct_params)
   {
@@ -55,6 +57,7 @@ class MN:Message:Box from Gtk:VBox
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
     self = SELF(object);
 
+    gtk_widget_set_name(GTK_WIDGET(self), "mn-message-box");
     self_append_row(self, _("Mailbox"), selfp->message->mailbox_uri->human_readable, NULL);
 
     if (selfp->message->error)
@@ -124,26 +127,31 @@ class MN:Message:Box from Gtk:VBox
     label = gtk_label_new(markup);
     g_free(markup);
 
+    gtk_widget_set_name(label, "name");
     gtk_misc_set_alignment(GTK_MISC(label), 1.0, 0.5);
     gtk_label_set_use_markup(GTK_LABEL(label), TRUE);
     gtk_label_set_selectable(GTK_LABEL(label), selfp->selectable);
 
     gtk_size_group_add_widget(selfp->size_group, label);
     gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
+    selfp->labels = g_slist_append(selfp->labels, label);
 
     /* separator */
 
     label = gtk_label_new(" ");
     gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
+    selfp->labels = g_slist_append(selfp->labels, label);
 
     /* value */
 
     label = gtk_label_new(value);
 
+    gtk_widget_set_name(label, "value");
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
     gtk_label_set_selectable(GTK_LABEL(label), selfp->selectable);
 
     gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, TRUE, 0);
+    selfp->labels = g_slist_append(selfp->labels, label);
 
     if (value_label)
       *value_label = label;
@@ -215,5 +223,11 @@ class MN:Message:Box from Gtk:VBox
 				   MN_MESSAGE_BOX_PROP_MESSAGE(G_OBJECT(message)),
 				   MN_MESSAGE_BOX_PROP_SELECTABLE(selectable),
 				   NULL));
+  }
+
+  public GSList *
+    get_labels (self)
+  {
+    return selfp->labels;
   }
 }

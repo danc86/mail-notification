@@ -1,4 +1,26 @@
-0.8.0					31 October 2004
+0.8.1					November 4, 2004
+
+	* Mail summary popup fixes and improvements:
+		* do not recreate it when updating its contents:
+		  removes some flicker
+		* added a workaround for a Metacity bug which
+		  sometimes misplaced the popup
+		* the text fonts can now be configured from the
+		  properties dialog
+
+	* Now compiles cleanly even when -fstrict-aliasing is in use
+	* Some additional workarounds for
+	  http://bugzilla.gnome.org/show_bug.cgi?id=64764 have been
+	  added: fixes a few random crashes
+	* Some widgets have been named, so that they can easily be
+	  matched in a GTK+ resource file
+	* The status icon could not be customized from a resource
+	  file: fixed
+
+	* Updated translations:
+		* serbian (Filip Miletic)
+
+0.8.0					October 31, 2004
 
 	* The double-click action can now be customized
 	* A mail reader can now be launched
@@ -13,7 +35,7 @@
 	* The Gmail parser was getting confused by special strings
 	  embedded in message fields: fixed
 
-0.7.1					25 October 2004
+0.7.1					October 25, 2004
 
 	* Gmail fixes:
 		* does not crash when a GNOME proxy is set
@@ -36,7 +58,7 @@
 		* german (Hendrik Brandt)
 		* portuguese (Duarte Henriques)
 
-0.7.0					06 October 2004
+0.7.0					October 6, 2004
 
 	* Binaries compiled with GCC 3.4.x were crashing in various
 	  places: fixed
@@ -66,7 +88,7 @@
 	* Added serbian translations (Filip Miletic)
 	* Added bulgarian translations (Vladimir Petkov)
 
-0.6.2					09 September 2004
+0.6.2					September 9, 2004
 
 	* Added STARTTLS support to the IMAP backend
 	* Added STLS support to the POP3 backend
@@ -91,7 +113,7 @@
 	* Some cleanups have been performed
 	* Now requires GNOME version 2.6 or superior
 
-0.6.1					19 August 2004
+0.6.1					August 19, 2004
 
 	* File descriptor leaks in the Sylpheed and Maildir backends
 	  have been fixed
@@ -106,7 +128,7 @@
 	* A memory leak has been fixed
 	* A few minor issues have been fixed
 	
-0.6.0					16 August 2004
+0.6.0					August 16, 2004
 
 	* Added IMAP support
 	* Added SSL support for POP3 and IMAP (requires OpenSSL)
@@ -126,7 +148,7 @@
 	* A few minor bugs have been fixed
 	* Does not depend on GNet anymore
 
-0.5.0					21 July 2004
+0.5.0					July 21, 2004
 
 	* Added Gmail support (requires libsoup)
 	* The user interface has been improved
@@ -140,7 +162,7 @@
 	* ChangeLog files were not being accurately maintained and are
 	  not shipped anymore
 
-0.4.0					29 June 2004
+0.4.0					June 29, 2004
 
 	* Fixed a vulnerability in the POP3 code (a malicious POP3
 	  server could overflow the stack with an invalid STAT reply)
@@ -157,30 +179,30 @@
 	* Switched to Autoconf 2.59 and Automake 1.8.4
 	* Now requires GTK+ version 2.4.0 or superior
 
-0.3.4					19 March 2004
+0.3.4					March 19, 2004
 
 	* Some minor UI tweaks have been performed
 	* A minor bug has been fixed
 
-0.3.3					12 March 2004
+0.3.3					March 12, 2004
 
 	* A bug in the mbox checking code has been fixed (reported by
 	  Pau Artigas)
 	* A few minor bugs have been fixed
 	* A few memory leaks have been fixed
 
-0.3.2					24 December 2003
+0.3.2					December 24, 2003
 
 	* A bug in the Sylpheed checking code has been fixed
 	* Restarting notification-area-applet is now handled properly
 	* libglade is now used instead of code generation
 	* Some code cleanups have been performed
 
-0.3.1					20 October 2003
+0.3.1					October 20, 2003
 
 	* A few minor bugs have been fixed
 
-0.3.0					02 October 2003
+0.3.0					October 2, 2003
 
 	* Major code cleanup
 	* Implemented Sylpheed and POP3 support
@@ -191,13 +213,13 @@
 	* Error messages are now displayed in a dialog box if the
 	  check has been launched interactively
 
-0.2.0					24 September 2003
+0.2.0					September 24, 2003
 
 	* Implemented mbox and MH support
 	* Added exhaustive error reporting
 	* Enriched the documentation
 
-0.1.0					18 September 2003
+0.1.0					September 18, 2003
 
 	* Is now a GNOME application
 	* Added a graphical user interface (preferences dialog and
@@ -206,6 +228,6 @@
 	  translation is already available
 	* Switched to Autoconf 2.57 and Automake 1.7.5
 
-0.0.1					20 July 2003
+0.0.1					July 20, 2003
 	
 	* Initial release

@@ -49,9 +49,10 @@ class MN:Blinking:Image from Gtk:Image
     };
 
   private unsigned int timeout_id;
-  private gboolean is_on = TRUE; /* is currently displaying the on pixbuf? */
-  private GdkPixbuf *on_pixbuf unrefwith g_object_unref;
-  private GdkPixbuf *off_pixbuf unrefwith g_object_unref;
+  private gboolean is_on = TRUE; /* is currently displaying the image? */
+
+  private char *stock_id destroywith g_free;
+  private GtkIconSize icon_size;
 
   override (G:Object) void
     finalize (G:Object *object (check null type))
@@ -67,7 +68,30 @@ class MN:Blinking:Image from Gtk:Image
   private void
     update (self, gboolean is_on)
   {
-    gtk_image_set_from_pixbuf(GTK_IMAGE(self), is_on ? selfp->on_pixbuf : selfp->off_pixbuf);
+    if (is_on)
+      gtk_image_set_from_stock(GTK_IMAGE(self), selfp->stock_id, selfp->icon_size);
+    else
+      {
+	GdkPixbuf *pixbuf;
+	int width, height;
+
+	pixbuf = gtk_widget_render_icon(GTK_WIDGET(self),
+					selfp->stock_id,
+					selfp->icon_size,
+					NULL);
+	g_return_if_fail(pixbuf != NULL);
+
+	width = gdk_pixbuf_get_width(pixbuf);
+	height = gdk_pixbuf_get_height(pixbuf);
+	g_object_unref(pixbuf);
+
+	pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, width, height);
+	gdk_pixbuf_fill(pixbuf, 0); /* fill with transparency */
+	
+	gtk_image_set_from_pixbuf(GTK_IMAGE(self), pixbuf);
+	g_object_unref(pixbuf);
+      }
+
     selfp->is_on = is_on;
   }
 
@@ -88,21 +112,10 @@ class MN:Blinking:Image from Gtk:Image
 		    GtkIconSize icon_size)
   {
     Self *self;
-    int width, height;
 
     self = GET_NEW;
-
-    selfp->on_pixbuf = gtk_widget_render_icon(GTK_WIDGET(self),
-					      stock_id,
-					      icon_size,
-					      NULL);
-    g_return_val_if_fail(selfp->on_pixbuf != NULL, NULL);
-
-    width = gdk_pixbuf_get_width(selfp->on_pixbuf);
-    height = gdk_pixbuf_get_height(selfp->on_pixbuf);
-    
-    selfp->off_pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, width, height);
-    gdk_pixbuf_fill(selfp->off_pixbuf, 0); /* fill with transparency */
+    selfp->stock_id = g_strdup(stock_id);
+    selfp->icon_size = icon_size;
 
     self_update(self, selfp->is_on);
 

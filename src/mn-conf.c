@@ -38,6 +38,8 @@
 #define RADIO_BUTTON_KEY		"mn-conf-radio-button-key"
 #define RADIO_BUTTON_STRING		"mn-conf-radio-button-string"
 
+#define STRING_TO_FONT(str)		((str) ? (str) : "Sans 10")
+
 /*** types *******************************************************************/
 
 typedef struct
@@ -87,6 +89,13 @@ static void mn_conf_link_toggle_button_notify_cb (GConfClient *client,
 static void mn_conf_link_spin_button_h (GtkSpinButton *button,
 					gpointer user_data);
 static void mn_conf_link_spin_button_notify_cb (GConfClient *client,
+						guint cnxn_id,
+						GConfEntry *entry,
+						gpointer user_data);
+
+static void mn_conf_link_font_button_h (GtkFontButton *button,
+					gpointer user_data);
+static void mn_conf_link_font_button_notify_cb (GConfClient *client,
 						guint cnxn_id,
 						GConfEntry *entry,
 						gpointer user_data);
@@ -210,6 +219,18 @@ mn_conf_link (GtkWidget *widget, ...)
 	  signal_handler = G_CALLBACK(mn_conf_link_spin_button_h);
 	  notification_cb = mn_conf_link_spin_button_notify_cb;
 	}
+      else if (GTK_IS_FONT_BUTTON(widget))
+	{
+	  char *str;
+
+	  str = eel_gconf_get_string(key);
+	  gtk_font_button_set_font_name(GTK_FONT_BUTTON(widget), STRING_TO_FONT(str));
+	  g_free(str);
+
+	  signal_name = "font-set";
+	  signal_handler = G_CALLBACK(mn_conf_link_font_button_h);
+	  notification_cb = mn_conf_link_font_button_notify_cb;
+	}
       else if (GTK_IS_ENTRY(widget))
 	{
 	  char *str;
@@ -317,11 +338,12 @@ mn_conf_link_combo_box_to_string_notify_cb (GConfClient *client,
 					    gpointer user_data)
 {
   GtkComboBox *combo = user_data;
-  GConfValue *value = gconf_entry_get_value(entry);
   int string_column = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(combo), COMBO_BOX_STRING_COLUMN));
+  GConfValue *value = gconf_entry_get_value(entry);
+  const char *str = value ? gconf_value_get_string(value) : NULL;
 
   GDK_THREADS_ENTER();
-  mn_conf_link_combo_box_to_string_update_active(combo, string_column, gconf_value_get_string(value));
+  mn_conf_link_combo_box_to_string_update_active(combo, string_column, str);
   GDK_THREADS_LEAVE();
 }
 
@@ -404,7 +426,7 @@ mn_conf_link_radio_button_to_string_notify_cb (GConfClient *client,
 {
   GtkRadioButton *radio = user_data;
   GConfValue *value = gconf_entry_get_value(entry);
-  const char *str = gconf_value_get_string(value);
+  const char *str = value ? gconf_value_get_string(value) : NULL;
 
   if (str)
     {
@@ -467,7 +489,7 @@ mn_conf_link_toggle_button_notify_cb (GConfClient *client,
   GtkToggleButton *button = user_data;
 
   GDK_THREADS_ENTER();
-  gtk_toggle_button_set_active(button, gconf_value_get_bool(value));
+  gtk_toggle_button_set_active(button, value ? gconf_value_get_bool(value) : FALSE);
   GDK_THREADS_LEAVE();
 }
 
@@ -488,7 +510,30 @@ mn_conf_link_spin_button_notify_cb (GConfClient *client,
   GtkSpinButton *button = user_data;
 
   GDK_THREADS_ENTER();
-  gtk_spin_button_set_value(button, gconf_value_get_int(value));
+  gtk_spin_button_set_value(button, value ? gconf_value_get_int(value) : 0);
+  GDK_THREADS_LEAVE();
+}
+
+static void
+mn_conf_link_font_button_h (GtkFontButton *button, gpointer user_data)
+{
+  const char *key = user_data;
+
+  eel_gconf_set_string(key, gtk_font_button_get_font_name(button));
+}
+
+static void
+mn_conf_link_font_button_notify_cb (GConfClient *client,
+				    guint cnxn_id,
+				    GConfEntry *entry,
+				    gpointer user_data)
+{
+  GtkFontButton *button = user_data;
+  GConfValue *value = gconf_entry_get_value(entry);
+  const char *str = value ? gconf_value_get_string(value) : NULL;
+
+  GDK_THREADS_ENTER();
+  gtk_font_button_set_font_name(button, STRING_TO_FONT(str));
   GDK_THREADS_LEAVE();
 }
 
@@ -511,13 +556,11 @@ mn_conf_link_entry_notify_cb (GConfClient *client,
 			      GConfEntry *entry,
 			      gpointer user_data)
 {
-  GConfValue *value = gconf_entry_get_value(entry);
   GtkEntry *entry_widget = user_data;
-  const char *str = NULL;
+  GConfValue *value = gconf_entry_get_value(entry);
+  const char *str = value ? gconf_value_get_string(value) : NULL;
 
   GDK_THREADS_ENTER();
-  if (value)
-    str = gconf_value_get_string(value);
   gtk_entry_set_text(entry_widget, MN_POINTER_TO_STRING(str));
   GDK_THREADS_LEAVE();
 }

@@ -4,7 +4,7 @@
 <glade-interface>
 <requires lib="gnome"/>
 
-<widget class="GtkWindow" id="popup">
+<widget class="GtkWindow" id="mn-mail-summary-popup">
   <property name="title" translatable="yes"></property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
@@ -53,7 +53,7 @@
 	      </child>
 
 	      <child>
-		<widget class="GtkLabel" id="label1">
+		<widget class="GtkLabel" id="mn-mail-summary-popup-title">
 		  <property name="visible">True</property>
 		  <property name="label" translatable="yes">&lt;span size=&quot;larger&quot; weight=&quot;bold&quot;&gt;Mail Summary&lt;/span&gt;</property>
 		  <property name="use_underline">False</property>

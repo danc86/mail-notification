@@ -71,6 +71,10 @@ typedef struct
   GtkWidget		*summary_vertical_offset_label;
   GtkWidget		*summary_vertical_offset_spin;
   GtkWidget		*summary_vertical_pixels_label;
+  GtkWidget		*summary_title_font_check;
+  GtkWidget		*summary_title_font_button;
+  GtkWidget		*summary_contents_font_check;
+  GtkWidget		*summary_contents_font_button;
 } PropertiesDialog;
 
 enum {
@@ -148,6 +152,10 @@ mn_properties_display (void)
 		      "summary_vertical_offset_label", &properties.summary_vertical_offset_label,
 		      "summary_vertical_offset_spin", &properties.summary_vertical_offset_spin,
 		      "summary_vertical_pixels_label", &properties.summary_vertical_pixels_label,
+		      "summary_title_font_check", &properties.summary_title_font_check,
+		      "summary_title_font_button", &properties.summary_title_font_button,
+		      "summary_contents_font_check", &properties.summary_contents_font_check,
+		      "summary_contents_font_button", &properties.summary_contents_font_button,
 		      NULL);
 
   eel_add_weak_pointer(&properties.dialog);
@@ -172,6 +180,8 @@ mn_properties_display (void)
   gtk_size_group_add_widget(size_group, properties.summary_position_label);
   gtk_size_group_add_widget(size_group, properties.summary_horizontal_offset_label);
   gtk_size_group_add_widget(size_group, properties.summary_vertical_offset_label);
+  gtk_size_group_add_widget(size_group, properties.summary_title_font_check);
+  gtk_size_group_add_widget(size_group, properties.summary_contents_font_check);
   g_object_unref(size_group);
 
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(properties.autostart_check), mn_conf_get_autostart());
@@ -209,6 +219,10 @@ mn_properties_display (void)
 	       properties.summary_only_recent_check, MN_CONF_MAIL_SUMMARY_POPUP_ONLY_RECENT,
 	       properties.summary_horizontal_offset_spin, MN_CONF_MAIL_SUMMARY_POPUP_HORIZONTAL_OFFSET,
 	       properties.summary_vertical_offset_spin, MN_CONF_MAIL_SUMMARY_POPUP_VERTICAL_OFFSET,
+	       properties.summary_title_font_check, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED,
+	       properties.summary_title_font_button, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_FONT,
+	       properties.summary_contents_font_check, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED,
+	       properties.summary_contents_font_button, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_FONT,
 	       NULL);
   mn_conf_link_radio_group_to_enum(MN_TYPE_ACTION,
 				   MN_CONF_DOUBLE_CLICK_ACTION,
@@ -290,8 +304,10 @@ mn_properties_update_sensitivity (void)
   gboolean must_poll;
   GtkTreeSelection *selection;
   gboolean has_selection;
-  gboolean summary_enabled = FALSE;
-  gboolean summary_autoclose_enabled = FALSE;
+  gboolean summary_enabled;
+  gboolean summary_autoclose_enabled;
+  gboolean summary_title_font_enabled;
+  gboolean summary_contents_font_enabled;
 
   command_mail_reader_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(properties.command_mail_reader_check));
   command_new_mail_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(properties.command_new_mail_check));
@@ -317,6 +333,8 @@ mn_properties_update_sensitivity (void)
 
   summary_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(properties.summary_enable_check));
   summary_autoclose_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(properties.summary_autoclose_check));
+  summary_title_font_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(properties.summary_title_font_check));
+  summary_contents_font_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(properties.summary_contents_font_check));
 
   gtk_widget_set_sensitive(properties.summary_autoclose_check, summary_enabled);
   gtk_widget_set_sensitive(properties.summary_minutes_spin, summary_enabled && summary_autoclose_enabled);
@@ -332,6 +350,8 @@ mn_properties_update_sensitivity (void)
   gtk_widget_set_sensitive(properties.summary_vertical_offset_label, summary_enabled);
   gtk_widget_set_sensitive(properties.summary_vertical_offset_spin, summary_enabled);
   gtk_widget_set_sensitive(properties.summary_vertical_pixels_label, summary_enabled);
+  gtk_widget_set_sensitive(properties.summary_title_font_button, summary_title_font_enabled);
+  gtk_widget_set_sensitive(properties.summary_contents_font_button, summary_contents_font_enabled);
 }
 
 static void

@@ -16,10 +16,10 @@ struct _MNBlinkingImagePrivate {
 	unsigned int timeout_id;
 #line 52 "mn-blinking-image.gob"
 	gboolean is_on;
-#line 53 "mn-blinking-image.gob"
-	GdkPixbuf * on_pixbuf;
 #line 54 "mn-blinking-image.gob"
-	GdkPixbuf * off_pixbuf;
+	char * stock_id;
+#line 55 "mn-blinking-image.gob"
+	GtkIconSize icon_size;
 #line 24 "mn-blinking-image-private.h"
 };
 

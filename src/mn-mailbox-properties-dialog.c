@@ -88,7 +88,7 @@ mn_mailbox_properties_dialog_new (GtkWindow *parent,
 
   private = g_new0(Private, 1);
   mn_create_interface("mailbox-properties",
-		      "dialog", (GtkWidget **) &dialog,
+		      "dialog", &dialog,
 		      "mailbox_type_label", &private->mailbox_type_label,
 		      "mailbox_type_combo", &private->mailbox_type_combo,
 		      "properties_event_box", &private->properties_event_box,

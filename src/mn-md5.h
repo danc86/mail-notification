@@ -33,9 +33,9 @@
 
 typedef struct
 {
-  u_int32_t state[4];	/* state (ABCD) */
-  u_int32_t count[2];	/* number of bits, modulo 2^64 (lsb first) */
-  char buffer[64];	/* input buffer */
+  u_int32_t state[4];		/* state (ABCD) */
+  u_int32_t count[2];		/* number of bits, modulo 2^64 (lsb first) */
+  unsigned char buffer[64];	/* input buffer */
 } MNMD5Context;
 
 void mn_md5_init (MNMD5Context *context);

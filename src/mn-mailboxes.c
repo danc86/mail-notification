@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,11 +26,8 @@
 
 /*** variables ***************************************************************/
 
-GSList *mn_mailboxes = NULL;
-
-/*** functions ***************************************************************/
-
-static void mn_mailboxes_unregister_all (void);
+static GSList *mailboxes = NULL;
+G_LOCK_DEFINE_STATIC(mailboxes);
 
 /*** implementation **********************************************************/
 
@@ -38,10 +35,8 @@ void
 mn_mailboxes_register_all (void)
 {
   GSList *gconf_mailboxes;
+  GSList *new_mailboxes = NULL;
   GSList *l;
-
-  if (mn_mailboxes)
-    mn_mailboxes_unregister_all();
 
   gconf_mailboxes = mn_conf_get_list("/apps/mail-notification/mailboxes", GCONF_VALUE_STRING);
 
@@ -54,14 +49,12 @@ mn_mailboxes_register_all (void)
       mailbox = mn_mailbox_new(locator, &err);
       g_return_if_fail(mailbox != NULL);
 
-      mn_mailboxes = g_slist_append(mn_mailboxes, mailbox);
+      new_mailboxes = g_slist_append(new_mailboxes, mailbox);
       if (err)
-	{
-	  mn_error_dialog(_("Mailbox error."),
-			  _("Mailbox <i>%s</i> is unsupported: %s."),
-			  mailbox->name,
-			  err->message);
-	}
+	mn_error_dialog(_("Mailbox error."),
+			_("Mailbox <i>%s</i> is unsupported: %s."),
+			mailbox->name,
+			err->message);
       else
 	{
 	  MNMailboxClass *class;
@@ -79,22 +72,22 @@ mn_mailboxes_register_all (void)
     }
 
   g_slist_free(gconf_mailboxes);
+
+  G_LOCK(mailboxes);
+  mn_objects_free(mailboxes);
+  mailboxes = new_mailboxes;
+  G_UNLOCK(mailboxes);
+  
 }
 
-static void
-mn_mailboxes_unregister_all (void)
+GSList *
+mn_mailboxes_get (void)
 {
-  GSList *l;
+  GSList *copy;
 
-  MN_LIST_FOREACH(l, mn_mailboxes)
-    {
-      MNMailbox *mailbox = l->data;
-      g_object_unref(mailbox);
-    }
-  
-  g_slist_free(mn_mailboxes);
-  mn_mailboxes = NULL;
-  
-  if (mn_settings.debug)
-    mn_notice(_("unregistered all mailboxes"));
+  G_LOCK(mailboxes);
+  copy = mn_objects_copy(mailboxes);
+  G_UNLOCK(mailboxes);
+
+  return copy;
 }

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <gnet.h>
 #include "mn-mailbox.h"
 
 #define MN_TYPE_POP3_MAILBOX		(mn_pop3_mailbox_get_type())
@@ -44,18 +43,13 @@ typedef enum
   MN_POP3_MAILBOX_ERROR_REPLY
 } MNPOP3MailboxError;
 
+typedef struct _MNPOP3MailboxPrivate MNPOP3MailboxPrivate;
+
 typedef struct
 {
   MNMailbox		mailbox;
   
-  char			*hostname;
-  int			port;
-
-  char			*user;
-  char			*password;
-
-  GTcpSocket		*socket;
-  GIOChannel		*channel;
+  MNPOP3MailboxPrivate	*priv;
 } MNPOP3Mailbox;
 
 typedef struct

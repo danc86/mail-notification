@@ -1,3 +1,88 @@
+2004-03-12 13:57  jylefort
+
+	* configure.ac: Version 0.3.3
+
+2004-03-12 13:44  jylefort
+
+	* src/mn-ui.c: Updated copyright date
+
+2004-03-12 13:35  jylefort
+
+	* art/Makefile.am, art/add-icon.png, src/mn-preferences.c,
+	  ui/add-pop3.glade: Add dialogs are now transient
+
+2004-03-12 13:25  jylefort
+
+	* src/: mn-check.c, mn-mail-icon.c, mn-mail-icon.h,
+	  mn-preferences.c, mn-ui.c: Cleanups
+
+2004-03-12 12:23  jylefort
+
+	* src/: mn-check.c, mn-mailboxes.c, mn-mailboxes.h,
+	  mn-preferences.c, mn-util.c, mn-util.h: The mailbox list is now
+	  thread-safe; fixed a memory leak in the preferences code
+
+2004-03-12 11:52  jylefort
+
+	* src/mn-mail-icon.c: Do not update the sensitivity of the "Check
+	  for Mail" item while the menu is popped up (looked bad)
+
+2004-03-12 10:40  jylefort
+
+	* src/mn-check.c: Calls gdk_flush() before GDK_THREADS_LEAVE(), as
+	  recommended by the GDK documentation
+
+2004-03-12 10:32  jylefort
+
+	* src/mn-mbox-mailbox.c: A logic bug caused new mail to be
+	  immediately forgotten at the next check: fixed (reported by Pau
+	  Artigas)
+
+2004-03-12 10:23  jylefort
+
+	* src/mn-mailbox.c: Type isn't instantiatable, so we use
+	  G_TYPE_FLAG_ABSTRACT
+
+2004-03-12 10:21  jylefort
+
+	* src/: mn-mbox-mailbox.c, mn-mh-mailbox.c: GIOChannel objects were
+	  not unreferenced after being shutdown, resulting in memory leaks:
+	  fixed
+
+2004-03-12 10:15  jylefort
+
+	* src/mn-unsupported-mailbox.c: Cleanups
+
+2004-03-12 10:12  jylefort
+
+	* src/: mn-pop3-mailbox.c, mn-pop3-mailbox.h: Cleanups
+
+2004-03-12 09:57  jylefort
+
+	* src/: mn-mbox-mailbox.c, mn-mbox-mailbox.h, mn-mh-mailbox.c:
+	  Cleanups
+
+2004-03-12 09:51  jylefort
+
+	* src/mn-maildir-mailbox.c: Cleanups
+
+2004-03-12 09:41  jylefort
+
+	* src/: mn-mailbox.c, mn-mailbox.h: Cleanups
+
+2004-03-12 09:37  jylefort
+
+	* src/: mn-check.h, mn-mail-icon.c: Cleanups
+
+2003-12-24 15:59  jylefort
+
+	* art/Makefile.am, data/Makefile.am, ui/Makefile.am: Automake fixes
+
+2003-12-24 15:49  jylefort
+
+	* src/: mn-preferences.c, mn-ui.c: Forgot to set window icon for
+	  "add local mailbox" and "about" dialogs
+
 2003-12-24 15:22  jylefort
 
 	* configure.ac: Version 0.3.2

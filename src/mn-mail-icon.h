@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #ifndef _MN_MAIL_ICON_H
 #define _MN_MAIL_ICON_H
 
+#include <gtk/gtk.h>
 #include "eggtrayicon.h"
 
 #define MN_TYPE_MAIL_ICON		(mn_mail_icon_get_type())
@@ -40,14 +41,17 @@ typedef struct
 typedef struct
 {
   EggTrayIconClass	icon_class;
+
+  /* signals */
+  void (*activate) (void);
 } MNMailIconClass;
 
 GType		mn_mail_icon_get_type		(void);
 
 GtkWidget	*mn_mail_icon_new		(void);
+void		mn_mail_icon_set_popup_menu	(MNMailIcon	*icon,
+						 GtkMenu	*menu);
 void		mn_mail_icon_set_has_new	(MNMailIcon	*icon,
 						 gboolean	has_new);
-void		mn_mail_icon_set_can_check	(MNMailIcon	*icon,
-						 gboolean	can_check);
 
 #endif /* _MN_MAIL_ICON_H */

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 /*** implementation **********************************************************/
 
 /*
- * Frees a singly linked list of heap pointers.
+ * Free a singly linked list of heap pointers.
  */
 void
 mn_slist_free (GSList *list)
@@ -40,6 +40,36 @@ mn_slist_free (GSList *list)
     g_free(l->data);
 
   g_slist_free(list);
+}
+
+/*
+ * Free a singly linked list of objects.
+ */
+void
+mn_objects_free (GSList *list)
+{
+  GSList *l;
+
+  MN_LIST_FOREACH(l, list)
+    g_object_unref(l->data);
+
+  g_slist_free(list);
+}
+
+/*
+ * Copy a singly linked list of objects.
+ */
+GSList *
+mn_objects_copy (GSList *list)
+{
+  GSList *l;
+  GSList *copy;
+
+  copy = g_slist_copy(list);
+  MN_LIST_FOREACH(l, copy)
+    g_object_ref(l->data);
+
+  return copy;
 }
 
 #ifdef HAVE_GNET

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -111,7 +111,7 @@ mn_mailbox_get_type (void)
       mailbox_type = g_type_register_static(G_TYPE_OBJECT,
 					    "MNMailbox",
 					    &mailbox_info,
-					    0);
+					    G_TYPE_FLAG_ABSTRACT);
     }
   
   return mailbox_type;
@@ -120,7 +120,7 @@ mn_mailbox_get_type (void)
 static void
 mn_mailbox_class_init (MNMailboxClass *class)
 {
-  GObjectClass *object_class;
+  GObjectClass *object_class = G_OBJECT_CLASS(class);
 
   parent_class = g_type_class_peek_parent(class);
 
@@ -129,7 +129,6 @@ mn_mailbox_class_init (MNMailboxClass *class)
   class->is = NULL;
   class->has_new = NULL;
 
-  object_class = G_OBJECT_CLASS(class);
   object_class->set_property = mn_mailbox_set_property;
   object_class->finalize = mn_mailbox_finalize;
 
@@ -148,9 +147,7 @@ mn_mailbox_set_property (GObject *object,
 			 const GValue *value,
 			 GParamSpec *pspec)
 {
-  MNMailbox *mailbox;
-
-  mailbox = MN_MAILBOX(object);
+  MNMailbox *mailbox = MN_MAILBOX(object);
 
   switch (prop_id)
     {
@@ -180,9 +177,7 @@ mn_mailbox_init (MNMailbox *mailbox)
 static void
 mn_mailbox_finalize (GObject *object)
 {
-  MNMailbox *mailbox;
-
-  mailbox = MN_MAILBOX(object);
+  MNMailbox *mailbox = MN_MAILBOX(object);
 
   g_free(mailbox->locator);
   if (mailbox->err)

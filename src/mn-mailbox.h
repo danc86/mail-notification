@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,8 +38,7 @@ typedef enum
   MN_MAILBOX_ERROR_UNKNOWN_FORMAT
 } MNMailboxError;
 
-typedef struct _MNMailbox MNMailbox;
-struct _MNMailbox
+typedef struct
 {
   GObject		object;
 
@@ -47,7 +46,7 @@ struct _MNMailbox
   char			*name;		/* visible mailbox name */
 
   GError		*err;		/* initialization error */
-};
+} MNMailbox;
 
 typedef struct
 {

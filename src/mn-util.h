@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,9 @@ for ((var) = (head);				\
      (var) = (var)->next)
 
 void		mn_slist_free			(GSList		*list);
+
+void		mn_objects_free			(GSList		*list);
+GSList		*mn_objects_copy		(GSList		*list);
 
 #ifdef HAVE_GNET
 GIOError	mn_gnet_io_channel_printf	(GIOChannel	*channel,

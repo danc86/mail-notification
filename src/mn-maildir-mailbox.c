@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,9 +60,8 @@ mn_maildir_mailbox_get_type (void)
 static void
 mn_maildir_mailbox_class_init (MNMaildirMailboxClass *class)
 {
-  MNMailboxClass *mailbox_class;
+  MNMailboxClass *mailbox_class = MN_MAILBOX_CLASS(class);
 
-  mailbox_class = MN_MAILBOX_CLASS(class);
   mailbox_class->format = "Maildir";
   mailbox_class->is_remote = FALSE;
   mailbox_class->is = mn_maildir_mailbox_is;

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 /*** types *******************************************************************/
 
 enum {
-  COLUMN_PTR,
+  COLUMN_OBJECT,
   COLUMN_MAILBOX,
   COLUMN_FORMAT,
   N_COLUMNS
@@ -39,31 +39,31 @@ enum {
 
 /*** variables ***************************************************************/
 
-GladeXML	*preferences_xml = NULL;
-GtkWidget	*preferences;
+static GladeXML		*preferences_xml = NULL;
+static GtkWidget	*preferences;
 
-GtkWidget	*local_check;
-GtkWidget	*local_minutes_spin;
-GtkWidget	*local_minutes_label;
-GtkWidget	*local_seconds_spin;
-GtkWidget	*local_seconds_label;
+static GtkWidget	*local_check;
+static GtkWidget	*local_minutes_spin;
+static GtkWidget	*local_minutes_label;
+static GtkWidget	*local_seconds_spin;
+static GtkWidget	*local_seconds_label;
 
-GtkWidget	*remote_check;
-GtkWidget	*remote_minutes_spin;
-GtkWidget	*remote_minutes_label;
-GtkWidget	*remote_seconds_spin;
-GtkWidget	*remote_seconds_label;
+static GtkWidget	*remote_check;
+static GtkWidget	*remote_minutes_spin;
+static GtkWidget	*remote_minutes_label;
+static GtkWidget	*remote_seconds_spin;
+static GtkWidget	*remote_seconds_label;
 
-GtkWidget	*list;
-GtkWidget	*add_remote;
-GtkWidget	*remove;
+static GtkWidget	*list;
+static GtkWidget	*add_remote;
+static GtkWidget	*remove;
 
-GtkWidget	*command_new_mail_check;
-GtkWidget	*command_new_mail_entry;
-GtkWidget	*command_clicked_check;
-GtkWidget	*command_clicked_entry;
+static GtkWidget	*command_new_mail_check;
+static GtkWidget	*command_new_mail_entry;
+static GtkWidget	*command_clicked_check;
+static GtkWidget	*command_clicked_entry;
 
-GtkListStore	*store;
+static GtkListStore	*store;
 
 /*** functions ***************************************************************/
 
@@ -195,6 +195,7 @@ mn_preferences_update_values (void)
     {
       const char *command_new_mail;
       const char *command_clicked;
+      GSList *mailboxes;
       GSList *l;
       
       command_new_mail = mn_conf_get_string("/apps/mail-notification/commands/new-mail/command");
@@ -220,7 +221,9 @@ mn_preferences_update_values (void)
       gtk_entry_set_text(GTK_ENTRY(command_clicked_entry), command_clicked ? command_clicked : "");
 
       gtk_list_store_clear(store);
-      MN_LIST_FOREACH(l, mn_mailboxes)
+
+      mailboxes = mn_mailboxes_get();
+      MN_LIST_FOREACH(l, mailboxes)
 	{
 	  MNMailbox *mailbox = l->data;
 	  MNMailboxClass *class;
@@ -231,11 +234,12 @@ mn_preferences_update_values (void)
 	  gtk_list_store_append(store, &iter);
 	  gtk_list_store_set(store,
 			     &iter,
-			     COLUMN_PTR, mailbox,
+			     COLUMN_OBJECT, mailbox,
 			     COLUMN_MAILBOX, mailbox->name,
 			     COLUMN_FORMAT, class->format,
 			     -1);
 	}
+      mn_objects_free(mailboxes);
     }
 }
 
@@ -340,14 +344,10 @@ static void
 mn_preferences_add_local_mailbox (void)
 {
   GtkWidget *file_selection;
-  GdkPixbuf *icon;
   static char *path = NULL;
   
   file_selection = gtk_file_selection_new(_("Select One or More Mailboxes"));
-
-  icon = mn_pixbuf_new("add-icon.png");
-  gtk_window_set_icon(GTK_WINDOW(file_selection), icon);
-  g_object_unref(icon);
+  gtk_window_set_transient_for(GTK_WINDOW(file_selection), GTK_WINDOW(preferences));
 
   if (path)
     gtk_file_selection_set_filename(GTK_FILE_SELECTION(file_selection), path);
@@ -414,6 +414,8 @@ mn_preferences_add_remote_mailbox (void)
   gtk_size_group_add_widget(size_group, port_label);
   gtk_size_group_add_widget(size_group, username_label);
   gtk_size_group_add_widget(size_group, password_label);
+
+  gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(preferences));
 
  run:
   if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK)
@@ -506,8 +508,9 @@ mn_preferences_remove_mailbox_cb (GtkTreeModel *model,
 {
   MNMailbox *mailbox;
 
-  gtk_tree_model_get(model, iter, COLUMN_PTR, &mailbox, -1);
+  gtk_tree_model_get(model, iter, COLUMN_OBJECT, &mailbox, -1);
   mn_conf_remove_mailbox(mailbox->locator);
+  g_object_unref(mailbox);
 }
 
 /* libglade callbacks */

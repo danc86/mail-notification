@@ -1,3 +1,10 @@
+0.3.3					12 March 2004
+
+	* A bug in the mbox checking code has been fixed (reported by
+	  Pau Artigas)
+	* A few minor bugs have been fixed
+	* A few memory leaks have been fixed
+
 0.3.2					24 December 2003
 
 	* A bug in the Sylpheed checking code has been fixed

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 #include <glib.h>
 
-#define MN_CHECK_REMOTE		(1)		/* check remote mailboxes */
+#define MN_CHECK_REMOTE		(1 << 0)	/* check remote mailboxes */
 #define MN_CHECK_INTERACTIVE	(1 << 1)	/* called from the GUI */
 
 void mn_check		(gboolean local);

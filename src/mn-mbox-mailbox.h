@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <sys/types.h>
 #include "mn-mailbox.h"
 
 #define MN_TYPE_MBOX_MAILBOX		(mn_mbox_mailbox_get_type())
@@ -41,12 +40,13 @@ typedef enum
   MN_MBOX_MAILBOX_ERROR_READ
 } MNmboxMailboxError;
 
+typedef struct _MNmboxMailboxPrivate MNmboxMailboxPrivate;
+
 typedef struct
 {
   MNMailbox		mailbox;
 
-  time_t		last_mtime;
-  off_t			last_size;
+  MNmboxMailboxPrivate	*priv;
 } MNmboxMailbox;
 
 typedef struct

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,20 @@
 /*** cpp *********************************************************************/
 
 #define MN_POP3_MAILBOX_MAX_RESPONSE_LEN	512	/* RFC 1939 */
+
+/*** types *******************************************************************/
+
+struct _MNPOP3MailboxPrivate
+{
+  char		*hostname;
+  int		port;
+
+  char		*user;
+  char		*password;
+
+  GTcpSocket	*socket;
+  GIOChannel	*channel;
+};
 
 /*** variables ***************************************************************/
 
@@ -92,16 +106,14 @@ mn_pop3_mailbox_get_type (void)
 static void
 mn_pop3_mailbox_class_init (MNPOP3MailboxClass *class)
 {
-  GObjectClass *object_class;
-  MNMailboxClass *mailbox_class;
+  GObjectClass *object_class = G_OBJECT_CLASS(class);
+  MNMailboxClass *mailbox_class = MN_MAILBOX_CLASS(class);
 
   parent_class = g_type_class_peek_parent(class);
 
-  object_class = G_OBJECT_CLASS(class);
   object_class->constructor = mn_pop3_mailbox_constructor;
   object_class->finalize = mn_pop3_mailbox_finalize;
 
-  mailbox_class = MN_MAILBOX_CLASS(class);
   mailbox_class->format = "POP3";
   mailbox_class->is_remote = TRUE;
   mailbox_class->is = mn_pop3_mailbox_is;
@@ -111,12 +123,7 @@ mn_pop3_mailbox_class_init (MNPOP3MailboxClass *class)
 static void
 mn_pop3_mailbox_init (MNPOP3Mailbox *mailbox)
 {
-  mailbox->hostname = NULL;
-  mailbox->port = 0;
-  mailbox->user = NULL;
-  mailbox->password = NULL;
-  mailbox->socket = NULL;
-  mailbox->channel = NULL;
+  mailbox->priv = g_new0(MNPOP3MailboxPrivate, 1);
 }
 
 static GObject *
@@ -125,13 +132,11 @@ mn_pop3_mailbox_constructor (GType type,
 			     GObjectConstructParam *construct_params)
 {
   GObject *object;
-  MNMailbox *mailbox;
   MNPOP3Mailbox *pop3_mailbox;
 
   object = G_OBJECT_CLASS(parent_class)->constructor(type,
 						     n_construct_properties,
 						     construct_params);
-  mailbox = MN_MAILBOX(object);
   pop3_mailbox = MN_POP3_MAILBOX(object);
 
   mn_pop3_mailbox_parse_locator(pop3_mailbox);
@@ -142,18 +147,16 @@ mn_pop3_mailbox_constructor (GType type,
 static void
 mn_pop3_mailbox_finalize (GObject *object)
 {
-  MNMailbox *mailbox;
-  MNPOP3Mailbox *pop3_mailbox;
-
-  mailbox = MN_MAILBOX(object);
-  pop3_mailbox = MN_POP3_MAILBOX(object);
+  MNMailbox *mailbox = MN_MAILBOX(object);
+  MNPOP3Mailbox *pop3_mailbox = MN_POP3_MAILBOX(object);
 
   if (! mailbox->err) /* mailbox->name has been set only if ! mailbox->err */
     g_free(mailbox->name);
   
-  g_free(pop3_mailbox->user);
-  g_free(pop3_mailbox->password);
-  g_free(pop3_mailbox->hostname);
+  g_free(pop3_mailbox->priv->user);
+  g_free(pop3_mailbox->priv->password);
+  g_free(pop3_mailbox->priv->hostname);
+  g_free(pop3_mailbox->priv);
 
   G_OBJECT_CLASS(parent_class)->finalize(object);
 }
@@ -169,14 +172,12 @@ mn_pop3_mailbox_is (const char *locator)
 static void
 mn_pop3_mailbox_parse_locator (MNPOP3Mailbox *pop3_mailbox)
 {
-  MNMailbox *mailbox;
+  MNMailbox *mailbox = MN_MAILBOX(pop3_mailbox);
   char *user;
   char *password;
   char *hostname;
   char *port;
   
-  mailbox = MN_MAILBOX(pop3_mailbox);
-
   g_assert(mailbox->locator != NULL);
 
   user = mailbox->locator + 5;
@@ -200,21 +201,15 @@ mn_pop3_mailbox_parse_locator (MNPOP3Mailbox *pop3_mailbox)
       || (port - hostname - 1 <= 0))
     goto error;
 
-  pop3_mailbox->user = g_strdup(user);
-  pop3_mailbox->user[password - user - 1] = 0;
-
-  pop3_mailbox->password = g_strdup(password);
-  pop3_mailbox->password[hostname - password - 1] = 0;
-
-  pop3_mailbox->hostname = g_strdup(hostname);
-  pop3_mailbox->hostname[port - hostname - 1] = 0;
-
-  pop3_mailbox->port = atoi(port);
+  pop3_mailbox->priv->user = g_strndup(user, password - user - 1);
+  pop3_mailbox->priv->password = g_strndup(password, hostname - password - 1);
+  pop3_mailbox->priv->hostname = g_strndup(hostname, port - hostname - 1);
+  pop3_mailbox->priv->port = atoi(port);
 
   mailbox->name = g_strdup_printf("%s@%s:%i",
-				  pop3_mailbox->user,
-				  pop3_mailbox->hostname,
-				  pop3_mailbox->port);
+				  pop3_mailbox->priv->user,
+				  pop3_mailbox->priv->hostname,
+				  pop3_mailbox->priv->port);
 
   return;			/* locator's okay */
 
@@ -245,35 +240,35 @@ mn_pop3_mailbox_server_connect (MNPOP3Mailbox *mailbox, GError **err)
   GInetAddr *addr;
 
   if (mn_settings.debug)
-    mn_notice(_("resolving IP address of %s"), mailbox->hostname);
+    mn_notice(_("resolving IP address of %s"), mailbox->priv->hostname);
 
-  addr = gnet_inetaddr_new(mailbox->hostname, mailbox->port);
+  addr = gnet_inetaddr_new(mailbox->priv->hostname, mailbox->priv->port);
   if (! addr)
     {
       g_set_error(err, MN_POP3_MAILBOX_ERROR, MN_POP3_MAILBOX_ERROR_RESOLVE,
-		  _("unable to resolve %s"), mailbox->hostname);
+		  _("unable to resolve %s"), mailbox->priv->hostname);
       return FALSE;
     }
 
   if (mn_settings.debug)
     mn_notice(_("connecting to POP3 server %s:%i"),
-	      mailbox->hostname, mailbox->port);
+	      mailbox->priv->hostname, mailbox->priv->port);
   
-  mailbox->socket = gnet_tcp_socket_new(addr);
+  mailbox->priv->socket = gnet_tcp_socket_new(addr);
   gnet_inetaddr_unref(addr);
 
-  if (! mailbox->socket)
+  if (! mailbox->priv->socket)
     {
       g_set_error(err, MN_POP3_MAILBOX_ERROR, MN_POP3_MAILBOX_ERROR_CONNECT,
-		  _("unable to connect to %s"), mailbox->hostname);
+		  _("unable to connect to %s"), mailbox->priv->hostname);
       return FALSE;
     }
 
   if (mn_settings.debug)
     mn_notice(_("successfully connected to %s:%i"),
-	      mailbox->hostname, mailbox->port);
+	      mailbox->priv->hostname, mailbox->priv->port);
   
-  mailbox->channel = gnet_tcp_socket_get_io_channel(mailbox->socket);
+  mailbox->priv->channel = gnet_tcp_socket_get_io_channel(mailbox->priv->socket);
 
   return TRUE;
 }
@@ -293,7 +288,7 @@ mn_pop3_mailbox_server_read (MNPOP3Mailbox *mailbox, char *buf)
   GIOError status;
   gsize count;
 
-  status = gnet_io_channel_readline(mailbox->channel,
+  status = gnet_io_channel_readline(mailbox->priv->channel,
 				    buf,
 				    MN_POP3_MAILBOX_MAX_RESPONSE_LEN,
 				    &count);
@@ -310,10 +305,10 @@ mn_pop3_mailbox_server_read (MNPOP3Mailbox *mailbox, char *buf)
 	  strcpy(tmp, buf);
 	  mn_pop3_mailbox_strip_crlf(tmp);
 	  
-	  mn_notice("<%20-s> %s", mailbox->hostname, tmp);
+	  mn_notice("<%20-s> %s", mailbox->priv->hostname, tmp);
 	}
       else
-	mn_notice(_("unable to read from %s"), mailbox->hostname);
+	mn_notice(_("unable to read from %s"), mailbox->priv->hostname);
     }
   
   return status == G_IO_ERROR_NONE && count != 0 && ! strncmp(buf, "+OK", 3);
@@ -348,7 +343,7 @@ mn_pop3_mailbox_server_command (MNPOP3Mailbox *mailbox,
   g_free(command);
 
   len = strlen(full);
-  status = gnet_io_channel_writen(mailbox->channel, full, len, &count);
+  status = gnet_io_channel_writen(mailbox->priv->channel, full, len, &count);
   g_free(full);
 
   return status == G_IO_ERROR_NONE && count == len;
@@ -357,15 +352,12 @@ mn_pop3_mailbox_server_command (MNPOP3Mailbox *mailbox,
 static gboolean
 mn_pop3_mailbox_has_new (MNMailbox *mailbox, GError **err)
 {
-  MNPOP3Mailbox *pop3_mailbox;
+  MNPOP3Mailbox *pop3_mailbox = MN_POP3_MAILBOX(mailbox);
   char buf[MN_POP3_MAILBOX_MAX_RESPONSE_LEN];
   gboolean has_new = FALSE;
-
   char ok[4];
   int count;
   int size;
-
-  pop3_mailbox = MN_POP3_MAILBOX(mailbox);
 
   if (! mn_pop3_mailbox_server_connect(pop3_mailbox, err))
     return FALSE;
@@ -384,7 +376,7 @@ mn_pop3_mailbox_has_new (MNMailbox *mailbox, GError **err)
 
   if (! mn_pop3_mailbox_server_command(pop3_mailbox,
 				       "USER %s",
-				       pop3_mailbox->user))
+				       pop3_mailbox->priv->user))
     {
       g_set_error(err, MN_POP3_MAILBOX_ERROR, MN_POP3_MAILBOX_ERROR_SEND,
 		  _("unable to send username"));
@@ -401,7 +393,7 @@ mn_pop3_mailbox_has_new (MNMailbox *mailbox, GError **err)
 
   if (! mn_pop3_mailbox_server_command(pop3_mailbox,
 				       "PASS %s",
-				       pop3_mailbox->password))
+				       pop3_mailbox->priv->password))
     {
       g_set_error(err, MN_POP3_MAILBOX_ERROR, MN_POP3_MAILBOX_ERROR_SEND,
 		  _("unable to send password"));
@@ -460,7 +452,7 @@ mn_pop3_mailbox_has_new (MNMailbox *mailbox, GError **err)
     }
   
  end:
-  gnet_tcp_socket_delete(pop3_mailbox->socket);
+  gnet_tcp_socket_delete(pop3_mailbox->priv->socket);
   return has_new;
 }
 

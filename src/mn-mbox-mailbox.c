@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,10 +24,24 @@
 #include <string.h>
 #include "mn-mbox-mailbox.h"
 
+/*** types *******************************************************************/
+
+struct _MNmboxMailboxPrivate
+{
+  time_t	last_mtime;
+  off_t		last_size;
+  gboolean	last_has_new;
+};
+
+/*** variables ***************************************************************/
+
+static GObjectClass *parent_class = NULL;
+
 /*** functions ***************************************************************/
 
 static void	mn_mbox_mailbox_class_init (MNmboxMailboxClass	*class);
 static void	mn_mbox_mailbox_init       (MNmboxMailbox	*mailbox);
+static void	mn_mbox_mailbox_finalize   (GObject		*object);
 static gboolean	mn_mbox_mailbox_is         (const char		*locator);
 static gboolean	mn_mbox_mailbox_has_new    (MNMailbox		*mailbox,
 					    GError		**err);
@@ -65,9 +79,13 @@ mn_mbox_mailbox_get_type (void)
 static void
 mn_mbox_mailbox_class_init (MNmboxMailboxClass *class)
 {
-  MNMailboxClass *mailbox_class;
+  GObjectClass *object_class = G_OBJECT_CLASS(class);
+  MNMailboxClass *mailbox_class = MN_MAILBOX_CLASS(class);
 
-  mailbox_class = MN_MAILBOX_CLASS(class);
+  parent_class = g_type_class_peek_parent(class);
+
+  object_class->finalize = mn_mbox_mailbox_finalize;
+
   mailbox_class->format = "mbox";
   mailbox_class->is_remote = FALSE;
   mailbox_class->is = mn_mbox_mailbox_is;
@@ -77,8 +95,17 @@ mn_mbox_mailbox_class_init (MNmboxMailboxClass *class)
 static void
 mn_mbox_mailbox_init (MNmboxMailbox *mailbox)
 {
-  mailbox->last_mtime = 0;
-  mailbox->last_size = 0;
+  mailbox->priv = g_new0(MNmboxMailboxPrivate, 1);
+}
+
+static void
+mn_mbox_mailbox_finalize (GObject *object)
+{
+  MNmboxMailbox *mbox_mailbox = MN_MBOX_MAILBOX(object);
+
+  g_free(mbox_mailbox->priv);
+
+  G_OBJECT_CLASS(parent_class)->finalize(object);
 }
 
 static gboolean
@@ -92,10 +119,8 @@ mn_mbox_mailbox_is (const char *locator)
 static gboolean
 mn_mbox_mailbox_has_new (MNMailbox *mailbox, GError **err)
 {
-  MNmboxMailbox *mbox_mailbox;
+  MNmboxMailbox *mbox_mailbox = MN_MBOX_MAILBOX(mailbox);
   struct stat sb;
-
-  mbox_mailbox = MN_MBOX_MAILBOX(mailbox);
 
   if (stat(mailbox->locator, &sb) == -1)
     {
@@ -108,7 +133,7 @@ mn_mbox_mailbox_has_new (MNMailbox *mailbox, GError **err)
       return FALSE;
     }
   
-  if (mbox_mailbox->last_mtime != sb.st_mtime || mbox_mailbox->last_size != sb.st_size)
+  if (mbox_mailbox->priv->last_mtime != sb.st_mtime || mbox_mailbox->priv->last_size != sb.st_size)
     {
       GIOChannel *channel;
       GIOStatus status;
@@ -118,8 +143,8 @@ mn_mbox_mailbox_has_new (MNMailbox *mailbox, GError **err)
       int seen_count = 0;
       gboolean in_header = FALSE;
 
-      mbox_mailbox->last_mtime = sb.st_mtime;
-      mbox_mailbox->last_size = sb.st_size;
+      mbox_mailbox->priv->last_mtime = sb.st_mtime;
+      mbox_mailbox->priv->last_size = sb.st_size;
 
       channel = g_io_channel_new_file(mailbox->locator, "r", &tmp_err);
       if (! channel)
@@ -144,7 +169,9 @@ mn_mbox_mailbox_has_new (MNMailbox *mailbox, GError **err)
 		      mailbox->locator,
 		      tmp_err->message);
 	  g_error_free(tmp_err);
+
 	  g_io_channel_shutdown(channel, TRUE, NULL);
+	  g_io_channel_unref(channel);
 
 	  return FALSE;
 	}
@@ -179,17 +206,20 @@ mn_mbox_mailbox_has_new (MNMailbox *mailbox, GError **err)
 		      mailbox->locator,
 		      tmp_err->message);
 	  g_error_free(tmp_err);
+
 	  g_io_channel_shutdown(channel, TRUE, NULL);
+	  g_io_channel_unref(channel);
 
 	  return FALSE;
 	}
       
       g_io_channel_shutdown(channel, TRUE, NULL);
+      g_io_channel_unref(channel);
 
-      return total_count != seen_count;
+      return mbox_mailbox->priv->last_has_new = total_count != seen_count;
     }
 
-  return FALSE;
+  return mbox_mailbox->priv->last_has_new;
 }
 
 GQuark

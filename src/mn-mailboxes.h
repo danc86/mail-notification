@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,10 +20,8 @@
 #define _MN_MAILBOXES_H
 
 #include <glib.h>
-#include "mn-mailbox.h"
 
-extern GSList *mn_mailboxes;
-
-void mn_mailboxes_register_all (void);
+void	mn_mailboxes_register_all	(void);
+GSList	*mn_mailboxes_get		(void);
 
 #endif /* _MN_MAILBOXES_H */

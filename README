@@ -11,9 +11,9 @@ Index
 
 0. About this document
 
-	$Id: README,v 1.10 2003/12/24 14:19:53 jylefort Exp $
+	$Id: README,v 1.11 2004/03/12 12:55:59 jylefort Exp $
 
-	Copyright (c) 2003 Jean-Yves Lefort.
+	Copyright (c) 2003, 2004 Jean-Yves Lefort.
 
 	This document is part of Mail Notification.
 	It may be distributed under the same terms as Mail Notification.
@@ -27,8 +27,10 @@ Index
 	Notification uses the EggTrayIcon backend, which adheres to
 	the freedesktop's System Tray Specification
 	(http://www.freedesktop.org/Standards/systemtray-spec). This
-	might allow Mail Notification to function with the KDE System
-	Tray (untested).
+	might allow Mail Notification to function with other trays
+	implementing that specification, such as the KDE System Tray
+	or the XFce 4 system tray. However, Mail Notification has only
+	been tested with the GNOME Notification Area.
 
 	Features:
 
@@ -42,23 +44,22 @@ Index
 
 	Usage:
 
-		Right-click the dot icon in the Notification Area to
-		access the popup menu.
+		Right-click the mail icon to access the popup menu.
 
 		The two GTK+ stock icons are named
 		"mail-notification-no-mail" and
-		"mail-notification-mail".
-
-		See http://developer.gnome.org/doc/API/2.0/gtk/gtk-Res-
-		ource-Files.html for details about how to customize
-		them in your ~/.gtkrc-2.0.
+		"mail-notification-mail" (see
+		http://developer.gnome.org/doc/API/2.0/gtk/gtk-Resource-Files.html
+		for details about how to customize them in your
+		~/.gtkrc-2.0).
 
 		If the program does not work as expected, run it from
 		a terminal and watch for possible error messages.
 
 2. Release notes
 
-	libglade is now used instead of code generation.
+	A bug in the mbox checking code has been fixed (thanks to Pau
+	Artigas for reporting it).
 
 3. Documentation map
 

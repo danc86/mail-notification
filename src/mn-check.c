@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "mn-dialog.h"
 #include "mn-ui.h"
 #include "mn-util.h"
+#include "mn-mailbox.h"
 #include "mn-mailboxes.h"
 #include "mn-check.h"
 #include "mn-settings.h"
@@ -93,12 +94,14 @@ mn_check_thread_cb (gpointer data)
   gboolean *has_new = flags & MN_CHECK_REMOTE ? &has_new_remote : &has_new_local;
   static int threads = 0;	/* number of check threads currently running */
   G_LOCK_DEFINE_STATIC(threads);
+  GSList *mailboxes;
 
   G_LOCK(threads);
   if (threads++ == 0)		/* threads just switched from 0 to 1, update */
     {
       GDK_THREADS_ENTER();
       mn_ui_set_can_check(FALSE);
+      gdk_flush();
       GDK_THREADS_LEAVE();
     }
   G_UNLOCK(threads);
@@ -107,7 +110,8 @@ mn_check_thread_cb (gpointer data)
 
   *has_new = FALSE;
 
-  MN_LIST_FOREACH(l, mn_mailboxes)
+  mailboxes = mn_mailboxes_get();
+  MN_LIST_FOREACH(l, mailboxes)
     {
       MNMailbox *mailbox = l->data;
       MNMailboxClass *class;
@@ -131,6 +135,7 @@ mn_check_thread_cb (gpointer data)
 				  _("Unable to check mailbox <i>%s</i>: %s."),
 				  mailbox->name,
 				  err->message);
+		  gdk_flush();
 		  GDK_THREADS_LEAVE();
 		}
 	      else
@@ -156,6 +161,7 @@ mn_check_thread_cb (gpointer data)
 	    }
 	}
     }
+  mn_objects_free(mailboxes);
   
   mn_check_update_state(has_new_local || has_new_remote, flags);
   
@@ -166,6 +172,7 @@ mn_check_thread_cb (gpointer data)
     {
       GDK_THREADS_ENTER();
       mn_ui_set_can_check(TRUE);
+      gdk_flush();
       GDK_THREADS_LEAVE();
     }
   G_UNLOCK(threads);
@@ -176,22 +183,20 @@ mn_check_thread_cb (gpointer data)
 static void
 mn_check_update_state (gboolean has_new, int flags)
 {
-  static GStaticMutex old_has_new_mutex = G_STATIC_MUTEX_INIT;
   static gboolean old_has_new = FALSE;
+  G_LOCK_DEFINE_STATIC(old_has_new);
   gboolean state_changed;
 
-  g_static_mutex_lock(&old_has_new_mutex);
+  G_LOCK(old_has_new);
   state_changed = has_new != old_has_new;
-  g_static_mutex_unlock(&old_has_new_mutex);
+  old_has_new = has_new;
+  G_UNLOCK(old_has_new);
   
   if (state_changed)
     {
-      g_static_mutex_lock(&old_has_new_mutex);
-      old_has_new = has_new;
-      g_static_mutex_unlock(&old_has_new_mutex);
-
       GDK_THREADS_ENTER();
       mn_ui_set_has_new(has_new);
+      gdk_flush();
       GDK_THREADS_LEAVE();
 
       if (has_new && mn_conf_get_bool("/apps/mail-notification/commands/new-mail/enabled"))
@@ -211,6 +216,7 @@ mn_check_update_state (gboolean has_new, int flags)
 		      mn_error_dialog(_("Command error."),
 				      _("Unable to execute new mail command: %s."),
 				      err->message);
+		      gdk_flush();
 		      GDK_THREADS_LEAVE();
 		    }
 		  else

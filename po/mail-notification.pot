@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2003-12-24 15:51+0100\n"
+"POT-Creation-Date: 2004-03-12 13:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -40,59 +40,59 @@ msgstr ""
 msgid "the GLib thread system is unavailable"
 msgstr ""
 
-#: src/mail-notification.c:100 src/mn-ui.c:104
+#: src/mail-notification.c:100 src/mn-ui.c:144
 msgid "Mail Notification"
 msgstr ""
 
-#: src/mn-check.c:74 src/mn-check.c:130
+#: src/mn-check.c:75 src/mn-check.c:134
 msgid "Check error."
 msgstr ""
 
-#: src/mn-check.c:75
+#: src/mn-check.c:76
 #, c-format
 msgid "Unable to create a thread: %s."
 msgstr ""
 
-#: src/mn-check.c:78
+#: src/mn-check.c:79
 #, c-format
 msgid "unable to create a thread: %s"
 msgstr ""
 
-#: src/mn-check.c:122
+#: src/mn-check.c:126
 #, c-format
 msgid "checking if there is new mail in %s"
 msgstr ""
 
-#: src/mn-check.c:131
+#: src/mn-check.c:135
 #, c-format
 msgid "Unable to check mailbox <i>%s</i>: %s."
 msgstr ""
 
-#: src/mn-check.c:137
+#: src/mn-check.c:142
 #, c-format
 msgid "unable to check mailbox %s: %s"
 msgstr ""
 
-#: src/mn-check.c:150
+#: src/mn-check.c:155
 #, c-format
 msgid "%s has new mail"
 msgstr ""
 
-#: src/mn-check.c:151
+#: src/mn-check.c:156
 #, c-format
 msgid "%s has no new mail"
 msgstr ""
 
-#: src/mn-check.c:211 src/mn-mail-icon.c:221
+#: src/mn-check.c:216 src/mn-ui.c:86
 msgid "Command error."
 msgstr ""
 
-#: src/mn-check.c:212
+#: src/mn-check.c:217
 #, c-format
 msgid "Unable to execute new mail command: %s."
 msgstr ""
 
-#: src/mn-check.c:217
+#: src/mn-check.c:223
 #, c-format
 msgid "unable to execute new mail command: %s"
 msgstr ""
@@ -131,16 +131,11 @@ msgstr ""
 msgid "%s: FATAL ERROR: %s\n"
 msgstr ""
 
-#: src/mn-mail-icon.c:131 src/mn-mail-icon.c:270
+#: src/mn-mail-icon.c:137 src/mn-mail-icon.c:266
 msgid "You have no new mail"
 msgstr ""
 
-#: src/mn-mail-icon.c:222
-#, c-format
-msgid "Unable to execute clicked command: %s."
-msgstr ""
-
-#: src/mn-mail-icon.c:270
+#: src/mn-mail-icon.c:266
 msgid "You have new mail"
 msgstr ""
 
@@ -149,139 +144,135 @@ msgstr ""
 msgid "unable to initialize %s mailbox: %s"
 msgstr ""
 
-#: src/mn-mailbox.c:140
+#: src/mn-mailbox.c:139
 msgid "The mailbox's locator"
 msgstr ""
 
-#: src/mn-mailbox.c:205
+#: src/mn-mailbox.c:200
 msgid "mailbox not found"
 msgstr ""
 
-#: src/mn-mailbox.c:225
+#: src/mn-mailbox.c:220
 msgid "unknown mailbox format"
 msgstr ""
 
-#: src/mn-mailboxes.c:60
+#: src/mn-mailboxes.c:54
 msgid "Mailbox error."
 msgstr ""
 
-#: src/mn-mailboxes.c:61
+#: src/mn-mailboxes.c:55
 #, c-format
 msgid "Mailbox <i>%s</i> is unsupported: %s."
 msgstr ""
 
-#: src/mn-mailboxes.c:73
+#: src/mn-mailboxes.c:66
 #, c-format
 msgid "registered remote %s mailbox %s"
 msgstr ""
 
-#: src/mn-mailboxes.c:74
+#: src/mn-mailboxes.c:67
 #, c-format
 msgid "registered local %s mailbox %s"
 msgstr ""
 
-#: src/mn-mailboxes.c:99
-msgid "unregistered all mailboxes"
-msgstr ""
-
-#: src/mn-maildir-mailbox.c:111 src/mn-mbox-mailbox.c:130
-#: src/mn-mh-mailbox.c:103
+#: src/mn-maildir-mailbox.c:110 src/mn-mbox-mailbox.c:155
+#: src/mn-mh-mailbox.c:102
 #, c-format
 msgid "unable to open %s: %s"
 msgstr ""
 
-#: src/mn-mbox-mailbox.c:105 src/mn-sylpheed-mailbox.c:131
+#: src/mn-mbox-mailbox.c:130 src/mn-sylpheed-mailbox.c:130
 #, c-format
 msgid "unable to stat %s: %s"
 msgstr ""
 
-#: src/mn-mbox-mailbox.c:143
+#: src/mn-mbox-mailbox.c:168
 #, c-format
 msgid "unable to set the encoding for %s: %s"
 msgstr ""
 
-#: src/mn-mbox-mailbox.c:178 src/mn-mh-mailbox.c:134
+#: src/mn-mbox-mailbox.c:205 src/mn-mh-mailbox.c:133
 #, c-format
 msgid "error while reading %s: %s"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:224
+#: src/mn-pop3-mailbox.c:219
 #, c-format
 msgid "unable to parse locator \"%s\""
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:248
+#: src/mn-pop3-mailbox.c:243
 #, c-format
 msgid "resolving IP address of %s"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:254
+#: src/mn-pop3-mailbox.c:249
 #, c-format
 msgid "unable to resolve %s"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:259
+#: src/mn-pop3-mailbox.c:254
 #, c-format
 msgid "connecting to POP3 server %s:%i"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:268
+#: src/mn-pop3-mailbox.c:263
 #, c-format
 msgid "unable to connect to %s"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:273
+#: src/mn-pop3-mailbox.c:268
 #, c-format
 msgid "successfully connected to %s:%i"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:316
+#: src/mn-pop3-mailbox.c:311
 #, c-format
 msgid "unable to read from %s"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:379
+#: src/mn-pop3-mailbox.c:371
 #, c-format
 msgid "acknowledgement error (server replied \"%s\")"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:390
+#: src/mn-pop3-mailbox.c:382
 msgid "unable to send username"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:398
+#: src/mn-pop3-mailbox.c:390
 #, c-format
 msgid "username authentication error (server replied \"%s\")"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:407
+#: src/mn-pop3-mailbox.c:399
 msgid "unable to send password"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:415
+#: src/mn-pop3-mailbox.c:407
 #, c-format
 msgid "password authentication error (server replied \"%s\")"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:424
+#: src/mn-pop3-mailbox.c:416
 msgid "unable to issue a STAT"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:432
+#: src/mn-pop3-mailbox.c:424
 #, c-format
 msgid "error in STAT reply (server replied \"%s\")"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:440
+#: src/mn-pop3-mailbox.c:432
 #, c-format
 msgid "could not parse STAT reply \"%s\""
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:450
+#: src/mn-pop3-mailbox.c:442
 msgid "unable to issue a QUIT"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:458
+#: src/mn-pop3-mailbox.c:450
 #, c-format
 msgid "error in QUIT reply (server replied \"%s\")"
 msgstr ""
@@ -294,53 +285,58 @@ msgstr ""
 msgid "Format"
 msgstr ""
 
-#: src/mn-preferences.c:346
+#: src/mn-preferences.c:349
 msgid "Select One or More Mailboxes"
 msgstr ""
 
-#: src/mn-preferences.c:444 src/mn-preferences.c:451 src/mn-preferences.c:458
-#: src/mn-preferences.c:465 src/mn-preferences.c:472
+#: src/mn-preferences.c:446 src/mn-preferences.c:453 src/mn-preferences.c:460
+#: src/mn-preferences.c:467 src/mn-preferences.c:474
 msgid "Unable to add mailbox."
 msgstr ""
 
-#: src/mn-preferences.c:445
+#: src/mn-preferences.c:447
 msgid "The hostname field must be filled."
 msgstr ""
 
-#: src/mn-preferences.c:452
+#: src/mn-preferences.c:454
 msgid "The port field must be filled."
 msgstr ""
 
-#: src/mn-preferences.c:459
+#: src/mn-preferences.c:461
 msgid "The port field must be numeric."
 msgstr ""
 
-#: src/mn-preferences.c:466
+#: src/mn-preferences.c:468
 msgid "The username field must be filled."
 msgstr ""
 
-#: src/mn-preferences.c:473
+#: src/mn-preferences.c:475
 msgid "The password field must be filled."
 msgstr ""
 
-#: src/mn-sylpheed-mailbox.c:109
+#: src/mn-sylpheed-mailbox.c:108
 #, c-format
 msgid "unable to open directory %s: %s"
 msgstr ""
 
-#: src/mn-ui.c:106
-msgid "Copyright (c) 2003 Jean-Yves Lefort"
+#: src/mn-ui.c:87
+#, c-format
+msgid "Unable to execute clicked command: %s."
 msgstr ""
 
-#: src/mn-ui.c:107
+#: src/mn-ui.c:146
+msgid "Copyright (c) 2003, 2004 Jean-Yves Lefort"
+msgstr ""
+
+#: src/mn-ui.c:147
 msgid "A Mail Notification for the Panel Notification Area"
 msgstr ""
 
-#: src/mn-unsupported-mailbox.c:63
+#: src/mn-unsupported-mailbox.c:62
 msgid "unsupported"
 msgstr ""
 
-#: src/mn-util.c:100
+#: src/mn-util.c:130
 #, c-format
 msgid "error loading image: %s"
 msgstr ""

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,9 +62,8 @@ mn_mh_mailbox_get_type (void)
 static void
 mn_mh_mailbox_class_init (MNMHMailboxClass *class)
 {
-  MNMailboxClass *mailbox_class;
+  MNMailboxClass *mailbox_class = MN_MAILBOX_CLASS(class);
 
-  mailbox_class = MN_MAILBOX_CLASS(class);
   mailbox_class->format = "MH";
   mailbox_class->is_remote = FALSE;
   mailbox_class->is = mn_mh_mailbox_is;
@@ -138,6 +137,7 @@ mn_mh_mailbox_has_new (MNMailbox *mailbox, GError **err)
     }
 
   g_io_channel_shutdown(channel, TRUE, NULL);
+  g_io_channel_unref(channel);
 
  end:
   g_free(sequences);

@@ -19,15 +19,14 @@ endif
 mail_notification_SOURCES = \
 	eggtrayicon.c			\
 	eggtrayicon.h			\
-	mail-notification.c		\
-	mn-check.c			\
-	mn-check.h			\
 	mn-conf.c			\
 	mn-conf.h			\
 	mn-dialog.c			\
 	mn-dialog.h			\
 	mn-mail-icon.c			\
 	mn-mail-icon.h			\
+	mn-mailbox-properties-dialog.c	\
+	mn-mailbox-properties-dialog.h	\
 	mn-mailbox.c			\
 	mn-mailbox.h			\
 	mn-mailboxes.c			\
@@ -37,22 +36,29 @@ mail_notification_SOURCES = \
 	$(maildir_sources)		\
 	$(pop3_sources)			\
 	$(sylpheed_sources)		\
+	mn-main.c			\
+	mn-pending-mailbox.c		\
+	mn-pending-mailbox.h		\
 	mn-preferences.c		\
 	mn-preferences.h		\
-	mn-settings.c			\
-	mn-settings.h			\
+	mn-stock.c			\
+	mn-stock.h			\
 	mn-ui.c				\
 	mn-ui.h				\
 	mn-unsupported-mailbox.c	\
 	mn-unsupported-mailbox.h	\
+	mn-uri.c			\
+	mn-uri.h			\
 	mn-util.c			\
-	mn-util.h
+	mn-util.h			\
+	mn-vfs.c			\
+	mn-vfs.h
 
-mail_notification_LDFLAGS = $(INTLLIBS) $(GTHREAD_LIBS) $(GNOME_LIBS) $(GLADE_LIBS) $(GNET_LIBS)
+mail_notification_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(GNET_LIBS)
 
 gnomelocaledir = $(datadir)/locale
 
-AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GTHREAD_CFLAGS) $(GNOME_CFLAGS) $(GLADE_CFLAGS) $(GNET_CFLAGS) \
+AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) $(GNET_CFLAGS) \
 	-I$(top_srcdir) \
 	-DPREFIX="\"$(prefix)\"" \
 	-DSYSCONFDIR="\"$(sysconfdir)\"" \

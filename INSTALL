@@ -10,9 +10,9 @@ Index
 
 0. About this document
 
-	$Id: INSTALL,v 1.4 2003/10/02 16:07:38 jylefort Exp $
+	$Id: INSTALL,v 1.5 2004/06/29 15:02:04 jylefort Exp $
 
-	Copyright (c) 2003 Jean-Yves Lefort.
+	Copyright (c) 2003, 2004 Jean-Yves Lefort.
 
 	This document is part of Mail Notification.
 	It may be distributed under the same terms as Mail Notification.
@@ -21,7 +21,7 @@ Index
 
 	Mail Notification requires the following libraries:
 
-		* GTK+ (version 2.2.2 or superior)
+		* GTK+ (version 2.4.0 or superior)
 		  http://www.gtk.org/
 
 		* GNOME (version 2.0 or superior)

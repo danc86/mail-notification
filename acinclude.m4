@@ -1,4 +1,4 @@
-# $Id: acinclude.m4,v 1.4 2003/10/06 10:01:41 jylefort Exp $
+# $Id: acinclude.m4,v 1.6 2004/06/03 19:15:30 jylefort Exp $
 #
 # Copyright (c) 2003 Jean-Yves Lefort.
 #
@@ -7,7 +7,7 @@
 
 dnl AC_ARG_G_ASSERTIONS
 dnl
-AC_DEFUN(AC_ARG_G_ASSERTIONS,
+AC_DEFUN([AC_ARG_G_ASSERTIONS],
 [AC_ARG_ENABLE(assertions,
 AC_HELP_STRING([--disable-assertions],
 [disable GLib assertions (not recommended)]),
@@ -27,7 +27,7 @@ AC_SUBST(G_ASSERTIONS)])
 dnl AC_ARG_COMPILE_WARNINGS
 dnl (only works with gcc)
 dnl
-AC_DEFUN(AC_ARG_COMPILE_WARNINGS,
+AC_DEFUN([AC_ARG_COMPILE_WARNINGS],
 [AC_ARG_ENABLE(compile-warnings,
 AC_HELP_STRING([--enable-compile-warnings=no|yes|error],
 [enable compiler warnings [[no]]]),
@@ -39,7 +39,7 @@ esac], [enable_compile_warnings=no])
 if test $enable_compile_warnings = no; then
 	WARN_CFLAGS=
 else
-	WARN_CFLAGS="-Wall -Wshadow -Wcast-qual -Wcast-align -Wredundant-decls -Wnested-externs -Winline"
+	WARN_CFLAGS="-Wall -Wcast-align -Wredundant-decls -Wnested-externs -Winline"
 	test $enable_compile_warnings = error && WARN_CFLAGS="$WARN_CFLAGS -Werror"
 fi
 

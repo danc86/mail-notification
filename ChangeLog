@@ -1,3 +1,673 @@
+2004-06-29 18:36  jylefort
+
+	* configure.ac: Version 0.4.0
+
+2004-06-29 18:31  jylefort
+
+	* configure.ac: Updated list of headers and functions
+
+2004-06-29 17:46  jylefort
+
+	* ui/menu.glade: Fix
+
+2004-06-29 16:55  jylefort
+
+	* data/mail-notification.schemas: Updated
+
+2004-06-29 02:14  jylefort
+
+	* src/: mn-dialog.c, mn-dialog.h, mn-mailbox.c, mn-preferences.c,
+	  mn-ui.c, mn-util.c: Fixes
+
+2004-06-29 01:57  jylefort
+
+	* help/xmldocs.make, src/mn-preferences.c, src/mn-ui.c,
+	  src/mn-util.c, src/mn-util.h, ui/menu.glade,
+	  ui/preferences.glade: Added help ui knobs
+
+2004-06-29 01:28  jylefort
+
+	* Makefile.am, configure.ac, help/.cvsignore, help/Makefile.am,
+	  help/omf.make, help/xmldocs.make, help/C/.cvsignore,
+	  help/C/Makefile.am, help/C/documentation-license.xml,
+	  help/C/mail-notification-C.omf, help/C/mail-notification.xml,
+	  help/C/software-license.xml, help/C/figures/mail-error.png,
+	  help/C/figures/mail.png, help/C/figures/no-mail-error.png,
+	  help/C/figures/no-mail.png: Added a DocBook manual
+
+2004-06-27 14:37  jylefort
+
+	* src/: mn-preferences.c, mn-util.c, mn-util.h: Do not use a custom
+	  search function anymore for the mailbox list; cleanups
+
+2004-06-27 14:30  jylefort
+
+	* src/mn-mailbox-properties-dialog.c, src/mn-uri.c,
+	  ui/mailbox-properties.glade: Do not treat UNIX mailbox specially
+	  anymore
+
+2004-06-15 16:50  jylefort
+
+	* src/mn-preferences.c, ui/preferences.glade: Now autoscrolls the
+	  mailboxes list during a drag motion
+
+2004-06-15 15:08  jylefort
+
+	* src/mn-mailboxes.c: Fix
+
+2004-06-15 15:01  jylefort
+
+	* configure.ac, src/Makefile.am, src/mail-notification.c,
+	  src/mn-main.c: Cleanups
+
+2004-06-15 14:50  jylefort
+
+	* src/mn-mailboxes.c: Fix
+
+2004-06-15 14:44  jylefort
+
+	* src/: mn-conf.c, mn-mailbox.c, mn-preferences.c: Cleanups
+
+2004-06-15 14:39  jylefort
+
+	* src/: mn-mailboxes.c, mn-preferences.c: Fixes
+
+2004-06-15 03:15  jylefort
+
+	* src/: mn-mailbox.h, mn-pending-mailbox.c, mn-preferences.c,
+	  mn-unsupported-mailbox.c: Cleanups
+
+2004-06-15 02:19  jylefort
+
+	* src/mn-mbox-mailbox.c: Fix
+
+2004-06-15 02:09  jylefort
+
+	* src/: Makefile.am, mn-conf.c, mn-mailbox.c, mn-mailbox.h,
+	  mn-mailboxes.c, mn-maildir-mailbox.c, mn-mbox-mailbox.c,
+	  mn-mh-mailbox.c, mn-pending-mailbox.c, mn-pending-mailbox.h,
+	  mn-pop3-mailbox.c, mn-preferences.c, mn-sylpheed-mailbox.c,
+	  mn-vfs.c, mn-vfs.h: Implemented asynchronous format detection
+
+2004-06-14 21:49  jylefort
+
+	* src/mn-util.c: Added text/x-moz-url dnd support
+
+2004-06-13 17:00  jylefort
+
+	* src/mn-preferences.c, ui/preferences.glade: Fixes
+
+2004-06-13 16:43  jylefort
+
+	* src/mn-preferences.c, src/mn-util.c, src/mn-util.h,
+	  ui/preferences.glade: Can now cut/copy/paste files between
+	  Nautilus and Mail Notification (uses
+	  x-special/gnome-copied-files)
+
+2004-06-12 20:09  jylefort
+
+	* src/mn-preferences.c, ui/preferences.glade: Use the scrolled
+	  window as drop target
+
+2004-06-09 23:40  jylefort
+
+	* src/: mn-mailbox.c, mn-mailbox.h, mn-mailboxes.c, mn-ui.c,
+	  mn-unsupported-mailbox.c, mn-unsupported-mailbox.h: Fixes
+
+2004-06-09 15:11  jylefort
+
+	* src/mn-preferences.c: Fixes
+
+2004-06-09 15:09  jylefort
+
+	* src/mn-preferences.c: Fix
+
+2004-06-09 15:04  jylefort
+
+	* ui/preferences.glade: Fixes
+
+2004-06-09 15:01  jylefort
+
+	* src/: mn-mbox-mailbox.c, mn-mh-mailbox.c, mn-vfs.c: Fixes
+
+2004-06-09 14:55  jylefort
+
+	* src/mn-vfs.c: Cleanups
+
+2004-06-08 20:50  jylefort
+
+	* ui/dialog.glade: Label is now selectable
+
+2004-06-08 20:47  jylefort
+
+	* src/mn-mailbox.c: Warn if we can't monitor a file
+
+2004-06-08 20:12  jylefort
+
+	* src/mn-pop3-mailbox.c: Fixes
+
+2004-06-08 18:32  jylefort
+
+	* src/: mn-conf.c, mn-conf.h, mn-mailbox-properties-dialog.c: Fixes
+
+2004-06-08 17:35  jylefort
+
+	* src/mn-pop3-mailbox.c: Fixes
+
+2004-06-08 17:31  jylefort
+
+	* src/: mn-preferences.c, mn-uri.c, mn-uri.h: Fixes
+
+2004-06-08 17:07  jylefort
+
+	* src/: mn-maildir-mailbox.c, mn-mh-mailbox.c,
+	  mn-sylpheed-mailbox.c, mn-vfs.c, mn-vfs.h: Fixes
+
+2004-06-08 16:17  jylefort
+
+	* src/mn-mailbox-properties-dialog.c: Fixes
+
+2004-06-08 00:15  jylefort
+
+	* art/local.png, art/remote.png, src/mn-preferences.c,
+	  src/mn-stock.c: Now uses the icon theme for some stock icons
+
+2004-06-07 19:36  jylefort
+
+	* src/mn-uri.c: Fixes
+
+2004-06-07 19:33  jylefort
+
+	* src/mn-uri.c: Fixes
+
+2004-06-07 19:24  jylefort
+
+	* src/mn-mailbox-properties-dialog.c: Fixes
+
+2004-06-07 19:17  jylefort
+
+	* src/: mn-mailbox-properties-dialog.c,
+	  mn-mailbox-properties-dialog.h, mn-preferences.c, mn-uri.c,
+	  mn-uri.h: Fixes
+
+2004-06-07 18:50  jylefort
+
+	* src/mn-mailbox-properties-dialog.c,
+	  src/mn-mailbox-properties-dialog.h, src/mn-preferences.c,
+	  ui/mailbox-properties.glade: Fixes
+
+2004-06-07 15:09  jylefort
+
+	* src/mn-mailbox-properties-dialog.c, ui/mailbox-properties.glade:
+	  Cleanups
+
+2004-06-06 20:25  jylefort
+
+	* src/: mn-conf.c, mn-conf.h, mn-mailbox-properties-dialog.c,
+	  mn-preferences.c: Fixes
+
+2004-06-06 19:12  jylefort
+
+	* src/: mn-conf.c, mn-mail-icon.c, mn-preferences.c, mn-util.c,
+	  mn-util.h: Can now drop URIs onto the mail icon or the mailboxes
+	  list
+
+2004-06-06 17:49  jylefort
+
+	* src/: Makefile.am, mn-conf.c, mn-mailbox-properties-dialog.c,
+	  mn-mailbox.c, mn-mailboxes.c, mn-pop3-mailbox.c, mn-uri.c,
+	  mn-uri.h, mn-util.c, mn-util.h: Cleanups
+
+2004-06-06 17:38  jylefort
+
+	* src/: mn-mailbox-properties-dialog.c, mn-mailbox.c, mn-mailbox.h:
+	  Cleanups
+
+2004-06-06 15:01  jylefort
+
+	* src/: mn-mailbox-properties-dialog.c,
+	  mn-mailbox-properties-dialog.h, mn-preferences.c: Cleanups
+
+2004-06-06 14:30  jylefort
+
+	* src/: mn-mailbox-properties-dialog.c,
+	  mn-mailbox-properties-dialog.h, mn-mailbox.c, mn-preferences.c,
+	  mn-util.c, mn-util.h: Fixes
+
+2004-06-06 14:12  jylefort
+
+	* src/mn-mailbox-properties-dialog.c,
+	  src/mn-mailbox-properties-dialog.h, src/mn-mailbox.c,
+	  src/mn-util.c, src/mn-util.h, ui/mailbox-properties.glade: The
+	  system UNIX mailbox is now handled specially
+
+2004-06-06 03:30  jylefort
+
+	* src/: mn-mailbox.c, mn-mailboxes.c, mn-ui.c: Fixes
+
+2004-06-06 03:21  jylefort
+
+	* src/mn-preferences.c: Fixes
+
+2004-06-06 02:36  jylefort
+
+	* src/Makefile.am, src/mn-conf.c, src/mn-conf.h,
+	  src/mn-mailbox-properties-dialog.c,
+	  src/mn-mailbox-properties-dialog.h, src/mn-mailboxes.c,
+	  src/mn-preferences.c, ui/Makefile.am, ui/add-mailbox.glade,
+	  ui/add-mailbox.gladep, ui/dialog.glade,
+	  ui/mailbox-properties.glade, ui/mailbox-properties.gladep,
+	  ui/preferences.glade: Can now edit mailbox properties
+
+2004-06-05 16:54  jylefort
+
+	* src/mn-vfs.c: Fix
+
+2004-06-05 16:37  jylefort
+
+	* src/mn-maildir-mailbox.c: Fixes
+
+2004-06-05 16:19  jylefort
+
+	* src/: mn-preferences.c, mn-ui.c: Cleanups
+
+2004-06-05 16:18  jylefort
+
+	* src/: mn-mailboxes.c, mn-mailboxes.h, mn-ui.c, mn-ui.h: Fixes
+
+2004-06-05 16:08  jylefort
+
+	* src/: mn-mailbox.c, mn-mailbox.h, mn-mailboxes.c,
+	  mn-maildir-mailbox.c, mn-mbox-mailbox.c, mn-mh-mailbox.c,
+	  mn-pop3-mailbox.c, mn-sylpheed-mailbox.c, mn-sylpheed-mailbox.h,
+	  mail-notification.c, mn-conf.c, mn-mailboxes.h: Cleanups
+
+2004-06-05 15:41  jylefort
+
+	* src/: mn-mailbox.c, mn-mailbox.h, mn-sylpheed-mailbox.c: Cleanups
+
+2004-06-05 15:16  jylefort
+
+	* src/: mn-conf.c, mn-conf.h, mn-preferences.c: Fixes
+
+2004-06-05 15:02  jylefort
+
+	* src/: mn-preferences.c, mn-util.c, mn-util.h: Fixes
+
+2004-06-05 14:55  jylefort
+
+	* src/mn-conf.h, src/mn-preferences.c, ui/add-mailbox.glade: Now
+	  uses a location entry
+
+2004-06-05 14:33  jylefort
+
+	* src/mn-mailbox.c: Fixes
+
+2004-06-05 03:02  jylefort
+
+	* src/: mn-conf.c, mn-mailboxes.c, mn-preferences.c, mn-util.c,
+	  mn-util.h: Now compares canonicalized URIs
+
+2004-06-05 02:39  jylefort
+
+	* src/mn-conf.c: Fix
+
+2004-06-05 02:30  jylefort
+
+	* src/: mn-mailboxes.c, mn-mailboxes.h, mn-preferences.c: Now
+	  refuses to add the same mailbox twice
+
+2004-06-05 02:04  jylefort
+
+	* src/mn-mailbox.c: Fixes
+
+2004-06-05 01:53  jylefort
+
+	* src/mn-preferences.c, ui/add-mailbox.glade: The GtkFileChooser
+	  now uses the gnome-vfs backend
+
+2004-06-05 01:13  jylefort
+
+	* src/mn-pop3-mailbox.c: Fix
+
+2004-06-05 01:07  jylefort
+
+	* src/: mn-mh-mailbox.c, mn-mh-mailbox.h: Reimplemented
+
+2004-06-05 00:29  jylefort
+
+	* src/mn-mbox-mailbox.c: Cleanups
+
+2004-06-05 00:14  jylefort
+
+	* src/: Makefile.am, mn-mbox-mailbox.c, mn-mbox-mailbox.h,
+	  mn-vfs.c, mn-vfs.h: Reimplemented mbox support
+
+2004-06-04 13:58  jylefort
+
+	* src/: mn-conf.c, mn-conf.h, mn-preferences.c: Now remember window
+	  dimensions
+
+2004-06-04 13:40  jylefort
+
+	* src/mn-preferences.c: Set a default size for the preferences
+	  dialog
+
+2004-06-04 13:37  jylefort
+
+	* src/mn-preferences.c, ui/preferences.glade: HIG fixes: added a
+	  label displaying the number of mailboxes selected
+
+2004-06-04 13:27  jylefort
+
+	* ui/add-mailbox.glade: HIG fixes
+
+2004-06-04 13:24  jylefort
+
+	* ui/preferences.glade: HIG fixes
+
+2004-06-04 03:37  jylefort
+
+	* src/mn-pop3-mailbox.c: Cleanups
+
+2004-06-04 02:55  jylefort
+
+	* src/mn-sylpheed-mailbox.c: Fixes
+
+2004-06-04 02:32  jylefort
+
+	* src/mn-sylpheed-mailbox.c: Is now asynchronous
+
+2004-06-04 01:51  jylefort
+
+	* src/: mn-maildir-mailbox.c, mn-maildir-mailbox.h: Converted to
+	  monitor
+
+2004-06-04 01:51  jylefort
+
+	* src/mn-sylpheed-mailbox.c: Cleanups
+
+2004-06-03 23:07  jylefort
+
+	* src/mn-sylpheed-mailbox.c: Fixes
+
+2004-06-03 23:00  jylefort
+
+	* src/mn-sylpheed-mailbox.c: Fixes
+
+2004-06-03 22:51  jylefort
+
+	* src/mn-pop3-mailbox.c: Fixes
+
+2004-06-03 22:07  jylefort
+
+	* src/mn-ui.c: Cleanups
+
+2004-06-03 21:30  jylefort
+
+	* src/: mn-mailbox.c, mn-pop3-mailbox.c, mn-unsupported-mailbox.c:
+	  Cleanups
+
+2004-06-03 21:15  jylefort
+
+	* acinclude.m4, configure.ac, art/Makefile.am, art/mail-error.png,
+	  art/no-mail-error.png, src/Makefile.am, src/mail-notification.c,
+	  src/mn-check.c, src/mn-check.h, src/mn-conf.c,
+	  src/mn-mail-icon.c, src/mn-mail-icon.h, src/mn-mailbox.c,
+	  src/mn-mailbox.h, src/mn-mailboxes.c, src/mn-mailboxes.h,
+	  src/mn-pop3-mailbox.c, src/mn-pop3-mailbox.h,
+	  src/mn-preferences.c, src/mn-stock.c, src/mn-stock.h,
+	  src/mn-sylpheed-mailbox.c, src/mn-sylpheed-mailbox.h,
+	  src/mn-ui.c, src/mn-ui.h, src/mn-unsupported-mailbox.c,
+	  ui/preferences.glade: Local mailboxes now use GnomeVFS monitors
+	  instead of being explicitly checked; we don't use multi-threading
+	  anymore (the POP3 code achieves asynchronousness by using the
+	  appropriate GNet API)
+
+2004-06-02 14:53  jylefort
+
+	* src/: mail-notification.c, mn-check.c, mn-check.h: Fixes
+
+2004-06-01 18:07  jylefort
+
+	* src/: mn-pop3-mailbox.c, mn-pop3-mailbox.h: Cleanups
+
+2004-06-01 17:36  jylefort
+
+	* src/: mn-pop3-mailbox.c, mn-pop3-mailbox.h: Do not overwrite a
+	  previously set GError; was reading only 511 bytes rather than
+	  512: fixed; cleanups
+
+2004-06-01 16:22  jylefort
+
+	* src/: mn-conf.c, mn-mailboxes.c, mn-util.c: Fixes
+
+2004-06-01 15:44  jylefort
+
+	* src/: mn-pop3-mailbox.c, mn-unsupported-mailbox.c, mn-util.c,
+	  mn-util.h: POP3 passwords are now hidden from the mailbox list
+	  even if POP3 support is not compiled in
+
+2004-06-01 14:56  jylefort
+
+	* src/: mail-notification.c, mn-check.c, mn-conf.c, mn-conf.h,
+	  mn-mailbox.c, mn-mailbox.h, mn-mailboxes.c, mn-maildir-mailbox.c,
+	  mn-mbox-mailbox.c, mn-mh-mailbox.c, mn-pop3-mailbox.c,
+	  mn-pop3-mailbox.h, mn-preferences.c, mn-sylpheed-mailbox.c,
+	  mn-unsupported-mailbox.c: Now handles non-Unicode filenames; now
+	  uses standard URIs instead of locators; cleanups
+
+2004-05-31 16:41  jylefort
+
+	* src/: mn-conf.c, mn-conf.h, mn-preferences.c, mn-preferences.h:
+	  Cleanups
+
+2004-05-30 19:31  jylefort
+
+	* src/mn-pop3-mailbox.c: Do not include port number in mailbox name
+
+2004-05-30 19:28  jylefort
+
+	* art/Makefile.am, art/local.png, art/remote.png,
+	  art/unsupported.png, src/Makefile.am, src/mail-notification.c,
+	  src/mn-mail-icon.c, src/mn-preferences.c, src/mn-stock.c,
+	  src/mn-stock.h: Added format icons (local/remote/unsupported) in
+	  the mailbox list; cleanups
+
+2004-05-30 17:52  jylefort
+
+	* src/mn-preferences.c: Fix
+
+2004-05-30 17:50  jylefort
+
+	* src/: mn-dialog.c, mn-preferences.c, mn-ui.c, mn-util.c,
+	  mn-util.h: Cleanups
+
+2004-05-30 17:33  jylefort
+
+	* src/: mn-mail-icon.c, mn-ui.c: Fixes
+
+2004-05-30 14:46  jylefort
+
+	* src/mn-util.c: mn_glade_xml_new(): better error handling
+
+2004-05-30 14:29  jylefort
+
+	* src/: mn-dialog.c, mn-preferences.c, mn-ui.c, mn-util.c,
+	  mn-util.h: Cleanups
+
+2004-05-30 14:08  jylefort
+
+	* src/mn-preferences.c: Fixed a memory leak
+
+2004-05-30 13:23  jylefort
+
+	* data/mail-notification.schemas, src/mn-preferences.c,
+	  ui/preferences.glade: Wording precisions
+
+2004-05-30 12:58  jylefort
+
+	* src/: mail-notification.c, mn-mailbox.c, mn-mailbox.h: Cleanups;
+	  reduced memory usage (unused mailbox format handlers are now
+	  unreferenced)
+
+2004-05-30 12:30  jylefort
+
+	* src/mn-mailbox.c: Cleanup
+
+2004-05-30 12:21  jylefort
+
+	* src/mail-notification.c: Fixed a --list-handlers bug
+
+2004-05-29 20:23  jylefort
+
+	* src/mn-check.c: Fixed a thread-safety bug
+
+2004-05-29 19:54  jylefort
+
+	* src/: mail-notification.c, mn-check.c, mn-check.h, mn-ui.c:
+	  Cleanups
+
+2004-05-29 19:00  jylefort
+
+	* src/: mail-notification.c, mn-check.c, mn-check.h, mn-ui.c:
+	  Cleanups: removed check flags and interactive mode
+
+2004-05-29 18:46  jylefort
+
+	* configure.ac, src/Makefile.am, src/mail-notification.c,
+	  src/mn-check.c, src/mn-conf.c, src/mn-dialog.c, src/mn-dialog.h,
+	  src/mn-mailboxes.c, src/mn-pop3-mailbox.c, src/mn-settings.c,
+	  src/mn-settings.h, src/mn-util.c, src/mn-util.h: --enable-debug
+	  renamed to --enable-info; we now use GLib message logging
+
+2004-05-29 15:57  jylefort
+
+	* src/mn-preferences.c: Fixed two memory leaks
+
+2004-05-29 15:51  jylefort
+
+	* src/: mn-mailboxes.c, mn-preferences.c: Fixed a memory leak;
+	  cleanups
+
+2004-05-28 14:58  jylefort
+
+	* src/mn-preferences.c, ui/add-mailbox.glade: Fixes
+
+2004-05-28 14:48  jylefort
+
+	* src/mn-preferences.c: Cleanups
+
+2004-05-28 14:43  jylefort
+
+	* src/mn-preferences.c, ui/add-mailbox.glade: Cleanups
+
+2004-05-28 14:35  jylefort
+
+	* src/mn-preferences.c, ui/add-mailbox.glade: HIG fixes
+
+2004-05-28 14:21  jylefort
+
+	* src/: eggtrayicon.c, mn-check.c, mn-dialog.c, mn-mail-icon.c,
+	  mn-mailbox.c, mn-mailbox.h, mn-mailboxes.c, mn-maildir-mailbox.c,
+	  mn-maildir-mailbox.h, mn-mbox-mailbox.c, mn-mbox-mailbox.h,
+	  mn-mh-mailbox.c, mn-mh-mailbox.h, mn-pop3-mailbox.c,
+	  mn-pop3-mailbox.h, mn-preferences.c, mn-sylpheed-mailbox.c,
+	  mn-sylpheed-mailbox.h, mn-ui.h, mn-unsupported-mailbox.c,
+	  mn-unsupported-mailbox.h, mn-util.c, mn-util.h: Now uses
+	  glib/gi18n-lib.h instead of libgnome/gnome-i18n.h; cleanups
+
+2004-05-28 14:12  jylefort
+
+	* configure.ac, src/mn-preferences.c, src/mn-util.c, src/mn-util.h,
+	  ui/Makefile.am, ui/add-mailbox.glade, ui/add-mailbox.gladep,
+	  ui/add-pop3.glade, ui/add-pop3.gladep, ui/preferences.glade: The
+	  add mailbox dialogs have been unified; GTK+ 2.4.0 is now required
+
+2004-05-27 20:06  jylefort
+
+	* src/: mn-check.c, mn-ui.c, mn-ui.h: GTK+ does not handle
+	  correctly changing an item sensitivity while its parent menu is
+	  popped up: do not set sensitivity of Update item anymore
+
+2004-05-27 20:02  jylefort
+
+	* src/mn-ui.c, ui/menu.glade: The "Check for Mail" menuitem has
+	  been renamed to "Update"
+
+2004-05-27 19:56  jylefort
+
+	* src/mn-ui.c: Now uses the Unicode copyright sign
+
+2004-05-27 19:10  jylefort
+
+	* src/mn-check.h: Cleanup
+
+2004-05-27 18:08  jylefort
+
+	* src/: mn-preferences.c, mn-util.c, mn-util.h: Added
+	  mn_file_chooser_dialog_allow_select_folder(), allowing to select
+	  a folder when the chooser action is GTK_FILE_CHOOSER_ACTION_OPEN
+
+2004-05-27 16:24  jylefort
+
+	* src/mn-mbox-mailbox.c: A mbox mailbox is now defined as being a
+	  regular file of size 0 or whose first line starts with "From "
+
+2004-05-27 16:23  jylefort
+
+	* src/: mn-check.c, mn-mailboxes.c: mn_error_dialog() does not
+	  accept markup anymore
+
+2004-05-27 13:51  jylefort
+
+	* configure.ac, src/Makefile.am, src/mail-notification.c,
+	  src/mn-check.c, src/mn-conf.c, src/mn-conf.h, src/mn-mailboxes.c,
+	  src/mn-preferences.c, src/mn-ui.c: Cleanups: now uses libeel
+	  instead of reinventing the wheel
+
+2004-05-27 01:44  jylefort
+
+	* src/mn-preferences.c, ui/preferences.glade: Added a mailbox popup
+	  menu
+
+2004-05-27 01:22  jylefort
+
+	* src/: mn-check.c, mn-preferences.c, mn-ui.c: Fixed several
+	  GConf-related memory leaks
+
+2004-05-27 01:18  jylefort
+
+	* src/: mail-notification.c, mn-check.c, mn-conf.c, mn-conf.h,
+	  mn-mailboxes.c, mn-preferences.c, mn-ui.c: Cleanups
+
+2004-05-27 01:04  jylefort
+
+	* src/: mn-conf.c, mn-conf.h, mn-preferences.c: Cleanups
+
+2004-05-26 21:38  jylefort
+
+	* src/mn-dialog.c: Properly escapes text inside markup
+
+2004-05-26 21:25  jylefort
+
+	* src/mn-mailbox.c: Fix
+
+2004-05-26 20:53  jylefort
+
+	* configure.ac, src/mn-preferences.c: If GTK+ version 2.4.0 or
+	  superior is available, uses GtkFileChooser
+
+2004-05-26 20:05  jylefort
+
+	* src/mn-conf.c: Improved error messages
+
+2004-05-26 20:02  jylefort
+
+	* Makefile.am, acinclude.m4, autogen.sh, autotools.conf, c,
+	  configure.ac, m4/pkg.m4: Switched to Autoconf 2.59 and Automake
+	  1.8.3
+
 2004-03-19 14:20  jylefort
 
 	* configure.ac: Version 0.3.4

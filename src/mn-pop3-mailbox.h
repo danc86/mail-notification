@@ -19,7 +19,6 @@
 #ifndef _MN_POP3_MAILBOX_H
 #define _MN_POP3_MAILBOX_H
 
-#include <glib.h>
 #include <glib-object.h>
 #include "mn-mailbox.h"
 
@@ -29,19 +28,6 @@
 #define MN_IS_POP3_MAILBOX(obj)		(G_TYPE_CHECK_INSTANCE_TYPE((obj), MN_TYPE_POP3_MAILBOX))
 #define MN_IS_POP3_MAILBOX_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE((klass), MN_TYPE_POP3_MAILBOX))
 #define MN_POP3_MAILBOX_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS((obj), MN_TYPE_POP3_MAILBOX, MNPOP3MailboxClass))
-
-#define MN_POP3_MAILBOX_ERROR		(mn_pop3_mailbox_error_quark())
-
-typedef enum
-{
-  MN_POP3_MAILBOX_ERROR_PARSE_LOCATOR,
-  MN_POP3_MAILBOX_ERROR_RESOLVE,
-  MN_POP3_MAILBOX_ERROR_CONNECT,
-  MN_POP3_MAILBOX_ERROR_ACK,
-  MN_POP3_MAILBOX_ERROR_SEND,
-  MN_POP3_MAILBOX_ERROR_AUTH,
-  MN_POP3_MAILBOX_ERROR_REPLY
-} MNPOP3MailboxError;
 
 typedef struct _MNPOP3MailboxPrivate MNPOP3MailboxPrivate;
 
@@ -58,6 +44,5 @@ typedef struct
 } MNPOP3MailboxClass;
 
 GType	mn_pop3_mailbox_get_type	(void);
-GQuark	mn_pop3_mailbox_error_quark	(void);
 
 #endif /* _MN_POP3_MAILBOX_H */

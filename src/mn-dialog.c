@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,41 +17,13 @@
  */
 
 #include "config.h"
-#include <libgnome/gnome-i18n.h>
-#include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <glib/gi18n-lib.h>
+#include <gtk/gtk.h>
 #include "mn-util.h"
 
 /*** implementation **********************************************************/
-
-void
-mn_notice (const char *format, ...)
-{
-  va_list args;
-  char *message;
-
-  va_start(args, format);
-  message = g_strdup_vprintf(format, args);
-  va_end(args);
-
-  g_printerr(PACKAGE ": %s\n", message);
-}
-
-void
-mn_fatal (const char *format, ...)
-{
-  va_list args;
-  char *message;
-
-  va_start(args, format);
-  message = g_strdup_vprintf(format, args);
-  va_end(args);
-
-  g_printerr(_("%s: FATAL ERROR: %s\n"), PACKAGE, message);
-  exit(1);
-}
 
 /*
  * Displays an HIG-compliant modal dialog.
@@ -60,22 +32,26 @@ mn_fatal (const char *format, ...)
  * http://bugzilla.gnome.org/show_bug.cgi?id=98779.
  */
 void
-mn_error_dialog (const char *primary,
+mn_error_dialog (const char *help_link_id,
+		 const char *primary,
 		 const char *format,
 		 ...)
 {
-  GladeXML *xml;
   GtkWidget *dialog;
   GtkWidget *label;
   char *secondary = NULL;
   GString *message;
+  char *escaped;
 
-  xml = mn_glade_xml_new("dialog");
+  mn_create_interface("dialog",
+		      "dialog", &dialog,
+		      "label", &label,
+		      NULL);
 
-  dialog = glade_xml_get_widget(xml, "dialog");
-  label = glade_xml_get_widget(xml, "label");
-  
   gtk_window_set_title(GTK_WINDOW(dialog), "");
+  
+  if (help_link_id != NULL)
+    gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_HELP, GTK_RESPONSE_HELP);
   gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_OK, GTK_RESPONSE_OK);
 
   message = g_string_new(NULL);
@@ -90,25 +66,29 @@ mn_error_dialog (const char *primary,
     }
 
   if (primary)
-    g_string_printf(message,
-		    "<span weight=\"bold\" size=\"larger\">%s</span>",
-		    primary);
+    {
+      escaped = g_markup_printf_escaped("<span weight=\"bold\" size=\"larger\">%s</span>", primary);
+      g_string_append(message, escaped);
+      g_free(escaped);
+    }
 
   if (secondary)
     {
       if (primary)
 	g_string_append(message, "\n\n");
       
-      g_string_append(message, secondary);
+      escaped = g_markup_escape_text(secondary, -1);
+      g_free(secondary);
+
+      g_string_append(message, escaped);
+      g_free(escaped);
     }
   
-  g_free(secondary);
-
   gtk_label_set_markup(GTK_LABEL(label), message->str);
   g_string_free(message, TRUE);
   
-  gtk_dialog_run(GTK_DIALOG(dialog));
+  while (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_HELP)
+    mn_display_help(help_link_id);
 
   gtk_widget_destroy(dialog);
-  g_object_unref(xml);
 }

@@ -1,7 +1,7 @@
-AC_INIT(mail-notification, 0.3.4, jylefort@brutele.be)
-AC_CONFIG_SRCDIR(src/mail-notification.c)
+AC_INIT(mail-notification, 0.4.0, jylefort@brutele.be)
+AC_CONFIG_SRCDIR(src/mn-main.c)
 
-AC_PREREQ(2.57)
+AC_PREREQ(2.59)
 
 ### command line arguments
 
@@ -63,24 +63,16 @@ AM_GLIB_GNU_GETTEXT
 AC_PROG_CC
 AC_SYS_LARGEFILE
 
-AC_CHECK_HEADERS(errno.h stdarg.h stdio.h stdlib.h string.h sys/stat.h sys/types.h,, [AC_MSG_ERROR([header not found])])
-AC_CHECK_FUNCS(atoi exit memcpy sscanf stat strchr strcmp strcpy strlen strncmp strrchr strstr,, [AC_MSG_ERROR([library function not found])])
+AC_CHECK_HEADERS(errno.h stdarg.h stdio.h stdlib.h string.h,, [AC_MSG_ERROR([header not found])])
+AC_CHECK_FUNCS(atoi exit sscanf strchr strcmp strlen strncmp,, [AC_MSG_ERROR([library function not found])])
 
 ### build dependencies
 
-AM_PATH_PKG(GTHREAD, gthread-2.0,, [AC_MSG_ERROR([unable to find the GThread library])])
-AC_SUBST(GTHREAD_CFLAGS)
-AC_SUBST(GTHREAD_LIBS)
+AM_PATH_GTK_2_0(2.4.0,, [AC_MSG_ERROR([unable to find the GTK+ library])])
 
-AM_PATH_GTK_2_0(2.2.2,, [AC_MSG_ERROR([unable to find the GTK+ library])])
-
-AM_PATH_PKG(GNOME, libgnomeui-2.0,, [AC_MSG_ERROR([unable to find the GNOME libraries])])
+AM_PATH_PKG(GNOME, [libgnomeui-2.0 gnome-vfs-2.0 libglade-2.0 eel-2.0],, [AC_MSG_ERROR([unable to find the GNOME libraries])])
 AC_SUBST(GNOME_CFLAGS)
 AC_SUBST(GNOME_LIBS)
-
-AM_PATH_PKG(GLADE, libglade-2.0,, [AC_MSG_ERROR([unable to find the libglade library])])
-AC_SUBST(GLADE_CFLAGS)
-AC_SUBST(GLADE_LIBS)
 
 AM_GCONF_SOURCE_2
 
@@ -105,6 +97,8 @@ AM_CONDITIONAL(WITH_SYLPHEED, [test $enable_sylpheed != no])
 
 ### config.h definitions
 
+AC_DEFINE(G_LOG_DOMAIN, ["AC_PACKAGE_NAME"], [log domain])
+
 if test $enable_mbox = yes; then
 	AC_DEFINE(WITH_MBOX, 1, [Define to 1 if mbox support is enabled])
 fi
@@ -126,6 +120,8 @@ fi
 AC_CONFIG_FILES(Makefile
 		art/Makefile
 		data/Makefile
+		help/Makefile
+		help/C/Makefile
 		m4/Makefile 
 		po/Makefile.in
 		src/Makefile

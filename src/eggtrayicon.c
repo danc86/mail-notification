@@ -1,7 +1,7 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /* eggtrayicon.c
  * Copyright (C) 2002 Anders Carlsson <andersca@gnu.org>
- * Copyright (C) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
 
 #include "config.h"
 #include <string.h>
-#include <libgnome/gnome-i18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "eggtrayicon.h"
 

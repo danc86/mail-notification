@@ -17,15 +17,47 @@
  */
 
 #include "config.h"
-#include <libgnome/gnome-i18n.h>
+#include <glib/gi18n-lib.h>
+#include <libgnomevfs/gnome-vfs.h>
 #include "mn-maildir-mailbox.h"
+#include "mn-util.h"
+#include "mn-vfs.h"
+
+/*** types *******************************************************************/
+
+typedef struct
+{
+  char			*uri;
+  int			i;
+  MNMailboxIsCallback	*callback;
+  gpointer		user_data;
+} IsInfo;
+
+/*** variables ***************************************************************/
+
+static GObjectClass *parent_class = NULL;
+static const char *constitutive_dirs[] = { "cur", "new", "tmp" };
 
 /*** functions ***************************************************************/
 
-static void	mn_maildir_mailbox_class_init (MNMaildirMailboxClass *class);
-static gboolean	mn_maildir_mailbox_is         (const char            *locator);
-static gboolean	mn_maildir_mailbox_has_new    (MNMailbox             *mailbox,
-					       GError                **err);
+static void mn_maildir_mailbox_class_init (MNMaildirMailboxClass *class);
+
+static GObject *mn_maildir_mailbox_constructor (GType type,
+						guint n_construct_properties,
+						GObjectConstructParam *construct_params);
+
+static void mn_maildir_mailbox_is (const char *uri,
+				   MNMailboxIsCallback *callback,
+				   gpointer user_data);
+static void mn_maildir_mailbox_is_continue (IsInfo *info);
+static void mn_maildir_mailbox_is_cb (gboolean result, gpointer user_data);
+
+static void mn_maildir_mailbox_check (MNMailbox *mailbox);
+static void mn_maildir_mailbox_check_cb (GnomeVFSAsyncHandle *handle,
+					 GnomeVFSResult result,
+					 GList *list,
+					 unsigned int entries_read,
+					 gpointer user_data);
 
 /*** implementation **********************************************************/
 
@@ -60,79 +92,141 @@ mn_maildir_mailbox_get_type (void)
 static void
 mn_maildir_mailbox_class_init (MNMaildirMailboxClass *class)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS(class);
   MNMailboxClass *mailbox_class = MN_MAILBOX_CLASS(class);
 
+  parent_class = g_type_class_peek_parent(class);
+
+  object_class->constructor = mn_maildir_mailbox_constructor;
+
   mailbox_class->format = "Maildir";
-  mailbox_class->is_remote = FALSE;
   mailbox_class->is = mn_maildir_mailbox_is;
-  mailbox_class->has_new = mn_maildir_mailbox_has_new;
+  mailbox_class->check = mn_maildir_mailbox_check;
 }
 
-static gboolean
-mn_maildir_mailbox_is (const char *locator)
+static GObject *
+mn_maildir_mailbox_constructor (GType type,
+				guint n_construct_properties,
+				GObjectConstructParam *construct_params)
 {
-  gboolean is;
-  char *cur, *new, *tmp;
+  GObject *object;
+  MNMailbox *mailbox;
+  char *new_uri;
+  
+  object = G_OBJECT_CLASS(parent_class)->constructor(type, n_construct_properties, construct_params);
+  mailbox = MN_MAILBOX(object);
 
-  cur = g_build_filename(locator, "cur", NULL);
-  new = g_build_filename(locator, "new", NULL);
-  tmp = g_build_filename(locator, "tmp", NULL);
+  new_uri = g_build_path("/", mn_mailbox_get_uri(mailbox), "new", NULL);
+  mn_mailbox_monitor(mailbox,
+		     new_uri,
+		     GNOME_VFS_MONITOR_DIRECTORY,
+		     MN_MAILBOX_MONITOR_EVENT_DELETED
+		     | MN_MAILBOX_MONITOR_EVENT_CREATED);
+  g_free(new_uri);
 
-  is = g_file_test(cur, G_FILE_TEST_IS_DIR)
-    && g_file_test(new, G_FILE_TEST_IS_DIR)
-    && g_file_test(tmp, G_FILE_TEST_IS_DIR);
-
-  g_free(cur);
-  g_free(new);
-  g_free(tmp);
-
-  return is;
+  return object;
 }
 
-static gboolean
-mn_maildir_mailbox_has_new (MNMailbox *mailbox, GError **err)
+static void
+mn_maildir_mailbox_is (const char *uri,
+		       MNMailboxIsCallback *callback,
+		       gpointer user_data)
 {
-  char *new;
-  GDir *dir;
-  GError *tmp_err = NULL;
-  gboolean has_new = FALSE;
-  const char *filename;
+  IsInfo *info;
+  
+  info = g_new(IsInfo, 1);
+  info->uri = g_strdup(uri);
+  info->i = 0;
+  info->callback = callback;
+  info->user_data = user_data;
+  
+  mn_maildir_mailbox_is_continue(info);
+}
 
-  new = g_build_filename(mailbox->locator, "new", NULL);
-  dir = g_dir_open(new, 0, &tmp_err);
-  g_free(new);
+static void
+mn_maildir_mailbox_is_continue (IsInfo *info)
+{
+  char *uri;
 
-  if (! dir)
+  uri = g_build_path("/", info->uri, constitutive_dirs[info->i], NULL);
+  mn_vfs_async_test(uri, G_FILE_TEST_IS_DIR, mn_maildir_mailbox_is_cb, info);
+  g_free(uri);
+}
+
+static void
+mn_maildir_mailbox_is_cb (gboolean result, gpointer user_data)
+{
+  IsInfo *info = user_data;
+  gboolean is = FALSE;
+
+  if (result)
     {
-      g_set_error(err,
-		  MN_MAILDIR_MAILBOX_ERROR,
-		  MN_MAILDIR_MAILBOX_ERROR_OPEN_NEW,
-		  _("unable to open %s: %s"),
-		  mailbox->locator,
-		  tmp_err->message);
-      g_error_free(tmp_err);
-      return FALSE;
+      if (++info->i < G_N_ELEMENTS(constitutive_dirs))
+	{
+	  mn_maildir_mailbox_is_continue(info);
+	  return;
+	}
+      else
+	is = TRUE;
+    }
+
+  info->callback(is, info->user_data);
+  g_free(info->uri);
+  g_free(info);
+}
+
+static void
+mn_maildir_mailbox_check (MNMailbox *mailbox)
+{
+  char *new_uri;
+  GnomeVFSAsyncHandle *handle;
+
+  new_uri = g_build_path("/", mn_mailbox_get_uri(mailbox), "new", NULL);
+  gnome_vfs_async_load_directory(&handle,
+				 new_uri,
+				 GNOME_VFS_FILE_INFO_DEFAULT,
+				 32,
+				 GNOME_VFS_PRIORITY_DEFAULT,
+				 mn_maildir_mailbox_check_cb,
+				 mailbox);
+  g_free(new_uri);
+}
+
+static void
+mn_maildir_mailbox_check_cb (GnomeVFSAsyncHandle *handle,
+			     GnomeVFSResult result,
+			     GList *list,
+			     unsigned int entries_read,
+			     gpointer user_data)
+{
+  MNMaildirMailbox *mailbox = user_data;
+  gboolean has_new = FALSE;
+  GList *l;
+
+  MN_LIST_FOREACH(l, list)
+    {
+      GnomeVFSFileInfo *file_info = l->data;
+
+      if (file_info->name[0] != '.')
+	{
+	  has_new = TRUE;
+	  break;
+	}
     }
   
-  while ((filename = g_dir_read_name(dir)))
-    if (filename[0] != '.')
-      {
-	has_new = TRUE;
-	break;
-      }
+  if (has_new)
+    {
+      gnome_vfs_async_cancel(handle);
+      goto end;
+    }
   
-  g_dir_close(dir);
-  
-  return has_new;
-}
+  if (result != GNOME_VFS_OK)	/* we're done */
+    {
+      if (result != GNOME_VFS_ERROR_EOF)
+	mn_mailbox_set_error(MN_MAILBOX(mailbox), _("error while reading folder: %s"), gnome_vfs_result_to_string(result));
 
-GQuark
-mn_maildir_mailbox_error_quark (void)
-{
-  static GQuark quark = 0;
-
-  if (! quark)
-    quark = g_quark_from_static_string("mn_maildir_mailbox_error");
-
-  return quark;
+    end:
+      mn_mailbox_set_has_new(MN_MAILBOX(mailbox), has_new);
+      mn_mailbox_end_check(MN_MAILBOX(mailbox));
+    }
 }

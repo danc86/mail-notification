@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,22 +17,20 @@
  */
 
 #include "config.h"
-#include <libgnome/gnome-i18n.h>
-#include <gconf/gconf-client.h>
-#include <string.h>
-#include "mn-check.h"
-#include "mn-dialog.h"
+#include <stdarg.h>
+#include <eel/eel.h>
 #include "mn-mailboxes.h"
-#include "mn-preferences.h"
 #include "mn-util.h"
+#include "mn-conf.h"
 
-/*** variables ***************************************************************/
+/*** cpp *********************************************************************/
 
-static GConfClient *mn_conf_client;
+#define WINDOW_WIDTH_KEY		"mn-conf-window-width-key"
+#define WINDOW_HEIGHT_KEY		"mn-conf-window-height-key"
 
 /*** functions ***************************************************************/
 
-static void	mn_conf_notify_all_cb		(GConfClient	*client,
+static void	mn_conf_notify_delay_cb		(GConfClient	*client,
 						 guint		cnxn_id,
 						 GConfEntry	*entry,
 						 gpointer	user_data);
@@ -40,21 +38,47 @@ static void	mn_conf_notify_mailboxes_cb	(GConfClient	*client,
 						 guint		cnxn_id,
 						 GConfEntry	*entry,
 						 gpointer	user_data);
-static void	mn_conf_install_notify		(const char *namespace_section,
-						 GConfClientNotifyFunc func);
-static int	mn_conf_mailbox_cmp		(gconstpointer	a,
-						 gconstpointer	b);
+
+static gboolean mn_conf_link_window_h (GtkWidget *widget,
+				       GdkEventConfigure *event,
+				       gpointer user_data);
+static void mn_conf_link_window_notify_cb (GConfClient *client,
+					   guint cnxn_id,
+					   GConfEntry *entry,
+					   gpointer user_data);
+
+static void mn_conf_link_toggle_button_h (GtkToggleButton*button,
+					  gpointer user_data);
+static void mn_conf_link_toggle_button_notify_cb (GConfClient *client,
+						  guint cnxn_id,
+						  GConfEntry *entry,
+						  gpointer user_data);
+
+static void mn_conf_link_spin_button_h (GtkSpinButton *button,
+					gpointer user_data);
+static void mn_conf_link_spin_button_notify_cb (GConfClient *client,
+						guint cnxn_id,
+						GConfEntry *entry,
+						gpointer user_data);
+
+static void mn_conf_link_entry_h (GtkEditable *editable, gpointer user_data);
+static void mn_conf_link_entry_notify_cb (GConfClient *client,
+					  guint cnxn_id,
+					  GConfEntry *entry,
+					  gpointer user_data);
+
+static void mn_conf_link_weak_notify_cb (gpointer data,
+					 GObject *former_object);
 
 /*** implementation **********************************************************/
 
 static void
-mn_conf_notify_all_cb (GConfClient *client,
-		       guint cnxn_id,
-		       GConfEntry *entry,
-		       gpointer user_data)
+mn_conf_notify_delay_cb (GConfClient *client,
+			 guint cnxn_id,
+			 GConfEntry *entry,
+			 gpointer user_data)
 {
-  mn_preferences_update_values();
-  mn_check_install();
+  mn_mailboxes_install_timeout();
 }
 
 static void
@@ -63,225 +87,218 @@ mn_conf_notify_mailboxes_cb (GConfClient *client,
 			     GConfEntry *entry,
 			     gpointer user_data)
 {
-  mn_mailboxes_register_all();
-  mn_preferences_update_values();
-}
-
-static void
-mn_conf_install_notify (const char *namespace_section,
-			GConfClientNotifyFunc func)
-{
-  GError *err = NULL;
-  
-  gconf_client_notify_add(mn_conf_client,
-			  namespace_section,
-			  func,
-			  NULL,
-			  NULL,
-			  &err);
-  if (err)
-    {
-      mn_error_dialog(_("Initialization error."),
-		      _("Error while calling <i>gconf_client_notify_add()</i>: %s."),
-		      err->message);
-      g_error_free(err);
-    }
+  mn_mailboxes_register();
 }
 
 void
 mn_conf_init (void)
 {
-  GError *err = NULL;
-
-  mn_conf_client = gconf_client_get_default();
-
-  gconf_client_add_dir(mn_conf_client,
-		       "/apps/mail-notification",
-		       GCONF_CLIENT_PRELOAD_NONE,
-		       &err);
-  if (err)
-    {
-      mn_error_dialog(_("Initialization error."),
-		      _("Error while calling <i>gconf_client_add_dir()</i>: %s."),
-		      err->message);
-      g_error_free(err);
-    }
-  
-  mn_conf_install_notify("/apps/mail-notification", mn_conf_notify_all_cb);
-  mn_conf_install_notify("/apps/mail-notification/mailboxes", mn_conf_notify_mailboxes_cb);
-}
-
-void
-mn_conf_deinit (void)
-{
-  g_object_unref(G_OBJECT(mn_conf_client));
-}
-
-gboolean
-mn_conf_get_bool (const char *key)
-{
-  GError *err = NULL;
-  gboolean value;
-
-  value = gconf_client_get_bool(mn_conf_client, key, &err);
-  if (err)
-    {
-      g_warning(_("unable to read in configuration key %s: %s"), key, err->message);
-      g_error_free(err);
-
-      value = FALSE;		/* fallback */
-    }
-
-  return value;
-}
-
-int
-mn_conf_get_int (const char *key)
-{
-  GError *err = NULL;
-  int value;
-
-  value = gconf_client_get_int(mn_conf_client, key, &err);
-  if (err)
-    {
-      g_warning(_("unable to read in configuration key %s: %s"), key, err->message);
-      g_error_free(err);
-
-      value = 0;		/* fallback */
-    }
-
-  return value;
-}
-
-char *
-mn_conf_get_string (const char *key)
-{
-  GError *err = NULL;
-  char *value;
-
-  value = gconf_client_get_string(mn_conf_client, key, &err);
-  if (err)
-    {
-      g_warning(_("unable to read in configuration key %s: %s"), key, err->message);
-      g_error_free(err);
-      
-      value = NULL;		/* fallback */
-    }
-
-  return value;
-}
-
-GSList *
-mn_conf_get_list (const char *key, GConfValueType list_type)
-{
-  GError *err = NULL;
-  GSList *value;
-
-  value = gconf_client_get_list(mn_conf_client, key, list_type, &err);
-  if (err)
-    {
-      g_warning(_("unable to read in configuration key %s: %s"), key, err->message);
-      g_error_free(err);
-      
-      value = NULL;		/* fallback */
-    }
-
-  return value;
-}
-
-void
-mn_conf_set_bool (const char *key, gboolean value)
-{
-  GError *err = NULL;
-
-  gconf_client_set_bool(mn_conf_client, key, value, &err);
-  if (err)
-    {
-      g_warning(_("unable to write in configuration key %s: %s"), key, err->message);
-      g_error_free(err);
-    }
-}
-
-void
-mn_conf_set_int (const char *key, int value)
-{
-  GError *err = NULL;
-
-  gconf_client_set_int(mn_conf_client, key, value, &err);
-  if (err)
-    {
-      g_warning(_("unable to write in configuration key %s: %s"), key, err->message);
-      g_error_free(err);
-    }
-}
-
-void
-mn_conf_set_string (const char *key, const char *value)
-{
-  GError *err = NULL;
-
-  gconf_client_set_string(mn_conf_client, key, value, &err);
-  if (err)
-    {
-      g_warning(_("unable to write in configuration key %s: %s"), key, err->message);
-      g_error_free(err);
-    }
-}
-
-void
-mn_conf_set_list (const char *key, GConfValueType list_type, GSList *value)
-{
-  GError *err = NULL;
-
-  gconf_client_set_list(mn_conf_client, key, list_type, value, &err);
-  if (err)
-    {
-      g_warning(_("unable to write in configuration key %s: %s"), key, err->message);
-      g_error_free(err);
-    }
-}
-
-void
-mn_conf_unset (const char *key)
-{
-  GError *err = NULL;
-
-  gconf_client_unset(mn_conf_client, key, &err);
-  if (err)
-    {
-      g_warning(_("unable to unset configuration key %s: %s"), key, err->message);
-      g_error_free(err);
-    }
-}
-
-void
-mn_conf_remove_mailbox (const char *locator)
-{
   GSList *gconf_mailboxes;
-  GSList *elem;
+  GSList *l;
 
-  gconf_mailboxes = mn_conf_get_list("/apps/mail-notification/mailboxes", GCONF_VALUE_STRING);
-  elem = g_slist_find_custom(gconf_mailboxes, locator, mn_conf_mailbox_cmp);
+  /* convert old style locators */
 
-  if (elem)
+  gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
+  MN_LIST_FOREACH(l, gconf_mailboxes)
     {
-      gconf_mailboxes = g_slist_remove_link(gconf_mailboxes, elem);
+      char *locator_or_uri = l->data;
+      char *uri;
 
-      g_free(elem->data);
-      g_slist_free(elem);
+      if (locator_or_uri[0] == '/')
+	uri = g_strconcat("file://", locator_or_uri, NULL);
+      else if (! strncmp(locator_or_uri, "pop3:", 5))
+	uri = g_strconcat("pop://", locator_or_uri + 5, NULL);
+      else
+	uri = g_strdup(locator_or_uri);
+
+      g_free(locator_or_uri);
+      l->data = uri;
     }
-
-  mn_conf_set_list("/apps/mail-notification/mailboxes",
-		   GCONF_VALUE_STRING,
-		   gconf_mailboxes);
+  eel_gconf_set_string_list(MN_CONF_MAILBOXES, gconf_mailboxes);
   mn_slist_free(gconf_mailboxes);
+  
+  /* monitor some keys */
+
+  eel_gconf_monitor_add(MN_CONF_NAMESPACE);
+
+  eel_gconf_notification_add(MN_CONF_DELAY_NAMESPACE, mn_conf_notify_delay_cb, NULL);
+  eel_gconf_notification_add(MN_CONF_MAILBOXES, mn_conf_notify_mailboxes_cb, NULL);
 }
 
-/*
- * Just in case strcmp() is implemented as a macro.
- */
-static int
-mn_conf_mailbox_cmp (gconstpointer a, gconstpointer b)
+void
+mn_conf_link (GtkWidget *widget, ...)
 {
-  return strcmp(a, b);
+  va_list args;
+
+  va_start(args, widget);
+  while (widget)
+    {
+      const char *key;
+      const char *signal_name;
+      GCallback signal_handler;
+      GConfClientNotifyFunc notification_cb;
+      unsigned int notification_id;
+
+      key = va_arg(args, const char *);
+      g_return_if_fail(key != NULL);
+
+      /* the order of these tests is important */
+      if (GTK_IS_WINDOW(widget))
+	{
+	  char *width_key;
+	  char *height_key;
+
+	  width_key = g_strdup_printf("%s/width", key);
+	  height_key = g_strdup_printf("%s/height", key);
+
+	  g_object_set_data_full(G_OBJECT(widget), WINDOW_WIDTH_KEY, width_key, g_free);
+	  g_object_set_data_full(G_OBJECT(widget), WINDOW_HEIGHT_KEY, height_key, g_free);
+
+	  gtk_window_set_default_size(GTK_WINDOW(widget),
+				      eel_gconf_get_integer(width_key),
+				      eel_gconf_get_integer(height_key));
+
+	  signal_name = "configure-event";
+	  signal_handler = G_CALLBACK(mn_conf_link_window_h);
+	  notification_cb = mn_conf_link_window_notify_cb;
+	}
+      else if (GTK_IS_TOGGLE_BUTTON(widget))
+	{
+	  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), eel_gconf_get_boolean(key));
+
+	  signal_name = "toggled";
+	  signal_handler = G_CALLBACK(mn_conf_link_toggle_button_h);
+	  notification_cb = mn_conf_link_toggle_button_notify_cb;
+	}
+      else if (GTK_IS_SPIN_BUTTON(widget))
+	{
+	  gtk_spin_button_set_value(GTK_SPIN_BUTTON(widget), eel_gconf_get_integer(key));
+
+	  signal_name = "value-changed";
+	  signal_handler = G_CALLBACK(mn_conf_link_spin_button_h);
+	  notification_cb = mn_conf_link_spin_button_notify_cb;
+	}
+      else if (GTK_IS_ENTRY(widget))
+	{
+	  char *str;
+
+	  str = eel_gconf_get_string(key);
+	  gtk_entry_set_text(GTK_ENTRY(widget), str ? str : "");
+	  g_free(str);
+
+	  signal_name = "changed";
+	  signal_handler = G_CALLBACK(mn_conf_link_entry_h);
+	  notification_cb = mn_conf_link_entry_notify_cb;
+	}
+      else
+	g_return_if_reached();
+
+      g_signal_connect_data(widget, signal_name, signal_handler, g_strdup(key), (GClosureNotify) g_free, 0);
+      notification_id = eel_gconf_notification_add(key, notification_cb, widget);
+      g_object_weak_ref(G_OBJECT(widget), mn_conf_link_weak_notify_cb, GUINT_TO_POINTER(notification_id));
+
+      widget = va_arg(args, GtkWidget *);
+    }
+  va_end(args);
+}
+
+static gboolean
+mn_conf_link_window_h (GtkWidget *widget,
+		       GdkEventConfigure *event,
+		       gpointer user_data)
+{
+  const char *width_key = g_object_get_data(G_OBJECT(widget), WINDOW_WIDTH_KEY);
+  const char *height_key = g_object_get_data(G_OBJECT(widget), WINDOW_HEIGHT_KEY);
+
+  eel_gconf_set_integer(width_key, event->width);
+  eel_gconf_set_integer(height_key, event->height);
+
+  return FALSE;
+}
+
+static void
+mn_conf_link_window_notify_cb (GConfClient *client,
+			       guint cnxn_id,
+			       GConfEntry *entry,
+			       gpointer user_data)
+{
+  GtkWindow *window = user_data;
+  const char *width_key = g_object_get_data(G_OBJECT(window), WINDOW_WIDTH_KEY);
+  const char *height_key = g_object_get_data(G_OBJECT(window), WINDOW_HEIGHT_KEY);
+
+  gtk_window_resize(window,
+		    eel_gconf_get_integer(width_key),
+		    eel_gconf_get_integer(height_key));
+}
+
+static void
+mn_conf_link_toggle_button_h (GtkToggleButton *button, gpointer user_data)
+{
+  const char *key = user_data;
+  eel_gconf_set_boolean(key, gtk_toggle_button_get_active(button));
+}
+
+static void
+mn_conf_link_toggle_button_notify_cb (GConfClient *client,
+				      guint cnxn_id,
+				      GConfEntry *entry,
+				      gpointer user_data)
+{
+  GConfValue *value = gconf_entry_get_value(entry);
+  GtkToggleButton *button = user_data;
+
+  gtk_toggle_button_set_active(button, gconf_value_get_bool(value));
+}
+
+static void
+mn_conf_link_spin_button_h (GtkSpinButton *button, gpointer user_data)
+{
+  const char *key = user_data;
+  eel_gconf_set_integer(key, gtk_spin_button_get_value_as_int(button));
+}
+
+static void
+mn_conf_link_spin_button_notify_cb (GConfClient *client,
+				    guint cnxn_id,
+				    GConfEntry *entry,
+				    gpointer user_data)
+{
+  GConfValue *value = gconf_entry_get_value(entry);
+  GtkSpinButton *button = user_data;
+
+  gtk_spin_button_set_value(button, gconf_value_get_int(value));
+}
+
+static void
+mn_conf_link_entry_h (GtkEditable *editable, gpointer user_data)
+{
+  const char *key = user_data;
+  const char *str;
+
+  str = gtk_entry_get_text(GTK_ENTRY(editable));
+  if (*str)
+    eel_gconf_set_string(key, str);
+  else
+    eel_gconf_unset(key);
+}
+
+static void
+mn_conf_link_entry_notify_cb (GConfClient *client,
+			      guint cnxn_id,
+			      GConfEntry *entry,
+			      gpointer user_data)
+{
+  GConfValue *value = gconf_entry_get_value(entry);
+  GtkEntry *entry_widget = user_data;
+  const char *str;
+
+  str = gconf_value_get_string(value);
+  gtk_entry_set_text(entry_widget, str ? str : "");
+}
+
+static void
+mn_conf_link_weak_notify_cb (gpointer data, GObject *former_object)
+{
+  unsigned int notification_id = GPOINTER_TO_UINT(data);
+  eel_gconf_notification_remove(notification_id);
 }

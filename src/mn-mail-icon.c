@@ -17,15 +17,11 @@
  */
 
 #include "config.h"
-#include <libgnome/gnome-i18n.h>
+#include <glib/gi18n-lib.h>
 #include <gtk/gtk.h>
 #include "mn-mail-icon.h"
+#include "mn-stock.h"
 #include "mn-util.h"
-
-/*** cpp *********************************************************************/
-
-#define MAIL_NOTIFICATION_STOCK_MAIL		"mail-notification-mail"
-#define MAIL_NOTIFICATION_STOCK_NO_MAIL		"mail-notification-no-mail"
 
 /*** types *******************************************************************/
 
@@ -51,8 +47,6 @@ static unsigned int mail_icon_signals[LAST_SIGNAL] = { 0 };
 static void	mn_mail_icon_class_init	(MNMailIconClass	*class);
 static void	mn_mail_icon_init	(MNMailIcon		*icon);
 static void	mn_mail_icon_finalize	(GObject		*object);
-
-static void	mn_mail_icon_stock_init (void);
 
 static gboolean	mn_mail_icon_press	(GtkWidget		*widget,
 					 GdkEventButton		*event,
@@ -100,8 +94,6 @@ mn_mail_icon_class_init (MNMailIconClass *class)
 
   object_class->finalize = mn_mail_icon_finalize;
 
-  mn_mail_icon_stock_init();
-
   mail_icon_signals[ACTIVATE] = g_signal_new("activate",
 					     MN_TYPE_MAIL_ICON,
 					     G_SIGNAL_RUN_LAST,
@@ -128,10 +120,11 @@ mn_mail_icon_init (MNMailIcon *icon)
   g_object_ref(icon->priv->tooltips);
   gtk_object_sink(GTK_OBJECT(icon->priv->tooltips));
 
-  icon->priv->image = gtk_image_new_from_stock(MAIL_NOTIFICATION_STOCK_NO_MAIL, GTK_ICON_SIZE_MENU);
+  icon->priv->image = gtk_image_new_from_stock(MN_STOCK_NO_MAIL, GTK_ICON_SIZE_MENU);
 
   /* configure widgets */
 
+  mn_setup_dnd(event_box);
   gtk_tooltips_set_tip(icon->priv->tooltips,
 		       GTK_WIDGET(icon),
 		       _("You have no new mail"),
@@ -162,44 +155,10 @@ mn_mail_icon_finalize (GObject *object)
 
   g_object_unref(icon->priv->tooltips);
   if (icon->priv->menu)
-    gtk_widget_destroy(GTK_WIDGET(icon->priv->menu));
+    g_object_unref(icon->priv->menu);
   g_free(icon->priv);
 
   G_OBJECT_CLASS(parent_class)->finalize(object);
-}
-
-static void
-mn_mail_icon_stock_init (void)
-{
-  const struct
-  {
-    const char	*stock_id;
-    const char	*filename;
-  } icons[] = {
-    { MAIL_NOTIFICATION_STOCK_MAIL,		"mail.png"		},
-    { MAIL_NOTIFICATION_STOCK_NO_MAIL,		"no-mail.png"		}
-  };
-  GtkIconFactory *factory;
-  int i;
-
-  factory = gtk_icon_factory_new();
-  gtk_icon_factory_add_default(factory);
-
-  for (i = 0; i < G_N_ELEMENTS(icons); i++)
-    {
-      GtkIconSet *icon_set;
-      GdkPixbuf *pixbuf;
-      
-      pixbuf = mn_pixbuf_new(icons[i].filename);
-
-      icon_set = gtk_icon_set_new_from_pixbuf(pixbuf);
-      g_object_unref(pixbuf);
-
-      gtk_icon_factory_add(factory, icons[i].stock_id, icon_set);
-      gtk_icon_set_unref(icon_set);
-    }
-  
-  g_object_unref(factory);
 }
 
 static gboolean
@@ -240,9 +199,6 @@ mn_mail_icon_new (void)
   return g_object_new(MN_TYPE_MAIL_ICON, "title", "Mail Notification", NULL);
 }
 
-/*
- * This owns MENU.
- */
 void
 mn_mail_icon_set_popup_menu (MNMailIcon *icon, GtkMenu *menu)
 {
@@ -250,19 +206,26 @@ mn_mail_icon_set_popup_menu (MNMailIcon *icon, GtkMenu *menu)
   g_return_if_fail(GTK_IS_MENU(menu));
   g_return_if_fail(icon->priv->menu == NULL);
   
+  g_object_ref(menu);
+  gtk_object_sink(GTK_OBJECT(menu));
+
   icon->priv->menu = menu;
 }
 
 void
-mn_mail_icon_set_has_new (MNMailIcon *icon, gboolean has_new)
+mn_mail_icon_set_from_stock (MNMailIcon *icon, const char *stock_id)
 {
   g_return_if_fail(MN_IS_MAIL_ICON(icon));
+  g_return_if_fail(stock_id != NULL);
 
-  gtk_image_set_from_stock(GTK_IMAGE(icon->priv->image),
-			   has_new ? MAIL_NOTIFICATION_STOCK_MAIL : MAIL_NOTIFICATION_STOCK_NO_MAIL,
-			   GTK_ICON_SIZE_MENU);
-  gtk_tooltips_set_tip(icon->priv->tooltips,
-		       GTK_WIDGET(icon),
-		       has_new ? _("You have new mail") : _("You have no new mail"),
-		       NULL);
+  gtk_image_set_from_stock(GTK_IMAGE(icon->priv->image), stock_id, GTK_ICON_SIZE_MENU);
+}
+
+void
+mn_mail_icon_set_tooltip (MNMailIcon *icon, const char *tooltip)
+{
+  g_return_if_fail(MN_IS_MAIL_ICON(icon));
+  g_return_if_fail(tooltip != NULL);
+
+  gtk_tooltips_set_tip(icon->priv->tooltips, GTK_WIDGET(icon), tooltip, NULL);
 }

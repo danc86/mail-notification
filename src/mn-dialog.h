@@ -21,11 +21,8 @@
 
 #include <stdarg.h>
 
-void mn_notice		(const char	*format,
-			 ...);
-void mn_fatal		(const char	*format,
-			 ...);
-void mn_error_dialog	(const char	*primary,
+void mn_error_dialog	(const char	*help_link_id,
+			 const char	*primary,
 			 const char	*format,
 			 ...);
 

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,16 +16,28 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _MN_SETTINGS_H
-#define _MN_SETTINGS_H
+#ifndef _MN_URI_H
+#define _MN_URI_H
 
 #include <glib.h>
 
-typedef struct
-{
-  gboolean	debug;
-} MNSettings;
+char *mn_uri_build_pop (const char *username,
+			const char *password,
+			const char *hostname,
+			int port);
+gboolean mn_uri_parse_pop (const char *uri,
+			   char **username,
+			   char **password,
+			   char **hostname,
+			   int *port);
 
-extern MNSettings mn_settings;
+char *mn_uri_canonicalize (const char *uri);
+int mn_uri_cmp (const char *uri1, const char *uri2);
 
-#endif /* _MN_SETTINGS_H */
+const char *mn_uri_get_unix_mailbox (void);
+
+char *mn_uri_format_for_display (const char *uri);
+
+gboolean mn_uri_is_local (const char *uri);
+
+#endif /* _MN_URI_H */

@@ -1,0 +1,444 @@
+<?xml version="1.0"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
+"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+  <!ENTITY app "<application>Mail Notification</application>">
+  <!ENTITY appversion "0.4.0">
+  <!ENTITY manrevision "2.0">
+  <!ENTITY date "Tuesday, June 29, 2004">
+
+  <!ENTITY project "The Mail Notification Project">
+
+  <!ENTITY documentation-license SYSTEM "documentation-license.xml">
+  <!ENTITY software-license SYSTEM "software-license.xml">
+
+  <!ENTITY aka "<acronym>aka</acronym>">
+]>
+
+<!-- $Id: mail-notification.xml,v 1.5 2004/06/29 13:50:42 jylefort Exp $ -->
+<!-- Mail Notification Manual -->
+
+<!-- Copyright (c) 2004 Jean-Yves Lefort -->
+<!-- All rights reserved. -->
+
+<!-- Redistribution and use in source (SGML DocBook) and 'compiled' -->
+<!-- forms (SGML, HTML, PDF, PostScript, RTF and so forth) with or -->
+<!-- without modification, are permitted provided that the following -->
+<!-- conditions are met: -->
+<!-- 1. Redistributions of source code (SGML DocBook) must -->
+<!--    retain the above copyright notice, this list of conditions and -->
+<!--    the following disclaimer as the first lines of this file -->
+<!--    unmodified. -->
+<!-- 2. Redistributions in compiled form (transformed to other -->
+<!--    DTDs, converted to PDF, PostScript, RTF and other formats) -->
+<!--    must reproduce the above copyright notice, this list of -->
+<!--    conditions and the following disclaimer in the documentation -->
+<!--    and/or other materials provided with the distribution. -->
+
+<!-- THIS DOCUMENTATION IS PROVIDED BY THE COPYRIGHT HOLDERS AND -->
+<!-- CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, -->
+<!-- INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF -->
+<!-- MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE -->
+<!-- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS -->
+<!-- BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, -->
+<!-- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED -->
+<!-- TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, -->
+<!-- DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON -->
+<!-- ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR -->
+<!-- TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF -->
+<!-- THE USE OF THIS DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY -->
+<!-- OF SUCH DAMAGE. -->
+
+<!-- This document does its best to adhere to the -->
+<!-- GNOME Documentation Style Guide V1.3 -->
+<!-- (http://developer.gnome.org/documents/style-guide) -->
+
+<article id="index" lang="en">
+<!-- please do not change the id; for translations, change lang to -->
+<!-- appropriate code -->
+  <articleinfo>
+    <title>&app; Manual V&manrevision;</title>
+
+    <copyright>
+      <year>2004</year>
+      <holder>Jean-Yves Lefort</holder>
+    </copyright>
+<!-- translators: uncomment this:
+
+  <copyright>
+   <year>2002</year>
+   <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
+  </copyright>
+
+   -->
+    <publisher>
+      <publishername>&project;</publishername>
+    </publisher>
+
+    &documentation-license;
+
+    <authorgroup>
+      <author>
+	<firstname>Jean-Yves</firstname>
+	<surname>Lefort</surname>
+	<affiliation>
+	  <orgname>&project;</orgname>
+	  <address><email>jylefort@brutele.be</email></address>
+	</affiliation>
+      </author>
+      
+<!-- This is appropriate place for other contributors: translators,
+     maintainers,  etc. Commented out by default.
+     
+      <othercredit role="translator">
+		<firstname>Latin</firstname> 
+		<surname>Translator 1</surname> 
+		<affiliation> 
+	  		<orgname>Latin Translation Team</orgname> 
+	  		<address> <email>translator@gnome.org</email> </address> 
+		</affiliation>
+		<contrib>Latin translation</contrib>
+      </othercredit>
+-->
+    </authorgroup>
+
+<!-- The revision numbering system for GNOME manuals is as follows: -->
+<!-- * the revision number consists of two components -->
+<!-- * the first component of the revision number reflects the release version of the GNOME desktop. -->
+<!-- * the second component of the revision number is a decimal unit that is incremented with each revision of the manual. -->
+<!-- For example, if the GNOME desktop release is V2.x, the first version of the manual that -->
+<!-- is written in that desktop timeframe is V2.0, the second version of the manual is V2.1, etc. -->
+<!-- When the desktop release version changes to V3.x, the revision number of the manual changes -->
+<!-- to V3.0, and so on. -->  
+    <revhistory>
+      <revision>
+	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
+	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+    </revhistory>
+
+    <releaseinfo>
+      This manual describes version &appversion; of Mail Notification.
+    </releaseinfo>
+    <legalnotice>
+      <title>Feedback</title>
+      <para>To report a bug or make a suggestion regarding the &app;
+	application or this manual, follow the directions in
+	<xref linkend="problem-reports" />.
+      </para>
+      <!-- Translators may also add here feedback address for translations -->
+    </legalnotice>
+  </articleinfo>
+
+  <indexterm zone="index">
+    <primary>Mail Notification</primary>
+  </indexterm>
+
+  <sect1 id="introduction">
+    <title>Introduction</title>
+    <para>
+      &app; is a status icon (&aka; tray icon) that informs you if you
+      have new mail.
+    </para>
+    <para>
+      It works with system trays implementing the freedesktop.org
+      <ulink url="http://www.freedesktop.org/Standards/systemtray-spec">System Tray Specification</ulink>, such as the
+      GNOME Panel Notification Area, the Xfce Notification Area and the KDE System Tray.
+    </para>
+    <para>
+      &app; features include:
+    </para>
+    <itemizedlist>
+      <listitem><para>multiple mailbox support</para></listitem>
+      <listitem><para>mbox, MH, Maildir, Sylpheed and POP3 support</para></listitem>
+      <listitem><para>automatic detection of mailbox format</para></listitem>
+      <listitem><para><link linkend="automatic-notification">automatic notification</link></para></listitem>
+      <listitem><para><ulink url="http://developer.gnome.org/projects/gup/hig">HIG</ulink> compliance</para></listitem>
+    </itemizedlist>
+  </sect1>
+
+  <sect1 id="getting-started">
+    <title>Getting Started</title>
+
+    <sect2 id="to-start">
+    <title>To Start &app;</title>
+      <para>
+	You can start <application>&app;</application> in the
+	following ways:
+      </para>
+      <variablelist>
+    	<varlistentry>
+	  <term><guimenu>Applications</guimenu> menu</term>
+	  <listitem>
+	    <para>Choose
+	      <menuchoice>
+    		<guisubmenu>Internet</guisubmenu>
+    		<guimenuitem>&app;</guimenuitem>
+	      </menuchoice>.</para>
+	  </listitem>
+    	</varlistentry>
+
+    	<varlistentry>
+	  <term>Command line</term>
+	  <listitem>
+	    <para>
+	      To start <application>&app;</application> from a command
+	      line, type the following command, then press
+	      <keycap>Return</keycap>:
+	    </para>
+	    <para>
+	      <command>mail-notification</command>
+	      <replaceable>options</replaceable>
+	    </para>
+	    <para>
+	      where <replaceable>options</replaceable> is one or more options
+	      from the following non-exhaustive list:
+	    </para>
+	    <variablelist>
+	      <varlistentry>
+		<term>--enable-info</term>
+		<listitem><para>Enable informational output</para></listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term>--list-handlers</term>
+		<listitem><para>List compiled-in handlers and exit</para></listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term>--help</term>
+		<listitem><para>Show help and exit</para></listitem>
+	      </varlistentry>
+	    </variablelist>
+	  </listitem>
+    	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="when-start">
+      <title>When You Start &app;</title>
+      <para>
+	When you start <application>&app;</application>, the following
+	icon is displayed in the notification area (&aka; system
+	tray).
+      </para>
+
+      <figure id="no-mail-fig">
+	<title>&app; status icon</title>
+	<screenshot>
+	  <mediaobject> 
+	    <imageobject>
+	      <imagedata fileref="figures/no-mail.png" format="PNG"/>
+	    </imageobject>
+	    <!-- EPS versions of the figures are not required at the moment. -->
+            <!-- 
+		    <imageobject>
+      		<imagedata fileref="figures/image.eps" format="EPS"/>
+    		    </imageobject>
+	    -->
+	    <textobject>
+	      <phrase>Shows the &app; status icon.</phrase>
+	    </textobject>
+	  </mediaobject>
+	</screenshot>
+      </figure>
+    </sect2>
+  </sect1>
+
+  <sect1 id="usage"> 
+    <title>Usage</title>
+    <para>
+      &app; will monitor the state of your mailboxes and update its
+      status icon according to <xref linkend="icons" />.
+    </para>
+    <para>
+      You can add mailboxes from the
+      <link linkend="preferences">Preferences</link>, or by dragging a
+      file or folder into the icon.
+    </para>
+    <table frame="topbot" id="icons">
+      <title>&app; Icons</title>
+      <tgroup>
+	<thead>
+	  <row rowsep="1">
+	    <entry><para>Icon</para></entry>
+	    <entry><para>Meaning</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><screenshot>
+		<mediaobject> 
+		  <imageobject>
+		    <imagedata fileref="figures/no-mail.png" format="PNG"/>
+		  </imageobject>
+		  <textobject>
+		    <phrase>Shows the &app; status icon when you have no new mail.</phrase>
+		  </textobject>
+		</mediaobject>
+	      </screenshot></entry>
+	    <entry><para>you have no new mail</para></entry>
+	  </row>
+	  <row>
+	    <entry><screenshot>
+		<mediaobject> 
+		  <imageobject>
+		    <imagedata fileref="figures/no-mail-error.png" format="PNG"/>
+		  </imageobject>
+		  <textobject>
+		    <phrase>Shows the &app; status icon when you have no new mail and there are one or more errors.</phrase>
+		  </textobject>
+		</mediaobject>
+	      </screenshot></entry>
+	    <entry><para>you have no new mail and there are one or more errors</para></entry>
+	  </row>
+	  <row>
+	    <entry><screenshot>
+		<mediaobject> 
+		  <imageobject>
+		    <imagedata fileref="figures/mail.png" format="PNG"/>
+		  </imageobject>
+		  <textobject>
+		    <phrase>Shows the &app; status icon when you have new mail.</phrase>
+		  </textobject>
+		</mediaobject>
+	      </screenshot></entry>
+	    <entry><para>you have new mail</para></entry>
+	  </row>
+	  <row>
+	    <entry><screenshot>
+		<mediaobject> 
+		  <imageobject>
+		    <imagedata fileref="figures/mail-error.png" format="PNG"/>
+		  </imageobject>
+		  <textobject>
+		    <phrase>Shows the &app; status icon when you have new mail and there are one or more errors.</phrase>
+		  </textobject>
+		</mediaobject>
+	      </screenshot></entry>
+	    <entry><para>you have new mail and there are one or more errors</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+  </sect1>
+
+  <sect1 id="preferences"> 
+    <title>Preferences</title> 
+    <para>To configure &app;, right-click the status icon and choose
+      <menuchoice> 
+	<guimenuitem>Preferences</guimenuitem> 
+      </menuchoice>. The
+      <guilabel>Preferences</guilabel> dialog contains the following
+      settings:
+    </para>
+
+    <variablelist>
+      <varlistentry id="delay-between-mail-checks">
+	<term><guilabel>Delay between mail checks</guilabel></term>
+	<listitem>
+	  <para>
+	    This is the amount of time to wait between mail checks.
+	    <note>
+	      <para>
+		This delay only applies to mailboxes which do not
+		support <link linkend="automatic-notification">automatic notification</link> of changes.
+	      </para>
+	    </note>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><guilabel>Mailboxes</guilabel></term>
+	<listitem>
+	  <para>
+	    This is the list of mailboxes to monitor for new mail.
+	    <tip>
+	      <para>
+		You can drag a file or folder into this list.
+	      </para>
+	    </tip>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><guilabel>When new mail arrives:</guilabel></term>
+	<listitem>
+	  <para>
+	    This is the command to execute when new mail arrives.
+	    <note>
+	      <para>
+		This command will not be executed if you already have
+		new mail.
+	      </para>
+	    </note>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><guilabel>When clicked:</guilabel></term>
+	<listitem>
+	  <para>
+	    This is the command to execute when the icon is clicked.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
+  <sect1 id="automatic-notification">
+    <title>Automatic Notification</title>
+    <para>
+      Automatic notification is the ability to detect changes to a
+      mailbox without needing to poll it periodically. It allows the
+      status icon to be updated within seconds after a mailbox
+      receives new mail.
+    </para>
+    <para>
+      For automatic notification to be supported, GnomeVFS must be compiled
+      with <ulink url="http://oss.sgi.com/projects/fam">FAM</ulink> support,
+      and FAM must be configured properly.
+    </para>
+    <para>
+      Refer to the
+      <citerefentry><refentrytitle>fam</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+      manual page for more details.
+    </para>
+    <note>
+      <para>
+	Automatic notification is only supported for local mailboxes.
+	Mailboxes which do not support it will be checked periodically
+	according to the <link linkend="delay-between-mail-checks">Delay between mail checks</link>
+	setting.
+      </para>
+    </note>
+  </sect1>
+    
+  <sect1 id="about">
+    <title>About &app;</title>
+    <para> &app; was written by Jean-Yves Lefort
+      (<email>jylefort@brutele.be</email>). To find more information about
+      &app;, please visit the
+      <ulink url="http://www.nongnu.org/mailnotify" type="http">Mail Notification web page</ulink>.
+    </para>
+    
+    <sect2 id="problem-reports">
+      <title>Reporting Bugs and Other Feedback</title>
+      <para>
+	Bug reports and feedback should be sent to Jean-Yves Lefort
+	(<email>jylefort@brutele.be></email>).
+      </para>
+    </sect2>
+
+    <sect2 id="licensing-terms">
+      <title>Licensing Terms</title>
+      &software-license;
+    </sect2>
+  </sect1>
+</article>

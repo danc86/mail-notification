@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 #ifndef _MN_UNSUPPORTED_MAILBOX_H
 #define _MN_UNSUPPORTED_MAILBOX_H
 
-#include <glib.h>
 #include <glib-object.h>
 #include "mn-mailbox.h"
 
@@ -30,16 +29,23 @@
 #define MN_IS_UNSUPPORTED_MAILBOX_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE((klass), MN_TYPE_UNSUPPORTED_MAILBOX))
 #define MN_UNSUPPORTED_MAILBOX_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS((obj), MN_TYPE_UNSUPPORTED_MAILBOX, MNUnsupportedMailboxClass))
 
+typedef struct _MNUnsupportedMailboxPrivate MNUnsupportedMailboxPrivate;
+
 typedef struct
 {
-  MNMailbox		mailbox;
+  MNMailbox			mailbox;
+
+  MNUnsupportedMailboxPrivate	*priv;
 } MNUnsupportedMailbox;
 
 typedef struct
 {
-  MNMailboxClass	mailbox_class;
+  MNMailboxClass		mailbox_class;
 } MNUnsupportedMailboxClass;
 
-GType	mn_unsupported_mailbox_get_type		(void);
+GType mn_unsupported_mailbox_get_type (void);
+MNMailbox *mn_unsupported_mailbox_new (const char *uri, const char *reason);
+
+const char *mn_unsupported_mailbox_get_reason (MNUnsupportedMailbox *mailbox);
 
 #endif /* _MN_UNSUPPORTED_MAILBOX_H */

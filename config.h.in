@@ -6,6 +6,9 @@
 /* gettext package name */
 #undef GETTEXT_PACKAGE
 
+/* log domain */
+#undef G_LOG_DOMAIN
+
 /* Define to 1 if you have the `atoi' function. */
 #undef HAVE_ATOI
 
@@ -36,17 +39,11 @@
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
 
-/* Define to 1 if you have the `memcpy' function. */
-#undef HAVE_MEMCPY
-
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
 /* Define to 1 if you have the `sscanf' function. */
 #undef HAVE_SSCANF
-
-/* Define to 1 if you have the `stat' function. */
-#undef HAVE_STAT
 
 /* Define to 1 if you have the <stdarg.h> header file. */
 #undef HAVE_STDARG_H
@@ -66,9 +63,6 @@
 /* Define to 1 if you have the `strcmp' function. */
 #undef HAVE_STRCMP
 
-/* Define to 1 if you have the `strcpy' function. */
-#undef HAVE_STRCPY
-
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
@@ -80,12 +74,6 @@
 
 /* Define to 1 if you have the `strncmp' function. */
 #undef HAVE_STRNCMP
-
-/* Define to 1 if you have the `strrchr' function. */
-#undef HAVE_STRRCHR
-
-/* Define to 1 if you have the `strstr' function. */
-#undef HAVE_STRSTR
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H

@@ -1,8 +1,8 @@
-# $Id: pkg.m4,v 1.4 2003/12/24 14:19:46 jylefort Exp $
+# $Id: pkg.m4,v 1.5 2004/05/26 18:02:11 jylefort Exp $
 #
 # This file is part of Mail Notification.
 #
-# Copyright (c) 2002-2003 Jean-Yves Lefort.
+# Copyright (c) 2002, 2003, 2004 Jean-Yves Lefort.
 #
 # As a special exception to the Mail Notification licensing terms,
 # Jean-Yves Lefort gives unlimited permission to copy, distribute and
@@ -10,7 +10,7 @@
 
 dnl AM_PATH_PKG(VARIABLE_PREFIX, MODULES, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
 dnl
-AC_DEFUN(AM_PATH_PKG,
+AC_DEFUN([AM_PATH_PKG],
 [found=no
 $1_CFLAGS=""
 $1_LIBS=""

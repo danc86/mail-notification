@@ -43,7 +43,7 @@ typedef struct
   EggTrayIconClass	icon_class;
 
   /* signals */
-  void (*activate) (void);
+  void (*activate) (MNMailIcon *icon);
 } MNMailIconClass;
 
 GType		mn_mail_icon_get_type		(void);
@@ -51,7 +51,9 @@ GType		mn_mail_icon_get_type		(void);
 GtkWidget	*mn_mail_icon_new		(void);
 void		mn_mail_icon_set_popup_menu	(MNMailIcon	*icon,
 						 GtkMenu	*menu);
-void		mn_mail_icon_set_has_new	(MNMailIcon	*icon,
-						 gboolean	has_new);
+void		mn_mail_icon_set_from_stock	(MNMailIcon	*icon,
+						 const char	*stock_id);
+void		mn_mail_icon_set_tooltip	(MNMailIcon	*icon,
+						 const char	*tooltip);
 
 #endif /* _MN_MAIL_ICON_H */

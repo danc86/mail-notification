@@ -13,6 +13,11 @@
   <property name="resizable">True</property>
   <property name="destroy_with_parent">False</property>
   <property name="icon">preferences-icon.png</property>
+  <property name="decorated">True</property>
+  <property name="skip_taskbar_hint">False</property>
+  <property name="skip_pager_hint">False</property>
+  <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
+  <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="has_separator">False</property>
   <signal name="destroy" handler="mn_preferences_destroy_h" last_modification_time="Sat, 06 Dec 2003 11:43:50 GMT"/>
   <signal name="response" handler="mn_preferences_response_h" last_modification_time="Sat, 06 Dec 2003 12:33:33 GMT"/>
@@ -29,13 +34,27 @@
 	  <property name="layout_style">GTK_BUTTONBOX_END</property>
 
 	  <child>
-	    <widget class="GtkButton" id="button1">
+	    <widget class="GtkButton" id="button3">
+	      <property name="visible">True</property>
+	      <property name="can_default">True</property>
+	      <property name="can_focus">True</property>
+	      <property name="label">gtk-help</property>
+	      <property name="use_stock">True</property>
+	      <property name="relief">GTK_RELIEF_NORMAL</property>
+	      <property name="focus_on_click">True</property>
+	      <property name="response_id">-11</property>
+	    </widget>
+	  </child>
+
+	  <child>
+	    <widget class="GtkButton" id="button4">
 	      <property name="visible">True</property>
 	      <property name="can_default">True</property>
 	      <property name="can_focus">True</property>
 	      <property name="label">gtk-close</property>
 	      <property name="use_stock">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
+	      <property name="focus_on_click">True</property>
 	      <property name="response_id">-7</property>
 	    </widget>
 	  </child>
@@ -110,29 +129,31 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkVBox" id="vbox4">
+		    <widget class="GtkVBox" id="vbox9">
 		      <property name="visible">True</property>
 		      <property name="homogeneous">False</property>
 		      <property name="spacing">6</property>
 
 		      <child>
-			<widget class="GtkHBox" id="hbox2">
+			<widget class="GtkHBox" id="hbox11">
 			  <property name="visible">True</property>
 			  <property name="homogeneous">False</property>
-			  <property name="spacing">6</property>
+			  <property name="spacing">12</property>
 
 			  <child>
-			    <widget class="GtkCheckButton" id="local_check">
+			    <widget class="GtkLabel" id="delay_label">
 			      <property name="visible">True</property>
-			      <property name="tooltip" translatable="yes">Whether to periodically check for new local mail or not</property>
-			      <property name="can_focus">True</property>
-			      <property name="label" translatable="yes">Check for local _mail every</property>
+			      <property name="label" translatable="yes">_Delay between mail checks:</property>
 			      <property name="use_underline">True</property>
-			      <property name="relief">GTK_RELIEF_NORMAL</property>
-			      <property name="active">False</property>
-			      <property name="inconsistent">False</property>
-			      <property name="draw_indicator">True</property>
-			      <signal name="toggled" handler="mn_preferences_toggled_h" last_modification_time="Mon, 29 Sep 2003 12:23:43 GMT"/>
+			      <property name="use_markup">False</property>
+			      <property name="justify">GTK_JUSTIFY_LEFT</property>
+			      <property name="wrap">False</property>
+			      <property name="selectable">False</property>
+			      <property name="xalign">0</property>
+			      <property name="yalign">0.5</property>
+			      <property name="xpad">0</property>
+			      <property name="ypad">0</property>
+			      <property name="mnemonic_widget">minutes_spin</property>
 			    </widget>
 			    <packing>
 			      <property name="padding">0</property>
@@ -142,199 +163,97 @@
 			  </child>
 
 			  <child>
-			    <widget class="GtkSpinButton" id="local_minutes_spin">
+			    <widget class="GtkHBox" id="hbox12">
 			      <property name="visible">True</property>
-			      <property name="tooltip" translatable="yes">Delay between local mail checks (minutes part)</property>
-			      <property name="can_focus">True</property>
-			      <property name="climb_rate">1</property>
-			      <property name="digits">0</property>
-			      <property name="numeric">False</property>
-			      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
-			      <property name="snap_to_ticks">False</property>
-			      <property name="wrap">False</property>
-			      <property name="adjustment">1 0 999999 1 10 10</property>
+			      <property name="homogeneous">False</property>
+			      <property name="spacing">6</property>
+
+			      <child>
+				<widget class="GtkSpinButton" id="minutes_spin">
+				  <property name="visible">True</property>
+				  <property name="tooltip" translatable="yes">The amount of time to wait between mail checks</property>
+				  <property name="can_focus">True</property>
+				  <property name="climb_rate">1</property>
+				  <property name="digits">0</property>
+				  <property name="numeric">True</property>
+				  <property name="update_policy">GTK_UPDATE_ALWAYS</property>
+				  <property name="snap_to_ticks">False</property>
+				  <property name="wrap">False</property>
+				  <property name="adjustment">1 0 1440 1 10 10</property>
+				</widget>
+				<packing>
+				  <property name="padding">0</property>
+				  <property name="expand">False</property>
+				  <property name="fill">False</property>
+				</packing>
+			      </child>
+
+			      <child>
+				<widget class="GtkLabel" id="label16">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">minutes</property>
+				  <property name="use_underline">False</property>
+				  <property name="use_markup">False</property>
+				  <property name="justify">GTK_JUSTIFY_LEFT</property>
+				  <property name="wrap">False</property>
+				  <property name="selectable">False</property>
+				  <property name="xalign">0.5</property>
+				  <property name="yalign">0.5</property>
+				  <property name="xpad">0</property>
+				  <property name="ypad">0</property>
+				</widget>
+				<packing>
+				  <property name="padding">0</property>
+				  <property name="expand">False</property>
+				  <property name="fill">False</property>
+				</packing>
+			      </child>
+
+			      <child>
+				<widget class="GtkSpinButton" id="seconds_spin">
+				  <property name="visible">True</property>
+				  <property name="tooltip" translatable="yes">The amount of time to wait between mail checks</property>
+				  <property name="can_focus">True</property>
+				  <property name="climb_rate">1</property>
+				  <property name="digits">0</property>
+				  <property name="numeric">True</property>
+				  <property name="update_policy">GTK_UPDATE_ALWAYS</property>
+				  <property name="snap_to_ticks">False</property>
+				  <property name="wrap">False</property>
+				  <property name="adjustment">1 0 59 1 10 10</property>
+				</widget>
+				<packing>
+				  <property name="padding">0</property>
+				  <property name="expand">False</property>
+				  <property name="fill">False</property>
+				</packing>
+			      </child>
+
+			      <child>
+				<widget class="GtkLabel" id="label17">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">seconds</property>
+				  <property name="use_underline">False</property>
+				  <property name="use_markup">False</property>
+				  <property name="justify">GTK_JUSTIFY_LEFT</property>
+				  <property name="wrap">False</property>
+				  <property name="selectable">False</property>
+				  <property name="xalign">0.5</property>
+				  <property name="yalign">0.5</property>
+				  <property name="xpad">0</property>
+				  <property name="ypad">0</property>
+				</widget>
+				<packing>
+				  <property name="padding">0</property>
+				  <property name="expand">False</property>
+				  <property name="fill">False</property>
+				</packing>
+			      </child>
 			    </widget>
 			    <packing>
 			      <property name="padding">0</property>
 			      <property name="expand">True</property>
 			      <property name="fill">True</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkLabel" id="local_minutes_label">
-			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">minutes</property>
-			      <property name="use_underline">False</property>
-			      <property name="use_markup">False</property>
-			      <property name="justify">GTK_JUSTIFY_LEFT</property>
-			      <property name="wrap">False</property>
-			      <property name="selectable">False</property>
-			      <property name="xalign">0.5</property>
-			      <property name="yalign">0.5</property>
-			      <property name="xpad">0</property>
-			      <property name="ypad">0</property>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">False</property>
-			      <property name="fill">False</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkSpinButton" id="local_seconds_spin">
-			      <property name="visible">True</property>
-			      <property name="tooltip" translatable="yes">Delay between local mail checks (seconds part)</property>
-			      <property name="can_focus">True</property>
-			      <property name="climb_rate">1</property>
-			      <property name="digits">0</property>
-			      <property name="numeric">False</property>
-			      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
-			      <property name="snap_to_ticks">False</property>
-			      <property name="wrap">False</property>
-			      <property name="adjustment">1 0 999999 1 10 10</property>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">True</property>
-			      <property name="fill">True</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkLabel" id="local_seconds_label">
-			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">seconds</property>
-			      <property name="use_underline">False</property>
-			      <property name="use_markup">False</property>
-			      <property name="justify">GTK_JUSTIFY_LEFT</property>
-			      <property name="wrap">False</property>
-			      <property name="selectable">False</property>
-			      <property name="xalign">0.5</property>
-			      <property name="yalign">0.5</property>
-			      <property name="xpad">0</property>
-			      <property name="ypad">0</property>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">False</property>
-			      <property name="fill">False</property>
-			    </packing>
-			  </child>
-			</widget>
-			<packing>
-			  <property name="padding">0</property>
-			  <property name="expand">True</property>
-			  <property name="fill">True</property>
-			</packing>
-		      </child>
-
-		      <child>
-			<widget class="GtkHBox" id="hbox3">
-			  <property name="visible">True</property>
-			  <property name="homogeneous">False</property>
-			  <property name="spacing">6</property>
-
-			  <child>
-			    <widget class="GtkCheckButton" id="remote_check">
-			      <property name="visible">True</property>
-			      <property name="tooltip" translatable="yes">Whether to periodically check for new remote mail or not</property>
-			      <property name="can_focus">True</property>
-			      <property name="label" translatable="yes">Check for rem_ote mail every</property>
-			      <property name="use_underline">True</property>
-			      <property name="relief">GTK_RELIEF_NORMAL</property>
-			      <property name="active">False</property>
-			      <property name="inconsistent">False</property>
-			      <property name="draw_indicator">True</property>
-			      <signal name="toggled" handler="mn_preferences_toggled_h" last_modification_time="Mon, 29 Sep 2003 12:23:36 GMT"/>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">False</property>
-			      <property name="fill">False</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkSpinButton" id="remote_minutes_spin">
-			      <property name="visible">True</property>
-			      <property name="tooltip" translatable="yes">Delay between remote mail checks (minutes part)</property>
-			      <property name="can_focus">True</property>
-			      <property name="climb_rate">1</property>
-			      <property name="digits">0</property>
-			      <property name="numeric">False</property>
-			      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
-			      <property name="snap_to_ticks">False</property>
-			      <property name="wrap">False</property>
-			      <property name="adjustment">1 0 999999 1 10 10</property>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">True</property>
-			      <property name="fill">True</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkLabel" id="remote_minutes_label">
-			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">minutes</property>
-			      <property name="use_underline">False</property>
-			      <property name="use_markup">False</property>
-			      <property name="justify">GTK_JUSTIFY_LEFT</property>
-			      <property name="wrap">False</property>
-			      <property name="selectable">False</property>
-			      <property name="xalign">0.5</property>
-			      <property name="yalign">0.5</property>
-			      <property name="xpad">0</property>
-			      <property name="ypad">0</property>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">False</property>
-			      <property name="fill">False</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkSpinButton" id="remote_seconds_spin">
-			      <property name="visible">True</property>
-			      <property name="tooltip" translatable="yes">Delay between remote mail checks (seconds part)</property>
-			      <property name="can_focus">True</property>
-			      <property name="climb_rate">1</property>
-			      <property name="digits">0</property>
-			      <property name="numeric">False</property>
-			      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
-			      <property name="snap_to_ticks">False</property>
-			      <property name="wrap">False</property>
-			      <property name="adjustment">1 0 999999 1 10 10</property>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">True</property>
-			      <property name="fill">True</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkLabel" id="remote_seconds_label">
-			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">seconds</property>
-			      <property name="use_underline">False</property>
-			      <property name="use_markup">False</property>
-			      <property name="justify">GTK_JUSTIFY_LEFT</property>
-			      <property name="wrap">False</property>
-			      <property name="selectable">False</property>
-			      <property name="xalign">0.5</property>
-			      <property name="yalign">0.5</property>
-			      <property name="xpad">0</property>
-			      <property name="ypad">0</property>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">False</property>
-			      <property name="fill">False</property>
 			    </packing>
 			  </child>
 			</widget>
@@ -427,13 +346,14 @@
 		      <property name="spacing">6</property>
 
 		      <child>
-			<widget class="GtkScrolledWindow" id="scrolledwindow1">
+			<widget class="GtkScrolledWindow" id="scrolled">
 			  <property name="visible">True</property>
 			  <property name="can_focus">True</property>
 			  <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
 			  <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
 			  <property name="shadow_type">GTK_SHADOW_IN</property>
 			  <property name="window_placement">GTK_CORNER_TOP_LEFT</property>
+			  <signal name="drag_motion" handler="mn_preferences_scrolled_drag_motion_h" last_modification_time="Tue, 15 Jun 2004 14:16:09 GMT"/>
 
 			  <child>
 			    <widget class="GtkTreeView" id="list">
@@ -443,6 +363,9 @@
 			      <property name="rules_hint">False</property>
 			      <property name="reorderable">False</property>
 			      <property name="enable_search">True</property>
+			      <signal name="popup_menu" handler="mn_preferences_list_popup_menu_h" last_modification_time="Wed, 26 May 2004 23:37:04 GMT"/>
+			      <signal name="button_press_event" handler="mn_preferences_list_button_press_event_h" last_modification_time="Wed, 26 May 2004 23:37:29 GMT"/>
+			      <signal name="row_activated" handler="mn_preferences_list_row_activated_h" last_modification_time="Sat, 05 Jun 2004 21:45:43 GMT"/>
 			    </widget>
 			  </child>
 			</widget>
@@ -450,6 +373,27 @@
 			  <property name="padding">0</property>
 			  <property name="expand">True</property>
 			  <property name="fill">True</property>
+			</packing>
+		      </child>
+
+		      <child>
+			<widget class="GtkLabel" id="selected_label">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes"></property>
+			  <property name="use_underline">False</property>
+			  <property name="use_markup">False</property>
+			  <property name="justify">GTK_JUSTIFY_LEFT</property>
+			  <property name="wrap">False</property>
+			  <property name="selectable">False</property>
+			  <property name="xalign">0.5</property>
+			  <property name="yalign">0.5</property>
+			  <property name="xpad">0</property>
+			  <property name="ypad">0</property>
+			</widget>
+			<packing>
+			  <property name="padding">0</property>
+			  <property name="expand">False</property>
+			  <property name="fill">False</property>
 			</packing>
 		      </child>
 
@@ -463,139 +407,16 @@
 			    <widget class="GtkButton" id="button2">
 			      <property name="visible">True</property>
 			      <property name="can_focus">True</property>
+			      <property name="label">gtk-add</property>
+			      <property name="use_stock">True</property>
 			      <property name="relief">GTK_RELIEF_NORMAL</property>
-			      <signal name="clicked" handler="mn_preferences_add_local_clicked_h" last_modification_time="Sat, 06 Dec 2003 13:59:32 GMT"/>
-
-			      <child>
-				<widget class="GtkAlignment" id="alignment1">
-				  <property name="visible">True</property>
-				  <property name="xalign">0.5</property>
-				  <property name="yalign">0.5</property>
-				  <property name="xscale">0</property>
-				  <property name="yscale">0</property>
-
-				  <child>
-				    <widget class="GtkHBox" id="hbox6">
-				      <property name="visible">True</property>
-				      <property name="homogeneous">False</property>
-				      <property name="spacing">2</property>
-
-				      <child>
-					<widget class="GtkImage" id="image1">
-					  <property name="visible">True</property>
-					  <property name="stock">gtk-add</property>
-					  <property name="icon_size">4</property>
-					  <property name="xalign">0.5</property>
-					  <property name="yalign">0.5</property>
-					  <property name="xpad">0</property>
-					  <property name="ypad">0</property>
-					</widget>
-					<packing>
-					  <property name="padding">0</property>
-					  <property name="expand">False</property>
-					  <property name="fill">False</property>
-					</packing>
-				      </child>
-
-				      <child>
-					<widget class="GtkLabel" id="label9">
-					  <property name="visible">True</property>
-					  <property name="label" translatable="yes">_Add local mailbox</property>
-					  <property name="use_underline">True</property>
-					  <property name="use_markup">False</property>
-					  <property name="justify">GTK_JUSTIFY_LEFT</property>
-					  <property name="wrap">False</property>
-					  <property name="selectable">False</property>
-					  <property name="xalign">0.5</property>
-					  <property name="yalign">0.5</property>
-					  <property name="xpad">0</property>
-					  <property name="ypad">0</property>
-					</widget>
-					<packing>
-					  <property name="padding">0</property>
-					  <property name="expand">False</property>
-					  <property name="fill">False</property>
-					</packing>
-				      </child>
-				    </widget>
-				  </child>
-				</widget>
-			      </child>
+			      <property name="focus_on_click">True</property>
+			      <signal name="clicked" handler="mn_preferences_add_clicked_h" last_modification_time="Thu, 27 May 2004 20:34:29 GMT"/>
 			    </widget>
 			    <packing>
 			      <property name="padding">0</property>
 			      <property name="expand">True</property>
 			      <property name="fill">True</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkButton" id="add_remote">
-			      <property name="visible">True</property>
-			      <property name="can_focus">True</property>
-			      <property name="relief">GTK_RELIEF_NORMAL</property>
-			      <signal name="clicked" handler="mn_preferences_add_remote_clicked_h" last_modification_time="Sat, 06 Dec 2003 13:59:44 GMT"/>
-
-			      <child>
-				<widget class="GtkAlignment" id="alignment2">
-				  <property name="visible">True</property>
-				  <property name="xalign">0.5</property>
-				  <property name="yalign">0.5</property>
-				  <property name="xscale">0</property>
-				  <property name="yscale">0</property>
-
-				  <child>
-				    <widget class="GtkHBox" id="hbox7">
-				      <property name="visible">True</property>
-				      <property name="homogeneous">False</property>
-				      <property name="spacing">2</property>
-
-				      <child>
-					<widget class="GtkImage" id="image2">
-					  <property name="visible">True</property>
-					  <property name="stock">gtk-add</property>
-					  <property name="icon_size">4</property>
-					  <property name="xalign">0.5</property>
-					  <property name="yalign">0.5</property>
-					  <property name="xpad">0</property>
-					  <property name="ypad">0</property>
-					</widget>
-					<packing>
-					  <property name="padding">0</property>
-					  <property name="expand">False</property>
-					  <property name="fill">False</property>
-					</packing>
-				      </child>
-
-				      <child>
-					<widget class="GtkLabel" id="label10">
-					  <property name="visible">True</property>
-					  <property name="label" translatable="yes">Add remo_te mailbox</property>
-					  <property name="use_underline">True</property>
-					  <property name="use_markup">False</property>
-					  <property name="justify">GTK_JUSTIFY_LEFT</property>
-					  <property name="wrap">False</property>
-					  <property name="selectable">False</property>
-					  <property name="xalign">0.5</property>
-					  <property name="yalign">0.5</property>
-					  <property name="xpad">0</property>
-					  <property name="ypad">0</property>
-					</widget>
-					<packing>
-					  <property name="padding">0</property>
-					  <property name="expand">False</property>
-					  <property name="fill">False</property>
-					</packing>
-				      </child>
-				    </widget>
-				  </child>
-				</widget>
-			      </child>
-			    </widget>
-			    <packing>
-			      <property name="padding">0</property>
-			      <property name="expand">False</property>
-			      <property name="fill">False</property>
 			    </packing>
 			  </child>
 
@@ -606,7 +427,25 @@
 			      <property name="label">gtk-remove</property>
 			      <property name="use_stock">True</property>
 			      <property name="relief">GTK_RELIEF_NORMAL</property>
+			      <property name="focus_on_click">True</property>
 			      <signal name="clicked" handler="mn_preferences_remove_clicked_h" last_modification_time="Sat, 06 Dec 2003 14:00:02 GMT"/>
+			    </widget>
+			    <packing>
+			      <property name="padding">0</property>
+			      <property name="expand">True</property>
+			      <property name="fill">True</property>
+			    </packing>
+			  </child>
+
+			  <child>
+			    <widget class="GtkButton" id="properties">
+			      <property name="visible">True</property>
+			      <property name="can_focus">True</property>
+			      <property name="label">gtk-properties</property>
+			      <property name="use_stock">True</property>
+			      <property name="relief">GTK_RELIEF_NORMAL</property>
+			      <property name="focus_on_click">True</property>
+			      <signal name="clicked" handler="mn_preferences_properties_clicked_h" last_modification_time="Sat, 05 Jun 2004 20:07:54 GMT"/>
 			    </widget>
 			    <packing>
 			      <property name="padding">0</property>
@@ -707,7 +546,7 @@
 			<widget class="GtkHBox" id="hbox9">
 			  <property name="visible">True</property>
 			  <property name="homogeneous">False</property>
-			  <property name="spacing">6</property>
+			  <property name="spacing">12</property>
 
 			  <child>
 			    <widget class="GtkCheckButton" id="command_new_mail_check">
@@ -717,6 +556,7 @@
 			      <property name="label" translatable="yes">When _new mail arrives:</property>
 			      <property name="use_underline">True</property>
 			      <property name="relief">GTK_RELIEF_NORMAL</property>
+			      <property name="focus_on_click">True</property>
 			      <property name="active">False</property>
 			      <property name="inconsistent">False</property>
 			      <property name="draw_indicator">True</property>
@@ -760,7 +600,7 @@
 			<widget class="GtkHBox" id="hbox10">
 			  <property name="visible">True</property>
 			  <property name="homogeneous">False</property>
-			  <property name="spacing">6</property>
+			  <property name="spacing">12</property>
 
 			  <child>
 			    <widget class="GtkCheckButton" id="command_clicked_check">
@@ -770,6 +610,7 @@
 			      <property name="label" translatable="yes">When click_ed:</property>
 			      <property name="use_underline">True</property>
 			      <property name="relief">GTK_RELIEF_NORMAL</property>
+			      <property name="focus_on_click">True</property>
 			      <property name="active">False</property>
 			      <property name="inconsistent">False</property>
 			      <property name="draw_indicator">True</property>
@@ -836,6 +677,95 @@
 	  <property name="fill">True</property>
 	</packing>
       </child>
+    </widget>
+  </child>
+</widget>
+
+<widget class="GtkMenu" id="mailbox_menu">
+
+  <child>
+    <widget class="GtkImageMenuItem" id="add_item">
+      <property name="visible">True</property>
+      <property name="label" translatable="yes">_Add</property>
+      <property name="use_underline">True</property>
+      <signal name="activate" handler="mn_preferences_add_item_activate_h" last_modification_time="Thu, 27 May 2004 20:35:19 GMT"/>
+
+      <child internal-child="image">
+	<widget class="GtkImage" id="image10">
+	  <property name="visible">True</property>
+	  <property name="stock">gtk-add</property>
+	  <property name="icon_size">1</property>
+	  <property name="xalign">0.5</property>
+	  <property name="yalign">0.5</property>
+	  <property name="xpad">0</property>
+	  <property name="ypad">0</property>
+	</widget>
+      </child>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkImageMenuItem" id="remove_item">
+      <property name="visible">True</property>
+      <property name="label" translatable="yes">_Remove</property>
+      <property name="use_underline">True</property>
+      <signal name="activate" handler="mn_preferences_remove_item_activate_h" last_modification_time="Wed, 26 May 2004 23:31:31 GMT"/>
+
+      <child internal-child="image">
+	<widget class="GtkImage" id="image11">
+	  <property name="visible">True</property>
+	  <property name="stock">gtk-remove</property>
+	  <property name="icon_size">1</property>
+	  <property name="xalign">0.5</property>
+	  <property name="yalign">0.5</property>
+	  <property name="xpad">0</property>
+	  <property name="ypad">0</property>
+	</widget>
+      </child>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkSeparatorMenuItem" id="separator1">
+      <property name="visible">True</property>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkImageMenuItem" id="cut_item">
+      <property name="visible">True</property>
+      <property name="stock_item">GNOMEUIINFO_MENU_CUT_ITEM</property>
+      <signal name="activate" handler="mn_preferences_cut_item_activate_h" last_modification_time="Sat, 12 Jun 2004 19:00:48 GMT"/>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkImageMenuItem" id="copy_item">
+      <property name="visible">True</property>
+      <property name="stock_item">GNOMEUIINFO_MENU_COPY_ITEM</property>
+      <signal name="activate" handler="mn_preferences_copy_item_activate_h" last_modification_time="Sat, 12 Jun 2004 19:00:48 GMT"/>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkImageMenuItem" id="paste_item">
+      <property name="visible">True</property>
+      <property name="stock_item">GNOMEUIINFO_MENU_PASTE_ITEM</property>
+      <signal name="activate" handler="mn_preferences_paste_item_activate_h" last_modification_time="Sat, 12 Jun 2004 19:00:48 GMT"/>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkSeparatorMenuItem" id="separator2">
+      <property name="visible">True</property>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkImageMenuItem" id="properties_item">
+      <property name="visible">True</property>
+      <property name="stock_item">GNOMEUIINFO_MENU_PROPERTIES_ITEM</property>
+      <signal name="activate" handler="mn_preferences_properties_item_activate_h" last_modification_time="Sat, 05 Jun 2004 20:10:49 GMT"/>
     </widget>
   </child>
 </widget>

@@ -19,16 +19,18 @@
 #include "config.h"
 #include <gnome.h>
 #include "mn-mail-icon.h"
-#include "mn-check.h"
 #include "mn-preferences.h"
 #include "mn-dialog.h"
 #include "mn-util.h"
 #include "mn-conf.h"
+#include "mn-mailboxes.h"
+#include "mn-stock.h"
+#include "mn-unsupported-mailbox.h"
 
 /*** variables ***************************************************************/
 
 static MNMailIcon *mail_icon;
-static GtkWidget *check_for_mail_item;
+static GtkWidget *update_item;
 
 /*** functions ***************************************************************/
 
@@ -49,16 +51,14 @@ mn_ui_init (void)
 static void
 mn_ui_icon_init (void)
 {
-  GladeXML *xml;
   GtkWidget *menu;
 
   mail_icon = MN_MAIL_ICON(mn_mail_icon_new());
 
-  xml = mn_glade_xml_new("menu");
-  menu = glade_xml_get_widget(xml, "menu");
-  check_for_mail_item = glade_xml_get_widget(xml, "check_for_mail");
-  g_object_unref(xml);
-
+  mn_create_interface("menu",
+		      "menu", &menu,
+		      "update", &update_item,
+		      NULL);
   mn_mail_icon_set_popup_menu(mail_icon, GTK_MENU(menu));
 
   g_signal_connect(G_OBJECT(mail_icon), "activate",
@@ -72,22 +72,25 @@ mn_ui_icon_init (void)
 static void
 mn_ui_icon_activate_h (MNMailIcon *icon, gpointer user_data)
 {
-  if (mn_conf_get_bool("/apps/mail-notification/commands/clicked/enabled"))
+  if (eel_gconf_get_boolean(MN_CONF_COMMANDS_CLICKED_ENABLED))
     {
-      const char *command;
+      char *command;
 
-      command = mn_conf_get_string("/apps/mail-notification/commands/clicked/command");
+      command = eel_gconf_get_string(MN_CONF_COMMANDS_CLICKED_COMMAND);
       if (command)
 	{
 	  GError *err = NULL;
 	  
 	  if (! g_spawn_command_line_async(command, &err))
 	    {
-	      mn_error_dialog(_("Command error."),
+	      mn_error_dialog(NULL,
+			      _("A command error has occurred."),
 			      _("Unable to execute clicked command: %s."),
 			      err->message);
 	      g_error_free(err);
 	    }
+
+	  g_free(command);
 	}
     }
 }
@@ -100,30 +103,132 @@ mn_ui_icon_destroy_h (GtkObject *object, gpointer user_data)
 }
 
 void
-mn_ui_set_has_new (gboolean has_new)
+mn_ui_update_sensitivity (void)
 {
-  mn_mail_icon_set_has_new(mail_icon, has_new);
+  gboolean has_manual = FALSE;
+  GSList *l;
+
+  MN_LIST_FOREACH(l, mn_mailboxes_get())
+    {
+      MNMailbox *mailbox = l->data;
+
+      if (MN_MAILBOX_GET_CLASS(mailbox)->check && ! mn_mailbox_get_automatic(mailbox))
+	{
+	  has_manual = TRUE;
+	  break;
+	}
+    }
+
+  gtk_widget_set_sensitive(update_item, has_manual);
 }
 
 void
-mn_ui_set_can_check (gboolean can_check)
+mn_ui_update_icon (void)
 {
-  gtk_widget_set_sensitive(check_for_mail_item, can_check);
+  GSList *l;
+  int n_new = 0;
+  int n_error = 0;
+  int n_unsupported = 0;
+  GString *new_string;
+  GString *error_string;
+  GString *unsupported_string;
+  const char *stock_id;
+  GString *tooltip;
+
+  new_string = g_string_new(NULL);
+  error_string = g_string_new(NULL);
+  unsupported_string = g_string_new(NULL);
+
+  MN_LIST_FOREACH(l, mn_mailboxes_get())
+    {
+      MNMailbox *mailbox = l->data;
+      const char *name;
+      const char *error;
+
+      name = mn_mailbox_get_name(mailbox);
+      error = mn_mailbox_get_error(mailbox);
+
+      if (mn_mailbox_get_has_new(mailbox))
+	{
+	  n_new++;
+	  if (*new_string->str)
+	    g_string_append_c(new_string, '\n');
+	  g_string_append_printf(new_string, "    %s", name);
+	}
+
+      if (error)
+	{
+	  n_error++;
+	  if (*error_string->str)
+	    g_string_append_c(error_string, '\n');
+	  g_string_append_printf(error_string, "    %s (%s)", name, error);
+	}
+
+      if (MN_IS_UNSUPPORTED_MAILBOX(mailbox))
+	{
+	  n_unsupported++;
+	  if (*unsupported_string->str)
+	    g_string_append_c(unsupported_string, '\n');
+	  g_string_append_printf(unsupported_string, "    %s (%s)", name, mn_unsupported_mailbox_get_reason(MN_UNSUPPORTED_MAILBOX(mailbox)));
+	}
+    }
+
+  if (n_new > 0)
+    {
+      stock_id = n_error > 0 ? MN_STOCK_MAIL_ERROR : MN_STOCK_MAIL;
+      g_string_prepend(new_string, ngettext("The following mailbox has new mail:\n",
+					    "The following mailboxes have new mail:\n",
+					    n_new));
+    }
+  else
+    {
+      stock_id = n_error > 0 ? MN_STOCK_NO_MAIL_ERROR : MN_STOCK_NO_MAIL;
+      g_string_prepend(new_string, _("You have no new mail."));
+    }
+
+  if (n_error > 0)
+    g_string_prepend(error_string, ngettext("The following mailbox reported an error:\n",
+					    "The following mailboxes reported an error:\n",
+					    n_error));
+
+  if (n_unsupported > 0)
+    g_string_prepend(unsupported_string, ngettext("The following mailbox is unsupported:\n",
+						  "The following mailboxes are unsupported:\n",
+						  n_unsupported));
+
+  tooltip = g_string_new(new_string->str);
+  if (n_error > 0)
+    g_string_append_printf(tooltip, "\n\n%s", error_string->str);
+  if (n_unsupported > 0)
+    g_string_append_printf(tooltip, "\n\n%s", unsupported_string->str);
+
+  mn_mail_icon_set_from_stock(mail_icon, stock_id);
+  mn_mail_icon_set_tooltip(mail_icon, tooltip->str);
+
+  g_string_free(tooltip, TRUE);
+  g_string_free(new_string, TRUE);
+  g_string_free(error_string, TRUE);
+  g_string_free(unsupported_string, TRUE);
 }
 
 /* libglade callbacks */
 
 void
-mn_ui_check_for_mail_activate_h (GtkMenuItem *menuitem, gpointer user_data)
+mn_ui_update_activate_h (GtkMenuItem *menuitem, gpointer user_data)
 {
-  mn_check(MN_CHECK_INTERACTIVE);			/* local mail */
-  mn_check(MN_CHECK_INTERACTIVE | MN_CHECK_REMOTE);	/* remote mail */
+  mn_mailboxes_check();
 }
 
 void
 mn_ui_preferences_activate_h (GtkMenuItem *menuitem, gpointer user_data)
 {
   mn_preferences_display();
+}
+
+void
+mn_ui_help_activate_h (GtkMenuItem *menuitem, gpointer user_data)
+{
+  mn_display_help(NULL);
 }
 
 void
@@ -143,8 +248,8 @@ mn_ui_about_activate_h (GtkMenuItem *menuitem, gpointer user_data)
   logo = mn_pixbuf_new("logo.png");
   about = gnome_about_new(_("Mail Notification"),
 			  VERSION,
-			  _("Copyright (c) 2003, 2004 Jean-Yves Lefort"),
-			  _("A Mail Notification for the Panel Notification Area"),
+			  "Copyright \302\251 2003, 2004 Jean-Yves Lefort",
+			  _("A Mail Notification Icon"),
 			  authors,
 			  NULL,
 			  NULL,

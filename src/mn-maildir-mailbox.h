@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 #ifndef _MN_MAILDIR_MAILBOX_H
 #define _MN_MAILDIR_MAILBOX_H
 
-#include <glib.h>
 #include <glib-object.h>
 #include "mn-mailbox.h"
 
@@ -30,24 +29,20 @@
 #define MN_IS_MAILDIR_MAILBOX_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE((klass), MN_TYPE_MAILDIR_MAILBOX))
 #define MN_MAILDIR_MAILBOX_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS((obj), MN_TYPE_MAILDIR_MAILBOX, MNMaildirMailboxClass))
 
-#define MN_MAILDIR_MAILBOX_ERROR		(mn_maildir_mailbox_error_quark())
-
-typedef enum
-{
-  MN_MAILDIR_MAILBOX_ERROR_OPEN_NEW
-} MNMaildirMailboxError;
+typedef struct _MNMaildirMailboxPrivate MNMaildirMailboxPrivate;
 
 typedef struct
 {
-  MNMailbox		mailbox;
+  MNMailbox			mailbox;
+
+  MNMaildirMailboxPrivate	*priv;
 } MNMaildirMailbox;
 
 typedef struct
 {
-  MNMailboxClass	mailbox_class;
+  MNMailboxClass		mailbox_class;
 } MNMaildirMailboxClass;
 
 GType	mn_maildir_mailbox_get_type	(void);
-GQuark	mn_maildir_mailbox_error_quark	(void);
 
 #endif /* _MN_MAILDIR_MAILBOX_H */

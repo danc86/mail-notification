@@ -19,30 +19,42 @@
 #ifndef _MN_UTIL_H
 #define _MN_UTIL_H
 
-#include <gtk/gtk.h>
-#include <glade/glade.h>
+#include "config.h"
 #include <stdarg.h>
+#include <gtk/gtk.h>
 
 #define MN_LIST_FOREACH(var, head)		\
 for ((var) = (head);				\
      (var);					\
      (var) = (var)->next)
 
+void		mn_info				(const char	*format,
+						 ...);
 void		mn_slist_free			(GSList		*list);
 
-void		mn_objects_free			(GSList		*list);
-GSList		*mn_objects_copy		(GSList		*list);
-
-#ifdef HAVE_GNET
-GIOError	mn_gnet_io_channel_printf	(GIOChannel	*channel,
-						 const char	*format,
-						 ...);
-#endif /* HAVE_GNET */
-
 gboolean	mn_str_isnumeric		(const char	*str);
-gboolean	mn_utf8_strcasecontains		(const char	*big,
-						 const char	*little);
+
 GdkPixbuf	*mn_pixbuf_new			(const char	*filename);
-GladeXML	*mn_glade_xml_new		(const char	*filename);
+void		mn_create_interface		(const char	*name,
+						 ...);
+
+void mn_file_chooser_dialog_allow_select_folder (GtkFileChooserDialog *dialog,
+						 int accept_id);
+
+void		mn_setup_dnd			(GtkWidget	*widget);
+
+typedef enum
+{
+  MN_GNOME_COPIED_FILES_CUT,
+  MN_GNOME_COPIED_FILES_COPY
+} MNGnomeCopiedFilesType;
+
+char		*mn_build_gnome_copied_files	(MNGnomeCopiedFilesType type,
+						 GSList		*uri_list);
+gboolean	mn_parse_gnome_copied_files	(const char	*gnome_copied_files,
+						 MNGnomeCopiedFilesType *type,
+						 GSList		**uri_list);
+
+void		mn_display_help			(const char	*link_id);
 
 #endif /* _MN_UTIL_H */

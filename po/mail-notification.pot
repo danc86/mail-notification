@@ -8,13 +8,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-03-19 14:22+0100\n"
+"POT-Creation-Date: 2004-06-29 20:10+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
 #: src/eggtrayicon.c:109
 msgid "Orientation"
@@ -24,375 +25,405 @@ msgstr ""
 msgid "The orientation of the tray."
 msgstr ""
 
-#: src/mail-notification.c:38
-msgid "Compiled in handlers:\n"
+#: src/mn-mail-icon.c:130
+msgid "You have no new mail"
 msgstr ""
 
-#: src/mail-notification.c:68
-msgid "Enable debugging output"
+#: src/mn-mailbox-properties-dialog.c:117
+msgid "Add a Mailbox"
 msgstr ""
 
-#: src/mail-notification.c:77
-msgid "List compiled-in handlers and exit"
-msgstr ""
-
-#: src/mail-notification.c:93
-msgid "the GLib thread system is unavailable"
-msgstr ""
-
-#: src/mail-notification.c:100 src/mn-ui.c:144
-msgid "Mail Notification"
-msgstr ""
-
-#: src/mn-check.c:75 src/mn-check.c:134
-msgid "Check error."
-msgstr ""
-
-#: src/mn-check.c:76
+#: src/mn-mailbox-properties-dialog.c:250
 #, c-format
-msgid "Unable to create a thread: %s."
+msgid "%s Properties"
 msgstr ""
 
-#: src/mn-check.c:79
+#: src/mn-mailbox-properties-dialog.c:393
+msgid "Select a File or Folder"
+msgstr ""
+
+#: src/mn-mailbox.c:193
+msgid "URI"
+msgstr ""
+
+#: src/mn-mailbox.c:194
+msgid "The mailbox URI"
+msgstr ""
+
+#: src/mn-mailbox.c:200
+msgid "Name"
+msgstr ""
+
+#: src/mn-mailbox.c:201
+msgid "The mailbox human-readable name"
+msgstr ""
+
+#: src/mn-mailbox.c:207
+msgid "Automatic"
+msgstr ""
+
+#: src/mn-mailbox.c:208
+msgid "Whether the mailbox has to be manually checked or not"
+msgstr ""
+
+#: src/mn-mailbox.c:214
+msgid "Has new"
+msgstr ""
+
+#: src/mn-mailbox.c:215
+msgid "Whether the mailbox has new mail or not"
+msgstr ""
+
+#: src/mn-mailbox.c:221
+msgid "Error"
+msgstr ""
+
+#: src/mn-mailbox.c:222
+msgid "The mailbox error if any"
+msgstr ""
+
+#: src/mn-mailbox.c:248
 #, c-format
-msgid "unable to create a thread: %s"
+msgid "unable to cancel monitoring of %s: %s"
 msgstr ""
 
-#: src/mn-check.c:126
+#: src/mn-mailbox.c:437
+msgid "does not exist"
+msgstr ""
+
+#: src/mn-mailbox.c:454
+msgid "unknown format"
+msgstr ""
+
+#: src/mn-mailbox.c:547
 #, c-format
-msgid "checking if there is new mail in %s"
+msgid "unable to monitor %s: %s"
 msgstr ""
 
-#: src/mn-check.c:135
+#: src/mn-mailbox.c:561
 #, c-format
-msgid "Unable to check mailbox <i>%s</i>: %s."
-msgstr ""
+msgid ""
+"As a fallback, they will be checked every %i second (this delay is "
+"configurable from the Preferences Dialog)."
+msgid_plural ""
+"As a fallback, they will be checked every %i seconds (this delay is "
+"configurable from the Preferences Dialog)."
+msgstr[0] ""
+msgstr[1] ""
 
-#: src/mn-check.c:142
+#: src/mn-mailbox.c:572
 #, c-format
-msgid "unable to check mailbox %s: %s"
+msgid ""
+"As a fallback, they will be checked every %i minute (this delay is "
+"configurable from the Preferences Dialog)."
+msgid_plural ""
+"As a fallback, they will be checked every %i minutes (this delay is "
+"configurable from the Preferences Dialog)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-mailbox.c:583
+#, c-format
+msgid ""
+"As a fallback, they will be checked approximately every %i minute (this "
+"delay is configurable from the Preferences Dialog)."
+msgid_plural ""
+"As a fallback, they will be checked approximately every %i minutes (this "
+"delay is configurable from the Preferences Dialog)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-mailbox.c:597
+msgid "A monitoring error has occurred."
 msgstr ""
 
-#: src/mn-check.c:155
+#: src/mn-mailbox.c:598
+#, c-format
+msgid ""
+"Mail Notification was unable to enable automatic notification for one or "
+"more mailboxes. %s"
+msgstr ""
+
+#: src/mn-mailboxes.c:133
 #, c-format
 msgid "%s has new mail"
 msgstr ""
 
-#: src/mn-check.c:156
+#: src/mn-mailboxes.c:133
 #, c-format
 msgid "%s has no new mail"
 msgstr ""
 
-#: src/mn-check.c:216 src/mn-ui.c:86
-msgid "Command error."
-msgstr ""
-
-#: src/mn-check.c:217
+#: src/mn-mailboxes.c:143
 #, c-format
-msgid "Unable to execute new mail command: %s."
+msgid "%s reported an error: %s"
 msgstr ""
 
-#: src/mn-check.c:223
+#: src/mn-maildir-mailbox.c:226 src/mn-sylpheed-mailbox.c:209
 #, c-format
-msgid "unable to execute new mail command: %s"
+msgid "error while reading folder: %s"
 msgstr ""
 
-#: src/mn-conf.c:84 src/mn-conf.c:104
-msgid "Initialization error."
+#: src/mn-main.c:49
+msgid "Compiled in handlers:\n"
 msgstr ""
 
-#: src/mn-conf.c:85
+#: src/mn-main.c:83
+msgid "Enable informational output"
+msgstr ""
+
+#: src/mn-main.c:92
+msgid "List compiled-in handlers and exit"
+msgstr ""
+
+#: src/mn-main.c:112 src/mn-ui.c:249
+msgid "Mail Notification"
+msgstr ""
+
+#: src/mn-main.c:124
+msgid "unable to initialize GnomeVFS"
+msgstr ""
+
+#: src/mn-mbox-mailbox.c:339
 #, c-format
-msgid "Error while calling <i>gconf_client_notify_add()</i>: %s."
+msgid "unable to get mailbox information: %s"
 msgstr ""
 
-#: src/mn-conf.c:105
+#: src/mn-mbox-mailbox.c:364
 #, c-format
-msgid "Error while calling <i>gconf_client_add_dir()</i>: %s."
+msgid "unable to open mailbox: %s"
 msgstr ""
 
-#: src/mn-conf.c:129 src/mn-conf.c:147 src/mn-conf.c:165 src/mn-conf.c:183
+#: src/mn-mbox-mailbox.c:401
 #, c-format
-msgid "unable to read in configuration key %s: %s"
+msgid "error while reading mailbox: %s"
 msgstr ""
 
-#: src/mn-conf.c:200 src/mn-conf.c:213 src/mn-conf.c:226 src/mn-conf.c:239
+#: src/mn-mbox-mailbox.c:417
 #, c-format
-msgid "unable to write in configuration key %s: %s"
+msgid "unable to close mailbox: %s"
 msgstr ""
 
-#: src/mn-conf.c:252
+#: src/mn-mh-mailbox.c:185
 #, c-format
-msgid "unable to unset configuration key %s: %s"
+msgid "unable to open .mh_sequences: %s"
 msgstr ""
 
-#: src/mn-dialog.c:52
+#: src/mn-mh-mailbox.c:215
 #, c-format
-msgid "%s: FATAL ERROR: %s\n"
+msgid "error while reading .mh_sequences: %s"
 msgstr ""
 
-#: src/mn-mail-icon.c:137 src/mn-mail-icon.c:266
-msgid "You have no new mail"
-msgstr ""
-
-#: src/mn-mail-icon.c:266
-msgid "You have new mail"
-msgstr ""
-
-#: src/mn-mailbox.c:58
+#: src/mn-mh-mailbox.c:231
 #, c-format
-msgid "unable to initialize %s mailbox: %s"
+msgid "unable to close .mh_sequences: %s"
 msgstr ""
 
-#: src/mn-mailbox.c:139
-msgid "The mailbox's locator"
+#: src/mn-pending-mailbox.c:64
+msgid "detecting..."
 msgstr ""
 
-#: src/mn-mailbox.c:200
-msgid "mailbox not found"
+#: src/mn-pop3-mailbox.c:161
+msgid "unable to parse URI"
 msgstr ""
 
-#: src/mn-mailbox.c:220
-msgid "unknown mailbox format"
-msgstr ""
-
-#: src/mn-mailboxes.c:54
-msgid "Mailbox error."
-msgstr ""
-
-#: src/mn-mailboxes.c:55
-#, c-format
-msgid "Mailbox <i>%s</i> is unsupported: %s."
-msgstr ""
-
-#: src/mn-mailboxes.c:66
-#, c-format
-msgid "registered remote %s mailbox %s"
-msgstr ""
-
-#: src/mn-mailboxes.c:67
-#, c-format
-msgid "registered local %s mailbox %s"
-msgstr ""
-
-#: src/mn-maildir-mailbox.c:110 src/mn-mbox-mailbox.c:155
-#: src/mn-mh-mailbox.c:102
-#, c-format
-msgid "unable to open %s: %s"
-msgstr ""
-
-#: src/mn-mbox-mailbox.c:130 src/mn-sylpheed-mailbox.c:130
-#, c-format
-msgid "unable to stat %s: %s"
-msgstr ""
-
-#: src/mn-mbox-mailbox.c:168
-#, c-format
-msgid "unable to set the encoding for %s: %s"
-msgstr ""
-
-#: src/mn-mbox-mailbox.c:205 src/mn-mh-mailbox.c:133
-#, c-format
-msgid "error while reading %s: %s"
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:219
-#, c-format
-msgid "unable to parse locator \"%s\""
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:243
-#, c-format
-msgid "resolving IP address of %s"
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:249
-#, c-format
-msgid "unable to resolve %s"
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:254
+#: src/mn-pop3-mailbox.c:187
 #, c-format
 msgid "connecting to POP3 server %s:%i"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:263
-#, c-format
-msgid "unable to connect to %s"
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:268
+#: src/mn-pop3-mailbox.c:224
 #, c-format
 msgid "successfully connected to %s:%i"
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:311
+#: src/mn-pop3-mailbox.c:230
+msgid "unable to connect to server"
+msgstr ""
+
+#: src/mn-pop3-mailbox.c:235
+msgid "connection to server unexpectedly closed"
+msgstr ""
+
+#: src/mn-pop3-mailbox.c:274
 #, c-format
-msgid "unable to read from %s"
+msgid "invalid STAT reply \"%s\""
 msgstr ""
 
-#: src/mn-pop3-mailbox.c:371
-#, c-format
-msgid "acknowledgement error (server replied \"%s\")"
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:382
-msgid "unable to send username"
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:390
-#, c-format
-msgid "username authentication error (server replied \"%s\")"
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:399
-msgid "unable to send password"
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:407
-#, c-format
-msgid "password authentication error (server replied \"%s\")"
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:416
-msgid "unable to issue a STAT"
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:424
-#, c-format
-msgid "error in STAT reply (server replied \"%s\")"
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:432
-#, c-format
-msgid "could not parse STAT reply \"%s\""
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:442
-msgid "unable to issue a QUIT"
-msgstr ""
-
-#: src/mn-pop3-mailbox.c:450
-#, c-format
-msgid "error in QUIT reply (server replied \"%s\")"
-msgstr ""
-
-#: src/mn-preferences.c:163
+#: src/mn-preferences.c:195 src/old/mn-preferences.c:157
 msgid "Mailbox"
 msgstr ""
 
-#: src/mn-preferences.c:164
+#: src/mn-preferences.c:209 src/old/mn-preferences.c:171
 msgid "Format"
 msgstr ""
 
-#: src/mn-preferences.c:360
-msgid "Select One or More Mailboxes"
+#: src/mn-preferences.c:361 src/old/mn-preferences.c:258
+msgid "No mailbox selected."
 msgstr ""
 
-#: src/mn-preferences.c:457 src/mn-preferences.c:464 src/mn-preferences.c:471
+#: src/mn-preferences.c:366 src/old/mn-preferences.c:263
+#, c-format
+msgid "%i mailbox selected."
+msgid_plural "%i mailboxes selected."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-preferences.c:423 src/old/mn-preferences.c:318
 msgid "Unable to add mailbox."
 msgstr ""
 
-#: src/mn-preferences.c:458
-msgid "The hostname field must be filled."
-msgstr ""
-
-#: src/mn-preferences.c:465
-msgid "The username field must be filled."
-msgstr ""
-
-#: src/mn-preferences.c:472
-msgid "The password field must be filled."
-msgstr ""
-
-#: src/mn-sylpheed-mailbox.c:108
-#, c-format
-msgid "unable to open directory %s: %s"
+#: src/mn-preferences.c:423 src/old/mn-preferences.c:318
+msgid "The mailbox is already in the list."
 msgstr ""
 
 #: src/mn-ui.c:87
+msgid "A command error has occurred."
+msgstr ""
+
+#: src/mn-ui.c:88
 #, c-format
 msgid "Unable to execute clicked command: %s."
 msgstr ""
 
-#: src/mn-ui.c:146
-msgid "Copyright (c) 2003, 2004 Jean-Yves Lefort"
+#: src/mn-ui.c:179
+msgid "The following mailbox has new mail:\n"
+msgid_plural "The following mailboxes have new mail:\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-ui.c:186
+msgid "You have no new mail."
 msgstr ""
 
-#: src/mn-ui.c:147
-msgid "A Mail Notification for the Panel Notification Area"
+#: src/mn-ui.c:190
+msgid "The following mailbox reported an error:\n"
+msgid_plural "The following mailboxes reported an error:\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-ui.c:195
+msgid "The following mailbox is unsupported:\n"
+msgid_plural "The following mailboxes are unsupported:\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mn-ui.c:252
+msgid "A Mail Notification Icon"
 msgstr ""
 
-#: src/mn-unsupported-mailbox.c:62
+#: src/mn-unsupported-mailbox.c:98
 msgid "unsupported"
 msgstr ""
 
-#: src/mn-util.c:158
+#: src/mn-unsupported-mailbox.c:103
+msgid "Reason"
+msgstr ""
+
+#: src/mn-unsupported-mailbox.c:104
+msgid "The reason why the mailbox is unsupported"
+msgstr ""
+
+#: src/mn-util.c:110
 #, c-format
 msgid "error loading image: %s"
 msgstr ""
 
-#: ui/add-pop3-strings.c:7 ui/add-pop3-strings.c:12
-msgid "The hostname or IP address of the POP3 server"
+#: src/mn-util.c:148
+#, c-format
+msgid "widget %s not found in interface %s"
 msgstr ""
 
-#: ui/add-pop3-strings.c:8
-msgid "Add a POP3 Mailbox"
+#: src/mn-util.c:255
+msgid "received an invalid URI list"
 msgstr ""
 
-#: ui/add-pop3-strings.c:9
-msgid "<span weight=\"bold\">Server</span>"
+#: src/mn-util.c:291
+msgid "received an invalid Mozilla URL"
 msgstr ""
 
-#: ui/add-pop3-strings.c:10 ui/add-pop3-strings.c:17
-#: ui/preferences-strings.c:9 ui/preferences-strings.c:23
-#: ui/preferences-strings.c:27
+#: src/mn-util.c:383
+msgid "Unable to display help."
+msgstr ""
+
+#: ui/mailbox-properties-strings.c:7
+msgid "_File or folder"
+msgstr ""
+
+#: ui/mailbox-properties-strings.c:8 ui/mailbox-properties-strings.c:14
+#: ui/preferences-strings.c:9 ui/preferences-strings.c:16
+#: ui/preferences-strings.c:18
 msgid "    "
 msgstr ""
 
-#: ui/add-pop3-strings.c:11
-msgid "_Hostname:"
+#: ui/mailbox-properties-strings.c:9
+msgid "_Location:"
 msgstr ""
 
-#: ui/add-pop3-strings.c:13 ui/add-pop3-strings.c:20 ui/add-pop3-strings.c:23
-#: ui/preferences-strings.c:31 ui/preferences-strings.c:35
+#: ui/mailbox-properties-strings.c:10
+msgid "The URI of the file or folder"
+msgstr ""
+
+#: ui/mailbox-properties-strings.c:11 ui/mailbox-properties-strings.c:17
+#: ui/mailbox-properties-strings.c:22 ui/mailbox-properties-strings.c:25
+#: ui/preferences-strings.c:22 ui/preferences-strings.c:26
 msgid "*"
 msgstr ""
 
-#: ui/add-pop3-strings.c:14
-msgid "_Port:"
+#: ui/mailbox-properties-strings.c:12
+msgid "_Browse..."
 msgstr ""
 
-#: ui/add-pop3-strings.c:15
+#: ui/mailbox-properties-strings.c:13
+msgid "_POP3 mailbox"
+msgstr ""
+
+#: ui/mailbox-properties-strings.c:15
+msgid "_Hostname:"
+msgstr ""
+
+#: ui/mailbox-properties-strings.c:16
+msgid "The hostname or IP address of the POP3 server"
+msgstr ""
+
+#: ui/mailbox-properties-strings.c:18
+msgid "P_ort:"
+msgstr ""
+
+#: ui/mailbox-properties-strings.c:19
 msgid "The port number of the POP3 server"
 msgstr ""
 
-#: ui/add-pop3-strings.c:16
-msgid "<span weight=\"bold\">Authentication</span>"
+#: ui/mailbox-properties-strings.c:20
+msgid "Us_ername:"
 msgstr ""
 
-#: ui/add-pop3-strings.c:18
-msgid "_Username:"
+#: ui/mailbox-properties-strings.c:21
+msgid "Your username on the POP3 server"
 msgstr ""
 
-#: ui/add-pop3-strings.c:19
-msgid "The login name used to authenticate yourself"
+#: ui/mailbox-properties-strings.c:23
+msgid "P_assword:"
 msgstr ""
 
-#: ui/add-pop3-strings.c:21
-msgid "Passw_ord:"
-msgstr ""
-
-#: ui/add-pop3-strings.c:22
-msgid "The password used to authenticate yourself"
+#: ui/mailbox-properties-strings.c:24
+msgid "Your password on the POP3 server"
 msgstr ""
 
 #: ui/menu-strings.c:7
-msgid "Check for new mail"
+msgid "Update the icon"
 msgstr ""
 
 #: ui/menu-strings.c:8
-msgid "_Check for Mail"
+msgid "_Update"
+msgstr ""
+
+#: ui/menu-strings.c:9
+msgid "Show help"
+msgstr ""
+
+#: ui/menu-strings.c:10
+msgid "_Help"
 msgstr ""
 
 #: ui/preferences-strings.c:7
@@ -404,81 +435,57 @@ msgid "<span weight=\"bold\">General</span>"
 msgstr ""
 
 #: ui/preferences-strings.c:10
-msgid "Whether to periodically check for new local mail or not"
+msgid "_Delay between mail checks:"
 msgstr ""
 
-#: ui/preferences-strings.c:11
-msgid "Check for local _mail every"
+#: ui/preferences-strings.c:11 ui/preferences-strings.c:13
+msgid "The amount of time to wait between mail checks"
 msgstr ""
 
 #: ui/preferences-strings.c:12
-msgid "Delay between local mail checks (minutes part)"
-msgstr ""
-
-#: ui/preferences-strings.c:13 ui/preferences-strings.c:19
 msgid "minutes"
 msgstr ""
 
 #: ui/preferences-strings.c:14
-msgid "Delay between local mail checks (seconds part)"
-msgstr ""
-
-#: ui/preferences-strings.c:15 ui/preferences-strings.c:21
 msgid "seconds"
 msgstr ""
 
-#: ui/preferences-strings.c:16
-msgid "Whether to periodically check for new remote mail or not"
-msgstr ""
-
-#: ui/preferences-strings.c:17
-msgid "Check for rem_ote mail every"
-msgstr ""
-
-#: ui/preferences-strings.c:18
-msgid "Delay between remote mail checks (minutes part)"
-msgstr ""
-
-#: ui/preferences-strings.c:20
-msgid "Delay between remote mail checks (seconds part)"
-msgstr ""
-
-#: ui/preferences-strings.c:22
+#: ui/preferences-strings.c:15
 msgid "<span weight=\"bold\">Mailboxes</span>"
 msgstr ""
 
-#: ui/preferences-strings.c:24
-msgid "_Add local mailbox"
-msgstr ""
-
-#: ui/preferences-strings.c:25
-msgid "Add remo_te mailbox"
-msgstr ""
-
-#: ui/preferences-strings.c:26
+#: ui/preferences-strings.c:17
 msgid "<span weight=\"bold\">Commands</span>"
 msgstr ""
 
-#: ui/preferences-strings.c:28
+#: ui/preferences-strings.c:19
 msgid "Whether to run a command when new mail arrives or not"
 msgstr ""
 
-#: ui/preferences-strings.c:29
+#: ui/preferences-strings.c:20
 msgid "When _new mail arrives:"
 msgstr ""
 
-#: ui/preferences-strings.c:30
+#: ui/preferences-strings.c:21
 msgid "The command to run when new mail arrives"
 msgstr ""
 
-#: ui/preferences-strings.c:32
+#: ui/preferences-strings.c:23
 msgid "Whether to run a command when the icon is clicked or not"
 msgstr ""
 
-#: ui/preferences-strings.c:33
+#: ui/preferences-strings.c:24
 msgid "When click_ed:"
 msgstr ""
 
-#: ui/preferences-strings.c:34
+#: ui/preferences-strings.c:25
 msgid "The command to run when the icon is clicked"
+msgstr ""
+
+#: ui/preferences-strings.c:27
+msgid "_Add"
+msgstr ""
+
+#: ui/preferences-strings.c:28
+msgid "_Remove"
 msgstr ""

@@ -19,7 +19,6 @@
 #ifndef _MN_MBOX_MAILBOX_H
 #define _MN_MBOX_MAILBOX_H
 
-#include <glib.h>
 #include <glib-object.h>
 #include "mn-mailbox.h"
 
@@ -29,16 +28,6 @@
 #define MN_IS_MBOX_MAILBOX(obj)		(G_TYPE_CHECK_INSTANCE_TYPE((obj), MN_TYPE_MBOX_MAILBOX))
 #define MN_IS_MBOX_MAILBOX_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE((klass), MN_TYPE_MBOX_MAILBOX))
 #define MN_MBOX_MAILBOX_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS((obj), MN_TYPE_MBOX_MAILBOX, MNmboxMailboxClass))
-
-#define MN_MBOX_MAILBOX_ERROR		(mn_mbox_mailbox_error_quark())
-
-typedef enum
-{
-  MN_MBOX_MAILBOX_ERROR_STAT,
-  MN_MBOX_MAILBOX_ERROR_OPEN,
-  MN_MBOX_MAILBOX_ERROR_ENCODING,
-  MN_MBOX_MAILBOX_ERROR_READ
-} MNmboxMailboxError;
 
 typedef struct _MNmboxMailboxPrivate MNmboxMailboxPrivate;
 
@@ -55,6 +44,5 @@ typedef struct
 } MNmboxMailboxClass;
 
 GType	mn_mbox_mailbox_get_type	(void);
-GQuark	mn_mbox_mailbox_error_quark	(void);
 
 #endif /* _MN_MBOX_MAILBOX_H */

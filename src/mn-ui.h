@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,10 @@
 #ifndef _MN_UI_H
 #define _MN_UI_H
 
-void	mn_ui_init		(void);
-void	mn_ui_set_has_new	(gboolean has_new);
-void	mn_ui_set_can_check	(gboolean can_check);
+#include <glib.h>
+
+void	mn_ui_init			(void);
+void	mn_ui_update_sensitivity	(void);
+void	mn_ui_update_icon		(void);
 
 #endif /* _MN_UI_H */

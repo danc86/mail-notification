@@ -1,3 +1,20 @@
+0.4.0					29 June 2004
+
+	* Fixed a vulnerability in the POP3 code (a malicious POP3
+	  server could overflow the stack with an invalid STAT reply)
+	* Now uses automatic notification if available (requires FAM)
+	* Now uses GnomeVFS for all I/O operations
+	* Now supports drag and drop
+	* The user interface has been improved
+	* mbox detection is now stricter
+	* Now handles non-Unicode filenames
+	* Tries harder to hide POP3 passwords from the interface
+	* A few minor bugs have been fixed
+	* A few memory leaks have been fixed
+	* Some code cleanups have been performed
+	* Switched to Autoconf 2.59 and Automake 1.8.4
+	* Now requires GTK+ version 2.4.0 or superior
+
 0.3.4					19 March 2004
 
 	* Some minor UI tweaks have been performed

@@ -20,8 +20,12 @@
 #define _MN_MAILBOXES_H
 
 #include <glib.h>
+#include "mn-mailbox.h"
 
-void	mn_mailboxes_register_all	(void);
-GSList	*mn_mailboxes_get		(void);
+void		mn_mailboxes_register		(void);
+void		mn_mailboxes_install_timeout	(void);
+void		mn_mailboxes_check		(void);
+GSList		*mn_mailboxes_get		(void);
+MNMailbox	*mn_mailboxes_find		(const char *uri);
 
 #endif /* _MN_MAILBOXES_H */

@@ -17,18 +17,50 @@
  */
 
 #include "config.h"
-#include <libgnome/gnome-i18n.h>
 #include <stdio.h>
 #include <string.h>
+#include <glib/gi18n-lib.h>
+#include <libgnomevfs/gnome-vfs.h>
 #include "mn-mh-mailbox.h"
+#include "mn-vfs.h"
+
+/*** types *******************************************************************/
+
+typedef struct
+{
+  MNMailboxIsCallback		*callback;
+  gpointer			user_data;
+} IsInfo;
+
+/*** variables ***************************************************************/
+
+static GObjectClass *parent_class = NULL;
 
 /*** functions ***************************************************************/
 
-static void	mn_mh_mailbox_class_init (MNMHMailboxClass	*class);
-static gboolean	mn_mh_mailbox_is         (const char		*locator);
-static gboolean	mn_mh_mailbox_has_new    (MNMailbox		*mailbox,
-					  GError		**err);
+static void mn_mh_mailbox_class_init (MNMHMailboxClass *class);
 
+static GObject *mn_mh_mailbox_constructor (GType type,
+					   guint n_construct_properties,
+					   GObjectConstructParam *construct_params);
+
+static void mn_mh_mailbox_is (const char *uri,
+			      MNMailboxIsCallback *callback,
+			      gpointer user_data);
+static void mn_mh_mailbox_is_cb (gboolean result, gpointer user_data);
+
+static void mn_mh_mailbox_check (MNMailbox *mailbox);
+static void mn_mh_mailbox_check_open_cb (MNVFSAsyncHandle *handle,
+					 GnomeVFSResult result,
+					 gpointer user_data);
+static void mn_mh_mailbox_check_read_line_cb (MNVFSAsyncHandle *handle,
+					      GnomeVFSResult result,
+					      const char *line,
+					      gpointer user_data);
+static void mn_mh_mailbox_check_close_cb (MNVFSAsyncHandle *handle,
+					  GnomeVFSResult result,
+					  gpointer user_data);
+     
 /*** implementation **********************************************************/
 
 GType
@@ -62,95 +94,140 @@ mn_mh_mailbox_get_type (void)
 static void
 mn_mh_mailbox_class_init (MNMHMailboxClass *class)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS(class);
   MNMailboxClass *mailbox_class = MN_MAILBOX_CLASS(class);
 
+  parent_class = g_type_class_peek_parent(class);
+
+  object_class->constructor = mn_mh_mailbox_constructor;
+
   mailbox_class->format = "MH";
-  mailbox_class->is_remote = FALSE;
   mailbox_class->is = mn_mh_mailbox_is;
-  mailbox_class->has_new = mn_mh_mailbox_has_new;
+  mailbox_class->check = mn_mh_mailbox_check;
 }
 
-static gboolean
-mn_mh_mailbox_is (const char *locator)
+static GObject *
+mn_mh_mailbox_constructor (GType type,
+			   guint n_construct_properties,
+			   GObjectConstructParam *construct_params)
 {
-  char *sequences;
-  gboolean is;
+  GObject *object;
+  MNMailbox *mailbox;
+  char *sequences_uri;
 
-  sequences = g_build_filename(locator, ".mh_sequences", NULL);
-  is = g_file_test(sequences, G_FILE_TEST_IS_REGULAR);
-  g_free(sequences);
+  object = G_OBJECT_CLASS(parent_class)->constructor(type, n_construct_properties, construct_params);
+  mailbox = MN_MAILBOX(object);
 
-  return is;
+  sequences_uri = g_build_path("/", mn_mailbox_get_uri(mailbox), ".mh_sequences", NULL);
+  mn_mailbox_monitor(mailbox,
+		     sequences_uri,
+		     GNOME_VFS_MONITOR_FILE,
+		     MN_MAILBOX_MONITOR_EVENT_CHANGED
+		     | MN_MAILBOX_MONITOR_EVENT_DELETED
+		     | MN_MAILBOX_MONITOR_EVENT_CREATED);
+  g_free(sequences_uri);
+  
+  return object;
 }
 
-static gboolean
-mn_mh_mailbox_has_new (MNMailbox *mailbox, GError **err)
+static void
+mn_mh_mailbox_is (const char *uri,
+		  MNMailboxIsCallback *callback,
+		  gpointer user_data)
 {
-  char *sequences;
+  IsInfo *info;
+  char *sequences_uri;
+
+  info = g_new(IsInfo, 1);
+  info->callback = callback;
+  info->user_data = user_data;
+
+  sequences_uri = g_build_path("/", uri, ".mh_sequences", NULL);
+  mn_vfs_async_test(sequences_uri, G_FILE_TEST_IS_REGULAR, mn_mh_mailbox_is_cb, info);
+  g_free(sequences_uri);
+}
+
+static void
+mn_mh_mailbox_is_cb (gboolean result, gpointer user_data)
+{
+  IsInfo *info = user_data;
+  
+  info->callback(result, info->user_data);
+  g_free(info);
+}
+
+static void
+mn_mh_mailbox_check (MNMailbox *mailbox)
+{
+  char *sequences_uri;
+  MNVFSAsyncHandle *handle;
+
+  sequences_uri = g_build_path("/", mn_mailbox_get_uri(mailbox), ".mh_sequences", NULL);
+  mn_vfs_async_open(&handle,
+		    sequences_uri,
+		    GNOME_VFS_OPEN_READ,
+		    mn_mh_mailbox_check_open_cb,
+		    mailbox);
+  g_free(sequences_uri);
+}
+
+static void
+mn_mh_mailbox_check_open_cb (MNVFSAsyncHandle *handle,
+			     GnomeVFSResult result,
+			     gpointer user_data)
+{
+  MNMHMailbox *mailbox = user_data;
+
+  if (result == GNOME_VFS_OK)
+    mn_vfs_async_read_line(handle, 0, mn_mh_mailbox_check_read_line_cb, mailbox);
+  else
+    {
+      mn_mailbox_set_error(MN_MAILBOX(mailbox), _("unable to open .mh_sequences: %s"), gnome_vfs_result_to_string(result));
+      mn_mailbox_end_check(MN_MAILBOX(mailbox));
+    }
+}
+
+static void
+mn_mh_mailbox_check_read_line_cb (MNVFSAsyncHandle *handle,
+				  GnomeVFSResult result,
+				  const char *line,
+				  gpointer user_data)
+{
+  MNMHMailbox *mailbox = user_data;
   gboolean has_new = FALSE;
-  GIOChannel *channel;
-  GIOStatus status;
-  GError *tmp_err = NULL;
-  char *line;
 
-  sequences = g_build_filename(mailbox->locator, ".mh_sequences", NULL);
-
-  channel = g_io_channel_new_file(sequences, "r", &tmp_err);
-  if (! channel)
+  if (line && ! strncmp(line, "unseen", 6))
     {
-      g_set_error(err, MN_MH_MAILBOX_ERROR, MN_MH_MAILBOX_ERROR_OPEN_SEQUENCES,
-		  _("unable to open %s: %s"), sequences, tmp_err->message);
-      g_error_free(tmp_err);
-      goto end;
-    }
+      int first;
 
-  while ((status = g_io_channel_read_line(channel,
-					  &line,
-					  NULL,
-					  NULL,
-					  &tmp_err)) == G_IO_STATUS_NORMAL)
-    {
-      if (! strncmp(line, "unseen", 6))
+      if (sscanf(line, "unseen: %d", &first) == 1)
 	{
-	  int num;
-	  int first;
-
-	  num = sscanf(line, "unseen: %d", &first);
-	  has_new = num == 1;
-
-	  g_free(line);
-	  break;
+	  has_new = TRUE;
+	  goto end;
 	}
-
-      g_free(line);
     }
 
-  if (status == G_IO_STATUS_ERROR)
+  if (result == GNOME_VFS_OK)
+    mn_vfs_async_read_line(handle, 0, mn_mh_mailbox_check_read_line_cb, mailbox);
+  else
     {
-      g_set_error(err,
-		  MN_MH_MAILBOX_ERROR,
-		  MN_MH_MAILBOX_ERROR_READ_SEQUENCES,
-		  _("error while reading %s: %s"),
-		  mailbox->locator,
-		  tmp_err->message);
-      g_error_free(tmp_err);
+      if (result != GNOME_VFS_ERROR_EOF)
+	mn_mailbox_set_error(MN_MAILBOX(mailbox), _("error while reading .mh_sequences: %s"), gnome_vfs_result_to_string(result));
+
+    end:
+      mn_mailbox_set_has_new(MN_MAILBOX(mailbox), has_new);
+      mn_vfs_async_close(handle, mn_mh_mailbox_check_close_cb, mailbox);
     }
-
-  g_io_channel_shutdown(channel, TRUE, NULL);
-  g_io_channel_unref(channel);
-
- end:
-  g_free(sequences);
-  return has_new;
 }
 
-GQuark
-mn_mh_mailbox_error_quark (void)
+static void
+mn_mh_mailbox_check_close_cb (MNVFSAsyncHandle *handle,
+			      GnomeVFSResult result,
+			      gpointer user_data)
 {
-  static GQuark quark = 0;
+  MNMHMailbox *mailbox = user_data;
 
-  if (! quark)
-    quark = g_quark_from_static_string("mn_mh_mailbox_error");
-
-  return quark;
+  if (result != GNOME_VFS_OK)
+    mn_mailbox_set_error(MN_MAILBOX(mailbox), _("unable to close .mh_sequences: %s"), gnome_vfs_result_to_string(result));
+  mn_mailbox_end_check(MN_MAILBOX(mailbox));
 }

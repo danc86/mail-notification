@@ -20,6 +20,6 @@
 #define _MN_PREFERENCES_H
 
 void	mn_preferences_display			(void);
-void	mn_preferences_update_values		(void);
+void	mn_preferences_update_list		(void);
 
 #endif /* _MN_PREFERENCES_H */

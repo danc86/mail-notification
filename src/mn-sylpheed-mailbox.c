@@ -17,19 +17,51 @@
  */
 
 #include "config.h"
-#include <libgnome/gnome-i18n.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <string.h>
+#include <glib/gi18n-lib.h>
+#include <libgnomevfs/gnome-vfs.h>
 #include "mn-sylpheed-mailbox.h"
 #include "mn-util.h"
+#include "mn-vfs.h"
+
+/*** types *******************************************************************/
+
+typedef struct
+{
+  MNMailboxIsCallback		*callback;
+  gpointer			user_data;
+} IsInfo;
+
+typedef struct
+{
+  MNSylpheedMailbox		*mailbox;
+  unsigned int			total_count;
+  unsigned int			mark_count;
+} CheckInfo;
+
+/*** variables ***************************************************************/
+
+static GObjectClass *parent_class = NULL;
 
 /*** functions ***************************************************************/
 
-static void	mn_sylpheed_mailbox_class_init (MNSylpheedMailboxClass *class);
-static gboolean	mn_sylpheed_mailbox_is         (const char           *locator);
-static gboolean	mn_sylpheed_mailbox_has_new    (MNMailbox            *mailbox,
-						GError               **err);
+static void mn_sylpheed_mailbox_class_init (MNSylpheedMailboxClass *class);
+
+static GObject *mn_sylpheed_mailbox_constructor (GType type,
+						 guint n_construct_properties,
+						 GObjectConstructParam *construct_params);
+
+static void mn_sylpheed_mailbox_is (const char *uri,
+				    MNMailboxIsCallback *callback,
+				    gpointer user_data);
+static void mn_sylpheed_mailbox_is_cb (gboolean result, gpointer user_data);
+
+static void mn_sylpheed_mailbox_check (MNMailbox *mailbox);
+static void mn_sylpheed_mailbox_check_cb (GnomeVFSAsyncHandle *handle,
+					  GnomeVFSResult result,
+					  GList *list,
+					  unsigned int entries_read,
+					  gpointer user_data);
 
 /*** implementation **********************************************************/
 
@@ -64,96 +96,121 @@ mn_sylpheed_mailbox_get_type (void)
 static void
 mn_sylpheed_mailbox_class_init (MNSylpheedMailboxClass *class)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS(class);
   MNMailboxClass *mailbox_class = MN_MAILBOX_CLASS(class);
 
+  parent_class = g_type_class_peek_parent(class);
+
+  object_class->constructor = mn_sylpheed_mailbox_constructor;
+
   mailbox_class->format = "Sylpheed";
-  mailbox_class->is_remote = FALSE;
   mailbox_class->is = mn_sylpheed_mailbox_is;
-  mailbox_class->has_new = mn_sylpheed_mailbox_has_new;
+  mailbox_class->check = mn_sylpheed_mailbox_check;
 }
 
-static gboolean
-mn_sylpheed_mailbox_is (const char *locator)
+static GObject *
+mn_sylpheed_mailbox_constructor (GType type,
+				 guint n_construct_properties,
+				 GObjectConstructParam *construct_params)
 {
-  char *markfile;
-  gboolean is;
+  GObject *object;
+  MNMailbox *mailbox;
 
-  markfile = g_build_filename(locator, ".sylpheed_mark", NULL);
-  is = g_file_test(markfile, G_FILE_TEST_IS_REGULAR);
-  g_free(markfile);
+  object = G_OBJECT_CLASS(parent_class)->constructor(type, n_construct_properties, construct_params);
+  mailbox = MN_MAILBOX(object);
 
-  return is;
+  mn_mailbox_monitor(mailbox,
+		     mn_mailbox_get_uri(mailbox),
+		     GNOME_VFS_MONITOR_DIRECTORY,
+		     MN_MAILBOX_MONITOR_EVENT_CHANGED
+		     | MN_MAILBOX_MONITOR_EVENT_DELETED
+		     | MN_MAILBOX_MONITOR_EVENT_CREATED);
+
+  return object;
 }
 
-static gboolean
-mn_sylpheed_mailbox_has_new (MNMailbox *mailbox, GError **err)
+static void
+mn_sylpheed_mailbox_is (const char *uri,
+			MNMailboxIsCallback *callback,
+			gpointer user_data)
 {
-  GError *tmp_err = NULL;
-  GDir *dir;
-  const char *filename;
-  int total_count = 0;
-  int mark_count = 0;
-  char *markfile;
-  gboolean has_new = FALSE;
-  struct stat sb;
+  IsInfo *info;
+  char *markfile_uri;
 
-  /* count total number of messages */
+  info = g_new(IsInfo, 1);
+  info->callback = callback;
+  info->user_data = user_data;
+
+  markfile_uri = g_build_path("/", uri, ".sylpheed_mark", NULL);
+  mn_vfs_async_test(markfile_uri, G_FILE_TEST_IS_REGULAR, mn_sylpheed_mailbox_is_cb, info);
+  g_free(markfile_uri);
+}
+
+static void
+mn_sylpheed_mailbox_is_cb (gboolean result, gpointer user_data)
+{
+  IsInfo *info = user_data;
   
-  dir = g_dir_open(mailbox->locator, 0, &tmp_err);
-  if (! dir)
-    {
-      g_set_error(err,
-		  MN_SYLPHEED_MAILBOX_ERROR,
-		  MN_SYLPHEED_MAILBOX_ERROR_OPEN_DIR,
-		  _("unable to open directory %s: %s"),
-		  mailbox->locator,
-		  tmp_err->message);
-      g_error_free(tmp_err);
-      return FALSE;
-    }
-
-  while ((filename = g_dir_read_name(dir)))
-    if (filename[0] != '.' && mn_str_isnumeric(filename))
-      total_count++;
-
-  g_dir_close(dir);
-
-  /* extrapolate mark_count from size of markfile */
-
-  markfile = g_build_filename(mailbox->locator, ".sylpheed_mark", NULL);
-
-  if (stat(markfile, &sb) == -1)
-    {
-      g_set_error(err,
-		  MN_SYLPHEED_MAILBOX_ERROR,
-		  MN_SYLPHEED_MAILBOX_ERROR_STAT_MARKFILE,
-		  _("unable to stat %s: %s"),
-		  markfile,
-		  g_strerror(errno));
-      goto end;
-    }
-
-  /*
-   * The format of a Sylpheed markfile is:
-   *
-   *	int version, int num, int flag, int num, int flag, ...
-   */
-
-  mark_count = (sb.st_size - sizeof(int)) / (sizeof(int) * 2);
-  has_new = total_count != mark_count;
-
- end:
-  g_free(markfile);
-  return has_new;
+  info->callback(result, info->user_data);
+  g_free(info);
 }
 
-GQuark
-mn_sylpheed_mailbox_error_quark (void)
+static void
+mn_sylpheed_mailbox_check (MNMailbox *mailbox)
 {
-  static GQuark quark = 0;
+  MNSylpheedMailbox *sylpheed_mailbox = MN_SYLPHEED_MAILBOX(mailbox);
+  CheckInfo *info;
+  GnomeVFSAsyncHandle *handle;
 
-  if (! quark)
-    quark = g_quark_from_static_string("mn_sylpheed_mailbox_error");
+  info = g_new(CheckInfo, 1);
+  info->mailbox = sylpheed_mailbox;
+  info->total_count = 0;
+  info->mark_count = 0;
+  
+  gnome_vfs_async_load_directory(&handle,
+				 mn_mailbox_get_uri(mailbox),
+				 GNOME_VFS_FILE_INFO_DEFAULT,
+				 32,
+				 GNOME_VFS_PRIORITY_DEFAULT,
+				 mn_sylpheed_mailbox_check_cb,
+				 info);
+}
 
-  return quark;
+static void
+mn_sylpheed_mailbox_check_cb (GnomeVFSAsyncHandle *handle,
+			      GnomeVFSResult result,
+			      GList *list,
+			      unsigned int entries_read,
+			      gpointer user_data)
+{
+  CheckInfo *info = user_data;
+  GList *l;
+
+  MN_LIST_FOREACH(l, list)
+    {
+      GnomeVFSFileInfo *file_info = l->data;
+	  
+      if (file_info->name[0] != '.')
+	{
+	  if (mn_str_isnumeric(file_info->name))
+	    info->total_count++;
+	}
+      else if (! strcmp(file_info->name, ".sylpheed_mark") && file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_SIZE)
+	/*
+	 * Format of a Sylpheed markfile:
+	 * int version, int num, int flags, int num, int flags, ...
+	 */
+	info->mark_count = (file_info->size - sizeof(int)) / (sizeof(int) * 2);
+    }
+
+  if (result != GNOME_VFS_OK)	/* we're done */
+    {
+      if (result != GNOME_VFS_ERROR_EOF)
+	mn_mailbox_set_error(MN_MAILBOX(info->mailbox), _("error while reading folder: %s"), gnome_vfs_result_to_string(result));
+
+      mn_mailbox_set_has_new(MN_MAILBOX(info->mailbox), info->total_count != info->mark_count);
+      mn_mailbox_end_check(MN_MAILBOX(info->mailbox));
+
+      g_free(info);
+    }
 }

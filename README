@@ -6,11 +6,12 @@ Index
 
 	0. About this document
 	1. About Mail Notification
-	2. Documentation map
+	2. Release notes
+	3. Documentation map
 
 0. About this document
 
-	$Id: README,v 1.12 2004/03/19 12:57:20 jylefort Exp $
+	$Id: README,v 1.13 2004/06/29 16:33:36 jylefort Exp $
 
 	Copyright (c) 2003, 2004 Jean-Yves Lefort.
 
@@ -19,43 +20,30 @@ Index
 
 1. About Mail Notification
 
-	Mail Notification is an icon for the GNOME Notification Area
-	that informs users if they have new mail.
+	Mail Notification is a status icon (aka tray icon) that
+	informs you if you have new mail.
 
-	In order to display the icon in the Notification Area, Mail
-	Notification uses the EggTrayIcon backend, which adheres to
-	the freedesktop's System Tray Specification
-	(http://www.freedesktop.org/Standards/systemtray-spec). This
-	might allow Mail Notification to function with other trays
-	implementing that specification, such as the KDE System Tray
-	or the XFce 4 system tray. However, Mail Notification has only
-	been tested with the GNOME Notification Area.
+	It works with system trays implementing the freedesktop.org
+	System Tray Specification, such as the GNOME Panel
+	Notification Area, the Xfce Notification Area and the KDE
+	System Tray.
 
-	Features:
+	Mail Notification features include:
 
-		* multiple folder support
-		* mbox, MH, Maildir and Sylpheed support
-		* POP3 support (if the GNet library is available)
-		* automatic folder format detection
-		* responsive UI (multi-threaded application)
-		* HIG-compliant user interface
-		* themeable stock icons
+		- multiple mailbox support
+		- mbox, MH, Maildir, Sylpheed and POP3 support
+		- automatic detection of mailbox format
+		- automatic notification
+		- HIG compliance
 
-	Usage:
+2. Release notes
 
-		Right-click the mail icon to access the popup menu.
+	Some configuration keys have been obsoleted. For the sake of
+	cleanliness, you should remove them:
 
-		The two GTK+ stock icons are named
-		"mail-notification-no-mail" and
-		"mail-notification-mail" (see
-		http://developer.gnome.org/doc/API/2.0/gtk/gtk-Resource-Files.html
-		for details about how to customize them in your
-		~/.gtkrc-2.0).
+		$ gconftool-2 --recursive-unset /apps/mail-notification/local /apps/mail-notification/remote
 
-		If the program does not work as expected, run it from
-		a terminal and watch for possible error messages.
-
-2. Documentation map
+3. Documentation map
 
 	The following documents are included in the distribution:
 

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2003 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (c) 2003, 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 #ifndef _MN_MH_MAILBOX_H
 #define _MN_MH_MAILBOX_H
 
-#include <glib.h>
 #include <glib-object.h>
 #include "mn-mailbox.h"
 
@@ -30,17 +29,13 @@
 #define MN_IS_MH_MAILBOX_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE((klass), MN_TYPE_MH_MAILBOX))
 #define MN_MH_MAILBOX_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS((obj), MN_TYPE_MH_MAILBOX, MNMHMailboxClass))
 
-#define MN_MH_MAILBOX_ERROR		(mn_mh_mailbox_error_quark())
-
-typedef enum
-{
-  MN_MH_MAILBOX_ERROR_OPEN_SEQUENCES,
-  MN_MH_MAILBOX_ERROR_READ_SEQUENCES
-} MNMHMailboxError;
+typedef struct _MNMHMailboxPrivate MNMHMailboxPrivate;
 
 typedef struct
 {
   MNMailbox		mailbox;
+
+  MNMHMailboxPrivate	*priv;
 } MNMHMailbox;
 
 typedef struct
@@ -49,6 +44,5 @@ typedef struct
 } MNMHMailboxClass;
 
 GType	mn_mh_mailbox_get_type		(void);
-GQuark	mn_mh_mailbox_error_quark	(void);
 
 #endif /* _MN_MH_MAILBOX_H */

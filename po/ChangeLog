@@ -1,3 +1,16 @@
+2004-06-29 18:36  jylefort
+
+	* fr.po: Version 0.4.0
+
+2004-06-29 17:46  jylefort
+
+	* POTFILES.in, fr.po: Updated
+
+2004-05-28 14:12  jylefort
+
+	* POTFILES.in: The add mailbox dialogs have been unified; GTK+
+	  2.4.0 is now required
+
 2004-03-19 14:20  jylefort
 
 	* fr.po: Version 0.3.4

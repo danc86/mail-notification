@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "0.7.1">
-  <!ENTITY manrevision "2.6">
-  <!ENTITY date "Monday, October 25, 2004">
+  <!ENTITY appversion "0.8.0">
+  <!ENTITY manrevision "2.7">
+  <!ENTITY date "Sunday, October 31, 2004">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,7 +26,7 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.66 2004/10/25 13:21:59 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.72 2004/10/31 17:38:57 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (c) 2004 Jean-Yves Lefort -->
@@ -125,6 +125,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.6</revnumber>
+	<date>Monday, October 25, 2004</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -411,7 +422,8 @@
       <para>
 	Leaving your mouse over the icon will reveal more details
 	about the status of your mailboxes. Double-clicking on the
-	icon will display the <link linkend="mail-summary">Mail	Summary</link> dialog.
+	icon will perform the action specified in the
+	<link linkend="double-click-action">Double-click Action</link> setting.
       </para>
     </sect2>
   </sect1>
@@ -481,8 +493,22 @@
 	  <term><guilabel>Commands</guilabel></term>
 	  <listitem>
 	    <para>
-	      You can configure commands to be executed <guilabel>when new mail arrives</guilabel>
+	      You can specify a <guilabel>mail reader</guilabel>
+	      (which can be launched from various parts of &app;), as
+	      well as configure commands to be executed <guilabel>when new mail arrives</guilabel>
 	      and <guilabel>when all mail is read</guilabel>.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry id="double-click-action">
+	  <term><guilabel>Double-click Action</guilabel></term>
+	  <listitem>
+	    <para>
+	      You can choose an action to be performed when the mail
+	      icon is double-clicked: <guilabel>display the mail summary dialog</guilabel>
+	      or <guilabel>launch the mail reader</guilabel>.
+	      The latter is only available if a mail reader is
+	      configured in the <link linkend="commands">Commands</link> properties.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -545,8 +571,8 @@
 		<term><guilabel>Enable mail summary popup</guilabel></term>
 		<listitem>
 		  <para>
-		    Whether to display the mail summary popup when new
-		    mail arrives or not.
+		    If this option is enabled, the mail summary popup
+		    will be displayed when new mail arrives.
 		    <note>
 		      <para>
 			The mail summary popup will not be displayed if the <link linkend="mail-summary">Mail Summary</link>
@@ -560,13 +586,23 @@
 		<term><guilabel>Automatically close after</guilabel></term>
 		<listitem>
 		  <para>
-		    Whether to automatically close the mail summary
-		    popup after a delay has elapsed or not.
+		    If this option is enabled, the mail summary popup
+		    will be automatically closed after a delay has
+		    elapsed.
 		    <note>
 		      <para>
 			The timer is restarted when new mail arrives.
 		      </para>
 		    </note>
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Only display recent mail</guilabel></term>
+		<listitem>
+		  <para>
+		    If this option is enabled, the mail summary popup
+		    will hide previously displayed mail.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -878,21 +914,49 @@
 	changes.
       </para>
       <para>
-	For immediate notification to be supported, &gnomevfs; must be compiled
-	with <ulink url="http://oss.sgi.com/projects/fam" type="http">FAM</ulink> support,
-	and FAM must be configured properly.
+	Requirements for immediate notification to be enabled:
       </para>
-      <para>
-	Refer to the
-	<citerefentry><refentrytitle>fam</refentrytitle><manvolnum>1</manvolnum></citerefentry>
-	manual page for more details.
-      </para>
+      <variablelist>
+	<varlistentry>
+	  <term>&mbox;, &mh;, &maildir; and &sylpheed; mailboxes:</term>
+	  <listitem>
+	    <para>
+	      &gnomevfs; must be compiled
+	      with <ulink url="http://oss.sgi.com/projects/fam" type="http">FAM</ulink> support,
+	      and FAM must be configured properly.
+	    </para>
+	    <para>
+	      Refer to the
+	      <citerefentry><refentrytitle>fam</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+	      manual page for more details.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>&imap; mailboxes:</term>
+	  <listitem>
+	    <para>
+	      The &imap; server must support the IDLE extension, as defined by
+	      <ulink url="http://www.ietf.org/rfc/rfc2177.txt" type="http">RFC 2177</ulink>.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>&pop3; and &gmail; mailboxes:</term>
+	  <listitem>
+	    <para>
+	      Immediate notification is not supported.
+	    </para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
       <note>
 	<para>
-	  Immediate notification is only supported for local mailboxes.
-	  Mailboxes which do not support it will be checked periodically
-	  according to the <link linkend="delay-between-mail-checks">Delay between mail checks</link>
-	  setting.
+	  If immediate notification cannot be enabled for a mailbox
+	  (either because that type of mailbox does not support it or
+	  because the requirements are not met), the mailbox will be
+	  checked periodically according to the
+	  <link linkend="delay-between-mail-checks">Delay between mail checks</link> setting.
 	</para>
       </note>
     </sect2>
@@ -940,11 +1004,13 @@ endif</programlisting>
       <title>IMAP Implementation</title>
       <para>
 	The &app; &imap; implementation strictly conforms to
-	<ulink url="http://www.ietf.org/rfc/rfc3501.txt" type="http">RFC 3501</ulink>.
+	<ulink url="http://www.ietf.org/rfc/rfc3501.txt" type="http">RFC 3501</ulink>
+	and
+	<ulink url="http://www.ietf.org/rfc/rfc2177.txt" type="http">RFC 2177</ulink>.
       </para>
       <para>
 	The AUTHENTICATE and LOGIN authentication mechanisms are
-	supported.
+	supported, and the IDLE extension is implemented.
       </para>
       <para>
 	The authentication logic can be represented with the following

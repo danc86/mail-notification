@@ -36,10 +36,14 @@ typedef struct
   /* general tab */
   GtkWidget		*autostart_check;
   GtkWidget		*blink_check;
+  GtkWidget		*command_mail_reader_check;
+  GtkWidget		*command_mail_reader_entry;
   GtkWidget		*command_new_mail_check;
   GtkWidget		*command_new_mail_entry;
   GtkWidget		*command_mail_read_check;
   GtkWidget		*command_mail_read_entry;
+  GtkWidget		*action_summary_radio;
+  GtkWidget		*action_mail_reader_radio;
 
   /* mailboxes tab */
   GtkWidget		*delay_label;
@@ -58,6 +62,7 @@ typedef struct
   GtkWidget		*summary_minutes_label;
   GtkWidget		*summary_seconds_spin;
   GtkWidget		*summary_seconds_label;
+  GtkWidget		*summary_only_recent_check;
   GtkWidget		*summary_position_label;
   GtkWidget		*summary_position_combo;
   GtkWidget		*summary_horizontal_offset_label;
@@ -113,10 +118,14 @@ mn_properties_display (void)
 		      "notebook", &properties.notebook,
 		      "autostart_check", &properties.autostart_check,
 		      "blink_check", &properties.blink_check,
+		      "command_mail_reader_check", &properties.command_mail_reader_check,
+		      "command_mail_reader_entry", &properties.command_mail_reader_entry,
 		      "command_new_mail_check", &properties.command_new_mail_check,
 		      "command_new_mail_entry", &properties.command_new_mail_entry,
 		      "command_mail_read_check", &properties.command_mail_read_check,
 		      "command_mail_read_entry", &properties.command_mail_read_entry,
+		      "action_summary_radio", &properties.action_summary_radio,
+		      "action_mail_reader_radio", &properties.action_mail_reader_radio,
 		      "delay_label", &properties.delay_label,
 		      "minutes_spin", &properties.minutes_spin,
 		      "seconds_spin", &properties.seconds_spin,
@@ -130,6 +139,7 @@ mn_properties_display (void)
 		      "summary_minutes_label", &properties.summary_minutes_label,
 		      "summary_seconds_spin", &properties.summary_seconds_spin,
 		      "summary_seconds_label", &properties.summary_seconds_label,
+		      "summary_only_recent_check", &properties.summary_only_recent_check,
 		      "summary_position_label", &properties.summary_position_label,
 		      "summary_position_combo", &properties.summary_position_combo,
 		      "summary_horizontal_offset_label", &properties.summary_horizontal_offset_label,
@@ -152,6 +162,7 @@ mn_properties_display (void)
   mn_setup_dnd(properties.scrolled);
 
   size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+  gtk_size_group_add_widget(size_group, properties.command_mail_reader_check);
   gtk_size_group_add_widget(size_group, properties.command_new_mail_check);
   gtk_size_group_add_widget(size_group, properties.command_mail_read_check);
   g_object_unref(size_group);
@@ -183,6 +194,8 @@ mn_properties_display (void)
   
   mn_conf_link(properties.dialog, MN_CONF_PROPERTIES_DIALOG,
 	       properties.blink_check, MN_CONF_BLINK_ON_ERRORS,
+	       properties.command_mail_reader_check, MN_CONF_COMMANDS_MAIL_READER_ENABLED,
+	       properties.command_mail_reader_entry, MN_CONF_COMMANDS_MAIL_READER_COMMAND,
 	       properties.command_new_mail_check, MN_CONF_COMMANDS_NEW_MAIL_ENABLED,
 	       properties.command_new_mail_entry, MN_CONF_COMMANDS_NEW_MAIL_COMMAND,
 	       properties.command_mail_read_check, MN_CONF_COMMANDS_MAIL_READ_ENABLED,
@@ -193,9 +206,15 @@ mn_properties_display (void)
 	       properties.summary_autoclose_check, MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE,
 	       properties.summary_minutes_spin, MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_MINUTES,
 	       properties.summary_seconds_spin, MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_SECONDS,
+	       properties.summary_only_recent_check, MN_CONF_MAIL_SUMMARY_POPUP_ONLY_RECENT,
 	       properties.summary_horizontal_offset_spin, MN_CONF_MAIL_SUMMARY_POPUP_HORIZONTAL_OFFSET,
 	       properties.summary_vertical_offset_spin, MN_CONF_MAIL_SUMMARY_POPUP_VERTICAL_OFFSET,
 	       NULL);
+  mn_conf_link_radio_group_to_enum(MN_TYPE_ACTION,
+				   MN_CONF_DOUBLE_CLICK_ACTION,
+				   properties.action_summary_radio, MN_ACTION_DISPLAY_MAIL_SUMMARY,
+				   properties.action_mail_reader_radio, MN_ACTION_LAUNCH_MAIL_READER,
+				   NULL);
   mn_conf_link_combo_box_to_string(GTK_COMBO_BOX(properties.summary_position_combo),
 				   POSITION_COLUMN_NICK,
 				   MN_CONF_MAIL_SUMMARY_POPUP_POSITION);
@@ -264,20 +283,28 @@ mn_properties_update_selected_label (void)
 static void
 mn_properties_update_sensitivity (void)
 {
+  gboolean command_mail_reader_enabled;
   gboolean command_new_mail_enabled;
   gboolean command_mail_read_enabled;
+  char *mail_reader;
   gboolean must_poll;
   GtkTreeSelection *selection;
   gboolean has_selection;
   gboolean summary_enabled = FALSE;
   gboolean summary_autoclose_enabled = FALSE;
 
+  command_mail_reader_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(properties.command_mail_reader_check));
   command_new_mail_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(properties.command_new_mail_check));
   command_mail_read_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(properties.command_mail_read_check));
 
+  gtk_widget_set_sensitive(properties.command_mail_reader_entry, command_mail_reader_enabled);
   gtk_widget_set_sensitive(properties.command_new_mail_entry, command_new_mail_enabled);
   gtk_widget_set_sensitive(properties.command_mail_read_entry, command_mail_read_enabled);
 
+  mail_reader = eel_gconf_get_string(MN_CONF_COMMANDS_MAIL_READER_COMMAND);
+  gtk_widget_set_sensitive(properties.action_mail_reader_radio, command_mail_reader_enabled && mail_reader);
+  g_free(mail_reader);
+  
   must_poll = mn_mailboxes_get_must_poll(mn_shell->mailboxes);
   gtk_widget_set_sensitive(properties.minutes_spin, must_poll);
   gtk_widget_set_sensitive(properties.seconds_spin, must_poll);
@@ -296,6 +323,7 @@ mn_properties_update_sensitivity (void)
   gtk_widget_set_sensitive(properties.summary_minutes_label, summary_enabled && summary_autoclose_enabled);
   gtk_widget_set_sensitive(properties.summary_seconds_spin, summary_enabled && summary_autoclose_enabled);
   gtk_widget_set_sensitive(properties.summary_seconds_label, summary_enabled && summary_autoclose_enabled);
+  gtk_widget_set_sensitive(properties.summary_only_recent_check, summary_enabled);
   gtk_widget_set_sensitive(properties.summary_position_label, summary_enabled);
   gtk_widget_set_sensitive(properties.summary_position_combo, summary_enabled);
   gtk_widget_set_sensitive(properties.summary_horizontal_offset_label, summary_enabled);
@@ -325,6 +353,13 @@ mn_properties_autostart_toggled_h (GtkToggleButton *togglebutton,
 
 void
 mn_properties_toggled_h (GtkToggleButton *togglebutton, gpointer user_data)
+{
+  mn_properties_update_sensitivity();
+}
+
+void
+mn_properties_mail_reader_entry_changed_h (GtkEditable *editable,
+					   gpointer user_data)
 {
   mn_properties_update_sensitivity();
 }

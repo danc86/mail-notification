@@ -30,15 +30,33 @@ requires 2.0.10
 #include "config.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 #include <time.h>
 #ifdef TM_IN_SYS_TIME
 #include <sys/time.h>
 #endif
 #include <glib/gi18n.h>
+#include <eel/eel.h>
 #include "mn-mailbox-private.h"
 #include "mn-util.h"
 #include "mn-stock.h"
 #include "mn-sgml-ref.h"
+
+  typedef enum
+  {
+    JS_ARG_STRING,
+    JS_ARG_LIST
+  } JSArgType;
+  
+  typedef struct
+  {
+    JSArgType type;
+    union 
+    {
+      char	*string;
+      GSList	*list;
+    } value;
+  } JSArg;
 %}
 
 class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
@@ -218,26 +236,26 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
   }
 
   /**
-   * get_token:
+   * get_substring:
    * @str: the string to search
-   * @pre: the start of the token
-   * @post: the end of the token
+   * @pre: the start of the substring
+   * @post: the end of the substring
    * @include_pre: whether to include @pre in the result or not
    * @include_post: whether to include @post in the result or not
    *
-   * Gets the first token of @str included between @pre and @post.
+   * Gets the first substring of @str included between @pre and @post.
    *
-   * Return value: a newly allocated string containing the token or
-   *               %NULL if not found.
+   * Return value: a newly allocated string containing the substring
+   *               or %NULL if not found.
    **/
   private char *
-    get_token (const char *str (check null),
-	       const char *pre (check null),
-	       const char *post (check null),
-	       gboolean include_pre,
-	       gboolean include_post)
+    get_substring (const char *str (check null),
+		   const char *pre (check null),
+		   const char *post (check null),
+		   gboolean include_pre,
+		   gboolean include_post)
   {
-    char *token = NULL;
+    char *sub = NULL;
     char *pre_loc;
     
     pre_loc = strstr(str, pre);
@@ -253,11 +271,11 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 	    char *start = include_pre ? pre_loc : after_pre_loc;
 	    char *end = include_post ? post_loc + strlen(post) : post_loc;
 	    
-	    token = g_strndup(start, end - start);
+	    sub = g_strndup(start, end - start);
 	  }
       }
     
-    return token;
+    return sub;
   }
 
   private gboolean
@@ -297,7 +315,7 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
     if (! body)
       return FALSE;
 
-    next_location = self_get_token(body, "top.location = \"", "\"", FALSE, FALSE);
+    next_location = self_get_substring(body, "top.location = \"", "\"", FALSE, FALSE);
     g_free(body);
 
     if (! next_location)
@@ -339,7 +357,7 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
     if (! body)
       return FALSE;
 
-    next_location = self_get_token(body, "location.replace(\"", "\")", FALSE, FALSE);
+    next_location = self_get_substring(body, "location.replace(\"", "\")", FALSE, FALSE);
     g_free(body);
 
     if (! next_location)
@@ -425,7 +443,7 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
     check (self, Soup:Session *session (check null type), GError **err)
   {
     char *body;
-    char *results;
+    char *work;
     gboolean status = FALSE;
 
     g_return_val_if_fail(selfp->logged_in == TRUE, FALSE);
@@ -436,86 +454,29 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
     if (! body)
       return FALSE;
 
-    results = strstr(body, "Search results for: is:unread\",\"");
-    if (results)
+    work = strstr(body, "Search results for: is:unread\",\"");
+    if (work)
       {
 	GSList *messages = NULL;
-	char *p = strstr(results + 32, ",1,");
 
-	while (p)
+	work += 32;
+
+	while ((work = strstr(work, "D([")))
 	  {
-	    char *inbox_marker;
-	    char *next_p;
+	    GSList *arg_list;
 
-	    /*
-	     * FIXME: we should parse the list instead of using field
-	     * separator matching (this breaks if a separator is
-	     * present in a field value).
-	     */
-
-	    p += 3;		/* skip ,1, */
-	    inbox_marker = strstr(p, ",[\"^i\"");
-	    next_p = strstr(p, ",1,");
-
-	    if (inbox_marker && (! next_p || inbox_marker < next_p)) /* msg from inbox */
+	    work += 2;
+	    if (self_js_get_arg_list(&work, &arg_list) && arg_list)
 	      {
-		char *date;
-		char *sender_email;
-		char *sender_name;
-		char *subject;
+		GSList *l;
 
-		time_t sent_time = 0;
-		char *from = NULL;
-		char *expanded_subject = NULL;
+		MN_LIST_FOREACH(l, arg_list->next)
+		  self_append_message(self, &messages, l->data);
 
-		date = self_get_token(p, "\\<b\\>", "\\</b\\>", FALSE, FALSE);
-		sender_email = self_get_token(p, "<span id=\\'_user_", "\\'", FALSE, FALSE);
-		sender_name = self_get_token(p, "\\'\\>\\<b\\>", "\\</b\\>", FALSE, FALSE);
-		subject = self_get_token(p, ";\",\"\\<b\\>", "\\</b\\>", FALSE, FALSE);
-
-		if (date)
-		  {
-		    sent_time = self_parse_date(date);
-		    g_free(date);
-		  }
-		
-		if (sender_name && sender_email)
-		  {
-		    char *tmp;
-		    
-		    tmp = g_strdup_printf("%s <%s>", sender_name, sender_email);
-		    from = mn_sgml_ref_expand(tmp);
-		    g_free(tmp);
-		  }
-		else if (sender_name)
-		  from = mn_sgml_ref_expand(sender_name);
-		else if (sender_email)
-		  from = mn_sgml_ref_expand(sender_email);
-		
-		g_free(sender_email);
-		g_free(sender_name);
-		
-		if (subject)
-		  {
-		    if (strcmp(subject, "(no subject)"))
-		      expanded_subject = mn_sgml_ref_expand(subject);
-		    g_free(subject);
-		  }
-	    
-		messages = g_slist_append(messages, mn_message_new(MN_MAILBOX(self)->uri,
-								   NULL,
-								   sent_time,
-								   NULL,
-								   from,
-								   expanded_subject));
-		
-		g_free(from);
-		g_free(expanded_subject);
+		self_js_arg_list_free(arg_list);
 	      }
-	    
-	    p = next_p;
 	  }
-
+	
 	GDK_THREADS_ENTER();
 	mn_mailbox_set_has_new(MN_MAILBOX(self), messages != NULL);
 	mn_mailbox_set_messages(MN_MAILBOX(self), messages);
@@ -531,6 +492,292 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
     g_free(body);
 
     return status;
+  }
+
+  private void
+    append_message (self,
+		    GSList **messages (check null),
+		    JSArg *arg (check null))
+  {
+    char *date_field;
+    char *sender_field;
+    char *subject_field;
+    GSList *labels_list;
+    GSList *l;
+    gboolean in_inbox = FALSE;
+
+    char *date;
+    char *sender_email;
+    char *sender_name;
+    char *subject;
+
+    time_t sent_time = 0;
+    char *from = NULL;
+    char *expanded_subject = NULL;
+
+    if (arg->type != JS_ARG_LIST
+	|| ! self_js_arg_list_scan(arg->value.list,
+				   3, JS_ARG_STRING, &date_field,
+				   4, JS_ARG_STRING, &sender_field,
+				   6, JS_ARG_STRING, &subject_field,
+				   8, JS_ARG_LIST, &labels_list,
+				   -1))
+      return;
+				  
+    MN_LIST_FOREACH(l, labels_list)
+      {
+	JSArg *label = l->data;
+
+	if (label->type == JS_ARG_STRING && ! strcmp(label->value.string, "^i"))
+	  {
+	    in_inbox = TRUE;
+	    break;
+	  }
+      }
+
+    if (! in_inbox)
+      return;
+    
+    date = self_get_substring(date_field, "<b>", "</b>", FALSE, FALSE);
+    sender_email = self_get_substring(sender_field, "<span id='_user_", "'", FALSE, FALSE);
+    sender_name = self_get_substring(sender_field, "'><b>", "</b>", FALSE, FALSE);
+    subject = self_get_substring(subject_field, "<b>", "</b>", FALSE, FALSE);
+		    
+    if (date)
+      {
+	sent_time = self_parse_date(date);
+	g_free(date);
+      }
+    
+    if (sender_name && sender_email)
+      {
+	char *tmp;
+	
+	tmp = g_strdup_printf("%s <%s>", sender_name, sender_email);
+	from = mn_sgml_ref_expand(tmp);
+	g_free(tmp);
+      }
+    else if (sender_name)
+      from = mn_sgml_ref_expand(sender_name);
+    else if (sender_email)
+      from = mn_sgml_ref_expand(sender_email);
+    
+    g_free(sender_email);
+    g_free(sender_name);
+    
+    if (subject)
+      {
+	if (strcmp(subject, "(no subject)"))
+	  expanded_subject = mn_sgml_ref_expand(subject);
+	g_free(subject);
+      }
+    
+    *messages = g_slist_append(*messages, mn_message_new(MN_MAILBOX(self)->uri,
+							 NULL,
+							 sent_time,
+							 NULL,
+							 from,
+							 expanded_subject));
+    
+    g_free(from);
+    g_free(expanded_subject);
+  }
+  
+  private gboolean
+    js_get_arg_list (char **str (check null), GSList **list (check null))
+  {
+    GSList *our_list = NULL;
+    gboolean done = FALSE;
+    gboolean in_literal = FALSE;	/* a string enclosed in double quotes */
+    gboolean quoted = FALSE;		/* the next character is quoted with a backslash */
+    JSArg *arg = NULL;
+    GString *string;
+
+    g_return_val_if_fail(*str != NULL, FALSE);
+    g_return_val_if_fail(**str == '[', FALSE);
+
+    (*str)++;			/* skip the initial open bracket */
+    string = g_string_new(NULL);
+
+    while (**str && ! done)
+      {
+	gboolean next = TRUE;
+
+	if (in_literal)
+	  switch (**str)
+	    {
+	    case '\\':
+	      quoted = TRUE;
+	      break;
+
+	    case '"':
+	      if (! quoted)
+		{
+		  in_literal = FALSE;
+		  break;
+		}
+	      /* else pass through */
+	      
+	    default:
+	      quoted = FALSE;
+	      g_string_append_c(string, **str);
+	    }
+	else
+	  switch (**str)
+	    {
+	    case '[':
+	      {
+		GSList *sub_list;
+
+		if (arg || ! self_js_get_arg_list(str, &sub_list))
+		  goto end;	/* parse error */
+
+		arg = self_js_arg_new_list(sub_list);
+		next = FALSE;
+		break;
+	      }
+
+	    case ']':
+	      done = TRUE;
+	      /* fall through */
+	    
+	    case ',':
+	      if (! arg)
+		arg = self_js_arg_new_string(string->str);
+	      
+	      our_list = g_slist_append(our_list, arg);
+
+	      g_string_truncate(string, 0);
+	      arg = NULL;
+	      break;
+
+	    case '"':
+	      in_literal = TRUE;
+	      break;
+	      
+	    default:
+	      g_string_append_c(string, **str);
+	    }
+
+	if (next)
+	  (*str)++;
+      }
+
+  end:
+    if (arg)
+      self_js_arg_free(arg);
+    g_string_free(string, TRUE);
+
+    if (done)
+      {
+	*list = our_list;
+	return TRUE;
+      }
+    else
+      {
+	self_js_arg_list_free(our_list);
+	return FALSE;
+      }
+  }
+  
+  private gboolean
+    js_arg_list_scan (GSList *list, ...)
+  {
+    va_list args;
+    int position;
+    gboolean status = TRUE;
+
+    va_start(args, list);
+
+    while ((position = va_arg(args, int)) != -1)
+      {
+	JSArgType type = va_arg(args, JSArgType);
+	JSArg *arg = g_slist_nth_data(list, position);
+	
+	if (! arg)
+	  {
+	    status = FALSE;
+	    break;
+	  }
+
+	switch (type)
+	  {
+	  case JS_ARG_STRING:
+	    {
+	      char **str = va_arg(args, char **);
+	      g_return_val_if_fail(str != NULL, FALSE);
+
+	      *str = arg->value.string;
+	      break;
+	    }
+
+	  case JS_ARG_LIST:
+	    {
+	      GSList **elem_list = va_arg(args, GSList **);
+	      g_return_val_if_fail(elem_list != NULL, FALSE);
+
+	      *elem_list = arg->value.list;
+	      break;
+	    }
+
+	  default:
+	    g_return_val_if_reached(FALSE);
+	  }
+      }
+
+    va_end(args);
+
+    return status;
+  }
+  
+  private void
+    js_arg_list_free (GSList *list)
+  {
+    eel_g_slist_free_deep_custom(list, (GFunc) self_js_arg_free, NULL);
+  }
+  
+  private JSArg *
+    js_arg_new_string (const char *string (check null))
+  {
+    JSArg *arg;
+
+    arg = g_new(JSArg, 1);
+    arg->type = JS_ARG_STRING;
+    arg->value.string = g_strdup(string);
+
+    return arg;
+  }
+
+  private JSArg *
+    js_arg_new_list (GSList *list)
+  {
+    JSArg *arg;
+
+    arg = g_new(JSArg, 1);
+    arg->type = JS_ARG_LIST;
+    arg->value.list = list;
+
+    return arg;
+  }
+
+  private void
+    js_arg_free (JSArg *arg (check null))
+  {
+    switch (arg->type)
+      {
+      case JS_ARG_STRING:
+	g_free(arg->value.string);
+	break;
+
+      case JS_ARG_LIST:
+	self_js_arg_list_free(arg->value.list);
+	break;
+
+      default:
+	g_return_if_reached();
+      }
+
+    g_free(arg);
   }
   
   private time_t

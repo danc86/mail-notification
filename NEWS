@@ -1,3 +1,18 @@
+0.8.0					31 October 2004
+
+	* The double-click action can now be customized
+	* A mail reader can now be launched
+	* IMAP IDLE support has been implemented
+	* The mail summary layout has been improved
+	* The mail summary is now also displayed in the tooltip
+	* The tooltip now supports keyboard activation
+	* A mail summary popup option allowing to only display recent
+	  mail has been added
+	* A bug which caused SASL authentication to sometimes fail has
+	  been fixed
+	* The Gmail parser was getting confused by special strings
+	  embedded in message fields: fixed
+
 0.7.1					25 October 2004
 
 	* Gmail fixes:

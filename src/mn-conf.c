@@ -35,6 +35,9 @@
 #define COMBO_BOX_KEY			"mn-conf-combo-box-key"
 #define COMBO_BOX_STRING_COLUMN		"mn-conf-combo-box-string-column"
 
+#define RADIO_BUTTON_KEY		"mn-conf-radio-button-key"
+#define RADIO_BUTTON_STRING		"mn-conf-radio-button-string"
+
 /*** types *******************************************************************/
 
 typedef struct
@@ -55,6 +58,16 @@ static void mn_conf_link_combo_box_to_string_notify_cb (GConfClient *client,
 							guint cnxn_id,
 							GConfEntry *entry,
 							gpointer user_data);
+
+static void mn_conf_link_radio_button_to_string (GtkRadioButton *radio,
+						 const char *key,
+						 const char *str);
+static void mn_conf_link_radio_button_to_string_toggled_h (GtkToggleButton *toggle,
+							   gpointer user_data);
+static void mn_conf_link_radio_button_to_string_notify_cb (GConfClient *client,
+							   guint cnxn_id,
+							   GConfEntry *entry,
+							   gpointer user_data);
 
 static gboolean mn_conf_link_window_h (GtkWidget *widget,
 				       GdkEventConfigure *event,
@@ -84,9 +97,6 @@ static void mn_conf_link_entry_notify_cb (GConfClient *client,
 					  GConfEntry *entry,
 					  gpointer user_data);
 
-static void mn_conf_link_weak_notify_cb (gpointer data,
-					 GObject *former_object);
-
 static void mn_conf_startup_client_free (StartupClient *client);
 static void mn_conf_startup_clients_free (GSList *list);
 
@@ -96,6 +106,9 @@ static GSList *mn_conf_startup_list_read (const char *name);
 static void mn_conf_startup_list_write (GSList *list, const char *name);
 
 static GSList *mn_conf_get_autostart_elem (GSList *list);
+
+static void mn_conf_notification_add_weak_notify_cb (gpointer data,
+						     GObject *former_object);
 
 /*** implementation **********************************************************/
 
@@ -157,7 +170,6 @@ mn_conf_link (GtkWidget *widget, ...)
       const char *signal_name;
       GCallback signal_handler;
       GConfClientNotifyFunc notification_cb;
-      unsigned int notification_id;
 
       key = va_arg(args, const char *);
       g_return_if_fail(key != NULL);
@@ -214,8 +226,7 @@ mn_conf_link (GtkWidget *widget, ...)
 	g_return_if_reached();
 
       g_signal_connect_data(widget, signal_name, signal_handler, g_strdup(key), (GClosureNotify) g_free, 0);
-      notification_id = eel_gconf_notification_add(key, notification_cb, widget);
-      g_object_weak_ref(G_OBJECT(widget), mn_conf_link_weak_notify_cb, GUINT_TO_POINTER(notification_id));
+      mn_conf_notification_add(widget, key, notification_cb, widget);
 
       widget = va_arg(args, GtkWidget *);
     }
@@ -228,7 +239,6 @@ mn_conf_link_combo_box_to_string (GtkComboBox *combo,
 				  const char *key)
 {
   char *value;
-  unsigned int notification_id;
 
   g_return_if_fail(GTK_IS_COMBO_BOX(combo));
   g_return_if_fail(key != NULL);
@@ -241,8 +251,7 @@ mn_conf_link_combo_box_to_string (GtkComboBox *combo,
   g_free(value);
 
   g_signal_connect(combo, "changed", G_CALLBACK(mn_conf_link_combo_box_to_string_changed_h), NULL);
-  notification_id = eel_gconf_notification_add(key, mn_conf_link_combo_box_to_string_notify_cb, combo);
-  g_object_weak_ref(G_OBJECT(combo), mn_conf_link_weak_notify_cb, GUINT_TO_POINTER(notification_id));
+  mn_conf_notification_add(combo, key, mn_conf_link_combo_box_to_string_notify_cb, combo);
 }
 
 static void
@@ -314,6 +323,98 @@ mn_conf_link_combo_box_to_string_notify_cb (GConfClient *client,
   GDK_THREADS_ENTER();
   mn_conf_link_combo_box_to_string_update_active(combo, string_column, gconf_value_get_string(value));
   GDK_THREADS_LEAVE();
+}
+
+void
+mn_conf_link_radio_group_to_enum (GType enum_type,
+				  const char *key,
+				  ...)
+{
+  GEnumClass *enum_class;
+  GtkRadioButton *radio;
+  va_list args;
+
+  g_return_if_fail(key != NULL);
+
+  enum_class = g_type_class_ref(enum_type);
+  g_return_if_fail(enum_class != NULL);
+
+  va_start(args, key);
+
+  while ((radio = va_arg(args, GtkRadioButton *)))
+    {
+      int value;
+      GEnumValue *enum_value;
+
+      value = va_arg(args, int);
+
+      enum_value = g_enum_get_value(enum_class, value);
+      g_return_if_fail(enum_value != NULL);
+
+      mn_conf_link_radio_button_to_string(radio, key, enum_value->value_nick);
+    }
+
+  va_end(args);
+}
+
+static void
+mn_conf_link_radio_button_to_string (GtkRadioButton *radio,
+				     const char *key,
+				     const char *str)
+{
+  char *current_str;
+
+  g_return_if_fail(GTK_IS_RADIO_BUTTON(radio));
+  g_return_if_fail(key != NULL);
+  g_return_if_fail(str != NULL);
+
+  current_str = eel_gconf_get_string(key);
+  if (current_str)
+    {
+      if (! strcmp(current_str, str))
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
+      g_free(current_str);
+    }
+  
+  g_object_set_data_full(G_OBJECT(radio), RADIO_BUTTON_KEY, g_strdup(key), g_free);
+  g_object_set_data_full(G_OBJECT(radio), RADIO_BUTTON_STRING, g_strdup(str), g_free);
+
+  g_signal_connect(radio, "toggled", G_CALLBACK(mn_conf_link_radio_button_to_string_toggled_h), NULL);
+  mn_conf_notification_add(radio, key, mn_conf_link_radio_button_to_string_notify_cb, radio);
+}
+
+static void
+mn_conf_link_radio_button_to_string_toggled_h (GtkToggleButton *toggle,
+					       gpointer user_data)
+{
+  if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(toggle)))
+    {
+      const char *key = g_object_get_data(G_OBJECT(toggle), RADIO_BUTTON_KEY);
+      const char *str = g_object_get_data(G_OBJECT(toggle), RADIO_BUTTON_STRING);
+
+      eel_gconf_set_string(key, str);
+    }
+}
+
+static void
+mn_conf_link_radio_button_to_string_notify_cb (GConfClient *client,
+					       guint cnxn_id,
+					       GConfEntry *entry,
+					       gpointer user_data)
+{
+  GtkRadioButton *radio = user_data;
+  GConfValue *value = gconf_entry_get_value(entry);
+  const char *str = gconf_value_get_string(value);
+
+  if (str)
+    {
+      GDK_THREADS_ENTER();
+      
+      if (! strcmp(str, g_object_get_data(G_OBJECT(radio), RADIO_BUTTON_STRING)))
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
+	
+      GDK_THREADS_LEAVE();
+    }
 }
 
 static gboolean
@@ -419,13 +520,6 @@ mn_conf_link_entry_notify_cb (GConfClient *client,
     str = gconf_value_get_string(value);
   gtk_entry_set_text(entry_widget, MN_POINTER_TO_STRING(str));
   GDK_THREADS_LEAVE();
-}
-
-static void
-mn_conf_link_weak_notify_cb (gpointer data, GObject *former_object)
-{
-  unsigned int notification_id = GPOINTER_TO_UINT(data);
-  eel_gconf_notification_remove(notification_id);
 }
 
 /*
@@ -616,28 +710,49 @@ mn_conf_set_autostart (gboolean autostart)
   mn_conf_startup_clients_free(clients);
 }
 
-GEnumValue *
+int
 mn_conf_get_enum_value (GType enum_type, const char *key)
 {
   GEnumClass *enum_class;
   GEnumValue *enum_value = NULL;
+  char *nick;
 
-  g_return_val_if_fail(key != NULL, NULL);
+  g_return_val_if_fail(key != NULL, 0);
 
   enum_class = g_type_class_ref(enum_type);
-  if (enum_class)
+  g_return_val_if_fail(enum_class != NULL, 0);
+
+  nick = eel_gconf_get_string(key);
+  if (nick)
     {
-      char *nick;
-
-      nick = eel_gconf_get_string(key);
-      if (nick)
-	{
-	  enum_value = g_enum_get_value_by_nick(enum_class, nick);
-	  g_free(nick);
-	}
-
-      g_type_class_unref(enum_class);
+      enum_value = g_enum_get_value_by_nick(enum_class, nick);
+      g_free(nick);
     }
 
-  return enum_value;
+  g_type_class_unref(enum_class);
+
+  return enum_value ? enum_value->value : 0;
+}
+
+void
+mn_conf_notification_add (gpointer object,
+			  const char *key,
+			  GConfClientNotifyFunc callback,
+			  gpointer user_data)
+{
+  unsigned int notification_id;
+
+  g_return_if_fail(G_IS_OBJECT(object));
+  g_return_if_fail(key != NULL);
+  g_return_if_fail(callback != NULL);
+
+  notification_id = eel_gconf_notification_add(key, callback, user_data);
+  g_object_weak_ref(G_OBJECT(object), mn_conf_notification_add_weak_notify_cb, GUINT_TO_POINTER(notification_id));
+}
+
+static void
+mn_conf_notification_add_weak_notify_cb (gpointer data, GObject *former_object)
+{
+  unsigned int notification_id = GPOINTER_TO_UINT(data);
+  eel_gconf_notification_remove(notification_id);
 }

@@ -148,11 +148,12 @@ gob_sources = \
 	mn-mailbox-view.gob			\
 	mn-mailbox.gob				\
 	mn-mailboxes.gob			\
-	mn-message-label.gob			\
+	mn-message-box.gob			\
 	mn-message.gob				\
 	mn-pending-mailbox.gob			\
 	mn-shell.gob				\
 	mn-system-mailbox-properties.gob	\
+	mn-tooltips.gob				\
 	mn-unsupported-mailbox.gob		\
 	mn-uri.gob
 gob_built_sources = \
@@ -190,9 +191,9 @@ gob_built_sources = \
 	mn-mailboxes-private.h				\
 	mn-mailboxes.c					\
 	mn-mailboxes.h					\
-	mn-message-label-private.h			\
-	mn-message-label.c				\
-	mn-message-label.h				\
+	mn-message-box-private.h			\
+	mn-message-box.c				\
+	mn-message-box.h				\
 	mn-message-private.h				\
 	mn-message.c					\
 	mn-message.h					\
@@ -205,6 +206,9 @@ gob_built_sources = \
 	mn-system-mailbox-properties-private.h		\
 	mn-system-mailbox-properties.c			\
 	mn-system-mailbox-properties.h			\
+	mn-tooltips-private.h				\
+	mn-tooltips.c					\
+	mn-tooltips.h					\
 	mn-unsupported-mailbox-private.h		\
 	mn-unsupported-mailbox.c			\
 	mn-unsupported-mailbox.h			\

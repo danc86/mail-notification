@@ -119,14 +119,14 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
     
     mn_auth_combo_box_append(MN_AUTH_COMBO_BOX(pi->auth_combo), "+LOGIN", "IMAP LOGIN");
 
-    mn_tooltips_set_tips(pi->tooltips,
-			 pi->hostname_entry, _("The hostname or IP address of the IMAP server"),
-			 pi->username_entry, _("Your username on the IMAP server"),
-			 pi->password_entry, _("Your password on the IMAP server (if left blank, you will be prompted for the password when needed)"),
-			 pi->port_spin[0], _("The port number of the IMAP server"),
-			 pi->port_spin[1], _("The port number of the IMAP server"),
-			 selfp->mailbox_entry, _("The mailbox name"),
-			 NULL);
+    mn_gtk_tooltips_set_tips(pi->tooltips,
+			     pi->hostname_entry, _("The hostname or IP address of the IMAP server"),
+			     pi->username_entry, _("Your username on the IMAP server"),
+			     pi->password_entry, _("Your password on the IMAP server (if left blank, you will be prompted for the password when needed)"),
+			     pi->port_spin[0], _("The port number of the IMAP server"),
+			     pi->port_spin[1], _("The port number of the IMAP server"),
+			     selfp->mailbox_entry, _("The mailbox name"),
+			     NULL);
 
     g_signal_connect(selfp->inbox_radio, "toggled", G_CALLBACK(self_radio_toggled_h), self);
     g_signal_connect(selfp->other_radio, "toggled", G_CALLBACK(self_radio_toggled_h), self);

@@ -28,6 +28,7 @@ requires 2.0.10
 #include "mn-mailbox-properties-util.h"
 #include "mn-auth-combo-box.h"
 #include "mn-util.h"
+#include "mn-pi-mailbox-properties-private.h"
 %}
 
 class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mailbox:Properties)
@@ -81,13 +82,13 @@ class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mai
     mn_auth_combo_box_append(MN_AUTH_COMBO_BOX(pi->auth_combo), "+APOP", "APOP");
     mn_auth_combo_box_append(MN_AUTH_COMBO_BOX(pi->auth_combo), "+USERPASS", "USER/PASS");
 
-    mn_tooltips_set_tips(pi->tooltips,
-			 pi->hostname_entry, _("The hostname or IP address of the POP3 server"),
-			 pi->username_entry, _("Your username on the POP3 server"),
-			 pi->password_entry, _("Your password on the POP3 server (if left blank, you will be prompted for the password when needed)"),
-			 pi->port_spin[0], _("The port number of the POP3 server"),
-			 pi->port_spin[1], _("The port number of the POP3 server"),
-			 NULL);
+    mn_gtk_tooltips_set_tips(pi->tooltips,
+			     pi->hostname_entry, _("The hostname or IP address of the POP3 server"),
+			     pi->username_entry, _("Your username on the POP3 server"),
+			     pi->password_entry, _("Your password on the POP3 server (if left blank, you will be prompted for the password when needed)"),
+			     pi->port_spin[0], _("The port number of the POP3 server"),
+			     pi->port_spin[1], _("The port number of the POP3 server"),
+			     NULL);
 
     return object;
   }

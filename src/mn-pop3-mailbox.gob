@@ -323,10 +323,17 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
 						    "pop",
 						    priv->auth_mechanisms,
 						    priv->mailbox->uri->authmech,
-						    &priv->sasl_mechanism))
+						    &priv->sasl_mechanism,
+					  /* [1] */ TRUE))
       return mn_client_session_write(session, "AUTH %s", priv->sasl_mechanism);
     else
       return self_session_authenticate_fallback(priv, FALSE);
+
+    /*
+     * [1] http://www.ietf.org/internet-drafts/draft-siemborski-rfc1734bis-03.txt
+     * section 4 specifies that POP3 supports the initial client
+     * response feature of SASL.
+     */
 #else
     g_return_val_if_reached(0);
 #endif /* WITH_SASL */
@@ -660,7 +667,9 @@ class MN:POP3:Mailbox from MN:Authenticated:Mailbox
       self_notice_cb,
       self_response_new_cb,
       self_response_free_cb,
-      self_custom_handler_cb
+      self_custom_handler_cb,
+      NULL,			/* pre_read */
+      NULL			/* post_read */
     };
     MNClientSessionPrivate priv;
     gboolean status;

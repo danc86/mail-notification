@@ -118,7 +118,7 @@ class MN:mbox:Mailbox from MN:Mailbox
     Self *self = SELF(mailbox);
     gboolean check = TRUE;
     
-    if (! mn_mailbox_get_automatic(mailbox))
+    if (mn_mailbox_get_must_poll(mailbox))
       {
 	GnomeVFSFileInfo *file_info;
 
@@ -126,12 +126,12 @@ class MN:mbox:Mailbox from MN:Mailbox
 
 	file_info = gnome_vfs_file_info_new();
 	if (gnome_vfs_get_file_info_uri(mailbox->uri->vfs, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS) == GNOME_VFS_OK)
-	{
-	  if (file_info->mtime == selfp->last_mtime)
-	    check = FALSE;
-	  else
-	    selfp->last_mtime = file_info->mtime;
-	}
+	  {
+	    if (file_info->mtime == selfp->last_mtime)
+	      check = FALSE;
+	    else
+	      selfp->last_mtime = file_info->mtime;
+	  }
 	gnome_vfs_file_info_unref(file_info);
       }
 

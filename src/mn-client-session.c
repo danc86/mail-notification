@@ -563,7 +563,10 @@ mn_client_session_prepare_input_buffer (MNClientSession *session)
   g_return_if_fail(session != NULL);
 
   if (session->bytes_to_remove)
-    g_byte_array_remove_range(session->input_buffer, 0, session->bytes_to_remove);
+    {
+      g_byte_array_remove_range(session->input_buffer, 0, session->bytes_to_remove);
+      session->bytes_to_remove = 0;
+    }
 }
 
 static gboolean
@@ -576,6 +579,9 @@ mn_client_session_fill_input_buffer (MNClientSession *session)
   
   g_return_val_if_fail(session != NULL, FALSE);
 
+  if (session->callbacks->pre_read)
+    session->callbacks->pre_read(session, session->private);
+
 #ifdef WITH_SSL
   if (session->ssl)
     bytes_read = SSL_read(session->ssl, buf, sizeof(buf));
@@ -585,6 +591,9 @@ mn_client_session_fill_input_buffer (MNClientSession *session)
       bytes_read = read(session->s, buf, sizeof(buf));
     while (bytes_read < 0 && errno == EINTR);
 	  
+  if (session->callbacks->post_read)
+    session->callbacks->post_read(session, session->private);
+
   if (bytes_read <= 0)
     {
 #ifdef WITH_SSL
@@ -898,7 +907,8 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
 					     const char *service,
 					     GSList *mechanisms,
 					     const char *forced_mechanism,
-					     const char **used_mechanism)
+					     const char **used_mechanism,
+					     gboolean initial_response)
 {
   GError *err = NULL;
   int result;
@@ -981,8 +991,8 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
 	  result = sasl_client_start(session->sasl_conn,
 				     mechanisms_string->str,
 				     &interact,
-				     &session->sasl_initial_clientout,
-				     &session->sasl_initial_clientoutlen,
+				     initial_response ? &session->sasl_initial_clientout : NULL,
+				     initial_response ? &session->sasl_initial_clientoutlen : NULL,
 				     used_mechanism);
 
 	  if (result == SASL_INTERACT)

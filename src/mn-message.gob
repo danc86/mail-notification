@@ -73,7 +73,7 @@ class MN:Message from G:Object
 	/*
 	 * An ID should (not mandatory):
 	 *
-	 *	- be unique in a single mailbox
+	 *	- be unique, application-wise
 	 *	- persist across checks if the message does not change
 	 */
 

@@ -63,6 +63,11 @@ typedef struct
 				 MNClientSessionResponse  *response,
 				 int			  result,
 				 MNClientSessionPrivate   *private);
+
+  void      (*pre_read)		(MNClientSession          *session,
+				 MNClientSessionPrivate   *private);
+  void      (*post_read)	(MNClientSession          *session,
+				 MNClientSessionPrivate   *private);
 } MNClientSessionCallbacks;
 
 gboolean mn_client_session_run (MNClientSessionState *states,
@@ -93,7 +98,8 @@ gboolean mn_client_session_sasl_authentication_start (MNClientSession *session,
 						      const char *service,
 						      GSList *mechanisms,
 						      const char *forced_mechanism,
-						      const char **used_mechanism);
+						      const char **used_mechanism,
+						      gboolean initial_response);
 int mn_client_session_sasl_authentication_step (MNClientSession *session,
 						const char *input);
 gboolean mn_client_session_sasl_authentication_done (MNClientSession *session);

@@ -47,7 +47,7 @@ class MN:PI:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
   protected GtkWidget *hostname_entry;
   protected GtkWidget *username_entry;
   protected GtkWidget *password_entry;
-  protected GtkTooltips *tooltips = {mn_tooltips_new()} unrefwith g_object_unref;
+  protected GtkTooltips *tooltips = {mn_gtk_tooltips_new()} unrefwith g_object_unref;
   protected GtkWidget *details_vbox;
   protected GtkSizeGroup *details_size_group;
   protected GtkWidget *conn_radio[3];
@@ -198,7 +198,7 @@ class MN:PI:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
     g_object_notify(G_OBJECT(self), "complete");
   }
 
-  public void
+  protected void
     set_contents (self,
 		  gboolean ssl,
 		  gboolean inband_ssl,
@@ -216,7 +216,7 @@ class MN:PI:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(self->port_spin[ssl ? 2 : (inband_ssl ? 1 : 0)]), port);
   }
 
-  public void
+  protected void
     get_contents (self,
 		  gboolean *ssl,
 		  gboolean *inband_ssl,

@@ -46,7 +46,7 @@ requires 2.0.10
 #define MN_MAILBOX_CAN_CHECK(self) \
   (MN_MAILBOX_GET_CLASS((self))->impl_check != NULL)
 #define MN_MAILBOX_MUST_POLL(self) \
-  (MN_MAILBOX_CAN_CHECK((self)) && ! mn_mailbox_get_automatic((self)))
+  (MN_MAILBOX_CAN_CHECK((self)) && mn_mailbox_get_must_poll((self)))
 %}
   
 %{
@@ -141,8 +141,9 @@ class MN:Mailbox from G:Object
   property STRING name (blurb = _("The mailbox human-readable name"), link);
   public const char *get_name (self) { return selfp->name; }
   
-  private gboolean automatic;
-  property BOOLEAN automatic (blurb = _("Whether the mailbox has to be manually checked or not"),
+  private gboolean must_poll = TRUE;
+  property BOOLEAN must_poll (blurb = _("Whether the mailbox has to be polled or not"),
+			      default_value = TRUE,
 			      link,
 			      export);
 
@@ -399,7 +400,7 @@ class MN:Mailbox from G:Object
       {
 	selfp->monitor_uri = g_strdup(uri);
 	selfp->monitor_events = events;
-	self_set_automatic(self, TRUE);
+	self_set_must_poll(self, FALSE);
       }
     else
       {

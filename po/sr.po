@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mail-notification 0.7.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-10-25 15:26+0200\n"
+"POT-Creation-Date: 2004-10-31 18:42+0100\n"
 "PO-Revision-Date: 2004-10-18 20:04+0100\n"
 "Last-Translator: Филип Милетић <filmil@gmail.com>\n"
 "Language-Team: Serbian (sr) <gnu@prevod.org>\n"
@@ -35,7 +35,7 @@ msgstr "Подеси дојаву приспећа поште"
 #: data/mail-notification-properties.desktop.in.h:2
 #: data/mail-notification.desktop.in.h:2
 #: data/mail-notification.soundlist.in.h:1 src/mn-about-dialog.gob:40
-#: src/mn-mail-icon.gob:163 src/mn-main.c:271
+#: src/mn-mail-icon.gob:194 src/mn-main.c:271
 msgid "Mail Notification"
 msgstr "Дојава поште"
 
@@ -64,119 +64,150 @@ msgid "Do not show the immediate notification error dialog"
 msgstr "Не показуј прозор са обавештењем о грешкама"
 
 #: data/mail-notification.schemas.in.h:6
+#, fuzzy
+msgid "Double-click action"
+msgstr "Изврши на двоструки клик"
+
+#: data/mail-notification.schemas.in.h:7
 msgid "Enable mail summary popup"
 msgstr "Дозволи приказ сажетка порука"
 
-#: data/mail-notification.schemas.in.h:7
+#: data/mail-notification.schemas.in.h:8
 msgid "Fingerprints of trusted X509 certificates"
 msgstr "Отисци проверених X509 сертификата"
 
-#: data/mail-notification.schemas.in.h:8
+#: data/mail-notification.schemas.in.h:9
 msgid "Has already been run"
 msgstr "Већ је покренут"
 
-#: data/mail-notification.schemas.in.h:9
+#: data/mail-notification.schemas.in.h:10
 msgid "Height of mail summary dialog"
 msgstr "Висина прозора са сажетком порука"
 
-#: data/mail-notification.schemas.in.h:10
+#: data/mail-notification.schemas.in.h:11
 msgid "Height of properties dialog"
 msgstr "Висина прозора са поставкама"
 
-#: data/mail-notification.schemas.in.h:11
+#: data/mail-notification.schemas.in.h:12
 msgid "Mail read command"
 msgstr "Команда за читање поште"
 
-#: data/mail-notification.schemas.in.h:12
+#: data/mail-notification.schemas.in.h:13
+#, fuzzy
+msgid "Mail reader command"
+msgstr "Команда за читање поште"
+
+#: data/mail-notification.schemas.in.h:14
 msgid "Mail summary popup horizontal offset"
 msgstr "Померај хоризонталних тачака за прозор са сажетком порука"
 
-#: data/mail-notification.schemas.in.h:13
+#: data/mail-notification.schemas.in.h:15
 msgid "Mail summary popup position"
 msgstr "Број хоризонталних тачака за прозор са сажетком порука"
 
-#: data/mail-notification.schemas.in.h:14
+#: data/mail-notification.schemas.in.h:16
 msgid "Mail summary popup vertical offset"
 msgstr "Померај вертикалних тачака ѕа прозор са сажетком порука"
 
-#: data/mail-notification.schemas.in.h:15
+#: data/mail-notification.schemas.in.h:17
 msgid "Mailbox list"
 msgstr "Списак сандучића"
 
-#: data/mail-notification.schemas.in.h:16
+#: data/mail-notification.schemas.in.h:18
 msgid "Minutes between mail checks"
 msgstr "Минута између две провере"
 
-#: data/mail-notification.schemas.in.h:17
+#: data/mail-notification.schemas.in.h:19
 msgid "Minutes to wait before closing the mail summary popup"
 msgstr ""
 "Број минута који треба да протекне пре затварања прозора са сажетком порука"
 
-#: data/mail-notification.schemas.in.h:18
+#: data/mail-notification.schemas.in.h:20
 msgid "New mail command"
 msgstr "Изврши када пошта стигне"
 
-#: data/mail-notification.schemas.in.h:19
+#: data/mail-notification.schemas.in.h:21
+#, fuzzy
+msgid "Only display recent mail in mail summary popup"
+msgstr "Затвори прозор са сажетком порука"
+
+#: data/mail-notification.schemas.in.h:22
 msgid "Run a command when all mail is read"
 msgstr "Покрени команду када је сва пошта прочитана"
 
-#: data/mail-notification.schemas.in.h:20
+#: data/mail-notification.schemas.in.h:23
 msgid "Run a command when new mail arrives"
 msgstr "Покрени команду када стигне нова пошта"
 
-#: data/mail-notification.schemas.in.h:21
+#: data/mail-notification.schemas.in.h:24
 msgid "Seconds between mail checks"
 msgstr "Секунди између две провере"
 
-#: data/mail-notification.schemas.in.h:22
+#: data/mail-notification.schemas.in.h:25
 msgid "Seconds to wait before closing the mail summary popup"
 msgstr "Број секунди који треба да протекне пре затварања сажетка порука"
 
-#: data/mail-notification.schemas.in.h:23
+#: data/mail-notification.schemas.in.h:26
+#, fuzzy
+msgid "Set a mail reader"
+msgstr "Изаберите датотеку или директоријум"
+
+#: data/mail-notification.schemas.in.h:27
+msgid ""
+"The action to perform when the icon is double-clicked. Must be \"display-"
+"mail-summary\" or \"launch-mail-reader\"."
+msgstr ""
+
+#: data/mail-notification.schemas.in.h:28
 msgid ""
 "The amount of time to wait before closing the mail summary popup (minutes "
 "part)."
 msgstr "Пауза пре затварања прозора са сажетком порука (минути)."
 
-#: data/mail-notification.schemas.in.h:24
+#: data/mail-notification.schemas.in.h:29
 msgid ""
 "The amount of time to wait before closing the mail summary popup (seconds "
 "part)."
 msgstr "Пауза пре затварања прозора са сажетком порука (секунде)."
 
-#: data/mail-notification.schemas.in.h:25
+#: data/mail-notification.schemas.in.h:30
+#, fuzzy
+msgid "The command to run to launch the mail reader."
+msgstr "Команда коју треба покренути када је сва пошта прочитана."
+
+#: data/mail-notification.schemas.in.h:31
 msgid "The command to run when all mail is read."
 msgstr "Команда коју треба покренути када је сва пошта прочитана."
 
-#: data/mail-notification.schemas.in.h:26
+#: data/mail-notification.schemas.in.h:32
 msgid "The command to run when new mail arrives."
 msgstr "Покрени ову команду када стигне нова пошта."
 
-#: data/mail-notification.schemas.in.h:27
+#: data/mail-notification.schemas.in.h:33
 msgid "The height of the mail summary dialog in pixels."
 msgstr "Висина прозора са сажетком порука изражена у тачкама."
 
-#: data/mail-notification.schemas.in.h:28
+#: data/mail-notification.schemas.in.h:34
 msgid "The height of the properties dialog in pixels."
 msgstr "Висина прозора са поставкама изражена у тачкама."
 
-#: data/mail-notification.schemas.in.h:29
+#: data/mail-notification.schemas.in.h:35
 msgid "The list of mailboxes to monitor."
 msgstr "Списак сандучића који се прате."
 
-#: data/mail-notification.schemas.in.h:30
+#: data/mail-notification.schemas.in.h:36
 msgid ""
 "The list of trusted SSL/TLS servers (hostname:port) lacking a X509 "
 "certificate."
 msgstr ""
 "Списак проверених SSL/TLS сервера (рачунар:порт) који немају X509 сертификат."
 
-#: data/mail-notification.schemas.in.h:31
+#: data/mail-notification.schemas.in.h:37
 msgid ""
 "The list of trusted X509 certificates, represented by their MD5 fingerprint."
 msgstr "Списак проверених X509 сертификата, представљених MD5 отиском."
 
-#: data/mail-notification.schemas.in.h:32
+#: data/mail-notification.schemas.in.h:38
 msgid ""
 "The number of pixels to leave between the left or right side of the screen "
 "and the mail summary popup."
@@ -184,7 +215,7 @@ msgstr ""
 "Број тачака које треба оставити између леве, одн. десне стране екрана и "
 "прозора са сажетком порука."
 
-#: data/mail-notification.schemas.in.h:33
+#: data/mail-notification.schemas.in.h:39
 msgid ""
 "The number of pixels to leave between the top or bottom side of the screen "
 "and the mail summary popup."
@@ -192,7 +223,7 @@ msgstr ""
 "Број тачака које треба оставити између врха, одн. дна екрана и прозора са "
 "сажетком порука."
 
-#: data/mail-notification.schemas.in.h:34
+#: data/mail-notification.schemas.in.h:40
 msgid ""
 "The position of the mail summary popup. Must be \"top-left\", \"top-right\", "
 "\"bottom-left\" or \"bottom-right\"."
@@ -200,55 +231,68 @@ msgstr ""
 "Положај прозора са сажетком порука. Може бити: „горе-лево‟, „горе-десно‟, "
 "„доле-лево‟ или „доле-десно‟."
 
-#: data/mail-notification.schemas.in.h:35
+#: data/mail-notification.schemas.in.h:41
 msgid "The width of the mail summary dialog in pixels."
 msgstr "Ширина прозора са сажетком порука изражена у тачкама."
 
-#: data/mail-notification.schemas.in.h:36
+#: data/mail-notification.schemas.in.h:42
 msgid "The width of the properties dialog in pixels."
 msgstr "Ширина прозора са поставкама изражена у тачкама."
 
-#: data/mail-notification.schemas.in.h:37
+#: data/mail-notification.schemas.in.h:43
 msgid "Trusted servers list"
 msgstr "Списак проверених сервера"
 
-#: data/mail-notification.schemas.in.h:38
+#: data/mail-notification.schemas.in.h:44
 msgid "Whether Mail Notification has already been run or not."
 msgstr "Да ли је програм покретан пре или није."
 
-#: data/mail-notification.schemas.in.h:39
+#: data/mail-notification.schemas.in.h:45
 msgid "Whether the status icon should blink on errors or not."
 msgstr "Да ли сличица треба да трепери ако дође до грешке или не."
 
-#: data/mail-notification.schemas.in.h:40
+#: data/mail-notification.schemas.in.h:46
 msgid "Whether to automatically close the mail summary popup or not."
 msgstr ""
 "Да ли треба или не треба аутоматски затворити прозор са сажетком поште."
 
-#: data/mail-notification.schemas.in.h:41
+#: data/mail-notification.schemas.in.h:47
 msgid "Whether to display the mail summary popup when new mail arrives or not."
 msgstr "Да ли треба приказати сажетак порука када стигне нова пошта."
 
-#: data/mail-notification.schemas.in.h:42
+#: data/mail-notification.schemas.in.h:48
+#, fuzzy
+msgid ""
+"Whether to hide previously displayed mail in the mail summary popup or not."
+msgstr ""
+"Да ли треба или не треба аутоматски затворити прозор са сажетком поште."
+
+#: data/mail-notification.schemas.in.h:49
 msgid ""
 "Whether to prevent the immediate notification error dialog from being "
 "displayed or not."
 msgstr "Да ли треба или не треба спречити појаву прозора са описом грешака."
 
-#: data/mail-notification.schemas.in.h:43
+#: data/mail-notification.schemas.in.h:50
 msgid "Whether to run a command when all mail is read or not."
 msgstr ""
 "Да ли треба или не треба покренути неку команду када је сва пошта прочитана."
 
-#: data/mail-notification.schemas.in.h:44
+#: data/mail-notification.schemas.in.h:51
 msgid "Whether to run a command when new mail arrives or not."
 msgstr "Да ли треба покренути неку команду када стигне нова пошта."
 
-#: data/mail-notification.schemas.in.h:45
+#: data/mail-notification.schemas.in.h:52
+#, fuzzy
+msgid "Whether to set a mail reader or not."
+msgstr ""
+"Да ли треба или не треба покренути неку команду када је сва пошта прочитана."
+
+#: data/mail-notification.schemas.in.h:53
 msgid "Width of mail summary dialog"
 msgstr "Ширина прозора са сажетком порука"
 
-#: data/mail-notification.schemas.in.h:46
+#: data/mail-notification.schemas.in.h:54
 msgid "Width of properties dialog"
 msgstr "Ширина прозора са поставкама"
 
@@ -446,129 +490,129 @@ msgstr "одговор \"%s\" није исправан у тренутно ва
 msgid "unable to parse response \"%s\""
 msgstr "није могуће обрадити одговор \"%s\""
 
-#: src/mn-client-session.c:592 src/mn-client-session.c:599
+#: src/mn-client-session.c:601 src/mn-client-session.c:608
 #, c-format
 msgid "unable to read from server: %s"
 msgstr "Није могуће читање са сервера: %s"
 
-#: src/mn-client-session.c:597
+#: src/mn-client-session.c:606
 msgid "unable to read from server: EOF"
 msgstr "Није могуће читање са сервера: EOF"
 
-#: src/mn-client-session.c:609
+#: src/mn-client-session.c:618
 #, c-format
 msgid "unable to decode data using SASL: %s"
 msgstr "Не могу се декодовати подаци путем SASL: %s"
 
-#: src/mn-client-session.c:746
+#: src/mn-client-session.c:755
 #, c-format
 msgid "unable to encode data using SASL: %s"
 msgstr "није могуће кодирати податке уз помоћ SASL: %s"
 
-#: src/mn-client-session.c:777 src/mn-client-session.c:784
+#: src/mn-client-session.c:786 src/mn-client-session.c:793
 #, c-format
 msgid "unable to write to server: %s"
 msgstr "није могућ упис на сервер: %s"
 
-#: src/mn-client-session.c:782
+#: src/mn-client-session.c:791
 msgid "unable to write to server: EOF"
 msgstr "није могућ упис на сервер: EOF"
 
-#: src/mn-client-session.c:814
+#: src/mn-client-session.c:823
 #, c-format
 msgid "unable to encode Base64: %s"
 msgstr "није могуће кодирати Base64: %s"
 
-#: src/mn-client-session.c:917
+#: src/mn-client-session.c:927
 #, c-format
 msgid "unable to initialize the SASL library: %s"
 msgstr "не може се покренути SASL библиотека: %s"
 
-#: src/mn-client-session.c:926
+#: src/mn-client-session.c:936
 #, c-format
 msgid "unable to retrieve local address of socket: %s"
 msgstr "не може да се добави локална адреса утичнице: %s"
 
-#: src/mn-client-session.c:932
+#: src/mn-client-session.c:942
 #, c-format
 msgid "unable to retrieve remote address of socket: %s"
 msgstr "не може да се добави удаљена адреса утичнице: %s"
 
-#: src/mn-client-session.c:966
+#: src/mn-client-session.c:976
 #, c-format
 msgid "warning: unable to set SASL security properties: %s"
 msgstr "упозорење: није могуће поставити SASL сигурносне поставке %s"
 
-#: src/mn-client-session.c:1005
+#: src/mn-client-session.c:1015
 msgid ""
 "unable to start SASL authentication: SASL asked for something we did not know"
 msgstr "не може се покренути SASL пријава: SASL тражи податке које немамо"
 
-#: src/mn-client-session.c:1009
+#: src/mn-client-session.c:1019
 #, c-format
 msgid "unable to start SASL authentication: %s"
 msgstr "не може се покренути SASL пријава: %s"
 
-#: src/mn-client-session.c:1013
+#: src/mn-client-session.c:1023
 #, c-format
 msgid "unable to create a SASL connection: %s"
 msgstr "није могуће успоставити SASL везу: %s"
 
-#: src/mn-client-session.c:1063
+#: src/mn-client-session.c:1073
 msgid "SASL asked for something we did not know, aborting SASL authentication"
 msgstr "SASL је тражио нама непознате податке, обустављам SASL пријаву"
 
-#: src/mn-client-session.c:1067
+#: src/mn-client-session.c:1077
 #, c-format
 msgid "%s, aborting SASL authentication"
 msgstr "%s, обустављам SASL пријаву"
 
 #. compliance error
-#: src/mn-client-session.c:1072
+#: src/mn-client-session.c:1082
 #, c-format
 msgid "unable to decode Base64 input from server: %s"
 msgstr "није могуће декодовати Base64 улаз са сервера: %s"
 
-#: src/mn-client-session.c:1075
+#: src/mn-client-session.c:1085
 msgid ""
 "the server sent a SASL challenge, but there was a pending initial SASL "
 "client response"
 msgstr ""
 "сервер је започео SASL разговор, али одговор од клијента стигао пре тога"
 
-#: src/mn-client-session.c:1089
+#: src/mn-client-session.c:1099
 msgid ""
 "the server did not send a SASL challenge, but there was no pending initial "
 "SASL client response"
 msgstr ""
 "сервер није послао SASL разговор, али није било ни одговора од клијента."
 
-#: src/mn-client-session.c:1112
+#: src/mn-client-session.c:1122
 #, c-format
 msgid "a SASL security layer of strength factor %i is now active"
 msgstr "SASL сигурносни слој нивоа снаге %i је успостављен"
 
 #. a security layer is active but we can't retrieve maxoutbuf -> fatal
-#: src/mn-client-session.c:1117
+#: src/mn-client-session.c:1127
 #, c-format
 msgid "unable to get SASL_MAXOUTBUF property: %s"
 msgstr "не могу да прочитам поставку SASL_MAXOUTBUF: %s"
 
-#: src/mn-client-session.c:1123
+#: src/mn-client-session.c:1133
 #, c-format
 msgid "warning: unable to get SASL_SSF property: %s"
 msgstr "упозорење: не могу да прочитам поставку SASL_SSF: %s"
 
-#: src/mn-conf.c:123
+#: src/mn-conf.c:136
 #, c-format
 msgid "recursively unsetting %s"
 msgstr "рекурзивно поништавам %s"
 
-#: src/mn-conf.c:127
+#: src/mn-conf.c:140
 msgid "syncing the GConf database"
 msgstr "усклађујем GConf базу података"
 
-#: src/mn-conf.c:130
+#: src/mn-conf.c:143
 msgid "completed"
 msgstr "урађено"
 
@@ -584,33 +628,33 @@ msgstr ""
 "Ваша лозинка на сервису Gmail (ако не упишете лозинку, програм ће Вас "
 "замолити да је унесете када то буде потребно)"
 
-#: src/mn-gmail-mailbox.gob:63
+#: src/mn-gmail-mailbox.gob:81
 msgid "libsoup has not been compiled with SSL/TLS support"
 msgstr "libsoup није изграђен са подршком за SSL/TLS"
 
-#: src/mn-gmail-mailbox.gob:105
+#: src/mn-gmail-mailbox.gob:123
 #, c-format
 msgid "unable to parse URI \"%s\""
 msgstr "није могуће обрадити URI \"%s\""
 
-#: src/mn-gmail-mailbox.gob:159
+#: src/mn-gmail-mailbox.gob:177
 #, c-format
 msgid "unable to transfer data: %s"
 msgstr "не могу да преузмем податке: %s"
 
-#: src/mn-gmail-mailbox.gob:280
+#: src/mn-gmail-mailbox.gob:298
 msgid "logging in"
 msgstr "пријава у току"
 
-#: src/mn-gmail-mailbox.gob:358
+#: src/mn-gmail-mailbox.gob:376
 msgid "login failed"
 msgstr "пријава није успела"
 
-#: src/mn-gmail-mailbox.gob:433
+#: src/mn-gmail-mailbox.gob:451
 msgid "searching for unread mail"
 msgstr "тражим нову пошту"
 
-#: src/mn-gmail-mailbox.gob:529
+#: src/mn-gmail-mailbox.gob:490
 msgid "unable to parse Gmail data"
 msgstr "не могу да обрадим податке са сервиса Gmail"
 
@@ -676,50 +720,50 @@ msgstr "Број порта на IMAP серверу"
 msgid "The mailbox name"
 msgstr "Име сандучета"
 
-#: src/mn-imap-mailbox.gob:133 src/mn-pop3-mailbox.gob:142
+#: src/mn-imap-mailbox.gob:164 src/mn-pop3-mailbox.gob:142
 msgid "SSL/TLS support has not been compiled in"
 msgstr "Подршка за SSL/TLS није уграђена"
 
-#: src/mn-imap-mailbox.gob:204
+#: src/mn-imap-mailbox.gob:253
 msgid "server did not send capabilities"
 msgstr "сервер није обавестио о својим могућностима"
 
-#: src/mn-imap-mailbox.gob:319
+#: src/mn-imap-mailbox.gob:374
 msgid "server advertised LOGINDISABLED, not using LOGIN authentication"
 msgstr "сервер је дојавио LOGINDISABLED, LOGIN пријавa неће бити коришћена"
 
-#: src/mn-imap-mailbox.gob:320
+#: src/mn-imap-mailbox.gob:375
 msgid "unable to login"
 msgstr "пријава није могућа"
 
 #. compliance error
-#: src/mn-imap-mailbox.gob:451
+#: src/mn-imap-mailbox.gob:516
 msgid "server did not send search results"
 msgstr "сервер није послао резултате претраге"
 
 #. compliance error
-#: src/mn-imap-mailbox.gob:527
+#: src/mn-imap-mailbox.gob:596
 msgid "server did not send all the messages we requested"
 msgstr "сервер није послао све тражене поруке"
 
-#: src/mn-imap-mailbox.gob:574
+#: src/mn-imap-mailbox.gob:645
 msgid "unable to fetch message"
 msgstr "није могуће добавити поруку"
 
 #. compliance error
-#: src/mn-imap-mailbox.gob:621
+#: src/mn-imap-mailbox.gob:763
 msgid "server did not send status"
 msgstr "сервер није послао статус"
 
-#: src/mn-imap-mailbox.gob:856 src/mn-pop3-mailbox.gob:913
+#: src/mn-imap-mailbox.gob:1035 src/mn-pop3-mailbox.gob:922
 msgid "unknown server error"
 msgstr "непозната грешка на серверу"
 
-#: src/mn-imap-mailbox.gob:927 src/mn-pop3-mailbox.gob:226
+#: src/mn-imap-mailbox.gob:1106 src/mn-pop3-mailbox.gob:226
 msgid "server does not support in-band SSL/TLS"
 msgstr "сервер не подржава заштиту путем SSL/TLS"
 
-#: src/mn-imap-mailbox.gob:946 src/mn-pop3-mailbox.gob:832
+#: src/mn-imap-mailbox.gob:1125 src/mn-pop3-mailbox.gob:841
 msgid ""
 "a SASL authentication mechanism was selected but SASL support has not been "
 "compiled in"
@@ -727,24 +771,28 @@ msgstr ""
 "изабран је механизам за пријаву који користи SASL али подршка за SASL није "
 "уграђена у програм"
 
-#: src/mn-imap-mailbox.gob:954 src/mn-pop3-mailbox.gob:844
+#: src/mn-imap-mailbox.gob:1133 src/mn-pop3-mailbox.gob:853
 #, c-format
 msgid "unknown authentication mechanism \"%s\""
 msgstr "непознат механизам за пријаву \"%s\""
 
-#: src/mn-imap-mailbox.gob:972
+#: src/mn-imap-mailbox.gob:1151
 msgid "falling back to IMAP LOGIN authentication"
 msgstr "повратак на  IMAP LOGIN пријаву"
 
-#: src/mn-imap-mailbox.gob:977 src/mn-pop3-mailbox.gob:879
+#: src/mn-imap-mailbox.gob:1156 src/mn-pop3-mailbox.gob:888
 msgid "authentication failed"
 msgstr "пријава није успела"
 
-#: src/mn-mail-icon.gob:84 ui/summary-dialog.glade.h:2
+#: src/mn-mail-icon.gob:92 ui/summary-dialog.glade.h:2
+msgid "_Launch Mail Reader"
+msgstr ""
+
+#: src/mn-mail-icon.gob:93 ui/summary-dialog.glade.h:3
 msgid "_Update"
 msgstr "_Освежи"
 
-#: src/mn-mail-icon.gob:90
+#: src/mn-mail-icon.gob:99
 msgid "R_emove From Notification Area"
 msgstr "_Уклони са обавештајне зоне"
 
@@ -801,7 +849,7 @@ msgstr "Готово"
 msgid "Whether the properties are completely filled or not"
 msgstr "Да ли су поставке сасвим попуњене или не"
 
-#: src/mn-mailbox-view.gob:263 src/mn-message-label.gob:74
+#: src/mn-mailbox-view.gob:263 src/mn-message-box.gob:58
 msgid "Mailbox"
 msgstr "Сандуче"
 
@@ -827,35 +875,36 @@ msgid "The mailbox human-readable name"
 msgstr "Име сандучета"
 
 #: src/mn-mailbox.gob:145
-msgid "Whether the mailbox has to be manually checked or not"
+#, fuzzy
+msgid "Whether the mailbox has to be polled or not"
 msgstr "Да ли се ово сандуче ручно проверава или не"
 
-#: src/mn-mailbox.gob:150
+#: src/mn-mailbox.gob:151
 msgid "Whether the mailbox has new mail or not"
 msgstr "Да ли у сандучету стоји нова пошта или не"
 
-#: src/mn-mailbox.gob:155
+#: src/mn-mailbox.gob:156
 msgid "The list of new and unread MNMessage objects"
 msgstr "Списак нових и непрочитаних MNMessage објеката"
 
-#: src/mn-mailbox.gob:209
+#: src/mn-mailbox.gob:210
 msgid "The mailbox error, if any"
 msgstr "Грешка у приступу сандучету, ако постоји"
 
-#: src/mn-mailbox.gob:308
+#: src/mn-mailbox.gob:309
 msgid "does not exist"
 msgstr "не постоји"
 
-#: src/mn-mailbox.gob:340
+#: src/mn-mailbox.gob:341
 msgid "unknown format"
 msgstr "непознат формат"
 
-#: src/mn-mailbox.gob:406
+#: src/mn-mailbox.gob:407
 #, c-format
 msgid "unable to enable immediate notification for %s: %s"
 msgstr "Није могуће наместити непосредну дојаву нове поште за %s: %s"
 
-#: src/mn-mailbox.gob:424
+#: src/mn-mailbox.gob:425
 #, c-format
 msgid ""
 "As a fallback, they will be checked every %i second (this delay is "
@@ -873,7 +922,7 @@ msgstr[2] ""
 "Пошто нема друге могућности, биће проверавани сваких %i секунди (ово кашњење "
 "се може променити из прозора са поставкама)"
 
-#: src/mn-mailbox.gob:435
+#: src/mn-mailbox.gob:436
 #, c-format
 msgid ""
 "As a fallback, they will be checked every %i minute (this delay is "
@@ -891,7 +940,7 @@ msgstr[2] ""
 "Пошто нема друге могућности, биће проверавани сваких %i минута (ово кашњење "
 "се може променити из прозора са поставкама)"
 
-#: src/mn-mailbox.gob:446
+#: src/mn-mailbox.gob:447
 #, c-format
 msgid ""
 "As a fallback, they will be checked approximately every %i minute (this "
@@ -909,11 +958,11 @@ msgstr[2] ""
 "Пошто нема друге могућности, биће проверавани на око %i минута (ово кашњење "
 "се може променити из прозора са поставкама)"
 
-#: src/mn-mailbox.gob:462
+#: src/mn-mailbox.gob:463
 msgid "A monitoring error has occurred"
 msgstr "Дошло је до грешке при мотрењу"
 
-#: src/mn-mailbox.gob:463
+#: src/mn-mailbox.gob:464
 #, c-format
 msgid ""
 "Mail Notification was unable to enable immediate notification for one or "
@@ -922,27 +971,27 @@ msgstr ""
 "Није могуће наместити непосредну дојаву нове поште за један или више "
 "сандучића. %s"
 
-#: src/mn-mailboxes.gob:143
+#: src/mn-mailboxes.gob:142
 msgid "Whether one or more of the mailboxes has to be polled"
 msgstr ""
 "Показује да ли постоји бар једно сандуче које мора да се учестало проверава"
 
-#: src/mn-mailboxes.gob:276
+#: src/mn-mailboxes.gob:272
 #, c-format
 msgid "%s is unsupported: %s"
 msgstr "%s није подржан: %s"
 
-#: src/mn-mailboxes.gob:307
+#: src/mn-mailboxes.gob:304
 #, c-format
 msgid "%s has new mail"
 msgstr "Сандуче %s има нову пошту"
 
-#: src/mn-mailboxes.gob:307
+#: src/mn-mailboxes.gob:304
 #, c-format
 msgid "%s has no new mail"
 msgstr "Сандуче %s нема нову пошту"
 
-#: src/mn-mailboxes.gob:333
+#: src/mn-mailboxes.gob:330
 #, c-format
 msgid "%s reported an error: %s"
 msgstr "%s је дојавио грешку: %s"
@@ -1068,23 +1117,23 @@ msgstr "грешка при читању сандучета: %s"
 msgid "unable to open mailbox: %s"
 msgstr "није могуће отворити сандуче: %s"
 
-#: src/mn-message-label.gob:77
+#: src/mn-message-box.gob:61
 msgid "Unreadable message"
 msgstr "Нечитљива порука"
 
-#: src/mn-message-label.gob:97
+#: src/mn-message-box.gob:66
 msgid "From"
 msgstr "Од"
 
-#: src/mn-message-label.gob:98
+#: src/mn-message-box.gob:67
 msgid "Subject"
 msgstr "Тема"
 
-#: src/mn-message-label.gob:102
+#: src/mn-message-box.gob:72
 msgid "Sent"
 msgstr "Послато"
 
-#: src/mn-message-label.gob:151
+#: src/mn-message-box.gob:184
 #, c-format
 msgid "%i second ago"
 msgid_plural "%i seconds ago"
@@ -1092,7 +1141,7 @@ msgstr[0] "пре %i секунду"
 msgstr[1] "пре %i секунде"
 msgstr[2] "пре %i секунди"
 
-#: src/mn-message-label.gob:155
+#: src/mn-message-box.gob:188
 #, c-format
 msgid "%i minute ago"
 msgid_plural "%i minutes ago"
@@ -1100,7 +1149,7 @@ msgstr[0] "пре %i минут"
 msgstr[1] "пре %i минута"
 msgstr[2] "пре %i минута"
 
-#: src/mn-message-label.gob:160
+#: src/mn-message-box.gob:193
 #, c-format
 msgid "%i hour ago"
 msgid_plural "%i hours ago"
@@ -1108,7 +1157,7 @@ msgstr[0] "пре %i сат"
 msgstr[1] "пре %i сата"
 msgstr[2] "пре %i сати"
 
-#: src/mn-message-label.gob:165
+#: src/mn-message-box.gob:198
 #, c-format
 msgid "%i day ago"
 msgid_plural "%i days ago"
@@ -1116,7 +1165,7 @@ msgstr[0] "пре %i дан"
 msgstr[1] "пре %i дана"
 msgstr[2] "пре %i дана"
 
-#: src/mn-message-label.gob:170
+#: src/mn-message-box.gob:203
 #, c-format
 msgid "%i week ago"
 msgid_plural "%i weeks ago"
@@ -1166,15 +1215,15 @@ msgstr "_уграђени SSL/TLS"
 msgid "SSL/TLS on sepa_rate port"
 msgstr "SSL/TLS на посебном порту"
 
-#: src/mn-pop3-mailbox-properties.gob:85
+#: src/mn-pop3-mailbox-properties.gob:86
 msgid "The hostname or IP address of the POP3 server"
 msgstr "Име или IP број POP3 сервера"
 
-#: src/mn-pop3-mailbox-properties.gob:86
+#: src/mn-pop3-mailbox-properties.gob:87
 msgid "Your username on the POP3 server"
 msgstr "Ваше име на  POP3 серверу"
 
-#: src/mn-pop3-mailbox-properties.gob:87
+#: src/mn-pop3-mailbox-properties.gob:88
 msgid ""
 "Your password on the POP3 server (if left blank, you will be prompted for "
 "the password when needed)"
@@ -1182,7 +1231,7 @@ msgstr ""
 "Ваша лозинка на POP3 серверу (ако не упишете лозинку, програм ће Вас "
 "замолити да је унесете када то буде потребно)"
 
-#: src/mn-pop3-mailbox-properties.gob:88 src/mn-pop3-mailbox-properties.gob:89
+#: src/mn-pop3-mailbox-properties.gob:89 src/mn-pop3-mailbox-properties.gob:90
 msgid "The port number of the POP3 server"
 msgstr "Број порта на POP3 серверу"
 
@@ -1190,11 +1239,11 @@ msgstr "Број порта на POP3 серверу"
 msgid "invalid arguments for the LOGIN-DELAY capability"
 msgstr "параметри за могућност LOGIN-DELAY нису исправно постављени"
 
-#: src/mn-pop3-mailbox.gob:549
+#: src/mn-pop3-mailbox.gob:556
 msgid "unknown error"
 msgstr "непозната грешка"
 
-#: src/mn-pop3-mailbox.gob:681
+#: src/mn-pop3-mailbox.gob:690
 #, c-format
 msgid "honouring LOGIN-DELAY, sleeping for %i second"
 msgid_plural "honouring LOGIN-DELAY, sleeping for %i seconds"
@@ -1202,39 +1251,39 @@ msgstr[0] "тражен је застој при пријави, паузира�
 msgstr[1] "тражен је застој при пријави, паузирам %i секундe"
 msgstr[2] "тражен је застој при пријави, паузирам %i секунди"
 
-#: src/mn-pop3-mailbox.gob:840
+#: src/mn-pop3-mailbox.gob:849
 msgid "server does not support APOP authentication"
 msgstr "сервер не подржава пријаву коришћењем механизма APOP"
 
-#: src/mn-pop3-mailbox.gob:868
+#: src/mn-pop3-mailbox.gob:877
 msgid "falling back to APOP authentication"
 msgstr "прелазим на  APOP пријаву"
 
-#: src/mn-pop3-mailbox.gob:873
+#: src/mn-pop3-mailbox.gob:882
 msgid "falling back to USER/PASS authentication"
 msgstr "прелазим на пријаву помоћу имена и лозинке"
 
-#: src/mn-properties.c:170
+#: src/mn-properties.c:181
 msgid "top left"
 msgstr "горе-лево"
 
-#: src/mn-properties.c:171
+#: src/mn-properties.c:182
 msgid "top right"
 msgstr "горе-десно"
 
-#: src/mn-properties.c:172
+#: src/mn-properties.c:183
 msgid "bottom left"
 msgstr "доле-лево"
 
-#: src/mn-properties.c:173
+#: src/mn-properties.c:184
 msgid "bottom right"
 msgstr "доле-десно"
 
-#: src/mn-properties.c:251
+#: src/mn-properties.c:270
 msgid "No mailbox selected."
 msgstr "Ниједно сандуче није изабрано."
 
-#: src/mn-properties.c:256
+#: src/mn-properties.c:275
 #, c-format
 msgid "%i mailbox selected."
 msgid_plural "%i mailboxes selected."
@@ -1242,43 +1291,26 @@ msgstr[0] "Изабрано %i сандуче"
 msgstr[1] "Изабрана %i сандучета"
 msgstr[2] "Изабрано %i сандучета"
 
-#: src/mn-shell.gob:86
+#: src/mn-shell.gob:92
 msgid "You have new mail."
 msgstr "Имате нову пошту."
 
-#: src/mn-shell.gob:263
-msgid "The following mailbox has new mail:\n"
-msgid_plural "The following mailboxes have new mail:\n"
-msgstr[0] "Сандуче са новом поштом:\n"
-msgstr[1] "Сандучићи са новом поштом:\n"
-msgstr[2] "Сандучићи са новом поштом:\n"
+#: src/mn-shell.gob:347
+msgid "Mailboxes Having New Mail"
+msgstr ""
 
-#: src/mn-shell.gob:267
-msgid "You have no new mail."
-msgstr "Нема поште."
+#: src/mn-shell.gob:349
+msgid "Errors"
+msgstr ""
 
-#: src/mn-shell.gob:270
-msgid "The following mailbox reported an error:\n"
-msgid_plural "The following mailboxes reported an error:\n"
-msgstr[0] "Ово сандуче има грешку:\n"
-msgstr[1] "Ови сандучићи имају грешку:\n"
-msgstr[2] "Ови сандучићи имају грешку:\n"
+#: src/mn-shell.gob:351
+#, fuzzy
+msgid "Unsupported Mailboxes"
+msgstr "Локално сандуче"
 
-#: src/mn-shell.gob:275
-msgid "The following mailbox is unsupported:\n"
-msgid_plural "The following mailboxes are unsupported:\n"
-msgstr[0] "Ово сандуче није подржано:\n"
-msgstr[1] "Ови сандучићи нису подржани:\n"
-msgstr[2] "Ови сандучићи нису подржани:\n"
-
-#: src/mn-shell.gob:320
-msgid "A command error has occurred in Mail Notification"
-msgstr "Дошло је до грешке у командама"
-
-#: src/mn-shell.gob:321
-#, c-format
-msgid "Unable to execute \"%s\": %s."
-msgstr "Није могуће извршити %s: %s"
+#: src/mn-shell.gob:364 ui/summary-dialog.glade.h:1
+msgid "Mail Summary"
+msgstr "Сажетак порука"
 
 #: src/mn-soup.c:140
 #, c-format
@@ -1377,10 +1409,19 @@ msgstr "Дошло је до кобне грешке у програму за д
 msgid "unable to get current time: %s"
 msgstr "није могуће добавити тренутно време: %s"
 
-#: src/mn-util.c:887
+#: src/mn-util.c:906
 #, c-format
 msgid "invalid signal specification \"%s\""
 msgstr "неважећа одредница за сигнал „%s‟"
+
+#: src/mn-util.c:945
+msgid "A command error has occurred in Mail Notification"
+msgstr "Дошло је до грешке у командама"
+
+#: src/mn-util.c:946
+#, c-format
+msgid "Unable to execute \"%s\": %s."
+msgstr "Није могуће извршити %s: %s"
 
 #: ui/authentication.glade.h:1 ui/properties.glade.h:2
 msgid "*"
@@ -1403,58 +1444,72 @@ msgid "<span weight=\"bold\">Commands</span>"
 msgstr "<span weight=\"bold\">Наредбе</span>"
 
 #: ui/properties.glade.h:4
+#, fuzzy
+msgid "<span weight=\"bold\">Double-click Action</span>"
+msgstr "<span weight=\"bold\">Место</span>"
+
+#: ui/properties.glade.h:5
 msgid "<span weight=\"bold\">General</span>"
 msgstr "<span weight=\"bold\">Опште</span>"
 
-#: ui/properties.glade.h:5
+#: ui/properties.glade.h:6
 msgid "<span weight=\"bold\">Mailbox List</span>"
 msgstr "<span weight=\"bold\">Сандучићи</span>"
 
-#: ui/properties.glade.h:6
+#: ui/properties.glade.h:7
 msgid "<span weight=\"bold\">Position</span>"
 msgstr "<span weight=\"bold\">Место</span>"
 
-#: ui/properties.glade.h:7
+#: ui/properties.glade.h:8
 msgid "General"
 msgstr "Опште"
 
-#: ui/properties.glade.h:8
+#: ui/properties.glade.h:9
 msgid "Hori_zontal offset:"
 msgstr "Хори_зонтални помак:"
 
-#: ui/properties.glade.h:9
+#: ui/properties.glade.h:10
 msgid "Mail Notification Properties"
 msgstr "Поставке за дојаву"
 
-#: ui/properties.glade.h:10
+#: ui/properties.glade.h:11
 msgid "Mail Summary Popup"
 msgstr "Сажетак порука"
 
-#: ui/properties.glade.h:11
+#: ui/properties.glade.h:12
 msgid "Mailboxes"
 msgstr "Сандучићи"
 
-#: ui/properties.glade.h:12
+#: ui/properties.glade.h:13
+msgid "Only display _recent mail"
+msgstr ""
+
+#: ui/properties.glade.h:14
 msgid "P_osition:"
 msgstr "_Место:"
 
-#: ui/properties.glade.h:13
+#: ui/properties.glade.h:15
 msgid "The amount of time to wait before closing the mail summary popup"
 msgstr "Пауза пре затварања прозора са сажетком порука"
 
-#: ui/properties.glade.h:14
+#: ui/properties.glade.h:16
 msgid "The amount of time to wait between mail checks"
 msgstr "Пауза између две узастопне провере"
 
-#: ui/properties.glade.h:15
+#: ui/properties.glade.h:17
+#, fuzzy
+msgid "The command to run to launch the mail reader"
+msgstr "Наредба која се покреће када је сва пошта прочитана"
+
+#: ui/properties.glade.h:18
 msgid "The command to run when all mail is read"
 msgstr "Наредба која се покреће када је сва пошта прочитана"
 
-#: ui/properties.glade.h:16
+#: ui/properties.glade.h:19
 msgid "The command to run when new mail arrives"
 msgstr "Наредба која се покреће када стиже нова пошта"
 
-#: ui/properties.glade.h:17
+#: ui/properties.glade.h:20
 msgid ""
 "The number of pixels to leave between the left or right side of the screen "
 "and the mail summary popup"
@@ -1462,7 +1517,7 @@ msgstr ""
 "Број тачака које треба оставити између леве, одн. десне стране екрана и "
 "прозора са сажетком порука"
 
-#: ui/properties.glade.h:18
+#: ui/properties.glade.h:21
 msgid ""
 "The number of pixels to leave between the top or bottom side of the screen "
 "and the mail summary popup"
@@ -1470,81 +1525,101 @@ msgstr ""
 "Број тачака које треба оставити између врха, одн. дна екрана и прозора са "
 "сажетком порука"
 
-#: ui/properties.glade.h:19
+#: ui/properties.glade.h:22
 msgid "When _all mail is read:"
 msgstr "Када је с_ва пошта прочитана:"
 
-#: ui/properties.glade.h:20
+#: ui/properties.glade.h:23
 msgid "When _new mail arrives:"
 msgstr "Када _стигне нова пошта:"
 
-#: ui/properties.glade.h:21
+#: ui/properties.glade.h:24
 msgid "Whether the status icon should blink on errors or not"
 msgstr "Да ли статусна сличица трепери при грешкама или не"
 
-#: ui/properties.glade.h:22
+#: ui/properties.glade.h:25
 msgid "Whether to automatically close the mail summary popup or not"
 msgstr ""
 "Да ли треба или не треба аутоматски затворити прозор са сажетком порука"
 
-#: ui/properties.glade.h:23
+#: ui/properties.glade.h:26
 msgid "Whether to display the mail summary popup when new mail arrives or not"
 msgstr ""
 "Да ли треба или не треба приказивати сажетак порука када стигне нова пошта"
 
-#: ui/properties.glade.h:24
+#: ui/properties.glade.h:27
+#, fuzzy
+msgid "Whether to hide previously displayed mail or not"
+msgstr "Да ли у сандучету стоји нова пошта или не"
+
+#: ui/properties.glade.h:28
 msgid "Whether to run a command when all mail is read or not"
 msgstr "Да ли се покреће или не покреће команда када је сва пошта прочитана"
 
-#: ui/properties.glade.h:25
+#: ui/properties.glade.h:29
 msgid "Whether to run a command when new mail arrives or not"
 msgstr "Да ли се покреће команда када стигне пошта или не"
 
-#: ui/properties.glade.h:26
+#: ui/properties.glade.h:30
+#, fuzzy
+msgid "Whether to set a mail reader or not"
+msgstr "Да ли се покреће или не покреће команда када је сва пошта прочитана"
+
+#: ui/properties.glade.h:31
 msgid ""
 "Whether to start Mail Notification when you log into your GNOME session or "
 "not"
 msgstr "Да ли покренути дојаву поште када се пријавите на систем"
 
-#: ui/properties.glade.h:27
+#: ui/properties.glade.h:32
 msgid "_Automatically close after:"
 msgstr "_Аутоматски затвори после:"
 
-#: ui/properties.glade.h:28
+#: ui/properties.glade.h:33
 msgid "_Blink on errors"
 msgstr "_Трепери при грешкама"
 
-#: ui/properties.glade.h:29
+#: ui/properties.glade.h:34
 msgid "_Delay between mail checks:"
 msgstr "_Пауза између провера:"
 
-#: ui/properties.glade.h:30
+#: ui/properties.glade.h:35
+#, fuzzy
+msgid "_Display the mail summary dialog"
+msgstr "Прикажи прозор са сажетком порука"
+
+#: ui/properties.glade.h:36
 msgid "_Enable mail summary popup"
 msgstr "Дозволи приказ сажетка порука"
 
-#: ui/properties.glade.h:31
+#: ui/properties.glade.h:37
+msgid "_Launch the mail reader"
+msgstr ""
+
+#: ui/properties.glade.h:38
+#, fuzzy
+msgid "_Mail reader:"
+msgstr "_Сажетак порука"
+
+#: ui/properties.glade.h:39
 msgid "_Start Mail Notification on GNOME login"
 msgstr "Покрени _дојаву при пријави"
 
-#: ui/properties.glade.h:32
+#: ui/properties.glade.h:40
 msgid "_Vertical offset:"
 msgstr "_Вертикални помак:"
 
-#: ui/properties.glade.h:33
+#: ui/properties.glade.h:41
 msgid "minutes"
 msgstr "минута"
 
-#: ui/properties.glade.h:34
+#: ui/properties.glade.h:42
 msgid "pixels"
 msgstr "тачака"
 
-#: ui/properties.glade.h:35
+#: ui/properties.glade.h:43
 msgid "seconds"
 msgstr "секунди"
-
-#: ui/summary-dialog.glade.h:1
-msgid "Mail Summary"
-msgstr "Сажетак порука"
 
 #: ui/summary-popup.glade.h:1
 msgid "<span size=\"larger\" weight=\"bold\">Mail Summary</span>"
@@ -1586,8 +1661,26 @@ msgstr "_Подеси дојаву поште"
 msgid "_Skip configuration"
 msgstr "П_рескочи подешавања"
 
-#~ msgid "Double-clicked command"
-#~ msgstr "Изврши на двоструки клик"
+#~ msgid "The following mailbox has new mail:\n"
+#~ msgid_plural "The following mailboxes have new mail:\n"
+#~ msgstr[0] "Сандуче са новом поштом:\n"
+#~ msgstr[1] "Сандучићи са новом поштом:\n"
+#~ msgstr[2] "Сандучићи са новом поштом:\n"
+
+#~ msgid "You have no new mail."
+#~ msgstr "Нема поште."
+
+#~ msgid "The following mailbox reported an error:\n"
+#~ msgid_plural "The following mailboxes reported an error:\n"
+#~ msgstr[0] "Ово сандуче има грешку:\n"
+#~ msgstr[1] "Ови сандучићи имају грешку:\n"
+#~ msgstr[2] "Ови сандучићи имају грешку:\n"
+
+#~ msgid "The following mailbox is unsupported:\n"
+#~ msgid_plural "The following mailboxes are unsupported:\n"
+#~ msgstr[0] "Ово сандуче није подржано:\n"
+#~ msgstr[1] "Ови сандучићи нису подржани:\n"
+#~ msgstr[2] "Ови сандучићи нису подржани:\n"
 
 #~ msgid "Run a command when the icon is double-clicked"
 #~ msgstr "Изврши команду при двоструком клику на икону"

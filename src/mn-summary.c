@@ -18,35 +18,39 @@
 
 #include <gtk/gtk.h>
 #include "mn-util.h"
-#include "mn-message-label.h"
+#include "mn-message-box.h"
 
 void
 mn_summary_update (GtkVBox *vbox, GSList *messages, gboolean selectable)
 {
+  GtkSizeGroup *size_group;
   GSList *l;
 
   g_return_if_fail(GTK_IS_VBOX(vbox));
 
   gtk_container_foreach(GTK_CONTAINER(vbox), (GtkCallback) gtk_widget_destroy, NULL);
 
+  size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+
   MN_LIST_FOREACH(l, messages)
     {
       MNMessage *message = l->data;
-      GtkWidget *label;
+      GtkWidget *message_box;
 
-      label = mn_message_label_new(message);
-      gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-      if (selectable)
-	gtk_label_set_selectable(GTK_LABEL(label), TRUE);
+      message_box = mn_message_box_new(size_group, message, selectable);
 
-      gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);
-      gtk_widget_show(label);
+      gtk_box_pack_start(GTK_BOX(vbox), message_box, FALSE, FALSE, 0);
+      gtk_widget_show(message_box);
 
       if (l->next)
 	{			/* spacing between messages */
+	  GtkWidget *label;
+
 	  label = gtk_label_new(NULL);
 	  gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);
 	  gtk_widget_show(label);
 	}
     }
+
+  g_object_unref(size_group);
 }

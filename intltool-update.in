@@ -30,7 +30,7 @@
 
 ## Release information
 my $PROGRAM = "intltool-update";
-my $VERSION = "0.31";
+my $VERSION = "0.31.3";
 my $PACKAGE = "intltool";
 
 ## Loaded modules
@@ -525,7 +525,7 @@ sub Console_WriteError_InvalidOption
 
 sub GenerateHeaders
 {
-    my $EXTRACT = `which intltool-extract 2>/dev/null`;
+    my $EXTRACT = "@INTLTOOL_EXTRACT@";
     chomp $EXTRACT;
 
     $EXTRACT = $ENV{"INTLTOOL_EXTRACT"} if $ENV{"INTLTOOL_EXTRACT"};
@@ -579,12 +579,9 @@ sub GenerateHeaders
 #
 sub GeneratePOTemplate
 {
-    my $XGETTEXT = `which xgettext 2>/dev/null`;
-    my $XGETTEXT_ARGS = '';
+    my $XGETTEXT = $ENV{"XGETTEXT"} || "@INTLTOOL_XGETTEXT@";
+    my $XGETTEXT_ARGS = $ENV{"XGETTEXT_ARGS"} || '';
     chomp $XGETTEXT;
-
-    $XGETTEXT = $ENV{"XGETTEXT"} if $ENV{"XGETTEXT"};
-    $XGETTEXT_ARGS = $ENV{"XGETTEXT_ARGS"} if $ENV{"XGETTEXT_ARGS"};
 
     if (! -x $XGETTEXT)
     {
@@ -597,7 +594,7 @@ sub GeneratePOTemplate
 
     open INFILE, $POTFILES_in;
     unlink "POTFILES.in.temp";
-    open OUTFILE, ">POTFILES.in.temp";
+    open OUTFILE, ">POTFILES.in.temp" or die("Cannot open POTFILES.in.temp for writing");
 
     my $gettext_support_nonascii = 0;
 
@@ -753,6 +750,7 @@ sub POFile_Update
 {
     -f "$MODULE.pot" or die "$PROGRAM: $MODULE.pot does not exist.\n";
 
+    my $MSGMERGE = $ENV{"MSGMERGE"} || "@INTLTOOL_MSGMERGE@";
     my ($lang, $outfile) = @_;
 
     print "Merging $lang.po with $MODULE.pot..." if $VERBOSE;
@@ -761,7 +759,7 @@ sub POFile_Update
     $outfile = "$lang.po" if ($outfile eq "");
 
     # I think msgmerge won't overwrite old file if merge is not successful
-    system ("msgmerge", "-o", $outfile, $infile, "$MODULE.pot");
+    system ("$MSGMERGE", "-o", $outfile, $infile, "$MODULE.pot");
 }
 
 sub Console_WriteError_NotExisting
@@ -795,14 +793,17 @@ sub POFile_GetLanguage ($)
 sub Console_Write_TranslationStatus
 {
     my ($lang, $output_file) = @_;
+    my $MSGFMT = $ENV{"MSGFMT"} || "@INTLTOOL_MSGFMT@";
 
     $output_file = "$lang.po" if ($output_file eq "");
 
-    system ("msgfmt", "-o", "/dev/null", "--statistics", $output_file);
+    system ("$MSGFMT", "-o", "/dev/null", "--statistics", $output_file);
 }
 
 sub Console_Write_CoverageReport
 {
+    my $MSGFMT = $ENV{"MSGFMT"} || "@INTLTOOL_MSGFMT@";
+
     &GatherPOFiles;
 
     foreach my $lang (@languages) 
@@ -816,7 +817,7 @@ sub Console_Write_CoverageReport
     foreach my $lang (@languages)
     {
 	print "$lang: ";
-	system ("msgfmt", "-o", "/dev/null", "--statistics", "$lang.po");
+	system ("$MSGFMT", "-o", "/dev/null", "--statistics", "$lang.po");
     }
 }
 
@@ -833,7 +834,7 @@ sub SubstituteVariable
     {
 	if (/^(\w+)=(.*)$/)
 	{
-	    ($varhash{$1} = $2) =~  s/^["'](.*)["']$/$1)/;
+	    ($varhash{$1} = $2) =~  s/^["'](.*)["']$/$1/;
 	}
     }
     
@@ -845,7 +846,10 @@ sub SubstituteVariable
 	
 	return SubstituteVariable ("$untouched$sub$rest");
     }
-    return $str;
+    
+    # We're using Perl backticks ` and "echo -n" here in order to 
+    # expand any shell escapes (such as backticks themselves) in every variable
+    return `echo -n "$str"`;
 }
 
 sub CONF_Handle_Open
@@ -954,19 +958,23 @@ sub FindPackageName
     if ($conf_source =~ /^AM_INIT_AUTOMAKE\(([^,\)]+),([^,\)]+)/m)
     {
 	($name, $version) = ($1, $2);
-	($varhash{"AC_PACKAGE_NAME"} = $name) =~ s/[\[\]\s]//g;
-	($varhash{"PACKAGE"} = $name) =~ s/[\[\]\s]//g;
-	($varhash{"AC_PACKAGE_VERSION"} = $version) =~ s/[\[\]\s]//g;
- 	($varhash{"VERSION"} = $version) =~ s/[\[\]\s]//g;
-   }
+	$name    =~ s/[\[\]\s]//g;
+	$version =~ s/[\[\]\s]//g;
+	$varhash{"AC_PACKAGE_NAME"} = $name;
+	$varhash{"PACKAGE"} = $name;
+	$varhash{"AC_PACKAGE_VERSION"} = $version;
+	$varhash{"VERSION"} = $version;
+    }
     
     if ($conf_source =~ /^AC_INIT\(([^,\)]+),([^,\)]+)/m) 
     {
 	($name, $version) = ($1, $2);
-	($varhash{"AC_PACKAGE_NAME"} = $name) =~ s/[\[\]\s]//g;
-	($varhash{"PACKAGE"} = $name) =~ s/[\[\]\s]//g;
-	($varhash{"AC_PACKAGE_VERSION"} = $version) =~ s/[\[\]\s]//g;
- 	($varhash{"VERSION"} = $version) =~ s/[\[\]\s]//g;
+	$name    =~ s/[\[\]\s]//g;
+	$version =~ s/[\[\]\s]//g;
+	$varhash{"AC_PACKAGE_NAME"} = $name;
+	$varhash{"PACKAGE"} = $name;
+	$varhash{"AC_PACKAGE_VERSION"} = $version;
+	$varhash{"VERSION"} = $version;
     }
 
     # \s makes this not work, why?
@@ -1018,7 +1026,7 @@ sub FindMakevarsDomain
 	close IN;
     }
 
-    $domain = $1 if $makevars_source =~ /^DOMAIN[ ]*=\[?([^\n\]]+)/m;
+    $domain = $1 if $makevars_source =~ /^DOMAIN[ ]*=\[?([^\n\]\$]+)/m;
     $domain =~ s/^\s+//;
     $domain =~ s/\s+$//;
     

@@ -61,6 +61,12 @@
   MN_CONF_COMMANDS_MAIL_READ_NAMESPACE "/enabled"
 #define MN_CONF_COMMANDS_MAIL_READ_COMMAND \
   MN_CONF_COMMANDS_MAIL_READ_NAMESPACE "/command"
+#define MN_CONF_COMMANDS_MAIL_READER_NAMESPACE \
+  MN_CONF_COMMANDS_NAMESPACE "/mail-reader"
+#define MN_CONF_COMMANDS_MAIL_READER_ENABLED \
+  MN_CONF_COMMANDS_MAIL_READER_NAMESPACE "/enabled"
+#define MN_CONF_COMMANDS_MAIL_READER_COMMAND \
+  MN_CONF_COMMANDS_MAIL_READER_NAMESPACE "/command"
 #define MN_CONF_COMMANDS_CLICKED_NAMESPACE \
   MN_CONF_COMMANDS_NAMESPACE "/clicked"		/* obsolete */
 #define MN_CONF_COMMANDS_CLICKED_ENABLED \
@@ -115,6 +121,10 @@
   MN_CONF_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE "/horizontal"
 #define MN_CONF_MAIL_SUMMARY_POPUP_VERTICAL_OFFSET \
   MN_CONF_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE "/vertical"
+#define MN_CONF_MAIL_SUMMARY_POPUP_ONLY_RECENT \
+  MN_CONF_MAIL_SUMMARY_POPUP_NAMESPACE "/only-recent"
+#define MN_CONF_DOUBLE_CLICK_ACTION \
+  MN_CONF_NAMESPACE "/double-click-action"
 
 void		mn_conf_init		(void);
 void		mn_conf_unset_obsolete	(void);
@@ -127,11 +137,19 @@ void		mn_conf_link		(GtkWidget	*widget,
 void		mn_conf_link_combo_box_to_string (GtkComboBox	*combo,
 						  int		string_column,
 						  const char	*key);
+void		mn_conf_link_radio_group_to_enum (GType		enum_type,
+						  const char	*key,
+						  ...);
 
 gboolean	mn_conf_get_autostart	(void);
 void		mn_conf_set_autostart	(gboolean	autostart);
 
-GEnumValue	*mn_conf_get_enum_value	(GType		enum_type,
+int		mn_conf_get_enum_value	(GType		enum_type,
 					 const char	*key);
+
+void		mn_conf_notification_add (gpointer		object,
+					  const char		*key,
+					  GConfClientNotifyFunc	callback,
+					  gpointer		user_data);
 
 #endif /* _MN_CONF_H */

@@ -35,8 +35,6 @@ class MN:Mailboxes from G:Object
 {
   private GSList *list destroywith mn_g_object_slist_free;
   private unsigned int timeout_id;
-  private unsigned int delay_notification_id;
-  private unsigned int mailboxes_notification_id;
     
   /**
    * mailbox-added:
@@ -74,6 +72,7 @@ class MN:Mailboxes from G:Object
 			"any_signal", self_notify_has_new_h, self,
 			"any_signal", self_messages_changed_h, self,
 			"any_signal", self_notify_error_h, self,
+			"any_signal", self_notify_must_poll_h, self,
 			NULL);
 
     /* emit the "removed" signal on the mailbox */
@@ -162,8 +161,8 @@ class MN:Mailboxes from G:Object
     self_update_from_conf(self);
     self_install_timeout(self);
 
-    selfp->delay_notification_id = eel_gconf_notification_add(MN_CONF_DELAY_NAMESPACE, self_notify_delay_cb, self);
-    selfp->mailboxes_notification_id = eel_gconf_notification_add(MN_CONF_MAILBOXES, self_notify_mailboxes_cb, self);
+    mn_conf_notification_add(self, MN_CONF_DELAY_NAMESPACE, self_notify_delay_cb, self);
+    mn_conf_notification_add(self, MN_CONF_MAILBOXES, self_notify_mailboxes_cb, self);
   }
   
   override (G:Object) void
@@ -173,9 +172,6 @@ class MN:Mailboxes from G:Object
 
     if (selfp->timeout_id)
       g_source_remove(selfp->timeout_id);
-
-    eel_gconf_notification_remove(selfp->delay_notification_id);
-    eel_gconf_notification_remove(selfp->mailboxes_notification_id);
 
     PARENT_HANDLER(object);
   }
@@ -279,6 +275,7 @@ class MN:Mailboxes from G:Object
 			 "signal::notify::has-new", self_notify_has_new_h, self,
 			 "signal::messages-changed", self_messages_changed_h, self,
 			 "signal::notify::error", self_notify_error_h, self,
+			 "signal::notify::must-poll", self_notify_must_poll_h, self,
 			 NULL);
 
 	if (MN_MAILBOX_CAN_CHECK(mailbox))
@@ -335,6 +332,17 @@ class MN:Mailboxes from G:Object
     self_error_changed(self);
   }
 
+  private void
+    notify_must_poll_h (G:Object *object (check null type),
+			GParamSpec *pspec (check null),
+			gpointer user_data (check null))
+  {
+    Self *self = user_data;
+
+    /* must-poll has possibly changed */
+    g_object_notify(G_OBJECT(self), "must-poll");
+  }
+  
   private void
     install_timeout (self)
   {
@@ -470,6 +478,6 @@ class MN:Mailboxes from G:Object
   public MNMailboxes *
     new (void)
   {
-    return MN_MAILBOXES(GET_NEW);
+    return GET_NEW;
   }
 }

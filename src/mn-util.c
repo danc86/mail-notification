@@ -531,7 +531,7 @@ mn_thread_create (GThreadFunc func, gpointer data)
 }
 
 /**
- * mn_tooltips_new:
+ * mn_gtk_tooltips_new:
  *
  * Creates and sinks a #GtkTooltips object.
  *
@@ -539,7 +539,7 @@ mn_thread_create (GThreadFunc func, gpointer data)
  *               reference count of 1).
  **/
 GtkTooltips *
-mn_tooltips_new (void)
+mn_gtk_tooltips_new (void)
 {
   GtkTooltips *tooltips;
 
@@ -551,21 +551,21 @@ mn_tooltips_new (void)
 }
 
 /**
- * mn_tooltips_set_tips:
+ * mn_gtk_tooltips_set_tips:
  * @tooltips: a #GtkTooltips object
  * @...: a %NULL-terminated list of widget-tip pairs
  *
  * Sets the tooltips of several widgets at once.
  *
  * <example>
- * mn_tooltips_set_tips(tooltips,
- *                      button, "Click here to proceed",
- *                      entry, "Your username",
- *                      NULL);
+ * mn_gtk_tooltips_set_tips(tooltips,
+ *                          button, "Click here to proceed",
+ *                          entry, "Your username",
+ *                          NULL);
  * </example>
  **/
 void
-mn_tooltips_set_tips (GtkTooltips *tooltips, ...)
+mn_gtk_tooltips_set_tips (GtkTooltips *tooltips, ...)
 {
   va_list args;
   GtkWidget *widget;
@@ -582,7 +582,7 @@ mn_tooltips_set_tips (GtkTooltips *tooltips, ...)
       tip = va_arg(args, const char *);
       g_return_if_fail(tip != NULL);
 
-      mn_tooltips_set_tip(tooltips, widget, tip);
+      mn_gtk_tooltips_set_tip(tooltips, widget, tip);
     }
   va_end(args);
 }
@@ -828,6 +828,25 @@ mn_position_get_type (void)
   return type;
 }
 
+GType
+mn_action_get_type (void)
+{
+  static GType type = 0;
+
+  if (type == 0)
+    {
+      static const GEnumValue values[] = {
+	{ MN_ACTION_DISPLAY_MAIL_SUMMARY, "MN_ACTION_DISPLAY_MAIL_SUMMARY", "display-mail-summary" },
+	{ MN_ACTION_LAUNCH_MAIL_READER, "MN_ACTION_LAUNCH_MAIL_READER", "launch-mail-reader" },
+	{ 0, NULL, NULL }
+      };
+
+      type = g_enum_register_static("MNAction", values);
+    }
+
+  return type;
+}
+
 /**
  * mn_g_object_connect:
  * @object: the object to associate the handlers with
@@ -907,4 +926,26 @@ mn_g_object_connect_weak_notify_cb (gpointer data, GObject *former_object)
       eel_remove_weak_pointer(&handler->instance);
     }
   g_free(handler);
+}
+
+void
+mn_execute_command (const char *conf_key)
+{
+  char *command;
+
+  g_return_if_fail(conf_key != NULL);
+
+  command = eel_gconf_get_string(conf_key);
+  if (command)
+    {
+      if (gnome_execute_shell(NULL, command) < 0)
+	mn_error_dialog(NULL,
+			NULL,
+			NULL,
+			_("A command error has occurred in Mail Notification"),
+			_("Unable to execute \"%s\": %s."),
+			command,
+			g_strerror(errno));
+      g_free(command);
+    }
 }

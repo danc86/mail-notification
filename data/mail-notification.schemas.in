@@ -65,6 +65,28 @@
       </locale>
     </schema>
     <schema>
+      <key>/schemas/apps/mail-notification/commands/mail-reader/enabled</key>
+      <applyto>/apps/mail-notification/commands/mail-reader/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Set a mail reader</short>
+	<long>Whether to set a mail reader or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/commands/mail-reader/command</key>
+      <applyto>/apps/mail-notification/commands/mail-reader/command</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>evolution</default>
+      <locale name="C">
+        <short>Mail reader command</short>
+	<long>The command to run to launch the mail reader.</long>
+      </locale>
+    </schema>
+    <schema>
       <key>/schemas/apps/mail-notification/mailboxes</key>
       <applyto>/apps/mail-notification/mailboxes</applyto>
       <owner>mail-notification</owner>
@@ -249,6 +271,28 @@
       <locale name="C">
         <short>Mail summary popup vertical offset</short>
         <long>The number of pixels to leave between the top or bottom side of the screen and the mail summary popup.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/mail-summary-popup/only-recent</key>
+      <applyto>/apps/mail-notification/mail-summary-popup/only-recent</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Only display recent mail in mail summary popup</short>
+	<long>Whether to hide previously displayed mail in the mail summary popup or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/double-click-action</key>
+      <applyto>/apps/mail-notification/double-click-action</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>display-mail-summary</default>
+      <locale name="C">
+        <short>Double-click action</short>
+	<long>The action to perform when the icon is double-clicked. Must be "display-mail-summary" or "launch-mail-reader".</long>
       </locale>
     </schema>
   </schemalist>

@@ -1,6 +1,10 @@
 /* 
  * mn-imap-mailbox.gob - IMAP 4rev1 support for Mail Notification
- * Complies with RFC 3501
+ *
+ * Compliance:
+ *
+ *	- RFC 3501
+ *	- RFC 2177
  *
  * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
  *
@@ -24,6 +28,11 @@ requires 2.0.10
 %headertop{
 #include "mn-authenticated-mailbox.h"
 %}
+
+%privateheader{
+#include "mn-client-session.h"
+%}
+
 %{
 #include "config.h"
 #include <stdio.h>
@@ -35,7 +44,6 @@ requires 2.0.10
 #include <eel/eel.h>
 #include "mn-mailbox-private.h"
 #include "mn-util.h"
-#include "mn-client-session.h"
 #ifdef WITH_MIME
 #include "mn-message-mime.h"
 #endif
@@ -46,6 +54,8 @@ requires 2.0.10
 #define IS_NO(response)			IS(response, "NO")
 #define IS_BAD(response)		IS(response, "BAD")
 #define IS_BYE(response)		IS(response, "BYE")
+
+#define REMOVED(self)			(g_atomic_int_get(&(self)->_priv->removed))
 
   enum
   {
@@ -58,13 +68,14 @@ requires 2.0.10
     STATE_AUTHENTICATE,
 #endif
     STATE_LOGIN,
-#ifdef WITH_MIME
     STATE_EXAMINE,
     STATE_SEARCH,
+#ifdef WITH_MIME
     STATE_FETCH,
 #else /* WITH_MIME */
     STATE_STATUS,
 #endif
+    STATE_IDLE,
     STATE_LOGOUT
   };
   
@@ -75,31 +86,46 @@ requires 2.0.10
     RESULT_DEFAULT_HANDLER	= -3  /* invoke the default response handler */
   };
 
+  typedef enum
+  {
+    IDLE_STATE_NORMAL,
+    IDLE_STATE_IDLING,
+    IDLE_STATE_WAS_IDLING
+  } IdleState;
+
   struct _MNClientSessionPrivate
   {
     MNMailbox		*mailbox;
     MNIMAPMailbox	*self;
     MNClientSession	*session;
+
     int			numeric_tag;
     char		tag[5];
+
     char		**capabilities;
     GSList		*auth_mechanisms;
     gboolean		authentication_failed;
-#ifdef WITH_MIME
+
     gboolean		search_received;
     GSList		*fetch_numbers;
     char		*fetch_set;
+
+#ifdef WITH_MIME
     GSList		*received_numbers;
     GSList		*messages;
 #else /* WITH_MIME */
     gboolean		status_received;
 #endif
+
 #ifdef WITH_SSL
     gboolean		starttls_completed;
 #endif
 #ifdef WITH_SASL
     const char		*sasl_mechanism;
 #endif
+
+    IdleState		idle_state;
+    gboolean		could_idle;	/* could idle at least once */
   };
   
   struct _MNClientSessionResponse
@@ -114,6 +140,11 @@ requires 2.0.10
 
 class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 {
+  private int removed;		/* boolean, access with g_atomic_int_ API */
+
+  private MNClientSessionPrivate *idle_session;
+  private GMutex *idle_session_mutex = {g_mutex_new()} destroywith g_mutex_free;
+  
   class_init (class)
   {
     MN_MAILBOX_CLASS(class)->format = "IMAP";
@@ -140,6 +171,24 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
     impl_is (MNMailbox *dummy, MN:URI *uri (check null type))
   {
     return MN_URI_IS_IMAP(uri);
+  }
+
+  override (MN:Mailbox) void
+    removed (MN:Mailbox *mailbox (check null type))
+  {
+    Self *self = SELF(mailbox);
+
+    g_atomic_int_inc(&selfp->removed);
+
+    g_mutex_lock(selfp->idle_session_mutex);
+    if (selfp->idle_session)
+      {
+	mn_client_session_write(selfp->idle_session->session, "DONE");
+	selfp->idle_session->idle_state = IDLE_STATE_WAS_IDLING;
+      }
+    g_mutex_unlock(selfp->idle_session_mutex);
+
+    PARENT_HANDLER(mailbox);
   }
 
   private int
@@ -266,11 +315,17 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 			   MNClientSessionPrivate *priv (check null))
   {
 #ifdef WITH_SASL
+    /*
+     * RFC 3501 6.2.2 specifies that the IMAP protocol does not
+     * support the "initial response" feature of SASL, so we set the
+     * initial_response argument to FALSE.
+     */
     if (mn_client_session_sasl_authentication_start(priv->session,
 						    "imap",
 						    priv->auth_mechanisms,
 						    priv->mailbox->uri->authmech,
-						    &priv->sasl_mechanism))
+						    &priv->sasl_mechanism,
+						    FALSE))
       return self_session_write(priv, "AUTHENTICATE %s", priv->sasl_mechanism);
     else
       return self_session_authenticate_fallback(priv);
@@ -366,7 +421,6 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
     enter_examine_cb (MNClientSession *session (check null),
 		      MNClientSessionPrivate *priv (check null))
   {
-#ifdef WITH_MIME
     char *quoted_mailbox;
     int result;
 
@@ -375,9 +429,6 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
     g_free(quoted_mailbox);
 
     return result;
-#else /* WITH_MIME */
-    g_return_val_if_reached(0);
-#endif
   }
   
   private int
@@ -385,7 +436,6 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 		       MNClientSessionResponse *response (check null),
 		       MNClientSessionPrivate *priv (check null))
   {
-#ifdef WITH_MIME
     if (response->continuation)
       return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
     else if (response->tag)
@@ -402,20 +452,21 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
       }
 
     return RESULT_DEFAULT_HANDLER;
-#else /* WITH_MIME */
-    g_return_val_if_reached(0);
-#endif
   }
   
   private int
     enter_search_cb (MNClientSession *session (check null),
 		     MNClientSessionPrivate *priv (check null))
   {
-#ifdef WITH_MIME
+    priv->search_received = FALSE;
+
+    g_slist_free(priv->fetch_numbers);
+    priv->fetch_numbers = NULL;
+
+    g_free(priv->fetch_set);
+    priv->fetch_set = NULL;
+    
     return self_session_write(priv, "SEARCH UNSEEN");
-#else
-    g_return_val_if_reached(0);
-#endif
   }
   
   private int
@@ -423,7 +474,6 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 		      MNClientSessionResponse *response (check null),
 		      MNClientSessionPrivate *priv (check null))
   {
-#ifdef WITH_MIME
     if (response->continuation)
       return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
     else if (response->tag)
@@ -435,16 +485,31 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 		if (priv->search_received)
 		  {
 		    if (priv->fetch_set)
-		      return STATE_FETCH;
+		      {
+#ifdef WITH_MIME
+			return STATE_FETCH;
+#else
+			GDK_THREADS_ENTER();
+			mn_mailbox_set_has_new(priv->mailbox, TRUE);
+			gdk_flush();
+			GDK_THREADS_LEAVE();
+
+			return STATE_IDLE;
+#endif /* WITH_MIME */
+		      }
 		    else
 		      {
 			GDK_THREADS_ENTER();
 			mn_mailbox_set_has_new(priv->mailbox, FALSE);
+#ifdef WITH_MIME
 			mn_mailbox_set_messages(priv->mailbox, NULL);
+#endif
 			gdk_flush();
 			GDK_THREADS_LEAVE();
 
-			return STATE_LOGOUT;
+			return self_session_has_capability(priv, "IDLE")
+			  ? STATE_IDLE
+			  : STATE_LOGOUT;
 		      }
 		  }
 		else		/* compliance error */
@@ -488,9 +553,6 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
       }
 
     return RESULT_DEFAULT_HANDLER;
-#else /* WITH_MIME */
-    g_return_val_if_reached(0);
-#endif
   }
   
   private int
@@ -499,6 +561,13 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
   {
 #ifdef WITH_MIME
     g_return_val_if_fail(priv->fetch_set != NULL, 0);
+
+    g_slist_free(priv->received_numbers);
+    priv->received_numbers = NULL;
+
+    mn_g_object_slist_free(priv->messages);
+    priv->messages = NULL;
+
     return self_session_write(priv, "FETCH %s BODY[HEADER]", priv->fetch_set);
 #else /* WITH_MIME */
     g_return_val_if_reached(0);
@@ -532,7 +601,9 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 		gdk_flush();
 		GDK_THREADS_LEAVE();
 		
-		return STATE_LOGOUT;
+		return self_session_has_capability(priv, "IDLE")
+		  ? STATE_IDLE
+		  : STATE_LOGOUT;
 	      }
 	    else if (IS_NO(response) || IS_BAD(response))
 	      return RESULT_ERROR_LOGOUT;
@@ -583,6 +654,77 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 #endif
   }
   
+  private int
+    enter_idle_cb (MNClientSession *session (check null),
+		   MNClientSessionPrivate *priv (check null))
+  {
+    priv->idle_state = IDLE_STATE_NORMAL;
+    return REMOVED(priv->self) ? STATE_LOGOUT : self_session_write(priv, "IDLE");
+  }
+  
+  private int
+    handle_idle_cb (MNClientSession *session (check null),
+		    MNClientSessionResponse *response (check null),
+		    MNClientSessionPrivate *priv (check null))
+  {
+    if (priv->idle_state == IDLE_STATE_IDLING)
+      {
+	if (response->continuation || response->tag)
+	  return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+
+	priv->idle_state = IDLE_STATE_WAS_IDLING;
+
+	if (IS_BYE(response))
+	  return MN_CLIENT_SESSION_RESULT_END; /* we'll reconnect */
+	else
+	  /* any other response wakes us up */
+	  return mn_client_session_write(session, "DONE");
+      }
+    else
+      {
+	if (response->continuation)
+	  {
+	    if (priv->idle_state == IDLE_STATE_WAS_IDLING)
+	      return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+	    else
+	      {
+		/* we're now in the idle loop */
+		priv->idle_state = IDLE_STATE_IDLING;
+		priv->could_idle = TRUE;
+		
+		GDK_THREADS_ENTER();
+		mn_mailbox_set_must_poll(priv->mailbox, FALSE);
+		gdk_flush();
+		GDK_THREADS_LEAVE();
+
+		return MN_CLIENT_SESSION_RESULT_CONTINUE;
+	      }
+	  }
+	else if (response->tag)
+	  {
+	    if (HAS_CURRENT_TAG(response, priv))
+	      {
+		if (IS_OK(response))
+		  return REMOVED(priv->self) ? STATE_LOGOUT : STATE_SEARCH;
+		else if (IS_NO(response) || IS_BAD(response))
+		  /*
+		   * The server advertised IDLE but does not actually
+		   * support it.
+		   *
+		   * Although strictly speaking this can be considered
+		   * a compliance fault, we'll be tolerant and just
+		   * logout without setting an error.
+		   */
+		  return STATE_LOGOUT;
+		else
+		  return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+	      }
+	  }
+      }
+
+    return RESULT_DEFAULT_HANDLER;
+  }
+
   private int
     enter_status_cb (MNClientSession *session (check null),
 		     MNClientSessionPrivate *priv (check null))
@@ -694,13 +836,14 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
       { STATE_AUTHENTICATE,	self_enter_authenticate_cb,	self_handle_authenticate_cb },
 #endif
       { STATE_LOGIN,		self_enter_login_cb,		self_handle_login_cb },
-#ifdef WITH_MIME
       { STATE_EXAMINE,		self_enter_examine_cb,		self_handle_examine_cb },
       { STATE_SEARCH,		self_enter_search_cb,		self_handle_search_cb },
+#ifdef WITH_MIME
       { STATE_FETCH,		self_enter_fetch_cb,		self_handle_fetch_cb },
-#else /* WITH_MIME */
+#else
       { STATE_STATUS,		self_enter_status_cb,		self_handle_status_cb },
 #endif
+      { STATE_IDLE,		self_enter_idle_cb,		self_handle_idle_cb },
       { STATE_LOGOUT,		self_enter_logout_cb,		self_handle_logout_cb },
       
       MN_CLIENT_SESSION_STATES_END
@@ -709,36 +852,48 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
       self_notice_cb,
       self_response_new_cb,
       self_response_free_cb,
-      self_custom_handler_cb
+      self_custom_handler_cb,
+      self_pre_read_cb,
+      self_post_read_cb
     };
     MNClientSessionPrivate priv;
     gboolean status;
 
-    memset(&priv, 0, sizeof(priv));
-    priv.mailbox = mailbox;
-    priv.self = self;
+    do
+      {
+	memset(&priv, 0, sizeof(priv));
+	priv.mailbox = mailbox;
+	priv.self = self;
     
-    status = mn_client_session_run(states,
-				   &callbacks,
+	status = mn_client_session_run(states,
+				       &callbacks,
 #ifdef WITH_SSL
-				   MN_URI_IS_SSL(mailbox->uri),
+				       MN_URI_IS_SSL(mailbox->uri),
 #endif
-				   mailbox->uri->hostname,
-				   mailbox->uri->port,
-				   mailbox->uri->username,
-				   MN_AUTHENTICATED_MAILBOX(self)->password,
-				   &priv,
-				   err);
+				       mailbox->uri->hostname,
+				       mailbox->uri->port,
+				       mailbox->uri->username,
+				       MN_AUTHENTICATED_MAILBOX(self)->password,
+				       &priv,
+				       err);
     
-    g_strfreev(priv.capabilities);
-    eel_g_slist_free_deep(priv.auth_mechanisms);
+	g_strfreev(priv.capabilities);
+	eel_g_slist_free_deep(priv.auth_mechanisms);
+
+	g_slist_free(priv.fetch_numbers);
+	g_free(priv.fetch_set);
 
 #ifdef WITH_MIME
-    g_slist_free(priv.fetch_numbers);
-    g_free(priv.fetch_set);
-    g_slist_free(priv.received_numbers);
-    mn_g_object_slist_free(priv.messages);
+	g_slist_free(priv.received_numbers);
+	mn_g_object_slist_free(priv.messages);
 #endif
+      }
+    while (status && priv.could_idle && ! REMOVED(self));
+
+    GDK_THREADS_ENTER();
+    mn_mailbox_set_must_poll(mailbox, TRUE);
+    gdk_flush();
+    GDK_THREADS_LEAVE();
 
     return status
       ? MN_AUTHENTICATED_MAILBOX_OK
@@ -846,6 +1001,30 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
       }
   }
 
+  private void
+    pre_read_cb (MNClientSession *session (check null),
+		 MNClientSessionPrivate *priv (check null))
+  {
+    if (priv->idle_state == IDLE_STATE_IDLING)
+      {
+	g_mutex_lock(priv->self->_priv->idle_session_mutex);
+	priv->self->_priv->idle_session = priv;
+	g_mutex_unlock(priv->self->_priv->idle_session_mutex);
+      }
+  }
+
+  private void
+    post_read_cb (MNClientSession *session (check null),
+		  MNClientSessionPrivate *priv (check null))
+  {
+    if (priv->idle_state == IDLE_STATE_IDLING)
+      {
+	g_mutex_lock(priv->self->_priv->idle_session_mutex);
+	priv->self->_priv->idle_session = NULL;
+	g_mutex_unlock(priv->self->_priv->idle_session_mutex);
+      }
+  }
+  
   private void
     session_set_error_from_arguments (MNClientSessionPrivate *priv (check null),
 				      MNClientSessionResponse *response (check null))
@@ -983,8 +1162,10 @@ class MN:IMAP:Mailbox from MN:Authenticated:Mailbox
 #ifdef WITH_MIME
     return STATE_EXAMINE;
 #else
-    return STATE_STATUS;
-#endif
+    return self_session_has_capability(priv, "IDLE")
+      ? STATE_EXAMINE
+      : STATE_STATUS;
+#endif /* WITH_MIME */
   }
 
   /**

@@ -32,6 +32,7 @@ typedef struct
   GtkWidget	*dialog;
 
   GtkWidget	*vbox;
+  GtkWidget	*mail_reader_button;
   GtkWidget	*update_button;
 } SummaryDialog;
 
@@ -41,6 +42,11 @@ static SummaryDialog summary = { NULL };
   
 /*** functions ***************************************************************/
     
+static void mn_summary_dialog_notify_mail_reader_cb (GConfClient *client,
+						     guint cnxn_id,
+						     GConfEntry *entry,
+						     gpointer user_data);
+
 static void mn_summary_dialog_update (void);
 static void mn_summary_dialog_update_sensitivity (void);
 
@@ -63,6 +69,7 @@ mn_summary_dialog_display (void)
   mn_create_interface("summary-dialog",
 		      "dialog", &summary.dialog,
 		      "vbox", &summary.vbox,
+		      "mail_reader_button", &summary.mail_reader_button,
 		      "update_button", &summary.update_button,
 		      NULL);
 
@@ -73,6 +80,10 @@ mn_summary_dialog_display (void)
   mn_summary_dialog_update();
   mn_summary_dialog_update_sensitivity();
 
+  mn_conf_notification_add(summary.dialog,
+			   MN_CONF_COMMANDS_MAIL_READER_NAMESPACE,
+			   mn_summary_dialog_notify_mail_reader_cb,
+			   NULL);
   mn_g_object_connect(summary.dialog,
 		      mn_shell->mailboxes,
 		      "signal::notify::must-poll", mn_summary_dialog_update_sensitivity, NULL,
@@ -80,6 +91,17 @@ mn_summary_dialog_display (void)
 		      NULL);
 
   gtk_widget_show(summary.dialog);
+}
+
+static void
+mn_summary_dialog_notify_mail_reader_cb (GConfClient *client,
+					 guint cnxn_id,
+					 GConfEntry *entry,
+					 gpointer user_data)
+{
+  GDK_THREADS_ENTER();
+  mn_summary_dialog_update_sensitivity();
+  GDK_THREADS_LEAVE();
 }
 
 gboolean
@@ -101,6 +123,21 @@ mn_summary_dialog_update (void)
 static void
 mn_summary_dialog_update_sensitivity (void)
 {
+  gboolean mail_reader_sensitive = FALSE;
+
+  if (eel_gconf_get_boolean(MN_CONF_COMMANDS_MAIL_READER_ENABLED))
+    {
+      char *mail_reader;
+
+      mail_reader = eel_gconf_get_string(MN_CONF_COMMANDS_MAIL_READER_COMMAND);
+      if (mail_reader)
+	{
+	  mail_reader_sensitive = TRUE;
+	  g_free(mail_reader);
+	}
+    }
+
+  gtk_widget_set_sensitive(summary.mail_reader_button, mail_reader_sensitive);
   gtk_widget_set_sensitive(summary.update_button, mn_mailboxes_get_must_poll(mn_shell->mailboxes));
 }
 
@@ -117,7 +154,12 @@ mn_summary_dialog_response_h (GtkDialog *dialog,
       mn_display_help(GTK_WINDOW(dialog), "mail-summary");
       break;
 
-    case 1:			/* update */
+    case 1:			/* launch mail reader */
+      if (eel_gconf_get_boolean(MN_CONF_COMMANDS_MAIL_READER_ENABLED))
+	mn_execute_command(MN_CONF_COMMANDS_MAIL_READER_COMMAND);
+      break;
+      
+    case 2:			/* update */
       mn_mailboxes_check(mn_shell->mailboxes);
       break;
 

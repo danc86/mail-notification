@@ -37,7 +37,7 @@ src/mn-main.c
 src/mn-mbox-mailbox.gob
 src/mn-md5.c
 src/mn-md5.h
-src/mn-message-label.gob
+src/mn-message-box.gob
 src/mn-message-mime.c
 src/mn-message-mime.h
 src/mn-message.gob
@@ -67,6 +67,7 @@ src/mn-summary.c
 src/mn-summary.h
 src/mn-sylpheed-mailbox.gob
 src/mn-system-mailbox-properties.gob
+src/mn-tooltips.gob
 src/mn-unsupported-mailbox.gob
 src/mn-uri.gob
 src/mn-util.c

@@ -76,11 +76,11 @@ void		mn_display_help			(GtkWindow	*parent,
 void		mn_thread_create		(GThreadFunc	func,
 						 gpointer	data);
 
-GtkTooltips	*mn_tooltips_new		(void);
-void		mn_tooltips_set_tips		(GtkTooltips	*tooltips,
+GtkTooltips	*mn_gtk_tooltips_new		(void);
+void		mn_gtk_tooltips_set_tips	(GtkTooltips	*tooltips,
 						 ...);
 
-#define mn_tooltips_set_tip(tooltips, widget, tip) \
+#define mn_gtk_tooltips_set_tip(tooltips, widget, tip) \
   gtk_tooltips_set_tip((tooltips), (widget), (tip), NULL)
 
 GtkWidget	*mn_menu_shell_append		(GtkMenuShell	*shell,
@@ -113,10 +113,21 @@ typedef enum
 GType		mn_position_get_type		(void);
 #define MN_TYPE_POSITION (mn_position_get_type())
 
+typedef enum
+{
+  MN_ACTION_DISPLAY_MAIL_SUMMARY,
+  MN_ACTION_LAUNCH_MAIL_READER
+} MNAction;
+
+GType		mn_action_get_type		(void);
+#define MN_TYPE_ACTION (mn_action_get_type())
+
 gpointer	mn_g_object_connect		(gpointer	object,
 						 gpointer	instance,
 						 const char	*signal_spec,
 						 ...);
+
+void		mn_execute_command		(const char	*conf_key);
 
 #define MN_STRING_TO_POINTER(str)	((*str) ? (str) : NULL)
 #define MN_POINTER_TO_STRING(ptr)	((ptr) ? (ptr) : "")

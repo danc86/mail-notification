@@ -1,4 +1,4 @@
-AC_INIT(mail-notification, 0.7.1, jylefort@brutele.be)
+AC_INIT(mail-notification, 0.8.0, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mn-main.c)
 
 AC_PREREQ(2.59)

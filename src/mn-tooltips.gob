@@ -1,0 +1,640 @@
+/* 
+ * MNTooltips - a tooltips implementation allowing to use an arbitrary
+ * widget as tooltip (heavily based on GtkTooltips)
+ *
+ * Copyright (C) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald
+ * Copyright (c) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.10
+
+%headertop{
+#include <gtk/gtk.h>
+%}
+
+%privateheader{
+  typedef struct
+  {
+    MNTooltips	*self;
+    GtkWidget	*widget;
+    GtkWidget	*tip_widget;
+  } TooltipsData;
+%}
+
+%{
+#include "mn-util.h"
+#include <eel/eel.h>
+
+#define TOOLTIPS_DATA			"mn-tooltips-data"
+#define TOOLTIPS_INFO			"mn-tooltips-info"
+#define TOOLTIPS_KEYBOARD_MODE		"gtk-tooltips-keyboard-mode" /* compatible with GtkTooltips */
+
+#define DELAY 500			/* Default delay in ms */
+#define STICKY_DELAY 0			/* Delay before popping up next tip
+					 * if we're sticky
+					 */
+#define STICKY_REVERT_DELAY 1000	/* Delay before sticky tooltips revert
+					 * to normal
+					 */
+
+  /* The private flags that are used in the private_flags member of GtkWidget.
+   */
+  typedef enum
+  {
+    PRIVATE_GTK_LEAVE_PENDING	= 1 <<  4
+  } GtkPrivateFlags;
+
+  /* Macros for extracting a widgets private_flags from GtkWidget.
+   */
+#define GTK_PRIVATE_FLAGS(wid)            (GTK_WIDGET (wid)->private_flags)
+  
+  /* Macros for setting and clearing private widget flags.
+   * we use a preprocessor string concatenation here for a clear
+   * flags/private_flags distinction at the cost of single flag operations.
+   */
+#define GTK_PRIVATE_SET_FLAG(wid,flag)    G_STMT_START{ (GTK_PRIVATE_FLAGS (wid) |= (PRIVATE_ ## flag)); }G_STMT_END
+%} 
+
+class MN:Tooltips from G:Object
+{
+  private GtkWidget *window;
+  private TooltipsData *active_data;
+  private GSList *data_list;
+
+  private gboolean use_sticky_delay;
+  private GTimeVal last_popdown;
+  private unsigned int timeout_id;
+  
+  override (G:Object) void
+    finalize (G:Object *object (check null type))
+  {
+    Self *self = SELF(object);
+    GSList *l;
+
+    if (selfp->timeout_id)
+      g_source_remove(selfp->timeout_id);
+
+    MN_LIST_FOREACH(l, selfp->data_list)
+      {
+	TooltipsData *data = l->data;
+	self_widget_remove(data->widget, data);
+      }
+
+    self_unset_window(self);
+
+    PARENT_HANDLER(object);
+  }
+
+  private void
+    destroy_data (TooltipsData *data)
+  {
+    g_object_disconnect(data->widget,
+			"any-signal", self_event_after_h, data,
+			"any-signal", self_widget_unmap, data,
+			"any-signal", self_widget_remove, data,
+			NULL);
+
+    g_object_set_data(G_OBJECT(data->widget), TOOLTIPS_DATA, NULL);
+    g_object_unref(data->widget);
+    g_object_unref(data->tip_widget);
+    g_free(data);
+  }
+
+  private void
+    display_closed_h (Gdk:Display *display (check null type),
+		      gboolean is_error,
+		      gpointer user_data)
+  {
+    Self *self = SELF(user_data);
+    self_unset_window(self);
+  }
+
+  private void
+    disconnect_display_closed (self)
+  {
+    g_signal_handlers_disconnect_by_func(gtk_widget_get_display(selfp->window),
+					 self_display_closed_h,
+					 self);
+  }
+
+  private void
+    unset_window (self)
+  {
+    if (selfp->window)
+      {
+	self_disconnect_display_closed(self);
+	gtk_widget_destroy(selfp->window);
+      }
+  }
+
+  private void
+    update_screen (self, gboolean new_window)
+  {
+    gboolean screen_changed = FALSE;
+
+    if (selfp->active_data && selfp->active_data->widget)
+      {
+	GdkScreen *screen = gtk_widget_get_screen(selfp->active_data->widget);
+
+	screen_changed = (screen != gtk_widget_get_screen(selfp->window));
+
+	if (screen_changed)
+	  {
+	    if (! new_window)
+	      self_disconnect_display_closed(self);
+      
+	    gtk_window_set_screen(GTK_WINDOW(selfp->window), screen);
+	  }
+      }
+
+    if (screen_changed || new_window)
+      g_signal_connect(gtk_widget_get_display(selfp->window),
+		       "closed",
+		       G_CALLBACK(self_display_closed_h),
+		       self);
+  }
+
+  private void
+    force_window (self)
+  {
+    if (! selfp->window)
+      {
+	selfp->window = gtk_window_new(GTK_WINDOW_POPUP);
+	self_update_screen(self, TRUE);
+	gtk_widget_set_app_paintable(selfp->window, TRUE);
+	gtk_window_set_resizable(GTK_WINDOW(selfp->window), FALSE);
+	gtk_widget_set_name(selfp->window, "gtk-tooltips");
+	gtk_container_set_border_width(GTK_CONTAINER(selfp->window), 12);
+
+	g_signal_connect_swapped(selfp->window,
+				 "expose-event",
+				 G_CALLBACK(self_paint_window), 
+				 self);
+
+	eel_add_weak_pointer(&selfp->window);
+      }
+  }
+
+  private TooltipsData *
+    get_data (Gtk:Widget *widget (check null type))
+  {
+    return g_object_get_data(G_OBJECT(widget), TOOLTIPS_DATA);
+  }
+
+  public void
+    set_tip_widget (self,
+		    Gtk:Widget *widget (check null type),
+		    Gtk:Widget *tip_widget)
+  {
+    TooltipsData *data;
+
+    data = self_get_data(widget);
+
+    if (! tip_widget)
+      {
+	if (data)
+	  self_widget_remove(data->widget, data);
+	return;
+      }
+
+    if (selfp->active_data
+	&& selfp->active_data->widget == widget
+	&& GTK_WIDGET_DRAWABLE(selfp->active_data->widget))
+      {
+	if (data->tip_widget)
+	  g_object_unref(data->tip_widget);
+
+	data->tip_widget = tip_widget;
+
+	if (data->tip_widget)
+	  {
+	    g_object_ref(data->tip_widget);
+	    gtk_object_sink(GTK_OBJECT(data->tip_widget));
+	  }
+
+	self_draw_tips(self);
+      }
+    else
+      {
+	g_object_ref(widget);
+
+	if (data)
+	  self_widget_remove(data->widget, data);
+	
+	data = g_new0(TooltipsData, 1);
+	data->self = self;
+	data->widget = widget;
+	data->tip_widget = tip_widget;
+
+	if (data->tip_widget)
+	  {
+	    g_object_ref(data->tip_widget);
+	    gtk_object_sink(GTK_OBJECT(data->tip_widget));
+	  }
+
+	selfp->data_list = g_slist_append(selfp->data_list, data);
+	g_signal_connect_after(widget, "event-after", G_CALLBACK(self_event_after_h), data);
+
+	g_object_set_data(G_OBJECT(widget), TOOLTIPS_DATA, data);
+
+	g_object_connect(widget,
+			 "signal::unmap", self_widget_unmap, data,
+			 "signal::unrealize", self_widget_unmap, data,
+			 "signal::destroy", self_widget_remove, data,
+			 NULL);
+      }
+  }
+  
+  private gboolean
+    paint_window (self)
+  {
+    GtkRequisition req;
+
+    gtk_widget_size_request(selfp->window, &req);
+    gtk_paint_flat_box(selfp->window->style,
+		       selfp->window->window,
+		       GTK_STATE_NORMAL,
+		       GTK_SHADOW_OUT, 
+		       NULL,
+		       selfp->window,
+		       "tooltip",
+		       0,
+		       0,
+		       req.width,
+		       req.height);
+    
+    return FALSE;
+  }
+  
+  private void
+    draw_tips (self)
+  {
+    GtkRequisition requisition;
+    GtkWidget *widget;
+    gint x, y, w, h;
+    TooltipsData *data;
+    GtkWidget *child;
+    gboolean keyboard_mode;
+    GdkScreen *screen;
+    GdkScreen *pointer_screen;
+    gint monitor_num, px, py;
+    GdkRectangle monitor;
+
+    if (! selfp->window)
+      self_force_window(self);
+    else if (GTK_WIDGET_VISIBLE(selfp->window))
+      g_get_current_time(&selfp->last_popdown);
+
+    gtk_widget_ensure_style(selfp->window);
+
+    widget = selfp->active_data->widget;
+    g_object_set_data(G_OBJECT(selfp->window), TOOLTIPS_INFO, self);
+
+    keyboard_mode = self_get_keyboard_mode(widget);
+
+    self_update_screen(self, FALSE);
+  
+    screen = gtk_widget_get_screen(widget);
+
+    data = selfp->active_data;
+
+    child = GTK_BIN(selfp->window)->child;
+    if (child)
+      gtk_container_remove(GTK_CONTAINER(selfp->window), child);
+
+    if (data->tip_widget)
+      {
+	gtk_container_add(GTK_CONTAINER(selfp->window), data->tip_widget);
+	gtk_widget_show(data->tip_widget);
+      }
+  
+    gtk_widget_size_request(selfp->window, &requisition);
+    w = requisition.width;
+    h = requisition.height;
+
+    gdk_window_get_origin(widget->window, &x, &y);
+    if (GTK_WIDGET_NO_WINDOW(widget))
+      {
+	x += widget->allocation.x;
+	y += widget->allocation.y;
+      }
+
+    x += widget->allocation.width / 2;
+    
+    if (! keyboard_mode)
+      gdk_window_get_pointer(gdk_screen_get_root_window(screen), &x, NULL, NULL);
+
+    x -= (w / 2 + 4);
+
+    gdk_display_get_pointer(gdk_screen_get_display(screen), &pointer_screen, &px, &py, NULL);
+    if (pointer_screen != screen) 
+      {
+	px = x;
+	py = y;
+      }
+    monitor_num = gdk_screen_get_monitor_at_point(screen, px, py);
+    gdk_screen_get_monitor_geometry(screen, monitor_num, &monitor);
+
+    if ((x + w) > monitor.x + monitor.width)
+      x -= (x + w) - (monitor.x + monitor.width);
+    else if (x < monitor.x)
+      x = monitor.x;
+
+    if ((y + h + widget->allocation.height + 4) > monitor.y + monitor.height
+	&& (y - 4) > monitor.y)
+      y = y - h - 4;
+    else
+      y = y + widget->allocation.height + 4;
+
+    gtk_window_move(GTK_WINDOW(selfp->window), x, y);
+    gtk_widget_show(selfp->window);
+  }
+
+  private gboolean
+    timeout_cb (gpointer data)
+  {
+    Self *self = SELF(data);
+
+    GDK_THREADS_ENTER ();
+      
+    if (selfp->active_data != NULL && GTK_WIDGET_DRAWABLE(selfp->active_data->widget))
+      self_draw_tips(self);
+      
+    GDK_THREADS_LEAVE ();
+
+    return FALSE;		/* remove timeout */
+  }
+
+  private void
+    set_active_widget (self, Gtk:Widget *widget)
+  {
+    if (selfp->window)
+      {
+	if (GTK_WIDGET_VISIBLE(selfp->window))
+	  g_get_current_time(&selfp->last_popdown);
+	gtk_widget_hide(selfp->window);
+      }
+    if (selfp->timeout_id)
+      {
+	g_source_remove(selfp->timeout_id);
+	selfp->timeout_id = 0;
+      }
+  
+    selfp->active_data = NULL;
+  
+    if (widget)
+      {
+	GSList *l;
+
+	MN_LIST_FOREACH(l, selfp->data_list)
+	{
+	  TooltipsData *data = l->data;
+	  
+	  if (data->widget == widget && GTK_WIDGET_DRAWABLE(widget))
+	    {
+	      selfp->active_data = data;
+	      break;
+	    }
+	}
+      }
+    else
+      selfp->use_sticky_delay = FALSE;
+  }
+
+  private void
+    show_tip (Gtk:Widget *widget (check null type))
+  {
+    TooltipsData *data;
+
+    data = self_get_data(widget);
+
+    if (data &&
+	(! data->self->_priv->active_data ||
+	 data->self->_priv->active_data->widget != widget))
+      {
+	self_set_active_widget(data->self, widget);
+	self_draw_tips(data->self);
+      }
+  }
+
+  private void
+    hide_tip (Gtk:Widget *widget (check null type))
+  {
+    TooltipsData *data;
+
+    data = self_get_data(widget);
+      
+    if (data &&
+	(data->self->_priv->active_data &&
+	 data->self->_priv->active_data->widget == widget))
+      self_set_active_widget(data->self, NULL);
+  }
+    
+  private gboolean
+    recently_shown (self)
+  {
+    GTimeVal now;
+    glong msec;
+      
+    g_get_current_time (&now);
+    msec = (now.tv_sec - selfp->last_popdown.tv_sec) * 1000 +
+      (now.tv_usec - selfp->last_popdown.tv_usec) / 1000;
+    return (msec < STICKY_REVERT_DELAY);
+  }
+
+  private gboolean
+    get_keyboard_mode (Gtk:Widget *widget (check null type))
+  {
+    GtkWidget *toplevel = gtk_widget_get_toplevel(widget);
+
+    if (GTK_IS_WINDOW(toplevel))
+      return GPOINTER_TO_INT(g_object_get_data(G_OBJECT(toplevel), TOOLTIPS_KEYBOARD_MODE));
+    else
+      return FALSE;
+  }
+
+  private void
+    start_keyboard_mode (Gtk:Widget *widget (check null type))
+  {
+    GtkWidget *toplevel = gtk_widget_get_toplevel(widget);
+
+    if (GTK_IS_WINDOW(toplevel))
+      {
+	GtkWidget *focus = GTK_WINDOW(toplevel)->focus_widget;
+	
+	g_object_set_data(G_OBJECT(toplevel), TOOLTIPS_KEYBOARD_MODE, GINT_TO_POINTER(TRUE));
+	
+	if (focus)
+	  self_show_tip(focus);
+      }
+  }
+
+  private void
+    stop_keyboard_mode (Gtk:Widget *widget (check null type))
+  {
+    GtkWidget *toplevel = gtk_widget_get_toplevel(widget);
+
+    if (GTK_IS_WINDOW(toplevel))
+      {
+	GtkWidget *focus = GTK_WINDOW(toplevel)->focus_widget;
+
+	if (focus)
+	  self_hide_tip(focus);
+	
+	g_object_set_data(G_OBJECT(toplevel), TOOLTIPS_KEYBOARD_MODE, GINT_TO_POINTER(FALSE));
+      }
+  }
+  
+  private void
+    start_delay (self, Gtk:Widget *widget)
+  {
+    TooltipsData *old_data;
+  
+    old_data = selfp->active_data;
+    if (! old_data || old_data->widget != widget)
+      {
+	self_set_active_widget(self, widget);
+	selfp->timeout_id = g_timeout_add((selfp->use_sticky_delay && self_recently_shown(self)) ? STICKY_DELAY : DELAY,
+					  self_timeout_cb,
+					  self);
+      }
+  }
+
+  private void
+    event_after_h (Gtk:Widget *widget (check null type),
+		   GdkEvent *event (check null),
+		   gpointer user_data)
+  {
+    Self *self;
+    TooltipsData *old_data;
+    GtkWidget *event_widget;
+    gboolean keyboard_mode = self_get_keyboard_mode(widget);
+
+    if ((event->type == GDK_LEAVE_NOTIFY || event->type == GDK_ENTER_NOTIFY) &&
+	event->crossing.detail == GDK_NOTIFY_INFERIOR)
+      return;
+
+    old_data = self_get_data(widget);
+    self = old_data->self;
+
+    if (keyboard_mode)
+      {
+	switch (event->type)
+	  {
+	  case GDK_FOCUS_CHANGE:
+	    if (event->focus_change.in)
+	      self_show_tip(widget);
+	    else
+	      self_hide_tip(widget);
+	    break;
+
+	  default:
+	    break;
+	  }
+      }
+    else
+      {
+	if (event->type != GDK_KEY_PRESS && event->type != GDK_KEY_RELEASE)
+	  {
+	    event_widget = gtk_get_event_widget(event);
+	    if (event_widget != widget)
+	      return;
+	  }
+  
+	switch (event->type)
+	  {
+	  case GDK_EXPOSE:
+	    /* do nothing */
+	    break;
+
+	  case GDK_ENTER_NOTIFY:
+	    if (! (GTK_IS_MENU_ITEM(widget) && GTK_MENU_ITEM(widget)->submenu))
+	      self_start_delay(self, widget);
+	    break;
+	  
+	  case GDK_LEAVE_NOTIFY:
+	    self_set_active_widget(self, NULL);
+	    selfp->use_sticky_delay = selfp->window && GTK_WIDGET_VISIBLE(selfp->window);
+	    break;
+
+	  case GDK_MOTION_NOTIFY:
+	    /* Handle menu items specially ... pend popup for each motion
+	     * on other widgets, we ignore motion.
+	     */
+	    if (GTK_IS_MENU_ITEM(widget) && ! GTK_MENU_ITEM(widget)->submenu)
+	      {
+		/* Completely evil hack to make sure we get the LEAVE_NOTIFY
+		 */
+		GTK_PRIVATE_SET_FLAG(widget, GTK_LEAVE_PENDING);
+		self_set_active_widget(self, NULL);
+		self_start_delay(self, widget);
+		break;
+	      }
+	    break;		/* ignore */
+
+	  case GDK_BUTTON_PRESS:
+	  case GDK_BUTTON_RELEASE:
+	  case GDK_KEY_PRESS:
+	  case GDK_KEY_RELEASE:
+	  case GDK_PROXIMITY_IN:
+	  case GDK_SCROLL:
+	    self_set_active_widget(self, NULL);
+	    break;
+
+	  default:
+	    break;
+	  }
+      }
+  }
+
+  private void
+    widget_unmap (Gtk:Widget *widget (check null type), gpointer user_data)
+  {
+    TooltipsData *data = user_data;
+    Self *self = data->self;
+  
+    if (selfp->active_data &&
+	(selfp->active_data->widget == widget))
+      self_set_active_widget(self, NULL);
+  }
+
+  private void
+    widget_remove (Gtk:Widget *widget (check null type), gpointer user_data)
+  {
+    TooltipsData *data = user_data;
+    Self *self = data->self;
+
+    self_widget_unmap(widget, user_data);
+    selfp->data_list = g_slist_remove(selfp->data_list, data);
+    self_destroy_data(data);
+  }
+
+  public void
+    toggle_keyboard_mode (Gtk:Widget *widget (check null type))
+  {
+    if (self_get_keyboard_mode(widget))
+      self_stop_keyboard_mode(widget);
+    else
+      self_start_keyboard_mode(widget);
+  }
+  
+  public MNTooltips *
+    new (void)
+  {
+    return GET_NEW;
+  }
+}

@@ -32,11 +32,13 @@
 typedef struct
 {
   gboolean	enabled;
-
   GtkWidget	*popup;
   GtkWidget	*image;
   GtkWidget	*vbox;
   unsigned int	timeout_id;
+
+  GSList	*displayed_messages;
+  GSList	*previous_messages;
 } SummaryPopup;
 
 /*** variables ***************************************************************/
@@ -205,10 +207,39 @@ mn_summary_popup_update (gboolean has_new)
 
   if (! mn_summary_dialog_is_displayed() && (displayed || has_new))
     {
-      GSList *messages;
+      GSList *l;
 
-      messages = mn_mailboxes_get_messages(mn_shell->mailboxes);
-      if (messages)
+      mn_g_object_slist_free(popup.displayed_messages);
+      popup.displayed_messages = mn_mailboxes_get_messages(mn_shell->mailboxes);
+
+    loop1:
+      MN_LIST_FOREACH(l, popup.previous_messages)
+        {
+	  MNMessage *message = l->data;
+
+	  if (! mn_message_slist_find_by_id(popup.displayed_messages, message))
+	    {
+	      popup.previous_messages = mn_g_object_slist_delete_link(popup.previous_messages, l);
+	      goto loop1;
+	    }
+	}
+      
+      if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_ONLY_RECENT))
+	{
+	loop2:
+	  MN_LIST_FOREACH(l, popup.displayed_messages)
+	    {
+	      MNMessage *message = l->data;
+	    
+	      if (mn_message_slist_find_by_id(popup.previous_messages, message))
+		{
+		  popup.displayed_messages = mn_g_object_slist_delete_link(popup.displayed_messages, l);
+		  goto loop2;
+		}
+	    }
+	}
+
+      if (popup.displayed_messages)
 	{
 	  mn_create_interface("summary-popup",
 			      "popup", &popup.popup,
@@ -247,9 +278,7 @@ mn_summary_popup_update (gboolean has_new)
 
 	  gtk_image_set_from_stock(GTK_IMAGE(popup.image), MN_STOCK_MAIL_SUMMARY, -1);
 
-	  mn_summary_update(GTK_VBOX(popup.vbox), messages, FALSE);
-	  mn_g_object_slist_free(messages);
-
+	  mn_summary_update(GTK_VBOX(popup.vbox), popup.displayed_messages, FALSE);
 	  mn_summary_popup_set_geometry();
 	  gtk_widget_show(popup.popup);
 
@@ -267,15 +296,12 @@ mn_summary_popup_update (gboolean has_new)
 static void
 mn_summary_popup_set_geometry (void)
 {
-  GEnumValue *enum_value;
   MNPosition position;
   char *geometry;
 
   g_return_if_fail(popup.popup != NULL);
 
-  enum_value = mn_conf_get_enum_value(MN_TYPE_POSITION, MN_CONF_MAIL_SUMMARY_POPUP_POSITION);
-  position = enum_value ? enum_value->value : MN_POSITION_TOP_LEFT;
-  
+  position = mn_conf_get_enum_value(MN_TYPE_POSITION, MN_CONF_MAIL_SUMMARY_POPUP_POSITION);
   geometry = g_strdup_printf("%c%i%c%i",
 			     (position == MN_POSITION_TOP_RIGHT || position == MN_POSITION_BOTTOM_RIGHT) ? '-' : '+',
 			     eel_gconf_get_integer(MN_CONF_MAIL_SUMMARY_POPUP_HORIZONTAL_OFFSET),
@@ -292,6 +318,9 @@ mn_summary_popup_destroy (void)
     {
       mn_summary_popup_remove_timeout();
       gtk_widget_destroy(popup.popup);
+
+      popup.previous_messages = g_slist_concat(popup.previous_messages, popup.displayed_messages);
+      popup.displayed_messages = NULL;
     }
 }
 
@@ -326,8 +355,7 @@ static gboolean
 mn_summary_popup_timeout_cb (gpointer data)
 {
   GDK_THREADS_ENTER();
-  if (popup.popup)
-    gtk_widget_destroy(popup.popup);
+  mn_summary_popup_destroy();
   GDK_THREADS_LEAVE();
   
   return FALSE;			/* remove timeout */

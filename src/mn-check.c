@@ -259,7 +259,7 @@ mn_check_install_callback (guint *id,
 static gboolean
 mn_check_timeout_cb (gpointer data)
 {
-  int flags = GPOINTER_TO_INT(flags);
+  int flags = GPOINTER_TO_INT(data);
   
   mn_check(flags);
 

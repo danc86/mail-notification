@@ -6,6 +6,7 @@
 
 <widget class="GtkDialog" id="dialog">
   <property name="border_width">6</property>
+  <property name="tooltip" translatable="yes">The hostname or IP address of the POP3 server</property>
   <property name="title" translatable="yes">Add a POP3 Mailbox</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
@@ -155,6 +156,7 @@
 			  <child>
 			    <widget class="GtkEntry" id="hostname_entry">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">The hostname or IP address of the POP3 server</property>
 			      <property name="can_focus">True</property>
 			      <property name="editable">True</property>
 			      <property name="visibility">True</property>
@@ -197,7 +199,7 @@
 			      <property name="yalign">0.5</property>
 			      <property name="xpad">0</property>
 			      <property name="ypad">0</property>
-			      <property name="mnemonic_widget">port_entry</property>
+			      <property name="mnemonic_widget">port_spin</property>
 			    </widget>
 			    <packing>
 			      <property name="padding">0</property>
@@ -207,16 +209,17 @@
 			  </child>
 
 			  <child>
-			    <widget class="GtkEntry" id="port_entry">
+			    <widget class="GtkSpinButton" id="port_spin">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">The port number of the POP3 server</property>
 			      <property name="can_focus">True</property>
-			      <property name="editable">True</property>
-			      <property name="visibility">True</property>
-			      <property name="max_length">0</property>
-			      <property name="text" translatable="yes">110</property>
-			      <property name="has_frame">True</property>
-			      <property name="invisible_char" translatable="yes">*</property>
-			      <property name="activates_default">False</property>
+			      <property name="climb_rate">1</property>
+			      <property name="digits">0</property>
+			      <property name="numeric">False</property>
+			      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
+			      <property name="snap_to_ticks">False</property>
+			      <property name="wrap">False</property>
+			      <property name="adjustment">110 0 65535 1 10 10</property>
 			    </widget>
 			    <packing>
 			      <property name="padding">0</property>
@@ -344,6 +347,7 @@
 			  <child>
 			    <widget class="GtkEntry" id="username_entry">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">The login name used to authenticate yourself</property>
 			      <property name="can_focus">True</property>
 			      <property name="editable">True</property>
 			      <property name="visibility">True</property>
@@ -398,6 +402,7 @@
 			  <child>
 			    <widget class="GtkEntry" id="password_entry">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">The password used to authenticate yourself</property>
 			      <property name="can_focus">True</property>
 			      <property name="editable">True</property>
 			      <property name="visibility">False</property>

@@ -1,4 +1,4 @@
-AC_INIT(mail-notification, 0.3.3, jylefort@brutele.be)
+AC_INIT(mail-notification, 0.3.4, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mail-notification.c)
 
 AC_PREREQ(2.57)
@@ -63,7 +63,8 @@ AM_GLIB_GNU_GETTEXT
 AC_PROG_CC
 AC_SYS_LARGEFILE
 
-AC_CHECK_HEADERS(errno.h sys/types.h sys/stat.h string.h,, [AC_MSG_ERROR([header not found])])
+AC_CHECK_HEADERS(errno.h stdarg.h stdio.h stdlib.h string.h sys/stat.h sys/types.h,, [AC_MSG_ERROR([header not found])])
+AC_CHECK_FUNCS(atoi exit memcpy sscanf stat strchr strcmp strcpy strlen strncmp strrchr strstr,, [AC_MSG_ERROR([library function not found])])
 
 ### build dependencies
 

@@ -124,6 +124,7 @@
 			  <child>
 			    <widget class="GtkCheckButton" id="local_check">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">Whether to periodically check for new local mail or not</property>
 			      <property name="can_focus">True</property>
 			      <property name="label" translatable="yes">Check for local _mail every</property>
 			      <property name="use_underline">True</property>
@@ -143,6 +144,7 @@
 			  <child>
 			    <widget class="GtkSpinButton" id="local_minutes_spin">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">Delay between local mail checks (minutes part)</property>
 			      <property name="can_focus">True</property>
 			      <property name="climb_rate">1</property>
 			      <property name="digits">0</property>
@@ -183,6 +185,7 @@
 			  <child>
 			    <widget class="GtkSpinButton" id="local_seconds_spin">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">Delay between local mail checks (seconds part)</property>
 			      <property name="can_focus">True</property>
 			      <property name="climb_rate">1</property>
 			      <property name="digits">0</property>
@@ -236,6 +239,7 @@
 			  <child>
 			    <widget class="GtkCheckButton" id="remote_check">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">Whether to periodically check for new remote mail or not</property>
 			      <property name="can_focus">True</property>
 			      <property name="label" translatable="yes">Check for rem_ote mail every</property>
 			      <property name="use_underline">True</property>
@@ -255,6 +259,7 @@
 			  <child>
 			    <widget class="GtkSpinButton" id="remote_minutes_spin">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">Delay between remote mail checks (minutes part)</property>
 			      <property name="can_focus">True</property>
 			      <property name="climb_rate">1</property>
 			      <property name="digits">0</property>
@@ -295,6 +300,7 @@
 			  <child>
 			    <widget class="GtkSpinButton" id="remote_seconds_spin">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">Delay between remote mail checks (seconds part)</property>
 			      <property name="can_focus">True</property>
 			      <property name="climb_rate">1</property>
 			      <property name="digits">0</property>
@@ -706,6 +712,7 @@
 			  <child>
 			    <widget class="GtkCheckButton" id="command_new_mail_check">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">Whether to run a command when new mail arrives or not</property>
 			      <property name="can_focus">True</property>
 			      <property name="label" translatable="yes">When _new mail arrives:</property>
 			      <property name="use_underline">True</property>
@@ -725,6 +732,7 @@
 			  <child>
 			    <widget class="GtkEntry" id="command_new_mail_entry">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">The command to run when new mail arrives</property>
 			      <property name="can_focus">True</property>
 			      <property name="editable">True</property>
 			      <property name="visibility">True</property>
@@ -757,6 +765,7 @@
 			  <child>
 			    <widget class="GtkCheckButton" id="command_clicked_check">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">Whether to run a command when the icon is clicked or not</property>
 			      <property name="can_focus">True</property>
 			      <property name="label" translatable="yes">When click_ed:</property>
 			      <property name="use_underline">True</property>
@@ -776,6 +785,7 @@
 			  <child>
 			    <widget class="GtkEntry" id="command_clicked_entry">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">The command to run when the icon is clicked</property>
 			      <property name="can_focus">True</property>
 			      <property name="editable">True</property>
 			      <property name="visibility">True</property>

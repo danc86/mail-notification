@@ -17,6 +17,7 @@
  */
 
 #include "config.h"
+#include <string.h>
 #include <gtk/gtk.h>
 #include <libgnome/gnome-i18n.h>
 #include <glade/glade.h>
@@ -111,6 +112,33 @@ mn_str_isnumeric (const char *str)
       return FALSE;
 
   return TRUE;
+}
+
+gboolean
+mn_utf8_strcasecontains (const char *big, const char *little)
+{
+  gboolean contains;
+  char *normalized_big;
+  char *normalized_little;
+  char *case_normalized_big;
+  char *case_normalized_little;
+
+  g_return_val_if_fail(big != NULL, NULL);
+  g_return_val_if_fail(little != NULL, NULL);
+
+  normalized_big = g_utf8_normalize(big, -1, G_NORMALIZE_ALL);
+  normalized_little = g_utf8_normalize(little, -1, G_NORMALIZE_ALL);
+  case_normalized_big = g_utf8_casefold(normalized_big, -1);
+  case_normalized_little = g_utf8_casefold(normalized_little, -1);
+
+  contains = strstr(case_normalized_big, case_normalized_little) != NULL;
+
+  g_free(normalized_big);
+  g_free(normalized_little);
+  g_free(case_normalized_big);
+  g_free(case_normalized_little);
+
+  return contains;
 }
 
 GdkPixbuf *mn_pixbuf_new (const char *filename)

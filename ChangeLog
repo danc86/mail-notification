@@ -1,3 +1,30 @@
+2004-03-19 14:20  jylefort
+
+	* configure.ac: Version 0.3.4
+
+2004-03-18 13:17  jylefort
+
+	* configure.ac: Added function checks; updated header checks
+
+2004-03-18 12:28  jylefort
+
+	* ui/: add-pop3.glade, preferences.glade: Added tooltips
+
+2004-03-18 12:15  jylefort
+
+	* src/: mn-preferences.c, mn-util.c, mn-util.h: The mailboxes list
+	  interactive search now searches all columns
+
+2004-03-18 11:18  jylefort
+
+	* src/mn-preferences.c, ui/add-pop3.glade: The port widget of the
+	  POP3 dialog is now a spin button
+
+2004-03-18 11:02  jylefort
+
+	* src/mn-check.c: Fixed a bug that caused local mail to be checked
+	  even when "Check for local mail" was disabled
+
 2004-03-12 13:57  jylefort
 
 	* configure.ac: Version 0.3.3

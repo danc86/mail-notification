@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-03-12 13:59+0100\n"
+"POT-Creation-Date: 2004-03-19 14:22+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -277,40 +277,31 @@ msgstr ""
 msgid "error in QUIT reply (server replied \"%s\")"
 msgstr ""
 
-#: src/mn-preferences.c:158
+#: src/mn-preferences.c:163
 msgid "Mailbox"
 msgstr ""
 
-#: src/mn-preferences.c:159
+#: src/mn-preferences.c:164
 msgid "Format"
 msgstr ""
 
-#: src/mn-preferences.c:349
+#: src/mn-preferences.c:360
 msgid "Select One or More Mailboxes"
 msgstr ""
 
-#: src/mn-preferences.c:446 src/mn-preferences.c:453 src/mn-preferences.c:460
-#: src/mn-preferences.c:467 src/mn-preferences.c:474
+#: src/mn-preferences.c:457 src/mn-preferences.c:464 src/mn-preferences.c:471
 msgid "Unable to add mailbox."
 msgstr ""
 
-#: src/mn-preferences.c:447
+#: src/mn-preferences.c:458
 msgid "The hostname field must be filled."
 msgstr ""
 
-#: src/mn-preferences.c:454
-msgid "The port field must be filled."
-msgstr ""
-
-#: src/mn-preferences.c:461
-msgid "The port field must be numeric."
-msgstr ""
-
-#: src/mn-preferences.c:468
+#: src/mn-preferences.c:465
 msgid "The username field must be filled."
 msgstr ""
 
-#: src/mn-preferences.c:475
+#: src/mn-preferences.c:472
 msgid "The password field must be filled."
 msgstr ""
 
@@ -336,52 +327,64 @@ msgstr ""
 msgid "unsupported"
 msgstr ""
 
-#: src/mn-util.c:130
+#: src/mn-util.c:158
 #, c-format
 msgid "error loading image: %s"
 msgstr ""
 
-#: ui/add-pop3-strings.c:7
-msgid "Add a POP3 Mailbox"
+#: ui/add-pop3-strings.c:7 ui/add-pop3-strings.c:12
+msgid "The hostname or IP address of the POP3 server"
 msgstr ""
 
 #: ui/add-pop3-strings.c:8
+msgid "Add a POP3 Mailbox"
+msgstr ""
+
+#: ui/add-pop3-strings.c:9
 msgid "<span weight=\"bold\">Server</span>"
 msgstr ""
 
-#: ui/add-pop3-strings.c:9 ui/add-pop3-strings.c:16 ui/preferences-strings.c:9
-#: ui/preferences-strings.c:17 ui/preferences-strings.c:21
+#: ui/add-pop3-strings.c:10 ui/add-pop3-strings.c:17
+#: ui/preferences-strings.c:9 ui/preferences-strings.c:23
+#: ui/preferences-strings.c:27
 msgid "    "
 msgstr ""
 
-#: ui/add-pop3-strings.c:10
+#: ui/add-pop3-strings.c:11
 msgid "_Hostname:"
 msgstr ""
 
-#: ui/add-pop3-strings.c:11 ui/add-pop3-strings.c:14 ui/add-pop3-strings.c:18
-#: ui/add-pop3-strings.c:20 ui/preferences-strings.c:23
-#: ui/preferences-strings.c:25
+#: ui/add-pop3-strings.c:13 ui/add-pop3-strings.c:20 ui/add-pop3-strings.c:23
+#: ui/preferences-strings.c:31 ui/preferences-strings.c:35
 msgid "*"
 msgstr ""
 
-#: ui/add-pop3-strings.c:12
+#: ui/add-pop3-strings.c:14
 msgid "_Port:"
 msgstr ""
 
-#: ui/add-pop3-strings.c:13
-msgid "110"
+#: ui/add-pop3-strings.c:15
+msgid "The port number of the POP3 server"
 msgstr ""
 
-#: ui/add-pop3-strings.c:15
+#: ui/add-pop3-strings.c:16
 msgid "<span weight=\"bold\">Authentication</span>"
 msgstr ""
 
-#: ui/add-pop3-strings.c:17
+#: ui/add-pop3-strings.c:18
 msgid "_Username:"
 msgstr ""
 
 #: ui/add-pop3-strings.c:19
+msgid "The login name used to authenticate yourself"
+msgstr ""
+
+#: ui/add-pop3-strings.c:21
 msgid "Passw_ord:"
+msgstr ""
+
+#: ui/add-pop3-strings.c:22
+msgid "The password used to authenticate yourself"
 msgstr ""
 
 #: ui/menu-strings.c:7
@@ -401,41 +404,81 @@ msgid "<span weight=\"bold\">General</span>"
 msgstr ""
 
 #: ui/preferences-strings.c:10
+msgid "Whether to periodically check for new local mail or not"
+msgstr ""
+
+#: ui/preferences-strings.c:11
 msgid "Check for local _mail every"
 msgstr ""
 
-#: ui/preferences-strings.c:11 ui/preferences-strings.c:14
+#: ui/preferences-strings.c:12
+msgid "Delay between local mail checks (minutes part)"
+msgstr ""
+
+#: ui/preferences-strings.c:13 ui/preferences-strings.c:19
 msgid "minutes"
 msgstr ""
 
-#: ui/preferences-strings.c:12 ui/preferences-strings.c:15
+#: ui/preferences-strings.c:14
+msgid "Delay between local mail checks (seconds part)"
+msgstr ""
+
+#: ui/preferences-strings.c:15 ui/preferences-strings.c:21
 msgid "seconds"
 msgstr ""
 
-#: ui/preferences-strings.c:13
+#: ui/preferences-strings.c:16
+msgid "Whether to periodically check for new remote mail or not"
+msgstr ""
+
+#: ui/preferences-strings.c:17
 msgid "Check for rem_ote mail every"
 msgstr ""
 
-#: ui/preferences-strings.c:16
-msgid "<span weight=\"bold\">Mailboxes</span>"
-msgstr ""
-
 #: ui/preferences-strings.c:18
-msgid "_Add local mailbox"
-msgstr ""
-
-#: ui/preferences-strings.c:19
-msgid "Add remo_te mailbox"
+msgid "Delay between remote mail checks (minutes part)"
 msgstr ""
 
 #: ui/preferences-strings.c:20
-msgid "<span weight=\"bold\">Commands</span>"
+msgid "Delay between remote mail checks (seconds part)"
 msgstr ""
 
 #: ui/preferences-strings.c:22
-msgid "When _new mail arrives:"
+msgid "<span weight=\"bold\">Mailboxes</span>"
 msgstr ""
 
 #: ui/preferences-strings.c:24
+msgid "_Add local mailbox"
+msgstr ""
+
+#: ui/preferences-strings.c:25
+msgid "Add remo_te mailbox"
+msgstr ""
+
+#: ui/preferences-strings.c:26
+msgid "<span weight=\"bold\">Commands</span>"
+msgstr ""
+
+#: ui/preferences-strings.c:28
+msgid "Whether to run a command when new mail arrives or not"
+msgstr ""
+
+#: ui/preferences-strings.c:29
+msgid "When _new mail arrives:"
+msgstr ""
+
+#: ui/preferences-strings.c:30
+msgid "The command to run when new mail arrives"
+msgstr ""
+
+#: ui/preferences-strings.c:32
+msgid "Whether to run a command when the icon is clicked or not"
+msgstr ""
+
+#: ui/preferences-strings.c:33
 msgid "When click_ed:"
+msgstr ""
+
+#: ui/preferences-strings.c:34
+msgid "The command to run when the icon is clicked"
 msgstr ""

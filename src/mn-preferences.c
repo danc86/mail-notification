@@ -87,6 +87,11 @@ static void mn_preferences_remove_mailbox_cb	(GtkTreeModel     *model,
 						 GtkTreePath      *path,
 						 GtkTreeIter      *iter,
 						 gpointer         data);
+static gboolean mn_preferences_search_equal_func (GtkTreeModel    *model,
+						  int             column,
+						  const char      *key,
+						  GtkTreeIter     *iter,
+						  gpointer        search_data);
 static void mn_preferences_update_sensitivity	(void);
 static void mn_preferences_add_local_mailbox	(void);
 static void mn_preferences_add_remote_mailbox	(void);
@@ -158,6 +163,12 @@ mn_preferences_display (void)
   mn_preferences_add_column(COLUMN_MAILBOX, _("Mailbox"));
   mn_preferences_add_column(COLUMN_FORMAT, _("Format"));
 
+  gtk_tree_view_set_enable_search(GTK_TREE_VIEW(list), TRUE);
+  gtk_tree_view_set_search_equal_func(GTK_TREE_VIEW(list),
+				      mn_preferences_search_equal_func,
+				      NULL,
+				      NULL);
+  
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list));
   gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
   g_signal_connect(G_OBJECT(selection), "changed",
@@ -421,23 +432,23 @@ mn_preferences_add_remote_mailbox (void)
   if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK)
     {
       GtkWidget *hostname_entry;
-      GtkWidget *port_entry;
+      GtkWidget *port_spin;
       GtkWidget *username_entry;
       GtkWidget *password_entry;
       const char *hostname;
-      const char *port;
+      int port;
       const char *username;
       const char *password;
       char *locator;
       GSList *gconf_mailboxes;
 
       hostname_entry = glade_xml_get_widget(xml, "hostname_entry");
-      port_entry = glade_xml_get_widget(xml, "port_entry");
+      port_spin = glade_xml_get_widget(xml, "port_spin");
       username_entry = glade_xml_get_widget(xml, "username_entry");
       password_entry = glade_xml_get_widget(xml, "password_entry");
 
       hostname = gtk_editable_get_chars(GTK_EDITABLE(hostname_entry), 0, -1);
-      port = gtk_editable_get_chars(GTK_EDITABLE(port_entry), 0, -1);
+      port = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(port_spin));
       username = gtk_editable_get_chars(GTK_EDITABLE(username_entry), 0, -1);
       password = gtk_editable_get_chars(GTK_EDITABLE(password_entry), 0, -1);
 
@@ -445,20 +456,6 @@ mn_preferences_add_remote_mailbox (void)
 	{
 	  mn_error_dialog(_("Unable to add mailbox."),
 			  _("The hostname field must be filled."));
-	  goto run;
-	}
-      
-      if (! *port)
-	{
-	  mn_error_dialog(_("Unable to add mailbox."),
-			  _("The port field must be filled."));
-	  goto run;
-	}
-
-      if (! mn_str_isnumeric(port))
-	{
-	  mn_error_dialog(_("Unable to add mailbox."),
-			  _("The port field must be numeric."));
 	  goto run;
 	}
       
@@ -476,7 +473,7 @@ mn_preferences_add_remote_mailbox (void)
 	  goto run;
 	}
 
-      locator = g_strdup_printf("pop3:%s:%s@%s:%s", username, password, hostname, port);
+      locator = g_strdup_printf("pop3:%s:%s@%s:%i", username, password, hostname, port);
 
       gconf_mailboxes = mn_conf_get_list("/apps/mail-notification/mailboxes",
 					 GCONF_VALUE_STRING);
@@ -511,6 +508,30 @@ mn_preferences_remove_mailbox_cb (GtkTreeModel *model,
   gtk_tree_model_get(model, iter, COLUMN_OBJECT, &mailbox, -1);
   mn_conf_remove_mailbox(mailbox->locator);
   g_object_unref(mailbox);
+}
+
+static gboolean
+mn_preferences_search_equal_func (GtkTreeModel *model,
+				  int column,
+				  const char *key,
+				  GtkTreeIter *iter,
+				  gpointer search_data)
+{
+  char *mailbox;
+  char *format;
+  gboolean equal = FALSE;
+
+  gtk_tree_model_get(model, iter,
+		     COLUMN_MAILBOX, &mailbox,
+		     COLUMN_FORMAT, &format,
+		     -1);
+
+  equal = mn_utf8_strcasecontains(mailbox, key) || mn_utf8_strcasecontains(format, key);
+  
+  g_free(mailbox);
+  g_free(format);
+
+  return ! equal;
 }
 
 /* libglade callbacks */

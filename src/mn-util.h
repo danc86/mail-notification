@@ -40,6 +40,8 @@ GIOError	mn_gnet_io_channel_printf	(GIOChannel	*channel,
 #endif /* HAVE_GNET */
 
 gboolean	mn_str_isnumeric		(const char	*str);
+gboolean	mn_utf8_strcasecontains		(const char	*big,
+						 const char	*little);
 GdkPixbuf	*mn_pixbuf_new			(const char	*filename);
 GladeXML	*mn_glade_xml_new		(const char	*filename);
 

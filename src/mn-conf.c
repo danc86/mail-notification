@@ -69,6 +69,8 @@
   MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_NAMESPACE "/enabled"
 #define MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION \
   MN_CONF_NAMESPACE "/double-click-action"
+#define MN_CONF_OBSOLETE_ALREADY_RUN \
+  MN_CONF_NAMESPACE "/already-run"
 
 #define BLOCK(info) \
   g_signal_handler_block((info)->object, (info)->handler_id)
@@ -220,7 +222,7 @@ static void mn_conf_notification_add_weak_notify_cb (gpointer data,
 void
 mn_conf_init (void)
 {
-  g_return_if_fail(mn_conf_dot_dir == NULL);
+  g_assert(mn_conf_dot_dir == NULL);
 
   /* create our dot dir if it does not already exist */
 
@@ -263,7 +265,7 @@ mn_conf_init (void)
 
       enum_class = g_type_class_ref(MN_TYPE_ASPECT_SOURCE);
       enum_value = g_enum_get_value(enum_class, MN_ASPECT_SOURCE_CUSTOM);
-      g_return_if_fail(enum_value != NULL);
+      g_assert(enum_value != NULL);
       
       eel_gconf_set_string(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE, enum_value->value_nick);
       g_type_class_unref(enum_class);
@@ -304,7 +306,9 @@ mn_conf_unset_obsolete (void)
     MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED,
     MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED,
     MN_CONF_OBSOLETE_SUMMARY_DIALOG,
-    MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION
+    MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION,
+    MN_CONF_OBSOLETE_MAILBOXES,
+    MN_CONF_OBSOLETE_ALREADY_RUN
   };
   int i;
       
@@ -329,7 +333,7 @@ mn_conf_recursive_unset (const char *key, GConfUnsetFlags flags)
   g_return_if_fail(key != NULL);
 
   client = eel_gconf_client_get_global();
-  g_return_if_fail(client != NULL);
+  g_assert(client != NULL);
 
   gconf_client_recursive_unset(client, key, flags, &err);
   eel_gconf_handle_error(&err);
@@ -346,7 +350,7 @@ mn_conf_is_set (const char *key)
   g_return_val_if_fail(key != NULL, FALSE);
 
   client = eel_gconf_client_get_global();
-  g_return_val_if_fail(client != NULL, FALSE);
+  g_assert(client != NULL);
 
   value = gconf_client_get_without_default(client, key, &err);
   if (value)
@@ -371,7 +375,7 @@ mn_conf_set_value (const char *key, const GConfValue *value)
   g_return_if_fail(value != NULL);
   
   client = eel_gconf_client_get_global();
-  g_return_if_fail(client != NULL);
+  g_assert(client != NULL);
 
   gconf_client_set(client, key, value, &err);
   eel_gconf_handle_error(&err);
@@ -635,6 +639,8 @@ mn_conf_link_radio_group_to_enum (GType enum_type,
     }
 
   va_end(args);
+
+  g_type_class_unref(enum_class);
 }
 
 static void
@@ -1157,6 +1163,30 @@ mn_conf_notification_add_weak_notify_cb (gpointer data, GObject *former_object)
 {
   unsigned int notification_id = GPOINTER_TO_UINT(data);
   eel_gconf_notification_remove(notification_id);
+}
+
+void
+mn_conf_notifications_add (gpointer object, ...)
+{
+  va_list args;
+  const char *key;
+
+  g_return_if_fail(G_IS_OBJECT(object));
+
+  va_start(args, object);
+  while ((key = va_arg(args, const char *)))
+    {
+      GConfClientNotifyFunc callback;
+      gpointer user_data;
+
+      callback = va_arg(args, GConfClientNotifyFunc);
+      g_return_if_fail(callback != NULL);
+
+      user_data = va_arg(args, gpointer);
+
+      mn_conf_notification_add(object, key, callback, user_data);
+    }
+  va_end(args);
 }
 
 gboolean

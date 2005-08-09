@@ -24,16 +24,24 @@
 #define MN_STOCK_MAIL			"mn-mail"
 #define MN_STOCK_LOCAL			"mn-local"
 #define MN_STOCK_REMOTE			"mn-remote"
-#define MN_STOCK_UNSUPPORTED		"mn-unsupported"
+#define MN_STOCK_POLLED			"mn-polled"
+#define MN_STOCK_UNKNOWN		"mn-unknown"
+#define MN_STOCK_ERROR			"mn-error"
 #ifdef WITH_GMAIL
 #define MN_STOCK_GMAIL			"mn-gmail"
 #endif
+#if defined(WITH_MBOX) || defined(WITH_MH) || defined(WITH_MAILDIR) || defined(WITH_SYLPHEED)
 #define MN_STOCK_SYSTEM_MAILBOX		"mn-system-mailbox"
+#endif
+#ifdef WITH_EVOLUTION
+#define MN_STOCK_EVOLUTION_MAILBOX	"mn-evolution-mailbox"
+#endif
 #define MN_STOCK_SELECT_ALL		"mn-select-all"
 #define MN_STOCK_MAIL_SUMMARY		"mn-mail-summary"
 #define MN_STOCK_MAIL_READER		"mn-mail-reader"
 #define MN_STOCK_MAIN_WINDOW		"mn-main-window"
 #define MN_STOCK_LEAVE_FULLSCREEN	"mn-leave-fullscreen"
+#define MN_STOCK_CONNECT		"mn-connect"
 
 void mn_stock_init (void);
 

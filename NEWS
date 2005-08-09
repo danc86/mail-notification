@@ -1,17 +1,131 @@
+2.0					August 9, 2005
+
+	* Core changes:
+		* Evolution support has been added
+		* Mailboxes can now be assigned a custom name
+		* For greater flexibility, mailboxes configuration is
+		  now stored in ~/.gnome2/mail-notification/mailboxes.xml
+		  (previously, it was stored in the GConf database)
+		* The mailbox list widget has been redesigned
+		* The mailbox properties dialog has been redesigned
+		* Copying a mailbox to the clipboard does not make it
+		  available to Nautilus anymore: that behaviour was
+		  confusing and useless. However, pasting files copied
+		  from Nautilus still works.
+		* If a mailbox requires authentication and the
+		  necessary credentials are not provided in the
+		  mailbox properties dialog, Mail Notification now
+		  lets GNOME prompt the user for the credentials
+		* A test popup can now be displayed from the Mail
+		  Summary Popup properties tab
+		* The --report command line option has been removed
+		* The Mail Notification item is now also listed in the
+		  GNOME >= 2.10 Preferences menu
+		* The welcome dialog has been removed
+		* A few icons have been modified
+		* The third-party libegg code has been updated
+		* Now requires GTK+ version 2.6.0 or superior
+		* Minor fixes and cleanups
+
+	* mbox, MH, Maildir and Sylpheed changes:
+		* Immediate notification did not work properly with
+		  fast kernel notifiers (kqueue, inotify, dnotify,
+		  ...): fixed
+		* Unseekable files are now supported
+		* Mailbox type changes are now detected and handled
+		  (previously, Mail Notification had to be restarted
+		  if a mailbox changed type)
+		* The location of the system mailbox is now resolved
+		  at runtime rather than when the mailbox is added
+		  (eases sharing the Mail Notification settings across
+		  multiple computers)
+
+	* mbox changes:
+		* When immediate notification is not available, the
+		  mailbox is now also checked when its size or ctime
+		  changes (previously, it was only checked if its
+		  mtime had changed)
+
+	* Sylpheed changes:
+		* Mail Notification now tries to avoid race conditions
+		  which may occur while Sylpheed is being used
+		* Mark file errors are not ignored anymore
+		* A memory leak has been fixed
+
+	* POP3, IMAP and Gmail changes:
+		* The username can now also be left out, and will be
+		  prompted when needed
+
+	* POP3 and IMAP changes:
+		* Non-UTF-8 characters are now escaped from
+		  uncompliant server responses before being displayed
+		  in the user interface
+		* If the system resolver is not reentrant,
+		  getaddrinfo()/getnameinfo() calls are now serialized
+		* The Cyrus SASL library is now initialized only once,
+		  since multiple sasl_client_init()/sasl_done()
+		  invocations may cause problems (another benefit is
+		  that it allows the SASL library to use the POP3
+		  initial client response feature, which saves a
+		  roundtrip during the SASL authentication exchange)
+		* When the authentication mechanism option is set to
+		  "autodetect", Mail Notification will now try to
+		  authenticate using each server-supported SASL
+		  mechanism
+		* Mail Notification was incorrectly disallowing empty
+		  SASL server challenges, although they are legit:
+		  fixed
+
+	* POP3 changes:
+		* The TOP optional command is now supported. This
+		  solves some issues with POP3 servers (for instance,
+		  pop.gmail.com) which incorrectly archive mails that
+		  have been accessed using the RETR command.
+		* Initial SASL client responses are now handled
+		  properly (passed as an argument to the AUTH command
+		  rather than in the SASL authentication exchange)
+
+	* IMAP changes:
+		* If, while idling, the server abruptly drops the
+		  connection, Mail Notification now reconnects rather
+		  than considering it an error
+		* When idling, Mail Notification now only wakes up if
+		  it receives a response indicating that the mailbox
+		  might have changed
+		* By default, Mail Notification now avoids using the
+		  IDLE extension if the remote server software is
+		  known to have a broken IDLE implementation
+		* UTF-8 mailbox names are now converted to modified
+		  UTF-7, as required by RFC 3501
+
+	* Gmail changes:
+		* Functionality has been restored after the Gmail web
+		  site was modified; to prevent future disruptions and
+		  simplify the source code, the Gmail Atom feed
+		  (https://mail.google.com/mail/feed/atom) is now used
+		* Now works even if the Gmail account language is not
+		  set to English
+		* libsoup and ICU are no longer required
+
+	* Updated translations:
+		* French
+		* Serbian (Filip Miletic)
+		* German (Hendrik Brandt, Jens Seidel)
+
 1.1					March 6, 2005
 
-	* IMAP fixes:
+	* IMAP changes:
 		* is more tolerant towards uncompliant FETCH responses
 		* ignores case of responses (RFC 3501)
 		* makes sure the server responses are valid ASCII (RFC
 		  3501)
 
-	* Gmail fixes:
+	* Gmail changes:
 		* properly converts timestamps (requires ICU)
 		* handles timestamps from previous years
 		* displays all the messages of a conversation
 
-	* POP3 and IMAP fixes:
+	* POP3 and IMAP changes:
 		* does not loop infinitely when no password is
 		  specified, an authentication mechanism is specified
 		  and authentication fails
@@ -19,7 +133,7 @@
 		  is specified and the server does not support any
 		  SASL authentication mechanism
 
-	* POP3 and Gmail fixes:
+	* POP3 and Gmail changes:
 		* makes sure the server responses are valid UTF-8
 
 	* The mail summary dialog has been replaced by a main window,
@@ -67,7 +181,7 @@
 
 0.8.1					November 4, 2004
 
-	* Mail summary popup fixes and improvements:
+	* Mail summary popup changes:
 		* do not recreate it when updating its contents:
 		  removes some flicker
 		* added a workaround for a Metacity bug which
@@ -104,7 +218,7 @@
 
 0.7.1					October 25, 2004
 
-	* Gmail fixes:
+	* Gmail changes:
 		* does not crash when a GNOME proxy is set
 		* handles starred and labelled messages
 		* ignores non-inbox messages

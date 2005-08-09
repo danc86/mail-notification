@@ -16,11 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.10
+requires 2.0.12
 
 %headertop{
 #include <time.h>
-#include "mn-uri.h"
+#include "mn-mailbox.h"
 %}
 
 %{
@@ -32,10 +32,8 @@ requires 2.0.10
 class MN:Message from G:Object
 {
   /* always set */
-  public MNURI *mailbox_uri unrefwith g_object_unref;
-  property OBJECT mailbox_uri (flags = CONSTRUCT_ONLY,
-			       object_type = MN:URI,
-			       link);
+  public char *mailbox_name destroywith g_free;
+  property STRING mailbox_name (flags = CONSTRUCT_ONLY, link);
   
   /* may be NULL */
   public char *error destroywith g_free;
@@ -43,7 +41,7 @@ class MN:Message from G:Object
 
   /* sent time, may be 0 */
   public time_t sent_time;
-  property ULONG sent_time (flags = CONSTRUCT_ONLY, link);
+  property ULONG sent_time (flags = CONSTRUCT_ONLY, link, type = time_t);
 
   /* always set */
   public char *id destroywith g_free;
@@ -152,14 +150,17 @@ class MN:Message from G:Object
   }
   
   public MNMessage *
-    new (MN:URI *mailbox_uri (check null type),
+    new (MNMailbox *mailbox,
 	 const char *error,
 	 time_t sent_time,
 	 const char *id,
 	 const char *from,
 	 const char *subject)
   {
-    return GET_NEW_VARG(MN_MESSAGE_PROP_MAILBOX_URI(G_OBJECT(mailbox_uri)),
+    g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
+
+    /* translators: "none" is used like "Mailbox: none" */
+    return GET_NEW_VARG(MN_MESSAGE_PROP_MAILBOX_NAME(mailbox ? mailbox->runtime_name : _("none")),
 			MN_MESSAGE_PROP_ERROR((char *) error),
 			MN_MESSAGE_PROP_SENT_TIME(sent_time),
 			MN_MESSAGE_PROP_ID((char *) id),
@@ -169,10 +170,11 @@ class MN:Message from G:Object
   }
 
   public MNMessage *
-    new_from_error (MN:URI *mailbox_uri (check null type),
-		    const char *error (check null))
+    new_from_error (MNMailbox *mailbox, const char *error (check null))
   {
-    return self_new(mailbox_uri, error, 0, NULL, NULL, NULL);
+    g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
+
+    return self_new(mailbox, error, 0, NULL, NULL, NULL);
   }
   
   public GSList *

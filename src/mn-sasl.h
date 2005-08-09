@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 
 #include <glib.h>
 
-gboolean mn_sasl_use (GError **err);
-void mn_sasl_unuse (void);
+gboolean mn_sasl_init (GError **err);
 
 #endif /* _MN_SASL_H */

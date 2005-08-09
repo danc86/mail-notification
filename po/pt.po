@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mail-notification 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-03-02 02:32+0100\n"
+"POT-Creation-Date: 2005-02-27 15:47+0100\n"
 "PO-Revision-Date: 2005-03-01 02:19+0100\n"
 "Last-Translator: Duarte Henriques <duarte_henriques@myrealbox.com>\n"
 "Language-Team: Duarte Henriques <duarte_henriques@myrealbox.com>\n"
@@ -171,8 +171,8 @@ msgid ""
 "The action to perform when the icon is double-clicked. Must be \"display-"
 "main-window\", \"launch-mail-reader\" or \"update-mail-status\"."
 msgstr ""
-"A acção a efectuar quando se faz duplo-clique no ícone. Tem de ser \"display-"
-"main-window\", \"launch-mail-reader\" ou \"update-mail-status\"."
+"A acção a efectuar quando se faz duplo-clique no ícone. Tem de ser "
+"\"display-main-window\", \"launch-mail-reader\" ou \"update-mail-status\"."
 
 #: data/mail-notification.schemas.in.h:33
 msgid ""
@@ -397,8 +397,8 @@ msgid ""
 "Drag an item onto the toolbars above to add it, from the toolbars in the "
 "items table to remove it."
 msgstr ""
-"Arraste um item para as barras para o adicionar, das barras para a tabela de "
-"items para o remover"
+"Arraste um item para as barras para o adicionar, das barras para a tabela "
+"de items para o remover"
 
 #: src/eggtrayicon.c:109
 msgid "Orientation"
@@ -600,77 +600,81 @@ msgstr "incapaz de ler do servidor: EOF"
 msgid "unable to decode data using SASL: %s"
 msgstr "incapaz de descodificar dados usando SASL: %s"
 
-#: src/mn-client-session.c:743
+#: src/mn-client-session.c:709
+msgid "received non-ASCII data from server"
+msgstr "dados não-ASCII recebidos do servidor"
+
+#: src/mn-client-session.c:756
 #, c-format
 msgid "unable to encode data using SASL: %s"
 msgstr "incapaz de encodificar dados usando SASL: %s"
 
-#: src/mn-client-session.c:774 src/mn-client-session.c:781
+#: src/mn-client-session.c:787 src/mn-client-session.c:794
 #, c-format
 msgid "unable to write to server: %s"
 msgstr "incapaz de escrever para o servidor: %s"
 
-#: src/mn-client-session.c:779
+#: src/mn-client-session.c:792
 msgid "unable to write to server: EOF"
 msgstr "incapaz de escrever para o servidor: EOF"
 
-#: src/mn-client-session.c:811
+#: src/mn-client-session.c:824
 #, c-format
 msgid "unable to encode Base64: %s"
 msgstr "incapaz de encodificar em Base64: %s"
 
-#: src/mn-client-session.c:922
+#: src/mn-client-session.c:935
 #, c-format
 msgid "unable to initialize the SASL library: %s"
 msgstr "incapaz de inicializar a biblioteca SASL: %s"
 
-#: src/mn-client-session.c:931
+#: src/mn-client-session.c:944
 #, c-format
 msgid "unable to retrieve local address of socket: %s"
 msgstr "incapaz de obter o endereço local do socket: %s"
 
-#: src/mn-client-session.c:937
+#: src/mn-client-session.c:950
 #, c-format
 msgid "unable to retrieve remote address of socket: %s"
 msgstr "incapaz de obter endereço remoto do socket: %s"
 
-#: src/mn-client-session.c:971
+#: src/mn-client-session.c:984
 #, c-format
 msgid "unable to set SASL security properties: %s"
 msgstr "incapaz de definir as propriedades de segurança SASL: %s"
 
-#: src/mn-client-session.c:995
+#: src/mn-client-session.c:1008
 msgid ""
 "unable to start SASL authentication: SASL asked for something we did not know"
 msgstr ""
 "incapaz de iniciar a autenticação SASL: SASL perguntou algo que não sabíamos"
 
-#: src/mn-client-session.c:1014
+#: src/mn-client-session.c:1027
 #, c-format
 msgid "unable to start SASL authentication: %s"
 msgstr "incapaz de iniciar autenticação SASL: %s"
 
-#: src/mn-client-session.c:1018
+#: src/mn-client-session.c:1031
 #, c-format
 msgid "unable to create a SASL connection: %s"
 msgstr "incapaz de criar uma ligação SASL: %s"
 
-#: src/mn-client-session.c:1055
+#: src/mn-client-session.c:1068
 msgid "SASL asked for something we did not know, aborting SASL authentication"
 msgstr "SASL perguntou algo que não sabíamos, abortando a autenticação SASL"
 
-#: src/mn-client-session.c:1072
+#: src/mn-client-session.c:1085
 #, c-format
 msgid "%s, aborting SASL authentication"
 msgstr "%s, abortando a autenticação SASL"
 
 #. compliance error
-#: src/mn-client-session.c:1077
+#: src/mn-client-session.c:1090
 #, c-format
 msgid "unable to decode Base64 input from server: %s"
 msgstr "incapaz de descodificar o input em Base64 do servidor: %s"
 
-#: src/mn-client-session.c:1080
+#: src/mn-client-session.c:1093
 msgid ""
 "the server sent a SASL challenge, but there was a pending initial SASL "
 "client response"
@@ -678,7 +682,7 @@ msgstr ""
 "o servidor enviou um desafio SASL, mas havia uma resposta SASL inicial "
 "pendente do cliente"
 
-#: src/mn-client-session.c:1094
+#: src/mn-client-session.c:1107
 msgid ""
 "the server did not send a SASL challenge, but there was no pending initial "
 "SASL client response"
@@ -686,18 +690,18 @@ msgstr ""
 "o servidor não enviou um desafio SASL, mas não havia uma resposta SASL "
 "inicial pendente do cliente"
 
-#: src/mn-client-session.c:1119
+#: src/mn-client-session.c:1132
 #, c-format
 msgid "a SASL security layer of strength factor %i is now active"
 msgstr "está agora activa uma camada de segurança SASL com factor de força %i"
 
 #. a security layer is active but we can't retrieve maxoutbuf -> fatal
-#: src/mn-client-session.c:1124
+#: src/mn-client-session.c:1137
 #, c-format
 msgid "unable to get SASL_MAXOUTBUF property: %s"
 msgstr "incapaz de obter a propriedade SASL_MAXOUTBUF: %s"
 
-#: src/mn-client-session.c:1130
+#: src/mn-client-session.c:1143
 #, c-format
 msgid "warning: unable to get SASL_SSF property: %s"
 msgstr "aviso: incapaz de obter a propriedade SASL_SSF: %s"
@@ -859,7 +863,7 @@ msgstr "O nome da caixa de correio"
 msgid "If possible, whether to use idle mode or not"
 msgstr "Se possível, usar modo inactivo ou não"
 
-#: src/mn-imap-mailbox.gob:156 src/mn-pop3-mailbox.gob:136
+#: src/mn-imap-mailbox.gob:156 src/mn-pop3-mailbox.gob:135
 msgid "SSL/TLS support has not been compiled in"
 msgstr "suporte SSL/TLS não foi compilado"
 
@@ -889,15 +893,15 @@ msgstr "servidor não enviou todas as mensagens pedidas"
 msgid "unable to fetch message"
 msgstr "incapaz de obter mensagem"
 
-#: src/mn-imap-mailbox.gob:1006 src/mn-pop3-mailbox.gob:927
+#: src/mn-imap-mailbox.gob:999 src/mn-pop3-mailbox.gob:907
 msgid "unknown server error"
 msgstr "erro de servidor desconhecido"
 
-#: src/mn-imap-mailbox.gob:1108 src/mn-pop3-mailbox.gob:220
+#: src/mn-imap-mailbox.gob:1101 src/mn-pop3-mailbox.gob:219
 msgid "server does not support in-band SSL/TLS"
 msgstr "servidor não suporta SSL/TLS in-band"
 
-#: src/mn-imap-mailbox.gob:1127 src/mn-pop3-mailbox.gob:837
+#: src/mn-imap-mailbox.gob:1120 src/mn-pop3-mailbox.gob:817
 msgid ""
 "a SASL authentication mechanism was selected but SASL support has not been "
 "compiled in"
@@ -905,16 +909,16 @@ msgstr ""
 "foi escolhido um mecanismo de autenticação SASL, mas o suporte SASL não foi "
 "compilado"
 
-#: src/mn-imap-mailbox.gob:1137 src/mn-pop3-mailbox.gob:857
+#: src/mn-imap-mailbox.gob:1130 src/mn-pop3-mailbox.gob:837
 #, c-format
 msgid "unknown authentication mechanism \"%s\""
 msgstr "mecanismo de autenticação desconhecido \"%s\""
 
-#: src/mn-imap-mailbox.gob:1160
+#: src/mn-imap-mailbox.gob:1153
 msgid "falling back to IMAP LOGIN authentication"
 msgstr "recorrendo à autenticação IMAP LOGIN"
 
-#: src/mn-imap-mailbox.gob:1172 src/mn-pop3-mailbox.gob:901
+#: src/mn-imap-mailbox.gob:1165 src/mn-pop3-mailbox.gob:881
 msgid "authentication failed"
 msgstr "autenticação falhou"
 
@@ -1227,9 +1231,7 @@ msgstr "_Omissão do Ambiente"
 
 #: src/mn-main-window.c:207
 msgid "Set the toolbars style to the desktop default setting"
-msgstr ""
-"Definir o estilo de barras de ferramentas para a definição por omissão do "
-"ambiente de trabalho"
+msgstr "Definir o estilo de barras de ferramentas para a definição por omissão do ambiente de trabalho"
 
 #: src/mn-main-window.c:213
 msgid "I_cons Only"
@@ -1268,22 +1270,22 @@ msgstr "Mostrar o texto das barras de ferramentas ao lado dos ícones"
 msgid "unable to load menus.xml: %s"
 msgstr "incapaz de varregar menus.xml: %s"
 
-#: src/mn-main-window.c:398
+#: src/mn-main-window.c:397
 msgid "Help messages"
 msgstr "Mensagens de Ajuda"
 
-#: src/mn-main-window.c:399
+#: src/mn-main-window.c:398
 msgid "Count messages"
 msgstr "Mensagens de contagem"
 
-#: src/mn-main-window.c:503
+#: src/mn-main-window.c:502
 #, c-format
 msgid "%i new message"
 msgid_plural "%i new messages"
 msgstr[0] "%i mensagem nova"
 msgstr[1] "%i mensagens novas"
 
-#: src/mn-main-window.c:540
+#: src/mn-main-window.c:539
 msgid "unable to load toolbars.xml"
 msgstr "incapaz de carregar barras de ferramentas.xml"
 
@@ -1507,30 +1509,30 @@ msgstr ""
 msgid "The port number of the POP3 server"
 msgstr "O número do porto do servidor POP3"
 
-#: src/mn-pop3-mailbox.gob:266
+#: src/mn-pop3-mailbox.gob:265
 msgid "invalid arguments for the LOGIN-DELAY capability"
 msgstr "argumentos inválidos para a habilidade LOGIN-DELAY"
 
-#: src/mn-pop3-mailbox.gob:569
+#: src/mn-pop3-mailbox.gob:568
 msgid "unknown error"
 msgstr "erro desconhecido"
 
-#: src/mn-pop3-mailbox.gob:656
+#: src/mn-pop3-mailbox.gob:655
 #, c-format
 msgid "honouring LOGIN-DELAY, sleeping for %i second"
 msgid_plural "honouring LOGIN-DELAY, sleeping for %i seconds"
 msgstr[0] "honrando LOGIN-DELAY, dormindo por %i segundo"
 msgstr[1] "honrando LOGIN-DELAY, dormindo por %i segundos"
 
-#: src/mn-pop3-mailbox.gob:849
+#: src/mn-pop3-mailbox.gob:829
 msgid "server does not support APOP authentication"
 msgstr "servidor não suporta autenticação APOP"
 
-#: src/mn-pop3-mailbox.gob:884
+#: src/mn-pop3-mailbox.gob:864
 msgid "falling back to APOP authentication"
 msgstr "recorrendo a autenticação APOP"
 
-#: src/mn-pop3-mailbox.gob:889
+#: src/mn-pop3-mailbox.gob:869
 msgid "falling back to USER/PASS authentication"
 msgstr "recorrendo a autenticação USER/PASS"
 
@@ -1949,8 +1951,8 @@ msgstr ""
 "\n"
 "A Notificação de Correio foi carregada com sucesso.\n"
 "\n"
-"Como esta é a primeira vez que executa a Notificação de Correio, precisa de "
-"a configurar.\n"
+"Como esta é a primeira vez que executa a Notificação de Correio, precisa "
+"de a configurar.\n"
 "\n"
 "Nota: esta mensagem não será mostrada de novo. Para configurar a Notificação "
 "de Correio outra vez, escolha <span weight=\"bold\">Aplicações</span> → "
@@ -1966,9 +1968,6 @@ msgstr "_Configurar Notificação de Correio"
 #: ui/welcome.glade.h:9
 msgid "_Skip configuration"
 msgstr "_Saltar configuração"
-
-#~ msgid "received non-ASCII data from server"
-#~ msgstr "dados não-ASCII recebidos do servidor"
 
 #~ msgid "Use a custom font for the contents of the mail summary popup"
 #~ msgstr ""

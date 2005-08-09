@@ -1,0 +1,36 @@
+<oaf_info>
+  <oaf_server iid="OAFIID:GNOME_MailNotification_Evolution_Glue_Factory" type="exe" location="">
+    <oaf_attribute name="repo_ids" type="stringv">
+      <item value="IDL:Bonobo/GenericFactory:1.0"/>
+    </oaf_attribute>
+    <oaf_attribute name="name" type="string" _value="Mail Notification / Evolution glue factory"/>
+    <oaf_attribute name="description" type="string" _value="Mail Notification / Evolution glue factory"/>
+  </oaf_server>
+
+  <oaf_server iid="OAFIID:GNOME_MailNotification_Evolution_Glue" type="factory" location="OAFIID:GNOME_MailNotification_Evolution_Glue_Factory">
+    <oaf_attribute name="repo_ids" type="stringv">
+      <item value="IDL:Bonobo/Unknown:1.0"/>
+      <item value="IDL:Bonobo/EventSource:1.0"/>
+      <item value="IDL:GNOME/MailNotification/Evolution/Glue:1.0"/>
+    </oaf_attribute>
+    <oaf_attribute name="name" type="string" _value="Mail Notification / Evolution glue"/>
+    <oaf_attribute name="description" type="string" _value="Mail Notification / Evolution glue"/>
+  </oaf_server>
+
+  <oaf_server iid="OAFIID:GNOME_MailNotification_Evolution_FolderTree_Control_Factory" type="exe" location="">
+    <oaf_attribute name="repo_ids" type="stringv">
+      <item value="IDL:Bonobo/GenericFactory:1.0"/>
+    </oaf_attribute>
+    <oaf_attribute name="name" type="string" _value="Evolution folder tree control factory"/>
+    <oaf_attribute name="description" type="string" _value="Evolution folder tree control factory"/>
+  </oaf_server>
+
+  <oaf_server iid="OAFIID:GNOME_MailNotification_Evolution_FolderTree_Control" type="factory" location="OAFIID:GNOME_MailNotification_Evolution_FolderTree_Control_Factory">
+    <oaf_attribute name="repo_ids" type="stringv">
+      <item value="IDL:Bonobo/Unknown:1.0"/>
+      <item value="IDL:Bonobo/Control:1.0"/>
+    </oaf_attribute>
+    <oaf_attribute name="name" type="string" _value="Evolution folder tree control"/>
+    <oaf_attribute name="description" type="string" _value="Evolution folder tree control"/>
+  </oaf_server>
+</oaf_info>

@@ -1,0 +1,96 @@
+/* 
+ * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include "mn-vfs-mailbox.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include "mn-stock.h"
+#include "mn-mailbox-private.h"
+%}
+
+class MN:System:VFS:Mailbox from MN:VFS:Mailbox
+{
+  class_init (class)
+  {
+    MN_MAILBOX_CLASS(class)->type = "system-vfs";
+    MN_VFS_MAILBOX_CLASS(class)->stock_id = MN_STOCK_SYSTEM_MAILBOX;
+  }
+
+  override (MN:Mailbox) void
+    seal (MNMailbox *mailbox)
+  {
+    MN_VFS_MAILBOX(mailbox)->uri = g_strdup(self_get_uri());
+
+    mailbox->runtime_name = g_strdup(_("System mailbox"));
+
+    PARENT_HANDLER(mailbox);
+  }
+
+  override (MN:Mailbox) MNMailbox *
+    parse_uri (MNMailbox *dummy, const char *uri)
+  {
+    const char *system_uri;
+    MNMailbox *mailbox = NULL;
+
+    system_uri = self_get_uri();
+    if (system_uri && gnome_vfs_uris_match(uri, system_uri))
+      mailbox = mn_mailbox_new("system-vfs", NULL);
+
+    return mailbox;
+  }
+  
+  override (MN:Mailbox) void
+    check (MNMailbox *mailbox)
+  {
+    if (MN_VFS_MAILBOX(mailbox)->uri)
+      {
+	PARENT_HANDLER(mailbox);
+      }
+    else
+      {
+	mn_mailbox_set_error(mailbox, _("MAIL environment variable not defined"));
+	mn_mailbox_set_must_poll(mailbox, FALSE); /* disable the mailbox */
+      }
+  }
+  
+  public const char *
+    get_uri (void)
+  {
+    static char *global_uri = NULL;
+    G_LOCK_DEFINE_STATIC(global_uri);
+    const char *uri;
+
+    G_LOCK(global_uri);
+    if (! global_uri)
+      {
+	const char *mail = g_getenv("MAIL");
+	if (mail)
+	  global_uri = gnome_vfs_get_uri_from_local_path(mail);
+      }
+    uri = global_uri;
+    G_UNLOCK(global_uri);
+
+    return uri;
+  }
+}

@@ -1,15 +1,22 @@
 #!/bin/sh
 
+# change this to the path to mkinstalldirs on your system
+MKINSTALLDIRS="/usr/local/gnu-autotools/share/automake-1.9/mkinstalldirs"
+
 run() {
-    echo "Running $1..."
-    $1 || exit
+    echo "Running $*..."
+    $* || exit
 }
 
-. autotools.conf
+run intltoolize --force
 
-run "$ACLOCAL"
-run "$AUTOHEADER"
-run "$AUTOCONF"
-run "$AUTOMAKE"
+# po/Makefile.in.in requires mkinstalldirs, but intltoolize does not provide it
+run ln -sf "$MKINSTALLDIRS" mkinstalldirs
+
+run libtoolize --force
+run aclocal -I m4
+run autoheader
+run autoconf
+run automake --add-missing --force-missing
 
 echo "Finished successfully."

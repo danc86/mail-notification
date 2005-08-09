@@ -11,7 +11,7 @@ Index
 
 0. About this document
 
-	$Id: README,v 1.25 2005/03/01 16:55:41 jylefort Exp $
+	$Id: README,v 1.28 2005/08/07 13:14:38 jylefort Exp $
 
 	Copyright (C) 2003-2005 Jean-Yves Lefort.
 
@@ -31,33 +31,36 @@ Index
 	Mail Notification features include:
 
 		* multiple mailbox support
-		* mbox, MH, Maildir, Sylpheed, POP3, IMAP and Gmail
-		  support
+		* mbox, MH, Maildir, POP3, IMAP, Gmail, Evolution and
+		  Sylpheed support
 		* SASL authentication support
 		* APOP authentication support
 		* SSL/TLS support
 		* automatic detection of mailbox format
 		* immediate notification (the status icon is updated
-		  within seconds after a mailbox changes)
+		  immediately or within seconds after a mailbox
+		  changes)
 		* a mail summary
 		* HIG 2.0 compliance
 
 2. Issues in third-party software affecting Mail Notification
 
-	As of March 1, 2005, the following issues are unfixed, and may
-	cause Mail Notification (and other GNOME multi-threaded
-	programs) to crash or hang.
+	* Thread-safety bugs in libgnomeui may cause Mail Notification
+	  (and other multi-threaded GNOME applications) to crash or
+	  hang.
 
-	* thread-safety bug in GLib:
-	  http://bugzilla.gnome.org/show_bug.cgi?id=64764
-
-	  Reported on 2001-11-17, maintainers apparently do not care.
-
-	* thread-safety bugs in libgnomeui:
 	  http://bugzilla.gnome.org/show_bug.cgi?id=152023
+	  http://bugzilla.gnome.org/show_bug.cgi?id=312180
 
-	  Reported on 2004-09-06, patches provided, maintainers
-	  apparently do not care.
+	* An infinite loop in GnomeVFS may affect mailboxes which use
+	  HTTP authentication (for instance, Gmail mailboxes).
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=310596
+	  (fixed on 20050723)
+
+	* An unidentified bug, probably in the Metacity window
+	  manager, may sometimes cause the mail summary popup to be
+	  misplaced.
 
 3. Installation instructions
 

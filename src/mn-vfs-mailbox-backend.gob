@@ -1,0 +1,167 @@
+/* 
+ * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include "mn-vfs-mailbox.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include <gtk/gtk.h>
+#include "mn-mailbox-private.h"
+#include "mn-reentrant-mailbox-private.h"
+#include "mn-vfs-mailbox-private.h"
+#include "mn-conf.h"
+#include "mn-util.h"
+%}
+
+class MN:VFS:Mailbox:Backend from G:Object
+{
+  classwide const char *format;
+
+  /*
+   * In order to not create reference cycles, we do not keep a
+   * reference to the mailbox. As long as we are alive, it will always
+   * be valid, since we are one of its members.
+   */
+  protected MNVFSMailbox *mailbox;
+  property POINTER mailbox (link, flags = CONSTRUCT_ONLY, type = MNVFSMailbox *);
+
+  private GMutex *mutex = {g_mutex_new()} destroywith g_mutex_free;
+
+  private GnomeVFSMonitorHandle *monitor_handle;
+
+  override (G:Object) void
+    finalize (GObject *object)
+  {
+    Self *self = SELF(object);
+
+    if (selfp->monitor_handle)
+      {
+	gnome_vfs_monitor_cancel(selfp->monitor_handle);
+	selfp->monitor_handle = NULL;
+      }
+
+    PARENT_HANDLER(object);
+  }
+
+  protected void
+    monitor (self,
+	     unsigned long check_id,
+	     const char *uri (check null),
+	     GnomeVFSMonitorType monitor_type)
+  {
+    GnomeVFSResult result;
+    GnomeVFSMonitorHandle *handle;
+
+    g_return_if_fail(SELF_GET_CLASS(self)->monitor_cb != NULL);
+    
+    self_lock(self);
+
+    handle = selfp->monitor_handle;
+
+    self_unlock(self);
+
+    if (handle)
+      return;
+
+    result = gnome_vfs_monitor_add(&handle,
+				   uri,
+				   monitor_type,
+				   self_real_monitor_cb,
+				   self);
+
+    if (result == GNOME_VFS_OK)
+      {
+	self_lock(self);
+
+	if (! selfp->monitor_handle)
+	  {
+	    selfp->monitor_handle = handle;
+	    handle = NULL;
+	  }
+
+	self_unlock(self);
+
+	if (handle)
+	  gnome_vfs_monitor_cancel(handle);
+      }
+    else
+      {
+	GDK_THREADS_ENTER();
+
+	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(self->mailbox), check_id)
+	    && ! selfp->monitor_handle
+	    && result != self->mailbox->contents_monitor_result)
+	  {
+	    self->mailbox->contents_monitor_result = result;
+
+	    mn_mailbox_warning(MN_MAILBOX(self->mailbox), _("unable to monitor mailbox contents (%s), poll mode activated"), gnome_vfs_result_to_string(result));
+	    mn_vfs_mailbox_monitor_error_dialog();
+
+	    if (! MN_MAILBOX(self->mailbox)->must_poll)
+	      mn_mailbox_set_must_poll(MN_MAILBOX(self->mailbox), TRUE);
+	  }
+
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+      }
+  }
+  
+  private void
+    real_monitor_cb (GnomeVFSMonitorHandle *handle,
+		     const char *monitor_uri,
+		     const char *info_uri,
+		     GnomeVFSMonitorEventType event_type,
+		     gpointer user_data)
+  {
+    self_monitor_cb(user_data, info_uri, event_type);
+  }
+  
+  virtual private void
+    monitor_cb (self,
+		const char *info_uri,
+		GnomeVFSMonitorEventType event_type)
+  {
+    if (event_type == GNOME_VFS_MONITOR_EVENT_CHANGED
+	|| event_type == GNOME_VFS_MONITOR_EVENT_DELETED
+	|| event_type == GNOME_VFS_MONITOR_EVENT_CREATED)
+      mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self->mailbox));
+  }
+
+  virtual public gboolean
+    is (self, MN:VFS:Mailbox *mailbox);
+
+  virtual public void
+    check (self, unsigned long check_id);
+
+  protected void
+    lock (self)
+  {
+    g_mutex_lock(selfp->mutex);
+  }
+
+  protected void
+    unlock (self)
+  {
+    g_mutex_unlock(selfp->mutex);
+  }
+}

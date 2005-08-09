@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -155,4 +155,21 @@ mn_vfs_test (GnomeVFSURI *uri, GFileTest test)
   gnome_vfs_file_info_unref(file_info);
 
   return status;
+}
+
+GnomeVFSResult
+mn_vfs_read_entire_file_uri (GnomeVFSURI *uri,
+			     int *file_size,
+			     char **file_contents)
+{
+  char *text_uri;
+  GnomeVFSResult result;
+
+  g_return_val_if_fail(uri != NULL, GNOME_VFS_ERROR_BAD_PARAMETERS);
+
+  text_uri = gnome_vfs_uri_to_string(uri, GNOME_VFS_URI_HIDE_NONE);
+  result = gnome_vfs_read_entire_file(text_uri, file_size, file_contents);
+  g_free(text_uri);
+
+  return result;
 }

@@ -16,108 +16,89 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.10
+requires 2.0.12
 
 %headertop{
 #include <gtk/gtk.h>
+#include "mn-authenticated-mailbox-properties.h"
 %}
+
 %{
 #include "config.h"
 #include <glib/gi18n.h>
 #include "mn-mailbox-properties.h"
-#include "mn-mailbox-properties-util.h"
+#include "mn-mailbox-properties-private.h"
 #include "mn-util.h"
 #include "mn-properties-dialog.h"
+#include "mn-authenticated-mailbox.h"
+#include "mn-gmail-mailbox.h"
+#include "mn-stock.h"
 %}
 
-class MN:Gmail:Mailbox:Properties from Gtk:VBox (interface MN:Mailbox:Properties)
+class MN:Gmail:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
 {
-  property STRING label (override)
-    get { g_value_set_string(VAL, "Gmail"); };
+  /*
+   * We do not provide a control for the atom feed location, because
+   * modifying it is probably unnecessary.
+   */
+  private char *location destroywith g_free;
 
-  private GtkSizeGroup *size_group unrefwith g_object_unref;
-  property OBJECT size_group (override, link);
-
-  property BOOLEAN complete (override)
+  property STRING default_name (override)
     get
     {
       const char *username;
 
-      username = gtk_entry_get_text(GTK_ENTRY(selfp->username_entry));
-      
-      g_value_set_boolean(VAL, *username != 0);
+      username = gtk_entry_get_text(GTK_ENTRY(MN_AUTHENTICATED_MAILBOX_PROPERTIES(self)->username_entry));
+
+      g_value_take_string(VAL, mn_gmail_mailbox_build_name(*username ? username : NULL));
     };
-      
-  private GtkWidget *username_entry;
-  private GtkWidget *password_entry;
   
-  override (G:Object) GObject *
-    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  class_init (class)
   {
-    GObject *object;
-    Self *self;
-    GtkWidget *label1;
-    GtkWidget *label2;
+    MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
 
-    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    self = SELF(object);
+    p_class->type = "gmail";
+    p_class->stock_id = MN_STOCK_GMAIL;
+    p_class->combo_label = "Gmail";
+  }
 
-    gtk_box_set_spacing(GTK_BOX(self), 6);
+  init (self)
+  {
+    MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
+    MNAuthenticatedMailboxProperties *auth = MN_AUTHENTICATED_MAILBOX_PROPERTIES(self);
 
-    mn_mailbox_properties_credentials_new(GTK_VBOX(self),
-					  &label1,
-					  &selfp->username_entry,
-					  &label2,
-					  &selfp->password_entry);
+    gtk_box_pack_start(GTK_BOX(self), auth->username_vbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(self), auth->password_vbox, FALSE, FALSE, 0);
 
-    gtk_size_group_add_widget(selfp->size_group, label1);
-    gtk_size_group_add_widget(selfp->size_group, label2);
-
-    mn_properties_dialog_set_tooltips(selfp->username_entry, _("Your Gmail username"),
-				      selfp->password_entry, _("Your Gmail password (if left blank, you will be prompted for the password when needed)"),
+    mn_mailbox_properties_add_entries(properties,
+				      GTK_ENTRY(auth->username_entry),
+				      GTK_ENTRY(auth->password_entry),
 				      NULL);
 
-    mn_mailbox_properties_link_entries(GTK_ENTRY(selfp->username_entry),
-				       GTK_ENTRY(selfp->password_entry),
-				       NULL);
-
-    g_signal_connect(selfp->username_entry, "changed", G_CALLBACK(self_entry_changed_h), self);
-    
-    return object;
+    g_signal_connect(auth->username_entry, "changed", G_CALLBACK(mn_mailbox_properties_notify_default_name), self);
   }
 
-  private void
-    entry_changed_h (Gtk:Editable *editable (check null type),
-		     gpointer user_data (check null))
+  override (MN:Mailbox:Properties) void
+    set_mailbox (MNMailboxProperties *properties, MN:Mailbox *mailbox)
   {
-    Self *self = user_data;
-    g_object_notify(G_OBJECT(self), "complete");
+    Self *self = SELF(properties);
+    MNGmailMailbox *gmail_mailbox = MN_GMAIL_MAILBOX(mailbox);
+
+    PARENT_HANDLER(properties, mailbox);
+
+    selfp->location = g_strdup(gmail_mailbox->location);
   }
-  
-  interface MN:Mailbox:Properties private gboolean
-    set_uri (MN:Mailbox:Properties *self (check null type),
-	     MN:URI *uri (check null type))
+
+  override (MN:Mailbox:Properties) MNMailbox *
+    get_mailbox (MNMailboxProperties *properties)
   {
-    if (MN_URI_IS_GMAIL(uri))
-      {
-	gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->username_entry), uri->username);
-	gtk_entry_set_text(GTK_ENTRY(SELF(self)->_priv->password_entry), uri->password ? uri->password : "");
+    Self *self = SELF(properties);
+    MNMailbox *mailbox;
 
-	return TRUE;
-      }
-    else
-      return FALSE;
-  }
-  
-  interface MN:Mailbox:Properties private MNURI *
-    get_uri (MN:Mailbox:Properties *self (check null type))
-  {
-    const char *username;
-    const char *password;
+    mailbox = PARENT_HANDLER(properties);
 
-    username = gtk_entry_get_text(GTK_ENTRY(SELF(self)->_priv->username_entry));
-    password = gtk_entry_get_text(GTK_ENTRY(SELF(self)->_priv->password_entry));
+    g_object_set(mailbox, "location", selfp->location, NULL);
 
-    return mn_uri_new_gmail(username, *password ? password : NULL);
+    return mailbox;
   }
 }

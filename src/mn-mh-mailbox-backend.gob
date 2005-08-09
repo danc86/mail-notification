@@ -1,0 +1,180 @@
+/* 
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include "mn-vfs-mailbox-backend.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include <eel/eel.h>
+#include "mn-mailbox-private.h"
+#include "mn-reentrant-mailbox-private.h"
+#include "mn-vfs-mailbox-backend-private.h"
+#include "mn-vfs.h"
+#include "mn-util.h"
+#include "mn-message-mime.h"
+
+#define SEQUENCES_FILE			".mh_sequences"
+%}
+
+class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
+{
+  class_init (class)
+  {
+    MN_VFS_MAILBOX_BACKEND_CLASS(class)->format = "MH";
+  }
+
+  override (MN:VFS:Mailbox:Backend) void
+    monitor_cb (MNVFSMailbox:Backend *backend,
+		const char *info_uri,
+		GnomeVFSMonitorEventType event_type)
+  {
+    if (event_type == GNOME_VFS_MONITOR_EVENT_CHANGED
+	|| event_type == GNOME_VFS_MONITOR_EVENT_DELETED
+	|| event_type == GNOME_VFS_MONITOR_EVENT_CREATED)
+      {
+	char *filename;
+	
+	filename = eel_uri_get_basename(info_uri);
+	if (filename)
+	  {
+	    if (! strcmp(filename, SEQUENCES_FILE) || mn_str_isnumeric(filename))
+	      mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(backend->mailbox));
+		
+	    g_free(filename);
+	  }
+      }
+  }
+
+  override (MN:VFS:Mailbox:Backend) gboolean
+    is (MNVFSMailboxBackend *dummy, MNVFSMailbox *mailbox)
+  {
+    GnomeVFSURI *sequences_uri;
+    gboolean is;
+
+    sequences_uri = gnome_vfs_uri_append_file_name(mailbox->vfs_uri, SEQUENCES_FILE);
+    is = mn_vfs_test(sequences_uri, G_FILE_TEST_IS_REGULAR);
+    gnome_vfs_uri_unref(sequences_uri);
+
+    return is;
+  }
+
+  override (MN:VFS:Mailbox:Backend) void
+    check (MNVFSMailboxBackend *backend, unsigned long check_id)
+  {
+    GnomeVFSURI *sequences_uri;
+    GnomeVFSResult result;
+    GnomeVFSHandle *handle;
+
+    mn_vfs_mailbox_backend_monitor(backend, check_id, backend->mailbox->uri, GNOME_VFS_MONITOR_DIRECTORY);
+
+    sequences_uri = gnome_vfs_uri_append_file_name(backend->mailbox->vfs_uri, SEQUENCES_FILE);
+    result = gnome_vfs_open_uri(&handle, sequences_uri, GNOME_VFS_OPEN_READ);
+    gnome_vfs_uri_unref(sequences_uri);
+
+    if (result == GNOME_VFS_OK)
+      {
+	MNVFSReadLineContext *context = NULL;
+	const char *line;
+	GSList *messages = NULL;
+	GnomeVFSResult close_result;
+
+	while ((result = mn_vfs_read_line(&context, handle, &line)) == GNOME_VFS_OK)
+	  if (g_str_has_prefix(line, "unseen: "))
+	    {
+	      int first;
+	      char **elements;
+	      int i;
+	      
+	      elements = g_strsplit(line + 8, " ", 0);
+	      for (i = 0; elements[i]; i++)
+		{
+		  int last;
+		  int n;
+
+		  n = sscanf(elements[i], "%d-%d", &first, &last);
+		  if (n >= 1)
+		    {
+		      int j;
+
+		      if (n == 1)
+			last = first;
+		  
+		      for (j = first; j <= last; j++)
+			{
+			  char *filename;
+			  GnomeVFSURI *message_uri;
+
+			  if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+			    {
+			      g_strfreev(elements);
+			      goto loop_end;
+			    }
+			  
+			  filename = g_strdup_printf("%i", j);
+			  message_uri = gnome_vfs_uri_append_file_name(backend->mailbox->vfs_uri, filename);
+			  g_free(filename);
+
+			  messages = g_slist_append(messages, mn_message_new_from_uri(MN_MAILBOX(backend->mailbox), message_uri));
+			  gnome_vfs_uri_unref(message_uri);
+			}
+		    }
+		}
+	      g_strfreev(elements);
+	    }
+
+      loop_end:
+	mn_vfs_read_line_context_free(context);
+	close_result = gnome_vfs_close(handle);
+
+	GDK_THREADS_ENTER();
+	    
+	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+	  {
+	    if (result == GNOME_VFS_ERROR_EOF || result == GNOME_VFS_OK)
+	      {
+		if (close_result == GNOME_VFS_OK)
+		  mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
+		else
+		  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to close %s: %s"), SEQUENCES_FILE, gnome_vfs_result_to_string(close_result));
+	      }
+	    else
+	      mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("error while reading %s: %s"), SEQUENCES_FILE, gnome_vfs_result_to_string(result));
+	  }
+	    
+	mn_g_object_slist_free(messages);
+
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+      }
+    else
+      {
+	GDK_THREADS_ENTER();
+	
+	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+	  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open %s: %s"), SEQUENCES_FILE, gnome_vfs_result_to_string(result));
+	
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+      }
+  }
+}

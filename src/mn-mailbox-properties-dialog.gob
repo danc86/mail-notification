@@ -1,0 +1,528 @@
+/* 
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include "mn-dialog.h"
+#include "mn-mailbox.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include "mn-mailbox-properties.h"
+#include "mn-autodetect-mailbox-properties.h"
+#if defined(WITH_MBOX) || defined(WITH_MH) || defined(WITH_MAILDIR) || defined(WITH_SYLPHEED)
+#include "mn-system-vfs-mailbox-properties.h"
+#endif
+#ifdef WITH_POP3
+#include "mn-pop3-mailbox-properties.h"
+#endif
+#ifdef WITH_IMAP
+#include "mn-imap-mailbox-properties.h"
+#endif
+#ifdef WITH_GMAIL
+#include "mn-gmail-mailbox-properties.h"
+#endif
+#ifdef WITH_EVOLUTION
+#include "mn-evolution-mailbox-properties.h"
+#endif
+#include "mn-util.h"
+#include "mn-mailboxes.h"
+#include "mn-shell.h"
+
+enum {
+  COLUMN_PROPERTIES,
+  COLUMN_STOCK_ID,
+  COLUMN_LABEL,
+  N_COLUMNS
+};
+
+static GType selected_type = 0;
+%}
+
+class MN:Mailbox:Properties:Dialog from MN:Dialog
+{
+  /* "parent" is a GtkWidget property, do not conflict with it */
+  private GtkWindow *dialog_parent;
+  property POINTER dialog_parent (link, flags = CONSTRUCT_ONLY, type = GtkWindow *);
+
+  private MNMailbox *mailbox unrefwith g_object_unref;
+  property OBJECT mailbox (flags = CONSTRUCT,
+			   object_type = MN:Mailbox,
+			   type = MNMailbox *,
+			   export)
+    set
+    {
+      GObject *object;
+
+      if (selfp->mailbox)
+	{
+	  g_object_unref(selfp->mailbox);
+	  selfp->mailbox = NULL;
+	}
+
+      object = g_value_dup_object(VAL);
+      if (object)
+	{
+	  char *title;
+
+	  selfp->mailbox = MN_MAILBOX(object);
+
+	  title = g_strdup_printf(_("%s Properties"), selfp->mailbox->runtime_name);
+	  gtk_window_set_title(GTK_WINDOW(self), title);
+	  g_free(title);
+	}
+    }
+    get
+    {
+      g_value_set_object(VAL, selfp->mailbox);
+    };
+
+  private GtkWidget *mailbox_type_label;
+  private GtkWidget *mailbox_type_combo;
+  private GtkWidget *mailbox_name_label;
+  private GtkWidget *mailbox_name_entry;
+  private GtkWidget *mailbox_name_default_button;
+
+  private GtkWidget *type_section_label;
+  private GtkWidget *properties_event_box;
+
+  private GtkWidget *apply_button;
+  private GtkWidget *accept_button;
+
+  private GtkListStore *store unrefwith g_object_unref;
+
+  private char *default_name destroywith g_free;
+  private gboolean custom_name;
+
+  override (G:Object) GObject *
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    Self *self;
+    GtkCellRenderer *renderer;
+    MNMailboxProperties *properties;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    self = SELF(object);
+
+    mn_container_create_interface(GTK_CONTAINER(self),
+				  MN_INTERFACE_FILE("mailbox-properties-dialog.glade"),
+				  "vbox",
+				  "mn_mailbox_properties_dialog_",
+				  "mailbox_type_label", &selfp->mailbox_type_label,
+				  "mailbox_type_combo", &selfp->mailbox_type_combo,
+				  "mailbox_name_label", &selfp->mailbox_name_label,
+				  "mailbox_name_entry", &selfp->mailbox_name_entry,
+				  "mailbox_name_default_button", &selfp->mailbox_name_default_button,
+				  "type_section_label", &selfp->type_section_label,
+				  "properties_event_box", &selfp->properties_event_box,
+				  NULL);
+
+    gtk_window_set_resizable(GTK_WINDOW(self), FALSE);
+
+    if (selfp->dialog_parent)
+      gtk_window_set_transient_for(GTK_WINDOW(self), selfp->dialog_parent);
+
+    /* finish the type combo box */
+
+    selfp->store = gtk_list_store_new(N_COLUMNS,
+				      GTK_TYPE_WIDGET,
+				      G_TYPE_STRING,
+				      G_TYPE_STRING);
+
+    self_add_type(self, MN_TYPE_AUTODETECT_MAILBOX_PROPERTIES);
+#if defined(WITH_MBOX) || defined(WITH_MH) || defined(WITH_MAILDIR) || defined(WITH_SYLPHEED)
+    self_add_type(self, MN_TYPE_SYSTEM_VFS_MAILBOX_PROPERTIES);
+#endif
+#ifdef WITH_POP3
+    self_add_type(self, MN_TYPE_POP3_MAILBOX_PROPERTIES);
+#endif
+#ifdef WITH_IMAP
+    self_add_type(self, MN_TYPE_IMAP_MAILBOX_PROPERTIES);
+#endif
+#ifdef WITH_GMAIL
+    self_add_type(self, MN_TYPE_GMAIL_MAILBOX_PROPERTIES);
+#endif
+#ifdef WITH_EVOLUTION
+    self_add_type(self, MN_TYPE_EVOLUTION_MAILBOX_PROPERTIES);
+#endif
+
+    renderer = gtk_cell_renderer_pixbuf_new();
+    g_object_set(renderer, "stock-size", GTK_ICON_SIZE_MENU, NULL);
+    gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(selfp->mailbox_type_combo), renderer, FALSE);;
+    gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(selfp->mailbox_type_combo), renderer,
+				   "stock-id", COLUMN_STOCK_ID,
+				   NULL);
+
+    renderer = gtk_cell_renderer_text_new();
+    g_object_set(renderer, "xpad", 6, NULL);
+    gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(selfp->mailbox_type_combo), renderer, TRUE);
+    gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(selfp->mailbox_type_combo), renderer,
+				   "markup", COLUMN_LABEL,
+				   NULL);
+
+    gtk_combo_box_set_model(GTK_COMBO_BOX(selfp->mailbox_type_combo), GTK_TREE_MODEL(selfp->store));
+
+    /* setup the dialog depending on the mode (edit or add) */
+
+    gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_HELP, GTK_RESPONSE_HELP);
+    if (selfp->mailbox)
+      {
+	selfp->apply_button = gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_APPLY, GTK_RESPONSE_APPLY);
+	gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
+	selfp->accept_button = gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_OK, GTK_RESPONSE_OK);
+	
+	properties = self_get_properties_by_type(self, MN_MAILBOX_GET_CLASS(selfp->mailbox)->type);
+      }
+    else
+      {
+	gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
+	selfp->accept_button = gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_ADD, GTK_RESPONSE_ACCEPT);
+
+	if (! selected_type)
+	  selected_type = MN_TYPE_AUTODETECT_MAILBOX_PROPERTIES;
+
+	properties = self_get_properties_by_g_type(self, selected_type);
+
+	gtk_window_set_title(GTK_WINDOW(self), _("Add a Mailbox"));
+      }
+
+    self_set_active_properties(self, properties);
+
+    if (selfp->mailbox)
+      {
+	mn_mailbox_properties_set_mailbox(properties, selfp->mailbox);
+	if (selfp->mailbox->name)
+	  gtk_entry_set_text(GTK_ENTRY(selfp->mailbox_name_entry), selfp->mailbox->name);
+      }
+
+    g_object_unref(properties);
+
+    gtk_widget_grab_default(selfp->accept_button);
+
+    return object;
+  }
+
+  private void
+    add_type (self, GType type (check != 0))
+  {
+    MNMailboxProperties *properties;
+    MNMailboxPropertiesClass *p_class;
+    GtkTreeIter iter;
+    GSList *l;
+
+    properties = g_object_new(type, NULL);
+    mn_gtk_object_ref_and_sink(GTK_OBJECT(properties));
+
+    p_class = MN_MAILBOX_PROPERTIES_GET_CLASS(properties);
+
+    gtk_list_store_append(selfp->store, &iter);
+    gtk_list_store_set(selfp->store, &iter,
+		       COLUMN_PROPERTIES, properties,
+		       COLUMN_STOCK_ID, p_class->stock_id,
+		       COLUMN_LABEL, p_class->combo_label,
+		       -1);
+
+    gtk_widget_show(GTK_WIDGET(properties));
+
+    g_object_connect(properties,
+		     "swapped-signal::notify::complete", self_update_complete, self,
+		     "swapped-signal::notify::default-name", self_update_default_name, self,
+		     NULL);
+
+    MN_LIST_FOREACH(l, properties->entries)
+      g_signal_connect_swapped(l->data, "activate", G_CALLBACK(self_entry_activate_h), self);
+
+    g_object_unref(properties);	/* now it belongs to the store */
+  }
+
+  private void
+    set_active_properties (self,
+			   MN:Mailbox:Properties *properties (check null type))
+  {
+    gboolean valid;
+    GtkTreeIter iter;
+
+    valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(selfp->store), &iter);
+    while (valid)
+      {
+	MNMailboxProperties *these_properties;
+
+	gtk_tree_model_get(GTK_TREE_MODEL(selfp->store), &iter, COLUMN_PROPERTIES, &these_properties, -1);
+	g_object_unref(these_properties);
+
+	if (these_properties == properties)
+	  {
+	    gtk_combo_box_set_active_iter(GTK_COMBO_BOX(selfp->mailbox_type_combo), &iter);
+	    break;
+	  }
+
+	valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(selfp->store), &iter);
+      }
+  }
+
+  private MNMailboxProperties *
+    get_active_properties (self)
+  {
+    GtkTreeIter iter;
+    MNMailboxProperties *properties = NULL;
+
+    if (gtk_combo_box_get_active_iter(GTK_COMBO_BOX(selfp->mailbox_type_combo), &iter))
+      gtk_tree_model_get(GTK_TREE_MODEL(selfp->store), &iter, COLUMN_PROPERTIES, &properties, -1);
+
+    return properties;
+  }
+
+  private MNMailboxProperties *
+    get_properties_by_type (self, const char *type (check null))
+  {
+    gboolean valid;
+    GtkTreeIter iter;
+
+    valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(selfp->store), &iter);
+    while (valid)
+      {
+	MNMailboxProperties *properties;
+	MNMailboxPropertiesClass *class;
+
+	gtk_tree_model_get(GTK_TREE_MODEL(selfp->store), &iter, COLUMN_PROPERTIES, &properties, -1);
+	
+	class = MN_MAILBOX_PROPERTIES_GET_CLASS(properties);
+
+	if (class->type && ! strcmp(class->type, type))
+	  return properties;
+
+	g_object_unref(properties);
+
+	valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(selfp->store), &iter);
+      }
+    
+    return NULL;
+  }
+
+  private MNMailboxProperties *
+    get_properties_by_g_type (self, GType type (check != 0))
+  {
+    gboolean valid;
+    GtkTreeIter iter;
+
+    valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(selfp->store), &iter);
+    while (valid)
+      {
+	MNMailboxProperties *properties;
+
+	gtk_tree_model_get(GTK_TREE_MODEL(selfp->store), &iter, COLUMN_PROPERTIES, &properties, -1);
+
+	if (G_TYPE_CHECK_INSTANCE_TYPE(properties, type))
+	  return properties;
+
+	g_object_unref(properties);
+
+	valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(selfp->store), &iter);
+      }
+
+    return NULL;
+  }
+
+  public MNMailbox *
+    get_current_mailbox (self)
+  {
+    MNMailboxProperties *properties;
+    MNMailbox *mailbox;
+
+    properties = self_get_active_properties(self);
+    mailbox = mn_mailbox_properties_get_mailbox(properties);
+    g_object_unref(properties);
+
+    if (selfp->custom_name)
+      g_object_set(G_OBJECT(mailbox), "name", gtk_entry_get_text(GTK_ENTRY(selfp->mailbox_name_entry)), NULL);
+
+    return mailbox;
+  }
+
+  public void
+    apply (self)
+  {
+    MNMailbox *new_mailbox;
+
+    new_mailbox = self_get_current_mailbox(self);
+    g_return_if_fail(MN_IS_MAILBOX(new_mailbox));
+
+    mn_mailbox_seal(new_mailbox);
+
+    mn_mailboxes_queue_remove(mn_shell->mailboxes, selfp->mailbox);
+    mn_mailboxes_queue_add(mn_shell->mailboxes, new_mailbox);
+
+    self_set_mailbox(self, new_mailbox);
+    g_object_unref(new_mailbox);
+  }
+
+  private void
+    update_complete (self)
+  {
+    MNMailboxProperties *properties;
+
+    properties = self_get_active_properties(self);
+    if (properties)
+      {
+	gboolean complete;
+
+	g_object_get(G_OBJECT(properties), "complete", &complete, NULL);
+	g_object_unref(properties);
+
+	gtk_widget_set_sensitive(selfp->mailbox_name_entry, complete);
+	gtk_widget_set_sensitive(selfp->mailbox_name_default_button, complete && selfp->custom_name);
+	if (selfp->apply_button)
+	  gtk_widget_set_sensitive(selfp->apply_button, complete);
+	gtk_widget_set_sensitive(selfp->accept_button, complete);
+      }
+  }
+
+  private void
+    update_default_name (self)
+  {
+    MNMailboxProperties *properties;
+
+    properties = self_get_active_properties(self);
+    if (properties)
+      {
+	gboolean complete;
+	const char *default_name;
+
+	g_free(selfp->default_name);
+
+	g_object_get(G_OBJECT(properties),
+		     "complete", &complete,
+		     "default-name", &selfp->default_name,
+		     NULL);
+	g_object_unref(properties);
+
+	default_name = complete ? selfp->default_name : NULL;
+      
+	gtk_entry_set_text(GTK_ENTRY(selfp->mailbox_name_entry), default_name ? default_name : "");
+	gtk_widget_set_sensitive(selfp->mailbox_name_default_button, selfp->custom_name = FALSE);
+      }
+  }
+  
+  public GtkWidget *
+    new (GtkWindow *parent, MNMailbox *mailbox)
+  {
+    return GTK_WIDGET(GET_NEW_VARG(MN_MAILBOX_PROPERTIES_DIALOG_PROP_DIALOG_PARENT(parent),
+				   MN_MAILBOX_PROPERTIES_DIALOG_PROP_MAILBOX(mailbox),
+				   NULL));
+  }
+
+  /* libglade callbacks */
+
+  protected void
+    type_changed_h (self, GtkComboBox *combobox)
+  {
+    MNMailboxProperties *properties;
+    MNMailboxPropertiesClass *class;
+    char *markup;
+
+    properties = (MNMailboxProperties *) GTK_BIN(selfp->properties_event_box)->child;
+    if (properties)
+      {
+	gtk_size_group_remove_widget(properties->label_size_group, selfp->mailbox_type_label);
+	gtk_size_group_remove_widget(properties->label_size_group, selfp->mailbox_name_label);
+	gtk_size_group_remove_widget(properties->entry_button_size_group, selfp->mailbox_name_default_button);
+	gtk_container_remove(GTK_CONTAINER(selfp->properties_event_box), GTK_WIDGET(properties));
+      }
+  
+    properties = self_get_active_properties(self);
+    gtk_container_add(GTK_CONTAINER(selfp->properties_event_box), GTK_WIDGET(properties));
+    gtk_size_group_add_widget(properties->label_size_group, selfp->mailbox_type_label);
+    gtk_size_group_add_widget(properties->label_size_group, selfp->mailbox_name_label);
+    gtk_size_group_add_widget(properties->entry_button_size_group, selfp->mailbox_name_default_button);
+    
+    class = MN_MAILBOX_PROPERTIES_GET_CLASS(properties);
+    
+    markup = g_markup_printf_escaped("<span weight=\"bold\">%s</span>", class->section_label ? class->section_label : class->combo_label);
+    gtk_label_set_markup(GTK_LABEL(selfp->type_section_label), markup);
+    g_free(markup);
+
+    if (! selfp->mailbox)	/* mode is add */
+      selected_type = G_TYPE_FROM_INSTANCE(properties);
+
+    self_update_complete(self);
+    self_update_default_name(self);
+
+    g_object_unref(properties);
+  }
+  
+  protected void
+    name_changed_h (self, GtkEditable *editable)
+  {
+    const char *name;
+
+    name = gtk_entry_get_text(GTK_ENTRY(selfp->mailbox_name_entry));
+    selfp->custom_name = mn_utf8_strcmp(name, selfp->default_name ? selfp->default_name : "") != 0;
+
+    gtk_widget_set_sensitive(selfp->mailbox_name_default_button, selfp->custom_name);
+  }
+
+  protected void
+    name_default_button_clicked_h (self, GtkButton *button)
+  {
+    self_update_default_name(self);
+  }
+  
+  protected void
+    entry_activate_h (self, GtkEntry *entry)
+  {
+    if (GTK_WIDGET_IS_SENSITIVE(GTK_WINDOW(self)->default_widget))
+      gtk_window_activate_default(GTK_WINDOW(self));
+    else
+      {
+	MNMailboxProperties *properties;
+	GtkWidget *next = GTK_WIDGET(entry);
+
+	properties = self_get_active_properties(self);
+	g_return_if_fail(properties != NULL);
+
+	do
+	  {
+	    GSList *elem;
+
+	    if (next == selfp->mailbox_name_entry)
+	      elem = properties->entries;
+	    else
+	      {
+		elem = g_slist_find(properties->entries, next);
+		g_return_if_fail(elem != NULL);
+
+		elem = elem->next;
+	      }
+
+	    next = elem ? elem->data : selfp->mailbox_name_entry;
+	    if (next == GTK_WIDGET(entry))
+	      next = NULL;
+	  }
+	while (next && ! (GTK_WIDGET_MAPPED(next)
+			  && GTK_WIDGET_VISIBLE(next)
+			  && GTK_WIDGET_SENSITIVE(next)));
+
+	if (next)
+	  gtk_widget_grab_focus(next);
+      }
+  }
+}

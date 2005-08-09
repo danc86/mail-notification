@@ -16,16 +16,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.10
+requires 2.0.12
 
 %headertop{
-#include <gtk/gtk.h>
 #include "mn-mailbox.h"
+%}
+
+%privateheader{
+#include <gtk/gtk.h>
 %}
 
 %{
 #include "config.h"
-#include <glib/gi18n.h>
+#include <gnome.h>
 #include <eel/eel.h>
 #include "mn-mailbox-private.h"
 #include "mn-util.h"
@@ -33,14 +36,25 @@ requires 2.0.10
 
 class MN:Authenticated:Mailbox from MN:Mailbox
 {
-  protected char *password = NULL destroywith g_free;
+  public char *username destroywith g_free;
+  property STRING username (link, flags = MN_MAILBOX_PARAM_PERMANENT);
+
+  public char *password destroywith g_free;
+  property STRING password (link, flags = MN_MAILBOX_PARAM_PERMANENT);
+
+  public char *runtime_username destroywith g_free;
+  public char *runtime_password destroywith g_free;
+
   protected gboolean prompted;
   protected gboolean cancelled;
+
   private gboolean authentication_failed;
   private GtkWidget *dialog;
 
+  private gboolean checking;
+
   override (MN:Mailbox) void
-    removed (MN:Mailbox *mailbox (check null type))
+    removed (MNMailbox *mailbox)
   {
     Self *self = SELF(mailbox);
 
@@ -51,10 +65,38 @@ class MN:Authenticated:Mailbox from MN:Mailbox
   }
 
   override (MN:Mailbox) void
-    impl_check (MN:Mailbox *mailbox (check null type))
+    check (MNMailbox *mailbox)
   {
     Self *self = SELF(mailbox);
 
+    if (selfp->checking)
+      return;
+
+    PARENT_HANDLER(mailbox);
+
+    mn_mailbox_set_error(mailbox, NULL);
+
+    g_object_ref(self);
+    mn_thread_create((GThreadFunc) self_check_thread_cb, self);
+  }
+
+  private void
+    check_thread_cb (self)
+  {
+    self_impl_check(self);
+
+    GDK_THREADS_ENTER();
+
+    selfp->checking = FALSE;
+    g_object_unref(self);
+
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+  }
+  
+  virtual private void
+    impl_check (self)
+  {
     self->prompted = FALSE;
     selfp->authentication_failed = FALSE;
   }
@@ -62,107 +104,124 @@ class MN:Authenticated:Mailbox from MN:Mailbox
   protected void
     authentication_failed (self)
   {
-    g_free(self->password);
-    self->password = NULL;
+    if (! self->username)
+      {
+	g_free(self->runtime_username);
+	self->runtime_username = NULL;
+      }
+
+    if (! self->password)
+      {
+	g_free(self->runtime_password);
+	self->runtime_password = NULL;
+      }
+
     selfp->authentication_failed = TRUE;
   }
   
   protected void
-    fill_password (self)
+    fill_credentials (self, gboolean need_username, gboolean need_password)
   {
+    g_return_if_fail(need_username || need_password);
+
     self->cancelled = FALSE;
-    if (! self->password)
+
+    if (! self->runtime_username)
+      self->runtime_username = g_strdup(self->username);
+    if (! self->runtime_password)
+      self->runtime_password = g_strdup(self->password);
+
+    if (self->runtime_username)
+      need_username = FALSE;
+    if (self->runtime_password)
+      need_password = FALSE;
+
+    if (need_username || need_password)
       {
-	self->password = g_strdup(MN_MAILBOX(self)->uri->password);
-	if (! self->password)
+	char *username;
+	char *password;
+
+	GDK_THREADS_ENTER();
+
+	self->prompted = TRUE;
+
+	if (self_credentials_prompt(self,
+				    need_username ? &username : NULL,
+				    &password,
+				    selfp->authentication_failed
+				    ? _("Mail Notification was unable to log into %s mailbox %s, possibly because the credentials you have entered are invalid.\n\nPlease re-enter your credentials.")
+				    : _("Enter your credentials for %s mailbox %s."),
+				    MN_MAILBOX(self)->format,
+				    MN_MAILBOX(self)->runtime_name))
 	  {
-	    GDK_THREADS_ENTER();
+	    if (need_username)
+	      self->runtime_username = username;
 
-	    self->prompted = TRUE;
+	    /*
+	     * GnomePasswordDialog does not let us disable the
+	     * password entry, so, even if need_password is FALSE, we
+	     * set runtime_password to what the user has entered.
+	     */
 
-	    self->password = self_password_prompt(self,
-						  selfp->authentication_failed
-						  ? _("Mail Notification was unable to log into %s mailbox %s, possibly because the password you have entered is invalid.\n\nPlease re-enter your password.")
-						  : _("Enter your password for %s mailbox %s."),
-						  MN_MAILBOX_GET_CLASS(self)->format,
-						  mn_mailbox_get_name(MN_MAILBOX(self)));
-
-	    if (! self->password)
-	      self->cancelled = TRUE;
-	    
-	    gdk_flush();
-	    GDK_THREADS_LEAVE();
+	    g_free(self->runtime_password);
+	    self->runtime_password = password;
 	  }
+	else
+	  self->cancelled = TRUE;
+	
+	gdk_flush();
+	GDK_THREADS_LEAVE();
       }
   }
   
-  private char *
-    password_prompt (self, const char *format (check null), ...)
+  private gboolean
+    credentials_prompt (self,
+			char **username,
+			char **password (check null),
+			const char *format (check null),
+			...)
   {
-    GtkWidget *label;
-    GtkWidget *username_label;
-    GtkWidget *username_entry;
-    GtkWidget *password_label;
-    GtkWidget *password_entry;
-    GtkSizeGroup *size_group;
     va_list args;
-    char *prompt;
-    char *markup;
-    char *password = NULL;
+    char *message;
+    gboolean ok;
 
-    g_return_val_if_fail(selfp->dialog == NULL, NULL);
+    g_return_val_if_fail(selfp->dialog == NULL, FALSE);
 
-    mn_create_interface(MN_INTERFACE_FILE("authentication.glade"),
-			"dialog", &selfp->dialog,
-			"label", &label,
-			"username_label", &username_label,
-			"username_entry", &username_entry,
-			"password_label", &password_label,
-			"password_entry", &password_entry,
-			NULL);
+    va_start(args, format);
+    message = g_strdup_vprintf(format, args);
+    va_end(args);
+
+    /* keep the title in sync with gnome-authentication-manager */
+    selfp->dialog = gnome_password_dialog_new(_("Authentication Required"),
+					      message,
+					      self->runtime_username,
+					      self->runtime_password,
+					      FALSE);
+    g_free(message);
 
     eel_add_weak_pointer(&selfp->dialog);
 
-    gtk_dialog_set_default_response(GTK_DIALOG(selfp->dialog), GTK_RESPONSE_OK);
+    gnome_password_dialog_set_show_userpass_buttons(GNOME_PASSWORD_DIALOG(selfp->dialog), FALSE);
+    gnome_password_dialog_set_readonly_username(GNOME_PASSWORD_DIALOG(selfp->dialog), username == NULL);
 
-    size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
-    gtk_size_group_add_widget(size_group, username_label);
-    gtk_size_group_add_widget(size_group, password_label);
-    g_object_unref(size_group);
+    ok = gnome_password_dialog_run_and_block(GNOME_PASSWORD_DIALOG(selfp->dialog));
+    if (ok)
+      {
+	if (username)
+	  *username = gnome_password_dialog_get_username(GNOME_PASSWORD_DIALOG(selfp->dialog));
 
-    va_start(args, format);
-    prompt = g_strdup_vprintf(format, args);
-    va_end(args);
+	*password = gnome_password_dialog_get_password(GNOME_PASSWORD_DIALOG(selfp->dialog));
+      }
+    else
+      {
+	if (username)
+	  *username = NULL;
 
-    markup = g_markup_printf_escaped(_("<span weight=\"bold\" size=\"larger\">Mail Notification requires a password</span>\n"
-				       "\n"
-				       "%s"),
-				     prompt);
-    g_free(prompt);
-
-    gtk_label_set_markup(GTK_LABEL(label), markup);
-    g_free(markup);
-
-    gtk_entry_set_text(GTK_ENTRY(username_entry), MN_MAILBOX(self)->uri->username);
-
-    if (mn_dialog_run_nonmodal(GTK_DIALOG(selfp->dialog)) == GTK_RESPONSE_OK)
-      password = g_strdup(gtk_entry_get_text(GTK_ENTRY(password_entry)));
-
+	*password = NULL;
+      }
+    
     gtk_widget_destroy(selfp->dialog);
 
-    return password;
-  }
-
-  /* libglade callbacks */
-
-  public void
-    password_prompt_changed_h (gpointer user_data,
-			       GtkEditable *editable)
-  {
-    GtkDialog *dialog = user_data;
-    const char *password;
-
-    password = gtk_entry_get_text(GTK_ENTRY(editable));
-    gtk_dialog_set_response_sensitive(dialog, GTK_RESPONSE_OK, *password != 0);
+    return ok;
   }
 }

@@ -1,0 +1,80 @@
+/* 
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include "mn-mailbox-properties.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include <libgnomevfs/gnome-vfs-utils.h>
+#include "mn-mailbox-properties.h"
+#include "mn-system-vfs-mailbox.h"
+#include "mn-stock.h"
+%}
+
+class MN:System:VFS:Mailbox:Properties from MN:Mailbox:Properties
+{
+  property BOOLEAN complete (override)
+    get { g_value_set_boolean(VAL, mn_system_vfs_mailbox_get_uri() != NULL); };
+  property STRING default_name (override)
+    get { g_value_set_string(VAL, _("System mailbox")); };
+  
+  class_init (class)
+  {
+    MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
+
+    p_class->type = "system-vfs";
+    p_class->stock_id = MN_STOCK_SYSTEM_MAILBOX;
+    p_class->combo_label = _("System mailbox");
+  }
+
+  init (self)
+  {
+    GtkWidget *label;
+    const char *system_uri;
+
+    label = gtk_label_new(NULL);
+
+    gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
+    gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+
+    system_uri = mn_system_vfs_mailbox_get_uri();
+    if (system_uri)
+      {
+	char *path;
+	char *markup;
+	
+	path = gnome_vfs_get_local_path_from_uri(system_uri);
+
+	markup = g_markup_printf_escaped(_("Your system mailbox is <span weight=\"bold\">%s</span>."), path ? path : system_uri);
+	gtk_label_set_markup(GTK_LABEL(label), markup);
+	g_free(markup);
+
+	g_free(path);
+      }
+    else
+      gtk_label_set_text(GTK_LABEL(label), _("The location of your system mailbox could not be detected. Check the MAIL environment variable."));
+
+    gtk_widget_show(label);
+    gtk_box_pack_start(GTK_BOX(self), label, FALSE, FALSE, 0);
+  }
+}

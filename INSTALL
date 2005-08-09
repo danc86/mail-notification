@@ -11,7 +11,7 @@ Index
 
 0. About this document
 
-	$Id: INSTALL,v 1.17 2005/03/01 01:43:58 jylefort Exp $
+	$Id: INSTALL,v 1.18 2005/08/03 16:48:43 jylefort Exp $
 
 	Copyright (C) 2003-2005 Jean-Yves Lefort.
 
@@ -20,30 +20,20 @@ Index
 
 1. Dependencies
 
-	Mandatory libraries:
+	Mandatory:
 
-		* GTK+ (version 2.4.0 or superior)
+		* GTK+ (version 2.6.0 or superior)
 		  http://www.gtk.org/
 
 		* GNOME (version 2.6.0 or superior)
 		  http://www.gnome.org/
 
-	Optional libraries:
+	Optional:
 
 		* for mbox, MH, Maildir, POP3, IMAP and Sylpheed support:
 
 		  GMime (version 2.1.0 or superior)
 		  http://spruce.sourceforge.net/gmime/
-
-		* for Gmail support:
-
-		  GNOME (version 2.8.0 or superior)
-		  http://www.gnome.org/
-
-		* for Gmail timestamps support:
-
-		  ICU (version 2.6 or superior)
-		  http://ibm.com/software/globalization/icu/
 
 		* for SSL/TLS support:
 
@@ -55,32 +45,37 @@ Index
 		  Cyrus SASL (version 2.0 or superior)
 		  http://asg.web.cmu.edu/sasl/sasl-library.html
 
+		* for Evolution support:
+
+		  Evolution (version 2.2 or superior)
+		  http://www.gnome.org/projects/evolution/
+
 2. Instructions
 
-	Mail Notification uses the well-known GNU build system. Hence,
-	the following usual sequence will probably satisfy most users:
+	Mail Notification uses the GNU build system. Hence, the
+	following usual sequence will probably satisfy most users:
 
-		$ ./configure --prefix=/usr
+		$ ./configure
 		$ make
 		<get root privileges, if needed>
 		$ make install
 
 	IMPORTANT:
 
-		* You must install Mail Notification in the same
-		  prefix as GNOME (commonly /usr or /opt/gnome). To
-		  know where GNOME is installed on your system, type:
-
-			$ pkg-config --variable prefix libgnome-2.0
-
 		* Due to a bug in bonobo-activation
 		  (http://bugzilla.gnome.org/show_bug.cgi?id=151082),
 		  your session must be restarted after installing Mail
 		  Notification.
 
-	The ./configure script options are documented below. They are
-	enabled by default and automatically disabled if a requirement
-	is not met, so you probably do not need to use them.
+		* For building Evolution support, you must specify the
+		  path to the Evolution source directory, for
+		  instance:
+
+			$ ./configure \
+			    --with-evolution-source-dir=$HOME/evolution-2.2.3
+
+	The configure script options which are specific to Mail
+	Notification are documented below.
 
 3. Configure options
 
@@ -128,29 +123,41 @@ Index
 		Requirements: Cyrus SASL version 2.0 or superior.
 		Applies to: POP3, IMAP.
 
-	--enable-sylpheed (default: yes)
-
-		Enable Sylpheed mailbox support.
-
-		Requirements: GMime version 2.1.0 or superior.
-
-	--enable-gmail (default: yes)
-
-		Enable Gmail mailbox support.
-
-		Requirements: GNOME version 2.8.0 or superior.
-
-	--enable-gmail-timestamps (default: yes)
-
-		Enable Gmail timestamps support. If this option is
-		disabled, Mail Notification will not be able to
-		display the timestamps of Gmail messages.
-
-		Requirements: GNOME version 2.8.0 or superior.
-		Applies to: Gmail.
-
 	--enable-ipv6 (default: yes)
 
 		Enable IPv6 support.
 
 		Applies to: POP3, IMAP.
+
+	--enable-gmail (default: yes)
+
+		Enable Gmail mailbox support.
+
+	--enable-evolution (default: yes)
+
+		Enable Evolution mailbox support.
+
+		Requirements: Evolution version 2.2 or superior.
+
+		You must specify the path to the Evolution source
+		directory, for instance:
+
+			$ ./configure \
+			    --with-evolution-source-dir=$HOME/evolution-2.2.3
+
+	--with-evolution-source-dir=DIR (default: no)
+
+		Specify the path to the Evolution source directory,
+		which is required for building Evolution mailbox
+		support.
+
+		Requirements: the source directory corresponding to
+		              the version of Evolution installed on
+		              your system.
+		Applies to: Evolution.
+
+	--enable-sylpheed (default: yes)
+
+		Enable Sylpheed mailbox support.
+
+		Requirements: GMime version 2.1.0 or superior.

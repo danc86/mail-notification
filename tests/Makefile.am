@@ -1,25 +1,13 @@
 tests = \
-	test-sgml-ref.stamp			\
-	test-uri.stamp				\
 	test-vfs-read-line1-smallblock.output	\
 	test-vfs-read-line1-largeblock.output	\
 	test-vfs-read-line2-smallblock.output	\
 	test-vfs-read-line2-largeblock.output
 
 noinst_PROGRAMS = \
-	test-sgml-ref			\
-	test-uri			\
 	test-vfs-read-line-smallblock	\
 	test-vfs-read-line-largeblock
 noinst_DATA = $(tests)
-
-test_sgml_ref_SOURCES = \
-	$(top_srcdir)/src/mn-sgml-ref.c	\
-	test-sgml-ref.c
-
-test_uri_SOURCES = \
-	$(top_srcdir)/src/mn-uri.c	\
-	test-uri.c
 
 test_vfs_read_line_sources = \
 	$(top_srcdir)/src/mn-vfs.c	\
@@ -39,14 +27,6 @@ AM_CPPFLAGS = $(WARN_CFLAGS) $(G_ASSERTIONS) $(GNOME_CFLAGS) \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	-DMN_REGRESSION_TEST
-
-test-sgml-ref.stamp: test-sgml-ref
-	./test-sgml-ref
-	@touch test-sgml-ref.stamp
-
-test-uri.stamp: test-uri
-	./test-uri
-	@touch test-uri.stamp
 
 test-vfs-read-line1-smallblock.output: test-vfs-read-line-smallblock test-vfs-read-line1.input test-vfs-read-line1.expected
 	./test-vfs-read-line-smallblock file://`pwd`/test-vfs-read-line1.input > test-vfs-read-line1-smallblock.output

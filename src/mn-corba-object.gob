@@ -1,0 +1,121 @@
+/* 
+ * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include <libbonobo.h>
+%}
+
+%{
+#include <gtk/gtk.h>
+%}
+
+class MN:CORBA:Object from G:Object
+{
+  private CORBA_Object object = CORBA_OBJECT_NIL
+    destroy { if (VAR) CORBA_Object_release(VAR, NULL); };
+  property POINTER object (export, type = CORBA_Object)
+    set
+    {
+      if (selfp->object != CORBA_OBJECT_NIL)
+	CORBA_Object_release(selfp->object, NULL);
+
+      selfp->object = g_value_get_pointer(VAL);
+
+      if (selfp->object != CORBA_OBJECT_NIL)
+	CORBA_Object_duplicate(selfp->object, NULL);
+    }
+    get
+    {
+      if (selfp->object != CORBA_OBJECT_NIL)
+	CORBA_Object_duplicate(selfp->object, NULL);
+
+      g_value_set_pointer(VAL, selfp->object);
+    };
+  
+  private char *iid destroywith g_free;
+  property STRING iid (link, flags = CONSTRUCT_ONLY);
+
+  private unsigned int monitor_id;
+
+  override (G:Object) GObject *
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    Self *self;
+    CORBA_Object corba_object;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    self = SELF(object);
+
+    corba_object = bonobo_activation_activate_from_id(selfp->iid, 0, NULL, NULL);
+    if (corba_object != CORBA_OBJECT_NIL)
+      self_set_object(self, corba_object);
+
+    selfp->monitor_id = g_timeout_add(1000, self_monitor_cb, self);
+
+    return object;
+  }
+
+  override (G:Object) void
+    finalize (GObject *object)
+  {
+    Self *self = SELF(object);
+
+    g_source_remove(selfp->monitor_id);
+
+    PARENT_HANDLER(object);
+  }
+
+  private gboolean
+    monitor_cb (gpointer data)
+  {
+    Self *self = data;
+
+    if (selfp->object != CORBA_OBJECT_NIL)
+      {
+	if (! bonobo_unknown_ping(selfp->object, NULL))
+	  {
+	    GDK_THREADS_ENTER();
+	    self_set_object(self, CORBA_OBJECT_NIL);
+	    GDK_THREADS_LEAVE();
+	  }
+      }
+    else
+      {
+	CORBA_Object object;
+
+	object = bonobo_activation_activate_from_id(selfp->iid, 0, NULL, NULL);
+	if (object != CORBA_OBJECT_NIL)
+	  {
+	    GDK_THREADS_ENTER();
+	    self_set_object(self, object);
+	    GDK_THREADS_LEAVE();
+	  }
+      }
+
+    return TRUE;		/* keep source */
+  }
+
+  public MNCORBAObject *
+    new (const char *iid)
+  {
+    return GET_NEW_VARG(MN_CORBA_OBJECT_PROP_IID((char *) iid), NULL);
+  }
+}

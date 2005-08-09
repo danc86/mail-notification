@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.10
+requires 2.0.12
 
 %headertop{
 #include <gtk/gtk.h>
 %}
+
 %{
 #include "config.h"
 #include <glib/gi18n.h>
@@ -28,13 +29,14 @@ requires 2.0.10
 #include <sasl/sasl.h>
 #include "mn-sasl.h"
 #endif /* WITH_SASL */
+#include "mn-util.h"
 
-  enum 
-  {
-    COLUMN_MECHANISM,
-    COLUMN_LABEL,
-    N_COLUMNS
-  };
+enum 
+{
+  COLUMN_MECHANISM,
+  COLUMN_LABEL,
+  N_COLUMNS
+};
 %}
 
 class MN:Auth:Combo:Box from Gtk:Combo:Box
@@ -80,8 +82,7 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
 	  gtk_tree_model_get(model, &iter, COLUMN_MECHANISM, &mechanism, -1);
 	}
 
-      g_value_set_string(VAL, mechanism);
-      g_free(mechanism);
+      g_value_take_string(VAL, mechanism);
     };
   
   init (self)
@@ -101,7 +102,7 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
     
     self_append(self, NULL, _("<span style=\"italic\">autodetect</span>"));
 #ifdef WITH_SASL
-    if (mn_sasl_use(NULL))
+    if (mn_sasl_init(NULL))
       {
         const char **mechanisms;
 
@@ -117,13 +118,50 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
 		g_free(escaped);
 	      }
 	  }
-	mn_sasl_unuse();
       }
 #endif /* WITH_SASL */
+
+    gtk_tree_sortable_set_default_sort_func(GTK_TREE_SORTABLE(store), self_sort_cb, NULL, NULL);
+    gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(store), GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID, GTK_SORT_ASCENDING);
 
     self_set_active_mechanism(self, NULL);
   }
 
+  private int
+    sort_cb (GtkTreeModel *model,
+	     GtkTreeIter *a,
+	     GtkTreeIter *b,
+	     gpointer user_data)
+  {
+    char *mechanism_a;
+    char *label_a;
+    char *mechanism_b;
+    char *label_b;
+    int coll;
+
+    gtk_tree_model_get(model, a,
+		       COLUMN_MECHANISM, &mechanism_a,
+		       COLUMN_LABEL, &label_a,
+		       -1);
+    gtk_tree_model_get(model, b,
+		       COLUMN_MECHANISM, &mechanism_b,
+		       COLUMN_LABEL, &label_b,
+		       -1);
+
+    /* put "autodetect" (NULL mechanism) on top of the list */
+    if (mechanism_a && mechanism_b)
+      coll = mn_utf8_strcasecoll(label_a, label_b);
+    else if (mechanism_a || mechanism_b)
+      coll = mechanism_a ? 1 : -1;
+    else
+      coll = 0;
+
+    g_free(mechanism_a);
+    g_free(mechanism_b);
+
+    return coll;
+  }
+  
   public void
     append (self, const char *mechanism, const char *label (check null))
   {

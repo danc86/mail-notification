@@ -1,0 +1,412 @@
+/* 
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include <gtk/gtk.h>
+%}
+
+%privateheader{
+#include "mn-shell.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include <eel/eel.h>
+#include "mn-util.h"
+#include "mn-conf.h"
+#include "mn-stock.h"
+#include "mn-message-view.h"
+%}
+
+class MN:Mail:Summary:Popup from Gtk:Window
+{
+  private GtkWidget *image;
+  private GtkWidget *title;
+  private GtkWidget *message_view;
+
+  private GdkGravity gravity = -1;
+
+  private unsigned int timeout_id;
+
+  init (self)
+  {
+    mn_container_create_interface(GTK_CONTAINER(self),
+				  MN_INTERFACE_FILE("mail-summary-popup.glade"),
+				  "eventbox",
+				  "mn_mail_summary_popup_",
+				  "image", &selfp->image,
+				  "mn-mail-summary-popup-title", &selfp->title,
+				  "mn-message-view", &selfp->message_view,
+				  NULL);
+
+    gtk_widget_set_name(GTK_WIDGET(self), "mn-mail-summary-popup");
+
+    /*
+     * The popup must:
+     *
+     *	- be sticky
+     *	- be kept above other windows
+     *	- not be focusable
+     *	- not be decorated
+     *	- not appear in the pager
+     *	- not appear in the taskbar
+     *
+     * An easy way to meet these requirements is to use a window of
+     * type GTK_WINDOW_POPUP, but unfortunately these are not hidden
+     * by xscreensaver
+     * (http://bugzilla.gnome.org/show_bug.cgi?id=154529).
+     *
+     * We therefore use a window of type GTK_WINDOW_TOPLEVEL along
+     * with appropriate properties (but a drawback is
+     * http://bugzilla.gnome.org/show_bug.cgi?id=154593).
+     */
+    
+    gtk_window_set_title(GTK_WINDOW(self), "");
+    gtk_window_set_resizable(GTK_WINDOW(self), FALSE);
+    gtk_window_set_keep_above(GTK_WINDOW(self), TRUE);
+    gtk_window_set_decorated(GTK_WINDOW(self), FALSE);
+    gtk_window_set_skip_taskbar_hint(GTK_WINDOW(self), TRUE);
+    gtk_window_set_skip_pager_hint(GTK_WINDOW(self), TRUE);
+    gtk_window_set_accept_focus(GTK_WINDOW(self), FALSE);
+    gtk_window_set_focus_on_map(GTK_WINDOW(self), FALSE);
+    gtk_window_stick(GTK_WINDOW(self));
+
+    gtk_image_set_from_stock(GTK_IMAGE(selfp->image), MN_STOCK_MAIL_SUMMARY, -1);
+
+    self_set_title_font(self);
+    self_set_contents_font(self);
+
+    if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE))
+      self_install_timeout(self);
+
+    mn_conf_notifications_add(self,
+			      MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE, self_notify_autoclose_cb, self,
+			      MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_NAMESPACE, self_notify_delay_cb, self,
+			      MN_CONF_MAIL_SUMMARY_POPUP_POSITION, self_notify_geometry_cb, self,
+			      MN_CONF_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE, self_notify_geometry_cb, self,
+			      MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE, self_notify_fonts_aspect_source_cb, self,
+			      MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_FONT, self_notify_fonts_title_font_cb, self,
+			      MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_FONT, self_notify_fonts_contents_font_cb, self,
+			      NULL);
+
+    g_object_connect(self,
+		     "signal::realize", self_realize_set_decorations_h, NULL,
+		     "signal::realize", self_realize_set_geometry_h, NULL,
+		     NULL);
+  }
+
+  override (G:Object) void
+    finalize (GObject *object)
+  {
+    Self *self = SELF(object);
+
+    if (selfp->timeout_id)
+      g_source_remove(selfp->timeout_id);
+
+    PARENT_HANDLER(object);
+  }
+
+  private void
+    realize_set_decorations_h (self, gpointer user_data)
+  {
+    /*
+     * gdk_window_set_decorations() needs the widget's GdkWindow, this
+     * is why we must call it after the widget is realized.
+     */
+    gdk_window_set_decorations(GTK_WIDGET(self)->window, GDK_DECOR_BORDER);
+  }
+
+  private void
+    realize_set_geometry_h (self, gpointer user_data)
+  {
+    /* one shot */
+    g_signal_handlers_disconnect_by_func(self, self_realize_set_geometry_h, NULL);
+    self_set_geometry(self);
+  }
+  
+  private void
+    notify_autoclose_cb (GConfClient *client,
+			 unsigned int cnxn_id,
+			 GConfEntry *entry,
+			 gpointer user_data)
+  {
+    Self *self = user_data;
+
+    GDK_THREADS_ENTER();
+
+    if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE))
+      {
+	if (! selfp->timeout_id)
+	  self_install_timeout(self);
+      }
+    else
+      mn_source_clear(&selfp->timeout_id);
+    
+    GDK_THREADS_LEAVE();
+  }
+  
+  private void
+    notify_delay_cb (GConfClient *client,
+		     unsigned int cnxn_id,
+		     GConfEntry *entry,
+		     gpointer user_data)
+  {
+    Self *self = user_data;
+
+    GDK_THREADS_ENTER();
+
+    self_reset_timeout(self);
+    
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    notify_geometry_cb (GConfClient *client,
+			unsigned int cnxn_id,
+			GConfEntry *entry,
+			gpointer user_data)
+  {
+    Self *self = user_data;
+
+    GDK_THREADS_ENTER();
+
+    self_set_geometry(self);
+
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    notify_fonts_aspect_source_cb (GConfClient *client,
+				   unsigned int cnxn_id,
+				   GConfEntry *entry,
+				   gpointer user_data)
+  {
+    Self *self = user_data;
+
+    GDK_THREADS_ENTER();
+
+    self_set_title_font(self);
+    self_set_contents_font(self);
+
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    notify_fonts_title_font_cb (GConfClient *client,
+				unsigned int cnxn_id,
+				GConfEntry *entry,
+				gpointer user_data)
+  {
+    Self *self = user_data;
+
+    GDK_THREADS_ENTER();
+
+    self_set_title_font(self);
+
+    GDK_THREADS_LEAVE();
+  }
+  
+  private void
+    notify_fonts_contents_font_cb (GConfClient *client,
+				   unsigned int cnxn_id,
+				   GConfEntry *entry,
+				   gpointer user_data)
+  {
+    Self *self = user_data;
+
+    GDK_THREADS_ENTER();
+
+    self_set_contents_font(self);
+
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    install_timeout (self)
+  {
+    g_return_if_fail(selfp->timeout_id == 0);
+
+    selfp->timeout_id = mn_timeout_add(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_MINUTES,
+				       MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_SECONDS,
+				       (GSourceFunc) self_timeout_cb,
+				       self);
+  }
+
+  private gboolean
+    timeout_cb (self)
+  {
+    GDK_THREADS_ENTER();
+    gtk_widget_destroy(GTK_WIDGET(self));
+    GDK_THREADS_LEAVE();
+  
+    return FALSE;		/* remove timeout */
+  }
+
+  private void
+    set_geometry (self)
+  {
+    MNPosition position;
+    int horizontal_offset;
+    int vertical_offset;
+    int popup_width;
+    int popup_height;
+    int screen_width;
+    int screen_height;
+    GdkGravity gravity_mapping[] = {
+      GDK_GRAVITY_NORTH_WEST,
+      GDK_GRAVITY_NORTH_EAST,
+      GDK_GRAVITY_SOUTH_WEST,
+      GDK_GRAVITY_SOUTH_EAST
+    };
+    GdkGravity gravity;
+    int x;
+    int y;
+    gboolean reshow = FALSE;
+
+    position = mn_conf_get_enum_value(MN_TYPE_POSITION, MN_CONF_MAIL_SUMMARY_POPUP_POSITION);
+    horizontal_offset = eel_gconf_get_integer(MN_CONF_MAIL_SUMMARY_POPUP_HORIZONTAL_OFFSET);
+    vertical_offset = eel_gconf_get_integer(MN_CONF_MAIL_SUMMARY_POPUP_VERTICAL_OFFSET);
+
+    gtk_window_get_size(GTK_WINDOW(self), &popup_width, &popup_height);
+    screen_width = gdk_screen_width();
+    screen_height = gdk_screen_height();
+
+    g_return_if_fail(position >= 0 && position < G_N_ELEMENTS(gravity_mapping));
+    gravity = gravity_mapping[position];
+
+    x = (gravity == GDK_GRAVITY_NORTH_WEST || gravity == GDK_GRAVITY_SOUTH_WEST)
+      ? horizontal_offset
+      : screen_width - popup_width - horizontal_offset;
+    y = (gravity == GDK_GRAVITY_NORTH_WEST || gravity == GDK_GRAVITY_NORTH_EAST)
+      ? vertical_offset
+      : screen_height - popup_height - vertical_offset;
+
+    /*
+     * If the gravity changes, the gtk_window_move() call will misplace
+     * the window (probably a Metacity bug).
+     *
+     * A workaround is to reshow the window.
+     */
+    if (gravity != selfp->gravity)
+      {
+	if (selfp->gravity != -1)
+	  reshow = TRUE;
+
+	selfp->gravity = gravity;
+      }
+
+    if (reshow)
+      {
+	gtk_widget_hide(GTK_WIDGET(self));
+
+	/*
+	 * If we do not unrealize the window, it will appear in the
+	 * task bar the next time we show it.
+	 */
+	gtk_widget_unrealize(GTK_WIDGET(self));
+      }
+
+    gtk_window_set_gravity(GTK_WINDOW(self), gravity);
+    gtk_window_move(GTK_WINDOW(self), x, y);
+
+    if (reshow)
+      gtk_widget_show(GTK_WIDGET(self));
+  }
+
+  private void
+    set_title_font (self)
+  {
+    self_set_font(self, selfp->title, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_FONT);
+  }
+
+  private void
+    set_contents_font (self)
+  {
+    self_set_font(self, selfp->message_view, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_FONT);
+  }
+  
+  private void
+    set_font (self,
+	      Gtk:Widget *widget (check null type),
+	      const char *conf_key (check null))
+  {
+    PangoFontDescription *font_desc = NULL;
+
+    if (mn_conf_get_enum_value(MN_TYPE_ASPECT_SOURCE, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE) == MN_ASPECT_SOURCE_CUSTOM)
+      {
+	char *str;
+	
+	str = eel_gconf_get_string(conf_key);
+	if (str)
+	  {
+	    font_desc = pango_font_description_from_string(str);
+	    g_free(str);
+	  }
+      }
+    
+    gtk_widget_modify_font(widget, font_desc);
+    if (font_desc)
+      pango_font_description_free(font_desc);
+  }
+  
+  public void
+    set_messages (self, GSList *messages (check null))
+  {
+    mn_message_view_set_messages(MN_MESSAGE_VIEW(selfp->message_view), messages);
+  }
+
+  public void
+    reset_timeout (self)
+  {
+    if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE))
+      {
+	mn_source_clear(&selfp->timeout_id);
+	self_install_timeout(self);
+      }
+  }
+
+  public GtkWidget *
+    new (void)
+  {
+    return GTK_WIDGET(GET_NEW);
+  }
+
+  /* libglade callbacks */
+
+  protected gboolean
+    button_press_event_h (self, GdkEventButton *button, GtkWidget *widget)
+  {
+    gtk_widget_destroy(GTK_WIDGET(self));
+
+    return TRUE;		/* do not propagate event */
+  }
+
+  protected GtkWidget *
+    message_view_new_cb (void)
+  {
+    GtkWidget *view;
+
+    view = mn_message_view_new(TRUE, FALSE);
+    gtk_widget_show(view);
+
+    return view;
+  }
+}

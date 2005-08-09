@@ -32,8 +32,6 @@ for ((var) = (head);				\
 void		mn_info				(const char	*format,
 						 ...) G_GNUC_PRINTF(1, 2);
 
-GSList		*mn_g_slist_delete_link_deep	(GSList		*list,
-						 GSList		*link_);
 GSList		*mn_g_slist_delete_link_deep_custom (GSList	*list,
 						     GSList	*link_,
 						     GFunc	element_free_func,
@@ -49,6 +47,8 @@ GSList		*mn_g_object_slist_delete_link	(GSList		*list,
 						 GSList		*link_);
 
 gboolean	mn_str_isnumeric		(const char	*str);
+char		*mn_strstr_span			(const char	*big,
+						 const char	*little);
 
 #define MN_IMAGE_FILE(path, name)	path G_DIR_SEPARATOR_S name
 #define MN_INTERFACE_FILE(name) 	UIDIR G_DIR_SEPARATOR_S name
@@ -56,6 +56,13 @@ gboolean	mn_str_isnumeric		(const char	*str);
 GdkPixbuf	*mn_pixbuf_new			(const char	*filename);
 void		mn_create_interface		(const char	*filename,
 						 ...);
+void		mn_container_create_interface	(GtkContainer	*container,
+						 const char	*filename,
+						 const char	*child_name,
+						 const char	*callback_prefix,
+						 ...);
+
+GtkWindow	*mn_widget_get_parent_window	(GtkWidget	*widget);
 
 void mn_file_chooser_dialog_allow_select_folder (GtkFileChooserDialog *dialog,
 						 int accept_id);
@@ -68,8 +75,6 @@ typedef enum
   MN_GNOME_COPIED_FILES_COPY
 } MNGnomeCopiedFilesType;
 
-char		*mn_build_gnome_copied_files	(MNGnomeCopiedFilesType type,
-						 GSList		*uri_list);
 gboolean	mn_parse_gnome_copied_files	(const char	*gnome_copied_files,
 						 MNGnomeCopiedFilesType *type,
 						 GSList		**uri_list);
@@ -92,9 +97,20 @@ void		mn_error_dialog			(GtkWindow	*parent,
 						 const char	*primary,
 						 const char	*format,
 						 ...) G_GNUC_PRINTF(5, 6);
+void		mn_invalid_uri_dialog		(GtkWindow	*parent,
+						 const char	*primary,
+						 const char	*invalid_uri);
+void		mn_invalid_uri_list_dialog	(GtkWindow	*parent,
+						 const char	*primary,
+						 const GSList	*invalid_uri_list);
 void		mn_fatal_error_dialog		(GtkWindow	*parent,
 						 const char	*format,
 						 ...) G_GNUC_PRINTF(2, 3) G_GNUC_NORETURN;
+
+GtkWidget	*mn_alert_dialog_new		(GtkWindow	*parent,
+						 GtkMessageType	type,
+						 const char	*primary,
+						 const char	*secondary);
 
 time_t		mn_time				(void);
 
@@ -107,14 +123,19 @@ void		mn_execute_command		(const char	*conf_key);
 
 void		mn_gtk_object_ref_and_sink	(GtkObject	*object);
 
+int		mn_utf8_strcmp			(const char	*s1,
+						 const char	*s2);
+int		mn_utf8_strcasecmp		(const char	*s1,
+						 const char	*s2);
 int		mn_utf8_strcasecoll		(const char	*s1,
 						 const char	*s2);
+char		*mn_utf8_escape			(const char	*str);
 
 int		mn_dialog_run_nonmodal		(GtkDialog	*dialog);
 
 gboolean	mn_ascii_validate		(const char	*str);
 
-void		mn_source_remove		(unsigned int	*tag);
+void		mn_source_clear			(unsigned int	*tag);
 
 unsigned int	mn_timeout_add			(const char	*minutes_key,
 						 const char	*seconds_key,
@@ -123,5 +144,9 @@ unsigned int	mn_timeout_add			(const char	*minutes_key,
 
 gboolean	mn_ascii_str_case_has_prefix	(const char	*str,
 						 const char	*prefix);
+
+gboolean	mn_rename			(const char	*from,
+						 const char	*to,
+						 GError		**err);
 
 #endif /* _MN_UTIL_H */

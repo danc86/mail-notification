@@ -4,24 +4,23 @@
 
 Developed by Jean-Yves Lefort <jylefort@brutele.be>.
 
-Contributors:
-	* Hendrik Brandt <eru@gmx.li> (German translations)
+Translators:
+	* Hendrik Brandt <eru@gmx.li>,
+	  Jens Seidel <jensseidel@users.sf.net> (German)
 	* Duarte Henriques <duarte_henriques@myrealbox.com>
-	  (Portuguese translations)
-	* Dan Korostelev <dan@ats.energo.ru> (Russian translations)
-	* Filip Miletic <filmil@gmail.com> (Serbian translations)
-	* Vladimir Petkov <vpetkov@i-space.org> (Bulgarian
-	  translations)
+	  (Portuguese)
+	* Dan Korostelev <dan@ats.energo.ru> (Russian)
+	* Filip Miletic <filmil@gmail.com> (Serbian)
+	* Vladimir Petkov <vpetkov@i-space.org> (Bulgarian)
 	* Tomasz Sarota-Raczek <tomasz.sarota.raczek@gmail.com>,
-	  Maurycy Pawłowski-Wieroński <maurycy@abstrakcja.pl>
-	  (Polish translations)
+	  Maurycy Pawłowski-Wieroński <maurycy@abstrakcja.pl> (Polish)
 
 External code sources:
 	* libegg (src/egg*)
+	* Nautilus (src/nautilus*)
 
 External art sources (images taken as-is or slightly modified):
 	* Google (gmail.png)
 	* Evolution (mail-notification.png)
-	* GTK+ (unsupported.png)
 	* GNOME Icon Theme (main-window.png)
 	* libegg (hand-open.png)

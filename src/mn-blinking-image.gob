@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.10
+requires 2.0.12
 
 %headertop{
 #include <gtk/gtk.h>
 %}
+
 %{
 #include "config.h"
 #include <glib/gi18n.h>
@@ -29,8 +30,7 @@ requires 2.0.10
 class MN:Blinking:Image from Gtk:Image
 {
   private gboolean blinking;
-  property BOOLEAN blinking (blurb = _("Whether the image is blinking or not"),
-			     export)
+  property BOOLEAN blinking (export)
     set
     {
       if (selfp->blinking)
@@ -55,7 +55,7 @@ class MN:Blinking:Image from Gtk:Image
   private GtkIconSize icon_size;
 
   override (G:Object) void
-    finalize (G:Object *object (check null type))
+    finalize (GObject *object)
   {
     Self *self = SELF(object);
 
@@ -79,7 +79,7 @@ class MN:Blinking:Image from Gtk:Image
 					selfp->stock_id,
 					selfp->icon_size,
 					NULL);
-	g_return_if_fail(pixbuf != NULL);
+	g_assert(pixbuf != NULL);
 
 	width = gdk_pixbuf_get_width(pixbuf);
 	height = gdk_pixbuf_get_height(pixbuf);
@@ -96,7 +96,7 @@ class MN:Blinking:Image from Gtk:Image
   }
 
   private gboolean
-    timeout_cb (gpointer data (check null))
+    timeout_cb (gpointer data)
   {
     Self *self = data;
 

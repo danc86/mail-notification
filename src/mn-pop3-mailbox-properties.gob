@@ -16,127 +16,83 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.10
+requires 2.0.12
 
 %headertop{
 #include "mn-pi-mailbox-properties.h"
 %}
+
 %{
 #include "config.h"
 #include <glib/gi18n.h>
 #include "mn-mailbox-properties.h"
-#include "mn-mailbox-properties-util.h"
 #include "mn-auth-combo-box.h"
 #include "mn-util.h"
+#include "mn-authenticated-mailbox-properties-private.h"
 #include "mn-pi-mailbox-properties-private.h"
 #include "mn-properties-dialog.h"
+#include "mn-pop3-mailbox.h"
 %}
 
-class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties (interface MN:Mailbox:Properties)
+class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties
 {
   property BOOLEAN complete (override)
     get
     {
       MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
       gboolean complete;
-      const char *username;
       const char *hostname;
       
       mn_pi_mailbox_properties_get_contents(pi,
 					    NULL,
 					    NULL,
-					    &username,
+					    &hostname,
+					    NULL);
+
+      complete = *hostname != 0;
+#ifndef WITH_SSL
+      if (complete)
+	complete = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL]));
+#endif /* WITH_SSL */
+
+      g_value_set_boolean(VAL, complete);
+    };
+
+  property STRING default_name (override)
+    get
+    {
+      const char *username;
+      const char *hostname;
+
+      mn_authenticated_mailbox_properties_get_contents(MN_AUTHENTICATED_MAILBOX_PROPERTIES(self),
+						       &username,
+						       NULL);
+      mn_pi_mailbox_properties_get_contents(MN_PI_MAILBOX_PROPERTIES(self),
 					    NULL,
 					    NULL,
 					    &hostname,
 					    NULL);
 
-      complete = *username && *hostname;
-#ifndef WITH_SSL
-      if (complete)
-	complete = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[0]));
-#endif /* WITH_SSL */
-
-      g_value_set_boolean(VAL, complete);
+      g_value_take_string(VAL, mn_pop3_mailbox_build_name(username, hostname));
     };
   
   class_init (class)
   {
-    MNPIMailboxPropertiesClass *pi_class = MN_PI_MAILBOX_PROPERTIES_CLASS(class);
+    MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
 
-    pi_class->label = "POP3";
-    pi_class->default_port[0] = mn_uri_get_default_port("pop");
-    pi_class->default_port[1] = mn_uri_get_default_port("pops");
+    p_class->type = "pop3";
+    p_class->combo_label = "POP3";
   }
   
-  override (G:Object) GObject *
-    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  init (self)
   {
-    GObject *object;
-    Self *self;
-    MNPIMailboxProperties *pi;
-
-    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    self = SELF(object);
-    pi = MN_PI_MAILBOX_PROPERTIES(object);
+    MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
+    int i;
 
     mn_auth_combo_box_append(MN_AUTH_COMBO_BOX(pi->auth_combo), "+APOP", "APOP");
     mn_auth_combo_box_append(MN_AUTH_COMBO_BOX(pi->auth_combo), "+USERPASS", "USER/PASS");
 
-    mn_properties_dialog_set_tooltips(pi->hostname_entry, _("The hostname or IP address of the POP3 server"),
-				      pi->username_entry, _("Your username on the POP3 server"),
-				      pi->password_entry, _("Your password on the POP3 server (if left blank, you will be prompted for the password when needed)"),
-				      pi->port_spin[0], _("The port number of the POP3 server"),
-				      pi->port_spin[1], _("The port number of the POP3 server"),
-				      NULL);
-
-    return object;
-  }
-  
-  interface MN:Mailbox:Properties private gboolean
-    set_uri (MN:Mailbox:Properties *properties (check null type),
-	     MN:URI *uri (check null type))
-  {
-    if (MN_URI_IS_POP(uri))
-      {
-	mn_pi_mailbox_properties_set_contents(MN_PI_MAILBOX_PROPERTIES(properties),
-					      MN_URI_IS_SSL(uri),
-					      MN_URI_IS_INBAND_SSL(uri),
-					      uri->username,
-					      uri->password,
-					      uri->authmech,
-					      uri->hostname,
-					      uri->port);
-	return TRUE;
-      }
-    else
-      return FALSE;
-  }
-
-  interface MN:Mailbox:Properties private MNURI *
-    get_uri (MN:Mailbox:Properties *properties (check null type))
-  {
-    gboolean ssl;
-    gboolean inband_ssl;
-    const char *username;
-    const char *password;
-    char *authmech;
-    const char *hostname;
-    int port;
-    MNURI *uri;
-
-    mn_pi_mailbox_properties_get_contents(MN_PI_MAILBOX_PROPERTIES(properties),
-					  &ssl,
-					  &inband_ssl,
-					  &username,
-					  &password,
-					  &authmech,
-					  &hostname,
-					  &port);
-
-    uri = mn_uri_new_pop(ssl, inband_ssl, username, password, authmech, hostname, port);
-    g_free(authmech);
-
-    return uri;
+    for (i = 0; i < MN_PI_MAILBOX_N_CONNECTION_TYPES; i++)
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pi->port_spin[i]), mn_pop3_mailbox_default_ports[i]);
   }
 }

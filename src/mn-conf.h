@@ -51,8 +51,6 @@
   MN_CONF_COMMANDS_MAIL_READER_NAMESPACE "/enabled"
 #define MN_CONF_COMMANDS_MAIL_READER_COMMAND \
   MN_CONF_COMMANDS_MAIL_READER_NAMESPACE "/command"
-#define MN_CONF_MAILBOXES \
-  MN_CONF_NAMESPACE "/mailboxes"
 #define MN_CONF_UI_NAMESPACE \
   MN_CONF_NAMESPACE "/ui"
 #define MN_CONF_PROPERTIES_DIALOG \
@@ -73,8 +71,6 @@
   MN_CONF_MAIN_WINDOW_NAMESPACE "/toolbars-style"
 #define MN_CONF_MAIN_WINDOW_EDIT_TOOLBARS_DIALOG \
   MN_CONF_MAIN_WINDOW_NAMESPACE "/edit-toolbars-dialog"
-#define MN_CONF_ALREADY_RUN \
-  MN_CONF_NAMESPACE "/already-run"
 #define MN_CONF_BLINK_ON_ERRORS \
   MN_CONF_NAMESPACE "/blink-on-errors"
 #define MN_CONF_TRUSTED_X509_CERTIFICATES \
@@ -120,6 +116,10 @@
 #define MN_CONF_SUMMARY_TOOLTIP \
   MN_CONF_NAMESPACE "/summary-tooltip"
 
+/* obsolete keys */
+#define MN_CONF_OBSOLETE_MAILBOXES \
+  MN_CONF_NAMESPACE "/mailboxes"
+
 extern const char *mn_conf_dot_dir;
 
 void		mn_conf_init		(void);
@@ -152,6 +152,8 @@ void		mn_conf_notification_add (gpointer		object,
 					  const char		*key,
 					  GConfClientNotifyFunc	callback,
 					  gpointer		user_data);
+void		mn_conf_notifications_add (gpointer		object,
+					   ...);
 
 gboolean	mn_conf_has_command	(const char	*namespace);
 

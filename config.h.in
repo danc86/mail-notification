@@ -12,6 +12,9 @@
 /* Define to 1 if you have the `dcgettext' function. */
 #undef HAVE_DCGETTEXT
 
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #undef HAVE_GETTEXT
 
@@ -26,6 +29,9 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if the system resolver is reentrant */
+#undef HAVE_REENTRANT_RESOLVER
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -44,6 +50,9 @@
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the `timegm' function. */
+#undef HAVE_TIMEGM
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
@@ -69,43 +78,46 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
+/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+#undef TM_IN_SYS_TIME
+
 /* Version number of package */
 #undef VERSION
 
-/* Define to 1 if [gmail] is enabled */
+/* Define to 1 if evolution is enabled */
+#undef WITH_EVOLUTION
+
+/* Define to 1 if gmail is enabled */
 #undef WITH_GMAIL
 
-/* Define to 1 if [gmail-timestamps] is enabled */
-#undef WITH_GMAIL_TIMESTAMPS
-
-/* Define to 1 if [imap] is enabled */
+/* Define to 1 if imap is enabled */
 #undef WITH_IMAP
 
-/* Define to 1 if [ipv6] is enabled */
+/* Define to 1 if ipv6 is enabled */
 #undef WITH_IPV6
 
-/* Define to 1 if [maildir] is enabled */
+/* Define to 1 if maildir is enabled */
 #undef WITH_MAILDIR
 
-/* Define to 1 if [mbox] is enabled */
+/* Define to 1 if mbox is enabled */
 #undef WITH_MBOX
 
-/* Define to 1 if [mh] is enabled */
+/* Define to 1 if mh is enabled */
 #undef WITH_MH
 
-/* Define to 1 if [mime] is enabled */
+/* Define to 1 if mime is enabled */
 #undef WITH_MIME
 
-/* Define to 1 if [pop3] is enabled */
+/* Define to 1 if pop3 is enabled */
 #undef WITH_POP3
 
-/* Define to 1 if [sasl] is enabled */
+/* Define to 1 if sasl is enabled */
 #undef WITH_SASL
 
-/* Define to 1 if [ssl] is enabled */
+/* Define to 1 if ssl is enabled */
 #undef WITH_SSL
 
-/* Define to 1 if [sylpheed] is enabled */
+/* Define to 1 if sylpheed is enabled */
 #undef WITH_SYLPHEED
 
 /* Number of bits in a file offset, on hosts where this is settable. */

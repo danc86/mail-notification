@@ -1,0 +1,489 @@
+/* 
+ * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include "mn-dialog.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include <gtk/gtk.h>
+#include <eel/eel.h>
+#include "mn-conf.h"
+#include "mn-util.h"
+#include "mn-mailbox-view.h"
+#include "mn-shell.h"
+#include "mn-mail-summary-popup.h"
+#include "mn-message.h"
+
+enum
+{
+  POSITION_COLUMN_NICK,
+  POSITION_COLUMN_LABEL,
+  POSITION_N_COLUMNS
+};
+%}
+
+class MN:Properties:Dialog from MN:Dialog
+{
+  private GtkWidget *notebook;
+
+  /* general tab */
+  private GtkWidget *autostart_check;
+  private GtkWidget *blink_check;
+  private GtkWidget *summary_tooltip_check;
+  private GtkWidget *command_mail_reader_check;
+  private GtkWidget *command_mail_reader_entry;
+  private GtkWidget *command_new_mail_check;
+  private GtkWidget *command_new_mail_entry;
+  private GtkWidget *command_mail_read_check;
+  private GtkWidget *command_mail_read_entry;
+  private GtkWidget *action_main_window_radio;
+  private GtkWidget *action_mail_reader_radio;
+  private GtkWidget *action_update_radio;
+
+  /* mailboxes tab */
+  private GtkWidget *delay_label;
+  private GtkWidget *minutes_spin;
+  private GtkWidget *minutes_label;
+  private GtkWidget *seconds_spin;
+  private GtkWidget *seconds_label;
+  private GtkWidget *scrolled;
+  private GtkWidget *list;
+  private GtkWidget *selected_label;
+  private GtkWidget *remove;
+  private GtkWidget *properties;
+
+  /* mail summary popup tab */
+  private GtkWidget *summary_enable_check;
+  private GtkWidget *summary_autoclose_check;
+  private GtkWidget *summary_minutes_spin;
+  private GtkWidget *summary_minutes_label;
+  private GtkWidget *summary_seconds_spin;
+  private GtkWidget *summary_seconds_label;
+  private GtkWidget *summary_only_recent_check;
+  private GtkWidget *summary_position_label;
+  private GtkWidget *summary_position_combo;
+  private GtkWidget *summary_horizontal_offset_label;
+  private GtkWidget *summary_horizontal_offset_spin;
+  private GtkWidget *summary_horizontal_pixels_label;
+  private GtkWidget *summary_vertical_offset_label;
+  private GtkWidget *summary_vertical_offset_spin;
+  private GtkWidget *summary_vertical_pixels_label;
+  private GtkWidget *summary_fonts_from_theme_radio;
+  private GtkWidget *summary_custom_fonts_radio;
+  private GtkWidget *summary_title_font_alignment;
+  private GtkWidget *summary_title_font_label;
+  private GtkWidget *summary_title_font_button;
+  private GtkWidget *summary_contents_font_alignment;
+  private GtkWidget *summary_contents_font_label;
+  private GtkWidget *summary_contents_font_button;
+  private GtkWidget *summary_test_button;
+
+  private GtkWidget *test_popup
+    destroy
+    {
+      if (VAR)
+	{
+	  g_object_weak_unref(G_OBJECT(VAR), (GWeakNotify) self_update_sensitivity, self);
+	  gtk_widget_destroy(VAR);
+	}
+    };
+  
+  init (self)
+  {
+    GtkSizeGroup *size_group;
+    GtkTreeSelection *selection;
+    GtkListStore *position_store;
+    GtkCellRenderer *renderer;
+
+    mn_container_create_interface(GTK_CONTAINER(self),
+				  MN_INTERFACE_FILE("properties-dialog.glade"),
+				  "notebook",
+				  "mn_properties_dialog_",
+				  "notebook", &selfp->notebook,
+				  "autostart_check", &selfp->autostart_check,
+				  "blink_check", &selfp->blink_check,
+				  "summary_tooltip_check", &selfp->summary_tooltip_check,
+				  "command_mail_reader_check", &selfp->command_mail_reader_check,
+				  "command_mail_reader_entry", &selfp->command_mail_reader_entry,
+				  "command_new_mail_check", &selfp->command_new_mail_check,
+				  "command_new_mail_entry", &selfp->command_new_mail_entry,
+				  "command_mail_read_check", &selfp->command_mail_read_check,
+				  "command_mail_read_entry", &selfp->command_mail_read_entry,
+				  "action_main_window_radio", &selfp->action_main_window_radio,
+				  "action_mail_reader_radio", &selfp->action_mail_reader_radio,
+				  "action_update_radio", &selfp->action_update_radio,
+				  "delay_label", &selfp->delay_label,
+				  "minutes_spin", &selfp->minutes_spin,
+				  "minutes_label", &selfp->minutes_label,
+				  "seconds_spin", &selfp->seconds_spin,
+				  "seconds_label", &selfp->seconds_label,
+				  "scrolled", &selfp->scrolled,
+				  "selected_label", &selfp->selected_label,
+				  "remove", &selfp->remove,
+				  "properties", &selfp->properties,
+				  "summary_enable_check", &selfp->summary_enable_check,
+				  "summary_autoclose_check", &selfp->summary_autoclose_check,
+				  "summary_minutes_spin", &selfp->summary_minutes_spin,
+				  "summary_minutes_label", &selfp->summary_minutes_label,
+				  "summary_seconds_spin", &selfp->summary_seconds_spin,
+				  "summary_seconds_label", &selfp->summary_seconds_label,
+				  "summary_only_recent_check", &selfp->summary_only_recent_check,
+				  "summary_position_label", &selfp->summary_position_label,
+				  "summary_position_combo", &selfp->summary_position_combo,
+				  "summary_horizontal_offset_label", &selfp->summary_horizontal_offset_label,
+				  "summary_horizontal_offset_spin", &selfp->summary_horizontal_offset_spin,
+				  "summary_horizontal_pixels_label", &selfp->summary_horizontal_pixels_label,
+				  "summary_vertical_offset_label", &selfp->summary_vertical_offset_label,
+				  "summary_vertical_offset_spin", &selfp->summary_vertical_offset_spin,
+				  "summary_vertical_pixels_label", &selfp->summary_vertical_pixels_label,
+				  "summary_fonts_from_theme_radio", &selfp->summary_fonts_from_theme_radio,
+				  "summary_custom_fonts_radio", &selfp->summary_custom_fonts_radio,
+				  "summary_title_font_alignment", &selfp->summary_title_font_alignment,
+				  "summary_title_font_label", &selfp->summary_title_font_label,
+				  "summary_title_font_button", &selfp->summary_title_font_button,
+				  "summary_contents_font_alignment", &selfp->summary_contents_font_alignment,
+				  "summary_contents_font_label", &selfp->summary_contents_font_label,
+				  "summary_contents_font_button", &selfp->summary_contents_font_button,
+				  "summary_test_button", &selfp->summary_test_button,
+				  NULL);
+
+    gtk_window_set_title(GTK_WINDOW(self), _("Mail Notification Properties"));
+    gtk_dialog_add_buttons(GTK_DIALOG(self),
+			   GTK_STOCK_HELP, GTK_RESPONSE_HELP,
+			   GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
+			   NULL);
+
+    selfp->list = mn_mailbox_view_new();
+    gtk_container_add(GTK_CONTAINER(selfp->scrolled), selfp->list);
+    gtk_widget_show(selfp->list);
+
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(selfp->list));
+    g_object_connect(selection,
+		     "swapped-signal::changed", self_update_selected_label, self,
+		     "swapped-signal::changed", self_update_sensitivity, self,
+		     NULL);
+  
+    mn_setup_dnd(selfp->scrolled);
+
+    size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+    gtk_size_group_add_widget(size_group, selfp->command_mail_reader_check);
+    gtk_size_group_add_widget(size_group, selfp->command_new_mail_check);
+    gtk_size_group_add_widget(size_group, selfp->command_mail_read_check);
+    g_object_unref(size_group);
+  
+    size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+    gtk_size_group_add_widget(size_group, selfp->summary_autoclose_check);
+    gtk_size_group_add_widget(size_group, selfp->summary_position_label);
+    gtk_size_group_add_widget(size_group, selfp->summary_horizontal_offset_label);
+    gtk_size_group_add_widget(size_group, selfp->summary_vertical_offset_label);
+    gtk_size_group_add_widget(size_group, selfp->summary_title_font_alignment);
+    gtk_size_group_add_widget(size_group, selfp->summary_contents_font_alignment);
+    g_object_unref(size_group);
+
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->autostart_check), mn_conf_get_autostart());
+
+    position_store = gtk_list_store_new(POSITION_N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING);
+
+    self_add_position(position_store, MN_POSITION_TOP_LEFT, _("top left"));
+    self_add_position(position_store, MN_POSITION_TOP_RIGHT, _("top right"));
+    self_add_position(position_store, MN_POSITION_BOTTOM_LEFT, _("bottom left"));
+    self_add_position(position_store, MN_POSITION_BOTTOM_RIGHT, _("bottom right"));
+
+    renderer = gtk_cell_renderer_text_new();
+    gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(selfp->summary_position_combo), renderer, TRUE);
+    gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(selfp->summary_position_combo), renderer,
+				   "text", POSITION_COLUMN_LABEL,
+				   NULL);
+
+    gtk_combo_box_set_model(GTK_COMBO_BOX(selfp->summary_position_combo), GTK_TREE_MODEL(position_store));
+    g_object_unref(position_store);
+  
+    mn_conf_link(self, MN_CONF_PROPERTIES_DIALOG,
+		 selfp->blink_check, MN_CONF_BLINK_ON_ERRORS, "active",
+		 selfp->summary_tooltip_check, MN_CONF_SUMMARY_TOOLTIP, "active",
+		 selfp->command_mail_reader_check, MN_CONF_COMMANDS_MAIL_READER_ENABLED, "active",
+		 selfp->command_mail_reader_entry, MN_CONF_COMMANDS_MAIL_READER_COMMAND, "text",
+		 selfp->command_new_mail_check, MN_CONF_COMMANDS_NEW_MAIL_ENABLED, "active",
+		 selfp->command_new_mail_entry, MN_CONF_COMMANDS_NEW_MAIL_COMMAND, "text",
+		 selfp->command_mail_read_check, MN_CONF_COMMANDS_MAIL_READ_ENABLED, "active",
+		 selfp->command_mail_read_entry, MN_CONF_COMMANDS_MAIL_READ_COMMAND, "text",
+		 selfp->minutes_spin, MN_CONF_DELAY_MINUTES,
+		 selfp->seconds_spin, MN_CONF_DELAY_SECONDS,
+		 selfp->summary_enable_check, MN_CONF_MAIL_SUMMARY_POPUP_ENABLE, "active",
+		 selfp->summary_autoclose_check, MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE, "active",
+		 selfp->summary_minutes_spin, MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_MINUTES,
+		 selfp->summary_seconds_spin, MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_SECONDS,
+		 selfp->summary_only_recent_check, MN_CONF_MAIL_SUMMARY_POPUP_ONLY_RECENT, "active",
+		 selfp->summary_horizontal_offset_spin, MN_CONF_MAIL_SUMMARY_POPUP_HORIZONTAL_OFFSET,
+		 selfp->summary_vertical_offset_spin, MN_CONF_MAIL_SUMMARY_POPUP_VERTICAL_OFFSET,
+		 selfp->summary_title_font_button, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_FONT, "font-name",
+		 selfp->summary_contents_font_button, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_FONT, "font-name",
+		 NULL);
+    mn_conf_link_radio_group_to_enum(MN_TYPE_ACTION,
+				     MN_CONF_DOUBLE_CLICK_ACTION_2,
+				     selfp->action_main_window_radio, MN_ACTION_DISPLAY_MAIN_WINDOW,
+				     selfp->action_mail_reader_radio, MN_ACTION_LAUNCH_MAIL_READER,
+				     selfp->action_update_radio, MN_ACTION_UPDATE_MAIL_STATUS,
+				     NULL);
+    mn_conf_link_radio_group_to_enum(MN_TYPE_ASPECT_SOURCE,
+				     MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE,
+				     selfp->summary_fonts_from_theme_radio, MN_ASPECT_SOURCE_THEME,
+				     selfp->summary_custom_fonts_radio, MN_ASPECT_SOURCE_CUSTOM,
+				     NULL);
+    mn_conf_link_combo_box_to_string(GTK_COMBO_BOX(selfp->summary_position_combo),
+				     POSITION_COLUMN_NICK,
+				     MN_CONF_MAIL_SUMMARY_POPUP_POSITION);
+
+    self_update_selected_label(self);
+    self_update_sensitivity(self);
+
+    mn_g_object_connect(self,
+			mn_shell->mailboxes,
+			"swapped-signal::notify::must-poll", self_update_sensitivity, self,
+			NULL);
+
+    g_signal_connect(self, "response", G_CALLBACK(self_response_h), NULL);
+  }
+
+  private void
+    response_h (self, int response, gpointer user_data)
+  {
+    switch (response)
+      {
+      case GTK_RESPONSE_HELP:
+	{
+	  int current_page;
+	  const char *sections[] = {
+	    "properties-general",
+	    "properties-mailboxes",
+	    "properties-mail-summary-popup"
+	  };
+	
+	  current_page = gtk_notebook_get_current_page(GTK_NOTEBOOK(selfp->notebook));
+	  g_return_if_fail(current_page >= 0 && current_page < G_N_ELEMENTS(sections));
+
+	  mn_display_help(GTK_WINDOW(self), sections[current_page]);
+	  break;
+	}
+    
+      case GTK_RESPONSE_CLOSE:
+	gtk_widget_destroy(GTK_WIDGET(self));
+	break;
+      }
+  }
+
+  private void
+    add_position (Gtk:List:Store *store (check null type),
+		  MNPosition position,
+		  const char *label (check null))
+  {
+    GEnumClass *enum_class;
+    GEnumValue *enum_value;
+    GtkTreeIter iter;
+
+    enum_class = g_type_class_ref(MN_TYPE_POSITION);
+    g_return_if_fail(enum_class != NULL);
+
+    enum_value = g_enum_get_value(enum_class, position);
+    g_return_if_fail(enum_value != NULL);
+
+    gtk_list_store_append(store, &iter);
+    gtk_list_store_set(store, &iter,
+		       POSITION_COLUMN_NICK, enum_value->value_nick,
+		       POSITION_COLUMN_LABEL, label,
+		       -1);
+
+    g_type_class_unref(enum_class);
+  }
+
+  private void
+    update_selected_label (self)
+  {
+    GtkTreeSelection *selection;
+    int n_rows;
+
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(selfp->list));
+    n_rows = gtk_tree_selection_count_selected_rows(selection);
+
+    if (n_rows == 0)
+      gtk_label_set_text(GTK_LABEL(selfp->selected_label), _("No mailbox selected."));
+    else
+      {
+	char *str;
+
+	str = g_strdup_printf(ngettext("%i mailbox selected.",
+				       "%i mailboxes selected.",
+				       n_rows), n_rows);
+	gtk_label_set_text(GTK_LABEL(selfp->selected_label), str);
+	g_free(str);
+      }
+  }
+
+  private void
+    update_sensitivity (self)
+  {
+    gboolean command_mail_reader_enabled;
+    gboolean command_new_mail_enabled;
+    gboolean command_mail_read_enabled;
+    gboolean must_poll;
+    GtkTreeSelection *selection;
+    gboolean has_selection;
+    gboolean summary_enabled;
+    gboolean summary_autoclose_enabled;
+    gboolean summary_custom_fonts_enabled;
+
+    command_mail_reader_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->command_mail_reader_check));
+    command_new_mail_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->command_new_mail_check));
+    command_mail_read_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->command_mail_read_check));
+
+    gtk_widget_set_sensitive(selfp->command_mail_reader_entry, command_mail_reader_enabled);
+    gtk_widget_set_sensitive(selfp->command_new_mail_entry, command_new_mail_enabled);
+    gtk_widget_set_sensitive(selfp->command_mail_read_entry, command_mail_read_enabled);
+
+    must_poll = mn_mailboxes_get_must_poll(mn_shell->mailboxes);
+    gtk_widget_set_sensitive(selfp->delay_label, must_poll);
+    gtk_widget_set_sensitive(selfp->minutes_spin, must_poll);
+    gtk_widget_set_sensitive(selfp->minutes_label, must_poll);
+    gtk_widget_set_sensitive(selfp->seconds_spin, must_poll);
+    gtk_widget_set_sensitive(selfp->seconds_label, must_poll);
+
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(selfp->list));
+    has_selection = gtk_tree_selection_count_selected_rows(selection) > 0;
+
+    gtk_widget_set_sensitive(selfp->remove, has_selection);
+    gtk_widget_set_sensitive(selfp->properties, has_selection);
+
+    summary_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->summary_enable_check));
+    summary_autoclose_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->summary_autoclose_check));
+    summary_custom_fonts_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->summary_custom_fonts_radio));
+
+    gtk_widget_set_sensitive(selfp->summary_autoclose_check, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_minutes_spin, summary_enabled && summary_autoclose_enabled);
+    gtk_widget_set_sensitive(selfp->summary_minutes_label, summary_enabled && summary_autoclose_enabled);
+    gtk_widget_set_sensitive(selfp->summary_seconds_spin, summary_enabled && summary_autoclose_enabled);
+    gtk_widget_set_sensitive(selfp->summary_seconds_label, summary_enabled && summary_autoclose_enabled);
+    gtk_widget_set_sensitive(selfp->summary_only_recent_check, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_position_label, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_position_combo, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_horizontal_offset_label, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_horizontal_offset_spin, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_horizontal_pixels_label, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_vertical_offset_label, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_vertical_offset_spin, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_vertical_pixels_label, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_fonts_from_theme_radio, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_custom_fonts_radio, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_title_font_label, summary_enabled && summary_custom_fonts_enabled);
+    gtk_widget_set_sensitive(selfp->summary_title_font_button, summary_enabled && summary_custom_fonts_enabled);
+    gtk_widget_set_sensitive(selfp->summary_contents_font_label, summary_enabled && summary_custom_fonts_enabled);
+    gtk_widget_set_sensitive(selfp->summary_contents_font_button, summary_enabled && summary_custom_fonts_enabled);
+    gtk_widget_set_sensitive(selfp->summary_test_button, summary_enabled && ! selfp->test_popup);
+  }
+
+  public gboolean
+    test_popup_displayed (self)
+  {
+    return selfp->test_popup != NULL;
+  }
+  
+  /* libglade callbacks */
+
+  protected void
+    toggled_h (self, GtkToggleButton *button)
+  {
+    self_update_sensitivity(self);
+  }
+
+  protected void
+    autostart_toggled_h (self, GtkToggleButton *togglebutton)
+  {
+    mn_conf_set_autostart(gtk_toggle_button_get_active(togglebutton));
+  }
+
+  protected void
+    add_clicked_h (self, GtkButton *button)
+  {
+    mn_mailbox_view_activate_add(MN_MAILBOX_VIEW(selfp->list));
+  }
+
+  protected void
+    remove_clicked_h (self, GtkButton *button)
+  {
+    mn_mailbox_view_activate_remove(MN_MAILBOX_VIEW(selfp->list));
+  }
+
+  protected void
+    properties_clicked_h (self, GtkButton *button)
+  {
+    mn_mailbox_view_activate_properties(MN_MAILBOX_VIEW(selfp->list));
+  }
+
+  protected void
+    summary_enable_toggled_h (self, GtkToggleButton *button)
+  {
+    self_update_sensitivity(self);
+
+    if (selfp->test_popup && ! gtk_toggle_button_get_active(button))
+      gtk_widget_destroy(selfp->test_popup);
+  }
+
+  protected void
+    summary_test_button_clicked_h (self, GtkButton *button)
+  {
+    GSList *messages = NULL;
+    time_t now;
+    int i;
+
+    now = mn_time();
+    selfp->test_popup = mn_mail_summary_popup_new();
+
+    for (i = 1; i < 4; i++)
+      {
+	MNMessage *message;
+	char *subject;
+
+	subject = g_strdup_printf(_("Test message #%i"), i);
+	message = mn_message_new(NULL,
+				 NULL,
+				 now,
+				 NULL,
+				 _("Mail Notification Properties Dialog"),
+				 subject);
+	g_free(subject);
+
+	messages = g_slist_append(messages, message);
+      }
+
+    mn_mail_summary_popup_set_messages(MN_MAIL_SUMMARY_POPUP(selfp->test_popup), messages);
+    mn_g_object_slist_free(messages);
+
+    eel_add_weak_pointer(&selfp->test_popup);
+    g_object_weak_ref(G_OBJECT(selfp->test_popup), (GWeakNotify) self_update_sensitivity, self);
+
+    /* close the real mail summary popup if any */
+    mn_shell_close_mail_summary_popup(mn_shell);
+
+    self_update_sensitivity(self);
+    gtk_widget_show(selfp->test_popup);
+  }
+}

@@ -26,7 +26,8 @@
 
 static const GtkStockItem items[] = {
   { MN_STOCK_SELECT_ALL, N_("Select _All"), 0, 0, NULL },
-  { MN_STOCK_LEAVE_FULLSCREEN, N_("Leave Fullscreen"), 0, 0, NULL }
+  { MN_STOCK_LEAVE_FULLSCREEN, N_("Leave Fullscreen"), 0, 0, NULL },
+  { MN_STOCK_CONNECT, N_("Co_nnect"), 0, 0, NULL }
 };
 
 /*** implementation **********************************************************/
@@ -44,16 +45,24 @@ mn_stock_init (void)
     { MN_STOCK_MAIL,			NULL, "stock_mail" },
     { MN_STOCK_LOCAL,			NULL, "stock_folder" },
     { MN_STOCK_REMOTE,			NULL, "stock_internet" },
-    { MN_STOCK_UNSUPPORTED,		MN_IMAGE_FILE(UIDIR, "unsupported.png") },
+    { MN_STOCK_POLLED,			NULL, "stock_timer" },
+    { MN_STOCK_UNKNOWN,			NULL, "stock_unknown" },
+    { MN_STOCK_ERROR,			NULL, NULL, GTK_STOCK_DIALOG_ERROR },
 #ifdef WITH_GMAIL
     { MN_STOCK_GMAIL,			MN_IMAGE_FILE(UIDIR, "gmail.png") },
 #endif
+#if defined(WITH_MBOX) || defined(WITH_MH) || defined(WITH_MAILDIR) || defined(WITH_SYLPHEED)
     { MN_STOCK_SYSTEM_MAILBOX,		NULL, "gnome-system" },
+#endif
+#ifdef WITH_EVOLUTION
+    { MN_STOCK_EVOLUTION_MAILBOX,	NULL, "evolution" },
+#endif
     { MN_STOCK_SELECT_ALL,		NULL, "stock_select-all" },
     { MN_STOCK_MAIL_SUMMARY,		MN_IMAGE_FILE(GNOMEPIXMAPSDIR, "mail-notification.png") },
-    { MN_STOCK_MAIL_READER,		MN_IMAGE_FILE(GNOMEPIXMAPSDIR, "mail-notification.png") },
+    { MN_STOCK_MAIL_READER,		NULL, "stock_mail-handling" },
     { MN_STOCK_MAIN_WINDOW,		MN_IMAGE_FILE(UIDIR, "main-window.png") },
-    { MN_STOCK_LEAVE_FULLSCREEN,	NULL, NULL, GTK_STOCK_QUIT }
+    { MN_STOCK_LEAVE_FULLSCREEN,	NULL, "stock_leave-fullscreen" },
+    { MN_STOCK_CONNECT,			NULL, NULL, GTK_STOCK_CONNECT }
   };
   GtkIconFactory *factory;
   GtkIconTheme *icon_theme;
@@ -96,7 +105,7 @@ mn_stock_init (void)
 	  gtk_icon_set_ref(icon_set);
 	}
       else
-	g_return_if_reached();
+	g_assert_not_reached();
 
       gtk_icon_factory_add(factory, icons[i].stock_id, icon_set);
       gtk_icon_set_unref(icon_set);

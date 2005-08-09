@@ -16,964 +16,316 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.10
+requires 2.0.12
 
 %headertop{
 #include "mn-authenticated-mailbox.h"
 %}
 
 %privateheader{
-#include "mn-soup.h"
+#include <libgnomevfs/gnome-vfs.h>
 %}
 
 %{
 #include "config.h"
-#include <stdio.h>
 #include <string.h>
-#include <stdarg.h>
+#ifdef HAVE_TIMEGM
 #include <stdlib.h>
 #include <time.h>
+#ifdef TM_IN_SYS_TIME
+#include <sys/time.h>
+#endif /* TM_IN_SYS_TIME */
+#endif /* HAVE_TIMEGM */
 #include <glib/gi18n.h>
-#include <eel/eel.h>
-#ifdef WITH_GMAIL_TIMESTAMPS
-#include <unicode/uenum.h>
-#include <unicode/uloc.h>
-#include <unicode/ucal.h>
-#include "mn-icu.h"
-#endif /* WITH_GMAIL_TIMESTAMPS */
+#include <libxml/parser.h>
+#include <libxml/tree.h>
 #include "mn-mailbox-private.h"
 #include "mn-authenticated-mailbox-private.h"
-#include "mn-util.h"
+#include "mn-vfs.h"
 #include "mn-stock.h"
-#include "mn-sgml-ref.h"
+#include "mn-message.h"
+#include "mn-util.h"
 
-  typedef enum
-  {
-    JS_ARG_STRING,
-    JS_ARG_LIST
-  } JSArgType;
-  
-  typedef struct
-  {
-    JSArgType type;
-    union 
-    {
-      char	*string;
-      GSList	*list;
-    } value;
-  } JSArg;
+#define DEFAULT_LOCATION	"https://mail.google.com/mail/feed/atom"
 %}
 
 class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 {
-  private GHashTable *cookies destroywith g_hash_table_destroy;
-  private gboolean logged_in;
+  public char *location destroywith g_free;
+  property STRING location (link, flags = MN_MAILBOX_PARAM_PERMANENT);
+
+  public char *runtime_location destroywith g_free;
+
+  private GnomeVFSURI *uri unrefwith gnome_vfs_uri_unref;
 
   class_init (class)
   {
-    MN_MAILBOX_CLASS(class)->stock_id = MN_STOCK_GMAIL;
-    MN_MAILBOX_CLASS(class)->format = "Gmail";
+    MN_MAILBOX_CLASS(class)->type = "gmail";
   }
 
   override (G:Object) GObject *
     constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
   {
     GObject *object;
+    MNMailbox *mailbox;
 
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    
-    if (! soup_ssl_supported)
-      mn_mailbox_set_init_error(MN_MAILBOX(object), _("libsoup has not been compiled with SSL/TLS support"));
+    mailbox = MN_MAILBOX(object);
+
+    mn_mailbox_set_format(mailbox, "Gmail");
+    mn_mailbox_set_stock_id(mailbox, MN_STOCK_GMAIL);
 
     return object;
   }
 
-  override (MN:Mailbox) gboolean
-    impl_is (MNMailbox *dummy, MN:URI *uri (check null type))
-  {
-    return MN_URI_IS_GMAIL(uri);
-  }
-
   override (MN:Mailbox) void
-    impl_check (MN:Mailbox *mailbox (check null type))
+    seal (MNMailbox *mailbox)
   {
-    MNAuthenticatedMailbox *authenticated_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
     Self *self = SELF(mailbox);
-    SoupSession *session;
-    gboolean status = TRUE;
-    GError *err = NULL;
 
     PARENT_HANDLER(mailbox);
 
-    session = mn_soup_session_sync_new();
+    self->runtime_location = g_strdup(self->location ? self->location : DEFAULT_LOCATION);
 
-    if (! selfp->logged_in)
-      while (TRUE)
-	{
-	  gboolean authentication_failed;
+    if (! mailbox->runtime_name)
+      mailbox->runtime_name = self_build_name(MN_AUTHENTICATED_MAILBOX(mailbox)->username);
+  }
 
-	  mn_authenticated_mailbox_fill_password(authenticated_mailbox);
-	  if (! authenticated_mailbox->password)
-	    break;
-	    
-	  if (self_login(self, session, &authentication_failed, &err))
-	    {
-	      selfp->logged_in = TRUE;
-	      break;
-	    }
-	  else
-	    {
-	      if (authentication_failed && ! mailbox->uri->password)
-		{
-		  mn_authenticated_mailbox_authentication_failed(authenticated_mailbox);
-		  g_clear_error(&err);
-		}
-	      else
-		{
-		  status = FALSE;
-		  break;
-		}
-	    }
-	}
-	    
-    if (selfp->logged_in && ! self_check(self, session, &err))
-      status = FALSE;
-    
-    g_object_unref(session);
+  override (MN:Authenticated:Mailbox) void
+    impl_check (MNAuthenticatedMailbox *mailbox)
+  {
+    Self *self = SELF(mailbox);
+    GnomeVFSResult result;
+    char *atom;
+    int atom_size;
+    xmlDoc *doc;
+    xmlNode *node;
 
-    GDK_THREADS_ENTER();
-
-    if (! status)
+    if (! selfp->uri)
       {
-	mn_mailbox_set_error(mailbox, "%s", err->message);
-	g_error_free(err);
-      }
-    mn_mailbox_end_check(mailbox);
-
-    gdk_flush();
-    GDK_THREADS_LEAVE();
-  }
-  
-  private SoupUri *
-    soup_uri_new (const char *text_uri (check null), GError **err)
-  {
-    SoupUri *uri;
-
-    uri = soup_uri_new(text_uri);
-    if (! uri)
-      g_set_error(err, 0, 0, _("unable to parse URI \"%s\""), text_uri);
-
-    return uri;
-  }
-  
-  private char *
-    get (self,
-	 Soup:Session *session (check null type),
-	 const char *text_uri (check null),
-	 GError **err)
-  {
-    SoupUri *uri;
-    char *body;
-
-    uri = self_soup_uri_new(text_uri, err);
-    if (! uri)
-      return NULL;
-
-    body = self_get_from_uri(self, session, uri, err);
-    soup_uri_free(uri);
-
-    return body;
-  }
-  
-  private char *
-    get_from_uri (self,
-		  Soup:Session *session (check null type),
-		  SoupUri *uri (check null),
-		  GError **err)
-  {
-    SoupMessage *message;
-    char *cookie;
-    char *body = NULL;
-
-    message = soup_message_new_from_uri(SOUP_METHOD_GET, uri);
-    soup_message_add_header(message->request_headers, "User-Agent", "Mail Notification");
-
-    cookie = self_build_cookie(self);
-    if (cookie)
-      {
-	soup_message_add_header(message->request_headers, "Cookie", cookie);
-	g_free(cookie);
-      }
-    
-    self_dump_request(self, message);
-    soup_session_send_message(session, message);
-
-    if (SOUP_STATUS_IS_SUCCESSFUL(message->status_code))
-      {
-	const char *end;
-	
-	/* Gmail returns UTF-8, so we don't need to parse Content-Type */
-	if (! g_utf8_validate(message->response.body, message->response.length, &end))
-	  mn_mailbox_warning(MN_MAILBOX(self), _("received non-UTF-8 data from server"));
-	  
-	body = g_strndup(message->response.body, end - message->response.body);
-	self_dump_response(self, message, body);
-	self_update_cookies(self, message);
-      }
-    else
-      g_set_error(err, 0, 0, _("unable to transfer data: %s"), message->reason_phrase);
-
-    g_object_unref(message);
-    
-    return body;
-  }
-  
-  private void
-    dump_request (self, Soup:Message *message (check null type))
-  {
-    const SoupUri *suri;
-    char *uri;
-
-    suri = soup_message_get_uri(message);
-    uri = soup_uri_to_string(suri, FALSE);
-    mn_mailbox_notice(MN_MAILBOX(self), "> GET %s", uri);
-    g_free(uri);
-
-    soup_message_foreach_header(message->request_headers, self_dump_request_cb, self);
-  }
-
-  private void
-    dump_request_cb (gpointer key (check null),
-		     gpointer value (check null),
-		     gpointer user_data (check null))
-  {
-    Self *self = user_data;
-    const char *header_name = key;
-    const char *header_value = value;
-
-    mn_mailbox_notice(MN_MAILBOX(self), "> %s: %s", header_name, header_value);
-  }
-  
-  private void
-    dump_response (self,
-		   Soup:Message *message (check null type),
-		   const char *body (check null))
-  {
-    char **lines;
-    int i;
-    
-    soup_message_foreach_header(message->response_headers, self_dump_response_cb, self);
-
-    lines = g_strsplit(body, "\n", 0);
-    for (i = 0; lines[i]; i++)
-      mn_mailbox_notice(MN_MAILBOX(self), "< %s", lines[i]);
-    g_strfreev(lines);
-  }
-
-  private void
-    dump_response_cb (gpointer key (check null),
-		      gpointer value (check null),
-		      gpointer user_data (check null))
-  {
-    Self *self = user_data;
-    const char *header_name = key;
-    const char *header_value = value;
-
-    mn_mailbox_notice(MN_MAILBOX(self), "< %s: %s", header_name, header_value);
-  }
-
-  /**
-   * get_substring:
-   * @str: the string to search
-   * @pre: the start of the substring
-   * @post: the end of the substring
-   * @include_pre: whether to include @pre in the result or not
-   * @include_post: whether to include @post in the result or not
-   *
-   * Gets the first substring of @str included between @pre and @post.
-   *
-   * Return value: a newly allocated string containing the substring
-   *               or %NULL if not found.
-   **/
-  private char *
-    get_substring (const char *str (check null),
-		   const char *pre (check null),
-		   const char *post (check null),
-		   gboolean include_pre,
-		   gboolean include_post)
-  {
-    char *sub = NULL;
-    char *pre_loc;
-    
-    pre_loc = strstr(str, pre);
-    if (pre_loc)
-      {
-	char *after_pre_loc;
-	char *post_loc;
-	
-	after_pre_loc = pre_loc + strlen(pre);
-	post_loc = strstr(after_pre_loc, post);
-	if (post_loc)
+	selfp->uri = gnome_vfs_uri_new(self->runtime_location);
+	if (! selfp->uri)
 	  {
-	    char *start = include_pre ? pre_loc : after_pre_loc;
-	    char *end = include_post ? post_loc + strlen(post) : post_loc;
-	    
-	    sub = g_strndup(start, end - start);
+	    GDK_THREADS_ENTER();
+
+	    mn_mailbox_set_error(MN_MAILBOX(self), _("invalid feed location"));
+	    /* error is not recoverable, disable the mailbox */
+	    mn_mailbox_set_must_poll(MN_MAILBOX(self), FALSE);
+
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+
+	    return;
 	  }
-      }
-    
-    return sub;
-  }
 
-  private gboolean
-    login (self,
-	   Soup:Session *session (check null type),
-	   gboolean *authentication_failed (check null),
-	   GError **err)
-  {
-    char *text_uri;
-    char *escaped_username;
-    char *escaped_password;
-    char *body;
-    char *next_location;
-    char *query;
-    SoupUri *uri;
-    gboolean success;
-
-    g_return_val_if_fail(selfp->logged_in == FALSE, FALSE);
-    
-    mn_mailbox_notice(MN_MAILBOX(self), _("logging in"));
-    *authentication_failed = FALSE;
-
-    if (selfp->cookies)
-      g_hash_table_destroy(selfp->cookies);
-    selfp->cookies = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
-
-#define EXTRA_CHARS ";/?:@&=+$,"/* taken from RFC 2396 2.2 */
-    escaped_username = soup_uri_encode(MN_MAILBOX(self)->uri->username, EXTRA_CHARS);
-    escaped_password = soup_uri_encode(MN_AUTHENTICATED_MAILBOX(self)->password, EXTRA_CHARS);
-    text_uri = g_strdup_printf("https://www.google.com/accounts/ServiceLoginBoxAuth?service=mail&continue=http://gmail.google.com/gmail&Email=%s&Passwd=%s", escaped_username, escaped_password);
-    g_free(escaped_username);
-    g_free(escaped_password);
-
-    body = self_get(self, session, text_uri, err);
-    g_free(text_uri);
-
-    if (! body)
-      return FALSE;
-
-    next_location = self_get_substring(body, "top.location = \"", "\"", FALSE, FALSE);
-    g_free(body);
-
-    if (! next_location)
-      {
-	*authentication_failed = TRUE;
-	goto failed;
+	gnome_vfs_uri_set_user_name(selfp->uri, mailbox->username);
+	gnome_vfs_uri_set_password(selfp->uri, mailbox->password);
       }
 
-    /*
-     * The following kludges work around
-     * http://bugzilla.ximian.com/show_bug.cgi?id=66516.
-     *
-     * FIXME: remove it and bump libsoup version requirement when the
-     * bug is fixed.
-     */
+    mn_mailbox_notice(MN_MAILBOX(self), _("retrieving feed from %s"), self->runtime_location);
 
-    query = strchr(next_location, '?');
-    if (query)
-      *query = 0;
-
-    text_uri = g_strdup_printf("https://www.google.com/accounts/%s", next_location);
-    g_free(next_location);
-
-    uri = self_soup_uri_new(text_uri, err);
-    g_free(text_uri);
-
-    if (! uri)
-      return FALSE;
-
-    if (query)
+    result = mn_vfs_read_entire_file_uri(selfp->uri, &atom_size, &atom);
+    if (result != GNOME_VFS_OK)
       {
-	uri->query = g_strdup(query + 1);
-	uri->broken_encoding = TRUE;
-      }
-
-    body = self_get_from_uri(self, session, uri, err);
-    soup_uri_free(uri);
-
-    if (! body)
-      return FALSE;
-
-    next_location = self_get_substring(body, "location.replace(\"", "\")", FALSE, FALSE);
-    g_free(body);
-
-    if (! next_location)
-      goto failed;
-
-    body = self_get(self, session, next_location, err);
-    g_free(next_location);
-
-    success = strstr(body, "frame name=js src=/gmail") != NULL;
-    g_free(body);
-
-    if (success)
-      return TRUE;
-    
-  failed:
-    g_set_error(err, 0, 0, _("login failed"));
-    return FALSE;
-  }
-  
-  private void
-    update_cookies (self, Soup:Message *message (check null type))
-  {
-    const GSList *l;
-    
-    MN_LIST_FOREACH(l, soup_message_get_header_list(message->response_headers, "Set-Cookie"))
-      {
-	const char *value = l->data;
-	char *equal;
-
-	equal = strchr(value, '=');
-	if (equal && equal - value > 0)
-	  {
-	    char *end;
-	    char *cookie_name;
-	    char *cookie_value;
-
-	    end = strchr(equal, ';');
-
-	    cookie_name = g_strndup(value, equal - value);
-	    cookie_value = end
-	      ? g_strndup(equal + 1, end - equal - 1)
-	      : g_strdup(equal + 1);
-
-	    g_hash_table_insert(selfp->cookies, cookie_name, cookie_value);
-	  }
-      }
-  }
-
-  private char *
-    build_cookie (self)
-  {
-    GString *cookie;
-    char *str;
-
-    cookie = g_string_new(NULL);
-    g_hash_table_foreach(selfp->cookies, self_build_cookie_cb, cookie);
-
-    if (*cookie->str)
-      str = g_string_free(cookie, FALSE);
-    else
-      {
-	str = NULL;
-	g_string_free(cookie, TRUE);
-      }
-
-    return str;
-  }
-
-  private void
-    build_cookie_cb (gpointer key, gpointer value, gpointer user_data)
-  {
-    GString *cookie = user_data;
-
-    if (*cookie->str)
-      g_string_append(cookie, "; ");
-
-    g_string_append_printf(cookie, "%s=%s", (const char *) key, (const char *) value);
-  }
-  
-  private gboolean
-    check (self, Soup:Session *session (check null type), GError **err)
-  {
-    char *body;
-    char *work;
-    gboolean status = FALSE;
-
-    g_return_val_if_fail(selfp->logged_in == TRUE, FALSE);
-
-    mn_mailbox_notice(MN_MAILBOX(self), _("searching for unread mail"));
-
-    body = self_get(self, session, "https://gmail.google.com/gmail?search=adv&as_subset=unread&view=tl&start=0", err);
-    if (! body)
-      return FALSE;
-
-    work = strstr(body, "Search results for: is:unread\",\"");
-    if (work)
-      {
-	GSList *messages = NULL;
-
-	work += 32;
-
-	while ((work = strstr(work, "D([")))
-	  {
-	    GSList *arg_list;
-
-	    work += 2;
-	    if (self_js_get_arg_list(&work, &arg_list) && arg_list)
-	      {
-		GSList *l;
-		gboolean icu_available = FALSE;
-
-#ifdef WITH_GMAIL_TIMESTAMPS
-		if (arg_list->next)
-		  {
-		    GError *err = NULL;
-
-		    icu_available = mn_icu_use(&err);
-		    if (! icu_available)
-		      {
-			mn_mailbox_warning(MN_MAILBOX(self), _("unable to initialize the ICU library"), err->message);
-			g_error_free(err);
-		      }
-		  }
-#endif /* WITH_GMAIL_TIMESTAMPS */
-		
-		MN_LIST_FOREACH(l, arg_list->next)
-		  self_append_message(self, &messages, l->data, icu_available);
-
-#ifdef WITH_GMAIL_TIMESTAMPS
-		if (icu_available)
-		  mn_icu_unuse();
-#endif /* WITH_GMAIL_TIMESTAMPS */
-
-		self_js_arg_list_free(arg_list);
-	      }
-	  }
-	
 	GDK_THREADS_ENTER();
-	mn_mailbox_set_messages(MN_MAILBOX(self), messages);
+
+	mn_mailbox_set_error(MN_MAILBOX(self), _("unable to retrieve feed: %s"), gnome_vfs_result_to_string(result));
+
 	gdk_flush();
 	GDK_THREADS_LEAVE();
 
+	return;
+      }
+    
+    doc = xmlParseMemory(atom, atom_size);
+    g_free(atom);
+
+    if (! doc)
+      {
+	GDK_THREADS_ENTER();
+
+	mn_mailbox_set_error(MN_MAILBOX(self), _("unable to parse feed"));
+
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+
+	return;
+      }
+
+    node = xmlDocGetRootElement(doc);
+    if (node && ! strcmp(node->name, "feed"))
+      {
+	GSList *messages = NULL;
+
+	for (node = node->children; node != NULL; node = node->next)
+	  if (node->type == XML_ELEMENT_NODE && ! strcmp(node->name, "entry"))
+	    {
+	      time_t sent_time;
+	      char *id;
+	      char *from;
+	      char *subject;
+
+	      self_parse_entry(node, &sent_time, &id, &from, &subject);
+
+	      messages = g_slist_append(messages, mn_message_new(MN_MAILBOX(self),
+								 NULL,
+								 sent_time,
+								 id,
+								 from,
+								 subject));
+
+	      g_free(id);
+	      g_free(from);
+	      g_free(subject);
+	    }
+
+	GDK_THREADS_ENTER();
+
+	mn_mailbox_set_messages(MN_MAILBOX(self), messages);
 	mn_g_object_slist_free(messages);
-	status = TRUE;
+
+	gdk_flush();
+	GDK_THREADS_LEAVE();
       }
     else
-      g_set_error(err, 0, 0, _("unable to parse Gmail data"));
-
-    g_free(body);
-
-    return status;
-  }
-
-  private void
-    append_message (self,
-		    GSList **messages (check null),
-		    JSArg *arg (check null),
-		    gboolean icu_available)
-  {
-    char *date_field;
-    char *sender_field;
-    char *subject_field;
-    GSList *labels_list;
-    GSList *l;
-    gboolean in_inbox = FALSE;
-
-    char *count_str;
-    char *sender_email;
-    char *sender_name;
-    char *subject;
-
-    int count = 1;
-    time_t sent_time = 0;
-    char *from = NULL;
-    char *expanded_subject = NULL;
-
-    int i;
-
-    if (arg->type != JS_ARG_LIST
-	|| ! self_js_arg_list_scan(arg->value.list,
-				   3, JS_ARG_STRING, &date_field,
-				   4, JS_ARG_STRING, &sender_field,
-				   6, JS_ARG_STRING, &subject_field,
-				   8, JS_ARG_LIST, &labels_list,
-				   -1))
-      return;
-				  
-    MN_LIST_FOREACH(l, labels_list)
       {
-	JSArg *label = l->data;
+	GDK_THREADS_ENTER();
 
-	if (label->type == JS_ARG_STRING && ! strcmp(label->value.string, "^i"))
-	  {
-	    in_inbox = TRUE;
-	    break;
-	  }
+	mn_mailbox_set_error(MN_MAILBOX(self), _("unable to parse feed"));
+
+	gdk_flush();
+	GDK_THREADS_LEAVE();
       }
 
-    if (! in_inbox)
-      return;
-    
-#ifdef WITH_GMAIL_TIMESTAMPS
-    if (icu_available)
-      {
-	char *date;
-
-	date = self_get_substring(date_field, "<b>", "</b>", FALSE, FALSE);
-	if (date)
-	  {
-	    sent_time = self_parse_date(self, date);
-	    g_free(date);
-	  }
-      }
-#endif /* WITH_GMAIL_TIMESTAMPS */
-
-    count_str = self_get_substring(sender_field, "</span> (", ")", FALSE, FALSE);
-    if (count_str)
-      {
-	if (mn_str_isnumeric(count_str))
-	  count = atoi(count_str);
-	g_free(count_str);
-      }
-    
-    sender_email = self_get_substring(sender_field, "<span id='_user_", "'", FALSE, FALSE);
-    sender_name = self_get_substring(sender_field, "'><b>", "</b>", FALSE, FALSE);
-		    
-    if (sender_name && sender_email)
-      {
-	char *tmp;
-	
-	tmp = g_strdup_printf("%s <%s>", sender_name, sender_email);
-	from = mn_sgml_ref_expand(tmp);
-	g_free(tmp);
-      }
-    else if (sender_name)
-      from = mn_sgml_ref_expand(sender_name);
-    else if (sender_email)
-      from = mn_sgml_ref_expand(sender_email);
-    
-    g_free(sender_email);
-    g_free(sender_name);
-    
-    subject = self_get_substring(subject_field, "<b>", "</b>", FALSE, FALSE);
-    if (subject)
-      {
-	if (strcmp(subject, "(no subject)"))
-	  expanded_subject = mn_sgml_ref_expand(subject);
-	g_free(subject);
-      }
-    
-    for (i = 0; i < count; i++)
-      *messages = g_slist_append(*messages, mn_message_new(MN_MAILBOX(self)->uri,
-							   NULL,
-							   sent_time,
-							   NULL,
-							   from,
-							   expanded_subject));
-    
-    g_free(from);
-    g_free(expanded_subject);
+    xmlFreeDoc(doc);
   }
   
-  private gboolean
-    js_get_arg_list (char **str (check null), GSList **list (check null))
+  private void
+    parse_entry (xmlNode *node (check null),
+		 time_t *sent_time (check null),
+		 char **id (check null),
+		 char **from (check null),
+		 char **subject (check null))
   {
-    GSList *our_list = NULL;
-    gboolean done = FALSE;
-    gboolean in_literal = FALSE;	/* a string enclosed in double quotes */
-    gboolean quoted = FALSE;		/* the next character is quoted with a backslash */
-    JSArg *arg = NULL;
-    GString *string;
+    *sent_time = 0;
+    *id = NULL;
+    *from = NULL;
+    *subject = NULL;
 
-    g_return_val_if_fail(*str != NULL, FALSE);
-    g_return_val_if_fail(**str == '[', FALSE);
-
-    (*str)++;			/* skip the initial open bracket */
-    string = g_string_new(NULL);
-
-    while (**str && ! done)
-      {
-	gboolean next = TRUE;
-
-	if (in_literal)
-	  switch (**str)
+    for (node = node->children; node != NULL; node = node->next)
+      if (node->type == XML_ELEMENT_NODE)
+	{
+	  if (! strcmp(node->name, "title"))
 	    {
-	    case '\\':
-	      quoted = TRUE;
-	      break;
+	      g_free(*subject);
+	      *subject = xmlNodeGetContent(node);
+	    }
+	  else if (! strcmp(node->name, "id"))
+	    {
+	      g_free(*id);
+	      *id = xmlNodeGetContent(node);
+	    }
+	  else if (! strcmp(node->name, "author"))
+	    {
+	      g_free(*from);
+	      *from = self_parse_author(node);
+	    }
+#ifdef HAVE_TIMEGM
+	  else if (! strcmp(node->name, "issued"))
+	    {
+	      char *w3c_datetime;
 
-	    case '"':
-	      if (! quoted)
+	      w3c_datetime = xmlNodeGetContent(node);
+	      if (w3c_datetime)
 		{
-		  in_literal = FALSE;
-		  break;
+		  *sent_time = self_parse_date(w3c_datetime);
+		  g_free(w3c_datetime);
 		}
-	      /* else pass through */
-	      
-	    default:
-	      quoted = FALSE;
-	      g_string_append_c(string, **str);
 	    }
-	else
-	  switch (**str)
-	    {
-	    case '[':
-	      {
-		GSList *sub_list;
-
-		if (arg || ! self_js_get_arg_list(str, &sub_list))
-		  goto end;	/* parse error */
-
-		arg = self_js_arg_new_list(sub_list);
-		next = FALSE;
-		break;
-	      }
-
-	    case ']':
-	      done = TRUE;
-	      /* fall through */
-	    
-	    case ',':
-	      if (! arg)
-		arg = self_js_arg_new_string(string->str);
-	      
-	      our_list = g_slist_append(our_list, arg);
-
-	      g_string_truncate(string, 0);
-	      arg = NULL;
-	      break;
-
-	    case '"':
-	      in_literal = TRUE;
-	      break;
-	      
-	    default:
-	      g_string_append_c(string, **str);
-	    }
-
-	if (next)
-	  (*str)++;
-      }
-
-  end:
-    if (arg)
-      self_js_arg_free(arg);
-    g_string_free(string, TRUE);
-
-    if (done)
-      {
-	*list = our_list;
-	return TRUE;
-      }
-    else
-      {
-	self_js_arg_list_free(our_list);
-	return FALSE;
-      }
+#endif
+	}
   }
   
-  private gboolean
-    js_arg_list_scan (GSList *list, ...)
+  private char *
+    parse_author (xmlNode *node (check null))
   {
-    va_list args;
-    int position;
-    gboolean status = TRUE;
-
-    va_start(args, list);
-
-    while ((position = va_arg(args, int)) != -1)
-      {
-	JSArgType type = va_arg(args, JSArgType);
-	JSArg *arg = g_slist_nth_data(list, position);
-	
-	if (! arg)
-	  {
-	    status = FALSE;
-	    break;
-	  }
-
-	switch (type)
-	  {
-	  case JS_ARG_STRING:
+    char *from;
+    char *name = NULL;
+    char *email = NULL;
+	      
+    for (node = node->children; node != NULL; node = node->next)
+      if (node->type == XML_ELEMENT_NODE)
+	{
+	  if (! strcmp(node->name, "name"))
 	    {
-	      char **str = va_arg(args, char **);
-	      g_return_val_if_fail(str != NULL, FALSE);
-
-	      *str = arg->value.string;
-	      break;
+	      g_free(name);
+	      name = xmlNodeGetContent(node);
 	    }
-
-	  case JS_ARG_LIST:
+	  else if (! strcmp(node->name, "email"))
 	    {
-	      GSList **elem_list = va_arg(args, GSList **);
-	      g_return_val_if_fail(elem_list != NULL, FALSE);
-
-	      *elem_list = arg->value.list;
-	      break;
+	      g_free(email);
+	      email = xmlNodeGetContent(node);
 	    }
+	}
 
-	  default:
-	    g_return_val_if_reached(FALSE);
-	  }
-      }
+    from = name && email
+      ? g_strdup_printf("%s <%s>", name, email)
+      : g_strdup(name ? name : email);
 
-    va_end(args);
-
-    return status;
-  }
-  
-  private void
-    js_arg_list_free (GSList *list)
-  {
-    eel_g_slist_free_deep_custom(list, (GFunc) self_js_arg_free, NULL);
-  }
-  
-  private JSArg *
-    js_arg_new_string (const char *string (check null))
-  {
-    JSArg *arg;
-
-    arg = g_new(JSArg, 1);
-    arg->type = JS_ARG_STRING;
-    arg->value.string = g_strdup(string);
-
-    return arg;
-  }
-
-  private JSArg *
-    js_arg_new_list (GSList *list)
-  {
-    JSArg *arg;
-
-    arg = g_new(JSArg, 1);
-    arg->type = JS_ARG_LIST;
-    arg->value.list = list;
-
-    return arg;
-  }
-
-  private void
-    js_arg_free (JSArg *arg (check null))
-  {
-    switch (arg->type)
-      {
-      case JS_ARG_STRING:
-	g_free(arg->value.string);
-	break;
-
-      case JS_ARG_LIST:
-	self_js_arg_list_free(arg->value.list);
-	break;
-
-      default:
-	g_return_if_reached();
-      }
-
-    g_free(arg);
+    g_free(name);
+    g_free(email);
+    
+    return from;
   }
   
   private time_t
-    parse_date (self, const char *date (check null))
+    parse_date (const char *w3c_datetime (check null))
   {
-#ifdef WITH_GMAIL_TIMESTAMPS
+#ifdef HAVE_TIMEGM
     time_t t = 0;
-    UChar *zone_id;
-    UCalendar *cal;
-    UErrorCode status = U_ZERO_ERROR;
-    UDate ud;
-    int hour;
-    int minute;
-    char ampm[3];
-    char month_str[4];
-    int year;
-    int month;
-    int day;
-    gboolean valid = FALSE;
-    
-    zone_id = mn_icu_ustr_new("PST"); /* Gmail's timezone */
-    cal = ucal_open(zone_id, -1, NULL, UCAL_TRADITIONAL, &status);
-    g_free(zone_id);
+    char year[5];
+    char month[3];
+    char day[3];
+    char hour[3];
+    char minute[3];
+    char second[3];
 
-    if (! cal)
+    if (sscanf(w3c_datetime, "%4s-%2s-%2sT%2s:%2s:%2sZ", year, month, day, hour, minute, second) == 6
+	&& mn_str_isnumeric(year)
+	&& mn_str_isnumeric(month)
+	&& mn_str_isnumeric(day)
+	&& mn_str_isnumeric(hour)
+	&& mn_str_isnumeric(minute)
+	&& mn_str_isnumeric(second))
       {
-	mn_mailbox_warning(MN_MAILBOX(self), _("unable to open calendar: %s"), u_errorName(status));
-	return 0;
-      }
-    
-    ud = ucal_getNow();
-    ucal_setMillis(cal, ud, &status);
-    if (U_FAILURE(status))
-      {
-	mn_mailbox_warning(MN_MAILBOX(self), _("unable to set calendar time: %s"), u_errorName(status));
-	goto end;
-      }
+	struct tm tm = { 0 };
 
-    if (sscanf(date, "%d:%d%2s", &hour, &minute, ampm) == 3)
-      {
-	ucal_set(cal, UCAL_HOUR, hour);
-	ucal_set(cal, UCAL_MINUTE, minute);
-	ucal_set(cal, UCAL_SECOND, 0);
-	ucal_set(cal, UCAL_AM_PM, ampm[0] == 'p' ? 1 : 0);
-	valid = TRUE;
-      }
-    else if (sscanf(date, "%d/%d/%d", &month, &day, &year) == 3)
-      {
-	/*
-	 * Convert year from 2-digits to 4-digits, conforms to the
-	 * POSIX or X/Open standard.
-	 */
-	year += year >= 69 && year <= 99 ? 1900 : 2000;
-	
-	ucal_set(cal, UCAL_MONTH, month);
-	ucal_set(cal, UCAL_DATE, day);
-	ucal_set(cal, UCAL_YEAR, year);
-	ucal_set(cal, UCAL_HOUR, 0);
-	ucal_set(cal, UCAL_MINUTE, 0);
-	ucal_set(cal, UCAL_SECOND, 0);
-	valid = TRUE;
-      }
-    else if (sscanf(date, "%3s %d", month_str, &day) == 2)
-      {
-	const struct 
-	{
-	  const char	*name;
-	  int		value;
-	} months[] = {
-	  { "Jan",	UCAL_JANUARY	},
-	  { "Feb",	UCAL_FEBRUARY	},
-	  { "Mar",	UCAL_MARCH	},
-	  { "Apr",	UCAL_APRIL	},
-	  { "May",	UCAL_MAY	},
-	  { "Jun",	UCAL_JUNE	},
-	  { "Jul",	UCAL_JULY	},
-	  { "Aug",	UCAL_AUGUST	},
-	  { "Sep",	UCAL_SEPTEMBER	},
-	  { "Oct",	UCAL_OCTOBER	},
-	  { "Nov",	UCAL_NOVEMBER	},
-	  { "Dec",	UCAL_DECEMBER	}
-	};
-	int i;
+	tm.tm_sec = atoi(second);
+	tm.tm_min = atoi(minute);
+	tm.tm_hour = atoi(hour);
+	tm.tm_mday = atoi(day);
+	tm.tm_mon = atoi(month) - 1;
+	tm.tm_year = atoi(year) - 1900;
 
-	for (i = 0; i < G_N_ELEMENTS(months); i++)
-	  if (! strcmp(month_str, months[i].name))
-	    {
-	      ucal_set(cal, UCAL_MONTH, months[i].value);
-	      ucal_set(cal, UCAL_DATE, day);
-	      ucal_set(cal, UCAL_HOUR, 0);
-	      ucal_set(cal, UCAL_MINUTE, 0);
-	      ucal_set(cal, UCAL_SECOND, 0);
-	      valid = TRUE;
-	      break;
-	    }
+	t = timegm(&tm);
+	if (t == -1)
+	  t = 0;
       }
-    
-    if (valid)
-      {
-	ud = ucal_getMillis(cal, &status);
-	if (U_SUCCESS(status))
-	  t = ud / 1000;
-	else
-	  mn_mailbox_warning(MN_MAILBOX(self), _("unable to get calendar time: %s"), u_errorName(status));
-      }
-
-  end:
-    ucal_close(cal);
 
     return t;
 #else
     g_return_val_if_reached(0);
-#endif /* WITH_GMAIL_TIMESTAMPS */
+#endif
+  }
+  
+  public char *
+    build_name (const char *username)
+  {
+    if (username)
+      return g_str_has_suffix(username, "@gmail.com")
+	? g_strdup(username)
+	: g_strdup_printf("%s@gmail.com", username);
+    else
+      return g_strdup("gmail.com");
   }
 }

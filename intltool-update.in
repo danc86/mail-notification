@@ -30,7 +30,7 @@
 
 ## Release information
 my $PROGRAM = "intltool-update";
-my $VERSION = "0.32.1";
+my $VERSION = "0.34.1";
 my $PACKAGE = "intltool";
 
 ## Loaded modules
@@ -95,6 +95,8 @@ my $POTFILES_in;
 $SRCDIR = $ENV{"srcdir"} if $ENV{"srcdir"};
 $POTFILES_in = "<$SRCDIR/POTFILES.in";
 
+my $devnull = ($^O eq 'MSWin32' ? 'NUL:' : '/dev/null');
+
 ## Handle options
 GetOptions 
 (
@@ -149,7 +151,8 @@ elsif ((defined $ARGV[0]) && $ARGV[0] =~ /^[a-z]/)
 
     ## Report error if the language file supplied
     ## to the command line is non-existent
-    &Console_WriteError_NotExisting("$lang.po") if ! -s "$lang.po";
+    &Console_WriteError_NotExisting("$SRCDIR/$lang.po")
+        if ! -s "$SRCDIR/$lang.po";
 
     if (!$DIST_ARG)
     {
@@ -210,6 +213,16 @@ Report bugs to http://bugzilla.gnome.org/ (product name "$PACKAGE")
 or send email to <xml-i18n-tools\@gnome.org>.
 _EOF_
     exit;
+}
+
+sub echo_n
+{
+    my $str = shift;
+    my $ret = `echo "$str"`;
+
+    $ret =~ s/\n$//; # do we need the "s" flag?
+
+    return $ret;
 }
 
 sub POFile_DetermineType ($) 
@@ -431,7 +444,7 @@ sub FindLeftoutFiles
 	while (<FILE>) 
 	{
 	    # FIXME: share the pattern matching code with intltool-extract
-	    if (/\s_(.*)=\"/ || /<_[^>]+>/ || /translatable=\"yes\"/)
+	    if (/\s_[-A-Za-z0-9._:]+\s*=\s*\"([^"]+)\"/ || /<_[^>]+>/ || /translatable=\"yes\"/)
 	    {
                 if (defined isNotValidMissing (unpack("x3 A*", $file))) {
                     push @buf_allfiles, unpack("x3 A*", $file) . "\n";
@@ -597,7 +610,7 @@ sub GenerateHeaders
 #
 sub GeneratePOTemplate
 {
-    my $XGETTEXT = $ENV{"XGETTEXT"} || "@INTLTOOL_XGETTEXT@";
+    my $XGETTEXT = $ENV{"XGETTEXT"} || "/usr/local/bin/xgettext";
     my $XGETTEXT_ARGS = $ENV{"XGETTEXT_ARGS"} || '';
     chomp $XGETTEXT;
 
@@ -617,7 +630,7 @@ sub GeneratePOTemplate
     my $gettext_support_nonascii = 0;
 
     # checks for GNU gettext >= 0.12
-    my $dummy = `$XGETTEXT --version --from-code=UTF-8 >/dev/null 2>/dev/null`;
+    my $dummy = `$XGETTEXT --version --from-code=UTF-8 >$devnull 2>$devnull`;
     if ($? == 0)
     {
 	$gettext_support_nonascii = 1;
@@ -651,14 +664,14 @@ sub GeneratePOTemplate
 	elsif (/\.($xml_support|$ini_support)$/ || /^\[/)
 	{
 	    s/^\[.*]\s*//;
-	    print OUTFILE "$_.h\n";
+            print OUTFILE "../$_.h\n";
 	    push @temp_headers, "../$_.h";
 	    $gettext_code = &TextFile_DetermineEncoding ("../$_.h") if ($gettext_support_nonascii and not defined $forced_gettext_code);
 	} 
 	else 
 	{
 	    if ($SRCDIR eq ".") {
-	        print OUTFILE "$_\n";
+	        print OUTFILE "../$_\n";
 	    } else {
 	        print OUTFILE "$SRCDIR/../$_\n";
 	    }
@@ -703,7 +716,7 @@ sub GeneratePOTemplate
     unlink "$MODULE.pot";
     my @xgettext_argument=("$XGETTEXT",
 			   "--add-comments",
-			   "--directory\=\.\.",
+			   "--directory\=\.",
 			   "--output\=$MODULE\.pot",
 			   "--files-from\=\.\/POTFILES\.in\.temp");
     my $XGETTEXT_KEYWORDS = &FindPOTKeywords;
@@ -768,13 +781,13 @@ sub POFile_Update
 {
     -f "$MODULE.pot" or die "$PROGRAM: $MODULE.pot does not exist.\n";
 
-    my $MSGMERGE = $ENV{"MSGMERGE"} || "@INTLTOOL_MSGMERGE@";
+    my $MSGMERGE = $ENV{"MSGMERGE"} || "/usr/local/bin/msgmerge";
     my ($lang, $outfile) = @_;
 
-    print "Merging $lang.po with $MODULE.pot..." if $VERBOSE;
+    print "Merging $SRCDIR/$lang.po with $MODULE.pot..." if $VERBOSE;
 
-    my $infile = "$lang.po";
-    $outfile = "$lang.po" if ($outfile eq "");
+    my $infile = "$SRCDIR/$lang.po";
+    $outfile = "$SRCDIR/$lang.po" if ($outfile eq "");
 
     # I think msgmerge won't overwrite old file if merge is not successful
     system ("$MSGMERGE", "-o", $outfile, $infile, "$MODULE.pot");
@@ -811,16 +824,16 @@ sub POFile_GetLanguage ($)
 sub Console_Write_TranslationStatus
 {
     my ($lang, $output_file) = @_;
-    my $MSGFMT = $ENV{"MSGFMT"} || "@INTLTOOL_MSGFMT@";
+    my $MSGFMT = $ENV{"MSGFMT"} || "/usr/local/bin/msgfmt";
 
-    $output_file = "$lang.po" if ($output_file eq "");
+    $output_file = "$SRCDIR/$lang.po" if ($output_file eq "");
 
-    system ("$MSGFMT", "-o", "/dev/null", "--statistics", $output_file);
+    system ("$MSGFMT", "-o", "$devnull", "--verbose", $output_file);
 }
 
 sub Console_Write_CoverageReport
 {
-    my $MSGFMT = $ENV{"MSGFMT"} || "@INTLTOOL_MSGFMT@";
+    my $MSGFMT = $ENV{"MSGFMT"} || "/usr/local/bin/msgfmt";
 
     &GatherPOFiles;
 
@@ -835,7 +848,7 @@ sub Console_Write_CoverageReport
     foreach my $lang (@languages)
     {
 	print "$lang: ";
-	system ("$MSGFMT", "-o", "/dev/null", "--statistics", "$lang.po");
+	system ("$MSGFMT", "-o", "$devnull", "--verbose", "$SRCDIR/$lang.po");
     }
 }
 
@@ -867,7 +880,7 @@ sub SubstituteVariable
     
     # We're using Perl backticks ` and "echo -n" here in order to 
     # expand any shell escapes (such as backticks themselves) in every variable
-    return `echo -n "$str"`;
+    return echo_n ($str);
 }
 
 sub CONF_Handle_Open

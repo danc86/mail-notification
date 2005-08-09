@@ -1,0 +1,170 @@
+/* 
+ * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include "mn-mailbox.h"
+%}
+
+%{
+#include "config.h"
+#include <gtk/gtk.h>
+#include "mn-mailbox-private.h"
+#include "mn-util.h"
+
+typedef struct
+{
+  MNReentrantMailbox	*self;
+  unsigned long		check_id;
+} CheckInfo;
+%}
+
+class MN:Reentrant:Mailbox from MN:Mailbox
+{
+  private GMutex *mutex = {g_mutex_new()} destroywith g_mutex_free;
+
+  private unsigned int queue_check_id;
+
+  private unsigned long check_id;
+  private unsigned long check_unique_id;
+
+  override (MN:Mailbox) void
+    removed (MNMailbox *mailbox)
+  {
+    Self *self = SELF(mailbox);
+
+    self_lock(self);
+    selfp->check_id = 0;
+    self_unlock(self);
+
+    PARENT_HANDLER(mailbox);
+  }
+
+  override (G:Object) void
+    finalize (GObject *object)
+  {
+    Self *self = SELF(object);
+
+    if (selfp->queue_check_id)
+      g_source_remove(selfp->queue_check_id);
+
+    PARENT_HANDLER(object);
+  }
+
+  protected void
+    queue_check (self)
+  {
+    if (selfp->queue_check_id)
+      g_source_remove(selfp->queue_check_id);
+
+    selfp->queue_check_id = g_idle_add(self_queue_check_cb, self);
+  }
+  
+  private gboolean
+    queue_check_cb (gpointer data)
+  {
+    Self *self = data;
+
+    GDK_THREADS_ENTER();
+    mn_mailbox_check(MN_MAILBOX(self));
+    GDK_THREADS_LEAVE();
+
+    selfp->queue_check_id = 0;
+    return FALSE;		/* remove source */
+  }
+
+  override (MN:Mailbox) void
+    check (MNMailbox *mailbox)
+  {
+    Self *self = SELF(mailbox);
+    CheckInfo *info;
+
+    PARENT_HANDLER(mailbox);
+
+    mn_mailbox_set_error(mailbox, NULL);
+
+    if (++selfp->check_unique_id == 0)
+      ++selfp->check_unique_id;
+
+    info = g_new(CheckInfo, 1);
+    info->self = g_object_ref(self);
+    info->check_id = selfp->check_unique_id;
+
+    self_lock(self);
+    selfp->check_id = info->check_id;
+    self_unlock(self);
+
+    mn_thread_create((GThreadFunc) self_check_thread_cb, info);
+  }
+
+  private void
+    check_thread_cb (CheckInfo *info)
+  {
+    Self *self = info->self;
+
+    self_impl_check(self, info->check_id);
+
+    self_lock(self);
+    if (selfp->check_id == info->check_id)
+      selfp->check_id = 0;
+    self_unlock(self);
+
+    GDK_THREADS_ENTER();
+
+    g_object_unref(self);
+
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+
+    g_free(info);
+  }
+
+  virtual private void
+    impl_check (self, unsigned long check_id);
+
+  protected gboolean
+    check_aborted (self, unsigned long check_id)
+  {
+    gboolean aborted;
+
+    self_lock(self);
+    aborted = selfp->check_id != check_id;
+    self_unlock(self);
+
+    return aborted;
+  }
+  
+  protected gboolean
+    check_aborted_unlocked (self, unsigned long check_id)
+  {
+    return selfp->check_id != check_id;
+  }
+
+  protected void
+    lock (self)
+  {
+    g_mutex_lock(selfp->mutex);
+  }
+
+  protected void
+    unlock (self)
+  {
+    g_mutex_unlock(selfp->mutex);
+  }
+}

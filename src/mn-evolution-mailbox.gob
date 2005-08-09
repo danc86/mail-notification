@@ -1,0 +1,256 @@
+/* 
+ * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include "mn-reentrant-mailbox.h"
+%}
+
+%privateheader{
+#include "GNOME_MailNotification_Evolution.h"
+#include "mn-corba-object.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include <libbonobo.h>
+#include "mn-evolution.h"
+#include "mn-mailbox-private.h"
+#include "mn-reentrant-mailbox-private.h"
+#include "mn-message.h"
+#include "mn-util.h"
+#include "mn-stock.h"
+%}
+
+class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
+{
+  public char *uri destroywith g_free;
+  property STRING uri (link, flags = MN_MAILBOX_PARAM_PERMANENT | MN_MAILBOX_PARAM_REQUIRED);
+
+  /*
+   * Evolution might not be running when we instantiate the mailbox,
+   * so we cache the folder name.
+   */
+  public char *folder_name destroywith g_free;
+  property STRING folder_name (link, flags = MN_MAILBOX_PARAM_PERMANENT | MN_MAILBOX_PARAM_REQUIRED);
+
+  private MNCORBAObject *glue unrefwith g_object_unref;
+  private Bonobo_Listener listener = CORBA_OBJECT_NIL;
+
+  class_init (class)
+  {
+    MN_MAILBOX_CLASS(class)->type = "evolution";
+
+    bonobo_exception_add_handler_str(ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound, _("folder not found"));
+  }
+
+  override (G:Object) GObject *
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    MNMailbox *mailbox;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    mailbox = MN_MAILBOX(object);
+
+    mn_mailbox_set_format(mailbox, "Evolution");
+    mn_mailbox_set_stock_id(mailbox, MN_STOCK_EVOLUTION_MAILBOX);
+    mn_mailbox_set_must_poll(mailbox, FALSE);
+
+    return object;
+  }
+
+  override (MN:Mailbox) void
+    seal (MNMailbox *mailbox)
+  {
+    PARENT_HANDLER(mailbox);
+
+    if (! mailbox->runtime_name)
+      mailbox->runtime_name = g_strdup(SELF(mailbox)->folder_name);
+  }
+
+  override (G:Object) void
+    dispose (GObject *object)
+  {
+    Self *self = SELF(object);
+
+    /*
+     * We are no longer operational after dispose (see unrefwith
+     * above), so we must remove our listener.
+     */
+    if (selfp->listener != CORBA_OBJECT_NIL)
+      {
+	GNOME_MailNotification_Evolution_Glue glue;
+
+	g_assert(selfp->glue != NULL);
+
+	glue = mn_corba_object_get_object(selfp->glue);
+	if (glue != CORBA_OBJECT_NIL)
+	  {
+	    bonobo_event_source_client_remove_listener(glue, selfp->listener, NULL);
+	    CORBA_Object_release(glue, NULL);
+	  }
+
+	CORBA_Object_release(selfp->listener, NULL);
+	selfp->listener = CORBA_OBJECT_NIL;
+      }
+
+    PARENT_HANDLER(object);
+  }
+
+  private void
+    folder_changed_cb (BonoboListener *listener,
+		       const char *event_name,
+		       const CORBA_any *any,
+		       CORBA_Environment *env,
+		       gpointer user_data)
+  {
+    Self *self = user_data;
+    const char *uri;
+
+    uri = BONOBO_ARG_GET_STRING(any);
+    if (! strcmp(uri, self->uri))
+      mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self));
+  }
+
+  override (MN:Reentrant:Mailbox) void
+    impl_check (MNReentrantMailbox *mailbox, unsigned long check_id)
+  {
+    Self *self = SELF(mailbox);
+    GNOME_MailNotification_Evolution_Glue glue;
+    CORBA_Environment env;
+    CORBA_sequence_GNOME_MailNotification_Evolution_Message *message_seq;
+
+    mn_reentrant_mailbox_lock(mailbox);
+
+    if (! selfp->glue)
+      {
+	selfp->glue = mn_corba_object_new(MN_EVOLUTION_GLUE_IID);
+	g_signal_connect_swapped(selfp->glue, "notify::object", G_CALLBACK(mn_reentrant_mailbox_queue_check), self);
+      }
+
+    glue = mn_corba_object_get_object(selfp->glue);
+
+    if (glue == CORBA_OBJECT_NIL)
+      {
+	if (selfp->listener != CORBA_OBJECT_NIL)
+	  {
+	    CORBA_Object_release(selfp->listener, NULL);
+	    selfp->listener = CORBA_OBJECT_NIL;
+	  }
+      }
+    else
+      {
+	if (selfp->listener == CORBA_OBJECT_NIL)
+	  selfp->listener = bonobo_event_source_client_add_listener_full(glue,
+									 g_cclosure_new(G_CALLBACK(self_folder_changed_cb), self, NULL),
+									 MN_EVOLUTION_EVENT_PREFIX ":" MN_EVOLUTION_EVENT_FOLDER_CHANGED,
+									 NULL);
+      }
+
+    if (selfp->listener == CORBA_OBJECT_NIL && glue != CORBA_OBJECT_NIL)
+      {
+	CORBA_Object_release(glue, NULL);
+	glue = CORBA_OBJECT_NIL;
+      }
+
+    mn_reentrant_mailbox_unlock(mailbox);
+
+    if (glue == CORBA_OBJECT_NIL)
+      {
+	GDK_THREADS_ENTER();
+
+	if (! mn_reentrant_mailbox_check_aborted_unlocked(mailbox, check_id))
+	  {
+	    mn_mailbox_set_error(MN_MAILBOX(self), _("unable to contact Evolution"));
+
+	    if (MN_MAILBOX(self)->must_poll)
+	      mn_mailbox_set_must_poll(MN_MAILBOX(self), FALSE);
+	  }
+
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+
+	return;
+      }
+
+    CORBA_exception_init(&env);
+
+    message_seq = GNOME_MailNotification_Evolution_Glue_getUnseenMessages(glue, self->uri, &env);
+
+    if (BONOBO_EX(&env))
+      {
+	GDK_THREADS_ENTER();
+
+	if (! mn_reentrant_mailbox_check_aborted_unlocked(mailbox, check_id))
+	  {
+	    char *errmsg;
+		
+	    errmsg = bonobo_exception_get_text(&env);
+	    mn_mailbox_set_error(MN_MAILBOX(self), "%s", errmsg);
+	    g_free(errmsg);
+
+	    if (! MN_MAILBOX(self)->must_poll)
+	      mn_mailbox_set_must_poll(MN_MAILBOX(self), TRUE);
+	  }
+	    
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+      }
+    else
+      {
+	int i;
+	GSList *messages = NULL;
+
+	for (i = 0; i < message_seq->_length; i++)
+	  {
+	    messages = g_slist_append(messages, mn_message_new(MN_MAILBOX(mailbox),
+							       NULL,
+							       message_seq->_buffer[i].sent_time,
+							       message_seq->_buffer[i].id,
+							       message_seq->_buffer[i].from,
+							       message_seq->_buffer[i].subject));
+
+	    if (mn_reentrant_mailbox_check_aborted(mailbox, check_id))
+	      break;
+	  }
+
+	GDK_THREADS_ENTER();
+
+	if (! mn_reentrant_mailbox_check_aborted_unlocked(mailbox, check_id))
+	  {
+	    mn_mailbox_set_messages(MN_MAILBOX(self), messages);
+
+	    if (MN_MAILBOX(self)->must_poll)
+	      mn_mailbox_set_must_poll(MN_MAILBOX(self), FALSE);
+	  }
+    
+	mn_g_object_slist_free(messages);
+
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+
+	CORBA_free(message_seq);
+      }
+
+    CORBA_exception_free(&env);
+    CORBA_Object_release(glue, NULL);
+  }
+}

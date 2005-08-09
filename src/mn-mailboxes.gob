@@ -16,50 +16,61 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.10
+requires 2.0.12
 
 %headertop{
 #include "mn-mailbox.h"
 %}
+
 %{
 #include "config.h"
+#include <unistd.h>
+#include <stdarg.h>
 #include <glib/gi18n.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
 #include <eel/eel.h>
 #include "mn-conf.h"
 #include "mn-util.h"
-#include "mn-pending-mailbox.h"
-#include "mn-unsupported-mailbox.h"
+#include "mn-message.h"
+#include "mn-mailbox-private.h"
 %}
 
 class MN:Mailboxes from G:Object
 {
-  private GSList *list destroywith mn_g_object_slist_free;
+  public GList *list destroywith eel_g_object_list_free;
+
   private unsigned int timeout_id;
+
+  private GSList *add_queue destroywith mn_g_object_slist_free;
+  private GSList *remove_queue destroywith mn_g_object_slist_free;
+  private unsigned int queue_idle_id;
     
   /**
    * mailbox-added:
    * @self: the object which received the signal
-   * @mailbox: the mailbox which is about to be added
+   * @mailbox: the mailbox which was added
    *
    * This signal gets emitted after a mailbox is added to the list.
    **/
-  signal private NONE (OBJECT)
-    void mailbox_added (self, MN:Mailbox *mailbox (check null type));
+  signal first private NONE (OBJECT)
+    void mailbox_added (self, MN:Mailbox *mailbox (check null type))
+  {
+    /* connect signals */
+    g_object_connect(mailbox,
+		     "signal::messages-changed", self_mailbox_messages_changed_h, self,
+		     "signal::notify", self_mailbox_notify_h, self,
+		     "signal::notify::error", self_mailbox_notify_error_h, self,
+		     "signal::notify::must-poll", self_mailbox_notify_must_poll_h, self,
+		     NULL);
 
-  /**
-   * mailbox-changed:
-   * @self: the object which received the signal
-   * @mailbox: the mailbox which has changed
-   *
-   * This signal gets emitted after a mailbox changes type.
-   **/
-  signal private NONE (OBJECT)
-    void mailbox_changed (self, MN:Mailbox *mailbox (check null type));
-
+    mn_mailbox_check(mailbox);
+  }
+  
   /**
    * mailbox-removed:
    * @self: the object which received the signal
-   * @mailbox: the mailbox which is about to be removed
+   * @mailbox: the mailbox which was removed
    *
    * This signal gets emitted after a mailbox is removed from the
    * list.
@@ -69,9 +80,10 @@ class MN:Mailboxes from G:Object
   {
     /* disconnect signals */
     g_object_disconnect(mailbox,
-			"any-signal", self_messages_changed_h, self,
-			"any-signal", self_notify_error_h, self,
-			"any-signal", self_notify_must_poll_h, self,
+			"any-signal", self_mailbox_messages_changed_h, self,
+			"any-signal", self_mailbox_notify_h, self,
+			"any-signal", self_mailbox_notify_error_h, self,
+			"any-signal", self_mailbox_notify_must_poll_h, self,
 			NULL);
 
     /* emit the "removed" signal on the mailbox */
@@ -82,6 +94,11 @@ class MN:Mailboxes from G:Object
     self_error_changed(self);
   }
   
+  signal (DETAILED) private NONE (OBJECT, POINTER)
+    void mailbox_notify (self,
+			 MN:Mailbox *mailbox (check null type),
+			 GParamSpec *pspec (check null));
+
   /**
    * list-changed:
    * @self: the object which received the signal
@@ -127,39 +144,83 @@ class MN:Mailboxes from G:Object
   signal private NONE (NONE)
     void error_changed (self);
 
-  property BOOLEAN must_poll (blurb = _("Whether one or more of the mailboxes has to be polled"),
-			      export)
+  property BOOLEAN must_poll (export)
     get
     {
       gboolean must_poll = FALSE;
-      GSList *l;
+      GList *l;
 
-      MN_LIST_FOREACH(l, selfp->list)
-	if (MN_MAILBOX_MUST_POLL(l->data))
-	  {
-	    must_poll = TRUE;
-	    break;
-	  }
+      MN_LIST_FOREACH(l, self->list)
+	{
+	  MNMailbox *mailbox = l->data;
+
+	  if (mailbox->must_poll)
+	    {
+	      must_poll = TRUE;
+	      break;
+	    }
+	}
 
       g_value_set_boolean(VAL, must_poll);
     };
 
   init (self)
   {
-    self_update_from_conf(self);
+    char *filename;
+    gboolean exists;
+
+    filename = g_build_filename(mn_conf_dot_dir, "mailboxes.xml", NULL);
+    exists = g_file_test(filename, G_FILE_TEST_EXISTS);
+    g_free(filename);
+
+    if (exists)
+      self_load(self);
+    else if (mn_conf_is_set(MN_CONF_OBSOLETE_MAILBOXES))
+      {
+	GSList *gconf_mailboxes;
+	GSList *l;
+	GSList *invalid_uri_list = NULL;
+
+	gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_OBSOLETE_MAILBOXES);
+	MN_LIST_FOREACH(l, gconf_mailboxes)
+	  {
+	    const char *uri = l->data;
+	    MNMailbox *mailbox;
+
+	    mailbox = mn_mailbox_new_from_obsolete_uri(uri);
+	    if (mailbox)
+	      {
+		mn_mailbox_seal(mailbox);
+		self_queue_add(self, mailbox);
+		g_object_unref(mailbox);
+	      }
+	    else
+	      invalid_uri_list = g_slist_append(invalid_uri_list, (gpointer) uri);
+	  }
+
+	if (invalid_uri_list)
+	  {
+	    mn_invalid_uri_list_dialog(NULL, _("An error has occurred while importing old mailboxes"), invalid_uri_list);
+	    g_slist_free(invalid_uri_list);
+	  }
+	
+	eel_g_slist_free_deep(gconf_mailboxes);
+      }
+
     self_install_timeout(self);
 
     mn_conf_notification_add(self, MN_CONF_DELAY_NAMESPACE, self_notify_delay_cb, self);
-    mn_conf_notification_add(self, MN_CONF_MAILBOXES, self_notify_mailboxes_cb, self);
   }
   
   override (G:Object) void
-    finalize (G:Object *object (check null type))
+    finalize (GObject *object)
   {
     Self *self = SELF(object);
 
     if (selfp->timeout_id)
       g_source_remove(selfp->timeout_id);
+    if (selfp->queue_idle_id)
+      g_source_remove(selfp->queue_idle_id);
 
     PARENT_HANDLER(object);
   }
@@ -168,7 +229,7 @@ class MN:Mailboxes from G:Object
     notify_delay_cb (GConfClient *client,
 		     unsigned int cnxn_id,
 		     GConfEntry *entry,
-		     gpointer user_data (check null))
+		     gpointer user_data)
   {
     Self *self = user_data;
 
@@ -177,142 +238,257 @@ class MN:Mailboxes from G:Object
     GDK_THREADS_LEAVE();
   }
 
-  private void
-    notify_mailboxes_cb (GConfClient *client,
-			 unsigned int cnxn_id,
-			 GConfEntry *entry,
-			 gpointer user_data (check null))
+  public void
+    load (self)
   {
-    Self *self = user_data;
+    GError *err = NULL;
 
-    GDK_THREADS_ENTER();
-    self_update_from_conf(self);
-    GDK_THREADS_LEAVE();
+    if (! self_load_real(self, &err))
+      {
+	mn_error_dialog(NULL, NULL, NULL, _("Unable to load the mailboxes configuration"), "%s", err->message);
+	g_error_free(err);
+      }
   }
   
   private void
-    update_from_conf (self)
+    add_error (GString **errors (check null),
+	       int *n_errors (check null),
+	       const char *format, ...)
   {
-    GSList *gconf_mailboxes;
-    GSList *l;
-    gboolean changed = FALSE;
+    va_list args;
+    char *message;
 
-    gconf_mailboxes = eel_gconf_get_string_list(MN_CONF_MAILBOXES);
+    if (*errors)
+      g_string_append_c(*errors, '\n');
+    else
+      *errors = g_string_new(NULL);
 
-    /* first step: remove old mailboxes */
+    va_start(args, format);
+    message = g_strdup_vprintf(format, args);
+    va_end(args);
 
-  loop:
-    MN_LIST_FOREACH(l, selfp->list)
+    g_string_append(*errors, message);
+    g_free(message);
+
+    (*n_errors)++;
+  }
+  
+  private gboolean
+    load_real (self, GError **err)
+  {
+    char *filename;
+    xmlDoc *doc;
+    xmlNode *root;
+    xmlNode *node;
+    gboolean list_changed = FALSE;
+    gboolean status = TRUE;
+    GString *errors = NULL;
+    int n_errors = 0;
+
+    filename = g_build_filename(mn_conf_dot_dir, "mailboxes.xml", NULL);
+    doc = xmlParseFile(filename);
+    g_free(filename);
+
+    if (! doc)
+      {
+	g_set_error(err, 0, 0, _("Unable to parse the XML document."));
+	goto error;
+      }
+    
+    root = xmlDocGetRootElement(doc);
+    if (! root)
+      {
+	g_set_error(err, 0, 0, _("The root element is missing."));
+	goto error;
+      }
+
+    if (strcmp(root->name, "mailboxes"))
+      {
+	g_set_error(err, 0, 0, _("The root element \"%s\" is invalid."), root->name);
+	goto error;
+      }
+
+    for (node = root->children; node; node = node->next)
+      if (node->type == XML_ELEMENT_NODE)
+	{
+	  if (! strcmp(node->name, "mailbox"))
+	    {
+	      MNMailbox *mailbox;
+	      GError *tmp_err = NULL;
+	  
+	      mailbox = mn_mailbox_new_from_xml_node(node, &tmp_err);
+	      if (mailbox)
+		{
+		  mn_mailbox_seal(mailbox);
+		  self_add_real(self, mailbox);
+		  g_object_unref(mailbox);
+		  
+		  list_changed = TRUE;
+		}
+	      else
+		{
+		  self_add_error(&errors, &n_errors, _("On line %i: %s."), node->line, tmp_err->message);
+		  g_error_free(tmp_err);
+		}
+	    }
+	  else
+	    self_add_error(&errors, &n_errors, _("On line %i: unknown element \"%s\"."), node->line, node->name);
+	}
+
+    if (list_changed)
+      self_list_changed(self);
+
+    if (errors)
+      {
+	mn_error_dialog(NULL,
+			NULL,
+			NULL,
+			ngettext("An error has occurred while loading the mailboxes configuration",
+				 "Errors have occurred while loading the mailboxes configuration",
+				 n_errors),
+			"%s", errors->str);
+	g_string_free(errors, TRUE);
+      }
+    
+    goto end;
+
+  error:
+    status = FALSE;
+
+  end:
+    xmlFreeDoc(doc);
+
+    return status;
+  }
+
+  public void
+    save (self)
+  {
+    GError *err = NULL;
+
+    if (! self_save_real(self, &err))
+      {
+	mn_error_dialog(NULL, NULL, NULL, _("Unable to save the mailboxes configuration"), "%s", err->message);
+	g_error_free(err);
+      }
+  }
+  
+  private gboolean
+    save_real (self, GError **err)
+  {
+    xmlDoc *doc;
+    xmlNode *root;
+    int indent;
+    GList *l;
+    char *filename;
+    char *tmp_filename;
+    char *old_filename;
+    int result;
+    gboolean old_exists;
+    gboolean status = TRUE;
+
+    indent = xmlIndentTreeOutput;
+    xmlIndentTreeOutput = 1;
+
+    doc = xmlNewDoc("1.0");
+    root = xmlNewNode(NULL, "mailboxes");
+    xmlDocSetRootElement(doc, root);
+
+    MN_LIST_FOREACH(l, self->list)
       {
 	MNMailbox *mailbox = l->data;
+	xmlNode *node;
 
-	if (! self_conf_find_uri(gconf_mailboxes, mailbox->uri))
-	  {
-	    selfp->list = g_slist_delete_link(selfp->list, l);
-
-	    self_mailbox_removed(self, mailbox);
-	    g_object_unref(mailbox);
-
-	    changed = TRUE;
-	    goto loop;
-	  }
+	node = mn_mailbox_xml_node_new(mailbox);
+	xmlAddChild(root, node); /* owns node */
       }
+    
+    filename = g_build_filename(mn_conf_dot_dir, "mailboxes.xml", NULL);
+    tmp_filename = g_strconcat(filename, ".tmp", NULL);
+    old_filename = g_strconcat(filename, ".old", NULL);
 
-    /* second step: add new mailboxes */
+    result = xmlSaveFormatFile(tmp_filename, doc, 1);
+    xmlFreeDoc(doc);
 
-    MN_LIST_FOREACH(l, gconf_mailboxes)
+    xmlIndentTreeOutput = indent;
+
+    if (result < 0)
       {
-	const char *text_uri = l->data;
-	MNURI *uri;
-      
-	uri = mn_uri_new(text_uri);
-	if (! self_find_uri(self, uri))
-	  {
-	    MNMailbox *mailbox;
-
-	    mailbox = mn_pending_mailbox_new(uri);
-	    selfp->list = g_slist_append(selfp->list, mailbox);
-
-	    self_mailbox_added(self, mailbox);
-	    changed = TRUE;
-	    
-	    mn_mailbox_new_async(uri, self_new_cb, self);
-	  }
-	g_object_unref(uri);
+	g_set_error(err, 0, 0, _("Unable to write the XML document."));
+	goto error;
       }
 
-    eel_g_slist_free_deep(gconf_mailboxes);
-    if (changed)
-      self_list_changed(self);
+    old_exists = g_file_test(filename, G_FILE_TEST_EXISTS);
+    if (old_exists)
+      {
+	if (! mn_rename(filename, old_filename, err))
+	  goto error;
+      }
+
+    if (! mn_rename(tmp_filename, filename, err))
+      goto error;
+
+    if (old_exists)
+      if (unlink(old_filename) < 0) /* non fatal */
+	g_warning(_("unable to delete %s: %s"), old_filename, g_strerror(errno));
+
+    goto end;			/* success */
+
+  error:
+    status = FALSE;
+
+  end:
+    g_free(filename);
+    g_free(tmp_filename);
+    g_free(old_filename);
+
+    return status;
   }
 
   private void
-    new_cb (MN:Mailbox *mailbox (check null type),
-	    gpointer user_data (check null))
-  {
-    Self *self = user_data;
-    GSList *elem;
-
-    elem = self_find_uri(self, mailbox->uri);
-    if (elem)
-      {
-	if (MN_IS_UNSUPPORTED_MAILBOX(mailbox))
-	  mn_info(_("%s is unsupported: %s"), mn_mailbox_get_name(mailbox), mn_unsupported_mailbox_get_reason(MN_UNSUPPORTED_MAILBOX(mailbox)));
-	
-	g_object_connect(mailbox,
-			 "signal::messages-changed", self_messages_changed_h, self,
-			 "signal::notify::error", self_notify_error_h, self,
-			 "signal::notify::must-poll", self_notify_must_poll_h, self,
-			 NULL);
-
-	if (MN_MAILBOX_CAN_CHECK(mailbox))
-	  mn_mailbox_check(mailbox);
-
-	g_object_unref(elem->data);
-	elem->data = mailbox;
-
-	self_mailbox_changed(self, mailbox);
-	self_list_changed(self);
-      }
-    else
-      g_object_unref(mailbox);
-  }
-
-  private void
-    messages_changed_h (MN:Mailbox *mailbox (check null type),
-			gboolean has_new,
-			gpointer user_data (check null))
+    mailbox_messages_changed_h (MNMailbox *mailbox,
+				gboolean has_new,
+				gpointer user_data)
   {
     Self *self = user_data;
     int n_messages;
 
-    n_messages = g_slist_length(mn_mailbox_get_messages(mailbox));
+    n_messages = g_slist_length(mailbox->messages);
     mn_info(ngettext("%s has %i new message", "%s has %i new messages", n_messages),
-	    mn_mailbox_get_name(mailbox), n_messages);
+	    mailbox->runtime_name, n_messages);
     
     self_messages_changed(self, has_new);
   }
   
   private void
-    notify_error_h (G:Object *object (check null type),
-		    GParamSpec *pspec (check null),
-		    gpointer user_data (check null))
+    mailbox_notify_h (GObject *object, GParamSpec *pspec, gpointer user_data)
+  {
+    Self *self = user_data;
+    char *detailed_signal;
+
+    detailed_signal = g_strconcat("mailbox-notify::", g_param_spec_get_name(pspec), NULL);
+    g_signal_emit_by_name(self, detailed_signal, object, pspec);
+    g_free(detailed_signal);
+  }
+  
+  private void
+    mailbox_notify_error_h (GObject *object,
+			    GParamSpec *pspec,
+			    gpointer user_data)
   {
     Self *self = user_data;
     MNMailbox *mailbox = MN_MAILBOX(object);
-    const char *error;
 
-    error = mn_mailbox_get_error(mailbox);
-    if (error)
-      mn_info(_("%s reported an error: %s"), mn_mailbox_get_name(mailbox), error);
+    if (mailbox->error)
+      mn_info(_("%s reported an error: %s"), mailbox->runtime_name, mailbox->error);
 
     self_error_changed(self);
   }
 
   private void
-    notify_must_poll_h (G:Object *object (check null type),
-			GParamSpec *pspec (check null),
-			gpointer user_data (check null))
+    mailbox_notify_must_poll_h (GObject *object,
+				GParamSpec *pspec,
+				gpointer user_data)
   {
     Self *self = user_data;
 
@@ -323,7 +499,7 @@ class MN:Mailboxes from G:Object
   private void
     install_timeout (self)
   {
-    mn_source_remove(&selfp->timeout_id);
+    mn_source_clear(&selfp->timeout_id);
     selfp->timeout_id = mn_timeout_add(MN_CONF_DELAY_MINUTES,
 				       MN_CONF_DELAY_SECONDS,
 				       self_timeout_cb,
@@ -331,7 +507,7 @@ class MN:Mailboxes from G:Object
   }
 
   private gboolean
-    timeout_cb (gpointer data (check null))
+    timeout_cb (gpointer data)
   {
     Self *self = data;
 
@@ -345,33 +521,27 @@ class MN:Mailboxes from G:Object
   public void
     check (self)
   {
-    GSList *l;
+    GList *l;
 
-    MN_LIST_FOREACH(l, selfp->list)
+    MN_LIST_FOREACH(l, self->list)
       {
 	MNMailbox *mailbox = l->data;
 
-	if (MN_MAILBOX_MUST_POLL(mailbox))
+	if (mailbox->must_poll)
 	  mn_mailbox_check(mailbox);
       }
-  }
-
-  public GSList *
-    get (self)
-  {
-    return selfp->list;
   }
 
   public GSList *
     get_messages (self)
   {
     GSList *messages = NULL;
-    GSList *l;
+    GList *l;
 
-    MN_LIST_FOREACH(l, selfp->list)
+    MN_LIST_FOREACH(l, self->list)
       {
 	MNMailbox *mailbox = l->data;
-	messages = g_slist_concat(messages, mn_g_object_slist_copy(mn_mailbox_get_messages(mailbox)));
+	messages = g_slist_concat(messages, mn_g_object_slist_copy(mailbox->messages));
       }
 
     messages = mn_message_slist_sort_by_sent_time(messages);
@@ -379,53 +549,96 @@ class MN:Mailboxes from G:Object
 
     return messages;
   }
-  
-  public GSList *
-    find (self, const char *text_uri (check null))
+
+  private void
+    add_real (self, MN:Mailbox *mailbox (check null type))
   {
-    MNURI *uri;
-    GSList *elem;
-
-    uri = mn_uri_new(text_uri);
-    elem = self_find_uri(self, uri);
-    g_object_unref(uri);
-
-    return elem;
+    g_object_ref(mailbox);
+    self->list = g_list_insert_sorted(self->list, mailbox, self_compare_by_name_func);
+    self_mailbox_added(self, mailbox);
   }
   
-  public GSList *
-    find_uri (self, MN:URI *uri (check null type))
+  public void
+    add (self, MN:Mailbox *mailbox (check null type))
   {
-    return g_slist_find_custom(selfp->list, uri, self_find_compare_func);
+    self_add_real(self, mailbox);
+    self_list_changed(self);
+    self_save(self);
+  }
+
+  public void
+    queue_add (self, MN:Mailbox *mailbox (check null type))
+  {
+    g_object_ref(mailbox);
+    selfp->add_queue = g_slist_append(selfp->add_queue, mailbox);
+
+    if (! selfp->queue_idle_id)
+      selfp->queue_idle_id = g_idle_add(self_queue_idle_cb, self);
+  }
+
+  private void
+    remove_real (self, MN:Mailbox *mailbox (check null type))
+  {
+    self->list = g_list_remove(self->list, mailbox);
+    self_mailbox_removed(self, mailbox);
+    g_object_unref(mailbox);
+  }
+
+  public void
+    remove (self, MN:Mailbox *mailbox (check null type))
+  {
+    self_remove_real(self, mailbox);
+    self_list_changed(self);
+    self_save(self);
   }
   
-  private int
-    find_compare_func (gconstpointer a, gconstpointer b)
+  public void
+    queue_remove (self, MN:Mailbox *mailbox (check null type))
   {
-    MNMailbox *mailbox = (MNMailbox *) a;
-    MNURI *uri = (MNURI *) b;
+    g_object_ref(mailbox);
+    selfp->remove_queue = g_slist_append(selfp->remove_queue, mailbox);
 
-    return strcmp(mailbox->uri->text, uri->text);
-  }
-
-  public GSList *
-    conf_find_uri (GSList *gconf_mailboxes, MN:URI *uri (check null type))
-  {
-    return g_slist_find_custom(gconf_mailboxes, uri, self_conf_find_compare_func);
+    if (! selfp->queue_idle_id)
+      selfp->queue_idle_id = g_idle_add(self_queue_idle_cb, self);
   }
   
-  private int
-    conf_find_compare_func (gconstpointer a, gconstpointer b)
+  private gboolean
+    queue_idle_cb (gpointer data)
   {
-    MNURI *uri_a;
-    MNURI *uri_b = (MNURI *) b;
-    int cmp;
+    Self *self = data;
+    GSList *l;
 
-    uri_a = mn_uri_new(a);
-    cmp = strcmp(uri_a->text, uri_b->text);
-    g_object_unref(uri_a);
+    GDK_THREADS_ENTER();
 
-    return cmp;
+    MN_LIST_FOREACH(l, selfp->add_queue)
+      self_add_real(self, l->data);
+
+    mn_g_object_slist_free(selfp->add_queue);
+    selfp->add_queue = NULL;
+
+    MN_LIST_FOREACH(l, selfp->remove_queue)
+      self_remove_real(self, l->data);
+
+    mn_g_object_slist_free(selfp->remove_queue);
+    selfp->remove_queue = NULL;
+
+    self_list_changed(self);
+    self_save(self);
+
+    selfp->queue_idle_id = 0;
+
+    GDK_THREADS_LEAVE();
+
+    return FALSE;		/* remove */
+  }
+  
+  public int
+    compare_by_name_func (gconstpointer a, gconstpointer b)
+  {
+    MNMailbox *mailbox_a = (MNMailbox *) a;
+    MNMailbox *mailbox_b = (MNMailbox *) b;
+
+    return mn_utf8_strcasecoll(mailbox_a->runtime_name, mailbox_b->runtime_name);
   }
   
   public MNMailboxes *

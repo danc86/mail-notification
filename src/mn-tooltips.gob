@@ -20,19 +20,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.10
+requires 2.0.12
 
 %headertop{
 #include <gtk/gtk.h>
 %}
 
 %privateheader{
-  typedef struct
-  {
-    MNTooltips	*self;
-    GtkWidget	*widget;
-    GtkWidget	*tip_widget;
-  } TooltipsData;
+typedef struct
+{
+  MNTooltips	*self;
+  GtkWidget	*widget;
+  GtkWidget	*tip_widget;
+} TooltipsData;
 %}
 
 %{
@@ -51,21 +51,21 @@ requires 2.0.10
 					 * to normal
 					 */
 
-  /* The private flags that are used in the private_flags member of GtkWidget.
-   */
-  typedef enum
-  {
-    PRIVATE_GTK_LEAVE_PENDING	= 1 <<  4
-  } GtkPrivateFlags;
+/* The private flags that are used in the private_flags member of GtkWidget.
+ */
+typedef enum
+{
+  PRIVATE_GTK_LEAVE_PENDING	= 1 <<  4
+} GtkPrivateFlags;
 
-  /* Macros for extracting a widgets private_flags from GtkWidget.
-   */
+/* Macros for extracting a widgets private_flags from GtkWidget.
+ */
 #define GTK_PRIVATE_FLAGS(wid)            (GTK_WIDGET (wid)->private_flags)
   
-  /* Macros for setting and clearing private widget flags.
-   * we use a preprocessor string concatenation here for a clear
-   * flags/private_flags distinction at the cost of single flag operations.
-   */
+/* Macros for setting and clearing private widget flags.
+ * we use a preprocessor string concatenation here for a clear
+ * flags/private_flags distinction at the cost of single flag operations.
+ */
 #define GTK_PRIVATE_SET_FLAG(wid,flag)    G_STMT_START{ (GTK_PRIVATE_FLAGS (wid) |= (PRIVATE_ ## flag)); }G_STMT_END
 %} 
 
@@ -80,7 +80,7 @@ class MN:Tooltips from G:Object
   private unsigned int timeout_id;
   
   override (G:Object) void
-    finalize (G:Object *object (check null type))
+    finalize (GObject *object)
   {
     Self *self = SELF(object);
     GSList *l;
@@ -115,7 +115,7 @@ class MN:Tooltips from G:Object
   }
 
   private void
-    display_closed_h (Gdk:Display *display (check null type),
+    display_closed_h (GdkDisplay *display,
 		      gboolean is_error,
 		      gpointer user_data)
   {
@@ -383,7 +383,7 @@ class MN:Tooltips from G:Object
 	gtk_widget_hide(selfp->window);
       }
 
-    mn_source_remove(&selfp->timeout_id);
+    mn_source_clear(&selfp->timeout_id);
   
     selfp->active_data = NULL;
   
@@ -506,9 +506,7 @@ class MN:Tooltips from G:Object
   }
 
   private void
-    event_after_h (Gtk:Widget *widget (check null type),
-		   GdkEvent *event (check null),
-		   gpointer user_data)
+    event_after_h (GtkWidget *widget, GdkEvent *event, gpointer user_data)
   {
     Self *self;
     TooltipsData *old_data;

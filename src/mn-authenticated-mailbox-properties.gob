@@ -1,0 +1,141 @@
+/* 
+ * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include <gtk/gtk.h>
+#include "mn-mailbox-properties.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include "mn-authenticated-mailbox.h"
+%}
+
+class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties
+{
+  protected GtkWidget *username_vbox;
+  protected GtkWidget *username_label;
+  protected GtkWidget *username_entry;
+  protected GtkWidget *password_vbox;
+  protected GtkWidget *password_label;
+  protected GtkWidget *password_entry;
+
+  init (self)
+  {
+    const char *username;
+
+    self->username_vbox = self_field_new(self,
+					 _("_Username:"),
+					 &self->username_label,
+					 &self->username_entry);
+    self->password_vbox = self_field_new(self,
+					 _("_Password:"),
+					 &self->password_label,
+					 &self->password_entry);
+
+    /* defaults to the login name */
+    username = g_get_user_name();
+    if (username)
+      gtk_entry_set_text(GTK_ENTRY(self->username_entry), username);
+
+    gtk_entry_set_visibility(GTK_ENTRY(self->password_entry), FALSE);
+  }
+
+  protected GtkWidget *
+    field_new (self,
+	       const char *mnemonic (check null),
+	       GtkWidget **label,
+	       GtkWidget **entry (check null))
+  {
+    GtkWidget *hbox;
+    GtkWidget *_label;
+
+    _label = gtk_label_new_with_mnemonic(mnemonic);
+    gtk_misc_set_alignment(GTK_MISC(_label), 0.0, 0.5);
+
+    *entry = gtk_entry_new();
+    gtk_label_set_mnemonic_widget(GTK_LABEL(_label), *entry);
+
+    hbox = gtk_hbox_new(FALSE, 12);
+    gtk_box_pack_start(GTK_BOX(hbox), _label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), *entry, TRUE, TRUE, 0);
+    gtk_widget_show_all(hbox);
+
+    gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->label_size_group, _label);
+
+    if (label)
+      *label = _label;
+    
+    return hbox;
+  }
+
+  override (MN:Mailbox:Properties) void
+    set_mailbox (MNMailboxProperties *properties, MNMailbox *mailbox)
+  {
+    Self *self = SELF(properties);
+    MNAuthenticatedMailbox *auth_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
+
+    gtk_entry_set_text(GTK_ENTRY(self->username_entry), auth_mailbox->username ? auth_mailbox->username : "");
+    gtk_entry_set_text(GTK_ENTRY(self->password_entry), auth_mailbox->password ? auth_mailbox->password : "");
+  }
+
+  override (MN:Mailbox:Properties) MNMailbox *
+    get_mailbox (MNMailboxProperties *properties)
+  {
+    Self *self = SELF(properties);
+    MNMailbox *mailbox;
+    const char *username;
+    const char *password;
+
+    mailbox = PARENT_HANDLER(properties);
+
+    username = gtk_entry_get_text(GTK_ENTRY(self->username_entry));
+    password = gtk_entry_get_text(GTK_ENTRY(self->password_entry));
+
+    g_object_set(mailbox,
+		 "username", *username ? username : NULL,
+		 "password", *password ? password : NULL,
+		 NULL);
+
+    return mailbox;
+  }
+
+  protected void
+    get_contents (self,
+		  const char **username,
+		  const char **password)
+  {
+    if (username)
+      {
+	const char *_username;
+
+	_username = gtk_entry_get_text(GTK_ENTRY(self->username_entry));
+	*username = *_username ? _username : NULL;
+      }
+    if (password)
+      {
+	const char *_password;
+
+	_password = gtk_entry_get_text(GTK_ENTRY(self->password_entry));
+	*password = *_password ? _password : NULL;
+      }
+  }
+}

@@ -16,41 +16,68 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.10
+requires 2.0.12
 
 %headertop{
 #include "config.h"
-#include <gnome.h>
+#include <gtk/gtk.h>
 %}
+
 %{
+#include <gnome.h>
 #include "mn-util.h"
 %}
 
-class MN:About:Dialog from Gnome:About
+class MN:About:Dialog from Gtk:About:Dialog
 {
+  class_init (class)
+  {
+    gtk_about_dialog_set_email_hook(self_activate_link_cb, "mailto:", NULL);
+    gtk_about_dialog_set_url_hook(self_activate_link_cb, NULL, NULL);
+  }
+  
   init (self)
   {
+    GtkAboutDialog *about = GTK_ABOUT_DIALOG(self);
     const char *authors[] = { "Jean-Yves Lefort <jylefort@brutele.be>", NULL };
     const char *documenters[] = { "Jean-Yves Lefort <jylefort@brutele.be>", NULL };
     GdkPixbuf *logo;
 
+    gtk_about_dialog_set_version(about, VERSION);
+    gtk_about_dialog_set_copyright(about, "Copyright \302\251 2003-2005 Jean-Yves Lefort");
+    gtk_about_dialog_set_comments(about, _("A Mail Notification Icon"));
+    gtk_about_dialog_set_website(about, "http://www.nongnu.org/mailnotify");
+    gtk_about_dialog_set_authors(about, authors);
+    gtk_about_dialog_set_documenters(about, documenters);
+    /*
+     * translators: Your Name <your-email>
+     * optionally followed by one or more: \nOther Contributor's Name <his-email>
+     */
+    gtk_about_dialog_set_translator_credits(about, _("translator-credits"));
+
     logo = mn_pixbuf_new(MN_IMAGE_FILE(UIDIR, "logo.png"));
-    gnome_about_construct(GNOME_ABOUT(self),
-			  _("Mail Notification"),
-			  VERSION,
-			  "Copyright \302\251 2003-2005 Jean-Yves Lefort",
-			  _("A Mail Notification Icon"),
-			  authors,
-			  documenters,
-			  /* translator: replace with your name and email */
-			  _("Jean-Yves Lefort <jylefort@brutele.be>"),
-			  logo);
-    g_object_unref(logo);
+    if (logo)
+      {
+	gtk_about_dialog_set_logo(about, logo);
+	g_object_unref(logo);
+      }
   }
 
-  public GtkWidget *
-    new (void) 
+  private void
+    activate_link_cb (GtkAboutDialog *about,
+		      const char *link,
+		      gpointer data)
   {
-    return GTK_WIDGET(GET_NEW);
+    GError *err = NULL;
+    const char *prefix = data;
+    char *url;
+
+    url = prefix ? g_strconcat(prefix, link, NULL) : g_strdup(link);
+    if (! gnome_url_show(url, &err))
+      {
+        mn_error_dialog(GTK_WINDOW(about), NULL, NULL, _("Unable to open link"), "%s", err->message);
+	g_error_free(err);
+      }
+    g_free(url);
   }
 }

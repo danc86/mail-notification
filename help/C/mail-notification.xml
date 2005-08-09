@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "1.1">
-  <!ENTITY manrevision "2.11">
-  <!ENTITY date "Sunday, March 6, 2005">
+  <!ENTITY appversion "2.0">
+  <!ENTITY manrevision "2.12">
+  <!ENTITY date "Tuesday, August 9, 2005">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,7 +26,7 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.94 2005/03/06 21:37:27 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.113 2005/08/09 19:17:30 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (C) 2004, 2005 Jean-Yves Lefort -->
@@ -126,6 +126,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.11</revnumber>
+	<date>Sunday, March 6, 2005</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -290,12 +301,12 @@
     </para>
     <itemizedlist>
       <listitem><para>multiple mailbox support</para></listitem>
-      <listitem><para>&mbox;, &mh;, &maildir;, &sylpheed;, &pop3;, &imap; and &gmail; support</para></listitem>
+      <listitem><para>&mbox;, &mh;, &maildir;, &pop3;, &imap;, &gmail;, Evolution and &sylpheed; support</para></listitem>
       <listitem><para>&sasl; authentication support</para></listitem>
       <listitem><para>APOP authentication support</para></listitem>
       <listitem><para>&ssl;/&tls; support</para></listitem>
       <listitem><para>automatic detection of mailbox format</para></listitem>
-      <listitem><para><link linkend="immediate-notification">immediate notification</link> (the status icon is updated within seconds after a mailbox changes)</para></listitem>
+      <listitem><para><link linkend="immediate-notification">immediate notification</link> (the status icon is updated immediately or within seconds after a mailbox changes)</para></listitem>
       <listitem><para>a mail summary</para></listitem>
       <listitem><para><ulink url="http://developer.gnome.org/projects/gup/hig" type="http">HIG</ulink> 2.0 compliance</para></listitem>
     </itemizedlist>
@@ -380,20 +391,6 @@
 	      <varlistentry>
 		<term>--update</term>
 		<listitem><para>Update the mail status</para></listitem>
-	      </varlistentry>
-
-	      <varlistentry>
-		<term>--report</term>
-		<listitem>
-		  <para>Report the mail status</para>
-		  <warning>
-		    <title>Security</title>
-		    <para>
-		      The output of --report may contain mailbox
-		      passwords.
-		    </para>
-		  </warning>
-		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
@@ -575,16 +572,10 @@
     <title>Properties</title> 
     <para>To configure &app;, choose
       <menuchoice>
-	<guimenu>Applications</guimenu>
-	<guisubmenu>Desktop Preferences</guisubmenu>
-	<guimenuitem>Mail Notification</guimenuitem>
-      </menuchoice> (or on some systems
-      <menuchoice>
-	<guimenu>Applications</guimenu>
+	<guimenu>Desktop</guimenu>
 	<guisubmenu>Preferences</guisubmenu>
-	<guisubmenu>More Preferences</guisubmenu>
 	<guimenuitem>Mail Notification</guimenuitem>
-      </menuchoice>).
+      </menuchoice> (this location may vary across systems).
     </para>
     <para>
       The <guilabel>Properties</guilabel> dialog contains the
@@ -648,7 +639,7 @@
 	      You can specify a <guilabel>mail reader</guilabel>
 	      (which can be launched from various parts of &app;), as
 	      well as configure commands to be executed <guilabel>when new mail arrives</guilabel>
-	      and <guilabel>when all mail is read</guilabel>.
+	      and <guilabel>when all mail has been read</guilabel>.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -712,6 +703,78 @@
 		</para>
 	      </tip>
 	    </para>
+	    <para>
+	      Small emblems may be displayed over mailbox icons. The
+	      following table summarizes them.
+	    </para>
+	    <table>
+	      <title>Mailbox Emblems</title>
+	      <tgroup cols="2">
+		<thead>
+		  <row>
+		    <entry>Icon</entry>
+		    <entry>Signification</entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry>
+		      <screenshot>
+			<mediaobject>
+			  <imageobject>
+			    <imagedata fileref="figures/mailbox-emblem-error.png" format="PNG"/>
+			  </imageobject>
+			  <textobject>
+			    <phrase>Shows the emblem which is displayed when a mailbox has errors.</phrase>
+			  </textobject>
+			</mediaobject>
+		      </screenshot>
+		    </entry>
+		    <entry>
+		      An error has occurred while trying to access the
+		      mailbox. The mailbox is unhandled.
+		    </entry>
+		  </row>
+		  <row>
+		    <entry>
+		      <screenshot>
+			<mediaobject>
+			  <imageobject>
+			    <imagedata fileref="figures/mailbox-emblem-polled.png" format="PNG"/>
+			  </imageobject>
+			  <textobject>
+			    <phrase>Shows the emblem which is displayed when a mailbox is checked periodically.</phrase>
+			  </textobject>
+			</mediaobject>
+		      </screenshot>
+		    </entry>
+		    <entry>
+		      The mailbox does not support <link linkend="immediate-notification">immediate notification</link>,
+		      and is checked periodically according to the
+		      <link linkend="delay-between-mail-checks">Delay between mail checks</link> setting.
+		    </entry>
+		  </row>
+		  <row>
+		    <entry>
+		      <screenshot>
+			<mediaobject>
+			  <imageobject>
+			    <imagedata fileref="figures/mailbox-emblem-unknown.png" format="PNG"/>
+			  </imageobject>
+			  <textobject>
+			    <phrase>Shows the emblem which is displayed when the format of a mailbox is unknown.</phrase>
+			  </textobject>
+			</mediaobject>
+		      </screenshot>
+		    </entry>
+		    <entry>
+		      The format of the mailbox is unknown. The
+		      mailbox is unhandled.
+		    </entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -821,6 +884,19 @@
 	    </note>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term><guibutton>Display a Test Popup</guibutton></term>
+	  <listitem>
+	    <para>
+	      Clicking on this button will display an example popup,
+	      which can be used to ease configuration of the above
+	      options.
+	    </para>
+	    <para>
+	      Click on the example popup to close it.
+	    </para>
+	  </listitem>
+	</varlistentry>
       </variablelist>
     </sect2>
   </sect1>
@@ -830,7 +906,7 @@
     <para>
       The <guilabel>Mailbox Properties</guilabel> dialog is displayed
       when you add a new mailbox or when you edit an existing one.
-      It contains the following global setting:
+      It contains the following global settings:
     </para>
 
     <variablelist>
@@ -841,6 +917,26 @@
 	    This is the type of the mailbox. If you select <guilabel>autodetect</guilabel>,
 	    the type will be autodetected using the mailbox &uri; and/or contents.
 	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><guilabel>Mailbox name</guilabel></term>
+	<listitem>
+	  <para>
+	    You can choose to assign a custom name to the mailbox. The
+	    mailbox name has informative purposes only, and is
+	    displayed in various parts of &app;. To reset to the
+	    default name, click on the <guibutton>Use Default</guibutton>
+	    button.
+	  </para>
+	  <note>
+	    <para>
+	      The mailbox name will be modified automatically as you
+	      set some of the other options. To avoid losing your
+	      choice, only fill in the mailbox name after setting the
+	      other options.
+	    </para>
+	  </note>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -861,9 +957,10 @@
 		  This is the &uri; of the mailbox.
 		  <note>
 		    <para>
-		      &app; abstracts file operations by using &gnomevfs;.
-		      All the schemes (http, ftp, ...) supported by &gnomevfs;
-		      are therefore supported by &app;.
+		      &app; abstracts file operations by using
+		      &gnomevfs;.  All the schemes (http, ftp, sftp,
+		      ...) supported by &gnomevfs; are therefore
+		      supported by &app;.
 		    </para>
 		  </note>
 		</para>
@@ -896,7 +993,10 @@
 	      <term><guilabel>Username</guilabel></term>
 	      <listitem>
 		<para>
-		  This is your username on the &pop3; or &imap; server.
+		  This is your username on the &pop3; or &imap;
+		  server.  The username will be stored to disk unless
+		  it is left blank (in such case, a credentials prompt
+		  will appear when needed).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -904,10 +1004,10 @@
 	      <term><guilabel>Password</guilabel></term>
 	      <listitem>
 		<para>
-		  This is your password on the &pop3; or &imap; server.
-		  The password will be stored to disk unless it is
-		  left blank (in such case, a password prompt will
-		  appear when needed).
+		  This is your password on the &pop3; or &imap;
+		  server.  The password will be stored to disk unless
+		  it is left blank (in such case, a credentials prompt
+		  will appear when needed).
 		</para>
 		<warning>
 		  <title>Security</title>
@@ -1000,25 +1100,41 @@
 	      </listitem>
 	    </varlistentry>
 	    <varlistentry>
-	      <term><guilabel>Use idle mode if possible</guilabel></term>
+	      <term><guilabel>Use the IDLE extension</guilabel></term>
 	      <listitem>
 		<para>
-		  If this option is enabled and the &imap; server supports
-		  the IDLE extension (as defined by <ulink url="http://www.ietf.org/rfc/rfc2177.txt" type="http">RFC 2177</ulink>),
-		  &app; will stay connected to the server and provide <link linkend="immediate-notification">immediate notification</link> of changes.
+		  The IDLE extension (as defined by <ulink url="http://www.ietf.org/rfc/rfc2177.txt" type="http">RFC 2177</ulink>)
+		  allows &app; to stay connected to the server and provide
+		  <link linkend="immediate-notification">immediate notification</link> of changes.
 		</para>
-		<note>
-		  <para>
-		    Some &imap; server programs (most notably, Pine
-		    imapd) are known to have a broken implementation
-		    of the IDLE extension.
-		  </para>
-		  <para>
-		    If &app; does not detect changes to an &imap;
-		    mailbox, disabling this option might fix the
-		    problem.
-		  </para>
-		</note>
+		<para>
+		  If <guilabel>never</guilabel> is selected, &app;
+		  will never use the IDLE extension, not even if the
+		  server supports it. Use this option if it appears
+		  that &app; does not detect changes to an &imap;
+		  mailbox while the IDLE extension is in use. If using
+		  this option fixes the issue, please also send the
+		  &imap; session transcript (obtained by running &app;
+		  using the --enable-info option) to Jean-Yves Lefort
+		  <email>jylefort@brutele.be</email>.
+		</para>
+		<para>
+		  If <guilabel>autodetect</guilabel> is selected,
+		  &app; will use the IDLE extension if the server
+		  supports it, unless the server software is known to
+		  have a broken IDLE implementation (currently, the
+		  only such software known to &app; is the University
+		  of Washington imapd). This is the recommended
+		  choice.
+		</para>
+		<para>
+		  If <guilabel>always</guilabel> is selected, &app;
+		  will use the IDLE extension if the server supports
+		  it, regardless of the server software. Use this
+		  option if you want to force &app; to use the IDLE
+		  extension, even if it has detected a bogus
+		  implementation.
+		</para>
 	      </listitem>
 	    </varlistentry>
 	  </variablelist>
@@ -1033,7 +1149,9 @@
 	      <term><guilabel>Username</guilabel></term>
 	      <listitem>
 		<para>
-		  This is your username on &gmail;.
+		  This is your username on &gmail;. The username will
+		  be stored to disk unless it is left blank (in such
+		  case, a credentials prompt will appear when needed).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -1041,11 +1159,34 @@
 	      <term><guilabel>Password</guilabel></term>
 	      <listitem>
 		<para>
-		  This is your password on &gmail;.
-		  The password will be stored to disk unless it is
-		  left blank (in such case, a password prompt will
-		  appear when needed).
+		  This is your password on &gmail;. The password will
+		  be stored to disk unless it is left blank (in such
+		  case, a credentials prompt will appear when needed).
 		</para>
+	      </listitem>
+	    </varlistentry>
+	  </variablelist>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>When <guilabel>Evolution</guilabel> is selected:</term>
+	<listitem>
+	  <variablelist>
+	    <varlistentry>
+	      <term><guilabel>Folder</guilabel></term>
+	      <listitem>
+		<para>
+		  This is the Evolution folder to monitor for changes.
+		</para>
+		<note>
+		  <para>
+		    For the folder selector to be available and for
+		    monitoring an Evolution mailbox, Evolution must be
+		    running and the Evolution Mail Notification plugin
+		    must be loaded.
+		  </para>
+		</note>
 	      </listitem>
 	    </varlistentry>
 	  </variablelist>
@@ -1081,9 +1222,9 @@
       <title>Immediate Notification</title>
       <para>
 	Immediate notification is the ability to detect changes to a
-	mailbox without needing to poll it periodically. It allows the
-	status icon to be updated within seconds after a mailbox
-	changes.
+	mailbox without needing to check it periodically. It allows
+	the status icon to be updated immediately (or within seconds)
+	after a mailbox changes.
       </para>
       <para>
 	Requirements for immediate notification to be enabled:
@@ -1114,6 +1255,15 @@
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
+	  <term>Evolution mailboxes:</term>
+	  <listitem>
+	    <para>
+	      There is no requirement. Immediate notification is
+	      always enabled.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
 	  <term>&pop3; and &gmail; mailboxes:</term>
 	  <listitem>
 	    <para>
@@ -1139,46 +1289,56 @@
 	The &app; &pop3; implementation strictly conforms to
 	<ulink url="http://www.ietf.org/rfc/rfc1939.txt" type="http">RFC 1939</ulink>,
 	<ulink url="http://www.ietf.org/rfc/rfc2449.txt" type="http">RFC 2449</ulink>,
-	<ulink url="http://www.ietf.org/rfc/rfc1734.txt" type="http">RFC 1734</ulink> and
-	<ulink url="http://www.ietf.org/rfc/rfc2595.txt" type="http">RFC 2595</ulink>.
+	<ulink url="http://www.ietf.org/rfc/rfc1734.txt" type="http">RFC 1734</ulink>,
+	<ulink url="http://www.ietf.org/rfc/rfc2595.txt" type="http">RFC 2595</ulink> and
+	<ulink url="http://www.ietf.org/rfc/rfc2384.txt" type="http">RFC 2384</ulink>.
       </para>
       <para>
 	The AUTH, APOP and USER/PASS authentication mechanisms are
-	supported, and the LOGIN-DELAY capability is honoured.
+	supported, and the LOGIN-DELAY capability is honoured. The TOP
+	optional command is supported.
       </para>
       <para>
 	The authentication logic can be represented with the following
 	pseudo-code:
       </para>
-      <programlisting>if has-user-selected-mechanism then
-  if server-supports-user-selected-mechanism then
-    attempt authentication using user-selected-mechanism
-  endif
-else
-  if has-sasl-support and server-supports-sasl then
-    if is-ssl-connection then
-      sasl-mechanism = any
-    else
-      sasl-mechanism = any-non-plaintext
-    endif
-    attempt authentication using sasl-mechanism
-  endif
-  if authentication-failed and server-supports-apop then
-    attempt authentication using apop
-  endif
-  if authentication-failed then
-    attempt authentication using user/pass
-  endif
-endif</programlisting>
+      <programlisting>success = false;
+
+if (mailbox.config.authmech != autodetect) {
+  if (mailbox.config.authmech in server.supported_authmechs) {
+    success = server.authenticate(mailbox.config.authmech);
+  }
+} else {
+  if (has_sasl_support &amp;&amp; server.supports_sasl) {
+    foreach authmech in server.supported_authmechs {
+      if (server.ssl_connection || ! authmech.plaintext) {
+        success = server.authenticate(authmech);
+        if (success)
+          break;
+      }
+    }
+    if (! success &amp;&amp; server.supports_apop) {
+      success = server.authenticate(apop);
+    }
+    if (! success) {
+      success = server.authenticate(userpass);
+    }
+  }
+}
+
+if (! success) {
+  mailbox.error = "authentication failed";
+}
+</programlisting>
     </sect2>
 
     <sect2>
       <title>IMAP Implementation</title>
       <para>
 	The &app; &imap; implementation strictly conforms to
-	<ulink url="http://www.ietf.org/rfc/rfc3501.txt" type="http">RFC 3501</ulink>
-	and
-	<ulink url="http://www.ietf.org/rfc/rfc2177.txt" type="http">RFC 2177</ulink>.
+	<ulink url="http://www.ietf.org/rfc/rfc3501.txt" type="http">RFC 3501</ulink>,
+	<ulink url="http://www.ietf.org/rfc/rfc2177.txt" type="http">RFC 2177</ulink> and
+	<ulink url="http://www.ietf.org/rfc/rfc2192.txt" type="http">RFC 2192</ulink>.
       </para>
       <para>
 	The AUTHENTICATE and LOGIN authentication mechanisms are
@@ -1188,23 +1348,30 @@ endif</programlisting>
 	The authentication logic can be represented with the following
 	pseudo-code:
       </para>
-      <programlisting>if has-user-selected-mechanism then
-  if server-supports-user-selected-mechanism then
-    attempt authentication using user-selected-mechanism
-  endif
-else
-  if has-sasl-support and server-supports-sasl then
-    if is-ssl-connection then
-      sasl-mechanism = any
-    else
-      sasl-mechanism = any-non-plaintext
-    endif
-    attempt authentication using sasl-mechanism
-  endif
-  if authentication-failed and server-supports-login then
-    attempt authentication using login
-  endif
-endif</programlisting>
+      <programlisting>success = false;
+
+if (mailbox.config.authmech != autodetect) {
+  if (mailbox.config.authmech in server.supported_authmechs) {
+    success = server.authenticate(mailbox.config.authmech);
+  }
+} else {
+  if (has_sasl_support &amp;&amp; server.supports_sasl) {
+    foreach authmech in server.supported_authmechs {
+      if (server.ssl_connection || ! authmech.plaintext) {
+        success = server.authenticate(authmech);
+        if (success)
+          break;
+      }
+    }
+    if (! success &amp;&amp; server.supports_login) {
+      server.authenticate(login);
+    }
+  }
+}
+
+if (! success) {
+  mailbox.error = "authentication failed";
+}</programlisting>
     </sect2>
 
     <sect2 id="modifying-appearance">
@@ -1269,8 +1436,16 @@ endif</programlisting>
 	      <entry>mn-remote</entry>
 	    </row>
 	    <row>
-	      <entry>unsupported mailbox</entry>
-	      <entry>mn-unsupported</entry>
+	      <entry>polled mailbox</entry>
+	      <entry>mn-polled</entry>
+	    </row>
+	    <row>
+	      <entry>unknown mailbox format</entry>
+	      <entry>mn-unknown</entry>
+	    </row>
+	    <row>
+	      <entry>mailbox error</entry>
+	      <entry>mn-error</entry>
 	    </row>
 	    <row>
 	      <entry>Gmail mailbox</entry>
@@ -1279,6 +1454,10 @@ endif</programlisting>
 	    <row>
 	      <entry>system mailbox</entry>
 	      <entry>mn-system-mailbox</entry>
+	    </row>
+	    <row>
+	      <entry>Evolution mailbox</entry>
+	      <entry>mn-evolution-mailbox</entry>
 	    </row>
 	    <row>
 	      <entry>select all</entry>
@@ -1299,6 +1478,10 @@ endif</programlisting>
 	    <row>
 	      <entry>leave fullscreen</entry>
 	      <entry>mn-leave-fullscreen</entry>
+	    </row>
+	    <row>
+	      <entry>connect (in the SSL/TLS confirmation dialog)</entry>
+	      <entry>mn-connect</entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -1369,9 +1552,10 @@ widget "*" style "mn-icons"</programlisting>
     
   <sect1 id="about">
     <title>About &app;</title>
-    <para> &app; was written by Jean-Yves Lefort
-      (<email>jylefort@brutele.be</email>). To find more information about
-      &app;, visit the
+    <para>
+      &app; was written by Jean-Yves Lefort
+      <email>jylefort@brutele.be</email>. To find more information
+      about &app;, visit the
       <ulink url="http://www.nongnu.org/mailnotify" type="http">Mail Notification web page</ulink>.
     </para>
     
@@ -1379,7 +1563,7 @@ widget "*" style "mn-icons"</programlisting>
       <title>Reporting Bugs and Other Feedback</title>
       <para>
 	Bug reports and feedback should be sent to Jean-Yves Lefort
-	(<email>jylefort@brutele.be</email>).
+	<email>jylefort@brutele.be</email>.
       </para>
     </sect2>
 

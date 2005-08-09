@@ -36,7 +36,7 @@ dnl MN_FEATURE_DEFINE(FEATURE)
 dnl
 AC_DEFUN([MN_FEATURE_DEFINE],
 [if MN_FEATURE_ENABLED([$1]); then
-	AC_DEFINE(MN_FEATURE_SYMBOL_NAME([$1]), 1, [Define to 1 if [$1] is enabled])
+	AC_DEFINE(MN_FEATURE_SYMBOL_NAME([$1]), 1, [Define to 1 if $1 is enabled])
 fi
 ])
 

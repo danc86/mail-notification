@@ -1,14 +1,19 @@
+if WITH_EVOLUTION
+evolution_server_in = GNOME_MailNotification_Evolution.server.in
+evolution_server = GNOME_MailNotification_Evolution.server
+endif
+
 applicationsdir = $(datadir)/applications
 applications_in_files = mail-notification.desktop.in
 applications_DATA = mail-notification.desktop
 
-settingsdir = $(datadir)/control-center-2.0/capplets
-settings_in_files = mail-notification-properties.desktop.in
-settings_DATA = mail-notification-properties.desktop
+# gnome_cappletdir is defined by configure
+gnome_capplet_in_files = mail-notification-properties.desktop.in
+gnome_capplet_DATA = mail-notification-properties.desktop
 
 serverdir = $(libdir)/bonobo/servers
-server_in_files = GNOME_MailNotification_Automation.server.in
-server_DATA = GNOME_MailNotification_Automation.server
+server_in_files = $(evolution_server_in) GNOME_MailNotification.server.in
+server_DATA = $(evolution_server) GNOME_MailNotification.server
 
 schemasdir = $(GCONF_SCHEMA_FILE_DIR)
 schemas_in_files = mail-notification.schemas.in
@@ -31,19 +36,21 @@ install-schemas:
 endif
 
 EXTRA_DIST = \
-	mail-notification.desktop.in			\
+	GNOME_MailNotification.server.in.in		\
+	GNOME_MailNotification_Evolution.server.in	\
 	mail-notification-properties.desktop.in		\
-	GNOME_MailNotification_Automation.server.in.in	\
+	mail-notification.desktop.in			\
 	mail-notification.schemas.in			\
 	mail-notification.soundlist.in
 
 CLEANFILES = \
-	mail-notification.desktop			\
-	mail-notification-properties.desktop		\
-	GNOME_MailNotification_Automation.server	\
-	GNOME_MailNotification_Automation.server.in	\
-	mail-notification.schemas			\
+	$(evolution_server)			\
+	GNOME_MailNotification.server		\
+	GNOME_MailNotification.server.in	\
+	mail-notification-properties.desktop	\
+	mail-notification.desktop		\
+	mail-notification.schemas		\
 	mail-notification.soundlist
 
-GNOME_MailNotification_Automation.server.in: GNOME_MailNotification_Automation.server.in.in
-	sed -e 's|\@bindir\@|$(bindir)|' GNOME_MailNotification_Automation.server.in.in > GNOME_MailNotification_Automation.server.in
+GNOME_MailNotification.server.in: GNOME_MailNotification.server.in.in
+	sed -e 's|\@bindir\@|$(bindir)|' GNOME_MailNotification.server.in.in > GNOME_MailNotification.server.in

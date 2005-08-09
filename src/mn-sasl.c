@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,40 +23,43 @@
 
 /*** variables ***************************************************************/
 
-static int use_count = 0;
-G_LOCK_DEFINE_STATIC(use_count);
+static gboolean attempted = FALSE;
+static gboolean initialized = FALSE;
+static char *init_error = NULL;
+
+G_LOCK_DEFINE_STATIC(init);
 
 /*** implementation **********************************************************/
 
 gboolean
-mn_sasl_use (GError **err)
+mn_sasl_init (GError **err)
 {
-  gboolean success = TRUE;
+  /*
+   * Bad things may happen if we call sasl_client_init() again after
+   * having called sasl_done(), so we just keep SASL initialized for
+   * the whole application lifetime.
+   */
 
-  G_LOCK(use_count);
-  if (++use_count == 1)
+  G_LOCK(init);
+  if (! attempted)
     {
       int status;
 
       status = sasl_client_init(NULL);
-      if (status != SASL_OK)
-	{
-	  use_count--;
-	  g_set_error(err, 0, 0, "%s", sasl_errstring(status, NULL, NULL));
-	  success = FALSE;
-	}
+      if (status == SASL_OK)
+	initialized = TRUE;
+      else
+	init_error = g_strdup(sasl_errstring(status, NULL, NULL));
+
+      attempted = TRUE;
     }
-  G_UNLOCK(use_count);
 
-  return success;
-}
+  if (! initialized)
+    {
+      g_assert(init_error != NULL);
+      g_set_error(err, 0, 0, "%s", init_error);
+    }
+  G_UNLOCK(init);
 
-void
-mn_sasl_unuse (void)
-{
-  G_LOCK(use_count);
-  g_return_if_fail(use_count > 0);
-  if (--use_count == 0)
-    sasl_done();
-  G_UNLOCK(use_count);
+  return initialized;
 }

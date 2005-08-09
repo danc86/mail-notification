@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,46 +25,43 @@
 
 /*** variables ***************************************************************/
 
-static gboolean initialized = FALSE;
-G_LOCK_DEFINE_STATIC(initialized);
+static gboolean attempted = FALSE;
+static SSL_CTX *ctx = NULL;
+static char *init_error = NULL;
 
-static SSL_CTX *global_ctx;
-static char *init_error;
+G_LOCK_DEFINE_STATIC(init);
 
 /*** implementation **********************************************************/
 
 SSL_CTX *
 mn_ssl_init (GError **err)
 {
-  SSL_CTX *ctx;
-
   /*
    * SSL_CTX_new() will fail the second time it is called, so we just
    * keep the same context for the whole application lifetime.
    */
 
-  G_LOCK(initialized);
-  if (! initialized)
+  G_LOCK(init);
+  if (! attempted)
     {
       SSL_library_init();
       SSL_load_error_strings();
 
-      global_ctx = SSL_CTX_new(SSLv23_client_method());
-      if (global_ctx)
-	SSL_CTX_set_mode(global_ctx, SSL_MODE_AUTO_RETRY);
+      ctx = SSL_CTX_new(SSLv23_client_method());
+      if (ctx)
+	SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
       else
 	init_error = g_strdup(mn_ssl_get_error());
 
-      initialized = TRUE;
+      attempted = TRUE;
     }
 
-  ctx = global_ctx;
   if (! ctx)
     {
-      g_return_val_if_fail(init_error != NULL, NULL);
+      g_assert(init_error != NULL);
       g_set_error(err, 0, 0, "%s", init_error);
     }
-  G_UNLOCK(initialized);
+  G_UNLOCK(init);
 
   return ctx;
 }

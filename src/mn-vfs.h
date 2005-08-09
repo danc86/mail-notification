@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,5 +31,9 @@ GnomeVFSResult mn_vfs_read_line (MNVFSReadLineContext **context,
 void mn_vfs_read_line_context_free (MNVFSReadLineContext *context);
 
 gboolean mn_vfs_test (GnomeVFSURI *uri, GFileTest test);
+
+GnomeVFSResult mn_vfs_read_entire_file_uri (GnomeVFSURI *uri,
+					    int *file_size,
+					    char **file_contents);
 
 #endif /* _MN_VFS_H */

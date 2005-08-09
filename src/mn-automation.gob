@@ -16,20 +16,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.10
+requires 2.0.12
 
 %headertop{
 #include <libbonobo.h>
-#include "MNAutomation.h"
+#include "GNOME_MailNotification.h"
 %}
+
 %{
-#include "mn-main-window.h"
-#include "mn-summary-popup.h"
-#include "mn-properties-dialog.h"
 #include "mn-shell.h"
 %}
   
-class MN:Automation from Bonobo:Object (BonoboObject GNOME_MNAutomation)
+class MN:Automation from Bonobo:Object (BonoboObject GNOME_MailNotification_Automation)
 {
   BonoboObject private void
     update (PortableServer_Servant servant, CORBA_Environment *env)
@@ -39,40 +37,31 @@ class MN:Automation from Bonobo:Object (BonoboObject GNOME_MNAutomation)
   }
 
   BonoboObject private void
-    report (PortableServer_Servant servant,
-	    CORBA_char **report,
-	    CORBA_Environment *env)
-  {
-    g_return_if_fail(mn_shell != NULL);
-    mn_shell_report(mn_shell, report);
-  }
-
-  BonoboObject private void
     displayMainWindow (PortableServer_Servant servant, CORBA_Environment *env)
   {
     g_return_if_fail(mn_shell != NULL);
-    mn_main_window_display();
+    mn_shell_display_main_window(mn_shell);
   }
 
   BonoboObject private void
     displayProperties (PortableServer_Servant servant, CORBA_Environment *env)
   {
     g_return_if_fail(mn_shell != NULL);
-    mn_properties_dialog_display();
+    mn_shell_display_properties_dialog(mn_shell, NULL);
   }
 
   BonoboObject private void
     displayAbout (PortableServer_Servant servant, CORBA_Environment *env)
   {
     g_return_if_fail(mn_shell != NULL);
-    mn_shell_display_about_dialog(mn_shell);
+    mn_shell_display_about_dialog(mn_shell, NULL);
   }
 
   BonoboObject private void
     closePopup (PortableServer_Servant servant, CORBA_Environment *env)
   {
     g_return_if_fail(mn_shell != NULL);
-    mn_summary_popup_destroy();
+    mn_shell_close_mail_summary_popup(mn_shell);
   }
 
   BonoboObject private void

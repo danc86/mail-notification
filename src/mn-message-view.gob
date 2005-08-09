@@ -16,11 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.10
+requires 2.0.12
 
 %headertop{
 #include <gtk/gtk.h>
 %}
+
 %{
 #include "config.h"
 #include <glib/gi18n.h>
@@ -28,14 +29,14 @@ requires 2.0.10
 #include "mn-message.h"
 #include "mn-util.h"
 
-  typedef struct
-  {
-    MNMessage		*message;
-    GSList		*header_marks;
-    char		*last_sent;
-    GtkTextMark		*sent_start;
-    GtkTextMark		*sent_end;
-  } MessageInfo;
+typedef struct
+{
+  MNMessage	*message;
+  GSList	*header_marks;
+  char		*last_sent;
+  GtkTextMark	*sent_start;
+  GtkTextMark	*sent_end;
+} MessageInfo;
 %}
 
 class MN:Message:View from Gtk:Text:View
@@ -88,7 +89,7 @@ class MN:Message:View from Gtk:Text:View
 	    selfp->update_sent_timeout_id = g_timeout_add(500, self_update_sent_cb, self);
 	}
       else
-	mn_source_remove(&selfp->update_sent_timeout_id);
+	mn_source_clear(&selfp->update_sent_timeout_id);
     };
 
   override (G:Object) GObject *
@@ -150,7 +151,7 @@ class MN:Message:View from Gtk:Text:View
   }
   
   private void
-    style_set_h (Gtk:Widget *widget (check null type),
+    style_set_h (GtkWidget *widget,
 		 GtkStyle *previous_style,
 		 gpointer user_data)
   {
@@ -163,7 +164,7 @@ class MN:Message:View from Gtk:Text:View
   }
 
   private gboolean
-    update_tabs_cb (gpointer data (check null))
+    update_tabs_cb (gpointer data)
   {
     Self *self = data;
 
@@ -176,7 +177,7 @@ class MN:Message:View from Gtk:Text:View
   }
   
   private void
-    realize_h (Gtk:Widget *widget (check null type), gpointer user_data)
+    realize_h (GtkWidget *widget, gpointer user_data)
   {
     Self *self = SELF(widget);
     GtkStateType state;
@@ -230,7 +231,7 @@ class MN:Message:View from Gtk:Text:View
   }
   
   override (G:Object) void
-    finalize (G:Object *object (check null type))
+    finalize (GObject *object)
   {
     Self *self = SELF(object);
 
@@ -246,7 +247,7 @@ class MN:Message:View from Gtk:Text:View
   }
 
   private gboolean
-    update_sent_cb (gpointer data (check null))
+    update_sent_cb (gpointer data)
   {
     Self *self = data;
     GSList *l;
@@ -310,7 +311,7 @@ class MN:Message:View from Gtk:Text:View
 
     self_append_row(self,
 		    _("Mailbox"),
-		    message->mailbox_uri->human_readable,
+		    message->mailbox_name,
 		    &info->header_marks,
 		    NULL,
 		    NULL);

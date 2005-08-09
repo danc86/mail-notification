@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,13 +22,13 @@
 #include <gmime/gmime.h>
 #include "mn-message.h"
 
-MNMessage *mn_message_new_from_mime_message (MNURI *mailbox_uri,
+MNMessage *mn_message_new_from_mime_message (MNMailbox *mailbox,
 					     GMimeMessage *mime_message);
-MNMessage *mn_message_new_from_mime_stream (MNURI *mailbox_uri,
+MNMessage *mn_message_new_from_mime_stream (MNMailbox *mailbox,
 					    GMimeStream *mime_stream);
-MNMessage *mn_message_new_from_uri (MNURI *mailbox_uri,
+MNMessage *mn_message_new_from_uri (MNMailbox *mailbox,
 				    GnomeVFSURI *uri);
-MNMessage *mn_message_new_from_buffer (MNURI *mailbox_uri,
+MNMessage *mn_message_new_from_buffer (MNMailbox *mailbox,
 				       const char *buffer,
 				       unsigned int len);
 

@@ -1,0 +1,125 @@
+/* 
+ * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include <libbonobo.h>
+#include "GNOME_MailNotification_Evolution.h"
+%}
+
+%{
+#include <stdio.h>
+#include <camel/camel-folder.h>
+
+/* headers from the Evolution source tree */
+#include "mail/mail-tools.h"
+%}
+
+class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_Evolution_Glue)
+{
+  BonoboObject private GNOME_MailNotification_Evolution_MessageSeq *
+    getUnseenMessages (PortableServer_Servant servant,
+		       const CORBA_char *folder_uri,
+		       CORBA_Environment *env)
+  {
+    CamelFolder *folder;
+    GPtrArray *summary;
+    int i;
+    GSList *infos = NULL;
+    GNOME_MailNotification_Evolution_MessageSeq *seq;
+
+    folder = mail_tool_uri_to_folder(folder_uri, 0, NULL);
+    if (! folder)
+      {
+	bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound);
+	return NULL;
+      }
+
+    summary = camel_folder_get_summary(folder);
+
+    for (i = 0; i < summary->len; i++)
+      {
+	CamelMessageInfo *info = summary->pdata[i];
+
+	if ((camel_message_info_flags(info) & CAMEL_MESSAGE_SEEN) == 0)
+	  infos = g_slist_append(infos, info);
+      }
+
+    seq = GNOME_MailNotification_Evolution_MessageSeq__alloc();
+    seq->_length = g_slist_length(infos);
+
+    if (seq->_length > 0)
+      {
+	GSList *l;
+
+	seq->_buffer = CORBA_sequence_GNOME_MailNotification_Evolution_Message_allocbuf(seq->_length);
+	for (l = infos, i = 0; l != NULL; l = l->next, i++)
+	  {
+	    CamelMessageInfo *info = l->data;
+	    const CamelSummaryMessageID *id;
+	    char hexhash[sizeof(CamelSummaryMessageID) * 2 + 1];
+	    int j;
+
+	    id = camel_message_info_message_id(info);
+	    for (j = 0; j < sizeof(id->id.hash); j++)
+	      sprintf(hexhash + j * 2, "%.2x", id->id.hash[j]);
+	    
+	    seq->_buffer[i].sent_time = camel_message_info_date_sent(info);
+	    seq->_buffer[i].id = CORBA_string_dup(hexhash);
+	    seq->_buffer[i].from = CORBA_string_dup(camel_message_info_from(info));
+	    seq->_buffer[i].subject = CORBA_string_dup(camel_message_info_subject(info));
+	  }
+
+	CORBA_sequence_set_release(seq, CORBA_TRUE);
+
+	g_slist_free(infos);
+      }
+
+    camel_folder_free_summary(folder, summary);
+    camel_object_unref(folder);
+
+    return seq;
+  }
+
+  BonoboObject private CORBA_string
+    getFolderName (PortableServer_Servant servant,
+		   const CORBA_char *folder_uri,
+		   CORBA_Environment *env)
+  {
+    CamelFolder *folder;
+    CORBA_string name = NULL;
+
+    folder = mail_tool_uri_to_folder(folder_uri, 0, NULL);
+    if (folder)
+      {
+	name = CORBA_string_dup(camel_folder_get_name(folder));
+	camel_object_unref(folder);
+      }
+    else
+      bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound);
+
+    return name;
+  }
+  
+  public MNEvolutionGlue *
+    new (void)
+  {
+    return GET_NEW;
+  }
+}

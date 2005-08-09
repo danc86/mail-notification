@@ -1,0 +1,80 @@
+/* 
+ * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include "mn-vfs-mailbox.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include "mn-mailbox-private.h"
+#include "mn-stock.h"
+%}
+
+class MN:Custom:VFS:Mailbox from MN:VFS:Mailbox
+{
+  public char *uri destroywith g_free;
+  property STRING uri (link, flags = MN_MAILBOX_PARAM_PERMANENT | MN_MAILBOX_PARAM_REQUIRED);
+
+  class_init (class)
+  {
+    MN_MAILBOX_CLASS(class)->type = "custom-vfs";
+  }
+
+  override (MN:Mailbox) void
+    seal (MNMailbox *mailbox)
+  {
+    MN_VFS_MAILBOX(mailbox)->uri = gnome_vfs_make_uri_canonical(SELF(mailbox)->uri);
+    
+    PARENT_HANDLER(mailbox);
+  }
+
+  override (MN:Mailbox) MNMailbox *
+    parse_uri (MNMailbox *dummy, const char *uri)
+  {
+    GnomeVFSURI *vfs_uri;
+    MNMailbox *mailbox = NULL;
+
+    vfs_uri = gnome_vfs_uri_new(uri);
+    if (vfs_uri)
+      {
+	mailbox = mn_mailbox_new("custom-vfs", "uri", uri, NULL);
+	gnome_vfs_uri_unref(vfs_uri);
+      }
+
+    return mailbox;
+  }
+
+  override (MN:Mailbox) void
+    check (MNMailbox *mailbox)
+  {
+    if (MN_VFS_MAILBOX(mailbox)->vfs_uri)
+      {
+	PARENT_HANDLER(mailbox);
+      }
+    else
+      {
+	mn_mailbox_set_stock_id(mailbox, MN_STOCK_UNKNOWN);
+	mn_mailbox_set_error(mailbox, _("invalid location"));
+	mn_mailbox_set_must_poll(mailbox, FALSE); /* disable the mailbox */
+      }
+  }
+}

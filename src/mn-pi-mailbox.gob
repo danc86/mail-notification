@@ -1,0 +1,217 @@
+/* 
+ * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.12
+
+%headertop{
+#include "mn-authenticated-mailbox.h"
+%}
+
+%h{
+#define MN_PI_MAILBOX_N_CONNECTION_TYPES	3
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include "mn-mailbox-private.h"
+#include "mn-util.h"
+#include "mn-stock.h"
+%}
+
+enum MN_PI_MAILBOX_CONNECTION_TYPE
+{
+  NORMAL,
+  INBAND_SSL,
+  SSL,
+} MN:PI:Mailbox:Connection:Type;
+
+class MN:PI:Mailbox from MN:Authenticated:Mailbox
+{
+  classwide int *default_ports;
+
+  public MNPIMailboxConnectionType connection_type;
+  property ENUM connection_type (link,
+				 enum_type = MN:PI:Mailbox:Connection:Type,
+				 flags = CONSTRUCT | MN_MAILBOX_PARAM_PERMANENT,
+				 default_value = MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL);
+
+  public char *authmech destroywith g_free;
+  property STRING authmech (link, flags = MN_MAILBOX_PARAM_PERMANENT);
+
+  public char *hostname destroywith g_free;
+  property STRING hostname (link, flags = MN_MAILBOX_PARAM_PERMANENT | MN_MAILBOX_PARAM_REQUIRED);
+
+  public int port;
+  property INT port (link,
+		     flags = MN_MAILBOX_PARAM_PERMANENT,
+		     minimum = 0,
+		     maximum = 65535);
+
+  public int runtime_port;
+
+  override (G:Object) GObject *
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    MNMailbox *mailbox;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    mailbox = MN_MAILBOX(object);
+    
+    mn_mailbox_set_stock_id(mailbox, MN_STOCK_REMOTE);
+
+    return object;
+  }
+
+  override (MN:Mailbox) void
+    seal (MNMailbox *mailbox)
+  {
+    Self *self = SELF(mailbox);
+
+    PARENT_HANDLER(mailbox);
+
+    /* do not save default port to mailboxes.xml */
+    if (self->port == SELF_GET_CLASS(self)->default_ports[self->connection_type])
+      self->port = 0;
+    
+    self->runtime_port = self->port == 0
+      ? SELF_GET_CLASS(self)->default_ports[self->connection_type]
+      : self->port;
+  }
+
+  override (MN:Authenticated:Mailbox) void
+    impl_check (MNAuthenticatedMailbox *mailbox)
+  {
+#ifndef WITH_SSL
+    Self *self = SELF(mailbox);
+#endif
+
+    PARENT_HANDLER(mailbox);
+
+#ifndef WITH_SSL
+    if (self->connection_type == MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL
+	|| self->connection_type == MN_PI_MAILBOX_CONNECTION_TYPE_SSL)
+      {
+	GDK_THREADS_ENTER();
+
+	mn_mailbox_set_error(MN_MAILBOX(mailbox), _("SSL/TLS support has not been compiled in"));
+	mn_mailbox_set_must_poll(MN_MAILBOX(mailbox), FALSE); /* disable the mailbox */
+
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+      }
+#endif
+  }
+
+  protected gboolean
+    split_uri (const char *uri (check null),
+	       int maxlen,
+	       char *scheme (check null),
+	       char *auth (check null),
+	       char *location (check null),
+	       gboolean *has_auth (check null))
+  {
+    char *pat;
+    int n;
+
+    pat = g_strdup_printf("%%%i[^:]://%%%i[^@]@%%%is", maxlen, maxlen, maxlen);
+    n = sscanf(uri, pat, scheme, auth, location);
+    g_free(pat);
+
+    if (n >= 2)
+      {
+	*has_auth = n == 3;
+	
+	if (! *has_auth)
+	  strcpy(location, auth);
+
+	return TRUE;
+      }
+    else
+      return FALSE;
+  }
+  
+  protected gboolean
+    split_uri_auth (const char *auth (check null),
+		    int maxlen,
+		    char *username (check null),
+		    char *authmech (check null),
+		    gboolean *has_username (check null),
+		    gboolean *has_authmech (check null))
+  {
+    char *pat;
+    int n;
+
+    pat = g_strdup_printf("%%%i[^;];AUTH=%%%is", maxlen, maxlen);
+    n = sscanf(auth, pat, username, authmech);
+    g_free(pat);
+
+    *has_username = FALSE;
+    *has_authmech = FALSE;
+
+    if (n >= 1)
+      {
+	*has_username = TRUE;
+
+	if (n == 2)
+	  *has_authmech = TRUE;
+      }
+    else
+      {
+	pat = g_strdup_printf(";AUTH=%%%is", maxlen);
+	n = sscanf(auth, pat, authmech);
+	g_free(pat);
+	
+	if (n < 1)
+	  return FALSE;
+
+	*has_authmech = TRUE;
+      }
+
+    return TRUE;
+  }
+  
+  protected void
+    split_uri_hostport (const char *hostport (check null),
+			int maxlen,
+			char *hostname (check null),
+			int *port (check null))
+  {
+    char *pat;
+    int n;
+
+    /* split host:port part in 2 subparts: host and port */
+
+    pat = g_strdup_printf("[%%%i[^]]]:%%u", maxlen);
+    n = sscanf(hostport, pat, hostname, port);
+    g_free(pat);
+
+    if (n < 1)
+      {
+	pat = g_strdup_printf("%%%i[^:]:%%u", maxlen);
+	n = sscanf(hostport, pat, hostname, port);
+	g_free(pat);
+      }
+
+    g_assert(n >= 1);
+
+    if (n < 2)
+      *port = 0;
+  }
+}

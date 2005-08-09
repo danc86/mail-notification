@@ -1,4 +1,20 @@
 /* 
+ * mn-client-session.c - a state machine for handling POP3 and IMAP
+ * client sessions.
+ *
+ * The MNClientSession interface provides an abstract POP3 and IMAP
+ * protocol client. The module handles the low-level client
+ * functionality, such as connecting to a server, setting up SSL/TLS,
+ * reading and writing data, and conducting a SASL authentication
+ * exchange.
+ *
+ * MNClientSession contains no code which is specific to either POP3
+ * or IMAP. It is the responsability of the caller to manage the POP3
+ * or IMAP session, by parsing responses and switching to the
+ * appropriate state depending on the context.
+ *
+ *
+ *
  * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -44,10 +60,11 @@
 #include "mn-util.h"
 #include "mn-client-session.h"
 #include "mn-conf.h"
+#include "mn-stock.h"
 
 /*** cpp *********************************************************************/
 
-#define READ_BUFSIZE				2048
+#define READ_BUFSIZE			2048
   
 /*** types *******************************************************************/
 
@@ -59,7 +76,7 @@ struct _MNClientSession
   int				port;
   int				s;
   MNClientSessionState		*state;
-  char				*error;
+  GError			*error;
   MNClientSessionPrivate	*private;
   GByteArray			*input_buffer;
   unsigned int			bytes_to_remove;
@@ -69,13 +86,8 @@ struct _MNClientSession
 #endif
 
 #ifdef WITH_SASL
-  gboolean			sasl_available;
   sasl_conn_t			*sasl_conn;
-  const char			*sasl_initial_clientout;
-  unsigned int			sasl_initial_clientoutlen;
-  const char			*sasl_clientout;
-  unsigned int			sasl_clientoutlen;
-  int				sasl_ssf;
+  sasl_ssf_t			sasl_ssf;
   unsigned int			sasl_maxoutbuf;
 #endif /* WITH_SASL */
 };
@@ -91,6 +103,10 @@ static sasl_callback_t sasl_callbacks[] = {
   { SASL_CB_LIST_END, NULL, NULL }
 };
 #endif /* WITH_SASL */
+
+#ifndef HAVE_REENTRANT_RESOLVER
+G_LOCK_DEFINE_STATIC(resolver);
+#endif
 
 /*** functions ***************************************************************/
 
@@ -120,6 +136,24 @@ static char *mn_client_session_sasl_get_ip_port (const struct sockaddr *addr);
 
 /*** implementation **********************************************************/
 
+/**
+ * mn_client_session_run:
+ * @states: a %MN_CLIENT_SESSION_STATES_END-terminated array of
+ *          %MNClientSessionState structures. One of the states must
+ *          have the %MN_CLIENT_SESSION_INITIAL_STATE id.
+ * @callbacks: a pointer to a %MNClientSessionCallbacks structure
+ * @use_ssl: whether to establish a SSL/TLS connection or not
+ * @hostname: the hostname, IPv4 address or IPv6 address to connect to
+ * @port: the port to connect to
+ * @private: an opaque pointer which will be passed to callbacks, or %NULL
+ * @err: a location to report errors, or %NULL
+ *
+ * Runs the client session. After connecting to the server, the
+ * %MN_CLIENT_SESSION_INITIAL_STATE state is entered.
+ *
+ * Return value: %TRUE on success, or %FALSE on failure (in such case
+ * @err is set)
+ **/
 gboolean
 mn_client_session_run (MNClientSessionState *states,
 		       MNClientSessionCallbacks *callbacks,
@@ -138,7 +172,6 @@ mn_client_session_run (MNClientSessionState *states,
   g_return_val_if_fail(states != NULL, FALSE);
   g_return_val_if_fail(callbacks != NULL, FALSE);
   g_return_val_if_fail(callbacks->response_new != NULL, FALSE);
-  g_return_val_if_fail(callbacks->response_free != NULL, FALSE);
   g_return_val_if_fail(hostname != NULL, FALSE);
 
   memset(&session, 0, sizeof(session));
@@ -182,17 +215,12 @@ mn_client_session_run (MNClientSessionState *states,
     SSL_free(session.ssl);
 #endif /* WITH_SSL */
 #ifdef WITH_SASL
-  if (session.sasl_available)
-    {
-      if (session.sasl_conn)
-	sasl_dispose(&session.sasl_conn);
-      mn_sasl_unuse();
-    }
+  if (session.sasl_conn)
+    sasl_dispose(&session.sasl_conn);
 #endif /* WITH_SASL */
   if (session.error)
     {
-      g_set_error(err, 0, 0, "%s", session.error);
-      g_free(session.error);
+      g_propagate_error(err, session.error);
       return FALSE;
     }
   else
@@ -220,14 +248,20 @@ mn_client_session_resolve (MNClientSession *session)
   mn_client_session_notice(session, _("resolving %s"), session->hostname);
 
   servname = g_strdup_printf("%i", session->port);
+#ifndef HAVE_REENTRANT_RESOLVER
+  G_LOCK(resolver);
+#endif
   status = getaddrinfo(session->hostname, servname, &hints, &addrinfo);
+#ifndef HAVE_REENTRANT_RESOLVER
+  G_UNLOCK(resolver);
+#endif
   g_free(servname);
 
   if (status == 0)
     return addrinfo;
   else
     {
-      mn_client_session_error(session, _("unable to resolve %s: %s"), session->hostname, gai_strerror(status));
+      mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to resolve %s: %s"), session->hostname, gai_strerror(status));
       return NULL;
     }
 }
@@ -247,6 +281,9 @@ mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo)
       int s;
       char ip[NI_MAXHOST];
 
+#ifndef HAVE_REENTRANT_RESOLVER
+      G_LOCK(resolver);
+#endif
       status = getnameinfo(a->ai_addr,
 			   a->ai_addrlen,
 			   ip,
@@ -254,6 +291,10 @@ mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo)
 			   NULL,
 			   0,
 			   NI_NUMERICHOST);
+#ifndef HAVE_REENTRANT_RESOLVER
+      G_UNLOCK(resolver);
+#endif
+
       g_return_val_if_fail(status == 0, -1);
       
       if (a->ai_family == AF_INET)
@@ -289,11 +330,21 @@ mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo)
     }
   
   /* if reached, we couldn't find a working address */
-  mn_client_session_error(session, _("unable to connect to %s"), session->hostname);
+  mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to connect to %s"), session->hostname);
   return -1;
 }
 
 #ifdef WITH_SSL
+/**
+ * mn_client_session_enable_ssl:
+ * @session: a #MNClientSession
+ *
+ * Enables in-band SSL/TLS. Must not be used if the @use_ssl
+ * mn_client_session_run() argument was %TRUE. If an error occurs,
+ * mn_client_session_error() will be called on @session.
+ *
+ * Return value: %TRUE on success
+ **/
 gboolean
 mn_client_session_enable_ssl (MNClientSession *session)
 {
@@ -301,11 +352,12 @@ mn_client_session_enable_ssl (MNClientSession *session)
   GError *err = NULL;
   
   g_return_val_if_fail(session != NULL, FALSE);
+  g_return_val_if_fail(session->ssl == NULL, FALSE);
 
   ctx = mn_ssl_init(&err);
   if (! ctx)
     {
-      mn_client_session_error(session, _("unable to initialize the OpenSSL library: %s"), err->message);
+      mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to initialize the OpenSSL library: %s"), err->message);
       g_error_free(err);
       return FALSE;
     }
@@ -313,25 +365,25 @@ mn_client_session_enable_ssl (MNClientSession *session)
   session->ssl = SSL_new(ctx);
   if (! session->ssl)
     {
-      mn_client_session_error(session, _("unable to create a SSL/TLS object: %s"), mn_ssl_get_error());
+      mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to create a SSL/TLS object: %s"), mn_ssl_get_error());
       return FALSE;
     }
 
   if (! SSL_set_fd(session->ssl, session->s))
     {
-      mn_client_session_error(session, _("unable to set the SSL/TLS file descriptor: %s"), mn_ssl_get_error());
+      mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to set the SSL/TLS file descriptor: %s"), mn_ssl_get_error());
       return FALSE;
     }
 
   if (SSL_connect(session->ssl) != 1)
     {
-      mn_client_session_error(session, _("unable to perform the SSL/TLS handshake: %s"), mn_ssl_get_error());
+      mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to perform the SSL/TLS handshake: %s"), mn_ssl_get_error());
       return FALSE;
     }
   
   if (! mn_client_session_ssl_verify(session))
     {
-      mn_client_session_error(session, _("untrusted server"));
+      mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("untrusted server"));
       return FALSE;
     }
   
@@ -450,16 +502,13 @@ mn_client_session_run_untrusted_dialog (const char *hostname,
   
   GDK_THREADS_ENTER();
 
-  dialog = eel_alert_dialog_new(NULL,
-				GTK_DIALOG_DESTROY_WITH_PARENT,
-				GTK_MESSAGE_WARNING,
-				GTK_BUTTONS_NONE,
-				_("Connect to untrusted server?"),
-				secondary,
-				NULL);
+  dialog = mn_alert_dialog_new(NULL,
+			       GTK_MESSAGE_WARNING,
+			       _("Connect to untrusted server?"),
+			       secondary);
 
   gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
-  gtk_dialog_add_button(GTK_DIALOG(dialog), _("Co_nnect"), GTK_RESPONSE_OK);
+  gtk_dialog_add_button(GTK_DIALOG(dialog), MN_STOCK_CONNECT, GTK_RESPONSE_OK);
 			
   status = mn_dialog_run_nonmodal(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK;
   gtk_widget_destroy(dialog);
@@ -515,11 +564,18 @@ mn_client_session_handle_input (MNClientSession *session, const char *input)
 	  break;
 
 	case MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT:
-	  mn_client_session_error(session, _("response \"%s\" is not valid in current context"), input);
-	  cont = FALSE;
+	  {
+	    char *escaped;
+
+	    escaped = mn_utf8_escape(input);
+	    mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("response \"%s\" is not valid in current context"), escaped);
+	    g_free(escaped);
+
+	    cont = FALSE;
+	  }
 	  break;
 	  
-	case MN_CLIENT_SESSION_RESULT_END:
+	case MN_CLIENT_SESSION_RESULT_DISCONNECT:
 	  cont = FALSE;
 	  break;
 	  
@@ -527,21 +583,22 @@ mn_client_session_handle_input (MNClientSession *session, const char *input)
 	  g_return_val_if_reached(FALSE);
 
 	default:
-	  if (result > 0)	/* state */
-	    result = mn_client_session_enter_state(session, result);
-	  else			/* custom result */
-	    {
-	      g_return_val_if_fail(session->callbacks->custom_handler != NULL, FALSE);
-	      result = session->callbacks->custom_handler(session, response, result, session->private);
-	    }
+	  g_return_val_if_fail(result > 0, FALSE);
+	  result = mn_client_session_enter_state(session, result);
 	  goto loop;
 	}
 
-      session->callbacks->response_free(session, response, session->private);
+      if (session->callbacks->response_free)
+	session->callbacks->response_free(session, response, session->private);
     }
   else
     {
-      mn_client_session_error(session, _("unable to parse response \"%s\""), input);
+      char *escaped;
+
+      escaped = mn_utf8_escape(input);
+      mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to parse response \"%s\""), escaped);
+      g_free(escaped);
+
       cont = FALSE;
     }
 
@@ -589,14 +646,14 @@ mn_client_session_fill_input_buffer (MNClientSession *session)
     {
 #ifdef WITH_SSL
       if (session->ssl)
-	mn_client_session_error(session, _("unable to read from server: %s"), mn_ssl_get_error());
+	mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_CONNECTION_LOST, _("unable to read from server: %s"), mn_ssl_get_error());
       else
 #endif /* WITH_SSL */
 	{
 	  if (bytes_read == 0)
-	    mn_client_session_error(session, _("unable to read from server: EOF"));
+	    mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_CONNECTION_LOST, _("unable to read from server: EOF"));
 	  else
-	    mn_client_session_error(session, _("unable to read from server: %s"), g_strerror(errno));
+	    mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_CONNECTION_LOST, _("unable to read from server: %s"), g_strerror(errno));
 	}
       return FALSE;
     }
@@ -606,7 +663,7 @@ mn_client_session_fill_input_buffer (MNClientSession *session)
     {
       if (sasl_decode(session->sasl_conn, buf, bytes_read, &in, &inlen) != SASL_OK)
 	{
-	  mn_client_session_error(session, _("unable to decode data using SASL: %s"), sasl_errdetail(session->sasl_conn));
+	  mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to decode data using SASL: %s"), sasl_errdetail(session->sasl_conn));
 	  return FALSE;
 	}
     }
@@ -631,9 +688,8 @@ mn_client_session_fill_input_buffer (MNClientSession *session)
  * mn_client_session_error() will be called on @session.
  *
  * Return value: a pointer to a buffer containing @nbytes on success,
- *               %NULL on failure. The pointer will be valid until the
- *               next call to mn_client_session_read() or
- *               mn_client_session_read_line().
+ * %NULL on failure. The pointer will be valid until the next call to
+ * mn_client_session_read() or mn_client_session_read_line().
  **/
 gconstpointer
 mn_client_session_read (MNClientSession *session, unsigned int nbytes)
@@ -668,8 +724,8 @@ mn_client_session_read (MNClientSession *session, unsigned int nbytes)
  * mn_client_session_error() will be called on @session.
  *
  * Return value: the line read on success, %NULL on failure. The
- *               pointer will be valid until the next call to
- *               mn_client_session_read() or mn_client_session_read_line().
+ * pointer will be valid until the next call to
+ * mn_client_session_read() or mn_client_session_read_line().
  **/
 const char *
 mn_client_session_read_line (MNClientSession *session)
@@ -700,6 +756,18 @@ mn_client_session_read_line (MNClientSession *session)
   return line;
 }
 
+/**
+ * mn_client_session_write:
+ * @session: a #MNClientSession object to write to
+ * @format: a printf() format string
+ * @...: the arguments to the format string
+ *
+ * Writes a formatted crlf-terminated line to @session. If an error
+ * occurs, mn_client_session_error() will be called on @session.
+ *
+ * Return value: %MN_CLIENT_SESSION_RESULT_CONTINUE on success, or the
+ * return value of mn_client_session_error() on failure
+ **/
 int
 mn_client_session_write (MNClientSession *session,
 			 const char *format,
@@ -740,7 +808,7 @@ mn_client_session_write (MNClientSession *session,
 	  chunk_len = MIN(len, session->sasl_maxoutbuf);
 	  if (sasl_encode(session->sasl_conn, full + start, chunk_len, &out, &outlen) != SASL_OK)
 	    {
-	      result = mn_client_session_error(session, _("unable to encode data using SASL: %s"), sasl_errdetail(session->sasl_conn));
+	      result = mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to encode data using SASL: %s"), sasl_errdetail(session->sasl_conn));
 	      goto end;
 	    }
 	  
@@ -771,14 +839,14 @@ mn_client_session_write (MNClientSession *session,
     {
 #ifdef WITH_SSL
       if (session->ssl)
-	result = mn_client_session_error(session, _("unable to write to server: %s"), mn_ssl_get_error());
+	result = mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_CONNECTION_LOST, _("unable to write to server: %s"), mn_ssl_get_error());
       else
 #endif /* WITH_SSL */
 	{
 	  if (bytes_written == 0)
-	    result = mn_client_session_error(session, _("unable to write to server: EOF"));
+	    result = mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_CONNECTION_LOST, _("unable to write to server: EOF"));
 	  else
-	    result = mn_client_session_error(session, _("unable to write to server: %s"), g_strerror(errno));
+	    result = mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_CONNECTION_LOST, _("unable to write to server: %s"), g_strerror(errno));
 	}
     }
 
@@ -797,18 +865,17 @@ mn_client_session_write_base64 (MNClientSession *session,
 				const char *buf,
 				unsigned int len)
 {
-  unsigned int buf64len = len * 2; /* Base64 is 33% larger than the data it encodes */
-  char buf64[buf64len];
+  char buf64[len * 2];		/* Base64 is 33% larger than the data it encodes */
   unsigned int outlen;
-  char *str;
   int result;
+  char *str;
 
   g_return_val_if_fail(session != NULL, 0);
   g_return_val_if_fail(buf != NULL, 0);
   
-  result = sasl_encode64(buf, len, buf64, buf64len, &outlen);
+  result = sasl_encode64(buf, len, buf64, sizeof(buf64), &outlen);
   if (result != SASL_OK)
-    return mn_client_session_error(session, _("unable to encode Base64: %s"), sasl_errstring(result, NULL, NULL));
+    return mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to encode Base64: %s"), sasl_errstring(result, NULL, NULL));
   
   str = g_strndup(buf64, outlen);
   result = mn_client_session_write(session, "%s", str);
@@ -823,10 +890,42 @@ mn_client_session_sasl_fill_interact (MNClientSession *session,
 				      const char *unknown_warning)
 {
   sasl_interact_t *i;
+  gboolean need_username = FALSE;
+  gboolean need_password = FALSE;
+  const char *username = NULL;
+  const char *password = NULL;
 
   g_return_val_if_fail(session != NULL, FALSE);
   g_return_val_if_fail(interact != NULL, FALSE);
 
+  for (i = interact; i->id; i++)
+    switch (i->id)
+      {
+      case SASL_CB_USER:
+      case SASL_CB_AUTHNAME:
+	need_username = TRUE;
+	break;
+	
+      case SASL_CB_PASS:
+	need_password = TRUE;
+	break;
+
+      default:
+	mn_client_session_warning(session, unknown_warning);
+	return FALSE;
+      };
+
+  if (need_username || need_password)
+    {
+      session->callbacks->sasl_get_credentials(session,
+					       session->private,
+					       need_username ? &username : NULL,
+					       need_password ? &password : NULL);
+
+      if ((need_username && ! username) || (need_password && ! password))
+	return FALSE;
+    }
+  
   for (i = interact; i->id; i++)
     {
       const char *data;
@@ -835,25 +934,21 @@ mn_client_session_sasl_fill_interact (MNClientSession *session,
 	{
 	case SASL_CB_USER:
 	case SASL_CB_AUTHNAME:
-	  data = session->callbacks->sasl_get_username(session, session->private);
+	  data = username;
 	  break;
 	  
 	case SASL_CB_PASS:
-	  data = session->callbacks->sasl_get_password(session, session->private);
+	  data = password;
 	  break;
 
 	default:
-	  data = NULL;
-	  mn_client_session_warning(session, unknown_warning);
+	  g_return_val_if_reached(FALSE);
 	};
 
-      if (data)
-	{
-	  i->result = data;
-	  i->len = strlen(data);
-	}
-      else
-	return FALSE;
+      g_return_val_if_fail(data != NULL, FALSE);
+
+      i->result = data;
+      i->len = strlen(data);
     }
 
   return TRUE;
@@ -895,13 +990,52 @@ mn_client_session_sasl_get_ip_port (const struct sockaddr *addr)
   return g_strdup_printf("%s;%i", buf, port);
 }
 
+/**
+ * mn_client_session_sasl_authentication_start:
+ * @session: a #MNClientSession
+ * @service: the SASL service identifier (normally "pop" or "imap")
+ * @mechanisms: the list of available mechanisms, or %NULL
+ * @forced_mechanism: a mechanism to force usage of, or %NULL
+ * @used_mechanism: a location to store the name of the mechanism that was
+ *                  selected by the SASL library
+ * @initial_clientout: a location to store the initial client response,
+ *                     or %NULL
+ * @initial_clientoutlen: a location to store the length of the initial
+ *                        client response, or %NULL
+ *
+ * Starts a SASL authentication exchange. @initial_clientout and
+ * @initial_clientoutlen must be both set or both %NULL.
+ *
+ * If @forced_mechanism is provided, authentication is attempted using
+ * that mechanism only. Otherwise, @mechanisms must point to a
+ * non-empty list of available mechanism names, and the SASL library
+ * will select an appropriate mechanism automatically.
+ *
+ * On success, the selected mechanism is stored at @used_mechanism.
+ *
+ * On failure, if a mechanism could be selected, it is stored at
+ * @used_mechanism (the caller might want to remove that mechanism
+ * from the list and try again). Otherwise, %NULL is stored at
+ * @used_mechanism.
+ *
+ * On success, if @initial_clientout and @initial_clientoutlen were
+ * set, they point to the initial client response (which is not
+ * necessarily NUL-terminated) and its length, respectively. If there
+ * is no initial client response, they point to %NULL and 0,
+ * respectively.
+ *
+ * The function may be called multiple times.
+ *
+ * Return value: %TRUE on success
+ **/
 gboolean
 mn_client_session_sasl_authentication_start (MNClientSession *session,
 					     const char *service,
 					     GSList *mechanisms,
 					     const char *forced_mechanism,
 					     const char **used_mechanism,
-					     gboolean initial_response)
+					     const char **initial_clientout,
+					     unsigned int *initial_clientoutlen)
 {
   GError *err = NULL;
   int result;
@@ -910,19 +1044,22 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
   char *local_ip_port = NULL;
   char *remote_ip_port = NULL;
 
-  g_return_val_if_fail(session != NULL, 0);
-  g_return_val_if_fail(session->callbacks->sasl_get_username != NULL, FALSE);
-  g_return_val_if_fail(session->callbacks->sasl_get_password != NULL, FALSE);
-  g_return_val_if_fail(service != NULL, 0);
-  g_return_val_if_fail(mechanisms != NULL || forced_mechanism != NULL, 0);
+  g_return_val_if_fail(session != NULL, FALSE);
+  g_return_val_if_fail(session->callbacks->sasl_get_credentials != NULL, FALSE);
+  g_return_val_if_fail(service != NULL, FALSE);
+  g_return_val_if_fail(mechanisms != NULL || forced_mechanism != NULL, FALSE);
+  g_return_val_if_fail((initial_clientout == NULL && initial_clientoutlen == NULL)
+		       || (initial_clientout != NULL && initial_clientoutlen != NULL), FALSE);
 
-  session->sasl_available = mn_sasl_use(&err);
-  if (! session->sasl_available)
+  if (! mn_sasl_init(&err))
     {
       mn_client_session_warning(session, _("unable to initialize the SASL library: %s"), err->message);
       g_error_free(err);
       return FALSE;
     }
+  
+  /* make sure we do not leak the previous sasl_conn if any */
+  mn_client_session_sasl_dispose(session);
   
   namelen = sizeof(name);
   if (getsockname(session->s, &name, &namelen) >= 0)
@@ -986,8 +1123,8 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
 	  result = sasl_client_start(session->sasl_conn,
 				     mechanisms_string->str,
 				     &interact,
-				     initial_response ? &session->sasl_initial_clientout : NULL,
-				     initial_response ? &session->sasl_initial_clientoutlen : NULL,
+				     initial_clientout,
+				     initial_clientoutlen,
 				     used_mechanism);
 
 	  if (result == SASL_INTERACT)
@@ -1020,91 +1157,95 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
   return FALSE;
 }
 
+/**
+ * mn_client_session_sasl_authentication_step:
+ * @session: a #MNClientSession
+ * @input: the last server challenge received
+ *
+ * Continues a SASL authentication exchange successfully initiated
+ * with mn_client_session_sasl_authentication_start().
+ *
+ * Return value: the state to switch to
+ **/
 int
 mn_client_session_sasl_authentication_step (MNClientSession *session,
 					    const char *input)
 {
   g_return_val_if_fail(session != NULL, 0);
+  g_return_val_if_fail(session->sasl_conn != NULL, 0);
   g_return_val_if_fail(input != NULL, 0);
   
-  if (*input)
-    {
-      if (! session->sasl_initial_clientout)
-	{
-	  unsigned int inlen = strlen(input);
-	  char buf[inlen];
-	  unsigned int outlen;
-	  int result;
+  {
+    unsigned int inlen = strlen(input);
+    char buf[inlen];
+    unsigned int outlen;
+    int result;
 	  
-	  result = sasl_decode64(input, inlen, buf, inlen, &outlen);
-	  if (result == SASL_OK)
-	    {
-	      sasl_interact_t *interact = NULL;
+    result = sasl_decode64(input, inlen, buf, inlen, &outlen);
+    if (result == SASL_OK)
+      {
+	sasl_interact_t *interact = NULL;
+	const char *clientout;
+	unsigned int clientoutlen;
 	      
-	      do 
-		{
-		  result = sasl_client_step(session->sasl_conn,
-					    buf,
-					    outlen,
-					    &interact,
-					    &session->sasl_clientout,
-					    &session->sasl_clientoutlen);
+	do 
+	  {
+	    result = sasl_client_step(session->sasl_conn,
+				      buf,
+				      outlen,
+				      &interact,
+				      &clientout,
+				      &clientoutlen);
 		  
-		  if (result == SASL_INTERACT)
-		    {
-		      if (! mn_client_session_sasl_fill_interact(session, interact, _("SASL asked for something we did not know, aborting SASL authentication")))
-			break;
-		    }
-		}
-	      while (result == SASL_INTERACT);
+	    if (result == SASL_INTERACT)
+	      {
+		if (! mn_client_session_sasl_fill_interact(session, interact, _("SASL asked for something we did not know, aborting SASL authentication")))
+		  break;
+	      }
+	  }
+	while (result == SASL_INTERACT);
 	      
-	      switch (result)
-		{
-		case SASL_OK:
-		case SASL_CONTINUE:
-		  return mn_client_session_write_base64(session, session->sasl_clientout, session->sasl_clientoutlen);
-		  
-		case SASL_INTERACT:
-		  /* could not fill interaction, abort */
-		  return mn_client_session_write(session, "*");
-		  
-		default:
-		  mn_client_session_warning(session, _("%s, aborting SASL authentication"), sasl_errdetail(session->sasl_conn));
-		  return mn_client_session_write(session, "*");
-		}
-	    }
-	  else			/* compliance error */
-	    return mn_client_session_error(session, _("unable to decode Base64 input from server: %s"), sasl_errstring(result, NULL, NULL));
-	}
-      else
-	return mn_client_session_error(session, _("the server sent a SASL challenge, but there was a pending initial SASL client response"));
-    }
-  else
-    {
-      if (session->sasl_initial_clientout)
-	{
-	  int result;
-	  
-	  result = mn_client_session_write_base64(session, session->sasl_initial_clientout, session->sasl_initial_clientoutlen);
-	  session->sasl_initial_clientout = NULL;
-	  session->sasl_initial_clientoutlen = 0;
-	  return result;
-	}
-      else
-	return mn_client_session_error(session, _("the server did not send a SASL challenge, but there was no pending initial SASL client response"));
-    }
+	switch (result)
+	  {
+	  case SASL_OK:
+	  case SASL_CONTINUE:
+	    return mn_client_session_write_base64(session, clientout, clientoutlen);
+	      
+	  case SASL_INTERACT:
+	    /* could not fill interaction, abort */
+	    return mn_client_session_write(session, "*");
+	      
+	  default:
+	    mn_client_session_warning(session, _("%s, aborting SASL authentication"), sasl_errdetail(session->sasl_conn));
+	    return mn_client_session_write(session, "*");
+	  }
+      }
+    else			/* compliance error */
+      return mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to decode Base64 input from server: %s"), sasl_errstring(result, NULL, NULL));
+  }
 }
 
+/**
+ * mn_client_session_sasl_authentication_done:
+ * @session: a #MNClientSession
+ *
+ * Completes a successful SASL authentication exchange. Must only be
+ * used if the server has terminated the exchange with a positive
+ * response.
+ *
+ * Return value: %TRUE on success
+ **/
 gboolean
 mn_client_session_sasl_authentication_done (MNClientSession *session)
 {
   gconstpointer ptr;
 
   g_return_val_if_fail(session != NULL, FALSE);
+  g_return_val_if_fail(session->sasl_conn != NULL, 0);
 
   if (sasl_getprop(session->sasl_conn, SASL_SSF, &ptr) == SASL_OK)
     {
-      const int *ssf = ptr;
+      const sasl_ssf_t *ssf = ptr;
 
       if (*ssf)
 	{
@@ -1121,7 +1262,7 @@ mn_client_session_sasl_authentication_done (MNClientSession *session)
 	  else
 	    {
 	      /* a security layer is active but we can't retrieve maxoutbuf -> fatal */
-	      mn_client_session_error(session, _("unable to get SASL_MAXOUTBUF property: %s"), sasl_errdetail(session->sasl_conn));
+	      mn_client_session_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to get SASL_MAXOUTBUF property: %s"), sasl_errdetail(session->sasl_conn));
 	      return FALSE;
 	    }
 	}
@@ -1132,15 +1273,61 @@ mn_client_session_sasl_authentication_done (MNClientSession *session)
   return TRUE;
 }
 
-int
+/**
+ * mn_client_session_sasl_dispose:
+ * @session: a #MNClientSession
+ *
+ * Destroys the SASL connection of @session, or, if no SASL connection
+ * is active, does nothing.
+ *
+ * Since the SASL connection is always destroyed before
+ * mn_client_session_run() returns, omitting to call this function
+ * will not leak the object away. However, in some situations (eg. if
+ * SASL authentication fails but the session continues nevertheless)
+ * it might be desirable to get rid of the object, in order to free
+ * memory for the rest of the session duration.
+ **/
+void
+mn_client_session_sasl_dispose (MNClientSession *session)
+{
+  g_return_if_fail(session != NULL);
+
+  if (session->sasl_conn)
+    {
+      sasl_dispose(&session->sasl_conn);
+      session->sasl_conn = NULL;
+    }
+}
+
+/**
+ * mn_client_session_sasl_get_ssf:
+ * @session: a #MNClientSession
+ *
+ * Gets the SASL security strength factor. Must not be used unless
+ * mn_client_session_sasl_authentication_done() has returned %TRUE.
+ *
+ * Return value: 0 if no security layer is active, or an approximation
+ * of the encryption key length otherwise
+ **/
+sasl_ssf_t
 mn_client_session_sasl_get_ssf (MNClientSession *session)
 {
-  g_return_val_if_fail(session != NULL, FALSE);
+  g_return_val_if_fail(session != NULL, 0);
+  g_return_val_if_fail(session->sasl_conn != NULL, 0);
 
   return session->sasl_ssf;
 }
 #endif /* WITH_SASL */
 
+/**
+ * mn_client_session_notice:
+ * @session: a #MNClientSession
+ * @format: a printf() format string
+ * @...: the arguments to the format string
+ *
+ * If the notice callback of @session is defined, calls it with the
+ * given message as argument. Otherwise, does nothing.
+ **/
 void
 mn_client_session_notice (MNClientSession *session,
 			  const char *format,
@@ -1152,17 +1339,26 @@ mn_client_session_notice (MNClientSession *session,
   if (session->callbacks->notice)
     {
       va_list args;
-      char *str;
+      char *message;
 
       va_start(args, format);
-      str = g_strdup_vprintf(format, args);
+      message = g_strdup_vprintf(format, args);
       va_end(args);
 
-      session->callbacks->notice(session, str, session->private);
-      g_free(str);
+      session->callbacks->notice(session, message, session->private);
+      g_free(message);
     }
 }
 
+/**
+ * mn_client_session_warning:
+ * @session: a #MNClientSession
+ * @format: a printf() format string
+ * @...: the arguments to the format string
+ *
+ * If the warning callback of @session is defined, calls it with the
+ * given message as argument. Otherwise, does nothing.
+ **/
 void
 mn_client_session_warning (MNClientSession *session,
 			   const char *format,
@@ -1174,19 +1370,32 @@ mn_client_session_warning (MNClientSession *session,
   if (session->callbacks->warning)
     {
       va_list args;
-      char *str;
+      char *message;
 
       va_start(args, format);
-      str = g_strdup_vprintf(format, args);
+      message = g_strdup_vprintf(format, args);
       va_end(args);
 
-      session->callbacks->warning(session, str, session->private);
-      g_free(str);
+      session->callbacks->warning(session, message, session->private);
+      g_free(message);
     }
 }
 
+/**
+ * mn_client_session_error:
+ * @session: a #MNClientSession
+ * @code: a #MNClientSessionError code
+ * @format: a printf() format string
+ * @...: the arguments to the format string
+ *
+ * If @session has no error yet, sets the given error. Otherwise, does
+ * nothing.
+ *
+ * Return value: %MN_CLIENT_SESSION_RESULT_DISCONNECT
+ **/
 int
 mn_client_session_error (MNClientSession *session,
+			 int code,
 			 const char *format,
 			 ...)
 {
@@ -1196,11 +1405,21 @@ mn_client_session_error (MNClientSession *session,
   if (! session->error)
     {
       va_list args;
+      char *message;
 
       va_start(args, format);
-      session->error = g_strdup_vprintf(format, args);
+      message = g_strdup_vprintf(format, args);
       va_end(args);
+
+      session->error = g_error_new_literal(MN_CLIENT_SESSION_ERROR, code, message);
+      g_free(message);
     }
 
-  return MN_CLIENT_SESSION_RESULT_END;
+  return MN_CLIENT_SESSION_RESULT_DISCONNECT;
+}
+
+GQuark
+mn_client_session_error_quark (void)
+{
+  return g_quark_from_static_string("mn-client-session-error");
 }

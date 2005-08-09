@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ mn_message_mime_header_decode_text (const char *str)
 }
 
 MNMessage *
-mn_message_new_from_mime_message (MNURI *mailbox_uri,
+mn_message_new_from_mime_message (MNMailbox *mailbox,
 				  GMimeMessage *mime_message)
 {
   MNMessage *message;
@@ -62,7 +62,7 @@ mn_message_new_from_mime_message (MNURI *mailbox_uri,
   char *decoded_from;
   char *decoded_subject;
 
-  g_return_val_if_fail(MN_IS_URI(mailbox_uri), NULL);
+  g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
   g_return_val_if_fail(GMIME_IS_MESSAGE(mime_message), NULL);
   
   message_id = g_mime_message_get_message_id(mime_message);
@@ -73,7 +73,7 @@ mn_message_new_from_mime_message (MNURI *mailbox_uri,
   decoded_from = from ? mn_message_mime_header_decode_text(from) : NULL;
   decoded_subject = subject ? mn_message_mime_header_decode_text(subject) : NULL;
 
-  message = mn_message_new(mailbox_uri, NULL, sent_time, message_id, decoded_from, decoded_subject);
+  message = mn_message_new(mailbox, NULL, sent_time, message_id, decoded_from, decoded_subject);
 
   g_free(decoded_from);
   g_free(decoded_subject);
@@ -82,14 +82,13 @@ mn_message_new_from_mime_message (MNURI *mailbox_uri,
 }
 
 MNMessage *
-mn_message_new_from_mime_stream (MNURI *mailbox_uri,
-				 GMimeStream *mime_stream)
+mn_message_new_from_mime_stream (MNMailbox *mailbox, GMimeStream *mime_stream)
 {
   GMimeParser *parser;
   GMimeMessage *mime_message;
   MNMessage *message;
 
-  g_return_val_if_fail(MN_IS_URI(mailbox_uri), NULL);
+  g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
   g_return_val_if_fail(GMIME_IS_STREAM(mime_stream), NULL);
 
   parser = g_mime_parser_new_with_stream(mime_stream);
@@ -98,60 +97,63 @@ mn_message_new_from_mime_stream (MNURI *mailbox_uri,
 
   if (mime_message)
     {
-      message = mn_message_new_from_mime_message(mailbox_uri, mime_message);
+      message = mn_message_new_from_mime_message(mailbox, mime_message);
       g_object_unref(mime_message);
     }
   else
-    message = mn_message_new_from_error(mailbox_uri, _("unable to parse MIME message"));
+    message = mn_message_new_from_error(mailbox, _("unable to parse MIME message"));
     
   return message;
 }
 
 MNMessage *
-mn_message_new_from_uri (MNURI *mailbox_uri,
-			 GnomeVFSURI *uri)
+mn_message_new_from_uri (MNMailbox *mailbox, GnomeVFSURI *uri)
 {
   GnomeVFSResult result;
   GnomeVFSHandle *handle;
-  MNMessage *message;
 
-  g_return_val_if_fail(MN_IS_URI(mailbox_uri), NULL);
+  g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
   g_return_val_if_fail(uri != NULL, NULL);
 
   result = gnome_vfs_open_uri(&handle, uri, GNOME_VFS_OPEN_READ | GNOME_VFS_OPEN_RANDOM);
   if (result == GNOME_VFS_OK)
     {
       GMimeStream *stream;
-      char *text_uri;
 
-      text_uri = gnome_vfs_uri_to_string(uri, GNOME_VFS_URI_HIDE_NONE);
-      stream = mn_gmime_stream_vfs_new(handle, text_uri);
-      g_free(text_uri);
+      stream = mn_gmime_stream_vfs_new(handle, uri, &result);
+      if (stream)
+	{
+	  MNMessage *message;
 
-      message = mn_message_new_from_mime_stream(mailbox_uri, stream);
-      g_object_unref(stream);
+	  message = mn_message_new_from_mime_stream(mailbox, stream);
+	  g_object_unref(stream);
 
-      gnome_vfs_close(handle);
+	  result = gnome_vfs_close(handle);
+	  if (result == GNOME_VFS_OK)
+	    return message;
+	  else
+	    g_object_unref(message);
+	}
+      else
+	gnome_vfs_close(handle);
     }
-  else
-    message = mn_message_new_from_error(mailbox_uri, gnome_vfs_result_to_string(result));
-    
-  return message;
+
+  return mn_message_new_from_error(mailbox, gnome_vfs_result_to_string(result));
 }
 
 MNMessage *
-mn_message_new_from_buffer (MNURI *mailbox_uri,
+mn_message_new_from_buffer (MNMailbox *mailbox,
 			    const char *buffer,
 			    unsigned int len)
 {
   GMimeStream *stream;
   MNMessage *message;
 
-  g_return_val_if_fail(MN_IS_URI(mailbox_uri), NULL);
+  g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
   g_return_val_if_fail(buffer != NULL, NULL);
 
   stream = g_mime_stream_mem_new_with_buffer(buffer, len);
-  message = mn_message_new_from_mime_stream(mailbox_uri, stream);
+  message = mn_message_new_from_mime_stream(mailbox, stream);
   g_object_unref(stream);
 
   return message;

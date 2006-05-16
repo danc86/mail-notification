@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <gtk/gtk.h>
@@ -29,7 +29,7 @@ requires 2.0.12
 #include "mn-authenticated-mailbox.h"
 %}
 
-class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties
+class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties (abstract)
 {
   protected GtkWidget *username_vbox;
   protected GtkWidget *username_label;
@@ -83,7 +83,7 @@ class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties
 
     if (label)
       *label = _label;
-    
+
     return hbox;
   }
 
@@ -111,8 +111,8 @@ class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties
     password = gtk_entry_get_text(GTK_ENTRY(self->password_entry));
 
     g_object_set(mailbox,
-		 "username", *username ? username : NULL,
-		 "password", *password ? password : NULL,
+		 MN_AUTHENTICATED_MAILBOX_PROP_USERNAME((char *) (*username ? username : NULL)),
+		 MN_AUTHENTICATED_MAILBOX_PROP_PASSWORD((char *) (*password ? password : NULL)),
 		 NULL);
 
     return mailbox;

@@ -1,28 +1,6 @@
 <gconfschemafile>
   <schemalist>
     <schema>
-      <key>/schemas/apps/mail-notification/delay/minutes</key>
-      <applyto>/apps/mail-notification/delay/minutes</applyto>
-      <owner>mail-notification</owner>
-      <type>int</type>
-      <default>5</default>
-      <locale name="C">
-        <short>Minutes between mail checks</short>
-        <long>Delay between mail checks (minutes part).</long>
-      </locale>
-    </schema>
-    <schema>
-      <key>/schemas/apps/mail-notification/delay/seconds</key>
-      <applyto>/apps/mail-notification/delay/seconds</applyto>
-      <owner>mail-notification</owner>
-      <type>int</type>
-      <default>0</default>
-      <locale name="C">
-        <short>Seconds between mail checks</short>
-        <long>Delay between mail checks (seconds part).</long>
-      </locale>
-    </schema>
-    <schema>
       <key>/schemas/apps/mail-notification/commands/new-mail/enabled</key>
       <applyto>/apps/mail-notification/commands/new-mail/enabled</applyto>
       <owner>mail-notification</owner>
@@ -65,28 +43,6 @@
       </locale>
     </schema>
     <schema>
-      <key>/schemas/apps/mail-notification/commands/mail-reader/enabled</key>
-      <applyto>/apps/mail-notification/commands/mail-reader/enabled</applyto>
-      <owner>mail-notification</owner>
-      <type>bool</type>
-      <default>0</default>
-      <locale name="C">
-        <short>Set a mail reader</short>
-	<long>Whether to set a mail reader or not.</long>
-      </locale>
-    </schema> 
-    <schema>
-      <key>/schemas/apps/mail-notification/commands/mail-reader/command</key>
-      <applyto>/apps/mail-notification/commands/mail-reader/command</applyto>
-      <owner>mail-notification</owner>
-      <type>string</type>
-      <default>evolution</default>
-      <locale name="C">
-        <short>Mail reader command</short>
-	<long>The command to run to launch the mail reader.</long>
-      </locale>
-    </schema>
-    <schema>
       <key>/schemas/apps/mail-notification/ui/properties-dialog/height</key>
       <applyto>/apps/mail-notification/ui/properties-dialog/height</applyto>
       <owner>mail-notification</owner>
@@ -106,94 +62,6 @@
       <locale name="C">
         <short>Width of properties dialog</short>
         <long>The width of the properties dialog in pixels.</long>
-      </locale>
-    </schema>
-    <schema>
-      <key>/schemas/apps/mail-notification/ui/immediate-notification-error-dialog/do-not-show</key>
-      <applyto>/apps/mail-notification/ui/immediate-notification-error-dialog/do-not-show</applyto>
-      <owner>mail-notification</owner>
-      <type>bool</type>
-      <default>0</default>
-      <locale name="C">
-        <short>Do not show the immediate notification error dialog</short>
-	<long>Whether to prevent the immediate notification error dialog from being displayed or not.</long>
-      </locale>
-    </schema> 
-    <schema>
-      <key>/schemas/apps/mail-notification/ui/main-window/dimensions/height</key>
-      <applyto>/apps/mail-notification/ui/main-window/dimensions/height</applyto>
-      <owner>mail-notification</owner>
-      <type>int</type>
-      <default>300</default>
-      <locale name="C">
-        <short>Height of main window</short>
-        <long>The height of the main window in pixels.</long>
-      </locale>
-    </schema>
-    <schema>
-      <key>/schemas/apps/mail-notification/ui/main-window/dimensions/width</key>
-      <applyto>/apps/mail-notification/ui/main-window/dimensions/width</applyto>
-      <owner>mail-notification</owner>
-      <type>int</type>
-      <default>400</default>
-      <locale name="C">
-        <short>Width of main window</short>
-        <long>The width of the main window in pixels.</long>
-      </locale>
-    </schema>
-    <schema>
-      <key>/schemas/apps/mail-notification/ui/main-window/view-toolbars</key>
-      <applyto>/apps/mail-notification/ui/main-window/view-toolbars</applyto>
-      <owner>mail-notification</owner>
-      <type>bool</type>
-      <default>1</default>
-      <locale name="C">
-	<short>View toolbars</short>
-	<long>Whether the toolbars should be visible or not.</long>
-      </locale>
-    </schema>
-    <schema>
-      <key>/schemas/apps/mail-notification/ui/main-window/view-statusbar</key>
-      <applyto>/apps/mail-notification/ui/main-window/view-statusbar</applyto>
-      <owner>mail-notification</owner>
-      <type>bool</type>
-      <default>1</default>
-      <locale name="C">
-	<short>View statusbar</short>
-	<long>Whether the statusbar should be visible or not.</long>
-      </locale>
-    </schema>
-    <schema>
-      <key>/schemas/apps/mail-notification/ui/main-window/toolbars-style</key>
-      <applyto>/apps/mail-notification/ui/main-window/toolbars-style</applyto>
-      <owner>mail-notification</owner>
-      <type>string</type>
-      <default>desktop-default</default>
-      <locale name="C">
-	<short>Toolbars style</short>
-	<long>The style of the toolbars. Must be "desktop-default", "icons", "text", "both" or "both-horiz".</long>
-      </locale>
-    </schema>
-    <schema>
-      <key>/schemas/apps/mail-notification/ui/main-window/edit-toolbars-dialog/height</key>
-      <applyto>/apps/mail-notification/ui/main-window/edit-toolbars-dialog/height</applyto>
-      <owner>mail-notification</owner>
-      <type>int</type>
-      <default>-1</default>
-      <locale name="C">
-        <short>Height of edit toolbars dialog</short>
-        <long>The height of the edit toolbars dialog in pixels.</long>
-      </locale>
-    </schema>
-    <schema>
-      <key>/schemas/apps/mail-notification/ui/main-window/edit-toolbars-dialog/width</key>
-      <applyto>/apps/mail-notification/ui/main-window/edit-toolbars-dialog/width</applyto>
-      <owner>mail-notification</owner>
-      <type>int</type>
-      <default>-1</default>
-      <locale name="C">
-        <short>Width of edit toolbars dialog</short>
-        <long>The width of the edit toolbars dialog in pixels.</long>
       </locale>
     </schema>
     <schema>
@@ -351,26 +219,48 @@
       </locale>
     </schema>
     <schema>
-      <key>/schemas/apps/mail-notification/double-click-action-2</key>
-      <applyto>/apps/mail-notification/double-click-action-2</applyto>
-      <owner>mail-notification</owner>
-      <type>string</type>
-      <default>display-main-window</default>
-      <locale name="C">
-        <short>Double-click action</short>
-	<long>The action to perform when the icon is double-clicked. Must be "display-main-window", "launch-mail-reader" or "update-mail-status".</long>
-      </locale>
-    </schema>
-    <schema>
-      <key>/schemas/apps/mail-notification/summary-tooltip</key>
-      <applyto>/apps/mail-notification/summary-tooltip</applyto>
+      <key>/schemas/apps/mail-notification/display-seen-mail</key>
+      <applyto>/apps/mail-notification/display-seen-mail</applyto>
       <owner>mail-notification</owner>
       <type>bool</type>
       <default>1</default>
       <locale name="C">
-        <short>Display mail summary in tooltip</short>
-	<long>Whether to display the mail summary in the status icon tooltip or not.</long>
+        <short>Display seen mail</short>
+	<long>Whether to display seen mail or not.</long>
       </locale>
-    </schema> 
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/tooltip-mail-summary</key>
+      <applyto>/apps/mail-notification/tooltip-mail-summary</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>standard</default>
+      <locale name="C">
+        <short>Tooltip mail summary</short>
+	<long>The type of mail summary to display in the icon's tooltip. Must be "standard", "compact" or "none".</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/always-display-icon</key>
+      <applyto>/apps/mail-notification/always-display-icon</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Always display an icon</short>
+	<long>Whether to display an icon when there is no new mail or not.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/click-action</key>
+      <applyto>/apps/mail-notification/click-action</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>display-properties-dialog</default>
+      <locale name="C">
+        <short>Click action</short>
+	<long>The action to perform when the icon is clicked. Must be "display-properties-dialog", "launch-mail-reader" or "update-mail-status".</long>
+      </locale>
+    </schema>
   </schemalist>
 </gconfschemafile>

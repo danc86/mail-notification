@@ -17,6 +17,7 @@
  */
 
 #include "config.h"
+#include <string.h>
 #include <glib/gi18n.h>
 #include <libgnomevfs/gnome-vfs.h>
 #include "mn-message-mime.h"
@@ -52,7 +53,9 @@ mn_message_mime_header_decode_text (const char *str)
 
 MNMessage *
 mn_message_new_from_mime_message (MNMailbox *mailbox,
-				  GMimeMessage *mime_message)
+				  GMimeMessage *mime_message,
+				  MNMessageFlags flags,
+				  gboolean handle_status)
 {
   MNMessage *message;
   const char *message_id;
@@ -64,7 +67,7 @@ mn_message_new_from_mime_message (MNMailbox *mailbox,
 
   g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
   g_return_val_if_fail(GMIME_IS_MESSAGE(mime_message), NULL);
-  
+
   message_id = g_mime_message_get_message_id(mime_message);
   g_mime_message_get_date(mime_message, &sent_time, NULL);
   from = g_mime_message_get_sender(mime_message);
@@ -73,7 +76,18 @@ mn_message_new_from_mime_message (MNMailbox *mailbox,
   decoded_from = from ? mn_message_mime_header_decode_text(from) : NULL;
   decoded_subject = subject ? mn_message_mime_header_decode_text(subject) : NULL;
 
-  message = mn_message_new(mailbox, NULL, sent_time, message_id, decoded_from, decoded_subject);
+  if (handle_status)
+    {
+      const char *status;
+
+      status = g_mime_message_get_header(mime_message, "Status");
+      if (status && strchr(status, 'O'))
+	flags &= ~MN_MESSAGE_NEW;
+      else
+	flags |= MN_MESSAGE_NEW;
+    }
+
+  message = mn_message_new(mailbox, NULL, sent_time, message_id, decoded_from, decoded_subject, flags);
 
   g_free(decoded_from);
   g_free(decoded_subject);
@@ -82,7 +96,10 @@ mn_message_new_from_mime_message (MNMailbox *mailbox,
 }
 
 MNMessage *
-mn_message_new_from_mime_stream (MNMailbox *mailbox, GMimeStream *mime_stream)
+mn_message_new_from_mime_stream (MNMailbox *mailbox,
+				 GMimeStream *mime_stream,
+				 MNMessageFlags flags,
+				 gboolean handle_status)
 {
   GMimeParser *parser;
   GMimeMessage *mime_message;
@@ -97,17 +114,20 @@ mn_message_new_from_mime_stream (MNMailbox *mailbox, GMimeStream *mime_stream)
 
   if (mime_message)
     {
-      message = mn_message_new_from_mime_message(mailbox, mime_message);
+      message = mn_message_new_from_mime_message(mailbox, mime_message, flags, handle_status);
       g_object_unref(mime_message);
     }
   else
-    message = mn_message_new_from_error(mailbox, _("unable to parse MIME message"));
-    
+    message = mn_message_new_from_error(mailbox, _("unable to parse MIME message"), flags);
+
   return message;
 }
 
 MNMessage *
-mn_message_new_from_uri (MNMailbox *mailbox, GnomeVFSURI *uri)
+mn_message_new_from_uri (MNMailbox *mailbox,
+			 GnomeVFSURI *uri,
+			 MNMessageFlags flags,
+			 gboolean handle_status)
 {
   GnomeVFSResult result;
   GnomeVFSHandle *handle;
@@ -125,7 +145,7 @@ mn_message_new_from_uri (MNMailbox *mailbox, GnomeVFSURI *uri)
 	{
 	  MNMessage *message;
 
-	  message = mn_message_new_from_mime_stream(mailbox, stream);
+	  message = mn_message_new_from_mime_stream(mailbox, stream, flags, handle_status);
 	  g_object_unref(stream);
 
 	  result = gnome_vfs_close(handle);
@@ -138,13 +158,15 @@ mn_message_new_from_uri (MNMailbox *mailbox, GnomeVFSURI *uri)
 	gnome_vfs_close(handle);
     }
 
-  return mn_message_new_from_error(mailbox, gnome_vfs_result_to_string(result));
+  return mn_message_new_from_error(mailbox, gnome_vfs_result_to_string(result), flags);
 }
 
 MNMessage *
 mn_message_new_from_buffer (MNMailbox *mailbox,
 			    const char *buffer,
-			    unsigned int len)
+			    unsigned int len,
+			    MNMessageFlags flags,
+			    gboolean handle_status)
 {
   GMimeStream *stream;
   MNMessage *message;
@@ -153,7 +175,7 @@ mn_message_new_from_buffer (MNMailbox *mailbox,
   g_return_val_if_fail(buffer != NULL, NULL);
 
   stream = g_mime_stream_mem_new_with_buffer(buffer, len);
-  message = mn_message_new_from_mime_stream(mailbox, stream);
+  message = mn_message_new_from_mime_stream(mailbox, stream, flags, handle_status);
   g_object_unref(stream);
 
   return message;

@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include "mn-mailbox.h"
+%}
+
+%privateheader{
+#include "mn-locked-callback.h"
 %}
 
 %{
@@ -35,11 +39,11 @@ typedef struct
 } CheckInfo;
 %}
 
-class MN:Reentrant:Mailbox from MN:Mailbox
+class MN:Reentrant:Mailbox from MN:Mailbox (abstract)
 {
   private GMutex *mutex = {g_mutex_new()} destroywith g_mutex_free;
 
-  private unsigned int queue_check_id;
+  private MNLockedGSource *queue_check_source;
 
   private unsigned long check_id;
   private unsigned long check_unique_id;
@@ -61,31 +65,38 @@ class MN:Reentrant:Mailbox from MN:Mailbox
   {
     Self *self = SELF(object);
 
-    if (selfp->queue_check_id)
-      g_source_remove(selfp->queue_check_id);
+    if (selfp->queue_check_source)
+      mn_locked_g_source_remove(selfp->queue_check_source);
 
     PARENT_HANDLER(object);
   }
 
+  /**
+   * queue_check():
+   * @self: a mailbox
+   *
+   * Queue a mail check on @self, or replace an already queued check.
+   *
+   * This function is not thread-safe. It is only called from main
+   * loop callbacks (hence always from the same thread).
+   **/
   protected void
     queue_check (self)
   {
-    if (selfp->queue_check_id)
-      g_source_remove(selfp->queue_check_id);
+    if (selfp->queue_check_source)
+      mn_locked_g_source_remove(selfp->queue_check_source);
 
-    selfp->queue_check_id = g_idle_add(self_queue_check_cb, self);
+    selfp->queue_check_source = mn_g_idle_add_gdk_locked(self_queue_check_cb, self);
   }
-  
+
   private gboolean
     queue_check_cb (gpointer data)
   {
     Self *self = data;
 
-    GDK_THREADS_ENTER();
     mn_mailbox_check(MN_MAILBOX(self));
-    GDK_THREADS_LEAVE();
 
-    selfp->queue_check_id = 0;
+    selfp->queue_check_source = NULL;
     return FALSE;		/* remove source */
   }
 
@@ -118,7 +129,7 @@ class MN:Reentrant:Mailbox from MN:Mailbox
   {
     Self *self = info->self;
 
-    self_impl_check(self, info->check_id);
+    self_reentrant_check(self, info->check_id);
 
     self_lock(self);
     if (selfp->check_id == info->check_id)
@@ -136,7 +147,7 @@ class MN:Reentrant:Mailbox from MN:Mailbox
   }
 
   virtual private void
-    impl_check (self, unsigned long check_id);
+    reentrant_check (self, unsigned long check_id);
 
   protected gboolean
     check_aborted (self, unsigned long check_id)
@@ -149,7 +160,7 @@ class MN:Reentrant:Mailbox from MN:Mailbox
 
     return aborted;
   }
-  
+
   protected gboolean
     check_aborted_unlocked (self, unsigned long check_id)
   {

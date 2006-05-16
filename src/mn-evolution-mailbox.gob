@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,15 +16,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include "mn-reentrant-mailbox.h"
 %}
 
 %privateheader{
+#include <time.h>
 #include "GNOME_MailNotification_Evolution.h"
 #include "mn-corba-object.h"
+#include "mn-locked-callback.h"
 %}
 
 %{
@@ -37,6 +39,8 @@ requires 2.0.12
 #include "mn-message.h"
 #include "mn-util.h"
 #include "mn-stock.h"
+
+static GStaticMutex listeners_mutex = G_STATIC_MUTEX_INIT;
 %}
 
 class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
@@ -52,29 +56,32 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
   property STRING folder_name (link, flags = MN_MAILBOX_PARAM_PERMANENT | MN_MAILBOX_PARAM_REQUIRED);
 
   private MNCORBAObject *glue unrefwith g_object_unref;
-  private Bonobo_Listener listener = CORBA_OBJECT_NIL;
+  private MNLockedBonoboListener *listener;
+
+  private time_t last_browsed;
 
   class_init (class)
   {
     MN_MAILBOX_CLASS(class)->type = "evolution";
 
+    /*
+     * The mailbox is only polled if the folder was not found. Since
+     * this is unlikely, and since Evolution is probably running on
+     * the local machine, we choose a small default check delay (1
+     * minute).
+     */
+    MN_MAILBOX_CLASS(class)->default_check_delay = 60 * 1;
+
     bonobo_exception_add_handler_str(ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound, _("folder not found"));
   }
 
-  override (G:Object) GObject *
-    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  init (self)
   {
-    GObject *object;
-    MNMailbox *mailbox;
+    mn_mailbox_set_format(MN_MAILBOX(self), "Evolution");
+    mn_mailbox_set_stock_id(MN_MAILBOX(self), MN_STOCK_EVOLUTION_MAILBOX);
 
-    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    mailbox = MN_MAILBOX(object);
-
-    mn_mailbox_set_format(mailbox, "Evolution");
-    mn_mailbox_set_stock_id(mailbox, MN_STOCK_EVOLUTION_MAILBOX);
-    mn_mailbox_set_must_poll(mailbox, FALSE);
-
-    return object;
+    /* we receive notifications from Evolution, no need to poll */
+    mn_mailbox_set_poll(MN_MAILBOX(self), FALSE);
   }
 
   override (MN:Mailbox) void
@@ -95,7 +102,7 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
      * We are no longer operational after dispose (see unrefwith
      * above), so we must remove our listener.
      */
-    if (selfp->listener != CORBA_OBJECT_NIL)
+    if (selfp->listener)
       {
 	GNOME_MailNotification_Evolution_Glue glue;
 
@@ -104,39 +111,60 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 	glue = mn_corba_object_get_object(selfp->glue);
 	if (glue != CORBA_OBJECT_NIL)
 	  {
-	    bonobo_event_source_client_remove_listener(glue, selfp->listener, NULL);
+	    g_static_mutex_lock(&listeners_mutex);
+	    mn_bonobo_event_source_client_remove_listener_locked(glue, selfp->listener, NULL);
+	    g_static_mutex_unlock(&listeners_mutex);
+
 	    CORBA_Object_release(glue, NULL);
 	  }
 
-	CORBA_Object_release(selfp->listener, NULL);
-	selfp->listener = CORBA_OBJECT_NIL;
+	bonobo_object_release_unref(mn_locked_bonobo_listener_get_listener(selfp->listener), NULL);
+	selfp->listener = NULL;
       }
 
     PARENT_HANDLER(object);
   }
 
   private void
-    folder_changed_cb (BonoboListener *listener,
-		       const char *event_name,
-		       const CORBA_any *any,
-		       CORBA_Environment *env,
-		       gpointer user_data)
+    listener_cb (BonoboListener *listener,
+		 const char *event_name,
+		 const CORBA_any *any,
+		 CORBA_Environment *env,
+		 gpointer user_data)
   {
     Self *self = user_data;
     const char *uri;
 
-    uri = BONOBO_ARG_GET_STRING(any);
-    if (! strcmp(uri, self->uri))
-      mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self));
+    if (! strcmp(event_name, MN_EVOLUTION_EVENT_PREFIX ":" MN_EVOLUTION_EVENT_MESSAGE_READING))
+      {
+	uri = BONOBO_ARG_GET_STRING(any);
+	if (! strcmp(uri, self->uri))
+	  {
+	    time_t now = mn_time();
+
+	    mn_reentrant_mailbox_lock(MN_REENTRANT_MAILBOX(self));
+	    selfp->last_browsed = now;
+	    mn_reentrant_mailbox_unlock(MN_REENTRANT_MAILBOX(self));
+
+	    mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self));
+	  }
+      }
+    else if (! strcmp(event_name, MN_EVOLUTION_EVENT_PREFIX ":" MN_EVOLUTION_EVENT_FOLDER_CHANGED))
+      {
+	uri = BONOBO_ARG_GET_STRING(any);
+	if (! strcmp(uri, self->uri))
+	  mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self));
+      }
   }
 
   override (MN:Reentrant:Mailbox) void
-    impl_check (MNReentrantMailbox *mailbox, unsigned long check_id)
+    reentrant_check (MNReentrantMailbox *mailbox, unsigned long check_id)
   {
     Self *self = SELF(mailbox);
     GNOME_MailNotification_Evolution_Glue glue;
     CORBA_Environment env;
     CORBA_sequence_GNOME_MailNotification_Evolution_Message *message_seq;
+    time_t last_browsed;
 
     mn_reentrant_mailbox_lock(mailbox);
 
@@ -150,26 +178,32 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 
     if (glue == CORBA_OBJECT_NIL)
       {
-	if (selfp->listener != CORBA_OBJECT_NIL)
+	if (selfp->listener)
 	  {
-	    CORBA_Object_release(selfp->listener, NULL);
-	    selfp->listener = CORBA_OBJECT_NIL;
+	    bonobo_object_release_unref(mn_locked_bonobo_listener_get_listener(selfp->listener), NULL);
+	    selfp->listener = NULL;
 	  }
       }
     else
       {
-	if (selfp->listener == CORBA_OBJECT_NIL)
-	  selfp->listener = bonobo_event_source_client_add_listener_full(glue,
-									 g_cclosure_new(G_CALLBACK(self_folder_changed_cb), self, NULL),
-									 MN_EVOLUTION_EVENT_PREFIX ":" MN_EVOLUTION_EVENT_FOLDER_CHANGED,
-									 NULL);
+	if (! selfp->listener)
+	  selfp->listener = mn_bonobo_event_source_client_add_listener_full_locked(glue,
+										   self_listener_cb,
+										   MN_EVOLUTION_EVENT_PREFIX,
+										   NULL,
+										   self,
+										   (MNLockFunc) mn_g_static_mutex_lock,
+										   (MNUnlockFunc) mn_g_static_mutex_unlock,
+										   &listeners_mutex);
       }
 
-    if (selfp->listener == CORBA_OBJECT_NIL && glue != CORBA_OBJECT_NIL)
+    if (! selfp->listener && glue != CORBA_OBJECT_NIL)
       {
 	CORBA_Object_release(glue, NULL);
 	glue = CORBA_OBJECT_NIL;
       }
+
+    last_browsed = selfp->last_browsed;
 
     mn_reentrant_mailbox_unlock(mailbox);
 
@@ -181,8 +215,8 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 	  {
 	    mn_mailbox_set_error(MN_MAILBOX(self), _("unable to contact Evolution"));
 
-	    if (MN_MAILBOX(self)->must_poll)
-	      mn_mailbox_set_must_poll(MN_MAILBOX(self), FALSE);
+	    if (mn_mailbox_get_poll(MN_MAILBOX(self)))
+	      mn_mailbox_set_poll(MN_MAILBOX(self), FALSE);
 	  }
 
 	gdk_flush();
@@ -202,15 +236,20 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 	if (! mn_reentrant_mailbox_check_aborted_unlocked(mailbox, check_id))
 	  {
 	    char *errmsg;
-		
+
 	    errmsg = bonobo_exception_get_text(&env);
 	    mn_mailbox_set_error(MN_MAILBOX(self), "%s", errmsg);
 	    g_free(errmsg);
 
-	    if (! MN_MAILBOX(self)->must_poll)
-	      mn_mailbox_set_must_poll(MN_MAILBOX(self), TRUE);
+	    if (! mn_mailbox_get_poll(MN_MAILBOX(self)))
+	      /*
+	       * If the folder was not found, we will no longer
+	       * receive events from Evolution, and we must therefore
+	       * re-enable polling.
+	       */
+	      mn_mailbox_set_poll(MN_MAILBOX(self), TRUE);
 	  }
-	    
+
 	gdk_flush();
 	GDK_THREADS_LEAVE();
       }
@@ -221,12 +260,18 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 
 	for (i = 0; i < message_seq->_length; i++)
 	  {
-	    messages = g_slist_append(messages, mn_message_new(MN_MAILBOX(mailbox),
-							       NULL,
-							       message_seq->_buffer[i].sent_time,
-							       message_seq->_buffer[i].id,
-							       message_seq->_buffer[i].from,
-							       message_seq->_buffer[i].subject));
+	    MNMessageFlags flags = 0;
+
+	    if (message_seq->_buffer[i].received_time > last_browsed)
+	      flags |= MN_MESSAGE_NEW;
+
+	    messages = g_slist_prepend(messages, mn_message_new(MN_MAILBOX(mailbox),
+								NULL,
+								message_seq->_buffer[i].sent_time,
+								message_seq->_buffer[i].id,
+								message_seq->_buffer[i].from,
+								message_seq->_buffer[i].subject,
+								flags));
 
 	    if (mn_reentrant_mailbox_check_aborted(mailbox, check_id))
 	      break;
@@ -238,10 +283,10 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 	  {
 	    mn_mailbox_set_messages(MN_MAILBOX(self), messages);
 
-	    if (MN_MAILBOX(self)->must_poll)
-	      mn_mailbox_set_must_poll(MN_MAILBOX(self), FALSE);
+	    if (mn_mailbox_get_poll(MN_MAILBOX(self)))
+	      mn_mailbox_set_poll(MN_MAILBOX(self), FALSE);
 	  }
-    
+
 	mn_g_object_slist_free(messages);
 
 	gdk_flush();

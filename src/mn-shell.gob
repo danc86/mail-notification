@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <gtk/gtk.h>
@@ -30,21 +30,28 @@ requires 2.0.12
 
 %{
 #include "config.h"
-#include <errno.h>
-#include <gnome.h>
+#include <glib/gi18n.h>
 #include <eel/eel.h>
 #include "mn-properties-dialog.h"
 #include "mn-util.h"
 #include "mn-conf.h"
 #include "mn-mailboxes.h"
 #include "mn-about-dialog.h"
-#include "mn-main-window.h"
 #include "mn-mail-summary-popup.h"
-#include "mn-message-view.h"
+#include "mn-standard-message-view.h"
+#include "mn-compact-message-view.h"
 #include "mn-message.h"
+#include "mn-stock.h"
 
 MNShell *mn_shell = NULL;
 %}
+
+enum MN_SHELL_TOOLTIP_MAIL_SUMMARY
+{
+  STANDARD,
+  COMPACT,
+  NONE
+} MN:Shell:Tooltip:Mail:Summary;
 
 class MN:Shell from G:Object
 {
@@ -52,14 +59,13 @@ class MN:Shell from G:Object
   private MNMailIcon *icon;
   private gboolean has_new;
 
-  private GtkWidget *main_window;
   private GtkWidget *properties_dialog;
 
   private GSList *mailbox_properties_dialogs;
 
   private GtkWidget *popup;
   private GSList *popup_messages destroywith mn_g_object_slist_free;
-  private GSList *popup_previous_messages destroywith mn_g_object_slist_free;
+  private GHashTable *popup_previous_messages = {g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_object_unref)} destroywith g_hash_table_destroy;
 
   private GtkWidget *about_dialog;
 
@@ -72,17 +78,18 @@ class MN:Shell from G:Object
 
     self_init_icon(self);
 
-    mn_conf_notifications_add(self,
-			      MN_CONF_BLINK_ON_ERRORS, self_notify_blink_on_errors_cb, self,
-			      MN_CONF_COMMANDS_MAIL_READER_NAMESPACE, self_notify_mail_reader_cb, self,
-			      MN_CONF_SUMMARY_TOOLTIP, self_notify_summary_tooltip_cb, self,
-			      MN_CONF_MAIL_SUMMARY_POPUP_ENABLE, self_notify_mail_summary_popup_enable_cb, self,
-			      NULL);
+    mn_g_object_gconf_notifications_add_gdk_locked(self,
+						   MN_CONF_BLINK_ON_ERRORS, self_notify_blink_on_errors_cb, self,
+						   MN_CONF_ALWAYS_DISPLAY_ICON, self_notify_always_display_icon_cb, self,
+						   MN_CONF_GNOME_MAIL_READER_NAMESPACE, self_notify_mail_reader_cb, self,
+						   MN_CONF_TOOLTIP_MAIL_SUMMARY, self_notify_tooltip_mail_summary_cb, self,
+						   MN_CONF_MAIL_SUMMARY_POPUP_ENABLE, self_notify_mail_summary_popup_enable_cb, self,
+						   NULL);
 
     g_object_connect(self->mailboxes,
 		     "signal::messages-changed", self_messages_changed_h, self,
 		     "signal::mailbox-removed", self_mailbox_removed_h, self,
-		     "swapped-signal::notify::must-poll", self_update_sensitivity, self,
+		     "swapped-signal::notify::poll", self_update_sensitivity, self,
 		     "swapped-signal::list-changed", self_update_tooltip, self,
 		     "swapped-signal::list-changed", self_update_icon, self,
 		     "swapped-signal::error-changed", self_update_tooltip, self,
@@ -96,7 +103,7 @@ class MN:Shell from G:Object
     gtk_main_quit();
     PARENT_HANDLER(object);
   }
-  
+
   private void
     messages_changed_h (MNMailboxes *mailboxes,
 			gboolean has_new,
@@ -106,14 +113,13 @@ class MN:Shell from G:Object
 
     if (has_new)
       {
-	gnome_triggers_do(_("You have new mail."), NULL, "mail-notification", "new-mail", NULL);
 	if (mn_conf_has_command(MN_CONF_COMMANDS_NEW_MAIL_NAMESPACE))
-	  mn_execute_command(MN_CONF_COMMANDS_NEW_MAIL_COMMAND);
+	  mn_conf_execute_command(MN_CONF_COMMANDS_NEW_MAIL_COMMAND, FALSE);
       }
 
     if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_ENABLE))
       self_update_popup(self, has_new);
-    
+
     self_update_tooltip(self);
     self_update_icon(self);
   }
@@ -131,7 +137,7 @@ class MN:Shell from G:Object
     if (dialog)
       gtk_widget_destroy(GTK_WIDGET(dialog));
   }
-  
+
   private void
     init_icon (self)
   {
@@ -139,7 +145,6 @@ class MN:Shell from G:Object
 
     g_object_connect(selfp->icon,
 		     "signal::activate", self_icon_activate_h, self,
-		     "swapped-signal::activate-main-window", self_display_main_window, self,
 		     "signal::activate-mail-reader", self_icon_activate_mail_reader_h, self,
 		     "signal::activate-update", self_icon_activate_update_h, self,
 		     "signal::activate-properties", self_icon_activate_properties_h, self,
@@ -148,7 +153,7 @@ class MN:Shell from G:Object
 		     "signal::activate-remove", self_icon_activate_remove_h, self,
 		     "signal::destroy", self_icon_destroy_h, self,
 		     NULL);
-		     
+
     self_update_sensitivity(self);
     self_update_tooltip(self);
     self_update_icon(self);
@@ -162,11 +167,20 @@ class MN:Shell from G:Object
   {
     Self *self = user_data;
 
-    GDK_THREADS_ENTER();
     self_update_icon(self);
-    GDK_THREADS_LEAVE();
   }
-  
+
+  private void
+    notify_always_display_icon_cb (GConfClient *client,
+				   unsigned int cnxn_id,
+				   GConfEntry *entry,
+				   gpointer user_data)
+  {
+    Self *self = user_data;
+
+    self_update_icon(self);
+  }
+
   private void
     notify_mail_reader_cb (GConfClient *client,
 			   unsigned int cnxn_id,
@@ -175,24 +189,20 @@ class MN:Shell from G:Object
   {
     Self *self = user_data;
 
-    GDK_THREADS_ENTER();
     self_update_sensitivity(self);
-    GDK_THREADS_LEAVE();
   }
-  
+
   private void
-    notify_summary_tooltip_cb (GConfClient *client,
-			       unsigned int cnxn_id,
-			       GConfEntry *entry,
-			       gpointer user_data)
+    notify_tooltip_mail_summary_cb (GConfClient *client,
+				    unsigned int cnxn_id,
+				    GConfEntry *entry,
+				    gpointer user_data)
   {
     Self *self = user_data;
 
-    GDK_THREADS_ENTER();
     self_update_tooltip(self);
-    GDK_THREADS_LEAVE();
   }
-  
+
   private void
     notify_mail_summary_popup_enable_cb (GConfClient *client,
 					 unsigned int cnxn_id,
@@ -201,31 +211,27 @@ class MN:Shell from G:Object
   {
     Self *self = user_data;
 
-    GDK_THREADS_ENTER();
-
     if (selfp->popup && ! eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_ENABLE))
       gtk_widget_destroy(selfp->popup);
-      
-    GDK_THREADS_LEAVE();
   }
-  
+
   private void
     icon_activate_h (MNMailIcon *icon, gpointer user_data)
   {
     MNShell *self = user_data;
     MNAction action;
 
-    action = mn_conf_get_enum_value(MN_TYPE_ACTION, MN_CONF_DOUBLE_CLICK_ACTION_2);
+    action = mn_conf_get_enum_value(MN_TYPE_ACTION, MN_CONF_CLICK_ACTION);
 
     switch (action)
       {
-      case MN_ACTION_DISPLAY_MAIN_WINDOW:
-	self_display_main_window(self);
+      case MN_ACTION_DISPLAY_PROPERTIES_DIALOG:
+	self_display_properties_dialog(self);
 	break;
 
       case MN_ACTION_LAUNCH_MAIL_READER:
-	if (mn_conf_has_command(MN_CONF_COMMANDS_MAIL_READER_NAMESPACE))
-	  mn_execute_command(MN_CONF_COMMANDS_MAIL_READER_COMMAND);
+	if (mn_conf_has_command(MN_CONF_GNOME_MAIL_READER_NAMESPACE))
+	  mn_conf_execute_command(MN_CONF_GNOME_MAIL_READER_COMMAND, TRUE);
 	break;
 
       case MN_ACTION_UPDATE_MAIL_STATUS:
@@ -233,14 +239,14 @@ class MN:Shell from G:Object
 	break;
 
       default:
-	g_return_if_reached();
+	g_assert_not_reached();
       }
   }
 
   private void
     icon_activate_mail_reader_h (MNMailIcon *icon, gpointer user_data)
   {
-    mn_execute_command(MN_CONF_COMMANDS_MAIL_READER_COMMAND);
+    mn_conf_execute_command(MN_CONF_GNOME_MAIL_READER_COMMAND, TRUE);
   }
 
   private void
@@ -249,27 +255,27 @@ class MN:Shell from G:Object
     Self *self = user_data;
     mn_mailboxes_check(self->mailboxes);
   }
-  
+
   private void
     icon_activate_properties_h (MNMailIcon *icon, gpointer user_data)
   {
     Self *self = user_data;
-    self_display_properties_dialog(self, NULL);
+    self_display_properties_dialog(self);
   }
-  
+
   private void
     icon_activate_help_h (MNMailIcon *icon, gpointer user_data)
   {
     mn_display_help(NULL, NULL);
   }
-  
+
   private void
     icon_activate_about_h (MNMailIcon *icon, gpointer user_data)
   {
     Self *self = user_data;
-    self_display_about_dialog(self, NULL);
+    self_display_about_dialog(self);
   }
-  
+
   private void
     icon_activate_remove_h (MNMailIcon *icon, gpointer user_data)
   {
@@ -289,8 +295,8 @@ class MN:Shell from G:Object
   private void
     update_sensitivity (self)
   {
-    gtk_widget_set_sensitive(selfp->icon->mail_reader_item, mn_conf_has_command(MN_CONF_COMMANDS_MAIL_READER_NAMESPACE));
-    gtk_widget_set_sensitive(selfp->icon->update_item, mn_mailboxes_get_must_poll(self->mailboxes));
+    gtk_widget_set_sensitive(selfp->icon->mail_reader_item, mn_conf_has_command(MN_CONF_GNOME_MAIL_READER_NAMESPACE));
+    gtk_widget_set_sensitive(selfp->icon->update_item, mn_mailboxes_get_poll(self->mailboxes));
   }
 
   private void
@@ -299,6 +305,7 @@ class MN:Shell from G:Object
     GList *l;
     gboolean has_new = FALSE;
     gboolean blink = FALSE;
+    gboolean always = eel_gconf_get_boolean(MN_CONF_ALWAYS_DISPLAY_ICON);
 
     MN_LIST_FOREACH(l, self->mailboxes->list)
       {
@@ -311,15 +318,19 @@ class MN:Shell from G:Object
       }
 
     if (selfp->has_new && ! has_new && mn_conf_has_command(MN_CONF_COMMANDS_MAIL_READ_NAMESPACE))
-      mn_execute_command(MN_CONF_COMMANDS_MAIL_READ_COMMAND);
+      mn_conf_execute_command(MN_CONF_COMMANDS_MAIL_READ_COMMAND, FALSE);
     selfp->has_new = has_new;
-    
+
     if (blink && ! eel_gconf_get_boolean(MN_CONF_BLINK_ON_ERRORS))
       blink = FALSE;
 
-    if (has_new || blink)
+    if (has_new || blink || always)
       {
-	mn_blinking_image_set_blinking(MN_BLINKING_IMAGE(selfp->icon->image), blink);
+	mn_blinking_image_set_from_stock(MN_BLINKING_IMAGE(selfp->icon->image),
+					 has_new ? MN_STOCK_MAIL : MN_STOCK_NO_MAIL,
+					 GTK_ICON_SIZE_LARGE_TOOLBAR);
+	mn_blinking_image_set_blinking(MN_BLINKING_IMAGE(selfp->icon->image),
+				       blink);
 	gtk_widget_show(GTK_WIDGET(selfp->icon));
       }
     else
@@ -329,49 +340,45 @@ class MN:Shell from G:Object
   private void
     update_tooltip (self)
   {
-    GtkWidget *vbox;
-
-    vbox = gtk_vbox_new(FALSE, 18);
+    GtkVBox *vbox = NULL;
 
     if (self->mailboxes->list)
       {
-	GList *l;
-	GSList *sl;
+	GList *la;
+	GSList *lb;
 	GSList *new_mailboxes = NULL;
 	GSList *error_mailboxes = NULL;
 
-	MN_LIST_FOREACH(l, self->mailboxes->list)
+	MN_LIST_FOREACH(la, self->mailboxes->list)
           {
-	    MNMailbox *mailbox = l->data;
-	    
+	    MNMailbox *mailbox = la->data;
+
 	    if (mailbox->messages)
-	      new_mailboxes = g_slist_append(new_mailboxes, mailbox);
+	      new_mailboxes = g_slist_insert_sorted(new_mailboxes, mailbox, (GCompareFunc) self_new_mailboxes_compare_cb);
 
 	    if (mailbox->error)
-	      error_mailboxes = g_slist_append(error_mailboxes, mailbox);
+	      error_mailboxes = g_slist_insert_sorted(error_mailboxes, mailbox, mn_mailboxes_compare_by_name_func);
 	  }
 
 	if (new_mailboxes)
 	  {
 	    GString *string = g_string_new(NULL);
 
-	    new_mailboxes = g_slist_sort(new_mailboxes, self_new_mailboxes_compare_func);
-	    MN_LIST_FOREACH(sl, new_mailboxes)
+	    MN_LIST_FOREACH(lb, new_mailboxes)
 	      {
-		MNMailbox *mailbox = sl->data;
-		int n_messages;
+		MNMailbox *mailbox = lb->data;
 
 		if (*string->str)
 		  g_string_append_c(string, '\n');
 		g_string_append(string, mailbox->runtime_name);
-		
-		n_messages = g_slist_length(mailbox->messages);
-		if (n_messages > 0)
-		  g_string_append_printf(string, " (%i)", n_messages);
+
+		if (mailbox->n_messages > 0)
+		  g_string_append_printf(string, " (%i)", mailbox->n_messages);
 	      }
 	    g_slist_free(new_mailboxes);
-	    
-	    self_tooltip_text_section_new(GTK_VBOX(vbox), _("Mailboxes Having New Mail"), string->str);
+
+	    /* translators: header capitalization */
+	    self_tooltip_text_section_new(&vbox, _("Mailboxes Having New Mail"), string->str);
 	    g_string_free(string, TRUE);
 	  }
 
@@ -379,10 +386,9 @@ class MN:Shell from G:Object
 	  {
 	    GString *string = g_string_new(NULL);
 
-	    error_mailboxes = g_slist_sort(error_mailboxes, mn_mailboxes_compare_by_name_func);
-	    MN_LIST_FOREACH(sl, error_mailboxes)
+	    MN_LIST_FOREACH(lb, error_mailboxes)
 	      {
-		MNMailbox *mailbox = sl->data;
+		MNMailbox *mailbox = lb->data;
 
 		if (*string->str)
 		  g_string_append_c(string, '\n');
@@ -390,81 +396,85 @@ class MN:Shell from G:Object
 	      }
 	    g_slist_free(error_mailboxes);
 
-	    self_tooltip_text_section_new(GTK_VBOX(vbox), _("Errors"), string->str);
+	    /* translators: header capitalization */
+	    self_tooltip_text_section_new(&vbox, _("Errors"), string->str);
 	    g_string_free(string, TRUE);
 	  }
       }
 
-    if (eel_gconf_get_boolean(MN_CONF_SUMMARY_TOOLTIP))
+    if (self->mailboxes->messages)
       {
-	GSList *messages;
-	
-	messages = mn_mailboxes_get_messages(mn_shell->mailboxes);
-	if (messages)
+	MNShellTooltipMailSummary mail_summary;
+
+	mail_summary = mn_conf_get_enum_value(MN_TYPE_SHELL_TOOLTIP_MAIL_SUMMARY, MN_CONF_TOOLTIP_MAIL_SUMMARY);
+	if (mail_summary != MN_SHELL_TOOLTIP_MAIL_SUMMARY_NONE)
 	  {
 	    GtkWidget *alignment;
 	    GtkWidget *message_view;
-	
-	    alignment = self_tooltip_section_new(GTK_VBOX(vbox), _("Mail Summary"));
-	    
-	    message_view = mn_message_view_new(TRUE, FALSE);
+
+	    /* translators: header capitalization */
+	    alignment = self_tooltip_section_new(&vbox, _("Mail Summary"));
+
+	    switch (mail_summary)
+	      {
+	      case MN_SHELL_TOOLTIP_MAIL_SUMMARY_STANDARD:
+		message_view = mn_standard_message_view_new();
+		break;
+
+	      case MN_SHELL_TOOLTIP_MAIL_SUMMARY_COMPACT:
+		message_view = mn_compact_message_view_new();
+		break;
+
+	      default:
+		g_assert_not_reached();
+		break;
+	      }
+
 	    gtk_widget_set_name(message_view, "mn-message-view");
-	    
-	    mn_message_view_set_messages(MN_MESSAGE_VIEW(message_view), messages);
-	    mn_g_object_slist_free(messages);
-	    
+	    mn_message_view_set_messages(MN_MESSAGE_VIEW(message_view), self->mailboxes->messages);
 	    gtk_container_add(GTK_CONTAINER(alignment), message_view);
 	  }
       }
 
-    gtk_widget_show_all(vbox);
-    mn_mail_icon_set_tip_widget(selfp->icon, vbox);
+    if (vbox)
+      {
+	gtk_widget_show_all(GTK_WIDGET(vbox));
+	mn_mail_icon_set_tip_widget(selfp->icon, GTK_WIDGET(vbox));
+      }
+    else
+      mn_mail_icon_set_tip(selfp->icon, _("You have no new mail."));
   }
-  
+
   private int
-    new_mailboxes_compare_func (gconstpointer a, gconstpointer b)
+    new_mailboxes_compare_cb (MNMailbox *a, MNMailbox *b)
   {
-    MNMailbox *mailbox_a = (MNMailbox *) a;
-    MNMailbox *mailbox_b = (MNMailbox *) b;
     int cmp;
 
-    /* sort by sent time (descending order) */
-    cmp = self_get_latest_sent_time(mailbox_b) - self_get_latest_sent_time(mailbox_a);
+    /* sort by timestamp (descending order) */
+    cmp = b->timestamp - a->timestamp;
     /* else sort by number of messages (descending order) */
     if (cmp == 0)
-      cmp = g_slist_length(mailbox_b->messages) - g_slist_length(mailbox_a->messages);
-    /* else sort by name (ascending order) */
-    if (cmp == 0)
-      cmp = mn_mailboxes_compare_by_name_func(a, b);
+      {
+	cmp = b->n_messages - a->n_messages;
+	/* else sort by name (ascending order) */
+	if (cmp == 0)
+	  cmp = mn_mailboxes_compare_by_name_func(a, b);
+      }
 
     return cmp;
   }
 
-  private time_t
-    get_latest_sent_time (MN:Mailbox *mailbox (check null type))
-  {
-    GSList *l;
-    time_t latest = 0;
-
-    MN_LIST_FOREACH(l, mailbox->messages)
-      {
-	MNMessage *message = l->data;
-
-	if (message->sent_time > latest)
-	  latest = message->sent_time;
-      }
-
-    return latest;
-  }
-  
   private GtkWidget *
-    tooltip_section_new (Gtk:VBox *vbox (check null type),
+    tooltip_section_new (GtkVBox **vbox (check null),
 			 const char *title (check null))
   {
     GtkWidget *child_vbox;
     char *markup;
     GtkWidget *alignment;
     GtkWidget *label;
+
+    if (! *vbox)
+      *vbox = GTK_VBOX(gtk_vbox_new(FALSE, 18));
 
     child_vbox = gtk_vbox_new(FALSE, 6);
 
@@ -482,20 +492,20 @@ class MN:Shell from G:Object
     gtk_alignment_set_padding(GTK_ALIGNMENT(alignment), 0, 0, 12, 0);
 
     gtk_box_pack_start(GTK_BOX(child_vbox), alignment, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(vbox), child_vbox, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(*vbox), child_vbox, TRUE, TRUE, 0);
 
     return alignment;
   }
-  
+
   private void
-    tooltip_text_section_new (Gtk:VBox *vbox (check null type),
+    tooltip_text_section_new (Gtk:VBox **vbox (check null),
 			      const char *title (check null),
 			      const char *text (check null))
   {
     GtkWidget *alignment;
     GtkWidget *label;
 
-    alignment = self_tooltip_section_new(GTK_VBOX(vbox), title);
+    alignment = self_tooltip_section_new(vbox, title);
 
     label = gtk_label_new(text);
     gtk_widget_set_name(label, "mn-tooltip-section-body");
@@ -503,45 +513,46 @@ class MN:Shell from G:Object
 
     gtk_container_add(GTK_CONTAINER(alignment), label);
   }
-  
+
   private void
     update_popup (self, gboolean has_new)
   {
-    if (! selfp->main_window
-	&& (! selfp->properties_dialog || ! mn_properties_dialog_test_popup_displayed(MN_PROPERTIES_DIALOG(selfp->properties_dialog)))
+    if ((! selfp->properties_dialog || ! mn_properties_dialog_test_popup_displayed(MN_PROPERTIES_DIALOG(selfp->properties_dialog)))
 	&& (selfp->popup || has_new))
       {
 	GSList *l;
+	GHashTable *messages;
 
 	mn_g_object_slist_free(selfp->popup_messages);
-	selfp->popup_messages = mn_mailboxes_get_messages(self->mailboxes);
+	selfp->popup_messages = mn_g_object_slist_copy(self->mailboxes->messages);
 
-      loop1:
-	MN_LIST_FOREACH(l, selfp->popup_previous_messages)
+	/* 1. clean popup_previous_messages */
+
+	messages = g_hash_table_new(g_str_hash, g_str_equal);
+	MN_LIST_FOREACH(l, selfp->popup_messages)
 	  {
 	    MNMessage *message = l->data;
-	    
-	    if (! mn_message_slist_find_by_id(selfp->popup_messages, message))
-	      {
-		selfp->popup_previous_messages = mn_g_object_slist_delete_link(selfp->popup_previous_messages, l);
-		goto loop1;
-	      }
+	    g_hash_table_replace(messages, message->id, message);
 	  }
 
+	g_hash_table_foreach_remove(selfp->popup_previous_messages, (GHRFunc) self_clean_popup_previous_messages_cb, messages);
+	g_hash_table_destroy(messages);
+
+	/* 2. hide messages which are listed in popup_previous_messages */
+
 	if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_ONLY_RECENT))
-	  {
-	  loop2:
-	    MN_LIST_FOREACH(l, selfp->popup_messages)
-	      {
-		MNMessage *message = l->data;
-		
-		if (mn_message_slist_find_by_id(selfp->popup_previous_messages, message))
-		  {
-		    selfp->popup_messages = mn_g_object_slist_delete_link(selfp->popup_messages, l);
-		    goto loop2;
-		  }
-	      }
-	  }
+	  for (l = selfp->popup_messages; l != NULL;)
+	    {
+	      MNMessage *message = l->data;
+	      GSList *next = l->next;
+
+	      if (g_hash_table_lookup(selfp->popup_previous_messages, message->id))
+		selfp->popup_messages = mn_g_object_slist_delete_link(selfp->popup_messages, l);
+
+	      l = next;
+	    }
+
+	/* 3. display the resulting list in the popup */
 
 	if (selfp->popup_messages)
 	  {
@@ -570,13 +581,33 @@ class MN:Shell from G:Object
       gtk_widget_destroy(selfp->popup);
   }
 
+  private gboolean
+    clean_popup_previous_messages_cb (const char *id,
+				      MNMessage *message,
+				      gpointer user_data)
+  {
+    GHashTable *messages = user_data;
+    return g_hash_table_lookup(messages, id) == NULL;
+  }
+
   private void
     popup_weak_notify_cb (self, GObject *former_object)
   {
-    selfp->popup_previous_messages = g_slist_concat(selfp->popup_previous_messages, selfp->popup_messages);
-    selfp->popup_messages = NULL;
+    GSList *l;
+
+    MN_LIST_FOREACH(l, selfp->popup_messages)
+      {
+	MNMessage *message = l->data;
+	g_hash_table_replace(selfp->popup_previous_messages, message->id, message);
+      }
+
+    /*
+     * We do not use mn_g_object_slist_clear() because we have passed
+     * the messages ownership to the hash table.
+     */
+    mn_g_slist_clear(&selfp->popup_messages);
   }
-  
+
   public MNShell *
     new (void)
   {
@@ -584,31 +615,21 @@ class MN:Shell from G:Object
   }
 
   public void
-    display_main_window (self)
+    display_properties_dialog (self)
   {
-    self_display_window(self, MN_TYPE_MAIN_WINDOW, &selfp->main_window, NULL);
-
-    /* we don't need the mail summary popup anymore */
-    self_close_mail_summary_popup(self);
+    self_display_window(self, MN_TYPE_PROPERTIES_DIALOG, &selfp->properties_dialog);
   }
 
   public void
-    display_properties_dialog (self, GtkWindow *parent)
+    display_about_dialog (self)
   {
-    self_display_window(self, MN_TYPE_PROPERTIES_DIALOG, &selfp->properties_dialog, parent);
-  }
-  
-  public void
-    display_about_dialog (self, GtkWindow *parent)
-  {
-    self_display_window(self, MN_TYPE_ABOUT_DIALOG, &selfp->about_dialog, parent);
+    self_display_window(self, MN_TYPE_ABOUT_DIALOG, &selfp->about_dialog);
   }
 
   private void
     display_window (self,
 		    GType type (check != 0),
-		    GtkWidget **ptr (check null),
-		    GtkWindow *parent)
+		    GtkWidget **ptr (check null))
   {
     if (*ptr)
       {
@@ -619,9 +640,6 @@ class MN:Shell from G:Object
     *ptr = g_object_new(type, NULL);
     eel_add_weak_pointer(ptr);
 
-    if (parent)
-      gtk_window_set_transient_for(GTK_WINDOW(*ptr), parent);
-
     gtk_widget_show(*ptr);
   }
 
@@ -631,7 +649,7 @@ class MN:Shell from G:Object
     if (selfp->popup)
       gtk_widget_destroy(selfp->popup);
   }
-  
+
   public void
     add_mailbox_properties_dialog (self, MN:Mailbox:Properties:Dialog *dialog (check null type))
   {
@@ -672,7 +690,7 @@ class MN:Shell from G:Object
 }
 
 %h{
-  extern MNShell *mn_shell;
+extern MNShell *mn_shell;
 %}
 
 /*
@@ -690,19 +708,10 @@ enum MN_POSITION
 
 enum MN_ACTION
 {
-  DISPLAY_MAIN_WINDOW,
+  DISPLAY_PROPERTIES_DIALOG,
   LAUNCH_MAIL_READER,
   UPDATE_MAIL_STATUS
 } MN:Action;
-
-enum MN_TOOLBAR_STYLE
-{
-  ICONS			= GTK_TOOLBAR_ICONS,
-  TEXT			= GTK_TOOLBAR_TEXT,
-  BOTH			= GTK_TOOLBAR_BOTH,
-  BOTH_HORIZ		= GTK_TOOLBAR_BOTH_HORIZ,
-  DESKTOP_DEFAULT
-} MN:Toolbar:Style;
 
 enum MN_ASPECT_SOURCE
 {

@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <gtk/gtk.h>
@@ -34,7 +34,7 @@ requires 2.0.12
 #include "mn-stock.h"
 %}
 
-class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
+class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstract)
 {
   protected GtkWidget *hostname_entry;
   protected GtkWidget *details_vbox;
@@ -65,12 +65,12 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
       const char		*mnemonic;
     } connection_types[] = {
       { MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL,		N_("sta_ndard")			},
-      { MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL,	N_("_in-band SSL/TLS")		},
+      { MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL,	N_("in-band SS_L/TLS")		},
       { MN_PI_MAILBOX_CONNECTION_TYPE_SSL,		N_("SSL/TLS on sepa_rate port")	}
     };
-      
+
     hbox = mn_authenticated_mailbox_properties_field_new(auth,
-							 _("_Hostname:"),
+							 _("Ho_stname:"),
 							 &label,
 							 &self->hostname_entry);
 
@@ -84,21 +84,22 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
     gtk_size_group_add_widget(self->details_size_group, auth->password_label);
     gtk_size_group_add_widget(self->details_size_group, label);
 
-    mn_mailbox_properties_add_entries(properties,
-				      GTK_ENTRY(self->hostname_entry),
-				      GTK_ENTRY(auth->username_entry),
-				      GTK_ENTRY(auth->password_entry),
-				      NULL);
+    properties->entries = mn_g_slist_append_elements(properties->entries,
+						     self->hostname_entry,
+						     auth->username_entry,
+						     auth->password_entry,
+						     NULL);
 
+    /* translators: header capitalization */
     expander = gtk_expander_new_with_mnemonic(_("_Details"));
     gtk_expander_set_spacing(GTK_EXPANDER(expander), 6);
 
     self->details_vbox = gtk_vbox_new(FALSE, 6);
     gtk_container_add(GTK_CONTAINER(expander), self->details_vbox);
-    
+
     gtk_box_pack_start(GTK_BOX(self), expander, FALSE, FALSE, 0);
     gtk_widget_show_all(expander);
-    
+
     radio_size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 
     for (i = 0; i < MN_PI_MAILBOX_N_CONNECTION_TYPES; i++)
@@ -109,10 +110,10 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
 
 	gtk_size_group_add_widget(radio_size_group, self->conn_radio[i]);
 
-	mn_mailbox_properties_add_entry(properties, GTK_ENTRY(self->port_spin[i]));
+	properties->entries = g_slist_append(properties->entries, self->port_spin[i]);
 	g_signal_connect(self->conn_radio[i], "toggled", G_CALLBACK(self_radio_toggled_h), self);
       }
-    
+
     g_object_unref(radio_size_group);
 
 #ifndef WITH_SSL
@@ -167,7 +168,7 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
 
     gtk_size_group_add_widget(self->details_size_group, label);
   }
-  
+
   private void
     add_authentication (self)
   {
@@ -175,7 +176,7 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
     GtkWidget *label;
 
     hbox = gtk_hbox_new(FALSE, 12);
-    label = gtk_label_new_with_mnemonic(_("_Authentication mechanism:"));
+    label = gtk_label_new_with_mnemonic(_("Authent_ication mechanism:"));
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 
     self->auth_combo = mn_auth_combo_box_new();
@@ -188,7 +189,7 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
 
     gtk_size_group_add_widget(self->details_size_group, label);
   }
-  
+
   private void
     notify_expanded_h (GObject *object, GParamSpec *pspec, gpointer user_data)
   {
@@ -199,7 +200,7 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
 			    ? GTK_SIZE_GROUP_HORIZONTAL
 			    : GTK_SIZE_GROUP_NONE);
   }
-  
+
   private void
     radio_toggled_h (Gtk:Toggle:Button *togglebutton (check null type),
 		     gpointer user_data (check null))
@@ -246,17 +247,17 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
 		      &port);
 
     g_object_set(mailbox,
-		 "connection-type", connection_type,
-		 "authmech", authmech,
-		 "hostname", hostname,
-		 "port", port,
+		 MN_PI_MAILBOX_PROP_CONNECTION_TYPE(connection_type),
+		 MN_PI_MAILBOX_PROP_AUTHMECH(authmech),
+		 MN_PI_MAILBOX_PROP_HOSTNAME((char *) hostname),
+		 MN_PI_MAILBOX_PROP_PORT(port),
 		 NULL);
 
     g_free(authmech);
 
     return mailbox;
   }
-  
+
   protected void
     get_contents (self,
 		  MNPIMailboxConnectionType *connection_type,
@@ -269,7 +270,7 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
     if (connection_type || port)
       {
 	int i;
-	
+
 	_connection_type = -1;
 
 	for (i = 0; i < MN_PI_MAILBOX_N_CONNECTION_TYPES; i++)
@@ -279,9 +280,9 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
 	      break;
 	    }
 
-	g_return_if_fail(_connection_type != -1);
+	g_assert(_connection_type != -1);
       }
-    
+
     if (connection_type)
       *connection_type = _connection_type;
     if (authmech)

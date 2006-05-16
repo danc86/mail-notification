@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include "mn-vfs-mailbox.h"
@@ -59,7 +59,7 @@ class MN:System:VFS:Mailbox from MN:VFS:Mailbox
 
     return mailbox;
   }
-  
+
   override (MN:Mailbox) void
     check (MNMailbox *mailbox)
   {
@@ -69,11 +69,11 @@ class MN:System:VFS:Mailbox from MN:VFS:Mailbox
       }
     else
       {
-	mn_mailbox_set_error(mailbox, _("MAIL environment variable not defined"));
-	mn_mailbox_set_must_poll(mailbox, FALSE); /* disable the mailbox */
+	mn_mailbox_set_error(mailbox, _("system mailbox not found"));
+	mn_mailbox_set_poll(mailbox, FALSE); /* disable the mailbox */
       }
   }
-  
+
   public const char *
     get_uri (void)
   {
@@ -85,8 +85,29 @@ class MN:System:VFS:Mailbox from MN:VFS:Mailbox
     if (! global_uri)
       {
 	const char *mail = g_getenv("MAIL");
-	if (mail)
+
+	if (mail && g_path_is_absolute(mail) && g_file_test(mail, G_FILE_TEST_EXISTS))
 	  global_uri = gnome_vfs_get_uri_from_local_path(mail);
+
+	if (! global_uri)	/* no MAIL or invalid contents */
+	  {
+	    const char *username = g_get_user_name();
+	    const char *spool_paths[] = { "/var/spool/mail", "/var/mail" };
+	    int i;
+
+	    for (i = 0; i < G_N_ELEMENTS(spool_paths); i++)
+	      {
+		char *path;
+
+		path = g_build_filename(spool_paths[i], username, NULL);
+		if (g_file_test(path, G_FILE_TEST_EXISTS))
+		  global_uri = gnome_vfs_get_uri_from_local_path(path);
+		g_free(path);
+
+		if (global_uri)
+		  break;
+	      }
+	  }
       }
     uri = global_uri;
     G_UNLOCK(global_uri);

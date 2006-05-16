@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,7 @@
 #include <gnome.h>
 #include <glade/glade.h>
 #include <eel/eel.h>
-#include <eel/eel-alert-dialog.h>
 #include "mn-util.h"
-#include "mn-conf.h"
 #include "mn-mailboxes.h"
 #include "mn-shell.h"
 
@@ -58,10 +56,14 @@ typedef struct
   GMainLoop	*loop;
   int		response;
 } RunNonmodalInfo;
-  
+
 /*** functions ***************************************************************/
 
-static GtkWidget *mn_glade_xml_get_widget (GladeXML *xml, const char *widget_name);
+static GladeXML *mn_glade_xml_new (const char *filename,
+				   const char *root,
+				   const char *domain);
+static GtkWidget *mn_glade_xml_get_widget (GladeXML *xml,
+					   const char *widget_name);
 
 static void mn_container_create_interface_connect_cb (const char *handler_name,
 						      GObject *object,
@@ -98,13 +100,8 @@ static GtkWidget *mn_menu_item_new (const char *stock_id, const char *mnemonic);
 
 static void mn_error_dialog_real (GtkWindow *parent,
 				  gboolean blocking,
-				  const char *not_again_key,
-				  const char *help_link_id,
 				  const char *primary,
 				  const char *secondary);
-static void mn_error_dialog_real_response_h (GtkDialog *dialog,
-					     int response,
-					     gpointer user_data);
 
 static void mn_g_object_connect_weak_notify_cb (gpointer data,
 						GObject *former_object);
@@ -131,6 +128,52 @@ mn_info (const char *format, ...)
   va_start(args, format);
   g_logv(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, format, args);
   va_end(args);
+}
+
+GSList *
+mn_g_slist_append_elements (GSList *list, gpointer data, ...)
+{
+  va_list args;
+
+  va_start(args, data);
+  while (data)
+    {
+      list = g_slist_append(list, data);
+      data = va_arg(args, gpointer);
+    }
+  va_end(args);
+
+  return list;
+}
+
+void
+mn_g_slist_clear (GSList **list)
+{
+  g_return_if_fail(list != NULL);
+
+  g_slist_free(*list);
+  *list = NULL;
+}
+
+void
+mn_g_slist_clear_deep (GSList **list)
+{
+  g_return_if_fail(list != NULL);
+
+  eel_g_slist_free_deep(*list);
+  *list = NULL;
+}
+
+void
+mn_g_slist_clear_deep_custom (GSList **list,
+			      GFunc element_free_func,
+			      gpointer user_data)
+{
+  g_return_if_fail(list != NULL);
+  g_return_if_fail(element_free_func != NULL);
+
+  eel_g_slist_free_deep_custom(*list, element_free_func, user_data);
+  *list = NULL;
 }
 
 /**
@@ -198,6 +241,15 @@ mn_g_object_slist_free (GSList *list)
   eel_g_slist_free_deep_custom(list, (GFunc) g_object_unref, NULL);
 }
 
+void
+mn_g_object_slist_clear (GSList **list)
+{
+  g_return_if_fail(list != NULL);
+
+  mn_g_object_slist_free(*list);
+  *list = NULL;
+}
+
 /**
  * mn_g_object_slist_delete_link:
  * @list: a #GSList of #GObject instances
@@ -212,6 +264,22 @@ GSList *
 mn_g_object_slist_delete_link (GSList *list, GSList *link_)
 {
   return mn_g_slist_delete_link_deep_custom(list, link_, (GFunc) g_object_unref, NULL);
+}
+
+void
+mn_g_queue_free_deep_custom (GQueue *queue,
+			     GFunc element_free_func,
+			     gpointer user_data)
+{
+  gpointer data;
+
+  g_return_if_fail(queue != NULL);
+  g_return_if_fail(element_free_func != NULL);
+
+  while ((data = g_queue_pop_head(queue)))
+    element_free_func(data, user_data);
+
+  g_queue_free(queue);
 }
 
 /**
@@ -285,6 +353,20 @@ mn_pixbuf_new (const char *filename)
   return pixbuf;
 }
 
+static GladeXML *
+mn_glade_xml_new (const char *filename, const char *root, const char *domain)
+{
+  GladeXML *xml;
+
+  g_return_val_if_fail(filename != NULL, NULL);
+
+  xml = glade_xml_new(filename, root, domain);
+  if (! xml)
+    mn_fatal_error_dialog(NULL, _("Unable to load interface \"%s\". Please check your Mail Notification installation."), filename);
+
+  return xml;
+}
+
 static GtkWidget *
 mn_glade_xml_get_widget (GladeXML *xml, const char *widget_name)
 {
@@ -292,41 +374,12 @@ mn_glade_xml_get_widget (GladeXML *xml, const char *widget_name)
 
   g_return_val_if_fail(GLADE_IS_XML(xml), NULL);
   g_return_val_if_fail(widget_name != NULL, NULL);
-  
+
   widget = glade_xml_get_widget(xml, widget_name);
   if (! widget)
-    g_critical(_("widget \"%s\" not found in interface \"%s\""), widget_name, xml->filename);
+    mn_fatal_error_dialog(NULL, _("Widget \"%s\" not found in interface \"%s\". Please check your Mail Notification installation."), widget_name, xml->filename);
 
   return widget;
-}
-
-void
-mn_create_interface (const char *filename, ...)
-{
-  GladeXML *xml;
-  va_list args;
-  const char *widget_name;
-
-  g_return_if_fail(filename != NULL);
-
-  xml = glade_xml_new(filename, NULL, NULL);
-  g_return_if_fail(xml != NULL);
-
-  glade_xml_signal_autoconnect(xml);
-
-  va_start(args, filename);
-  while ((widget_name = va_arg(args, const char *)))
-    {
-      GtkWidget **widget;
-
-      widget = va_arg(args, GtkWidget **);
-      g_return_if_fail(widget != NULL);
-
-      *widget = mn_glade_xml_get_widget(xml, widget_name);
-    }
-  va_end(args);
-  
-  g_object_unref(xml);
 }
 
 void
@@ -347,11 +400,9 @@ mn_container_create_interface (GtkContainer *container,
   g_return_if_fail(child_name != NULL);
   g_return_if_fail(callback_prefix != NULL);
 
-  xml = glade_xml_new(filename, child_name, NULL);
-  g_return_if_fail(xml != NULL);
-
+  xml = mn_glade_xml_new(filename, child_name, NULL);
   child = mn_glade_xml_get_widget(xml, child_name);
-  
+
   if (GTK_IS_DIALOG(container))
     gtk_box_pack_start(GTK_BOX(GTK_DIALOG(container)->vbox), child, TRUE, TRUE, 0);
   else
@@ -395,12 +446,12 @@ mn_container_create_interface_connect_cb (const char *handler_name,
     {
       module = g_module_open(NULL, 0);
       if (! module)
-	g_critical(_("unable to open self as a module: %s"), g_module_error());
+	mn_fatal_error_dialog(NULL, _("Unable to open self as a module (%s)."), g_module_error());
     }
-  
+
   cb_name = g_strconcat(info->callback_prefix, handler_name, NULL);
   if (! g_module_symbol(module, cb_name, (gpointer) &cb))
-    g_critical(_("signal handler \"%s\" not found"), cb_name);
+    mn_fatal_error_dialog(NULL, _("Signal handler \"%s\" not found. Please check your Mail Notification installation."), cb_name);
   g_free(cb_name);
 
   flags = G_CONNECT_SWAPPED;
@@ -492,7 +543,7 @@ mn_setup_dnd (GtkWidget *widget)
     { "text/uri-list",	0, TARGET_URI_LIST },
     { "text/x-moz-url",	0, TARGET_MOZ_URL }
   };
-    
+
   g_return_if_fail(GTK_IS_WIDGET(widget));
 
   gtk_drag_dest_set(widget,
@@ -522,7 +573,7 @@ mn_scrolled_window_drag_motion_h (GtkWidget *widget,
 				  gpointer user_data)
 {
   GtkAdjustment *adjustment;
-  
+
   adjustment = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(widget));
   gtk_adjustment_set_value(adjustment, (double) y / (widget->allocation.height - 2) * (adjustment->upper - adjustment->page_size));
 
@@ -551,8 +602,6 @@ mn_drag_data_received_h (GtkWidget *widget,
 	if (! uriv)
 	  {
 	    mn_error_dialog(mn_widget_get_parent_window(widget),
-			    NULL,
-			    NULL,
 			    _("A drag and drop error has occurred"),
 			    _("An invalid location list has been received."));
 	    return;
@@ -579,7 +628,7 @@ mn_drag_data_received_h (GtkWidget *widget,
 	    mn_invalid_uri_list_dialog(mn_widget_get_parent_window(widget), _("A drag and drop error has occurred"), invalid_uri_list);
 	    g_slist_free(invalid_uri_list);
 	  }
-	
+
 	g_strfreev(uriv);
       }
       break;
@@ -596,8 +645,6 @@ mn_drag_data_received_h (GtkWidget *widget,
 	if (selection_data->format != 8 || selection_data->length <= 0 || (selection_data->length % 2) != 0)
 	  {
 	    mn_error_dialog(mn_widget_get_parent_window(widget),
-			    NULL,
-			    NULL,
 			    _("A drag and drop error has occurred"),
 			    _("An invalid Mozilla location has been received."));
 	    return;
@@ -605,12 +652,12 @@ mn_drag_data_received_h (GtkWidget *widget,
 
 	char_data = (const guint16 *) selection_data->data;
 	char_len = selection_data->length / 2;
-	
+
 	url = g_string_new(NULL);
 	for (i = 0; i < char_len && char_data[i] != '\n'; i++)
 	  g_string_append_unichar(url, char_data[i]);
 
-	g_return_if_fail(mn_shell != NULL);
+	g_assert(mn_shell != NULL);
 
 	mailbox = mn_mailbox_new_from_uri(url->str);
 	if (mailbox)
@@ -675,7 +722,7 @@ mn_display_help (GtkWindow *parent, const char *link_id)
 
   if (! gnome_help_display("mail-notification.xml", link_id, &err))
     {
-      mn_error_dialog(parent, NULL, NULL, _("Unable to display help"), "%s", err->message);
+      mn_error_dialog(parent, _("Unable to display help"), "%s", err->message);
       g_error_free(err);
     }
 }
@@ -686,7 +733,7 @@ mn_thread_create (GThreadFunc func, gpointer data)
   GError *err = NULL;
 
   g_return_if_fail(func != NULL);
-  
+
   if (! g_thread_create(func, data, FALSE, &err))
     {
       mn_fatal_error_dialog(NULL, _("Unable to create a thread: %s."), err->message);
@@ -729,7 +776,7 @@ mn_menu_shell_append (GtkMenuShell *shell,
   item = mn_menu_item_new(stock_id, mnemonic);
   gtk_menu_shell_append(shell, item);
   gtk_widget_show(item);
-  
+
   return item;
 }
 
@@ -743,7 +790,7 @@ mn_menu_item_new (const char *stock_id, const char *mnemonic)
       GtkWidget *image;
 
       item = gtk_image_menu_item_new_with_mnemonic(mnemonic);
-      
+
       image = gtk_image_new_from_stock(stock_id, GTK_ICON_SIZE_MENU);
       gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), image);
       gtk_widget_show(image);
@@ -754,15 +801,13 @@ mn_menu_item_new (const char *stock_id, const char *mnemonic)
     item = gtk_menu_item_new_with_mnemonic(mnemonic);
   else
     item = gtk_separator_menu_item_new();
-  
+
   return item;
 }
 
 static void
 mn_error_dialog_real (GtkWindow *parent,
 		      gboolean blocking,
-		      const char *not_again_key,
-		      const char *help_link_id,
 		      const char *primary,
 		      const char *secondary)
 {
@@ -773,63 +818,27 @@ mn_error_dialog_real (GtkWindow *parent,
 
   dialog = mn_alert_dialog_new(parent, GTK_MESSAGE_ERROR, primary, secondary);
 
-  if (not_again_key)
-    {
-      GtkWidget *alignment;
-      GtkWidget *check;
-
-      alignment = gtk_alignment_new(0.5, 0.5, 0, 0);
-      check = gtk_check_button_new_with_mnemonic(_("_Do not show this message again"));
-
-      gtk_container_add(GTK_CONTAINER(alignment), check);
-      gtk_widget_show_all(alignment);
-
-      gtk_box_pack_end(GTK_BOX(GTK_DIALOG(dialog)->vbox), alignment, FALSE, FALSE, 0);
-
-      mn_conf_link(check, not_again_key, "active", NULL);
-    }
-  
-  if (help_link_id != NULL)
-    gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_HELP, GTK_RESPONSE_HELP);
   gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_OK, GTK_RESPONSE_OK);
 
   gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
 
   if (blocking)
     {
-      while (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_HELP)
-	mn_display_help(GTK_WINDOW(dialog), help_link_id);
+      gtk_dialog_run(GTK_DIALOG(dialog));
       gtk_widget_destroy(dialog);
     }
   else
     {
-      g_signal_connect_data(dialog,
-			    "response",
-			    G_CALLBACK(mn_error_dialog_real_response_h),
-			    g_strdup(help_link_id),
-			    (GClosureNotify) g_free,
-			    0);
+      g_signal_connect_swapped(dialog,
+			       "response",
+			       G_CALLBACK(gtk_widget_destroy),
+			       dialog);
       gtk_widget_show(dialog);
     }
 }
 
-static void
-mn_error_dialog_real_response_h (GtkDialog *dialog,
-				 int response,
-				 gpointer user_data)
-{
-  char *help_link_id = user_data;
-
-  if (response == GTK_RESPONSE_HELP)
-    mn_display_help(GTK_WINDOW(dialog), help_link_id);
-  else
-    gtk_widget_destroy(GTK_WIDGET(dialog));
-}
-
 void
 mn_error_dialog (GtkWindow *parent,
-		 const char *not_again_key,
-		 const char *help_link_id,
 		 const char *primary,
 		 const char *format,
 		 ...)
@@ -844,7 +853,7 @@ mn_error_dialog (GtkWindow *parent,
   secondary = g_strdup_vprintf(format, args);
   va_end(args);
 
-  mn_error_dialog_real(parent, FALSE, not_again_key, help_link_id, primary, secondary);
+  mn_error_dialog_real(parent, FALSE, primary, secondary);
   g_free(secondary);
 }
 
@@ -886,8 +895,6 @@ mn_invalid_uri_list_dialog (GtkWindow *parent,
     }
 
   mn_error_dialog(parent,
-		  NULL,
-		  NULL,
 		  primary,
 		  ngettext("The following location is invalid:\n\n%s",
 			   "The following locations are invalid:\n\n%s",
@@ -909,10 +916,10 @@ mn_fatal_error_dialog (GtkWindow *parent, const char *format, ...)
   secondary = g_strdup_vprintf(format, args);
   va_end(args);
 
-  mn_error_dialog_real(parent, TRUE, NULL, NULL, _("A fatal error has occurred in Mail Notification"), secondary);
+  mn_error_dialog_real(parent, TRUE, _("A fatal error has occurred in Mail Notification"), secondary);
   g_free(secondary);
 
-  exit(1);  
+  exit(1);
 }
 
 GtkWidget *
@@ -1010,7 +1017,7 @@ mn_g_object_connect (gpointer object,
 	       || g_str_has_prefix(signal_spec, "swapped-signal-after::"))
 	handler->id = g_signal_connect_data(instance, signal_spec + 22, callback, data, NULL, G_CONNECT_AFTER | G_CONNECT_SWAPPED);
       else
-	g_critical(_("invalid signal specification \"%s\""), signal_spec);
+	g_critical("invalid signal specification \"%s\"", signal_spec);
 
       eel_add_weak_pointer(&handler->instance);
       g_object_weak_ref(object, mn_g_object_connect_weak_notify_cb, handler);
@@ -1036,31 +1043,10 @@ mn_g_object_connect_weak_notify_cb (gpointer data, GObject *former_object)
 }
 
 void
-mn_execute_command (const char *conf_key)
-{
-  char *command;
-
-  g_return_if_fail(conf_key != NULL);
-
-  command = eel_gconf_get_string(conf_key);
-  g_return_if_fail(command != NULL && *command != 0);
-
-  if (gnome_execute_shell(NULL, command) < 0)
-    mn_error_dialog(NULL,
-		    NULL,
-		    NULL,
-		    _("A command error has occurred in Mail Notification"),
-		    _("Unable to execute \"%s\": %s."),
-		    command,
-		    g_strerror(errno));
-  g_free(command);
-}
-
-void
 mn_gtk_object_ref_and_sink (GtkObject *object)
 {
   g_return_if_fail(GTK_IS_OBJECT(object));
-  
+
   g_object_ref(object);
   gtk_object_sink(object);
 }
@@ -1113,27 +1099,6 @@ mn_utf8_strcasecmp (const char *s1, const char *s2)
   return cmp;
 }
 
-int
-mn_utf8_strcasecoll (const char *s1, const char *s2)
-{
-  char *folded_s1;
-  char *folded_s2;
-  int coll;
-
-  g_return_val_if_fail(s1 != NULL, 0);
-  g_return_val_if_fail(s2 != NULL, 0);
-
-  folded_s1 = g_utf8_casefold(s1, -1);
-  folded_s2 = g_utf8_casefold(s2, -1);
-
-  coll = g_utf8_collate(folded_s1, folded_s2);
-
-  g_free(folded_s1);
-  g_free(folded_s2);
-
-  return coll;
-}
-
 char *
 mn_utf8_escape (const char *str)
 {
@@ -1167,7 +1132,7 @@ int
 mn_dialog_run_nonmodal (GtkDialog *dialog)
 {
   RunNonmodalInfo info = { NULL, GTK_RESPONSE_NONE };
-  
+
   g_return_val_if_fail(GTK_IS_DIALOG(dialog), -1);
 
   g_object_ref(dialog);
@@ -1241,18 +1206,6 @@ mn_dialog_run_nonmodal_shutdown_loop (RunNonmodalInfo *info)
     g_main_loop_quit(info->loop);
 }
 
-gboolean
-mn_ascii_validate (const char *str)
-{
-  g_return_val_if_fail(str != NULL, FALSE);
-
-  for (; *str; str++)
-    if ((unsigned char) *str > 127)
-      return FALSE;
-
-  return TRUE;
-}
-
 void
 mn_source_clear (unsigned int *tag)
 {
@@ -1263,26 +1216,6 @@ mn_source_clear (unsigned int *tag)
       g_source_remove(*tag);
       *tag = 0;
     }
-}
-
-unsigned int
-mn_timeout_add (const char *minutes_key,
-		const char *seconds_key,
-		GSourceFunc function,
-		gpointer data)
-{
-  int minutes;
-  int seconds;
-
-  g_return_val_if_fail(minutes_key != NULL, 0);
-  g_return_val_if_fail(seconds_key != NULL, 0);
-
-  minutes = eel_gconf_get_integer(minutes_key);
-  seconds = eel_gconf_get_integer(seconds_key);
-
-  return minutes != 0 || seconds != 0
-    ? g_timeout_add(((minutes * 60) + seconds) * 1000, function, data)
-    : 0;
 }
 
 gboolean
@@ -1303,14 +1236,75 @@ mn_ascii_str_case_has_prefix (const char *str, const char *prefix)
   return g_ascii_strncasecmp(str, prefix, prefix_len) == 0;
 }
 
-gboolean
-mn_rename (const char *from, const char *to, GError **err)
+char *
+mn_format_past_time (time_t past_time, time_t now)
 {
-  if (rename(from, to) < 0)
+  time_t diff;
+
+  g_return_val_if_fail(past_time > 0, NULL);
+
+  diff = now - past_time;
+  if (diff >= 0)
     {
-      g_set_error(err, 0, 0, _("unable to rename %s to %s: %s"), from, to, g_strerror(errno));
-      return FALSE;
+      if (diff < 60)
+	return g_strdup_printf(ngettext("%i second ago", "%i seconds ago", diff), diff);
+      else if (diff < 60 * 60)
+	{
+	  int minutes = diff / 60;
+	  return g_strdup_printf(ngettext("about %i minute ago", "about %i minutes ago", minutes), minutes);
+	}
+      else if (diff < 60 * 60 * 24)
+	{
+	  int hours = diff / (60 * 60);
+	  return g_strdup_printf(ngettext("about %i hour ago", "about %i hours ago", hours), hours);
+	}
+      else if (diff < 60 * 60 * 24 * 7)
+	{
+	  int days = diff / (60 * 60 * 24);
+	  return g_strdup_printf(ngettext("about %i day ago", "about %i days ago", days), days);
+	}
+      else
+	{
+	  int weeks = diff / (60 * 60 * 24 * 7);
+	  return g_strdup_printf(ngettext("about %i week ago", "about %i weeks ago", weeks), weeks);
+	}
     }
-  else
-    return TRUE;
+  else				/* future time: simply format it */
+    {
+      struct tm *tm;
+      char *formatted;
+
+      tm = localtime(&past_time);
+      g_assert(tm != NULL);
+
+      formatted = eel_strdup_strftime("%c", tm);
+      if (! formatted)
+	formatted = g_strdup(_("unknown date"));
+
+      return formatted;
+    }
+}
+
+void
+mn_gdk_threads_enter (void)
+{
+  GDK_THREADS_ENTER();
+}
+
+void
+mn_gdk_threads_leave (void)
+{
+  GDK_THREADS_LEAVE();
+}
+
+void
+mn_g_static_mutex_lock (GStaticMutex *mutex)
+{
+  g_static_mutex_lock(mutex);
+}
+
+void
+mn_g_static_mutex_unlock (GStaticMutex *mutex)
+{
+  g_static_mutex_unlock(mutex);
 }

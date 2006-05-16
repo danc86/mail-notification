@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,390 +16,149 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
-#include <gtk/gtk.h>
+#include "mn-text-table.h"
+%}
+
+%privateheader{
+#include <time.h>
 %}
 
 %{
-#include "config.h"
-#include <glib/gi18n.h>
-#include <eel/eel.h>
-#include "mn-message.h"
+#include "mn-locked-callback.h"
 #include "mn-util.h"
 
 typedef struct
 {
-  MNMessage	*message;
-  GSList	*header_marks;
-  char		*last_sent;
-  GtkTextMark	*sent_start;
-  GtkTextMark	*sent_end;
-} MessageInfo;
+  MNMessageView		*self;
+  MNTextTableCell	*cell;
+  GList			*link;
+  time_t		past_time;
+} PastTimeCell;
+
+static GQueue *past_time_cells;
+static MNLockedGSource *past_time_cells_timeout_source = NULL;
 %}
 
-class MN:Message:View from Gtk:Text:View
+class MN:Message:View from MN:Text:Table (abstract)
 {
-  private GtkTextBuffer *buffer;
-  private GtkTextTag *header_tag;
-  private unsigned int update_tabs_idle_id;
-  private unsigned int update_sent_timeout_id;
+  private GSList *past_time_cells;
 
-  private gboolean transparent;
-  property BOOLEAN transparent (flags = CONSTRUCT_ONLY, link);
-
-  private gboolean text_pointer;
-  property BOOLEAN text_pointer (flags = CONSTRUCT_ONLY, link);
-
-  private GSList *messages;
   property POINTER messages (export)
     set
     {
-      GSList *messages;
-      MessageInfo *info;
-      GSList *l;
-      gboolean need_updates = FALSE;
-
-      eel_g_slist_free_deep_custom(selfp->messages, (GFunc) self_message_info_free, NULL);
-      selfp->messages = NULL;
-      
-      self_clear(self);
-
-      messages = g_value_get_pointer(VAL);
-      if (messages)
-	MN_LIST_FOREACH(l, messages)
-          {
-	    info = self_append_message(self, l->data);
-	    
-	    if (info->last_sent)
-	      need_updates = TRUE;
-	    
-	    if (l->next)
-	      self_append(self, "\n\n");
-	  }
-      else
-	self_append(self, _("You have no new mail."));
-
-      self_update_tabs(self);
-
-      if (need_updates)
-	{
-	  if (! selfp->update_sent_timeout_id)
-	    selfp->update_sent_timeout_id = g_timeout_add(500, self_update_sent_cb, self);
-	}
-      else
-	mn_source_clear(&selfp->update_sent_timeout_id);
+      self_update(self, g_value_get_pointer(VAL));
     };
 
-  override (G:Object) GObject *
-    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  class_init (class)
   {
-    GObject *object;
-    Self *self;
-
-    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    self = SELF(object);
-
-    selfp->buffer = gtk_text_buffer_new(NULL);
-    selfp->header_tag = gtk_text_buffer_create_tag(selfp->buffer,
-						   NULL,
-						   "weight", PANGO_WEIGHT_BOLD,
-						   NULL);
-
-    gtk_text_view_set_buffer(GTK_TEXT_VIEW(self), selfp->buffer);
-    gtk_text_view_set_editable(GTK_TEXT_VIEW(self), FALSE);
-    gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(self), FALSE);
-
-    g_object_connect(self,
-		     "signal-after::style-set", self_style_set_h, NULL,
-		     "signal-after::realize", self_realize_h, NULL,
-		     NULL);
-
-    return object;
-  }
-  
-  private void
-    update_tabs (self)
-  {
-    GSList *l;
-    int longest_header_len = 0;
-    PangoTabArray *tabs;
-
-    MN_LIST_FOREACH(l, selfp->messages)
-      {
-	MessageInfo *info = l->data;
-	GSList *m;
-
-	MN_LIST_FOREACH(m, info->header_marks)
-	  {
-	    GtkTextMark *mark = m->data;
-	    GtkTextIter iter;
-	    GdkRectangle rect;
-
-	    gtk_text_buffer_get_iter_at_mark(selfp->buffer, &iter, mark);
-	    gtk_text_view_get_iter_location(GTK_TEXT_VIEW(self), &iter, &rect);
-
-	    if (rect.x > longest_header_len)
-	      longest_header_len = rect.x;
-	  }
-      }
-
-    tabs = pango_tab_array_new_with_positions(1, TRUE, PANGO_TAB_LEFT, longest_header_len + 12);
-    gtk_text_view_set_tabs(GTK_TEXT_VIEW(self), tabs);
-    pango_tab_array_free(tabs);
-  }
-  
-  private void
-    style_set_h (GtkWidget *widget,
-		 GtkStyle *previous_style,
-		 gpointer user_data)
-  {
-    Self *self = SELF(widget);
-
-    if (selfp->update_tabs_idle_id)
-      g_source_remove(selfp->update_tabs_idle_id);
-
-    selfp->update_tabs_idle_id = g_idle_add(self_update_tabs_cb, self);
+    past_time_cells = g_queue_new();
   }
 
-  private gboolean
-    update_tabs_cb (gpointer data)
-  {
-    Self *self = data;
-
-    GDK_THREADS_ENTER();
-    self_update_tabs(self);
-    selfp->update_tabs_idle_id = 0;
-    GDK_THREADS_LEAVE();
-
-    return FALSE;		/* remove */
-  }
-  
-  private void
-    realize_h (GtkWidget *widget, gpointer user_data)
-  {
-    Self *self = SELF(widget);
-    GtkStateType state;
-
-    if (selfp->transparent)
-      {
-	GtkWidget *toplevel;
-	
-	toplevel = gtk_widget_get_toplevel(widget);
-	g_return_if_fail(toplevel != NULL);
-	g_return_if_fail(toplevel->style != NULL);
-	
-	for (state = GTK_STATE_NORMAL; state <= GTK_STATE_INSENSITIVE; state++)
-	  gtk_widget_modify_base(widget, state, &toplevel->style->bg[state]);
-      }
-
-    if (! selfp->text_pointer)
-      {
-	GdkWindow *window;
-
-	window = gtk_text_view_get_window(GTK_TEXT_VIEW(self), GTK_TEXT_WINDOW_TEXT);
-	g_return_if_fail(window != NULL);
-
-	gdk_window_set_cursor(window, NULL);
-      }
-
-    g_return_if_fail(widget->style != NULL);
-    for (state = GTK_STATE_NORMAL; state <= GTK_STATE_INSENSITIVE; state++)
-      gtk_widget_modify_bg(widget, state, &widget->style->base[state]);
-  }
-
-  private void
-    message_info_free (MessageInfo *info (check null))
-  {
-    GSList *l;
-
-    g_object_unref(info->message);
-    
-    MN_LIST_FOREACH(l, info->header_marks)
-      gtk_text_buffer_delete_mark(gtk_text_mark_get_buffer(l->data), l->data);
-    g_slist_free(info->header_marks);
-
-    if (info->sent_start)
-      {
-	gtk_text_buffer_delete_mark(gtk_text_mark_get_buffer(info->sent_start), info->sent_start);
-	gtk_text_buffer_delete_mark(gtk_text_mark_get_buffer(info->sent_end), info->sent_end);
-      }
-    
-    g_free(info->last_sent);
-    g_free(info);
-  }
-  
   override (G:Object) void
     finalize (GObject *object)
   {
     Self *self = SELF(object);
 
-    if (selfp->update_tabs_idle_id)
-      g_source_remove(selfp->update_tabs_idle_id);
-    if (selfp->update_sent_timeout_id)
-      g_source_remove(selfp->update_sent_timeout_id);
-
-    eel_g_slist_free_deep_custom(selfp->messages, (GFunc) self_message_info_free, NULL);
-    g_object_unref(selfp->buffer);
+    self_clear_past_time_cells(self);
 
     PARENT_HANDLER(object);
   }
 
-  private gboolean
-    update_sent_cb (gpointer data)
+  override (Gtk:Widget) void
+    realize (GtkWidget *widget)
   {
-    Self *self = data;
+    GtkWidget *toplevel;
+    GtkStateType state;
+
+    PARENT_HANDLER(widget);
+
+    /* set a transparent background */
+
+    toplevel = gtk_widget_get_toplevel(widget);
+    g_assert(toplevel != NULL);
+    g_assert(toplevel->style != NULL);
+
+    for (state = GTK_STATE_NORMAL; state <= GTK_STATE_INSENSITIVE; state++)
+      gtk_widget_modify_bg(widget, state, &toplevel->style->bg[state]);
+  }
+
+  virtual private void
+    update (self, GSList *messages);
+
+  override (MN:Text:Table) void
+    clear (MNTextTable *table)
+  {
+    self_clear_past_time_cells(SELF(table));
+
+    PARENT_HANDLER(table);
+  }
+
+  protected void
+    append_past_time_cell (self, time_t past_time, time_t now)
+  {
+    PastTimeCell *pcell;
+
+    pcell = g_new(PastTimeCell, 1);
+    pcell->self = self;
+    pcell->cell = mn_text_table_append_text_cell(MN_TEXT_TABLE(self), NULL);
+    pcell->link = g_list_alloc();
+    pcell->link->data = pcell;
+    pcell->past_time = past_time;
+
+    self_update_past_time_cell(pcell, now);
+
+    selfp->past_time_cells = g_slist_prepend(selfp->past_time_cells, pcell);
+    g_queue_push_tail_link(past_time_cells, pcell->link);
+
+    if (! past_time_cells_timeout_source)
+      past_time_cells_timeout_source = mn_g_timeout_add_gdk_locked(500, self_update_past_time_cells_cb, NULL);
+  }
+
+  private void
+    clear_past_time_cells (self)
+  {
     GSList *l;
 
-    GDK_THREADS_ENTER();
-    MN_LIST_FOREACH(l, selfp->messages)
+    if (! selfp->past_time_cells)
+      return;
+
+    MN_LIST_FOREACH(l, selfp->past_time_cells)
       {
-	MessageInfo *info = l->data;
+	PastTimeCell *pcell = l->data;
 
-	if (info->last_sent)
-	  {
-	    char *sent;
-	    
-	    sent = mn_message_format_sent_time(info->message);
-	    if (! sent || strcmp(sent, info->last_sent))
-	      {
-		GtkTextIter start;
-		GtkTextIter end;
-
-		gtk_text_buffer_get_iter_at_mark(selfp->buffer, &start, info->sent_start);
-		gtk_text_buffer_get_iter_at_mark(selfp->buffer, &end, info->sent_end);
-
-		gtk_text_buffer_delete(selfp->buffer, &start, &end);
-
-		if (sent)
-		  {
-		    gtk_text_buffer_insert(selfp->buffer, &end, sent, -1);
-		    gtk_text_buffer_move_mark(selfp->buffer, info->sent_end, &end);
-		  }
-
-		g_free(info->last_sent);
-		info->last_sent = sent;
-	      }
-	    else
-	      g_free(sent);
-	  }
-      }
-    GDK_THREADS_LEAVE();
-
-    return TRUE;		/* continue */
-  }
-  
-  private void
-    clear (self)
-  {
-    GtkTextIter start;
-    GtkTextIter end;
-
-    gtk_text_buffer_get_start_iter(selfp->buffer, &start);
-    gtk_text_buffer_get_end_iter(selfp->buffer, &end);
-    gtk_text_buffer_delete(selfp->buffer, &start, &end);
-  }
-  
-  private MessageInfo *
-    append_message (self, MN:Message *message (check null type))
-  {
-    MessageInfo *info;
-
-    info = g_new0(MessageInfo, 1);
-    info->message = g_object_ref(message);
-
-    self_append_row(self,
-		    _("Mailbox"),
-		    message->mailbox_name,
-		    &info->header_marks,
-		    NULL,
-		    NULL);
-    self_append(self, "\n");
-    
-    if (message->error)
-      self_append_row(self,
-		      _("Unreadable message"),
-		      message->error,
-		      &info->header_marks,
-		      NULL,
-		      NULL);
-    else
-      {
-	self_append_row(self,
-			_("From"),
-			message->from,
-			&info->header_marks,
-			NULL,
-			NULL);
-	self_append(self, "\n");
-
-	self_append_row(self,
-			_("Subject"),
-			message->subject,
-			&info->header_marks,
-			NULL,
-			NULL);
-
-	info->last_sent = mn_message_format_sent_time(message);
-	if (info->last_sent)
-	  {
-	    self_append(self, "\n");
-	    self_append_row(self,
-			    _("Sent"),
-			    info->last_sent,
-			    &info->header_marks,
-			    &info->sent_start,
-			    &info->sent_end);
-	  }
+	g_queue_delete_link(past_time_cells, pcell->link);
+	g_free(pcell);
       }
 
-    selfp->messages = g_slist_append(selfp->messages, info);
-    
-    return info;
+    mn_g_slist_clear(&selfp->past_time_cells);
+
+    if (g_queue_is_empty(past_time_cells))
+      mn_locked_g_source_clear(&past_time_cells_timeout_source);
+  }
+
+  private gboolean
+    update_past_time_cells_cb (gpointer data)
+  {
+    time_t now;
+    GList *l;
+
+    now = mn_time();
+    MN_QUEUE_FOREACH(l, past_time_cells)
+      self_update_past_time_cell(l->data, now);
+
+    return TRUE;		/* keep source */
   }
 
   private void
-    append (self, const char *text (check null))
+    update_past_time_cell (PastTimeCell *pcell (check null), time_t now)
   {
-    GtkTextIter end;
-    
-    gtk_text_buffer_get_end_iter(selfp->buffer, &end);
-    gtk_text_buffer_insert(selfp->buffer, &end, text, -1);
-  }
-  
-  private void
-    append_row (self,
-		const char *name (check null),
-		const char *value (check null),
-		GSList **header_marks (check null),
-		GtkTextMark **value_start_mark,
-		GtkTextMark **value_end_mark)
-  {
-    GtkTextIter end;
+    char *formatted;
 
-    gtk_text_buffer_get_end_iter(selfp->buffer, &end);
-    
-    gtk_text_buffer_insert_with_tags(selfp->buffer, &end, name, -1, selfp->header_tag, NULL);
-    gtk_text_buffer_insert_with_tags(selfp->buffer, &end, ":", -1, selfp->header_tag, NULL);
-
-    *header_marks = g_slist_append(*header_marks, gtk_text_buffer_create_mark(selfp->buffer, NULL, &end, TRUE));
-    gtk_text_buffer_insert(selfp->buffer, &end, "\t", -1);
-
-    if (value_start_mark)
-      *value_start_mark = gtk_text_buffer_create_mark(selfp->buffer, NULL, &end, TRUE);
-
-    gtk_text_buffer_insert(selfp->buffer, &end, value, -1);
-
-    if (value_end_mark)
-      *value_end_mark = gtk_text_buffer_create_mark(selfp->buffer, NULL, &end, TRUE);
-  }
-  
-  public GtkWidget *
-    new (gboolean transparent, gboolean text_pointer)
-  {
-    return GTK_WIDGET(GET_NEW_VARG(MN_MESSAGE_VIEW_PROP_TRANSPARENT(transparent),
-				   MN_MESSAGE_VIEW_PROP_TEXT_POINTER(text_pointer),
-				   NULL));
+    formatted = mn_format_past_time(pcell->past_time, now);
+    mn_text_table_cell_set_text(MN_TEXT_TABLE(pcell->self), pcell->cell, formatted);
+    g_free(formatted);
   }
 }

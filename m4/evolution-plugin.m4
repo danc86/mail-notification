@@ -6,9 +6,39 @@
 # Jean-Yves Lefort gives unlimited permission to copy, distribute and
 # modify this file.
 
-dnl AM_PATH_EVOLUTION_PLUGIN([MINIMUM-VERSION], [SOURCE-FILES], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
+dnl AM_PATH_EVOLUTION_PLUGIN([BRANCH], [MINIMUM-VERSION], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
 dnl
 AC_DEFUN([AM_PATH_EVOLUTION_PLUGIN],
+[AC_REQUIRE([PKG_PROG_PKG_CONFIG])
+
+evolution_branch=ifelse([$1],, [2.4], [$1])
+evolution_plugin_min_version=ifelse([$2],,, [>= $2])
+
+PKG_CHECK_MODULES(EVOLUTION_PLUGIN, [evolution-plugin-$evolution_branch $evolution_plugin_min_version], [found=yes], [found=no])
+
+if test $found = yes; then
+	AC_MSG_CHECKING([for the Evolution plugin directory])
+	evolution_plugindir=`$PKG_CONFIG --variable=plugindir evolution-plugin-$evolution_branch 2>/dev/null`
+	if test -n "$evolution_plugindir"; then
+		AC_MSG_RESULT([$evolution_plugindir])
+	else
+		AC_MSG_RESULT([not found])
+		found=no
+	fi
+fi
+
+if test $found = yes; then
+	ifelse([$3],, :, [$3])
+else
+	evolution_plugindir=""
+	ifelse([$4],, :, [$4])
+fi
+
+AC_SUBST(evolution_plugindir)])
+
+dnl AM_PATH_EVOLUTION_SOURCEDIR([SOURCE-FILES], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
+dnl
+AC_DEFUN([AM_PATH_EVOLUTION_SOURCEDIR],
 [AC_ARG_WITH(evolution-source-dir,
 AC_HELP_STRING([--with-evolution-source-dir=DIR], [path to the Evolution source tree]),
 [evolution_source_dir="$withval"], [evolution_source_dir=""])
@@ -20,10 +50,9 @@ if test -z "$evolution_source_dir"; then
 	AC_MSG_RESULT([not given, use --with-evolution-source-dir=DIR])
 else
 	AC_MSG_RESULT([$evolution_source_dir])
-
 	if test "x$evolution_source_dir" != "xno"; then
 		found=yes
-		m4_foreach(evofile, [ifelse([$2],, evolution-plugin.pc.in, [$2])],
+		m4_foreach(evofile, [ifelse([$1],, evolution-plugin.pc.in, [$1])],
 [
 if test $found = yes; then
 	AC_CHECK_FILE($evolution_source_dir/evofile, [found=yes], [found=no])
@@ -33,27 +62,10 @@ fi
 fi
 
 if test $found = yes; then
-	evolution_plugin_min_version=ifelse([$1],,, [>= $1])
-	PKG_CHECK_MODULES(EVOLUTION_PLUGIN, [evolution-plugin-2.2 $evolution_plugin_min_version],, [found=no])
-fi
-
-if test $found = yes; then
-	AC_MSG_CHECKING([for the Evolution plugin directory])
-	evolution_plugindir=`$PKG_CONFIG --variable=plugindir evolution-plugin-2.2 2>/dev/null`
-	if test -n "$evolution_plugindir"; then
-		AC_MSG_RESULT([$evolution_plugindir])
-	else
-		AC_MSG_RESULT([not found])
-		found=no
-	fi
-fi
-
-if test $found = yes; then
-	EVOLUTION_PLUGIN_CFLAGS="$EVOLUTION_PLUGIN_CFLAGS -I$evolution_source_dir"
-	ifelse([$3],, :, [$3])
+	ifelse([$2],, :, [$2])
 else
-	evolution_plugindir=""
-	ifelse([$4],, :, [$4])
+	evolution_source_dir=""
+	ifelse([$3],, :, [$3])
 fi
 
-AC_SUBST(evolution_plugindir)])
+AC_SUBST(evolution_source_dir)])

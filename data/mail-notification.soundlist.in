@@ -1,6 +1,0 @@
-[__section_info__]
-_description=Mail Notification
-
-[new-mail]
-file=email.wav
-_description=New Mail

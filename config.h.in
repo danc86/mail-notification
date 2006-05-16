@@ -15,6 +15,9 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
+/* Define to 1 if the Evolution branch is 2.2 */
+#undef HAVE_EVOLUTION_2_2
+
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #undef HAVE_GETTEXT
 
@@ -84,41 +87,44 @@
 /* Version number of package */
 #undef VERSION
 
-/* Define to 1 if evolution is enabled */
+/* Define to 1 if evolution is enabled, 0 otherwise */
 #undef WITH_EVOLUTION
 
-/* Define to 1 if gmail is enabled */
+/* Define to 1 if gmail is enabled, 0 otherwise */
 #undef WITH_GMAIL
 
-/* Define to 1 if imap is enabled */
+/* Define to 1 if imap is enabled, 0 otherwise */
 #undef WITH_IMAP
 
-/* Define to 1 if ipv6 is enabled */
+/* Define to 1 if ipv6 is enabled, 0 otherwise */
 #undef WITH_IPV6
 
-/* Define to 1 if maildir is enabled */
+/* Define to 1 if maildir is enabled, 0 otherwise */
 #undef WITH_MAILDIR
 
-/* Define to 1 if mbox is enabled */
+/* Define to 1 if mbox is enabled, 0 otherwise */
 #undef WITH_MBOX
 
-/* Define to 1 if mh is enabled */
+/* Define to 1 if mh is enabled, 0 otherwise */
 #undef WITH_MH
 
-/* Define to 1 if mime is enabled */
+/* Define to 1 if mime is enabled, 0 otherwise */
 #undef WITH_MIME
 
-/* Define to 1 if pop3 is enabled */
+/* Define to 1 if pop3 is enabled, 0 otherwise */
 #undef WITH_POP3
 
-/* Define to 1 if sasl is enabled */
+/* Define to 1 if sasl is enabled, 0 otherwise */
 #undef WITH_SASL
 
-/* Define to 1 if ssl is enabled */
+/* Define to 1 if ssl is enabled, 0 otherwise */
 #undef WITH_SSL
 
-/* Define to 1 if sylpheed is enabled */
+/* Define to 1 if sylpheed is enabled, 0 otherwise */
 #undef WITH_SYLPHEED
+
+/* Define to 1 if sylpheed-locking is enabled, 0 otherwise */
+#undef WITH_SYLPHEED_LOCKING
 
 /* Number of bits in a file offset, on hosts where this is settable. */
 #undef _FILE_OFFSET_BITS

@@ -1,6 +1,5 @@
 /* 
- * Copyright (C) 1999 Free Software Foundation, Inc.
- * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +17,7 @@
  */
 
 #include "config.h"
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -59,6 +59,12 @@
   MN_CONF_OBSOLETE_COMMANDS_DOUBLE_CLICKED_NAMESPACE "/enabled"
 #define MN_CONF_OBSOLETE_COMMANDS_DOUBLE_CLICKED_COMMAND	\
   MN_CONF_OBSOLETE_COMMANDS_DOUBLE_CLICKED_NAMESPACE "/command"
+#define MN_CONF_OBSOLETE_COMMANDS_MAIL_READER_NAMESPACE \
+  MN_CONF_COMMANDS_NAMESPACE "/mail-reader"
+#define MN_CONF_OBSOLETE_COMMANDS_MAIL_READER_ENABLED \
+  MN_CONF_OBSOLETE_COMMANDS_MAIL_READER_NAMESPACE "/enabled"
+#define MN_CONF_OBSOLETE_COMMANDS_MAIL_READER_COMMAND \
+  MN_CONF_OBSOLETE_COMMANDS_MAIL_READER_NAMESPACE "/command"
 #define MN_CONF_OBSOLETE_PREFERENCES_DIALOG \
   MN_CONF_UI_NAMESPACE "/preferences-dialog"
 #define MN_CONF_OBSOLETE_SUMMARY_DIALOG \
@@ -71,6 +77,32 @@
   MN_CONF_NAMESPACE "/double-click-action"
 #define MN_CONF_OBSOLETE_ALREADY_RUN \
   MN_CONF_NAMESPACE "/already-run"
+#define MN_CONF_OBSOLETE_SUMMARY_TOOLTIP \
+  MN_CONF_NAMESPACE "/summary-tooltip"
+#define MN_CONF_OBSOLETE_DELAY_NAMESPACE \
+  MN_CONF_NAMESPACE "/delay"
+#define MN_CONF_OBSOLETE_DELAY_MINUTES \
+  MN_CONF_OBSOLETE_DELAY_NAMESPACE "/minutes"
+#define MN_CONF_OBSOLETE_DELAY_SECONDS \
+  MN_CONF_OBSOLETE_DELAY_NAMESPACE "/seconds"
+#define MN_CONF_OBSOLETE_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_NAMESPACE \
+  MN_CONF_UI_NAMESPACE "/immediate-notification-error-dialog"
+#define MN_CONF_OBSOLETE_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_DO_NOT_SHOW \
+  MN_CONF_OBSOLETE_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_NAMESPACE "/do-not-show"
+#define MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION_2 \
+  MN_CONF_NAMESPACE "/double-click-action-2"
+#define MN_CONF_OBSOLETE_MAIN_WINDOW_NAMESPACE \
+  MN_CONF_UI_NAMESPACE "/main-window"
+#define MN_CONF_OBSOLETE_MAIN_WINDOW_DIMENSIONS \
+  MN_CONF_OBSOLETE_MAIN_WINDOW_NAMESPACE "/dimensions"
+#define MN_CONF_OBSOLETE_MAIN_WINDOW_VIEW_TOOLBARS \
+  MN_CONF_OBSOLETE_MAIN_WINDOW_NAMESPACE "/view-toolbars"
+#define MN_CONF_OBSOLETE_MAIN_WINDOW_VIEW_STATUSBAR \
+  MN_CONF_OBSOLETE_MAIN_WINDOW_NAMESPACE "/view-statusbar"
+#define MN_CONF_OBSOLETE_MAIN_WINDOW_TOOLBARS_STYLE \
+  MN_CONF_OBSOLETE_MAIN_WINDOW_NAMESPACE "/toolbars-style"
+#define MN_CONF_OBSOLETE_MAIN_WINDOW_EDIT_TOOLBARS_DIALOG \
+  MN_CONF_OBSOLETE_MAIN_WINDOW_NAMESPACE "/edit-toolbars-dialog"
 
 #define BLOCK(info) \
   g_signal_handler_block((info)->object, (info)->handler_id)
@@ -136,12 +168,17 @@ const char *mn_conf_dot_dir = NULL;
 
 /*** functions ***************************************************************/
 
-static void mn_conf_handle_obsolete_key (const char *obsolete, const char *new);
+static void mn_conf_import_obsolete_key (const char *obsolete, const char *new);
+static void mn_conf_import_obsolete_string (const char *obsolete,
+					    const char *new,
+					    ...);
 
 static void mn_conf_link_weak_notify_cb (gpointer data, GObject *former_object);
 
 static void mn_conf_link_combo_box_to_string_set (LinkComboBoxToStringInfo *info,
 						  const GConfValue *value);
+static gboolean mn_conf_link_combo_box_to_string_set_real (LinkComboBoxToStringInfo *info,
+							   const char *value);
 static void mn_conf_link_combo_box_to_string_h (GtkComboBox *combo,
 						gpointer user_data);
 static void mn_conf_link_combo_box_to_string_notify_cb (GConfClient *client,
@@ -204,19 +241,6 @@ static void mn_conf_link_object_notify_cb (GConfClient *client,
 					   GConfEntry *entry,
 					   gpointer user_data);
 
-static void mn_conf_startup_client_free (StartupClient *client);
-static void mn_conf_startup_clients_free (GSList *list);
-
-static int mn_conf_startup_client_compare (gconstpointer a, gconstpointer b);
-
-static GSList *mn_conf_startup_list_read (const char *name);
-static void mn_conf_startup_list_write (GSList *list, const char *name);
-
-static GSList *mn_conf_get_autostart_elem (GSList *list);
-
-static void mn_conf_notification_add_weak_notify_cb (gpointer data,
-						     GObject *former_object);
-
 /*** implementation **********************************************************/
 
 void
@@ -235,8 +259,6 @@ mn_conf_init (void)
     {
       if (mkdir(mn_conf_dot_dir, 0755) < 0)
 	mn_error_dialog(NULL,
-			NULL,
-			NULL,
 			_("A directory creation error has occurred"),
 			_("Unable to create directory \"%s\": %s."),
 			mn_conf_dot_dir,
@@ -249,9 +271,9 @@ mn_conf_init (void)
 
   /* import obsolete keys */
 
-  mn_conf_handle_obsolete_key(MN_CONF_OBSOLETE_PREFERENCES_DIALOG "/height",
+  mn_conf_import_obsolete_key(MN_CONF_OBSOLETE_PREFERENCES_DIALOG "/height",
 			      MN_CONF_PROPERTIES_DIALOG "/height");
-  mn_conf_handle_obsolete_key(MN_CONF_OBSOLETE_PREFERENCES_DIALOG "/width",
+  mn_conf_import_obsolete_key(MN_CONF_OBSOLETE_PREFERENCES_DIALOG "/width",
 			      MN_CONF_PROPERTIES_DIALOG "/width");
 
   if (! mn_conf_is_set(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE)
@@ -266,17 +288,30 @@ mn_conf_init (void)
       enum_class = g_type_class_ref(MN_TYPE_ASPECT_SOURCE);
       enum_value = g_enum_get_value(enum_class, MN_ASPECT_SOURCE_CUSTOM);
       g_assert(enum_value != NULL);
-      
+
       eel_gconf_set_string(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE, enum_value->value_nick);
       g_type_class_unref(enum_class);
     }
 
-  mn_conf_handle_obsolete_key(MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION,
-			      MN_CONF_DOUBLE_CLICK_ACTION_2);
+  mn_conf_import_obsolete_string(MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION_2,
+				 MN_CONF_CLICK_ACTION,
+				 "display-main-window", "display-properties-dialog",
+				 NULL);
+  mn_conf_import_obsolete_string(MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION,
+				 MN_CONF_CLICK_ACTION,
+				 "display-mail-summary", "display-properties-dialog",
+				 NULL);
+
+  if (! mn_conf_is_set(MN_CONF_TOOLTIP_MAIL_SUMMARY)
+      && mn_conf_is_set(MN_CONF_OBSOLETE_SUMMARY_TOOLTIP))
+    {
+      if (! eel_gconf_get_boolean(MN_CONF_OBSOLETE_SUMMARY_TOOLTIP))
+	eel_gconf_set_string(MN_CONF_TOOLTIP_MAIL_SUMMARY, "none");
+    }
 }
 
 static void
-mn_conf_handle_obsolete_key (const char *obsolete, const char *new)
+mn_conf_import_obsolete_key (const char *obsolete, const char *new)
 {
   g_return_if_fail(obsolete != NULL);
   g_return_if_fail(new != NULL);
@@ -294,6 +329,50 @@ mn_conf_handle_obsolete_key (const char *obsolete, const char *new)
     }
 }
 
+static void
+mn_conf_import_obsolete_string (const char *obsolete,
+				const char *new,
+				...)
+{
+  char *str;
+
+  g_return_if_fail(obsolete != NULL);
+  g_return_if_fail(new != NULL);
+
+  if (! mn_conf_is_set(new))
+    {
+      str = eel_gconf_get_string(obsolete);
+      if (str)
+	{
+	  va_list args;
+	  const char *old_value;
+	  gboolean set = FALSE;
+
+	  va_start(args, new);
+	  while ((old_value = va_arg(args, const char *)))
+	    {
+	      const char *new_value;
+
+	      new_value = va_arg(args, const char *);
+	      g_return_if_fail(new_value != NULL);
+
+	      if (! strcmp(str, old_value))
+		{
+		  eel_gconf_set_string(new, new_value);
+		  set = TRUE;
+		  break;
+		}
+	    }
+	  va_end(args);
+
+	  if (! set)
+	    eel_gconf_set_string(new, str);
+
+	  g_free(str);
+	}
+    }
+}
+
 void
 mn_conf_unset_obsolete (void)
 {
@@ -302,16 +381,22 @@ mn_conf_unset_obsolete (void)
     MN_CONF_OBSOLETE_REMOTE_NAMESPACE,
     MN_CONF_OBSOLETE_COMMANDS_CLICKED_NAMESPACE,
     MN_CONF_OBSOLETE_COMMANDS_DOUBLE_CLICKED_NAMESPACE,
+    MN_CONF_OBSOLETE_COMMANDS_MAIL_READER_NAMESPACE,
     MN_CONF_OBSOLETE_PREFERENCES_DIALOG,
     MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED,
     MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED,
     MN_CONF_OBSOLETE_SUMMARY_DIALOG,
     MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION,
     MN_CONF_OBSOLETE_MAILBOXES,
-    MN_CONF_OBSOLETE_ALREADY_RUN
+    MN_CONF_OBSOLETE_ALREADY_RUN,
+    MN_CONF_OBSOLETE_SUMMARY_TOOLTIP,
+    MN_CONF_OBSOLETE_DELAY_NAMESPACE,
+    MN_CONF_OBSOLETE_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_NAMESPACE,
+    MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION_2,
+    MN_CONF_OBSOLETE_MAIN_WINDOW_NAMESPACE
   };
   int i;
-      
+
   for (i = 0; i < G_N_ELEMENTS(obsolete); i++)
     {
       g_message(_("recursively unsetting %s"), obsolete[i]);
@@ -320,7 +405,7 @@ mn_conf_unset_obsolete (void)
 
   g_message(_("syncing the GConf database"));
   eel_gconf_suggest_sync();
-  
+
   g_message(_("completed"));
 }
 
@@ -373,7 +458,7 @@ mn_conf_set_value (const char *key, const GConfValue *value)
 
   g_return_if_fail(key != NULL);
   g_return_if_fail(value != NULL);
-  
+
   client = eel_gconf_client_get_global();
   g_assert(client != NULL);
 
@@ -403,7 +488,7 @@ mn_conf_link (gpointer object, ...)
       if (GTK_IS_WINDOW(object))
 	{
 	  LinkWindowInfo *window_info;
-	  
+
 	  window_info = g_new0(LinkWindowInfo, 1);
 	  window_info->width_key = g_strdup_printf("%s/width", key);
 	  window_info->height_key = g_strdup_printf("%s/height", key);
@@ -445,7 +530,7 @@ mn_conf_link (gpointer object, ...)
       else if (GTK_IS_TOGGLE_ACTION(object))
 	{
 	  gtk_toggle_action_set_active(object, eel_gconf_get_boolean(key));
-	  
+
 	  signal_name = g_strdup("toggled");
 	  signal_handler = G_CALLBACK(mn_conf_link_toggle_action_h);
 	  notification_cb = mn_conf_link_toggle_action_notify_cb;
@@ -493,7 +578,7 @@ mn_conf_link (gpointer object, ...)
       g_free(info->key);
       info->key = g_strdup(key);
       info->handler_id = g_signal_connect(object, signal_name, signal_handler, info);
-      mn_conf_notification_add(object, key, notification_cb, info);
+      mn_g_object_gconf_notification_add_gdk_locked(object, key, notification_cb, info);
       g_object_weak_ref(object, mn_conf_link_weak_notify_cb, info);
 
       g_free(free_me);
@@ -534,7 +619,7 @@ mn_conf_link_combo_box_to_string (GtkComboBox *combo,
     eel_gconf_value_free(value);
 
   LINK_INFO(info)->handler_id = g_signal_connect(combo, "changed", G_CALLBACK(mn_conf_link_combo_box_to_string_h), info);
-  mn_conf_notification_add(combo, key, mn_conf_link_combo_box_to_string_notify_cb, info);
+  mn_g_object_gconf_notification_add_gdk_locked(combo, key, mn_conf_link_combo_box_to_string_notify_cb, info);
   g_object_weak_ref(G_OBJECT(combo), mn_conf_link_weak_notify_cb, info);
 }
 
@@ -542,38 +627,59 @@ static void
 mn_conf_link_combo_box_to_string_set (LinkComboBoxToStringInfo *info,
 				      const GConfValue *value)
 {
-  const char *str;
-
   g_return_if_fail(info != NULL);
 
-  str = value ? gconf_value_get_string(value) : NULL;
-  if (str)
+  if (! mn_conf_link_combo_box_to_string_set_real(info, value ? gconf_value_get_string(value) : NULL))
     {
       GtkTreeModel *model;
       GtkTreeIter iter;
       gboolean valid;
-      
+
+      /* value not found, select the first iter */
+
       model = gtk_combo_box_get_model(LINK_INFO(info)->object);
       valid = gtk_tree_model_get_iter_first(model, &iter);
+      g_assert(valid == TRUE);
 
-      while (valid)
-	{
-	  char *this_str;
-	  gboolean found;
-	  
-	  gtk_tree_model_get(model, &iter, info->string_column, &this_str, -1);
-	  found = this_str && ! strcmp(this_str, str);
-	  g_free(this_str);
-	  
-	  if (found)
-	    {
-	      gtk_combo_box_set_active_iter(LINK_INFO(info)->object, &iter);
-	      break;
-	    }
-	  
-	  valid = gtk_tree_model_iter_next(model, &iter);
-	}
+      gtk_combo_box_set_active_iter(LINK_INFO(info)->object, &iter);
     }
+}
+
+static gboolean
+mn_conf_link_combo_box_to_string_set_real (LinkComboBoxToStringInfo *info,
+					   const char *value)
+{
+  GtkTreeModel *model;
+  GtkTreeIter iter;
+  gboolean valid;
+
+  g_return_val_if_fail(info != NULL, FALSE);
+
+  if (! value)
+    return FALSE;
+
+  model = gtk_combo_box_get_model(LINK_INFO(info)->object);
+  valid = gtk_tree_model_get_iter_first(model, &iter);
+
+  while (valid)
+    {
+      char *this_value;
+      gboolean found;
+
+      gtk_tree_model_get(model, &iter, info->string_column, &this_value, -1);
+      found = this_value && ! strcmp(this_value, value);
+      g_free(this_value);
+
+      if (found)
+	{
+	  gtk_combo_box_set_active_iter(LINK_INFO(info)->object, &iter);
+	  return TRUE;
+	}
+
+      valid = gtk_tree_model_iter_next(model, &iter);
+    }
+
+  return FALSE;
 }
 
 static void
@@ -602,11 +708,9 @@ mn_conf_link_combo_box_to_string_notify_cb (GConfClient *client,
 {
   LinkComboBoxToStringInfo *info = user_data;
 
-  GDK_THREADS_ENTER();
   BLOCK(LINK_INFO(info));
   mn_conf_link_combo_box_to_string_set(info, gconf_entry_get_value(entry));
   UNBLOCK(LINK_INFO(info));
-  GDK_THREADS_LEAVE();
 }
 
 void
@@ -662,7 +766,7 @@ mn_conf_link_radio_button_to_string (GtkRadioButton *radio,
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
       g_free(current_str);
     }
-  
+
   info = g_new0(LinkRadioButtonToStringInfo, 1);
   info->str = g_strdup(str);
   LINK_INFO(info)->object = radio;
@@ -670,7 +774,7 @@ mn_conf_link_radio_button_to_string (GtkRadioButton *radio,
   LINK_INFO(info)->finalize = (GDestroyNotify) mn_conf_link_radio_button_to_string_free_info;
 
   LINK_INFO(info)->handler_id = g_signal_connect(radio, "toggled", G_CALLBACK(mn_conf_link_radio_button_to_string_h), info);
-  mn_conf_notification_add(radio, key, mn_conf_link_radio_button_to_string_notify_cb, info);
+  mn_g_object_gconf_notification_add_gdk_locked(radio, key, mn_conf_link_radio_button_to_string_notify_cb, info);
   g_object_weak_ref(G_OBJECT(radio), mn_conf_link_weak_notify_cb, info);
 }
 
@@ -698,11 +802,9 @@ mn_conf_link_radio_button_to_string_notify_cb (GConfClient *client,
 
   if (str && ! strcmp(str, info->str))
     {
-      GDK_THREADS_ENTER();
       BLOCK(LINK_INFO(info));
       gtk_toggle_button_set_active(LINK_INFO(info)->object, TRUE);
       UNBLOCK(LINK_INFO(info));
-      GDK_THREADS_LEAVE();
     }
 }
 
@@ -733,13 +835,11 @@ mn_conf_link_window_notify_cb (GConfClient *client,
 {
   LinkWindowInfo *info = user_data;
 
-  GDK_THREADS_ENTER();
   BLOCK(LINK_INFO(info));
   gtk_window_resize(LINK_INFO(info)->object,
 		    eel_gconf_get_integer(info->width_key),
 		    eel_gconf_get_integer(info->height_key));
   UNBLOCK(LINK_INFO(info));
-  GDK_THREADS_LEAVE();
 }
 
 static void
@@ -795,7 +895,7 @@ mn_conf_link_radio_action_h (GtkRadioAction *action,
   g_object_get(current, "value", &current_value, NULL);
 
   enum_value = g_enum_get_value(info->enum_class, current_value);
-  g_return_if_fail(enum_value != NULL);
+  g_assert(enum_value != NULL);
 
   eel_gconf_set_string(LINK_INFO(info)->key, enum_value->value_nick);
 }
@@ -808,11 +908,9 @@ mn_conf_link_radio_action_notify_cb (GConfClient *client,
 {
   LinkRadioActionInfo *info = user_data;
 
-  GDK_THREADS_ENTER();
   BLOCK(LINK_INFO(info));
   mn_conf_link_radio_action_set(info, gconf_entry_get_value(entry));
   UNBLOCK(LINK_INFO(info));
-  GDK_THREADS_LEAVE();
 }
 
 static void
@@ -838,12 +936,10 @@ mn_conf_link_toggle_action_notify_cb (GConfClient *client,
 {
   LinkInfo *info = user_data;
   GConfValue *value = gconf_entry_get_value(entry);
-  
-  GDK_THREADS_ENTER();
+
   BLOCK(info);
   gtk_toggle_action_set_active(info->object, value ? gconf_value_get_bool(value) : FALSE);
   UNBLOCK(info);
-  GDK_THREADS_LEAVE();
 }
 
 static void
@@ -863,11 +959,9 @@ mn_conf_link_spin_button_notify_cb (GConfClient *client,
   GConfValue *value = gconf_entry_get_value(entry);
   LinkInfo *info = user_data;
 
-  GDK_THREADS_ENTER();
   BLOCK(info);
   gtk_spin_button_set_value(info->object, value ? gconf_value_get_int(value) : 0);
   UNBLOCK(info);
-  GDK_THREADS_LEAVE();
 }
 
 static void
@@ -881,7 +975,7 @@ mn_conf_link_object_set (LinkObjectInfo *info, const GConfValue *value)
     return;
 
   g_value_init(&gvalue, G_PARAM_SPEC_VALUE_TYPE(info->pspec));
-  
+
   if (G_PARAM_SPEC_VALUE_TYPE(info->pspec) == G_TYPE_BOOLEAN)
     g_value_set_boolean(&gvalue, gconf_value_get_bool(value));
   else if (G_PARAM_SPEC_VALUE_TYPE(info->pspec) == G_TYPE_STRING)
@@ -923,199 +1017,9 @@ mn_conf_link_object_notify_cb (GConfClient *client,
 {
   LinkObjectInfo *info = user_data;
 
-  GDK_THREADS_ENTER();
   BLOCK(LINK_INFO(info));
   mn_conf_link_object_set(info, gconf_entry_get_value(entry));
   UNBLOCK(LINK_INFO(info));
-  GDK_THREADS_LEAVE();
-}
-
-/*
- * The mn_conf_startup_* functions are based on code taken from
- * startup-programs.c in gnome-session, written by Owen Taylor.
- */
-
-static void
-mn_conf_startup_client_free (StartupClient *client)
-{
-  int i;
-
-  g_return_if_fail(client != NULL);
-
-  for (i = 0; i < client->argc; i++)
-    g_free(client->argv[i]);
-
-  g_free(client->argv);
-  g_free(client);
-}
-
-static void
-mn_conf_startup_clients_free (GSList *list)
-{
-  eel_g_slist_free_deep_custom(list, (GFunc) mn_conf_startup_client_free, NULL);
-}
-
-static int
-mn_conf_startup_client_compare (gconstpointer a, gconstpointer b)
-{
-  const StartupClient *client_a = a;
-  const StartupClient *client_b = b;
-
-  return client_a->order - client_b->order;
-}
-
-static GSList *
-mn_conf_startup_list_read (const char *name)
-{
-  GSList *list = NULL;
-  gpointer iterator;
-  char *p;
-  StartupClient *client = NULL;
-  char *handle = NULL;
-
-  g_return_val_if_fail(name != NULL, NULL);
-  
-  gnome_config_push_prefix(SESSION_MANUAL_CONFIG_PREFIX);
-
-  iterator = gnome_config_init_iterator(name);
-  while (iterator)
-    {
-      char *key;
-      char *value;
-
-      iterator = gnome_config_iterator_next(iterator, &key, &value);
-      if (! iterator)
-	break;
-
-      p = strchr(key, ',');
-      if (p)
-	{
-	  *p = 0;
-
-	  if (! client || strcmp(handle, key))
-	    {
-	      g_free(handle);
-	      handle = g_strdup(key);
-
-	      client = g_new0(StartupClient, 1);
-	      list = g_slist_append(list, client);
-	    }
-
-	  if (! strcmp(p + 1, "Priority"))
-	    client->order = atoi(value);
-	  else if (! strcmp(p + 1, "RestartCommand"))
-	    gnome_config_make_vector(value, &client->argc, &client->argv);
-	}
-
-      g_free(key);
-      g_free(value);
-    }
-
-  g_free(handle);
-  gnome_config_pop_prefix();
-
-  return g_slist_sort(list, mn_conf_startup_client_compare);
-}
-
-static void
-mn_conf_startup_list_write (GSList *list, const char *name)
-{
-  char *prefix;
-  int i = 0;
-  GSList *l;
-
-  g_return_if_fail(name != NULL);
-
-  gnome_config_push_prefix(SESSION_MANUAL_CONFIG_PREFIX);
-  gnome_config_clean_section(name);
-  gnome_config_pop_prefix();
-
-  prefix = g_strconcat(SESSION_MANUAL_CONFIG_PREFIX, name, "/", NULL);
-  gnome_config_push_prefix(prefix);
-  g_free(prefix);
-  
-  gnome_config_set_int("num_clients", g_slist_length(list));
-
-  MN_LIST_FOREACH(l, list)
-    {
-      StartupClient *client = l->data;
-      char *key;
-
-      key = g_strdup_printf("%d,%s", i, "RestartStyleHint");
-      gnome_config_set_int(key, 3); /* RestartNever */
-      g_free(key);
-
-      key = g_strdup_printf("%d,%s", i, "Priority");
-      gnome_config_set_int(key, client->order);
-      g_free(key);
-
-      key = g_strdup_printf("%d,%s", i, "RestartCommand");
-      gnome_config_set_vector(key, client->argc, (const char * const *) client->argv);
-      g_free(key);
-
-      i++;
-    }
-  
-  gnome_config_pop_prefix();
-  gnome_config_sync();
-}
-
-static GSList *
-mn_conf_get_autostart_elem (GSList *list)
-{
-  GSList *l;
-
-  MN_LIST_FOREACH(l, list)
-    {
-      StartupClient *client = l->data;
-
-      if (client->argc > 0 && ! strcmp(client->argv[0], "mail-notification"))
-	return l;
-    }
-
-  return NULL;
-}
-
-gboolean
-mn_conf_get_autostart (void)
-{
-  GSList *clients;
-  gboolean autostart;
-
-  clients = mn_conf_startup_list_read(SESSION_MANUAL_NAME);
-  autostart = mn_conf_get_autostart_elem(clients) != NULL;
-  mn_conf_startup_clients_free(clients);
-
-  return autostart;
-}
-
-void
-mn_conf_set_autostart (gboolean autostart)
-{
-  GSList *clients;
-  GSList *elem;
-
-  clients = mn_conf_startup_list_read(SESSION_MANUAL_NAME);
-  elem = mn_conf_get_autostart_elem(clients);
-  if ((elem != NULL) != autostart)
-    {
-      if (autostart)
-	{
-	  StartupClient *client;
-
-	  client = g_new0(StartupClient, 1);
-	  client->order = 50;
-	  gnome_config_make_vector("mail-notification", &client->argc, &client->argv);
-
-	  clients = g_slist_append(clients, client);
-	  clients = g_slist_sort(clients, mn_conf_startup_client_compare);
-	}
-      else
-	clients = mn_g_slist_delete_link_deep_custom(clients, elem, (GFunc) mn_conf_startup_client_free, NULL);
-
-      mn_conf_startup_list_write(clients, SESSION_MANUAL_NAME);
-    }
-  mn_conf_startup_clients_free(clients);
 }
 
 int
@@ -1142,51 +1046,34 @@ mn_conf_get_enum_value (GType enum_type, const char *key)
   return enum_value ? enum_value->value : 0;
 }
 
-void
-mn_conf_notification_add (gpointer object,
-			  const char *key,
-			  GConfClientNotifyFunc callback,
-			  gpointer user_data)
+unsigned int
+mn_conf_notification_add_full (const char *key,
+			       GConfClientNotifyFunc callback,
+			       gpointer user_data,
+			       GFreeFunc destroy_notify)
 {
+  GConfClient *client;
   unsigned int notification_id;
+  GError *err = NULL;
 
-  g_return_if_fail(G_IS_OBJECT(object));
-  g_return_if_fail(key != NULL);
-  g_return_if_fail(callback != NULL);
+  g_return_val_if_fail(key != NULL, 0);
+  g_return_val_if_fail(callback != NULL, 0);
 
-  notification_id = eel_gconf_notification_add(key, callback, user_data);
-  g_object_weak_ref(G_OBJECT(object), mn_conf_notification_add_weak_notify_cb, GUINT_TO_POINTER(notification_id));
-}
+  client = eel_gconf_client_get_global();
+  g_return_val_if_fail(client != NULL, 0);
 
-static void
-mn_conf_notification_add_weak_notify_cb (gpointer data, GObject *former_object)
-{
-  unsigned int notification_id = GPOINTER_TO_UINT(data);
-  eel_gconf_notification_remove(notification_id);
-}
+  notification_id = gconf_client_notify_add(client, key, callback, user_data, destroy_notify, &err);
 
-void
-mn_conf_notifications_add (gpointer object, ...)
-{
-  va_list args;
-  const char *key;
-
-  g_return_if_fail(G_IS_OBJECT(object));
-
-  va_start(args, object);
-  while ((key = va_arg(args, const char *)))
+  if (eel_gconf_handle_error(&err))
     {
-      GConfClientNotifyFunc callback;
-      gpointer user_data;
-
-      callback = va_arg(args, GConfClientNotifyFunc);
-      g_return_if_fail(callback != NULL);
-
-      user_data = va_arg(args, gpointer);
-
-      mn_conf_notification_add(object, key, callback, user_data);
+      if (notification_id)
+	{
+	  gconf_client_notify_remove(client, notification_id);
+	  notification_id = 0;
+	}
     }
-  va_end(args);
+
+  return notification_id;
 }
 
 gboolean
@@ -1217,4 +1104,59 @@ mn_conf_has_command (const char *namespace)
   g_free(enabled_key);
 
   return has;
+}
+
+void
+mn_conf_execute_command (const char *conf_key, gboolean strip_format)
+{
+  char *command;
+
+  g_return_if_fail(conf_key != NULL);
+
+  command = eel_gconf_get_string(conf_key);
+  g_return_if_fail(command != NULL && *command != 0);
+
+  if (strip_format)
+    {
+      GString *stripped;
+      char *start;
+      char *p;
+
+      stripped = g_string_new(NULL);
+
+      for (start = command; (p = strstr(start, "%s")); start = p + 2)
+	g_string_append_len(stripped, start, p - start);
+      g_string_append(stripped, start);
+
+      g_free(command);
+      command = g_string_free(stripped, FALSE);
+    }
+
+  if (gnome_execute_shell(NULL, command) < 0)
+    mn_error_dialog(NULL,
+		    _("A command error has occurred in Mail Notification"),
+		    _("Unable to execute \"%s\": %s."),
+		    command,
+		    g_strerror(errno));
+  g_free(command);
+}
+
+MNLockedGSource *
+mn_conf_timeout_add_gdk_locked (const char *minutes_key,
+				const char *seconds_key,
+				GSourceFunc function,
+				gpointer data)
+{
+  int minutes;
+  int seconds;
+
+  g_return_val_if_fail(minutes_key != NULL, 0);
+  g_return_val_if_fail(seconds_key != NULL, 0);
+
+  minutes = eel_gconf_get_integer(minutes_key);
+  seconds = eel_gconf_get_integer(seconds_key);
+
+  return minutes != 0 || seconds != 0
+    ? mn_g_timeout_add_gdk_locked(((minutes * 60) + seconds) * 1000, function, data)
+    : NULL;
 }

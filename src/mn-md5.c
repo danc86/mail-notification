@@ -244,7 +244,7 @@ mn_md5_end (MNMD5Context *context, char *buf)
   buf[i + i] = '\0';
 
   return buf;
-} 
+}
 
 static void
 mn_md5_transform (u_int32_t state[4], const unsigned char block[64])

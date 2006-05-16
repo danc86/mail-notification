@@ -1,4 +1,4 @@
-AC_INIT([Mail Notification], 2.0, jylefort@brutele.be)
+AC_INIT([Mail Notification], 3.0-rc1, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mn-main.c)
 
 AC_PREREQ(2.59)
@@ -19,6 +19,7 @@ MN_ARG_ENABLE(ipv6, [disable IPv6 support])
 MN_ARG_ENABLE(gmail, [disable Gmail support])
 MN_ARG_ENABLE(evolution, [disable Evolution support])
 MN_ARG_ENABLE(sylpheed, [disable Sylpheed support])
+MN_ARG_ENABLE(sylpheed-locking, [enable .sylpheed_mark locking], no)
 
 MN_ARG_COMPILE_WARNINGS
 MN_ARG_ENABLE(regression-tests, [build and run regression tests], no)
@@ -35,11 +36,11 @@ AC_PROG_LIBTOOL
 
 ### i18n
 
-GETTEXT_PACKAGE=AC_PACKAGE_TARNAME
+GETTEXT_PACKAGE=mail-notification
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", [Define to the gettext package name])
 AC_SUBST(GETTEXT_PACKAGE)
 
-ALL_LINGUAS="bg de fr pl pt ru sr sr@Latn"
+ALL_LINGUAS="bg cs de fr ja nl pl pt pt_BR ru sr sr@Latn"
 AM_GLIB_GNU_GETTEXT
 
 AC_PROG_INTLTOOL
@@ -78,20 +79,14 @@ if test -z "$GCONFTOOL"; then
 	AC_MSG_ERROR([unable to find the gconftool-2 program])
 fi
 
-ORBIT_IDL="`$PKG_CONFIG --variable=orbit_idl ORBit-2.0`"
-AC_SUBST(ORBIT_IDL)
+AM_PATH_ORBIT_IDL(, [AC_MSG_ERROR([unable to find the orbit-idl-2 program])])
 
-LIBBONOBO_IDL="`$PKG_CONFIG --variable=idldir libbonobo-2.0`"
-AC_SUBST(LIBBONOBO_IDL)
-
-BONOBO_ACTIVATION_IDL="`$PKG_CONFIG --variable=idldir bonobo-activation-2.0`"
-AC_SUBST(BONOBO_ACTIVATION_IDL)
+IDL_CHECK_MODULES(BONOBO, [libbonobo-2.0 bonobo-activation-2.0],, [AC_MSG_ERROR([unable to find the Bonobo IDL modules])])
 
 ### optional libraries
 
 # not needed by end-users, as generated files are distributed
 AC_PATH_PROG(GOB2, gob2)
-AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 
 MN_FEATURE_VAR_NAME(mime)=no
 if MN_FEATURE_ENABLED(mbox) ||
@@ -123,6 +118,10 @@ if MN_FEATURE_ENABLED(mbox) ||
 	fi
 fi
 	
+if MN_FEATURE_ENABLED(sylpheed-locking) && MN_FEATURE_DISABLED(sylpheed); then
+	MN_FEATURE_DISABLE(sylpheed-locking, [Sylpheed support disabled])
+fi
+
 if MN_FEATURE_DISABLED(pop3) && MN_FEATURE_DISABLED(imap); then
 	if MN_FEATURE_ENABLED(ssl); then
 		MN_FEATURE_DISABLE(ssl, [POP3 and IMAP support disabled])
@@ -143,7 +142,27 @@ if MN_FEATURE_ENABLED(sasl); then
 fi
 
 if MN_FEATURE_ENABLED(evolution); then
-	AM_PATH_EVOLUTION_PLUGIN(, [mail/em-event.h, mail/em-folder-tree.h, mail/mail-component.h, mail/mail-tools.h],, [MN_FEATURE_DISABLE(evolution, [Evolution not found])])
+	evolution=no
+	AM_PATH_EVOLUTION_PLUGIN(2.8,, [evolution=yes])
+	if test $evolution = no; then
+		AM_PATH_EVOLUTION_PLUGIN(2.6,, [evolution=yes])
+	fi
+	if test $evolution = no; then
+		AM_PATH_EVOLUTION_PLUGIN(2.4,, [evolution=yes])
+	fi
+	if test $evolution = no; then
+		AM_PATH_EVOLUTION_PLUGIN(2.2,, [evolution=yes])
+		if test $evolution = yes; then
+			AM_PATH_EVOLUTION_SOURCEDIR([mail/em-event.h, mail/em-folder-tree.h, mail/mail-component.h, mail/mail-tools.h],, [evolution=no])
+		fi
+		if test $evolution = yes; then
+			EVOLUTION_PLUGIN_CFLAGS="$EVOLUTION_PLUGIN_CFLAGS -I$evolution_source_dir"
+			AC_DEFINE(HAVE_EVOLUTION_2_2, 1, [Define to 1 if the Evolution branch is 2.2])
+		fi
+	fi
+	if test $evolution = no; then
+		MN_FEATURE_DISABLE(evolution, [Evolution not found])
+	fi
 fi
 
 ### Automake conditionals
@@ -167,11 +186,12 @@ AM_CONDITIONAL(WITH_REGRESSION_TESTS, [MN_FEATURE_ENABLED(regression-tests)])
 
 ### config.h definitions
 
-MN_FEATURES_DEFINE([mbox, mh, maildir, pop3, imap, ssl, sasl, ipv6, gmail, evolution, sylpheed, mime])
+MN_FEATURES_DEFINE([mbox, mh, maildir, pop3, imap, ssl, sasl, ipv6, gmail, evolution, sylpheed, sylpheed-locking, mime])
 
 ### output
 
 AC_CONFIG_FILES(Makefile
+		aml/Makefile
 		art/Makefile
 		data/Makefile
 		help/Makefile
@@ -195,7 +215,7 @@ MN_REPORT_ARGS([prefix, exec-prefix])
 Installation directories
 MN_REPORT_ARGS([bindir, datadir, sysconfdir, libdir])
 Mailbox backends
-MN_REPORT_FEATURES([mbox, mh, maildir, pop3, imap, gmail, evolution, sylpheed])
+MN_REPORT_FEATURES([mbox, mh, maildir, pop3, imap, gmail, evolution, sylpheed, sylpheed-locking])
 POP3 and IMAP features
 MN_REPORT_FEATURES([ssl, sasl, ipv6])
 EOF

@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include "mn-mailbox-properties.h"
@@ -48,7 +48,7 @@ class MN:Evolution:Mailbox:Properties from MN:Mailbox:Properties
   private MNCORBAObject *control unrefwith g_object_unref;
 
   private Bonobo_PropertyBag pbag = CORBA_OBJECT_NIL
-    destroy { CORBA_Object_release(VAR, NULL); };
+    unref { bonobo_object_release_unref(VAR, NULL); };
   private Bonobo_Listener listener = CORBA_OBJECT_NIL;
 
   property BOOLEAN complete (override)
@@ -64,6 +64,7 @@ class MN:Evolution:Mailbox:Properties from MN:Mailbox:Properties
     p_class->type = "evolution";
     p_class->stock_id = MN_STOCK_EVOLUTION_MAILBOX;
     p_class->combo_label = "Evolution";
+    /* translators: header capitalization */
     p_class->section_label = _("Folder");
   }
 
@@ -92,9 +93,7 @@ class MN:Evolution:Mailbox:Properties from MN:Mailbox:Properties
 	g_assert(selfp->pbag != CORBA_OBJECT_NIL);
 
 	bonobo_event_source_client_remove_listener(selfp->pbag, selfp->listener, NULL);
-
-	CORBA_Object_release(selfp->listener, NULL);
-	selfp->listener = CORBA_OBJECT_NIL;
+	selfp->listener = bonobo_object_release_unref(selfp->listener, NULL);
       }
 
     PARENT_HANDLER(object);
@@ -137,7 +136,7 @@ class MN:Evolution:Mailbox:Properties from MN:Mailbox:Properties
 	      }
 	  }
       }
-    
+
     /* failure */
 
     if (tree)
@@ -148,28 +147,20 @@ class MN:Evolution:Mailbox:Properties from MN:Mailbox:Properties
     CORBA_Object_release(glue, NULL);
     CORBA_Object_release(control, NULL);
   }
-  
+
   private void
     contact_error (self)
   {
     GtkWidget *label;
 
-    if (selfp->pbag != CORBA_OBJECT_NIL)
-      {
-	CORBA_Object_release(selfp->pbag, NULL);
-	selfp->pbag = CORBA_OBJECT_NIL;
-      }
-
-    if (selfp->listener != CORBA_OBJECT_NIL)
-      {
-	CORBA_Object_release(selfp->listener, NULL);
-	selfp->listener = CORBA_OBJECT_NIL;
-      }
+    selfp->pbag = bonobo_object_release_unref(selfp->pbag, NULL);
+    selfp->listener = bonobo_object_release_unref(selfp->listener, NULL);
 
     label = gtk_label_new(_("Mail Notification can not contact Evolution. Make sure that Evolution is running and that the Evolution Mail Notification plugin is loaded."));
 
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
     gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
+    gtk_label_set_selectable(GTK_LABEL(label), TRUE);
 
     self_set_widget(self, label);
     selfp->tree = NULL;
@@ -230,7 +221,7 @@ class MN:Evolution:Mailbox:Properties from MN:Mailbox:Properties
 
     g_free(selfp->name);
     selfp->name = g_strdup(name);
-    
+
     CORBA_free(name);
 
     g_object_notify(G_OBJECT(self), "complete");
@@ -271,8 +262,8 @@ class MN:Evolution:Mailbox:Properties from MN:Mailbox:Properties
     mailbox = PARENT_HANDLER(properties);
 
     g_object_set(mailbox,
-		 "uri", selfp->uri,
-		 "folder-name", selfp->name,
+		 MN_EVOLUTION_MAILBOX_PROP_URI(selfp->uri),
+		 MN_EVOLUTION_MAILBOX_PROP_FOLDER_NAME(selfp->name),
 		 NULL);
 
     return mailbox;

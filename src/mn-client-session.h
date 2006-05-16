@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 #include "config.h"
 #include <glib.h>
-#ifdef WITH_SASL
+#if WITH_SASL
 #include <sasl/sasl.h>
 #endif
 
@@ -44,9 +44,9 @@ enum
   /* signal an uncompliant response and disconnect */
   MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT	= -2,
   /* disconnect */
-  MN_CLIENT_SESSION_RESULT_DISCONNECT			= -3,
+  MN_CLIENT_SESSION_RESULT_DISCONNECT			= -3
 };
-    
+
 /*
  * In all the session callbacks below, @session is the session which
  * is being run, and @private is the opaque data pointer which was
@@ -67,7 +67,7 @@ typedef struct
    * %MN_CLIENT_SESSION_RESULT_CONTINUE.
    *
    * Return value: must return a state ID to switch to, or one of the
-   * MN_CLIENT_SESSION_RESULT_ codes above.
+   * MN_CLIENT_SESSION_RESULT_ codes above
    */
   int		(*enter_cb)	(MNClientSession	  *session,
 				 MNClientSessionPrivate	  *private);
@@ -80,7 +80,7 @@ typedef struct
    * Handles a response received while the state is active.
    *
    * Return value: must return a state ID to switch to, or one of the
-   * MN_CLIENT_SESSION_RESULT_ codes above.
+   * MN_CLIENT_SESSION_RESULT_ codes above
    */
   int		(*handle_cb)	(MNClientSession	  *session,
 				 MNClientSessionResponse  *response,
@@ -121,7 +121,7 @@ typedef struct
    * Parses server input.
    *
    * Return value: must return an opaque data pointer on success, or
-   * %NULL on failure.
+   * %NULL on failure
    */
   MNClientSessionResponse *(*response_new) (MNClientSession         *session,
 					    const char              *input,
@@ -153,7 +153,7 @@ typedef struct
   void      (*post_read)	(MNClientSession          *session,
 				 MNClientSessionPrivate   *private);
 
-#ifdef WITH_SASL
+#if WITH_SASL
   /*
    * sasl_get_credentials (required if
    * mn_client_session_sasl_authentication_start() is needed, optional
@@ -161,11 +161,13 @@ typedef struct
    * @username: a pointer to store the username, or %NULL
    * @password: a pointer to store the password, or %NULL
    *
-   * Fills in the requested credentials. If a requested credential
-   * cannot be provided, it must be set to %NULL. In such case, the
-   * SASL authentication exchange will be aborted.
+   * Fills in the requested credentials.
+   *
+   * Return value: must return %TRUE in case of success, or %FALSE if
+   * a requested credential cannot be provided (in such case, the SASL
+   * authentication exchange will be aborted)
    */
-  void      (*sasl_get_credentials)	(MNClientSession	*session,
+  gboolean  (*sasl_get_credentials)	(MNClientSession	*session,
 					 MNClientSessionPrivate	*priv,
 					 const char		**username,
 					 const char		**password);
@@ -174,7 +176,7 @@ typedef struct
 
 gboolean mn_client_session_run (MNClientSessionState *states,
 				MNClientSessionCallbacks *callbacks,
-#ifdef WITH_SSL
+#if WITH_SSL
 				gboolean use_ssl,
 #endif
 				const char *hostname,
@@ -189,11 +191,11 @@ int mn_client_session_write (MNClientSession *session,
 			     const char *format,
 			     ...) G_GNUC_PRINTF(2, 3);
 
-#ifdef WITH_SSL
+#if WITH_SSL
 gboolean mn_client_session_enable_ssl (MNClientSession *session);
 #endif
 
-#ifdef WITH_SASL
+#if WITH_SASL
 gboolean mn_client_session_sasl_authentication_start (MNClientSession *session,
 						      const char *service,
 						      GSList *mechanisms,
@@ -215,10 +217,14 @@ void mn_client_session_notice (MNClientSession *session,
 void mn_client_session_warning (MNClientSession *session,
 				const char *format,
 				...);
-int mn_client_session_error (MNClientSession *session,
-			     int code,
-			     const char *format,
-			     ...) G_GNUC_PRINTF(3, 4);
+
+int mn_client_session_set_error (MNClientSession *session,
+				 int code,
+				 const char *format,
+				 ...) G_GNUC_PRINTF(3, 4);
+int mn_client_session_set_error_from_response (MNClientSession *session,
+					       int code,
+					       const char *response);
 
 GQuark mn_client_session_error_quark (void);
 

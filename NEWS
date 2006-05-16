@@ -1,3 +1,119 @@
+3.0 Release Candidate 1			May 16, 2006
+
+	* Core changes:
+		* An alternate, compact mail summary has been added
+		* A "Display seen messages" option has been added
+		* The status icon can now be displayed permanently
+		* The "Delay between mail checks" option is now
+		  mailbox-specific
+		* The properties dialog has been reorganized
+		* The main window has been removed
+		* The status icon is now activated with a single click
+		  (http://bugzilla.gnome.org/show_bug.cgi?id=148829)
+		* The GTK+ bugs
+		  (http://bugzilla.gnome.org/show_bug.cgi?id=321886)
+		  which caused occasional crashes have been worked
+		  around
+		* If the MAIL environment variable is not defined or
+		  invalid, the system mailbox is now looked up in
+		  /var/spool/mail/username and /var/mail/username
+		  (based on a patch from Benoît Rouits)
+		* Since ~/.gnome2/mail-notification/mailboxes.xml may
+		  contain sensitive information, it is now saved with
+		  permissions set to 0600 (useful for systems where
+		  home directories have lax permissions)
+		* The "cannot enable immediate notification" error
+		  dialog has been removed
+		* The --list-features command line option has been
+		  removed (feature information is now displayed in the
+		  output of the --version option)
+		* The message handling performance has been improved
+		* If there are no mailboxes on startup, the properties
+		  dialog is now displayed
+		* The "Start Mail Notification on GNOME login" option
+		  no longer worked with GNOME >= 2.14 and has been
+		  removed: a .desktop file is now installed in the xdg
+		  autostart directory instead
+		* Since support for non-system sound events has been
+		  removed from GNOME 2.14, the
+		  mail-notification.soundlist file is no longer
+		  installed
+		* The mail reader setting has been removed; the mail
+		  reader configured in GNOME (Desktop -> Preferences
+		  -> Preferred Applications) will now be used
+		* The tooltip width is now limited to the screen width
+		* When coupled with a patched GNOME Panel (as shipped
+		  by FreeBSD and Debian, for instance), the status
+		  icon now supports panel transparency (patch
+		  forwarded by Bernat Tallaferro)
+
+	* mbox, Maildir, POP3, IMAP, Evolution and Sylpheed changes:
+		* Messages are now classified as unseen and seen; seen
+		  messages can be ignored by unchecking the "Display
+		  seen mail" option
+
+	* mbox changes:
+		* Compressed mailboxes (gzip and bzip2) are now
+		  handled transparently, and support immediate
+		  notification
+
+	* POP3, IMAP and Gmail changes:
+		* A regression which allowed mail checks to overlap
+		  has been fixed
+
+	* POP3 and IMAP changes:
+		* If the server advertises the STLS/STARTTLS
+		  capability but replies ERR/BAD when the
+		  STLS/STARTTLS command is issued, Mail Notification
+		  now logs out instead of proceeding
+		* If multiple mailboxes have the same type, hostname,
+		  port, connection type and username, Mail
+		  Notification will now detect that the mailboxes
+		  share the same account and will only prompt for the
+		  password once per session (when the password is not
+		  entered in the properties dialog, that is)
+
+	* POP3 changes:
+		* Non-UTF-8 server responses are now accepted
+
+	* IMAP changes:
+		* Non-ASCII server responses are now accepted (these
+		  responses violate RFC 3501, but we follow the RFC
+		  793 robustness principle "be liberal in what you
+		  accept"); fixes connection problems with
+		  internationalized Exchange servers, which violate
+		  RFC 3501 by sending non-ASCII characters in their
+		  greeting message
+		* Empty continuation responses are now allowed (fixes
+		  authentication with some SASL mechanisms)
+		* Play nice with uncompliant servers by using
+		  BODY.PEEK rather than BODY, so that they do not set
+		  the \Seen flag (patch from Jacob Berkman)
+		* The IDLE mode is now cycled every 29 minutes, as
+		  advised by RFC 2177
+
+	* Evolution changes:
+		* Support for the Evolution 2.4 and 2.6 branches has
+		  been added; untested support for the Evolution
+		  2.7/2.8 branch has been added; the Evolution source
+		  tree is no longer needed for Evolution >= 2.4
+
+	* Sylpheed changes:
+		* With the help of a Sylpheed patch, Mail Notification
+		  can now reliably avoid race conditions which could
+		  occur when Sylpheed was running (see the
+		  --enable-sylpheed-locking discussion in the INSTALL
+		  file)
+
+	* Updated translations:
+		* French
+
+	* New translations:
+		* Czech (Pav Lucistnik)
+		* Brazilian Portuguese (Claudio André)
+		* Dutch (Marcel J. Zwiebel)
+		* Japanese (Hiroshi Hasebe)
+
 2.0					August 9, 2005
 
 	* Core changes:

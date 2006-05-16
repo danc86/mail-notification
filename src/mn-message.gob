@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <time.h>
 #include "mn-mailbox.h"
+%}
+
+%h{
+typedef enum
+{
+  MN_MESSAGE_NEW	= 1 << 0	/* unseen message */
+} MNMessageFlags;
 %}
 
 %{
@@ -34,7 +41,7 @@ class MN:Message from G:Object
   /* always set */
   public char *mailbox_name destroywith g_free;
   property STRING mailbox_name (flags = CONSTRUCT_ONLY, link);
-  
+
   /* may be NULL */
   public char *error destroywith g_free;
   property STRING error (flags = CONSTRUCT_ONLY, link);
@@ -46,7 +53,7 @@ class MN:Message from G:Object
   /* always set */
   public char *id destroywith g_free;
   property STRING id (flags = CONSTRUCT_ONLY, link);
-  
+
   /* always set */
   public char *from destroywith g_free;
   property STRING from (flags = CONSTRUCT_ONLY, link);
@@ -54,6 +61,9 @@ class MN:Message from G:Object
   /* always set */
   public char *subject destroywith g_free;
   property STRING subject (flags = CONSTRUCT_ONLY, link);
+
+  public MNMessageFlags flags;
+  property UINT flags (flags = CONSTRUCT_ONLY, link, type = MNMessageFlags);
 
   override (G:Object) GObject *
     constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
@@ -71,13 +81,15 @@ class MN:Message from G:Object
 	/*
 	 * An ID should (not mandatory):
 	 *
-	 *	- be unique, application-wise
+	 *	- be unique (application-wise, because we use the ID
+	 *	  to check if a message has already been displayed in
+	 *	  the mail summary popup)
 	 *	- persist across checks if the message does not change
 	 */
 
 	id = g_string_new(NULL);
 
-	if (self->sent_time)
+	if (self->sent_time > 0)
 	  g_string_append_printf(id, ":sent-time:%u:", self->sent_time);
 	if (self->from)
 	  g_string_append_printf(id, ":from:%s:", self->from);
@@ -102,60 +114,15 @@ class MN:Message from G:Object
 
     return object;
   }
-  
-  public char *
-    format_sent_time (self)
-  {
-    char *formatted = NULL;
 
-    if (self->sent_time)
-      {
-	time_t now;
-	
-	now = mn_time();
-	if (now > 0)
-	  {
-	    time_t diff;
-	    
-	    diff = now - self->sent_time;
-	    if (diff >= 0)
-	      {
-		if (diff < 60)
-		  formatted = g_strdup_printf(ngettext("%i second ago", "%i seconds ago", diff), diff);
-		else if (diff < 60 * 60)
-		  {
-		    int minutes = diff / 60;
-		    formatted = g_strdup_printf(ngettext("about %i minute ago", "about %i minutes ago", minutes), minutes);
-		  }
-		else if (diff < 60 * 60 * 24)
-		  {
-		    int hours = diff / (60 * 60);
-		    formatted = g_strdup_printf(ngettext("about %i hour ago", "about %i hours ago", hours), hours);
-		  }
-		else if (diff < 60 * 60 * 24 * 7)
-		  {
-		    int days = diff / (60 * 60 * 24);
-		    formatted = g_strdup_printf(ngettext("about %i day ago", "about %i days ago", days), days);
-		  }
-		else
-		  {
-		    int weeks = diff / (60 * 60 * 24 * 7);
-		    formatted = g_strdup_printf(ngettext("about %i week ago", "about %i weeks ago", weeks), weeks);
-		  }
-	      }
-	  }
-      }
-
-    return formatted;
-  }
-  
   public MNMessage *
     new (MNMailbox *mailbox,
 	 const char *error,
 	 time_t sent_time,
 	 const char *id,
 	 const char *from,
-	 const char *subject)
+	 const char *subject,
+	 MNMessageFlags flags)
   {
     g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
 
@@ -166,44 +133,17 @@ class MN:Message from G:Object
 			MN_MESSAGE_PROP_ID((char *) id),
 			MN_MESSAGE_PROP_FROM((char *) from),
 			MN_MESSAGE_PROP_SUBJECT((char *) subject),
+			MN_MESSAGE_PROP_FLAGS(flags),
 			NULL);
   }
 
   public MNMessage *
-    new_from_error (MNMailbox *mailbox, const char *error (check null))
+    new_from_error (MNMailbox *mailbox,
+		    const char *error (check null),
+		    MNMessageFlags flags)
   {
     g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
 
-    return self_new(mailbox, error, 0, NULL, NULL, NULL);
-  }
-  
-  public GSList *
-    slist_find_by_id (GSList *list, MN:Message *self (check null type))
-  {
-    return g_slist_find_custom(list, self, self_slist_find_by_id_compare_func);
-  }
-
-  private int
-    slist_find_by_id_compare_func (gconstpointer a, gconstpointer b)
-  {
-    Self *message_a = (Self *) a;
-    Self *message_b = (Self *) b;
-
-    return strcmp(message_a->id, message_b->id);
-  }
-  
-  public GSList *
-    slist_sort_by_sent_time (GSList *list)
-  {
-    return g_slist_sort(list, self_slist_sort_by_sent_time_compare_func);
-  }
-
-  private int
-    slist_sort_by_sent_time_compare_func (gconstpointer a, gconstpointer b)
-  {
-    Self *message_a = (Self *) a;
-    Self *message_b = (Self *) b;
-
-    return message_a->sent_time - message_b->sent_time;
+    return self_new(mailbox, error, 0, NULL, NULL, NULL, flags);
   }
 }

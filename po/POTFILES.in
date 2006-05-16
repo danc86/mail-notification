@@ -4,13 +4,6 @@ data/GNOME_MailNotification_Evolution.server.in
 data/mail-notification-properties.desktop.in
 data/mail-notification.desktop.in
 data/mail-notification.schemas.in
-data/mail-notification.soundlist.in
-src/egg-editable-toolbar.c
-src/egg-editable-toolbar.h
-src/egg-toolbar-editor.c
-src/egg-toolbar-editor.h
-src/egg-toolbars-model.c
-src/egg-toolbars-model.h
 src/eggtrayicon.c
 src/eggtrayicon.h
 src/mn-about-dialog.gob
@@ -22,6 +15,7 @@ src/mn-automation.gob
 src/mn-blinking-image.gob
 src/mn-client-session.c
 src/mn-client-session.h
+src/mn-compact-message-view.gob
 src/mn-conf.c
 src/mn-conf.h
 src/mn-custom-vfs-mailbox.gob
@@ -35,12 +29,12 @@ src/mn-gmime-stream-vfs.gob
 src/mn-imap-mailbox-properties.gob
 src/mn-imap-mailbox.gob
 src/mn-mail-icon.gob
+src/mn-mail-summary-popup.gob
 src/mn-mailbox-properties-dialog.gob
 src/mn-mailbox-view.gob
 src/mn-mailbox.gob
 src/mn-mailboxes.gob
 src/mn-maildir-mailbox-backend.gob
-src/mn-main-window.gob
 src/mn-main.c
 src/mn-mbox-mailbox-backend.gob
 src/mn-md5.c
@@ -60,6 +54,7 @@ src/mn-sasl.h
 src/mn-shell.gob
 src/mn-ssl.c
 src/mn-ssl.h
+src/mn-standard-message-view.gob
 src/mn-stock.c
 src/mn-stock.h
 src/mn-sylpheed-mailbox-backend.gob
@@ -72,7 +67,6 @@ src/mn-vfs-mailbox-backend.gob
 src/mn-vfs-mailbox.gob
 src/mn-vfs.c
 src/mn-vfs.h
-ui/edit-toolbars-dialog.glade
 ui/mail-summary-popup.glade
 ui/mailbox-properties-dialog.glade
 ui/properties-dialog.glade

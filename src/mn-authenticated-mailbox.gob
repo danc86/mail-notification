@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,25 +16,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include "mn-mailbox.h"
 %}
 
-%privateheader{
-#include <gtk/gtk.h>
-%}
-
 %{
 #include "config.h"
-#include <gnome.h>
-#include <eel/eel.h>
 #include "mn-mailbox-private.h"
 #include "mn-util.h"
 %}
 
-class MN:Authenticated:Mailbox from MN:Mailbox
+class MN:Authenticated:Mailbox from MN:Mailbox (abstract)
 {
   public char *username destroywith g_free;
   property STRING username (link, flags = MN_MAILBOX_PARAM_PERMANENT);
@@ -42,27 +36,7 @@ class MN:Authenticated:Mailbox from MN:Mailbox
   public char *password destroywith g_free;
   property STRING password (link, flags = MN_MAILBOX_PARAM_PERMANENT);
 
-  public char *runtime_username destroywith g_free;
-  public char *runtime_password destroywith g_free;
-
-  protected gboolean prompted;
-  protected gboolean cancelled;
-
-  private gboolean authentication_failed;
-  private GtkWidget *dialog;
-
   private gboolean checking;
-
-  override (MN:Mailbox) void
-    removed (MNMailbox *mailbox)
-  {
-    Self *self = SELF(mailbox);
-
-    if (selfp->dialog)
-      gtk_dialog_response(GTK_DIALOG(selfp->dialog), GTK_RESPONSE_CANCEL);
-
-    PARENT_HANDLER(mailbox);
-  }
 
   override (MN:Mailbox) void
     check (MNMailbox *mailbox)
@@ -74,6 +48,7 @@ class MN:Authenticated:Mailbox from MN:Mailbox
 
     PARENT_HANDLER(mailbox);
 
+    selfp->checking = TRUE;
     mn_mailbox_set_error(mailbox, NULL);
 
     g_object_ref(self);
@@ -83,7 +58,7 @@ class MN:Authenticated:Mailbox from MN:Mailbox
   private void
     check_thread_cb (self)
   {
-    self_impl_check(self);
+    self_authenticated_check(self);
 
     GDK_THREADS_ENTER();
 
@@ -93,135 +68,7 @@ class MN:Authenticated:Mailbox from MN:Mailbox
     gdk_flush();
     GDK_THREADS_LEAVE();
   }
-  
+
   virtual private void
-    impl_check (self)
-  {
-    self->prompted = FALSE;
-    selfp->authentication_failed = FALSE;
-  }
-  
-  protected void
-    authentication_failed (self)
-  {
-    if (! self->username)
-      {
-	g_free(self->runtime_username);
-	self->runtime_username = NULL;
-      }
-
-    if (! self->password)
-      {
-	g_free(self->runtime_password);
-	self->runtime_password = NULL;
-      }
-
-    selfp->authentication_failed = TRUE;
-  }
-  
-  protected void
-    fill_credentials (self, gboolean need_username, gboolean need_password)
-  {
-    g_return_if_fail(need_username || need_password);
-
-    self->cancelled = FALSE;
-
-    if (! self->runtime_username)
-      self->runtime_username = g_strdup(self->username);
-    if (! self->runtime_password)
-      self->runtime_password = g_strdup(self->password);
-
-    if (self->runtime_username)
-      need_username = FALSE;
-    if (self->runtime_password)
-      need_password = FALSE;
-
-    if (need_username || need_password)
-      {
-	char *username;
-	char *password;
-
-	GDK_THREADS_ENTER();
-
-	self->prompted = TRUE;
-
-	if (self_credentials_prompt(self,
-				    need_username ? &username : NULL,
-				    &password,
-				    selfp->authentication_failed
-				    ? _("Mail Notification was unable to log into %s mailbox %s, possibly because the credentials you have entered are invalid.\n\nPlease re-enter your credentials.")
-				    : _("Enter your credentials for %s mailbox %s."),
-				    MN_MAILBOX(self)->format,
-				    MN_MAILBOX(self)->runtime_name))
-	  {
-	    if (need_username)
-	      self->runtime_username = username;
-
-	    /*
-	     * GnomePasswordDialog does not let us disable the
-	     * password entry, so, even if need_password is FALSE, we
-	     * set runtime_password to what the user has entered.
-	     */
-
-	    g_free(self->runtime_password);
-	    self->runtime_password = password;
-	  }
-	else
-	  self->cancelled = TRUE;
-	
-	gdk_flush();
-	GDK_THREADS_LEAVE();
-      }
-  }
-  
-  private gboolean
-    credentials_prompt (self,
-			char **username,
-			char **password (check null),
-			const char *format (check null),
-			...)
-  {
-    va_list args;
-    char *message;
-    gboolean ok;
-
-    g_return_val_if_fail(selfp->dialog == NULL, FALSE);
-
-    va_start(args, format);
-    message = g_strdup_vprintf(format, args);
-    va_end(args);
-
-    /* keep the title in sync with gnome-authentication-manager */
-    selfp->dialog = gnome_password_dialog_new(_("Authentication Required"),
-					      message,
-					      self->runtime_username,
-					      self->runtime_password,
-					      FALSE);
-    g_free(message);
-
-    eel_add_weak_pointer(&selfp->dialog);
-
-    gnome_password_dialog_set_show_userpass_buttons(GNOME_PASSWORD_DIALOG(selfp->dialog), FALSE);
-    gnome_password_dialog_set_readonly_username(GNOME_PASSWORD_DIALOG(selfp->dialog), username == NULL);
-
-    ok = gnome_password_dialog_run_and_block(GNOME_PASSWORD_DIALOG(selfp->dialog));
-    if (ok)
-      {
-	if (username)
-	  *username = gnome_password_dialog_get_username(GNOME_PASSWORD_DIALOG(selfp->dialog));
-
-	*password = gnome_password_dialog_get_password(GNOME_PASSWORD_DIALOG(selfp->dialog));
-      }
-    else
-      {
-	if (username)
-	  *username = NULL;
-
-	*password = NULL;
-      }
-    
-    gtk_widget_destroy(selfp->dialog);
-
-    return ok;
-  }
+    authenticated_check (self);
 }

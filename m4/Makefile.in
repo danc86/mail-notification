@@ -40,8 +40,8 @@ subdir = m4
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/evolution-plugin.m4 \
-	$(top_srcdir)/m4/gnome.m4 $(top_srcdir)/m4/intltool.m4 \
-	$(top_srcdir)/m4/openssl.m4 \
+	$(top_srcdir)/m4/gnome.m4 $(top_srcdir)/m4/idl.m4 \
+	$(top_srcdir)/m4/intltool.m4 $(top_srcdir)/m4/openssl.m4 \
 	$(top_srcdir)/m4/reentrant-resolver.m4 \
 	$(top_srcdir)/m4/sasl2.m4 $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
@@ -62,7 +62,7 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BONOBO_ACTIVATION_IDL = @BONOBO_ACTIVATION_IDL@
+BONOBO_IDLFLAGS = @BONOBO_IDLFLAGS@
 CATALOGS = @CATALOGS@
 CATOBJEXT = @CATOBJEXT@
 CC = @CC@
@@ -94,7 +94,6 @@ GCONF_SCHEMAS_INSTALL_TRUE = @GCONF_SCHEMAS_INSTALL_TRUE@
 GCONF_SCHEMA_CONFIG_SOURCE = @GCONF_SCHEMA_CONFIG_SOURCE@
 GCONF_SCHEMA_FILE_DIR = @GCONF_SCHEMA_FILE_DIR@
 GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
-GLIB_GENMARSHAL = @GLIB_GENMARSHAL@
 GMIME_CFLAGS = @GMIME_CFLAGS@
 GMIME_LIBS = @GMIME_LIBS@
 GMOFILES = @GMOFILES@
@@ -126,6 +125,7 @@ INTLTOOL_PONG_RULE = @INTLTOOL_PONG_RULE@
 INTLTOOL_PROP_RULE = @INTLTOOL_PROP_RULE@
 INTLTOOL_SCHEMAS_RULE = @INTLTOOL_SCHEMAS_RULE@
 INTLTOOL_SERVER_RULE = @INTLTOOL_SERVER_RULE@
+INTLTOOL_SERVICE_RULE = @INTLTOOL_SERVICE_RULE@
 INTLTOOL_SHEET_RULE = @INTLTOOL_SHEET_RULE@
 INTLTOOL_SOUNDLIST_RULE = @INTLTOOL_SOUNDLIST_RULE@
 INTLTOOL_THEME_RULE = @INTLTOOL_THEME_RULE@
@@ -136,7 +136,6 @@ INTLTOOL_XGETTEXT = @INTLTOOL_XGETTEXT@
 INTLTOOL_XML_NOMERGE_RULE = @INTLTOOL_XML_NOMERGE_RULE@
 INTLTOOL_XML_RULE = @INTLTOOL_XML_RULE@
 LDFLAGS = @LDFLAGS@
-LIBBONOBO_IDL = @LIBBONOBO_IDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -231,6 +230,7 @@ build_os = @build_os@
 build_vendor = @build_vendor@
 datadir = @datadir@
 evolution_plugindir = @evolution_plugindir@
+evolution_source_dir = @evolution_source_dir@
 exec_prefix = @exec_prefix@
 gnome_cappletdir = @gnome_cappletdir@
 gnome_prefix = @gnome_prefix@
@@ -261,6 +261,7 @@ target_vendor = @target_vendor@
 EXTRA_DIST = \
 	evolution-plugin.m4	\
 	gnome.m4		\
+	idl.m4			\
 	openssl.m4		\
 	reentrant-resolver.m4	\
 	sasl2.m4

@@ -5,15 +5,20 @@
 Developed by Jean-Yves Lefort <jylefort@brutele.be>.
 
 Translators:
+	* Claudio André <claudio.andre@correios.net.br> (Brazilian
+	  Portuguese)
 	* Hendrik Brandt <eru@gmx.li>,
 	  Jens Seidel <jensseidel@users.sf.net> (German)
+	* Hiroshi Hasebe <hhasebe@DVOI.COM> (Japanese)
 	* Duarte Henriques <duarte_henriques@myrealbox.com>
 	  (Portuguese)
 	* Dan Korostelev <dan@ats.energo.ru> (Russian)
+	* Pav Lucistnik <pav@FreeBSD.org> (Czech)
 	* Filip Miletic <filmil@gmail.com> (Serbian)
 	* Vladimir Petkov <vpetkov@i-space.org> (Bulgarian)
 	* Tomasz Sarota-Raczek <tomasz.sarota.raczek@gmail.com>,
 	  Maurycy Pawłowski-Wieroński <maurycy@abstrakcja.pl> (Polish)
+	* Marcel J. Zwiebel <mj.zwiebel@nonux.nl> (Dutch)
 
 External code sources:
 	* libegg (src/egg*)
@@ -22,5 +27,3 @@ External code sources:
 External art sources (images taken as-is or slightly modified):
 	* Google (gmail.png)
 	* Evolution (mail-notification.png)
-	* GNOME Icon Theme (main-window.png)
-	* libegg (hand-open.png)

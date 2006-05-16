@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include "mn-vfs-mailbox-backend.h"
@@ -24,6 +24,7 @@ requires 2.0.12
 
 %{
 #include "config.h"
+#include <string.h>
 #include <glib/gi18n.h>
 #include <eel/eel.h>
 #include "mn-mailbox-private.h"
@@ -51,7 +52,7 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	|| event_type == GNOME_VFS_MONITOR_EVENT_CREATED)
       {
 	char *filename;
-	    
+
 	filename = eel_uri_get_basename(info_uri);
 	if (filename)
 	  {
@@ -73,78 +74,133 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
     for (i = 0; i < G_N_ELEMENTS(constitutive_dirs); i++)
       {
 	GnomeVFSURI *dir_uri;
-	
+
 	dir_uri = gnome_vfs_uri_append_path(mailbox->vfs_uri, constitutive_dirs[i]);
 	is = mn_vfs_test(dir_uri, G_FILE_TEST_IS_DIR);
 	gnome_vfs_uri_unref(dir_uri);
-	
+
 	if (! is)
 	  break;
       }
 
     return is;
   }
-  
-  override (MN:VFS:Mailbox:Backend) void
-    check (MNVFSMailboxBackend *backend, unsigned long check_id)
+
+  private void
+    monitor_directory (self, unsigned long check_id, const char *dir (check null))
   {
-    GnomeVFSURI *new_uri;
-    char *new_text_uri;
+    MNVFSMailboxBackend *backend = MN_VFS_MAILBOX_BACKEND(self);
+    GnomeVFSURI *uri;
+    char *text_uri;
+
+    uri = gnome_vfs_uri_append_path(backend->mailbox->vfs_uri, dir);
+    text_uri = gnome_vfs_uri_to_string(uri, GNOME_VFS_URI_HIDE_NONE);
+    gnome_vfs_uri_unref(uri);
+
+    mn_vfs_mailbox_backend_monitor(backend, check_id, text_uri, GNOME_VFS_MONITOR_DIRECTORY);
+    g_free(text_uri);
+  }
+
+  private gboolean
+    scan_directory (self,
+		    unsigned long check_id,
+		    const char *dir (check null),
+		    gboolean new,
+		    GSList **messages (check null),
+		    GError **err)
+  {
+    MNVFSMailboxBackend *backend = MN_VFS_MAILBOX_BACKEND(self);
+    GnomeVFSURI *uri;
     GnomeVFSResult result;
     GnomeVFSResult close_result;
     GnomeVFSDirectoryHandle *handle;
     GnomeVFSFileInfo *file_info;
-    GSList *messages = NULL;
-    
-    new_uri = gnome_vfs_uri_append_path(backend->mailbox->vfs_uri, "new");
+    gboolean aborted = FALSE;
 
-    new_text_uri = gnome_vfs_uri_to_string(new_uri, GNOME_VFS_URI_HIDE_NONE);
-    mn_vfs_mailbox_backend_monitor(backend, check_id, new_text_uri, GNOME_VFS_MONITOR_DIRECTORY);
-    g_free(new_text_uri);
+    uri = gnome_vfs_uri_append_path(backend->mailbox->vfs_uri, dir);
 
-    result = gnome_vfs_directory_open_from_uri(&handle, new_uri, GNOME_VFS_FILE_INFO_FOLLOW_LINKS);
+    result = gnome_vfs_directory_open_from_uri(&handle, uri, GNOME_VFS_FILE_INFO_FOLLOW_LINKS);
     if (result != GNOME_VFS_OK)
       {
-	GDK_THREADS_ENTER();
-
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open folder \"new\": %s"), gnome_vfs_result_to_string(result));
-
-	gdk_flush();
-	GDK_THREADS_LEAVE();
-
-	goto end;
+	g_set_error(err, 0, 0, _("unable to open folder \"%s\": %s"), dir, gnome_vfs_result_to_string(result));
+	gnome_vfs_uri_unref(uri);
+	return FALSE;
       }
-  
+
     file_info = gnome_vfs_file_info_new();
     while ((result = gnome_vfs_directory_read_next(handle, file_info)) == GNOME_VFS_OK)
       if (file_info->name[0] != '.')
 	{
 	  GnomeVFSURI *message_uri;
+	  MNMessageFlags flags = 0;
 
 	  if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	    break;
+	    {
+	      aborted = TRUE;
+	      break;
+	    }
 
-	  message_uri = gnome_vfs_uri_append_file_name(new_uri, file_info->name);
-	  messages = g_slist_append(messages, mn_message_new_from_uri(MN_MAILBOX(backend->mailbox), message_uri));
+	  if (new)
+	    flags |= MN_MESSAGE_NEW;
+	  else
+	    {
+	      char *info;
+
+	      /* http://cr.yp.to/proto/maildir.html */
+
+	      info = strrchr(file_info->name, ':');
+	      if (! info
+		  || ! g_str_has_prefix(info + 1, "2,")
+		  || strpbrk(info + 3, "ST"))
+		continue; /* no info, or message seen/trashed: ignore it */
+	    }
+
+	  message_uri = gnome_vfs_uri_append_file_name(uri, file_info->name);
+	  *messages = g_slist_prepend(*messages, mn_message_new_from_uri(MN_MAILBOX(backend->mailbox), message_uri, flags, FALSE));
 	  gnome_vfs_uri_unref(message_uri);
 	}
+    gnome_vfs_uri_unref(uri);
     gnome_vfs_file_info_unref(file_info);
     close_result = gnome_vfs_directory_close(handle);
 
-    GDK_THREADS_ENTER();
-	
-    if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+    if (! aborted)
       {
 	if (result == GNOME_VFS_ERROR_EOF || result == GNOME_VFS_OK)
 	  {
 	    if (close_result == GNOME_VFS_OK)
-	      mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
+	      return TRUE;
 	    else
-	      mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to close folder \"new\": %s"), gnome_vfs_result_to_string(close_result));
+	      g_set_error(err, 0, 0, _("unable to close folder \"%s\": %s"), dir, gnome_vfs_result_to_string(close_result));
 	  }
 	else
-	  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("error while reading folder \"new\": %s"), gnome_vfs_result_to_string(result));
+	  g_set_error(err, 0, 0, _("error while reading folder \"%s\": %s"), dir, gnome_vfs_result_to_string(result));
+      }
+
+    return FALSE;
+  }
+
+  override (MN:VFS:Mailbox:Backend) void
+    check (MNVFSMailboxBackend *backend, unsigned long check_id)
+  {
+    Self *self = SELF(backend);
+    GSList *messages = NULL;
+    GError *err = NULL;
+    gboolean status;
+
+    self_monitor_directory(self, check_id, "cur");
+    self_monitor_directory(self, check_id, "new");
+
+    status = self_scan_directory(self, check_id, "cur", FALSE, &messages, &err)
+      && self_scan_directory(self, check_id, "new", TRUE, &messages, &err);
+
+    GDK_THREADS_ENTER();
+
+    if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+      {
+	if (status)
+	  mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
+	else
+	  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), "%s", err->message);
       }
 
     mn_g_object_slist_free(messages);
@@ -152,7 +208,7 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
     gdk_flush();
     GDK_THREADS_LEAVE();
 
-  end:
-    gnome_vfs_uri_unref(new_uri);
+    if (err)
+      g_error_free(err);
   }
 }

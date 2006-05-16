@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <libbonobo.h>
@@ -27,8 +27,12 @@ requires 2.0.12
 #include <stdio.h>
 #include <camel/camel-folder.h>
 
+#ifdef HAVE_EVOLUTION_2_2
 /* headers from the Evolution source tree */
 #include "mail/mail-tools.h"
+#else
+#include <mail/mail-tools.h>
+#endif
 %}
 
 class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_Evolution_Glue)
@@ -53,16 +57,19 @@ class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_
 
     summary = camel_folder_get_summary(folder);
 
+    seq = GNOME_MailNotification_Evolution_MessageSeq__alloc();
+    seq->_length = 0;
+
     for (i = 0; i < summary->len; i++)
       {
 	CamelMessageInfo *info = summary->pdata[i];
 
 	if ((camel_message_info_flags(info) & CAMEL_MESSAGE_SEEN) == 0)
-	  infos = g_slist_append(infos, info);
+	  {
+	    infos = g_slist_prepend(infos, info);
+	    seq->_length++;
+	  }
       }
-
-    seq = GNOME_MailNotification_Evolution_MessageSeq__alloc();
-    seq->_length = g_slist_length(infos);
 
     if (seq->_length > 0)
       {
@@ -79,8 +86,9 @@ class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_
 	    id = camel_message_info_message_id(info);
 	    for (j = 0; j < sizeof(id->id.hash); j++)
 	      sprintf(hexhash + j * 2, "%.2x", id->id.hash[j]);
-	    
+
 	    seq->_buffer[i].sent_time = camel_message_info_date_sent(info);
+	    seq->_buffer[i].received_time = camel_message_info_date_received(info);
 	    seq->_buffer[i].id = CORBA_string_dup(hexhash);
 	    seq->_buffer[i].from = CORBA_string_dup(camel_message_info_from(info));
 	    seq->_buffer[i].subject = CORBA_string_dup(camel_message_info_subject(info));
@@ -116,7 +124,7 @@ class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_
 
     return name;
   }
-  
+
   public MNEvolutionGlue *
     new (void)
   {

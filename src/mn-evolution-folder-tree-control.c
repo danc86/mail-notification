@@ -21,9 +21,14 @@
 #include <libintl.h>
 #include <libbonoboui.h>
 
+#ifdef HAVE_EVOLUTION_2_2
 /* headers from the Evolution source tree */
 #include "mail/mail-component.h"
 #include "mail/em-folder-tree.h"
+#else
+#include <mail/mail-component.h>
+#include <mail/em-folder-tree.h>
+#endif
 
 #include "mn-evolution.h"
 
@@ -71,7 +76,7 @@ mn_evolution_folder_tree_control_factory_cb (BonoboGenericFactory *factory,
   model = mail_component_peek_tree_model(mail_component_peek());
   tree = em_folder_tree_new_with_model(model);
   gtk_widget_show(tree);
-  
+
   control = bonobo_control_new(tree);
 
   pb = bonobo_property_bag_new(mn_evolution_folder_tree_control_get_property,

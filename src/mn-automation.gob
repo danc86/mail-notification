@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <libbonobo.h>
@@ -26,48 +26,48 @@ requires 2.0.12
 %{
 #include "mn-shell.h"
 %}
-  
+
 class MN:Automation from Bonobo:Object (BonoboObject GNOME_MailNotification_Automation)
 {
-  BonoboObject private void
-    update (PortableServer_Servant servant, CORBA_Environment *env)
+  BonoboObject private CORBA_boolean
+    hasMailboxes (PortableServer_Servant servant, CORBA_Environment *env)
   {
-    g_return_if_fail(mn_shell != NULL);
-    mn_mailboxes_check(mn_shell->mailboxes);
+    g_assert(mn_shell != NULL);
+    return mn_shell->mailboxes->list != NULL ? CORBA_TRUE : CORBA_FALSE;
   }
 
   BonoboObject private void
-    displayMainWindow (PortableServer_Servant servant, CORBA_Environment *env)
+    update (PortableServer_Servant servant, CORBA_Environment *env)
   {
-    g_return_if_fail(mn_shell != NULL);
-    mn_shell_display_main_window(mn_shell);
+    g_assert(mn_shell != NULL);
+    mn_mailboxes_check(mn_shell->mailboxes);
   }
 
   BonoboObject private void
     displayProperties (PortableServer_Servant servant, CORBA_Environment *env)
   {
-    g_return_if_fail(mn_shell != NULL);
-    mn_shell_display_properties_dialog(mn_shell, NULL);
+    g_assert(mn_shell != NULL);
+    mn_shell_display_properties_dialog(mn_shell);
   }
 
   BonoboObject private void
     displayAbout (PortableServer_Servant servant, CORBA_Environment *env)
   {
-    g_return_if_fail(mn_shell != NULL);
-    mn_shell_display_about_dialog(mn_shell, NULL);
+    g_assert(mn_shell != NULL);
+    mn_shell_display_about_dialog(mn_shell);
   }
 
   BonoboObject private void
     closePopup (PortableServer_Servant servant, CORBA_Environment *env)
   {
-    g_return_if_fail(mn_shell != NULL);
+    g_assert(mn_shell != NULL);
     mn_shell_close_mail_summary_popup(mn_shell);
   }
 
   BonoboObject private void
     quit (PortableServer_Servant servant, CORBA_Environment *env)
   {
-    g_return_if_fail(mn_shell != NULL);
+    g_assert(mn_shell != NULL);
     g_object_unref(mn_shell);
   }
 

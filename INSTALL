@@ -11,9 +11,9 @@ Index
 
 0. About this document
 
-	$Id: INSTALL,v 1.18 2005/08/03 16:48:43 jylefort Exp $
+	$Id: INSTALL,v 1.19 2006/05/15 04:31:14 jylefort Exp $
 
-	Copyright (C) 2003-2005 Jean-Yves Lefort.
+	Copyright (C) 2003-2006 Jean-Yves Lefort.
 
 	This document is part of Mail Notification.
 	It may be distributed under the same terms as Mail Notification.
@@ -67,12 +67,14 @@ Index
 		  your session must be restarted after installing Mail
 		  Notification.
 
-		* For building Evolution support, you must specify the
-		  path to the Evolution source directory, for
-		  instance:
+		* Evolution 2.2.x only: for building Evolution
+		  support, you must specify the path to the Evolution
+		  source directory, for instance:
 
 			$ ./configure \
 			    --with-evolution-source-dir=$HOME/evolution-2.2.3
+
+		  This is not necessary with Evolution >= 2.3.
 
 	The configure script options which are specific to Mail
 	Notification are documented below.
@@ -139,8 +141,8 @@ Index
 
 		Requirements: Evolution version 2.2 or superior.
 
-		You must specify the path to the Evolution source
-		directory, for instance:
+		With Evolution 2.2.x, you must also specify the path
+		to the Evolution source directory, for instance:
 
 			$ ./configure \
 			    --with-evolution-source-dir=$HOME/evolution-2.2.3
@@ -149,11 +151,12 @@ Index
 
 		Specify the path to the Evolution source directory,
 		which is required for building Evolution mailbox
-		support.
+		support (Evolution 2.2.x only, not necessary with
+		Evolution >= 2.3).
 
 		Requirements: the source directory corresponding to
-		              the version of Evolution installed on
-		              your system.
+			      the version of Evolution 2.2.x installed
+			      on your system.
 		Applies to: Evolution.
 
 	--enable-sylpheed (default: yes)
@@ -161,3 +164,13 @@ Index
 		Enable Sylpheed mailbox support.
 
 		Requirements: GMime version 2.1.0 or superior.
+
+	--enable-sylpheed-locking (default: no)
+
+		Enable .sylpheed_mark locking. This option allows Mail
+		Notification to reliably avoid race conditions which
+		can occur when Sylpheed is running, but it requires a
+		patched version of Sylpheed (the Sylpheed patch,
+		sylpheed-locking.diff, is included in this archive).
+
+		Requirements: Sylpheed patched with sylpheed-locking.diff

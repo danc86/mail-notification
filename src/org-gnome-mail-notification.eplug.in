@@ -13,5 +13,11 @@
 	handle="org_gnome_mail_notification_folder_changed"
 	target="folder"/>
     </hook>
+
+    <hook class="org.gnome.evolution.mail.events:1.0">
+      <event id="message.reading"
+	handle="org_gnome_mail_notification_message_reading"
+	target="message"/>
+    </hook>
   </e-plugin>
 </e-plugin-list>

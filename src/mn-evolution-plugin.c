@@ -24,8 +24,14 @@
 #include <libbonobo.h>
 #include <camel/camel-folder.h>
 
+#ifdef HAVE_EVOLUTION_2_2
 /* headers from the Evolution source tree */
 #include "mail/em-event.h"
+#include "mail/mail-tools.h"
+#else
+#include <mail/em-event.h>
+#include <mail/mail-tools.h>
+#endif
 
 #include "mn-evolution.h"
 #include "mn-evolution-glue.h"
@@ -111,14 +117,14 @@ mn_evolution_plugin_factory_create (const char *factory_iid,
   BonoboGenericFactory *factory;
   GClosure *closure;
   Bonobo_RegistrationResult result;
-  
+
   g_return_val_if_fail(factory_iid != NULL, FALSE);
   g_return_val_if_fail(factory_cb != NULL, FALSE);
 
   factory = g_object_new(bonobo_generic_factory_get_type(), NULL);
   closure = g_cclosure_new(G_CALLBACK(factory_cb), user_data, NULL);
   bonobo_generic_factory_construct_noreg(factory, factory_iid, closure);
-  
+
   result = bonobo_activation_register_active_server(factory_iid, BONOBO_OBJREF(factory), NULL);
   switch (result)
     {
@@ -135,7 +141,8 @@ mn_evolution_plugin_factory_create (const char *factory_iid,
       return FALSE;
 
     default:
-      g_return_val_if_reached(FALSE);
+      g_assert_not_reached();
+      return FALSE;
     }
 }
 
@@ -182,6 +189,34 @@ org_gnome_mail_notification_folder_changed (EPlugin *plugin,
 	bonobo_event_source_notify_listeners_full(l->data,
 						  MN_EVOLUTION_EVENT_PREFIX,
 						  MN_EVOLUTION_EVENT_FOLDER_CHANGED,
+						  NULL,
+						  arg,
+						  NULL);
+
+      bonobo_arg_release(arg);
+    }
+}
+
+void
+org_gnome_mail_notification_message_reading (EPlugin *plugin,
+					     EMEventTargetMessage *message)
+{
+  if (glue_event_sources)
+    {
+      BonoboArg *arg;
+      char *url;
+      GSList *l;
+
+      arg = bonobo_arg_new(BONOBO_ARG_STRING);
+
+      url = mail_tools_folder_to_url(message->folder);
+      BONOBO_ARG_SET_STRING(arg, url);
+      g_free(url);
+
+      for (l = glue_event_sources; l != NULL; l = l->next)
+	bonobo_event_source_notify_listeners_full(l->data,
+						  MN_EVOLUTION_EVENT_PREFIX,
+						  MN_EVOLUTION_EVENT_MESSAGE_READING,
 						  NULL,
 						  arg,
 						  NULL);

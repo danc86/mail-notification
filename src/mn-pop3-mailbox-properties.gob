@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include "mn-pi-mailbox-properties.h"
@@ -42,7 +42,7 @@ class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties
       MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
       gboolean complete;
       const char *hostname;
-      
+
       mn_pi_mailbox_properties_get_contents(pi,
 					    NULL,
 					    NULL,
@@ -75,7 +75,7 @@ class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties
 
       g_value_take_string(VAL, mn_pop3_mailbox_build_name(username, hostname));
     };
-  
+
   class_init (class)
   {
     MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
@@ -83,7 +83,7 @@ class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties
     p_class->type = "pop3";
     p_class->combo_label = "POP3";
   }
-  
+
   init (self)
   {
     MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);

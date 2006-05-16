@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include "mn-authenticated-mailbox.h"
@@ -45,54 +45,46 @@ requires 2.0.12
 #include "mn-stock.h"
 #include "mn-message.h"
 #include "mn-util.h"
-
-#define DEFAULT_LOCATION	"https://mail.google.com/mail/feed/atom"
 %}
 
 class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 {
   public char *location destroywith g_free;
-  property STRING location (link, flags = MN_MAILBOX_PARAM_PERMANENT);
-
-  public char *runtime_location destroywith g_free;
+  property STRING location (link, flags = CONSTRUCT
+			    | MN_MAILBOX_PARAM_PERMANENT
+			    | MN_MAILBOX_PARAM_REQUIRED,
+			    default_value = "https://mail.google.com/mail/feed/atom");
 
   private GnomeVFSURI *uri unrefwith gnome_vfs_uri_unref;
 
   class_init (class)
   {
     MN_MAILBOX_CLASS(class)->type = "gmail";
+
+    /*
+     * 5 minutes is a good default check delay for remote Gmail
+     * mailboxes.
+     */
+    MN_MAILBOX_CLASS(class)->default_check_delay = 60 * 5;
   }
 
-  override (G:Object) GObject *
-    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  init (self)
   {
-    GObject *object;
-    MNMailbox *mailbox;
-
-    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    mailbox = MN_MAILBOX(object);
-
-    mn_mailbox_set_format(mailbox, "Gmail");
-    mn_mailbox_set_stock_id(mailbox, MN_STOCK_GMAIL);
-
-    return object;
+    mn_mailbox_set_format(MN_MAILBOX(self), "Gmail");
+    mn_mailbox_set_stock_id(MN_MAILBOX(self), MN_STOCK_GMAIL);
   }
 
   override (MN:Mailbox) void
     seal (MNMailbox *mailbox)
   {
-    Self *self = SELF(mailbox);
-
     PARENT_HANDLER(mailbox);
-
-    self->runtime_location = g_strdup(self->location ? self->location : DEFAULT_LOCATION);
 
     if (! mailbox->runtime_name)
       mailbox->runtime_name = self_build_name(MN_AUTHENTICATED_MAILBOX(mailbox)->username);
   }
 
   override (MN:Authenticated:Mailbox) void
-    impl_check (MNAuthenticatedMailbox *mailbox)
+    authenticated_check (MNAuthenticatedMailbox *mailbox)
   {
     Self *self = SELF(mailbox);
     GnomeVFSResult result;
@@ -103,14 +95,14 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 
     if (! selfp->uri)
       {
-	selfp->uri = gnome_vfs_uri_new(self->runtime_location);
+	selfp->uri = gnome_vfs_uri_new(self->location);
 	if (! selfp->uri)
 	  {
 	    GDK_THREADS_ENTER();
 
 	    mn_mailbox_set_error(MN_MAILBOX(self), _("invalid feed location"));
 	    /* error is not recoverable, disable the mailbox */
-	    mn_mailbox_set_must_poll(MN_MAILBOX(self), FALSE);
+	    mn_mailbox_set_poll(MN_MAILBOX(self), FALSE);
 
 	    gdk_flush();
 	    GDK_THREADS_LEAVE();
@@ -122,7 +114,7 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 	gnome_vfs_uri_set_password(selfp->uri, mailbox->password);
       }
 
-    mn_mailbox_notice(MN_MAILBOX(self), _("retrieving feed from %s"), self->runtime_location);
+    mn_mailbox_notice(MN_MAILBOX(self), _("retrieving feed from %s"), self->location);
 
     result = mn_vfs_read_entire_file_uri(selfp->uri, &atom_size, &atom);
     if (result != GNOME_VFS_OK)
@@ -136,7 +128,7 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 
 	return;
       }
-    
+
     doc = xmlParseMemory(atom, atom_size);
     g_free(atom);
 
@@ -167,12 +159,13 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 
 	      self_parse_entry(node, &sent_time, &id, &from, &subject);
 
-	      messages = g_slist_append(messages, mn_message_new(MN_MAILBOX(self),
-								 NULL,
-								 sent_time,
-								 id,
-								 from,
-								 subject));
+	      messages = g_slist_prepend(messages, mn_message_new(MN_MAILBOX(self),
+								  NULL,
+								  sent_time,
+								  id,
+								  from,
+								  subject,
+								  MN_MESSAGE_NEW));
 
 	      g_free(id);
 	      g_free(from);
@@ -199,7 +192,7 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 
     xmlFreeDoc(doc);
   }
-  
+
   private void
     parse_entry (xmlNode *node (check null),
 		 time_t *sent_time (check null),
@@ -245,14 +238,14 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 #endif
 	}
   }
-  
+
   private char *
     parse_author (xmlNode *node (check null))
   {
     char *from;
     char *name = NULL;
     char *email = NULL;
-	      
+
     for (node = node->children; node != NULL; node = node->next)
       if (node->type == XML_ELEMENT_NODE)
 	{
@@ -274,10 +267,10 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 
     g_free(name);
     g_free(email);
-    
+
     return from;
   }
-  
+
   private time_t
     parse_date (const char *w3c_datetime (check null))
   {
@@ -314,10 +307,11 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 
     return t;
 #else
-    g_return_val_if_reached(0);
+    g_assert_not_reached();
+    return 0;
 #endif
   }
-  
+
   public char *
     build_name (const char *username)
   {

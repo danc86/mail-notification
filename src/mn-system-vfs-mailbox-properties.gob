@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include "mn-mailbox-properties.h"
@@ -35,9 +35,10 @@ class MN:System:VFS:Mailbox:Properties from MN:Mailbox:Properties
 {
   property BOOLEAN complete (override)
     get { g_value_set_boolean(VAL, mn_system_vfs_mailbox_get_uri() != NULL); };
+
   property STRING default_name (override)
     get { g_value_set_string(VAL, _("System mailbox")); };
-  
+
   class_init (class)
   {
     MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
@@ -54,15 +55,16 @@ class MN:System:VFS:Mailbox:Properties from MN:Mailbox:Properties
 
     label = gtk_label_new(NULL);
 
-    gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+    gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
+    gtk_label_set_selectable(GTK_LABEL(label), TRUE);
 
     system_uri = mn_system_vfs_mailbox_get_uri();
     if (system_uri)
       {
 	char *path;
 	char *markup;
-	
+
 	path = gnome_vfs_get_local_path_from_uri(system_uri);
 
 	markup = g_markup_printf_escaped(_("Your system mailbox is <span weight=\"bold\">%s</span>."), path ? path : system_uri);

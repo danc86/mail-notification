@@ -1,0 +1,371 @@
+/* 
+ * Copyright (C) 2006 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include <gtk/gtk.h>
+%}
+
+%h{
+typedef struct _MNTextTableCell MNTextTableCell;
+%}
+
+%privateheader{
+typedef struct
+{
+  GQueue	*cells;
+  int		height;
+} Row;
+%}
+
+%{
+#include "mn-util.h"
+
+#define HORIZONTAL_SPACING	12
+#define VERTICAL_SPACING	0
+
+#define COLUMN_SIZE(self, column) \
+  g_array_index((self)->_priv->column_sizes, int, (column))
+
+struct _MNTextTableCell
+{
+  PangoLayout	*layout;	/* NULL for a blank cell */
+  gboolean	dirty;
+  int		width;
+  int		height;
+};
+%}
+
+/*
+ * This widget is used to display the mail summaries.
+ *
+ * We do not use a GtkBox (or GtkTable) containing labels because it
+ * is extremely slow when we add a few hundred labels.
+ *
+ * An alternate solution would be to use a GtkTextView, which provides
+ * acceptable performance, but:
+ *
+ *   - creating a table using a GtkTextView is extremely cumbersome
+ *   - a GtkTextView uses the GLib main loop in a thread-unsafe manner
+ *     (http://bugzilla.gnome.org/show_bug.cgi?id=321886); if we destroy
+ *     it from a thread, we may crash the application
+ *
+ * We therefore implement MNTextTable, which:
+ *
+ *   - is fast (at least as fast as a GtkTextView, probably faster)
+ *   - is thread-safe
+ *   - allows to easily align labels horizontally
+ */
+
+class MN:Text:Table from Gtk:Drawing:Area
+{
+  private GQueue *rows = {g_queue_new()}
+    destroy { mn_g_queue_free_deep_custom(VAR, (GFunc) self_row_free, NULL); };
+
+  private GArray *column_sizes = {g_array_new(FALSE, TRUE, sizeof(int))}
+    destroy { g_array_free(VAR, TRUE); };
+
+  private Row *row;
+
+  private gboolean dirty = TRUE;
+  private int width;
+  private int height;
+
+  init (self)
+  {
+    /* allow consumers to receive button-press-event */
+    gtk_widget_add_events(GTK_WIDGET(self), GDK_BUTTON_PRESS_MASK);
+
+    g_object_connect(self,
+		     "swapped-signal::style-set", self_context_changed, self,
+		     "swapped-signal::direction-changed", self_context_changed, self,
+		     NULL);
+  }
+
+  private void
+    row_free (Row *row (check null))
+  {
+    mn_g_queue_free_deep_custom(row->cells, (GFunc) self_cell_free, NULL);
+    g_free(row);
+  }
+
+  private void
+    cell_free (MNTextTableCell *cell (check null))
+  {
+    if (cell->layout)
+      g_object_unref(cell->layout);
+    g_free(cell);
+  }
+
+  override (Gtk:Widget) gboolean
+    expose_event (GtkWidget *widget, GdkEventExpose *event)
+  {
+    Self *self = SELF(widget);
+
+    self_relayout(self);
+    self_redraw(self);
+
+    return FALSE;		/* propagate event */
+  }
+
+  override (Gtk:Widget) void
+    size_request (GtkWidget *widget, GtkRequisition *requisition)
+  {
+    Self *self = SELF(widget);
+
+    self_relayout(self);
+
+    requisition->width = selfp->width;
+    requisition->height = selfp->height;
+  }
+
+  private void
+    set_dirty (self)
+  {
+    if (! selfp->dirty)
+      {
+	selfp->dirty = TRUE;
+	gtk_widget_queue_resize(GTK_WIDGET(self));
+      }
+  }
+
+  private void
+    context_changed (self)
+  {
+    GList *la;
+
+    MN_QUEUE_FOREACH(la, selfp->rows)
+      {
+	Row *row = la->data;
+	GList *lb;
+
+	MN_QUEUE_FOREACH(lb, row->cells)
+	  {
+	    MNTextTableCell *cell = lb->data;
+
+	    if (cell->layout)
+	      {
+		pango_layout_context_changed(cell->layout);
+		cell->dirty = TRUE;
+	      }
+	  }
+      }
+
+    self_set_dirty(self);
+  }
+
+  private void
+    relayout (self)
+  {
+    int i;
+    GList *la;
+
+    if (! selfp->dirty)
+      return;
+
+    selfp->width = 0;
+    selfp->height = 0;
+
+    for (i = 0; i < selfp->column_sizes->len; i++)
+      COLUMN_SIZE(self, i) = 0;
+
+    MN_QUEUE_FOREACH(la, selfp->rows)
+      {
+	Row *row = la->data;
+	int column = 0;
+	GList *lb;
+
+	row->height = 0;
+
+	MN_QUEUE_FOREACH(lb, row->cells)
+	  {
+	    MNTextTableCell *cell = lb->data;
+	    int n_columns = column + 1;
+
+	    if (cell->dirty)
+	      {
+		g_assert(cell->layout != NULL);
+
+		pango_layout_get_pixel_size(cell->layout, &cell->width, &cell->height);
+		cell->dirty = FALSE;
+	      }
+
+	    if (n_columns > selfp->column_sizes->len)
+	      g_array_set_size(selfp->column_sizes, n_columns);
+
+	    if (cell->width > COLUMN_SIZE(self, column))
+	      COLUMN_SIZE(self, column) = cell->width;
+	    if (cell->height > row->height)
+	      row->height = cell->height;
+
+	    column++;
+	  }
+
+	selfp->height += row->height;
+      }
+
+    for (i = 0; i < selfp->column_sizes->len; i++)
+      selfp->width += COLUMN_SIZE(self, i);
+
+    if (selfp->column_sizes->len > 1)
+      selfp->width += HORIZONTAL_SPACING * (selfp->column_sizes->len - 1);
+    if (selfp->rows->length > 1)
+      selfp->height += VERTICAL_SPACING * (selfp->rows->length - 1);
+
+    selfp->dirty = FALSE;
+  }
+
+  private void
+    redraw (self)
+  {
+    GtkWidget *widget = GTK_WIDGET(self);
+    GList *la;
+    int y = 0;
+
+    g_return_if_fail(selfp->dirty == FALSE);
+
+    MN_QUEUE_FOREACH(la, selfp->rows)
+      {
+	Row *row = la->data;
+	GList *lb;
+	int x = 0;
+	int column = 0;
+
+	MN_QUEUE_FOREACH(lb, row->cells)
+	  {
+	    MNTextTableCell *cell = lb->data;
+
+	    if (cell->layout)
+	      gdk_draw_layout(widget->window, widget->style->text_gc[GTK_WIDGET_STATE(widget)], x, y + row->height - cell->height, cell->layout);
+
+	    x += COLUMN_SIZE(self, column);
+	    if (lb->next)
+	      x += HORIZONTAL_SPACING;
+
+	    column++;
+	  }
+
+	y += row->height;
+	if (la->next)
+	  y += VERTICAL_SPACING;
+      }
+  }
+
+  virtual public void
+    clear (self)
+  {
+    Row *row;
+
+    while ((row = g_queue_pop_head(selfp->rows)))
+      self_row_free(row);
+
+    g_array_set_size(selfp->column_sizes, 0);
+
+    selfp->row = NULL;
+
+    self_set_dirty(self);
+  }
+
+  public MNTextTableCell *
+    append_text_cell (self, const char *text)
+  {
+    return self_append_text_cell_from_layout(self, gtk_widget_create_pango_layout(GTK_WIDGET(self), text));
+  }
+
+  public MNTextTableCell *
+    append_text_cell_from_markup (self, const char *markup (check null))
+  {
+    PangoLayout *layout;
+
+    layout = gtk_widget_create_pango_layout(GTK_WIDGET(self), NULL);
+    pango_layout_set_markup(layout, markup, -1);
+
+    return self_append_text_cell_from_layout(self, layout);
+  }
+
+  public MNTextTableCell *
+    append_text_cell_from_layout (self, Pango:Layout *layout (check null))
+  {
+    MNTextTableCell *cell;
+
+    cell = g_new(MNTextTableCell, 1);
+    cell->layout = layout;
+    cell->dirty = TRUE;
+
+    self_append_cell_real(self, cell);
+
+    return cell;
+  }
+
+  public MNTextTableCell *
+    append_blank_cell (self, int width, int height)
+  {
+    MNTextTableCell *cell;
+
+    cell = g_new(MNTextTableCell, 1);
+    cell->layout = NULL;
+    cell->dirty = FALSE;
+    cell->width = width;
+    cell->height = height;
+
+    self_append_cell_real(self, cell);
+
+    return cell;
+  }
+
+  private void
+    append_cell_real (self, MNTextTableCell *cell)
+  {
+    if (! selfp->row)
+      {
+	selfp->row = g_new(Row, 1);
+	selfp->row->cells = g_queue_new();
+
+	g_queue_push_tail(selfp->rows, selfp->row);
+      }
+
+    g_queue_push_tail(selfp->row->cells, cell);
+
+    self_set_dirty(self);
+  }
+
+  public void
+    cell_set_text (self,
+		   MNTextTableCell *cell (check null),
+		   const char *text (check null))
+  {
+    const char *current_text;
+
+    g_return_if_fail(cell->layout != NULL);
+
+    current_text = pango_layout_get_text(cell->layout);
+    if (! current_text || strcmp(current_text, text))
+      {
+	pango_layout_set_text(cell->layout, text, -1);
+	cell->dirty = TRUE;
+	self_set_dirty(self);
+      }
+  }
+
+  public void
+    line_break (self)
+  {
+    selfp->row = NULL;
+  }
+}

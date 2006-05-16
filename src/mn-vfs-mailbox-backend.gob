@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include "mn-vfs-mailbox.h"
@@ -33,7 +33,7 @@ requires 2.0.12
 #include "mn-util.h"
 %}
 
-class MN:VFS:Mailbox:Backend from G:Object
+class MN:VFS:Mailbox:Backend from G:Object (abstract)
 {
   classwide const char *format;
 
@@ -45,20 +45,17 @@ class MN:VFS:Mailbox:Backend from G:Object
   protected MNVFSMailbox *mailbox;
   property POINTER mailbox (link, flags = CONSTRUCT_ONLY, type = MNVFSMailbox *);
 
-  private GMutex *mutex = {g_mutex_new()} destroywith g_mutex_free;
-
-  private GnomeVFSMonitorHandle *monitor_handle;
-
   override (G:Object) void
     finalize (GObject *object)
   {
     Self *self = SELF(object);
 
-    if (selfp->monitor_handle)
-      {
-	gnome_vfs_monitor_cancel(selfp->monitor_handle);
-	selfp->monitor_handle = NULL;
-      }
+    /*
+     * If the calling mailbox is being finalized, there is no need to
+     * hold its lock. Otherwise, it holds its lock while finalizing us
+     * (see reentrant_check() in mn-vfs-mailbox.gob).
+     */
+    mn_vfs_mailbox_remove_monitors_by_owner(self->mailbox, self);
 
     PARENT_HANDLER(object);
   }
@@ -67,65 +64,13 @@ class MN:VFS:Mailbox:Backend from G:Object
     monitor (self,
 	     unsigned long check_id,
 	     const char *uri (check null),
-	     GnomeVFSMonitorType monitor_type)
+	     GnomeVFSMonitorType type)
   {
-    GnomeVFSResult result;
-    GnomeVFSMonitorHandle *handle;
-
-    g_return_if_fail(SELF_GET_CLASS(self)->monitor_cb != NULL);
-    
-    self_lock(self);
-
-    handle = selfp->monitor_handle;
-
-    self_unlock(self);
-
-    if (handle)
-      return;
-
-    result = gnome_vfs_monitor_add(&handle,
-				   uri,
-				   monitor_type,
-				   self_real_monitor_cb,
-				   self);
-
-    if (result == GNOME_VFS_OK)
-      {
-	self_lock(self);
-
-	if (! selfp->monitor_handle)
-	  {
-	    selfp->monitor_handle = handle;
-	    handle = NULL;
-	  }
-
-	self_unlock(self);
-
-	if (handle)
-	  gnome_vfs_monitor_cancel(handle);
-      }
-    else
-      {
-	GDK_THREADS_ENTER();
-
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(self->mailbox), check_id)
-	    && ! selfp->monitor_handle
-	    && result != self->mailbox->contents_monitor_result)
-	  {
-	    self->mailbox->contents_monitor_result = result;
-
-	    mn_mailbox_warning(MN_MAILBOX(self->mailbox), _("unable to monitor mailbox contents (%s), poll mode activated"), gnome_vfs_result_to_string(result));
-	    mn_vfs_mailbox_monitor_error_dialog();
-
-	    if (! MN_MAILBOX(self->mailbox)->must_poll)
-	      mn_mailbox_set_must_poll(MN_MAILBOX(self->mailbox), TRUE);
-	  }
-
-	gdk_flush();
-	GDK_THREADS_LEAVE();
-      }
+    mn_reentrant_mailbox_lock(MN_REENTRANT_MAILBOX(self->mailbox));
+    mn_vfs_mailbox_monitor(self->mailbox, uri, self, type, self_real_monitor_cb, self);
+    mn_reentrant_mailbox_unlock(MN_REENTRANT_MAILBOX(self->mailbox));
   }
-  
+
   private void
     real_monitor_cb (GnomeVFSMonitorHandle *handle,
 		     const char *monitor_uri,
@@ -135,7 +80,7 @@ class MN:VFS:Mailbox:Backend from G:Object
   {
     self_monitor_cb(user_data, info_uri, event_type);
   }
-  
+
   virtual private void
     monitor_cb (self,
 		const char *info_uri,
@@ -152,16 +97,4 @@ class MN:VFS:Mailbox:Backend from G:Object
 
   virtual public void
     check (self, unsigned long check_id);
-
-  protected void
-    lock (self)
-  {
-    g_mutex_lock(selfp->mutex);
-  }
-
-  protected void
-    unlock (self)
-  {
-    g_mutex_unlock(selfp->mutex);
-  }
 }

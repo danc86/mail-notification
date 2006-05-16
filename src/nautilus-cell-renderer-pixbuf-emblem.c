@@ -2,27 +2,27 @@
 
    nautilus-cell-renderer-pixbuf-emblem.c: cell renderer which can render
    an emblem on top of a pixbuf (for use in FMListView and FMTreeView)
- 
+
    Copyright (C) 2003 Juerg Billeter
-  
+
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
    published by the Free Software Foundation; either version 2 of the
    License, or (at your option) any later version.
-  
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    General Public License for more details.
-  
+
    You should have received a copy of the GNU General Public
    License along with this program; if not, write to the
    Free Software Foundation, Inc., 59 Temple Place - Suite 330,
    Boston, MA 02111-1307, USA.
-  
+
    This is based on GtkCellRendererPixbuf written by
    Jonathan Blandford <jrb@redhat.com>
-  
+
    Author: Juerg Billeter <j@bitron.ch>
 */
 
@@ -110,7 +110,7 @@ static void
 nautilus_cell_renderer_pixbuf_emblem_init (NautilusCellRendererPixbufEmblem *cellpixbuf)
 {
 	NautilusCellRendererPixbufEmblemInfo *cellinfo;
-	
+
 	cellinfo = g_new0 (NautilusCellRendererPixbufEmblemInfo, 1);
 	cellinfo->stock_size = GTK_ICON_SIZE_MENU;
 	g_object_set_data (G_OBJECT (cellpixbuf), CELLINFO_KEY, cellinfo);
@@ -199,19 +199,19 @@ nautilus_cell_renderer_pixbuf_emblem_finalize (GObject *object)
 {
 	NautilusCellRendererPixbufEmblem *cellpixbuf = NAUTILUS_CELL_RENDERER_PIXBUF_EMBLEM (object);
 	NautilusCellRendererPixbufEmblemInfo *cellinfo = g_object_get_data (object, CELLINFO_KEY);
-	
+
 	if (cellpixbuf->pixbuf && cellinfo->stock_id) {
 		g_object_unref (cellpixbuf->pixbuf);
 	}
-	
+
 	if (cellinfo->stock_id) {
 		g_free (cellinfo->stock_id);
 	}
-	
+
 	if (cellinfo->stock_detail) {
 		g_free (cellinfo->stock_detail);
 	}
-	
+
 	g_free (cellinfo);
 	g_object_set_data (object, CELLINFO_KEY, NULL);
 
@@ -226,7 +226,7 @@ nautilus_cell_renderer_pixbuf_emblem_get_property (GObject        *object,
 {
 	NautilusCellRendererPixbufEmblem *cellpixbuf = NAUTILUS_CELL_RENDERER_PIXBUF_EMBLEM (object);
 	NautilusCellRendererPixbufEmblemInfo *cellinfo = g_object_get_data (object, CELLINFO_KEY);
-                                                                            
+
 	switch (param_id)
 	{
 		case PROP_PIXBUF:
@@ -260,7 +260,7 @@ nautilus_cell_renderer_pixbuf_emblem_get_property (GObject        *object,
 			break;
 	}
 }
-                                                                                                                                                                       
+
 static void
 nautilus_cell_renderer_pixbuf_emblem_set_property (GObject      *object,
                                             guint         param_id,
@@ -270,7 +270,7 @@ nautilus_cell_renderer_pixbuf_emblem_set_property (GObject      *object,
 	GdkPixbuf *pixbuf;
 	NautilusCellRendererPixbufEmblem *cellpixbuf = NAUTILUS_CELL_RENDERER_PIXBUF_EMBLEM (object);
 	NautilusCellRendererPixbufEmblemInfo *cellinfo = g_object_get_data (object, CELLINFO_KEY);
-                                                                            
+
 	switch (param_id)
 	{
 		case PROP_PIXBUF:
@@ -388,10 +388,10 @@ nautilus_cell_renderer_pixbuf_emblem_get_size (GtkCellRenderer *cell,
 		pixbuf_width  = MAX (pixbuf_width, gdk_pixbuf_get_width (cellpixbuf->pixbuf_expander_closed));
 		pixbuf_height = MAX (pixbuf_height, gdk_pixbuf_get_height (cellpixbuf->pixbuf_expander_closed));
 	}
-  
+
 	calc_width  = (gint) cell->xpad * 2 + pixbuf_width;
 	calc_height = (gint) cell->ypad * 2 + pixbuf_height;
-  
+
 	if (x_offset) *x_offset = 0;
 	if (y_offset) *y_offset = 0;
 
@@ -411,7 +411,7 @@ nautilus_cell_renderer_pixbuf_emblem_get_size (GtkCellRenderer *cell,
 
 	if (width)
 		*width = calc_width;
-  
+
 	if (height)
 		*height = calc_height;
 }
@@ -424,7 +424,7 @@ nautilus_cell_renderer_pixbuf_emblem_render (GtkCellRenderer      *cell,
                                  GdkRectangle         *cell_area,
                                  GdkRectangle         *expose_area,
                                  GtkCellRendererState  flags)
- 
+
 {
 	NautilusCellRendererPixbufEmblem *cellpixbuf = (NautilusCellRendererPixbufEmblem *) cell;
 	NautilusCellRendererPixbufEmblemInfo *cellinfo = g_object_get_data (G_OBJECT (cell), CELLINFO_KEY);
@@ -433,7 +433,7 @@ nautilus_cell_renderer_pixbuf_emblem_render (GtkCellRenderer      *cell,
 	GdkRectangle pix_emblem_rect;
 	GdkRectangle draw_rect;
 	gboolean stock_pixbuf = FALSE;
-	
+
 	pixbuf = cellpixbuf->pixbuf;
 	if (cell->is_expander) {
 		if (cell->is_expanded &&
@@ -459,7 +459,7 @@ nautilus_cell_renderer_pixbuf_emblem_render (GtkCellRenderer      *cell,
 
 	if (stock_pixbuf)
 		pixbuf = cellpixbuf->pixbuf;
-  
+
 	pix_rect.x += cell_area->x;
 	pix_rect.y += cell_area->y;
 	pix_rect.width  -= cell->xpad * 2;

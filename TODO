@@ -6,3 +6,5 @@
 * Allow to set a different mail reader for each mailbox. Invoking the
   mail reader action would run the mail reader of the most recent
   message's mailbox, or fallback to the global mail reader.
+
+* Limit the tooltip height to the screen height

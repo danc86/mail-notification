@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <libbonobo.h>
+%}
+
+%privateheader{
+#include "mn-locked-callback.h"
 %}
 
 %{
@@ -29,7 +33,7 @@ requires 2.0.12
 class MN:CORBA:Object from G:Object
 {
   private CORBA_Object object = CORBA_OBJECT_NIL
-    destroy { if (VAR) CORBA_Object_release(VAR, NULL); };
+    destroy { if (VAR != CORBA_OBJECT_NIL) CORBA_Object_release(VAR, NULL); };
   property POINTER object (export, type = CORBA_Object)
     set
     {
@@ -48,11 +52,11 @@ class MN:CORBA:Object from G:Object
 
       g_value_set_pointer(VAL, selfp->object);
     };
-  
+
   private char *iid destroywith g_free;
   property STRING iid (link, flags = CONSTRUCT_ONLY);
 
-  private unsigned int monitor_id;
+  private MNLockedGSource *monitor_source;
 
   override (G:Object) GObject *
     constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
@@ -66,9 +70,12 @@ class MN:CORBA:Object from G:Object
 
     corba_object = bonobo_activation_activate_from_id(selfp->iid, 0, NULL, NULL);
     if (corba_object != CORBA_OBJECT_NIL)
-      self_set_object(self, corba_object);
+      {
+	self_set_object(self, corba_object);
+	CORBA_Object_release(corba_object, NULL);
+      }
 
-    selfp->monitor_id = g_timeout_add(1000, self_monitor_cb, self);
+    selfp->monitor_source = mn_g_timeout_add_gdk_locked(1000, self_monitor_cb, self);
 
     return object;
   }
@@ -78,7 +85,7 @@ class MN:CORBA:Object from G:Object
   {
     Self *self = SELF(object);
 
-    g_source_remove(selfp->monitor_id);
+    mn_locked_g_source_remove(selfp->monitor_source);
 
     PARENT_HANDLER(object);
   }
@@ -91,11 +98,7 @@ class MN:CORBA:Object from G:Object
     if (selfp->object != CORBA_OBJECT_NIL)
       {
 	if (! bonobo_unknown_ping(selfp->object, NULL))
-	  {
-	    GDK_THREADS_ENTER();
-	    self_set_object(self, CORBA_OBJECT_NIL);
-	    GDK_THREADS_LEAVE();
-	  }
+	  self_set_object(self, CORBA_OBJECT_NIL);
       }
     else
       {
@@ -104,9 +107,8 @@ class MN:CORBA:Object from G:Object
 	object = bonobo_activation_activate_from_id(selfp->iid, 0, NULL, NULL);
 	if (object != CORBA_OBJECT_NIL)
 	  {
-	    GDK_THREADS_ENTER();
 	    self_set_object(self, object);
-	    GDK_THREADS_LEAVE();
+	    CORBA_Object_release(object, NULL);
 	  }
       }
 

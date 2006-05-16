@@ -17,6 +17,7 @@
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_NORMAL</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">False</property>
+  <property name="urgency_hint">False</property>
 
   <child>
     <widget class="GtkEventBox" id="eventbox">
@@ -26,7 +27,7 @@
       <signal name="button_press_event" handler="button_press_event_h" last_modification_time="Sun, 24 Jul 2005 01:50:26 GMT"/>
 
       <child>
-	<widget class="GtkVBox" id="vbox1">
+	<widget class="GtkVBox" id="vbox">
 	  <property name="border_width">12</property>
 	  <property name="visible">True</property>
 	  <property name="homogeneous">False</property>
@@ -56,7 +57,7 @@
 	      <child>
 		<widget class="GtkLabel" id="mn-mail-summary-popup-title">
 		  <property name="visible">True</property>
-		  <property name="label" translatable="yes">&lt;span size=&quot;larger&quot; weight=&quot;bold&quot;&gt;Mail Summary&lt;/span&gt;</property>
+		  <property name="label" translatable="yes"></property>
 		  <property name="use_underline">False</property>
 		  <property name="use_markup">True</property>
 		  <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -97,19 +98,7 @@
 	  </child>
 
 	  <child>
-	    <widget class="Custom" id="mn-message-view">
-	      <property name="visible">True</property>
-	      <property name="creation_function">mn_mail_summary_popup_message_view_new_cb</property>
-	      <property name="int1">0</property>
-	      <property name="int2">0</property>
-	      <property name="last_modification_time">Sun, 24 Jul 2005 01:51:23 GMT</property>
-	      <signal name="button_press_event" handler="button_press_event_h" last_modification_time="Sun, 24 Jul 2005 01:51:17 GMT"/>
-	    </widget>
-	    <packing>
-	      <property name="padding">0</property>
-	      <property name="expand">False</property>
-	      <property name="fill">False</property>
-	    </packing>
+	    <placeholder/>
 	  </child>
 	</widget>
       </child>

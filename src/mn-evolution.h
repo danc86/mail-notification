@@ -24,5 +24,6 @@
 
 #define MN_EVOLUTION_EVENT_PREFIX		"GNOME/MailNotification/Evolution"
 #define MN_EVOLUTION_EVENT_FOLDER_CHANGED	"folder-changed"
+#define MN_EVOLUTION_EVENT_MESSAGE_READING	"message-reading"
 
 #endif /* _MN_EVOLUTION_H */

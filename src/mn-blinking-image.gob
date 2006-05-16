@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <gtk/gtk.h>
+%}
+
+%privateheader{
+#include "mn-locked-callback.h"
 %}
 
 %{
@@ -33,22 +37,25 @@ class MN:Blinking:Image from Gtk:Image
   property BOOLEAN blinking (export)
     set
     {
-      if (selfp->blinking)
+      gboolean blinking = g_value_get_boolean(VAL);
+      if (blinking != selfp->blinking)
 	{
-	  g_source_remove(selfp->timeout_id);
-	  self_update(self, TRUE);
+	  selfp->blinking = blinking;
+	  if (blinking)
+	    selfp->timeout_source = mn_g_timeout_add_gdk_locked(500, self_timeout_cb, self);
+	  else
+	    {
+	      mn_locked_g_source_remove(selfp->timeout_source);
+	      self_update(self, TRUE);
+	    }
 	}
-
-      selfp->blinking = g_value_get_boolean(VAL);
-      if (selfp->blinking)
-	selfp->timeout_id = g_timeout_add(500, self_timeout_cb, self);
     }
     get
     {
       g_value_set_boolean(VAL, selfp->blinking);
     };
 
-  private unsigned int timeout_id;
+  private MNLockedGSource *timeout_source;
   private gboolean is_on = TRUE; /* is currently displaying the image? */
 
   private char *stock_id destroywith g_free;
@@ -59,12 +66,12 @@ class MN:Blinking:Image from Gtk:Image
   {
     Self *self = SELF(object);
 
-    if (selfp->timeout_id)
-      g_source_remove(selfp->timeout_id);
+    if (selfp->timeout_source)
+      mn_locked_g_source_remove(selfp->timeout_source);
 
     PARENT_HANDLER(object);
   }
-  
+
   private void
     update (self, gboolean is_on)
   {
@@ -87,7 +94,7 @@ class MN:Blinking:Image from Gtk:Image
 
 	pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, width, height);
 	gdk_pixbuf_fill(pixbuf, 0); /* fill with transparency */
-	
+
 	gtk_image_set_from_pixbuf(GTK_IMAGE(self), pixbuf);
 	g_object_unref(pixbuf);
       }
@@ -100,25 +107,26 @@ class MN:Blinking:Image from Gtk:Image
   {
     Self *self = data;
 
-    GDK_THREADS_ENTER();
     self_update(self, ! selfp->is_on);
-    GDK_THREADS_LEAVE();
 
     return TRUE;
   }
 
   public GtkWidget *
-    new_from_stock (const char *stock_id (check null),
+    new (void)
+  {
+    return GTK_WIDGET(GET_NEW);
+  }
+
+  public void
+    set_from_stock (self,
+		    const char *stock_id (check null),
 		    GtkIconSize icon_size)
   {
-    Self *self;
-
-    self = GET_NEW;
+    g_free(selfp->stock_id);
     selfp->stock_id = g_strdup(stock_id);
     selfp->icon_size = icon_size;
 
     self_update(self, selfp->is_on);
-
-    return GTK_WIDGET(self);
   }
 }

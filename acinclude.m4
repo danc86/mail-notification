@@ -1,4 +1,4 @@
-# Copyright (C) 2003-2005 Jean-Yves Lefort.
+# Copyright (C) 2003-2006 Jean-Yves Lefort.
 #
 # This file is part of Mail Notification.
 # It may be distributed under the same terms as Mail Notification.
@@ -35,9 +35,8 @@ MN_FEATURE_DISABLE_REASON_VAR_NAME([$1])="([$2])"])
 dnl MN_FEATURE_DEFINE(FEATURE)
 dnl
 AC_DEFUN([MN_FEATURE_DEFINE],
-[if MN_FEATURE_ENABLED([$1]); then
-	AC_DEFINE(MN_FEATURE_SYMBOL_NAME([$1]), 1, [Define to 1 if $1 is enabled])
-fi
+[if MN_FEATURE_ENABLED([$1]); then _value=1; else _value=0; fi
+AC_DEFINE_UNQUOTED(MN_FEATURE_SYMBOL_NAME([$1]), $_value, [Define to 1 if $1 is enabled, 0 otherwise])
 ])
 
 dnl MN_FEATURES_DEFINE(FEATURES)

@@ -41,8 +41,8 @@ subdir = data
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/evolution-plugin.m4 \
-	$(top_srcdir)/m4/gnome.m4 $(top_srcdir)/m4/intltool.m4 \
-	$(top_srcdir)/m4/openssl.m4 \
+	$(top_srcdir)/m4/gnome.m4 $(top_srcdir)/m4/idl.m4 \
+	$(top_srcdir)/m4/intltool.m4 $(top_srcdir)/m4/openssl.m4 \
 	$(top_srcdir)/m4/reentrant-resolver.m4 \
 	$(top_srcdir)/m4/sasl2.m4 $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
@@ -59,16 +59,15 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(applicationsdir)" \
+am__installdirs = "$(DESTDIR)$(autostartdir)" \
 	"$(DESTDIR)$(gnome_cappletdir)" "$(DESTDIR)$(schemasdir)" \
-	"$(DESTDIR)$(serverdir)" "$(DESTDIR)$(soundlistdir)"
-applicationsDATA_INSTALL = $(INSTALL_DATA)
+	"$(DESTDIR)$(serverdir)"
+autostartDATA_INSTALL = $(INSTALL_DATA)
 gnome_cappletDATA_INSTALL = $(INSTALL_DATA)
 schemasDATA_INSTALL = $(INSTALL_DATA)
 serverDATA_INSTALL = $(INSTALL_DATA)
-soundlistDATA_INSTALL = $(INSTALL_DATA)
-DATA = $(applications_DATA) $(gnome_capplet_DATA) $(schemas_DATA) \
-	$(server_DATA) $(soundlist_DATA)
+DATA = $(autostart_DATA) $(gnome_capplet_DATA) $(schemas_DATA) \
+	$(server_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMDEP_FALSE = @AMDEP_FALSE@
@@ -79,7 +78,7 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BONOBO_ACTIVATION_IDL = @BONOBO_ACTIVATION_IDL@
+BONOBO_IDLFLAGS = @BONOBO_IDLFLAGS@
 CATALOGS = @CATALOGS@
 CATOBJEXT = @CATOBJEXT@
 CC = @CC@
@@ -111,7 +110,6 @@ GCONF_SCHEMAS_INSTALL_TRUE = @GCONF_SCHEMAS_INSTALL_TRUE@
 GCONF_SCHEMA_CONFIG_SOURCE = @GCONF_SCHEMA_CONFIG_SOURCE@
 GCONF_SCHEMA_FILE_DIR = @GCONF_SCHEMA_FILE_DIR@
 GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
-GLIB_GENMARSHAL = @GLIB_GENMARSHAL@
 GMIME_CFLAGS = @GMIME_CFLAGS@
 GMIME_LIBS = @GMIME_LIBS@
 GMOFILES = @GMOFILES@
@@ -143,6 +141,7 @@ INTLTOOL_PONG_RULE = @INTLTOOL_PONG_RULE@
 INTLTOOL_PROP_RULE = @INTLTOOL_PROP_RULE@
 INTLTOOL_SCHEMAS_RULE = @INTLTOOL_SCHEMAS_RULE@
 INTLTOOL_SERVER_RULE = @INTLTOOL_SERVER_RULE@
+INTLTOOL_SERVICE_RULE = @INTLTOOL_SERVICE_RULE@
 INTLTOOL_SHEET_RULE = @INTLTOOL_SHEET_RULE@
 INTLTOOL_SOUNDLIST_RULE = @INTLTOOL_SOUNDLIST_RULE@
 INTLTOOL_THEME_RULE = @INTLTOOL_THEME_RULE@
@@ -153,7 +152,6 @@ INTLTOOL_XGETTEXT = @INTLTOOL_XGETTEXT@
 INTLTOOL_XML_NOMERGE_RULE = @INTLTOOL_XML_NOMERGE_RULE@
 INTLTOOL_XML_RULE = @INTLTOOL_XML_RULE@
 LDFLAGS = @LDFLAGS@
-LIBBONOBO_IDL = @LIBBONOBO_IDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -248,6 +246,7 @@ build_os = @build_os@
 build_vendor = @build_vendor@
 datadir = @datadir@
 evolution_plugindir = @evolution_plugindir@
+evolution_source_dir = @evolution_source_dir@
 exec_prefix = @exec_prefix@
 gnome_cappletdir = @gnome_cappletdir@
 gnome_prefix = @gnome_prefix@
@@ -277,29 +276,25 @@ target_os = @target_os@
 target_vendor = @target_vendor@
 @WITH_EVOLUTION_TRUE@evolution_server_in = GNOME_MailNotification_Evolution.server.in
 @WITH_EVOLUTION_TRUE@evolution_server = GNOME_MailNotification_Evolution.server
-applicationsdir = $(datadir)/applications
-applications_in_files = mail-notification.desktop.in
-applications_DATA = mail-notification.desktop
 
 # gnome_cappletdir is defined by configure
 gnome_capplet_in_files = mail-notification-properties.desktop.in
 gnome_capplet_DATA = mail-notification-properties.desktop
+autostartdir = $(sysconfdir)/xdg/autostart
+autostart_in_files = mail-notification.desktop.in
+autostart_DATA = mail-notification.desktop
 serverdir = $(libdir)/bonobo/servers
 server_in_files = $(evolution_server_in) GNOME_MailNotification.server.in
 server_DATA = $(evolution_server) GNOME_MailNotification.server
 schemasdir = $(GCONF_SCHEMA_FILE_DIR)
 schemas_in_files = mail-notification.schemas.in
 schemas_DATA = mail-notification.schemas
-soundlistdir = $(sysconfdir)/sound/events
-soundlist_in_files = mail-notification.soundlist.in
-soundlist_DATA = mail-notification.soundlist
 EXTRA_DIST = \
 	GNOME_MailNotification.server.in.in		\
 	GNOME_MailNotification_Evolution.server.in	\
 	mail-notification-properties.desktop.in		\
 	mail-notification.desktop.in			\
-	mail-notification.schemas.in			\
-	mail-notification.soundlist.in
+	mail-notification.schemas.in
 
 CLEANFILES = \
 	$(evolution_server)			\
@@ -307,8 +302,7 @@ CLEANFILES = \
 	GNOME_MailNotification.server.in	\
 	mail-notification-properties.desktop	\
 	mail-notification.desktop		\
-	mail-notification.schemas		\
-	mail-notification.soundlist
+	mail-notification.schemas
 
 all: all-am
 
@@ -352,22 +346,22 @@ clean-libtool:
 distclean-libtool:
 	-rm -f libtool
 uninstall-info-am:
-install-applicationsDATA: $(applications_DATA)
+install-autostartDATA: $(autostart_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(applicationsdir)" || $(mkdir_p) "$(DESTDIR)$(applicationsdir)"
-	@list='$(applications_DATA)'; for p in $$list; do \
+	test -z "$(autostartdir)" || $(mkdir_p) "$(DESTDIR)$(autostartdir)"
+	@list='$(autostart_DATA)'; for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  f=$(am__strip_dir) \
-	  echo " $(applicationsDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(applicationsdir)/$$f'"; \
-	  $(applicationsDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(applicationsdir)/$$f"; \
+	  echo " $(autostartDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(autostartdir)/$$f'"; \
+	  $(autostartDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(autostartdir)/$$f"; \
 	done
 
-uninstall-applicationsDATA:
+uninstall-autostartDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(applications_DATA)'; for p in $$list; do \
+	@list='$(autostart_DATA)'; for p in $$list; do \
 	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(applicationsdir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(applicationsdir)/$$f"; \
+	  echo " rm -f '$(DESTDIR)$(autostartdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(autostartdir)/$$f"; \
 	done
 install-gnome_cappletDATA: $(gnome_capplet_DATA)
 	@$(NORMAL_INSTALL)
@@ -420,23 +414,6 @@ uninstall-serverDATA:
 	  echo " rm -f '$(DESTDIR)$(serverdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(serverdir)/$$f"; \
 	done
-install-soundlistDATA: $(soundlist_DATA)
-	@$(NORMAL_INSTALL)
-	test -z "$(soundlistdir)" || $(mkdir_p) "$(DESTDIR)$(soundlistdir)"
-	@list='$(soundlist_DATA)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(soundlistDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(soundlistdir)/$$f'"; \
-	  $(soundlistDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(soundlistdir)/$$f"; \
-	done
-
-uninstall-soundlistDATA:
-	@$(NORMAL_UNINSTALL)
-	@list='$(soundlist_DATA)'; for p in $$list; do \
-	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(soundlistdir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(soundlistdir)/$$f"; \
-	done
 tags: TAGS
 TAGS:
 
@@ -475,7 +452,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(applicationsdir)" "$(DESTDIR)$(gnome_cappletdir)" "$(DESTDIR)$(schemasdir)" "$(DESTDIR)$(serverdir)" "$(DESTDIR)$(soundlistdir)"; do \
+	for dir in "$(DESTDIR)$(autostartdir)" "$(DESTDIR)$(gnome_cappletdir)" "$(DESTDIR)$(schemasdir)" "$(DESTDIR)$(serverdir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-am
@@ -522,9 +499,9 @@ info: info-am
 
 info-am:
 
-install-data-am: install-applicationsDATA install-data-local \
+install-data-am: install-autostartDATA install-data-local \
 	install-gnome_cappletDATA install-schemasDATA \
-	install-serverDATA install-soundlistDATA
+	install-serverDATA
 
 install-exec-am:
 
@@ -550,30 +527,27 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-applicationsDATA uninstall-gnome_cappletDATA \
-	uninstall-info-am uninstall-schemasDATA uninstall-serverDATA \
-	uninstall-soundlistDATA
+uninstall-am: uninstall-autostartDATA uninstall-gnome_cappletDATA \
+	uninstall-info-am uninstall-schemasDATA uninstall-serverDATA
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-applicationsDATA install-data install-data-am \
+	install-autostartDATA install-data install-data-am \
 	install-data-local install-exec install-exec-am \
 	install-gnome_cappletDATA install-info install-info-am \
 	install-man install-schemasDATA install-serverDATA \
-	install-soundlistDATA install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-applicationsDATA uninstall-gnome_cappletDATA \
-	uninstall-info-am uninstall-schemasDATA uninstall-serverDATA \
-	uninstall-soundlistDATA
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	uninstall uninstall-am uninstall-autostartDATA \
+	uninstall-gnome_cappletDATA uninstall-info-am \
+	uninstall-schemasDATA uninstall-serverDATA
 
 
 @INTLTOOL_DESKTOP_RULE@
 @INTLTOOL_SERVER_RULE@
 @INTLTOOL_SCHEMAS_RULE@
-@INTLTOOL_SOUNDLIST_RULE@
 
 @GCONF_SCHEMAS_INSTALL_TRUE@install-data-local: install-schemas
 @GCONF_SCHEMAS_INSTALL_TRUE@install-schemas:

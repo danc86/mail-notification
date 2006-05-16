@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <gtk/gtk.h>
@@ -31,7 +31,7 @@ requires 2.0.12
 #include "mn-mailbox-properties-private.h"
 #include "mn-util.h"
 #include "mn-properties-dialog.h"
-#if defined(WITH_MBOX) || defined(WITH_MH) || defined(WITH_MAILDIR) || defined(WITH_SYLPHEED)
+#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
 #include "mn-custom-vfs-mailbox.h"
 #endif
 #include "mn-stock.h"
@@ -49,7 +49,7 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
     {
       const char *location;
       gboolean complete = FALSE;
-      
+
       location = gtk_entry_get_text(GTK_ENTRY(SELF(self)->_priv->location_entry));
       if (*location)
 	{
@@ -62,7 +62,7 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
 	      g_object_unref(mailbox);
 	    }
 	}
-      
+
       g_value_set_boolean(VAL, complete);
     };
 
@@ -82,7 +82,24 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
 
       g_value_take_string(VAL, name);
     };
-  
+
+  property INT default_check_delay (override)
+    get
+    {
+      int check_delay = -1;
+      MNMailbox *mailbox;
+
+      mailbox = mn_mailbox_new_from_uri(gtk_entry_get_text(GTK_ENTRY(selfp->location_entry)));
+      if (mailbox)
+	{
+	  mn_mailbox_seal(mailbox);
+	  check_delay = mailbox->runtime_check_delay;
+	  g_object_unref(mailbox);
+	}
+
+      g_value_set_int(VAL, check_delay);
+    };
+
   class_init (class)
   {
     MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
@@ -91,10 +108,12 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
     p_class->stock_id = MN_STOCK_UNKNOWN;
     p_class->combo_label = _("<span style=\"italic\">autodetect</span>");
     p_class->section_label = _("Location");
+    p_class->no_check_delay_unless_complete = TRUE;
   }
 
   init (self)
   {
+    MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
     GtkWidget *outer_hbox;
     GtkWidget *hbox;
     GtkWidget *label;
@@ -102,33 +121,36 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
 
     label = gtk_label_new_with_mnemonic(_("_Location:"));
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-    
+
     outer_hbox = gtk_hbox_new(FALSE, 12);
     hbox = gtk_hbox_new(FALSE, 6);
-    
+
     selfp->location_entry = gtk_entry_new();
+    /* translators: header capitalization */
     button = gtk_button_new_with_mnemonic(_("_Browse..."));
-    
+
     gtk_label_set_mnemonic_widget(GTK_LABEL(label), selfp->location_entry);
-    mn_mailbox_properties_add_entry(MN_MAILBOX_PROPERTIES(self), GTK_ENTRY(selfp->location_entry));
+    properties->entries = g_slist_append(properties->entries, selfp->location_entry);
 
     gtk_box_pack_start(GTK_BOX(hbox), selfp->location_entry, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), button, FALSE, FALSE, 0);
-    
+
     gtk_box_pack_start(GTK_BOX(outer_hbox), label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(outer_hbox), hbox, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(self), outer_hbox, FALSE, FALSE, 0);
-    
+
     gtk_widget_show_all(outer_hbox);
 
     gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->label_size_group, label);
+    gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->entry_size_group, selfp->location_entry);
     gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->entry_button_size_group, button);
 
     g_object_connect(selfp->location_entry,
 		     "swapped-signal::changed", mn_mailbox_properties_notify_complete, self,
 		     "swapped-signal::changed", mn_mailbox_properties_notify_default_name, self,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_default_check_delay, self,
 		     NULL);
-    
+
     g_signal_connect(button, "clicked", G_CALLBACK(self_browse_clicked_h), self);
   }
 
@@ -144,8 +166,9 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
 	gtk_window_present(GTK_WINDOW(selfp->chooser));
 	return;
       }
-    
+
     toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
+    /* translators: header capitalization */
     selfp->chooser = gtk_file_chooser_dialog_new_with_backend(_("Select a File or Folder"),
 							      GTK_WINDOW(toplevel),
 							      GTK_FILE_CHOOSER_ACTION_OPEN,
@@ -154,7 +177,7 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
 							      GTK_STOCK_OPEN, 1,
 							      NULL);
     eel_add_weak_pointer(&selfp->chooser);
-    
+
     gtk_window_set_destroy_with_parent(GTK_WINDOW(selfp->chooser), TRUE);
     gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(selfp->chooser), FALSE);
     mn_file_chooser_dialog_allow_select_folder(GTK_FILE_CHOOSER_DIALOG(selfp->chooser), 1);
@@ -164,7 +187,7 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
       gtk_file_chooser_set_uri(GTK_FILE_CHOOSER(selfp->chooser), location);
     else if (current_folder_uri)
       gtk_file_chooser_set_current_folder_uri(GTK_FILE_CHOOSER(selfp->chooser), current_folder_uri);
-      
+
     g_object_connect(selfp->chooser,
 		     "signal::current-folder-changed", self_current_folder_changed_h, self,
 		     "signal::response", self_chooser_response_h, self,
@@ -172,14 +195,14 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
 
     gtk_widget_show(selfp->chooser);
   }
-  
+
   private void
     current_folder_changed_h (GtkFileChooser *chooser, gpointer user_data)
   {
     g_free(current_folder_uri);
     current_folder_uri = gtk_file_chooser_get_current_folder_uri(chooser);
   }
-  
+
   private void
     chooser_response_h (GtkDialog *dialog, int response, gpointer user_data)
   {
@@ -187,7 +210,7 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
       {
 	Self *self = user_data;
 	char *uri;
-	
+
 	uri = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(dialog));
 	gtk_entry_set_text(GTK_ENTRY(selfp->location_entry), uri);
 	g_free(uri);
@@ -195,16 +218,16 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
 
     gtk_widget_destroy(GTK_WIDGET(dialog));
   }
-  
+
   override (MN:Mailbox:Properties) void
     set_mailbox (MNMailboxProperties *properties, MNMailbox *mailbox)
   {
-#if defined(WITH_MBOX) || defined(WITH_MH) || defined(WITH_MAILDIR) || defined(WITH_SYLPHEED)
+#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
     g_return_if_fail(MN_IS_CUSTOM_VFS_MAILBOX(mailbox));
 
     gtk_entry_set_text(GTK_ENTRY(SELF(properties)->_priv->location_entry), MN_CUSTOM_VFS_MAILBOX(mailbox)->uri);
 #else
-    g_return_if_reached();
+    g_assert_not_reached();
 #endif
   }
 

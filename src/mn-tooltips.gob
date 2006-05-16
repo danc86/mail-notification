@@ -3,7 +3,7 @@
  * widget as tooltip (heavily based on GtkTooltips)
  *
  * Copyright (C) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,13 +20,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <gtk/gtk.h>
 %}
 
 %privateheader{
+#include "mn-locked-callback.h"
+
 typedef struct
 {
   MNTooltips	*self;
@@ -61,13 +63,13 @@ typedef enum
 /* Macros for extracting a widgets private_flags from GtkWidget.
  */
 #define GTK_PRIVATE_FLAGS(wid)            (GTK_WIDGET (wid)->private_flags)
-  
+
 /* Macros for setting and clearing private widget flags.
  * we use a preprocessor string concatenation here for a clear
  * flags/private_flags distinction at the cost of single flag operations.
  */
 #define GTK_PRIVATE_SET_FLAG(wid,flag)    G_STMT_START{ (GTK_PRIVATE_FLAGS (wid) |= (PRIVATE_ ## flag)); }G_STMT_END
-%} 
+%}
 
 class MN:Tooltips from G:Object
 {
@@ -77,16 +79,18 @@ class MN:Tooltips from G:Object
 
   private gboolean use_sticky_delay;
   private GTimeVal last_popdown;
-  private unsigned int timeout_id;
-  
+  private MNLockedGSource *timeout_source;
+
+  private int border_width = 4;
+
   override (G:Object) void
     finalize (GObject *object)
   {
     Self *self = SELF(object);
     GSList *l;
 
-    if (selfp->timeout_id)
-      g_source_remove(selfp->timeout_id);
+    if (selfp->timeout_source)
+      mn_locked_g_source_remove(selfp->timeout_source);
 
     MN_LIST_FOREACH(l, selfp->data_list)
       {
@@ -156,7 +160,7 @@ class MN:Tooltips from G:Object
 	  {
 	    if (! new_window)
 	      self_disconnect_display_closed(self);
-      
+
 	    gtk_window_set_screen(GTK_WINDOW(selfp->window), screen);
 	  }
       }
@@ -178,11 +182,11 @@ class MN:Tooltips from G:Object
 	gtk_widget_set_app_paintable(selfp->window, TRUE);
 	gtk_window_set_resizable(GTK_WINDOW(selfp->window), FALSE);
 	gtk_widget_set_name(selfp->window, "gtk-tooltips");
-	gtk_container_set_border_width(GTK_CONTAINER(selfp->window), 12);
+	gtk_container_set_border_width(GTK_CONTAINER(selfp->window), selfp->border_width);
 
 	g_signal_connect_swapped(selfp->window,
 				 "expose-event",
-				 G_CALLBACK(self_paint_window), 
+				 G_CALLBACK(self_paint_window),
 				 self);
 
 	eel_add_weak_pointer(&selfp->window);
@@ -195,10 +199,11 @@ class MN:Tooltips from G:Object
     return g_object_get_data(G_OBJECT(widget), TOOLTIPS_DATA);
   }
 
-  public void
-    set_tip_widget (self,
-		    Gtk:Widget *widget (check null type),
-		    Gtk:Widget *tip_widget)
+  private void
+    set_tip_widget_real (self,
+			 Gtk:Widget *widget (check null type),
+			 Gtk:Widget *tip_widget,
+			 int border_width)
   {
     TooltipsData *data;
 
@@ -231,7 +236,7 @@ class MN:Tooltips from G:Object
 
 	if (data)
 	  self_widget_remove(data->widget, data);
-	
+
 	data = g_new0(TooltipsData, 1);
 	data->self = self;
 	data->widget = widget;
@@ -251,8 +256,38 @@ class MN:Tooltips from G:Object
 			 "signal::destroy", self_widget_remove, data,
 			 NULL);
       }
+
+    selfp->border_width = border_width;
+    if (selfp->window)
+      gtk_container_set_border_width(GTK_CONTAINER(selfp->window), border_width);
   }
-  
+
+  public void
+    set_tip (self,
+	     Gtk:Widget *widget (check null type),
+	     const char *tip_text)
+  {
+    GtkWidget *label = NULL;
+
+    if (tip_text)
+      {
+	label = gtk_label_new(tip_text);
+	gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
+	gtk_misc_set_alignment(GTK_MISC(label), 0.5, 0.5);
+	gtk_widget_show(label);
+      }
+
+    self_set_tip_widget_real(self, widget, label, 4);
+  }
+
+  public void
+    set_tip_widget (self,
+		    Gtk:Widget *widget (check null type),
+		    Gtk:Widget *tip_widget)
+  {
+    self_set_tip_widget_real(self, widget, tip_widget, 12);
+  }
+
   private gboolean
     paint_window (self)
   {
@@ -262,7 +297,7 @@ class MN:Tooltips from G:Object
     gtk_paint_flat_box(selfp->window->style,
 		       selfp->window->window,
 		       GTK_STATE_NORMAL,
-		       GTK_SHADOW_OUT, 
+		       GTK_SHADOW_OUT,
 		       NULL,
 		       selfp->window,
 		       "tooltip",
@@ -270,10 +305,10 @@ class MN:Tooltips from G:Object
 		       0,
 		       req.width,
 		       req.height);
-    
+
     return FALSE;
   }
-  
+
   private void
     draw_tips (self)
   {
@@ -287,6 +322,7 @@ class MN:Tooltips from G:Object
     GdkScreen *pointer_screen;
     gint monitor_num, px, py;
     GdkRectangle monitor;
+    int screen_width;
 
     if (! selfp->window)
       self_force_window(self);
@@ -301,7 +337,7 @@ class MN:Tooltips from G:Object
     keyboard_mode = self_get_keyboard_mode(widget);
 
     self_update_screen(self, FALSE);
-  
+
     screen = gtk_widget_get_screen(widget);
 
     data = selfp->active_data;
@@ -315,7 +351,7 @@ class MN:Tooltips from G:Object
 	gtk_container_add(GTK_CONTAINER(selfp->window), data->tip_widget);
 	gtk_widget_show(data->tip_widget);
       }
-  
+
     gtk_widget_size_request(selfp->window, &requisition);
     w = requisition.width;
     h = requisition.height;
@@ -328,14 +364,14 @@ class MN:Tooltips from G:Object
       }
 
     x += widget->allocation.width / 2;
-    
+
     if (! keyboard_mode)
       gdk_window_get_pointer(gdk_screen_get_root_window(screen), &x, NULL, NULL);
 
     x -= (w / 2 + 4);
 
     gdk_display_get_pointer(gdk_screen_get_display(screen), &pointer_screen, &px, &py, NULL);
-    if (pointer_screen != screen) 
+    if (pointer_screen != screen)
       {
 	px = x;
 	py = y;
@@ -354,6 +390,18 @@ class MN:Tooltips from G:Object
     else
       y = y + widget->allocation.height + 4;
 
+    /*
+     * The following block is not part of GTK+ and has been added to
+     * make sure that the tooltip will not go beyond the screen edges
+     * (horizontally).
+     */
+    screen_width = gdk_screen_get_width(screen);
+    if (x < 0 || x + w > screen_width)
+      {
+	x = 0;
+	gtk_widget_set_size_request(selfp->window, MIN(w, screen_width), -1);
+      }
+
     gtk_window_move(GTK_WINDOW(selfp->window), x, y);
     gtk_widget_show(selfp->window);
   }
@@ -363,13 +411,10 @@ class MN:Tooltips from G:Object
   {
     Self *self = SELF(data);
 
-    GDK_THREADS_ENTER ();
-      
     if (selfp->active_data != NULL && GTK_WIDGET_DRAWABLE(selfp->active_data->widget))
       self_draw_tips(self);
-      
-    GDK_THREADS_LEAVE ();
 
+    selfp->timeout_source = NULL;
     return FALSE;		/* remove timeout */
   }
 
@@ -383,10 +428,10 @@ class MN:Tooltips from G:Object
 	gtk_widget_hide(selfp->window);
       }
 
-    mn_source_clear(&selfp->timeout_id);
-  
+    mn_locked_g_source_clear(&selfp->timeout_source);
+
     selfp->active_data = NULL;
-  
+
     if (widget)
       {
 	GSList *l;
@@ -394,7 +439,7 @@ class MN:Tooltips from G:Object
 	MN_LIST_FOREACH(l, selfp->data_list)
 	{
 	  TooltipsData *data = l->data;
-	  
+
 	  if (data->widget == widget && GTK_WIDGET_DRAWABLE(widget))
 	    {
 	      selfp->active_data = data;
@@ -428,19 +473,19 @@ class MN:Tooltips from G:Object
     TooltipsData *data;
 
     data = self_get_data(widget);
-      
+
     if (data &&
 	(data->self->_priv->active_data &&
 	 data->self->_priv->active_data->widget == widget))
       self_set_active_widget(data->self, NULL);
   }
-    
+
   private gboolean
     recently_shown (self)
   {
     GTimeVal now;
     glong msec;
-      
+
     g_get_current_time (&now);
     msec = (now.tv_sec - selfp->last_popdown.tv_sec) * 1000 +
       (now.tv_usec - selfp->last_popdown.tv_usec) / 1000;
@@ -466,9 +511,9 @@ class MN:Tooltips from G:Object
     if (GTK_IS_WINDOW(toplevel))
       {
 	GtkWidget *focus = GTK_WINDOW(toplevel)->focus_widget;
-	
+
 	g_object_set_data(G_OBJECT(toplevel), TOOLTIPS_KEYBOARD_MODE, GINT_TO_POINTER(TRUE));
-	
+
 	if (focus)
 	  self_show_tip(focus);
       }
@@ -485,23 +530,23 @@ class MN:Tooltips from G:Object
 
 	if (focus)
 	  self_hide_tip(focus);
-	
+
 	g_object_set_data(G_OBJECT(toplevel), TOOLTIPS_KEYBOARD_MODE, GINT_TO_POINTER(FALSE));
       }
   }
-  
+
   private void
     start_delay (self, Gtk:Widget *widget)
   {
     TooltipsData *old_data;
-  
+
     old_data = selfp->active_data;
     if (! old_data || old_data->widget != widget)
       {
 	self_set_active_widget(self, widget);
-	selfp->timeout_id = g_timeout_add((selfp->use_sticky_delay && self_recently_shown(self)) ? STICKY_DELAY : DELAY,
-					  self_timeout_cb,
-					  self);
+	selfp->timeout_source = mn_g_timeout_add_gdk_locked((selfp->use_sticky_delay && self_recently_shown(self)) ? STICKY_DELAY : DELAY,
+							    self_timeout_cb,
+							    self);
       }
   }
 
@@ -543,7 +588,7 @@ class MN:Tooltips from G:Object
 	    if (event_widget != widget)
 	      return;
 	  }
-  
+
 	switch (event->type)
 	  {
 	  case GDK_EXPOSE:
@@ -554,7 +599,7 @@ class MN:Tooltips from G:Object
 	    if (! (GTK_IS_MENU_ITEM(widget) && GTK_MENU_ITEM(widget)->submenu))
 	      self_start_delay(self, widget);
 	    break;
-	  
+
 	  case GDK_LEAVE_NOTIFY:
 	    self_set_active_widget(self, NULL);
 	    selfp->use_sticky_delay = selfp->window && GTK_WIDGET_VISIBLE(selfp->window);
@@ -595,7 +640,7 @@ class MN:Tooltips from G:Object
   {
     TooltipsData *data = user_data;
     Self *self = data->self;
-  
+
     if (selfp->active_data &&
 	(selfp->active_data->widget == widget))
       self_set_active_widget(self, NULL);
@@ -620,7 +665,7 @@ class MN:Tooltips from G:Object
     else
       self_start_keyboard_mode(widget);
   }
-  
+
   public MNTooltips *
     new (void)
   {

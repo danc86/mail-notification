@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,11 @@
 #include <stdarg.h>
 #include <gtk/gtk.h>
 #include <eel/eel.h>
+#include "mn-util.h"
+#include "mn-locked-callback.h"
 
 #define MN_CONF_NAMESPACE \
   "/apps/mail-notification"
-#define MN_CONF_DELAY_NAMESPACE \
-  MN_CONF_NAMESPACE "/delay"
-#define MN_CONF_DELAY_MINUTES \
-  MN_CONF_DELAY_NAMESPACE "/minutes"
-#define MN_CONF_DELAY_SECONDS \
-  MN_CONF_DELAY_NAMESPACE "/seconds"
 #define MN_CONF_COMMANDS_NAMESPACE \
   MN_CONF_NAMESPACE "/commands"
 #define MN_CONF_COMMANDS_NEW_MAIL_NAMESPACE \
@@ -45,32 +41,10 @@
   MN_CONF_COMMANDS_MAIL_READ_NAMESPACE "/enabled"
 #define MN_CONF_COMMANDS_MAIL_READ_COMMAND \
   MN_CONF_COMMANDS_MAIL_READ_NAMESPACE "/command"
-#define MN_CONF_COMMANDS_MAIL_READER_NAMESPACE \
-  MN_CONF_COMMANDS_NAMESPACE "/mail-reader"
-#define MN_CONF_COMMANDS_MAIL_READER_ENABLED \
-  MN_CONF_COMMANDS_MAIL_READER_NAMESPACE "/enabled"
-#define MN_CONF_COMMANDS_MAIL_READER_COMMAND \
-  MN_CONF_COMMANDS_MAIL_READER_NAMESPACE "/command"
 #define MN_CONF_UI_NAMESPACE \
   MN_CONF_NAMESPACE "/ui"
 #define MN_CONF_PROPERTIES_DIALOG \
   MN_CONF_UI_NAMESPACE "/properties-dialog"
-#define MN_CONF_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_NAMESPACE \
-  MN_CONF_UI_NAMESPACE "/immediate-notification-error-dialog"
-#define MN_CONF_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_DO_NOT_SHOW \
-  MN_CONF_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_NAMESPACE "/do-not-show"
-#define MN_CONF_MAIN_WINDOW_NAMESPACE \
-  MN_CONF_UI_NAMESPACE "/main-window"
-#define MN_CONF_MAIN_WINDOW_DIMENSIONS \
-  MN_CONF_MAIN_WINDOW_NAMESPACE "/dimensions"
-#define MN_CONF_MAIN_WINDOW_VIEW_TOOLBARS \
-  MN_CONF_MAIN_WINDOW_NAMESPACE "/view-toolbars"
-#define MN_CONF_MAIN_WINDOW_VIEW_STATUSBAR \
-  MN_CONF_MAIN_WINDOW_NAMESPACE "/view-statusbar"
-#define MN_CONF_MAIN_WINDOW_TOOLBARS_STYLE \
-  MN_CONF_MAIN_WINDOW_NAMESPACE "/toolbars-style"
-#define MN_CONF_MAIN_WINDOW_EDIT_TOOLBARS_DIALOG \
-  MN_CONF_MAIN_WINDOW_NAMESPACE "/edit-toolbars-dialog"
 #define MN_CONF_BLINK_ON_ERRORS \
   MN_CONF_NAMESPACE "/blink-on-errors"
 #define MN_CONF_TRUSTED_X509_CERTIFICATES \
@@ -89,6 +63,8 @@
   MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_NAMESPACE "/minutes"
 #define MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_SECONDS \
   MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_NAMESPACE "/seconds"
+#define MN_CONF_MAIL_SUMMARY_POPUP_LAYOUT \
+  MN_CONF_MAIL_SUMMARY_POPUP_NAMESPACE "/layout"
 #define MN_CONF_MAIL_SUMMARY_POPUP_POSITION \
   MN_CONF_MAIL_SUMMARY_POPUP_NAMESPACE "/position"
 #define MN_CONF_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE \
@@ -111,14 +87,24 @@
   MN_CONF_MAIL_SUMMARY_POPUP_FONTS_NAMESPACE "/contents"
 #define MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_FONT \
   MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_NAMESPACE "/font"
-#define MN_CONF_DOUBLE_CLICK_ACTION_2 \
-  MN_CONF_NAMESPACE "/double-click-action-2"
-#define MN_CONF_SUMMARY_TOOLTIP \
-  MN_CONF_NAMESPACE "/summary-tooltip"
+#define MN_CONF_DISPLAY_SEEN_MAIL \
+  MN_CONF_NAMESPACE "/display-seen-mail"
+#define MN_CONF_TOOLTIP_MAIL_SUMMARY \
+  MN_CONF_NAMESPACE "/tooltip-mail-summary"
+#define MN_CONF_ALWAYS_DISPLAY_ICON \
+  MN_CONF_NAMESPACE "/always-display-icon"
+#define MN_CONF_CLICK_ACTION \
+  MN_CONF_NAMESPACE "/click-action"
 
 /* obsolete keys */
 #define MN_CONF_OBSOLETE_MAILBOXES \
   MN_CONF_NAMESPACE "/mailboxes"
+
+/* foreign keys */
+#define MN_CONF_GNOME_MAIL_READER_NAMESPACE \
+  "/desktop/gnome/url-handlers/mailto"
+#define MN_CONF_GNOME_MAIL_READER_COMMAND \
+  MN_CONF_GNOME_MAIL_READER_NAMESPACE "/command"
 
 extern const char *mn_conf_dot_dir;
 
@@ -142,19 +128,21 @@ void		mn_conf_link_radio_group_to_enum (GType		enum_type,
 						  const char	*key,
 						  ...);
 
-gboolean	mn_conf_get_autostart	(void);
-void		mn_conf_set_autostart	(gboolean	autostart);
-
 int		mn_conf_get_enum_value	(GType		enum_type,
 					 const char	*key);
 
-void		mn_conf_notification_add (gpointer		object,
-					  const char		*key,
-					  GConfClientNotifyFunc	callback,
-					  gpointer		user_data);
-void		mn_conf_notifications_add (gpointer		object,
-					   ...);
+unsigned int	mn_conf_notification_add_full	(const char		*key,
+						 GConfClientNotifyFunc	callback,
+						 gpointer		user_data,
+						 GFreeFunc		destroy_notify);
 
-gboolean	mn_conf_has_command	(const char	*namespace);
+gboolean	mn_conf_has_command		(const char	*namespace);
+void		mn_conf_execute_command		(const char	*conf_key,
+						 gboolean	strip_format);
+
+MNLockedGSource *mn_conf_timeout_add_gdk_locked	(const char	*minutes_key,
+						 const char	*seconds_key,
+						 GSourceFunc	function,
+						 gpointer	data);
 
 #endif /* _MN_CONF_H */

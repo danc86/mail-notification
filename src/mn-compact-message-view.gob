@@ -1,0 +1,97 @@
+/* 
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include "mn-message-view.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include "mn-message-view-private.h"
+#include "mn-message.h"
+#include "mn-util.h"
+#include "mn-text-table.h"
+%}
+
+class MN:Compact:Message:View from MN:Message:View
+{
+  override (MN:Message:View) void
+    update (MNMessageView *view, GSList *messages)
+  {
+    Self *self = SELF(view);
+    time_t now;
+    GSList *l;
+
+    mn_text_table_clear(MN_TEXT_TABLE(view));
+
+    self_append_header(self, _("Mailbox"));
+    self_append_header(self, _("From"));
+    self_append_header(self, _("Subject"));
+    self_append_header(self, _("Sent"));
+    mn_text_table_line_break(MN_TEXT_TABLE(self));
+
+    now = mn_time();
+    MN_LIST_FOREACH(l, messages)
+      self_append_message(self, now, l->data);
+
+    PARENT_HANDLER(view, messages);
+  }
+
+  private void
+    append_message (self, time_t now, MN:Message *message (check null type))
+  {
+    self_append_cell(self, message->mailbox_name);
+    if (message->error)
+      self_append_cell(self, message->error);
+    else
+      {
+	self_append_cell(self, message->from);
+	self_append_cell(self, message->subject);
+
+	if (message->sent_time > 0)
+	  mn_message_view_append_past_time_cell(MN_MESSAGE_VIEW(self), message->sent_time, now);
+      }
+
+    mn_text_table_line_break(MN_TEXT_TABLE(self));
+  }
+
+  private void
+    append_header (self, const char *name (check null))
+  {
+    char *markup;
+
+    markup = g_markup_printf_escaped("<span weight=\"bold\">%s</span>", name);
+    mn_text_table_append_text_cell_from_markup(MN_TEXT_TABLE(self), markup);
+    g_free(markup);
+  }
+
+  private void
+    append_cell (self, const char *text (check null))
+  {
+    mn_text_table_append_text_cell(MN_TEXT_TABLE(self), text);
+  }
+
+  public GtkWidget *
+    new (void)
+  {
+    return GTK_WIDGET(GET_NEW);
+  }
+}

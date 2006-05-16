@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include "mn-dialog.h"
@@ -47,30 +47,26 @@ class MN:Properties:Dialog from MN:Dialog
   private GtkWidget *notebook;
 
   /* general tab */
-  private GtkWidget *autostart_check;
-  private GtkWidget *blink_check;
-  private GtkWidget *summary_tooltip_check;
-  private GtkWidget *command_mail_reader_check;
-  private GtkWidget *command_mail_reader_entry;
-  private GtkWidget *command_new_mail_check;
-  private GtkWidget *command_new_mail_entry;
-  private GtkWidget *command_mail_read_check;
-  private GtkWidget *command_mail_read_entry;
-  private GtkWidget *action_main_window_radio;
-  private GtkWidget *action_mail_reader_radio;
-  private GtkWidget *action_update_radio;
-
-  /* mailboxes tab */
-  private GtkWidget *delay_label;
-  private GtkWidget *minutes_spin;
-  private GtkWidget *minutes_label;
-  private GtkWidget *seconds_spin;
-  private GtkWidget *seconds_label;
+  private GtkWidget *display_seen_mail_check;
   private GtkWidget *scrolled;
   private GtkWidget *list;
   private GtkWidget *selected_label;
   private GtkWidget *remove;
   private GtkWidget *properties;
+  private GtkWidget *command_new_mail_check;
+  private GtkWidget *command_new_mail_entry;
+  private GtkWidget *command_mail_read_check;
+  private GtkWidget *command_mail_read_entry;
+
+  /* status icon tab */
+  private GtkWidget *icon_blink_check;
+  private GtkWidget *icon_always_display_check;
+  private GtkWidget *icon_tooltip_mail_summary_standard_radio;
+  private GtkWidget *icon_tooltip_mail_summary_compact_radio;
+  private GtkWidget *icon_tooltip_mail_summary_none_radio;
+  private GtkWidget *icon_action_properties_dialog_radio;
+  private GtkWidget *icon_action_mail_reader_radio;
+  private GtkWidget *icon_action_update_radio;
 
   /* mail summary popup tab */
   private GtkWidget *summary_enable_check;
@@ -80,6 +76,7 @@ class MN:Properties:Dialog from MN:Dialog
   private GtkWidget *summary_seconds_spin;
   private GtkWidget *summary_seconds_label;
   private GtkWidget *summary_only_recent_check;
+  private GtkWidget *summary_position_section_label;
   private GtkWidget *summary_position_label;
   private GtkWidget *summary_position_combo;
   private GtkWidget *summary_horizontal_offset_label;
@@ -88,6 +85,10 @@ class MN:Properties:Dialog from MN:Dialog
   private GtkWidget *summary_vertical_offset_label;
   private GtkWidget *summary_vertical_offset_spin;
   private GtkWidget *summary_vertical_pixels_label;
+  private GtkWidget *summary_layout_section_label;
+  private GtkWidget *summary_layout_standard_radio;
+  private GtkWidget *summary_layout_compact_radio;
+  private GtkWidget *summary_fonts_section_label;
   private GtkWidget *summary_fonts_from_theme_radio;
   private GtkWidget *summary_custom_fonts_radio;
   private GtkWidget *summary_title_font_alignment;
@@ -107,7 +108,7 @@ class MN:Properties:Dialog from MN:Dialog
 	  gtk_widget_destroy(VAR);
 	}
     };
-  
+
   init (self)
   {
     GtkSizeGroup *size_group;
@@ -116,31 +117,27 @@ class MN:Properties:Dialog from MN:Dialog
     GtkCellRenderer *renderer;
 
     mn_container_create_interface(GTK_CONTAINER(self),
-				  MN_INTERFACE_FILE("properties-dialog.glade"),
+				  UIDIR G_DIR_SEPARATOR_S "properties-dialog.glade",
 				  "notebook",
 				  "mn_properties_dialog_",
 				  "notebook", &selfp->notebook,
-				  "autostart_check", &selfp->autostart_check,
-				  "blink_check", &selfp->blink_check,
-				  "summary_tooltip_check", &selfp->summary_tooltip_check,
-				  "command_mail_reader_check", &selfp->command_mail_reader_check,
-				  "command_mail_reader_entry", &selfp->command_mail_reader_entry,
-				  "command_new_mail_check", &selfp->command_new_mail_check,
-				  "command_new_mail_entry", &selfp->command_new_mail_entry,
-				  "command_mail_read_check", &selfp->command_mail_read_check,
-				  "command_mail_read_entry", &selfp->command_mail_read_entry,
-				  "action_main_window_radio", &selfp->action_main_window_radio,
-				  "action_mail_reader_radio", &selfp->action_mail_reader_radio,
-				  "action_update_radio", &selfp->action_update_radio,
-				  "delay_label", &selfp->delay_label,
-				  "minutes_spin", &selfp->minutes_spin,
-				  "minutes_label", &selfp->minutes_label,
-				  "seconds_spin", &selfp->seconds_spin,
-				  "seconds_label", &selfp->seconds_label,
+				  "display_seen_mail_check", &selfp->display_seen_mail_check,
 				  "scrolled", &selfp->scrolled,
 				  "selected_label", &selfp->selected_label,
 				  "remove", &selfp->remove,
 				  "properties", &selfp->properties,
+				  "command_new_mail_check", &selfp->command_new_mail_check,
+				  "command_new_mail_entry", &selfp->command_new_mail_entry,
+				  "command_mail_read_check", &selfp->command_mail_read_check,
+				  "command_mail_read_entry", &selfp->command_mail_read_entry,
+				  "icon_blink_check", &selfp->icon_blink_check,
+				  "icon_always_display_check", &selfp->icon_always_display_check,
+				  "icon_tooltip_mail_summary_standard_radio", &selfp->icon_tooltip_mail_summary_standard_radio,
+				  "icon_tooltip_mail_summary_compact_radio", &selfp->icon_tooltip_mail_summary_compact_radio,
+				  "icon_tooltip_mail_summary_none_radio", &selfp->icon_tooltip_mail_summary_none_radio,
+				  "icon_action_properties_dialog_radio", &selfp->icon_action_properties_dialog_radio,
+				  "icon_action_mail_reader_radio", &selfp->icon_action_mail_reader_radio,
+				  "icon_action_update_radio", &selfp->icon_action_update_radio,
 				  "summary_enable_check", &selfp->summary_enable_check,
 				  "summary_autoclose_check", &selfp->summary_autoclose_check,
 				  "summary_minutes_spin", &selfp->summary_minutes_spin,
@@ -148,6 +145,7 @@ class MN:Properties:Dialog from MN:Dialog
 				  "summary_seconds_spin", &selfp->summary_seconds_spin,
 				  "summary_seconds_label", &selfp->summary_seconds_label,
 				  "summary_only_recent_check", &selfp->summary_only_recent_check,
+				  "summary_position_section_label", &selfp->summary_position_section_label,
 				  "summary_position_label", &selfp->summary_position_label,
 				  "summary_position_combo", &selfp->summary_position_combo,
 				  "summary_horizontal_offset_label", &selfp->summary_horizontal_offset_label,
@@ -156,6 +154,10 @@ class MN:Properties:Dialog from MN:Dialog
 				  "summary_vertical_offset_label", &selfp->summary_vertical_offset_label,
 				  "summary_vertical_offset_spin", &selfp->summary_vertical_offset_spin,
 				  "summary_vertical_pixels_label", &selfp->summary_vertical_pixels_label,
+				  "summary_layout_section_label", &selfp->summary_layout_section_label,
+				  "summary_layout_standard_radio", &selfp->summary_layout_standard_radio,
+				  "summary_layout_compact_radio", &selfp->summary_layout_compact_radio,
+				  "summary_fonts_section_label", &selfp->summary_fonts_section_label,
 				  "summary_fonts_from_theme_radio", &selfp->summary_fonts_from_theme_radio,
 				  "summary_custom_fonts_radio", &selfp->summary_custom_fonts_radio,
 				  "summary_title_font_alignment", &selfp->summary_title_font_alignment,
@@ -167,6 +169,7 @@ class MN:Properties:Dialog from MN:Dialog
 				  "summary_test_button", &selfp->summary_test_button,
 				  NULL);
 
+    /* translators: header capitalization */
     gtk_window_set_title(GTK_WINDOW(self), _("Mail Notification Properties"));
     gtk_dialog_add_buttons(GTK_DIALOG(self),
 			   GTK_STOCK_HELP, GTK_RESPONSE_HELP,
@@ -182,15 +185,14 @@ class MN:Properties:Dialog from MN:Dialog
 		     "swapped-signal::changed", self_update_selected_label, self,
 		     "swapped-signal::changed", self_update_sensitivity, self,
 		     NULL);
-  
+
     mn_setup_dnd(selfp->scrolled);
 
     size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
-    gtk_size_group_add_widget(size_group, selfp->command_mail_reader_check);
     gtk_size_group_add_widget(size_group, selfp->command_new_mail_check);
     gtk_size_group_add_widget(size_group, selfp->command_mail_read_check);
     g_object_unref(size_group);
-  
+
     size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
     gtk_size_group_add_widget(size_group, selfp->summary_autoclose_check);
     gtk_size_group_add_widget(size_group, selfp->summary_position_label);
@@ -199,8 +201,6 @@ class MN:Properties:Dialog from MN:Dialog
     gtk_size_group_add_widget(size_group, selfp->summary_title_font_alignment);
     gtk_size_group_add_widget(size_group, selfp->summary_contents_font_alignment);
     g_object_unref(size_group);
-
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->autostart_check), mn_conf_get_autostart());
 
     position_store = gtk_list_store_new(POSITION_N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING);
 
@@ -217,18 +217,15 @@ class MN:Properties:Dialog from MN:Dialog
 
     gtk_combo_box_set_model(GTK_COMBO_BOX(selfp->summary_position_combo), GTK_TREE_MODEL(position_store));
     g_object_unref(position_store);
-  
+
     mn_conf_link(self, MN_CONF_PROPERTIES_DIALOG,
-		 selfp->blink_check, MN_CONF_BLINK_ON_ERRORS, "active",
-		 selfp->summary_tooltip_check, MN_CONF_SUMMARY_TOOLTIP, "active",
-		 selfp->command_mail_reader_check, MN_CONF_COMMANDS_MAIL_READER_ENABLED, "active",
-		 selfp->command_mail_reader_entry, MN_CONF_COMMANDS_MAIL_READER_COMMAND, "text",
+		 selfp->display_seen_mail_check, MN_CONF_DISPLAY_SEEN_MAIL, "active",
 		 selfp->command_new_mail_check, MN_CONF_COMMANDS_NEW_MAIL_ENABLED, "active",
 		 selfp->command_new_mail_entry, MN_CONF_COMMANDS_NEW_MAIL_COMMAND, "text",
 		 selfp->command_mail_read_check, MN_CONF_COMMANDS_MAIL_READ_ENABLED, "active",
 		 selfp->command_mail_read_entry, MN_CONF_COMMANDS_MAIL_READ_COMMAND, "text",
-		 selfp->minutes_spin, MN_CONF_DELAY_MINUTES,
-		 selfp->seconds_spin, MN_CONF_DELAY_SECONDS,
+		 selfp->icon_blink_check, MN_CONF_BLINK_ON_ERRORS, "active",
+		 selfp->icon_always_display_check, MN_CONF_ALWAYS_DISPLAY_ICON, "active",
 		 selfp->summary_enable_check, MN_CONF_MAIL_SUMMARY_POPUP_ENABLE, "active",
 		 selfp->summary_autoclose_check, MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE, "active",
 		 selfp->summary_minutes_spin, MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_MINUTES,
@@ -239,11 +236,22 @@ class MN:Properties:Dialog from MN:Dialog
 		 selfp->summary_title_font_button, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_FONT, "font-name",
 		 selfp->summary_contents_font_button, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_FONT, "font-name",
 		 NULL);
+    mn_conf_link_radio_group_to_enum(MN_TYPE_SHELL_TOOLTIP_MAIL_SUMMARY,
+				     MN_CONF_TOOLTIP_MAIL_SUMMARY,
+				     selfp->icon_tooltip_mail_summary_standard_radio, MN_SHELL_TOOLTIP_MAIL_SUMMARY_STANDARD,
+				     selfp->icon_tooltip_mail_summary_compact_radio, MN_SHELL_TOOLTIP_MAIL_SUMMARY_COMPACT,
+				     selfp->icon_tooltip_mail_summary_none_radio, MN_SHELL_TOOLTIP_MAIL_SUMMARY_NONE,
+				     NULL);
     mn_conf_link_radio_group_to_enum(MN_TYPE_ACTION,
-				     MN_CONF_DOUBLE_CLICK_ACTION_2,
-				     selfp->action_main_window_radio, MN_ACTION_DISPLAY_MAIN_WINDOW,
-				     selfp->action_mail_reader_radio, MN_ACTION_LAUNCH_MAIL_READER,
-				     selfp->action_update_radio, MN_ACTION_UPDATE_MAIL_STATUS,
+				     MN_CONF_CLICK_ACTION,
+				     selfp->icon_action_properties_dialog_radio, MN_ACTION_DISPLAY_PROPERTIES_DIALOG,
+				     selfp->icon_action_mail_reader_radio, MN_ACTION_LAUNCH_MAIL_READER,
+				     selfp->icon_action_update_radio, MN_ACTION_UPDATE_MAIL_STATUS,
+				     NULL);
+    mn_conf_link_radio_group_to_enum(MN_TYPE_MAIL_SUMMARY_POPUP_LAYOUT,
+				     MN_CONF_MAIL_SUMMARY_POPUP_LAYOUT,
+				     selfp->summary_layout_standard_radio, MN_MAIL_SUMMARY_POPUP_LAYOUT_STANDARD,
+				     selfp->summary_layout_compact_radio, MN_MAIL_SUMMARY_POPUP_LAYOUT_COMPACT,
 				     NULL);
     mn_conf_link_radio_group_to_enum(MN_TYPE_ASPECT_SOURCE,
 				     MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE,
@@ -256,11 +264,6 @@ class MN:Properties:Dialog from MN:Dialog
 
     self_update_selected_label(self);
     self_update_sensitivity(self);
-
-    mn_g_object_connect(self,
-			mn_shell->mailboxes,
-			"swapped-signal::notify::must-poll", self_update_sensitivity, self,
-			NULL);
 
     g_signal_connect(self, "response", G_CALLBACK(self_response_h), NULL);
   }
@@ -275,17 +278,17 @@ class MN:Properties:Dialog from MN:Dialog
 	  int current_page;
 	  const char *sections[] = {
 	    "properties-general",
-	    "properties-mailboxes",
+	    "properties-status-icon",
 	    "properties-mail-summary-popup"
 	  };
-	
+
 	  current_page = gtk_notebook_get_current_page(GTK_NOTEBOOK(selfp->notebook));
-	  g_return_if_fail(current_page >= 0 && current_page < G_N_ELEMENTS(sections));
+	  g_assert(current_page >= 0 && current_page < G_N_ELEMENTS(sections));
 
 	  mn_display_help(GTK_WINDOW(self), sections[current_page]);
 	  break;
 	}
-    
+
       case GTK_RESPONSE_CLOSE:
 	gtk_widget_destroy(GTK_WIDGET(self));
 	break;
@@ -302,7 +305,7 @@ class MN:Properties:Dialog from MN:Dialog
     GtkTreeIter iter;
 
     enum_class = g_type_class_ref(MN_TYPE_POSITION);
-    g_return_if_fail(enum_class != NULL);
+    g_assert(enum_class != NULL);
 
     enum_value = g_enum_get_value(enum_class, position);
     g_return_if_fail(enum_value != NULL);
@@ -342,30 +345,19 @@ class MN:Properties:Dialog from MN:Dialog
   private void
     update_sensitivity (self)
   {
-    gboolean command_mail_reader_enabled;
     gboolean command_new_mail_enabled;
     gboolean command_mail_read_enabled;
-    gboolean must_poll;
     GtkTreeSelection *selection;
     gboolean has_selection;
     gboolean summary_enabled;
     gboolean summary_autoclose_enabled;
     gboolean summary_custom_fonts_enabled;
 
-    command_mail_reader_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->command_mail_reader_check));
     command_new_mail_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->command_new_mail_check));
     command_mail_read_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->command_mail_read_check));
 
-    gtk_widget_set_sensitive(selfp->command_mail_reader_entry, command_mail_reader_enabled);
     gtk_widget_set_sensitive(selfp->command_new_mail_entry, command_new_mail_enabled);
     gtk_widget_set_sensitive(selfp->command_mail_read_entry, command_mail_read_enabled);
-
-    must_poll = mn_mailboxes_get_must_poll(mn_shell->mailboxes);
-    gtk_widget_set_sensitive(selfp->delay_label, must_poll);
-    gtk_widget_set_sensitive(selfp->minutes_spin, must_poll);
-    gtk_widget_set_sensitive(selfp->minutes_label, must_poll);
-    gtk_widget_set_sensitive(selfp->seconds_spin, must_poll);
-    gtk_widget_set_sensitive(selfp->seconds_label, must_poll);
 
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(selfp->list));
     has_selection = gtk_tree_selection_count_selected_rows(selection) > 0;
@@ -383,6 +375,7 @@ class MN:Properties:Dialog from MN:Dialog
     gtk_widget_set_sensitive(selfp->summary_seconds_spin, summary_enabled && summary_autoclose_enabled);
     gtk_widget_set_sensitive(selfp->summary_seconds_label, summary_enabled && summary_autoclose_enabled);
     gtk_widget_set_sensitive(selfp->summary_only_recent_check, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_position_section_label, summary_enabled);
     gtk_widget_set_sensitive(selfp->summary_position_label, summary_enabled);
     gtk_widget_set_sensitive(selfp->summary_position_combo, summary_enabled);
     gtk_widget_set_sensitive(selfp->summary_horizontal_offset_label, summary_enabled);
@@ -391,6 +384,10 @@ class MN:Properties:Dialog from MN:Dialog
     gtk_widget_set_sensitive(selfp->summary_vertical_offset_label, summary_enabled);
     gtk_widget_set_sensitive(selfp->summary_vertical_offset_spin, summary_enabled);
     gtk_widget_set_sensitive(selfp->summary_vertical_pixels_label, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_layout_section_label, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_layout_standard_radio, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_layout_compact_radio, summary_enabled);
+    gtk_widget_set_sensitive(selfp->summary_fonts_section_label, summary_enabled);
     gtk_widget_set_sensitive(selfp->summary_fonts_from_theme_radio, summary_enabled);
     gtk_widget_set_sensitive(selfp->summary_custom_fonts_radio, summary_enabled);
     gtk_widget_set_sensitive(selfp->summary_title_font_label, summary_enabled && summary_custom_fonts_enabled);
@@ -405,19 +402,13 @@ class MN:Properties:Dialog from MN:Dialog
   {
     return selfp->test_popup != NULL;
   }
-  
+
   /* libglade callbacks */
 
   protected void
     toggled_h (self, GtkToggleButton *button)
   {
     self_update_sensitivity(self);
-  }
-
-  protected void
-    autostart_toggled_h (self, GtkToggleButton *togglebutton)
-  {
-    mn_conf_set_autostart(gtk_toggle_button_get_active(togglebutton));
   }
 
   protected void
@@ -467,8 +458,10 @@ class MN:Properties:Dialog from MN:Dialog
 				 NULL,
 				 now,
 				 NULL,
+				 /* translators: header capitalization */
 				 _("Mail Notification Properties Dialog"),
-				 subject);
+				 subject,
+				 MN_MESSAGE_NEW);
 	g_free(subject);
 
 	messages = g_slist_append(messages, message);

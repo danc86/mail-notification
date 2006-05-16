@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "2.0">
-  <!ENTITY manrevision "2.12">
-  <!ENTITY date "Tuesday, August 9, 2005">
+  <!ENTITY appversion "3.0 Release Candidate 1">
+  <!ENTITY manrevision "2.13">
+  <!ENTITY date "Tuesday, May 16, 2006">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,10 +26,10 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.113 2005/08/09 19:17:30 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.130 2006/05/16 00:10:50 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
-<!-- Copyright (C) 2004, 2005 Jean-Yves Lefort -->
+<!-- Copyright (C) 2004-2006 Jean-Yves Lefort -->
 <!-- All rights reserved. -->
 
 <!-- Redistribution and use in source (SGML DocBook) and 'compiled' -->
@@ -73,6 +73,7 @@
     <copyright>
       <year>2004</year>
       <year>2005</year>
+      <year>2006</year>
       <holder>Jean-Yves Lefort</holder>
     </copyright>
 <!-- translators: uncomment this:
@@ -126,6 +127,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.12</revnumber>
+	<date>Tuesday, August 9, 2005</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -322,13 +334,13 @@
       </para>
       <variablelist>
     	<varlistentry>
-	  <term><guimenu>Applications</guimenu> menu</term>
+	  <term><guimenu>Desktop</guimenu> menu</term>
 	  <listitem>
 	    <para>Choose
 	      <menuchoice>
-    		<guisubmenu>Internet</guisubmenu>
+    		<guisubmenu>Preferences</guisubmenu>
     		<guimenuitem>&app;</guimenuitem>
-	      </menuchoice>.</para>
+	      </menuchoice> (this location may vary across systems).</para>
 	  </listitem>
     	</varlistentry>
 
@@ -349,6 +361,11 @@
 	    </para>
 	    <variablelist>
 	      <varlistentry>
+		<term>--version</term>
+		<listitem><para>Show version information and compiled-in features</para></listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term>--enable-info</term>
 		<listitem>
 		  <para>Enable informational output</para>
@@ -361,16 +378,6 @@
 		    </para>
 		  </warning>
 		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
-		<term>--list-features</term>
-		<listitem><para>List the compiled-in features</para></listitem>
-	      </varlistentry>
-
-	      <varlistentry>
-		<term>--display-main-window</term>
-		<listitem><para>Display the main window</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
@@ -442,13 +449,6 @@
       <itemizedlist>
 	<listitem>
 	  <para>
-	    the <guilabel>Mail Notification</guilabel> > <guilabel>New Mail</guilabel>
-	    GNOME sound event is emitted (you can configure the sound
-	    to be played from the GNOME sound preferences)
-	  </para>
-	</listitem>
-	<listitem>
-	  <para>
 	    if a command to be executed when new mail arrives is set in
 	    the <link linkend="commands">Commands</link> properties,
 	    that command is executed
@@ -468,106 +468,13 @@
       </para>
       <para>
 	Leaving your mouse over the icon will reveal more details
-	about the status of your mailboxes. Double-clicking on the
+	about the status of your mailboxes. Clicking on the
 	icon will perform the action specified in the
-	<link linkend="double-click-action">Double-click Action</link> setting.
+	<link linkend="click-action">Click Action</link> setting.
       </para>
     </sect2>
   </sect1>
 
-  <sect1 id="main-window">
-    <title>Main Window</title>
-    <para>
-      You can access the main window in the following ways:
-    </para>
-    <variablelist>
-      <varlistentry>
-	<term><guimenu>Applications</guimenu> menu</term>
-	<listitem>
-	  <para>Choose
-	    <menuchoice>
-	      <guisubmenu>Internet</guisubmenu>
-	      <guimenuitem>&app;</guimenuitem>
-	    </menuchoice>.</para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
-	<term>Command line</term>
-	<listitem>
-	  <para>
-	    Type the following command, then press <keycap>Return</keycap>:
-	  </para>
-	  <para>
-	    <command>mail-notification --display-main-window</command>
-	  </para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
-	<term>Mail icon</term>
-	<listitem>
-	  <para>
-	    Right-click on the mail icon and choose
-	    <menuchoice><guimenuitem>Main Window</guimenuitem></menuchoice>.
-	  </para>
-	</listitem>
-      </varlistentry>
-    </variablelist>
-	 
-    <para>
-      The main window displays the list of new and unread messages,
-      sorted by sent date in descending order.
-    </para>
-    <para>
-      The main window can also be used to invoke &app; features when
-      the mail icon is hidden.
-    </para>
-
-    <sect2 id="main-window-edit-toolbars">
-      <title>Editing the Main Window Toolbars</title>
-      <para>
-	To edit the main window toolbars, choose
-	<menuchoice> 
-	  <guimenu>Edit</guimenu> 
-	  <guimenuitem>Toolbars</guimenuitem> 
-	</menuchoice>, then:
-      </para>
-      <itemizedlist>
-	<listitem>
-	  <para>
-	    To add or remove buttons from your toolbars, drag icons
-	    from and to the editor.
-	  </para>
-	</listitem>
-	<listitem>
-	  <para>
-	    To reset the toolbars configuration to factory defaults,
-	    click on the <guibutton>Use Default</guibutton> button.
-	  </para>
-	</listitem>
-	<listitem>
-	  <para>
-	    To add a new toolbar, click on the <guibutton>Add a New
-	    Toolbar</guibutton> button.
-	  </para>
-	</listitem>
-	<listitem>
-	  <para>
-	    To remove a toolbar, remove all items from it. The toolbar
-	    will then automatically be removed.
-	  </para>
-	</listitem>
-	<listitem>
-	  <para>
-	    Drag buttons to rearrange them either on the same toolbar
-	    or between different toolbars.
-	  </para>
-	</listitem>
-      </itemizedlist>
-    </sect2>
-  </sect1>
-    
   <sect1 id="properties"> 
     <title>Properties</title> 
     <para>To configure &app;, choose
@@ -586,7 +493,7 @@
 	<para><link linkend="properties-general">General</link></para>
       </listitem>
       <listitem>
-	<para><link linkend="properties-mailboxes">Mailboxes</link></para>
+	<para><link linkend="properties-status-icon">Status Icon</link></para>
       </listitem>
       <listitem>
 	<para><link linkend="properties-mail-summary-popup">Mail Summary Popup</link></para>
@@ -601,95 +508,25 @@
 	  <listitem>
 	    <variablelist>
 	      <varlistentry>
-		<term><guilabel>Start Mail Notification on GNOME login</guilabel></term>
+		<term><guilabel>Display seen mail</guilabel></term>
 		<listitem>
 		  <para>
-		    If this option is enabled, &app; will be started along
-		    with your GNOME session.
+		    If this option is enabled, mail which is still
+		    marked as unread but has been seen will be
+		    displayed.
 		  </para>
-		</listitem>
-	      </varlistentry>
-	      <varlistentry id="blink-on-errors">
-		<term><guilabel>Blink on errors</guilabel></term>
-		<listitem>
 		  <para>
-		    If this option is enabled, &app; will show the status
-		    icon and make it blink on errors. Disabling this option
-		    is useful if some of your mailboxes are not permanently
-		    accessible.
-		  </para>
-		</listitem>
-	      </varlistentry>
-	      <varlistentry>
-		<term><guilabel>Display mail summary in tooltip</guilabel></term>
-		<listitem>
-		  <para>
-		    If this option is enabled, the mail summary will
-		    be displayed in the status icon tooltip.
+		    The following mailbox types make a distinction
+		    between seen and unseen mail: &mbox;, &maildir;,
+		    &pop3;, &imap;, Evolution and &sylpheed;. Other
+		    mailbox types consider all unread mail as unseen.
 		  </para>
 		</listitem>
 	      </varlistentry>
 	    </variablelist>
 	  </listitem>
 	</varlistentry>
-	<varlistentry id="commands">
-	  <term><guilabel>Commands</guilabel></term>
-	  <listitem>
-	    <para>
-	      You can specify a <guilabel>mail reader</guilabel>
-	      (which can be launched from various parts of &app;), as
-	      well as configure commands to be executed <guilabel>when new mail arrives</guilabel>
-	      and <guilabel>when all mail has been read</guilabel>.
-	    </para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry id="double-click-action">
-	  <term><guilabel>Double-click Action</guilabel></term>
-	  <listitem>
-	    <para>
-	      You can choose an action to be performed when the mail
-	      icon is double-clicked:
-	      <guilabel>display the main window</guilabel>,
-	      <guilabel>launch the mail reader</guilabel> or
-	      <guilabel>update the mail status</guilabel>.
-	    </para>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-    </sect2>
-    
-    <sect2 id="properties-mailboxes">
-      <title>Mailboxes</title>
-      <variablelist>
-	<varlistentry>
-	  <term><guilabel>General</guilabel></term>
-	  <listitem>
-	    <variablelist>
-	      <varlistentry id="delay-between-mail-checks">
-		<term><guilabel>Delay between mail checks</guilabel></term>
-		<listitem>
-		  <para>
-		    This is the amount of time to wait between mail
-		    checks.
-		    <note>
-		      <para>
-			This delay only applies to mailboxes which do
-			not support <link linkend="immediate-notification">immediate
-			notification</link> of changes.
-		      </para>
-		      <para>
-			If all the mailboxes support <link
-			linkend="immediate-notification">immediate
-			notification</link>, this control is disabled.
-		      </para>
-		    </note>
-		  </para>
-		</listitem>
-	      </varlistentry>
-	    </variablelist>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
+	<varlistentry id="mailbox-list">
 	  <term><guilabel>Mailbox List</guilabel></term>
 	  <listitem>
 	    <para>
@@ -735,7 +572,7 @@
 		      mailbox. The mailbox is unhandled.
 		    </entry>
 		  </row>
-		  <row>
+		  <row id="poll-emblem">
 		    <entry>
 		      <screenshot>
 			<mediaobject>
@@ -750,7 +587,7 @@
 		    </entry>
 		    <entry>
 		      The mailbox does not support <link linkend="immediate-notification">immediate notification</link>,
-		      and is checked periodically according to the
+		      and is checked periodically according to its
 		      <link linkend="delay-between-mail-checks">Delay between mail checks</link> setting.
 		    </entry>
 		  </row>
@@ -777,6 +614,73 @@
 	    </table>
 	  </listitem>
 	</varlistentry>
+	<varlistentry id="commands">
+	  <term><guilabel>Commands</guilabel></term>
+	  <listitem>
+	    <para>
+	      You can configure commands to be executed <guilabel>when
+	      new mail arrives</guilabel> and <guilabel>when all mail
+	      has been read</guilabel>.
+	    </para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+    
+    <sect2 id="properties-status-icon">
+      <title>Status Icon</title>
+      <variablelist>
+	<varlistentry>
+	  <term><guilabel>General</guilabel></term>
+	  <listitem>
+	    <variablelist>
+	      <varlistentry id="blink-on-errors">
+		<term><guilabel>Blink on errors</guilabel></term>
+		<listitem>
+		  <para>
+		    If this option is enabled, &app; will show the status
+		    icon and make it blink on errors. Disabling this option
+		    is useful if some of your mailboxes are not permanently
+		    accessible.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Always display</guilabel></term>
+		<listitem>
+		  <para>
+		    If this is option is enabled, &app; will display
+		    an icon even when there is no new mail.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><guilabel>Tooltip Mail Summary</guilabel></term>
+	  <listitem>
+	    <para>
+	      You can choose the layout of the tooltip mail summary
+	      (<guilabel>standard</guilabel> or
+	      <guilabel>compact</guilabel>), or you can choose to
+	      disable the tooltip mail summary
+	      (<guilabel>none</guilabel>).
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry id="click-action">
+	  <term><guilabel>Click Action</guilabel></term>
+	  <listitem>
+	    <para>
+	      You can choose an action to be performed when the mail
+	      icon is clicked:
+	      <guilabel>display this dialog</guilabel>,
+	      <guilabel>launch the mail reader</guilabel> or
+	      <guilabel>update the mail status</guilabel>.
+	    </para>
+	  </listitem>
+	</varlistentry>
       </variablelist>
     </sect2>
 
@@ -793,12 +697,6 @@
 		  <para>
 		    If this option is enabled, the mail summary popup
 		    will be displayed when new mail arrives.
-		    <note>
-		      <para>
-			The mail summary popup will not be displayed
-			if the <link linkend="main-window">main window</link> is displayed.
-		      </para>
-		    </note>
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -818,11 +716,14 @@
 		</listitem>
 	      </varlistentry>
 	      <varlistentry>
-		<term><guilabel>Only display recent mail</guilabel></term>
+		<term><guilabel>Hide previously displayed mail</guilabel></term>
 		<listitem>
 		  <para>
 		    If this option is enabled, the mail summary popup
-		    will hide previously displayed mail.
+		    will only show new mail once (that is, the next
+		    time the mail summary is popped up, it will only
+		    display mail that was received since it was last
+		    popped up).
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -863,6 +764,16 @@
 		</listitem>
 	      </varlistentry>
 	    </variablelist>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><guilabel>Layout</guilabel></term>
+	  <listitem>
+	    <para>
+	      You can choose the layout of the mail summary:
+	      <guilabel>standard</guilabel> or
+	      <guilabel>compact</guilabel>.
+	    </para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -937,6 +848,24 @@
 	      other options.
 	    </para>
 	  </note>
+	</listitem>
+      </varlistentry>
+      <varlistentry id="delay-between-mail-checks">
+	<term><guilabel>Delay between mail checks</guilabel></term>
+	<listitem>
+	  <para>
+	    This is the amount of time to wait between mail checks.
+	    <note>
+	      <para>
+		This delay is only used if the mailbox does not support
+		<link linkend="immediate-notification">immediate notification</link>
+		of changes. If this is the case, an <link
+		linkend="poll-emblem">emblem</link> will be displayed
+		in the <link linkend="mailbox-list">mailbox
+		list</link>.
+	      </para>
+	    </note>
+	  </para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -1277,8 +1206,11 @@
 	  If immediate notification cannot be enabled for a mailbox
 	  (either because that type of mailbox does not support it or
 	  because the requirements are not met), the mailbox will be
-	  checked periodically according to the
-	  <link linkend="delay-between-mail-checks">Delay between mail checks</link> setting.
+	  checked periodically according to its
+	  <link linkend="delay-between-mail-checks">Delay between mail checks</link> setting,
+	  and an <link linkend="poll-emblem">emblem</link> will be
+	  displayed in the <link linkend="mailbox-list">mailbox
+	  list</link>.
 	</para>
       </note>
     </sect2>
@@ -1424,8 +1356,12 @@ if (! success) {
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>status icon</entry>
+	      <entry>status icon when there is new mail</entry>
 	      <entry>mn-mail</entry>
+	    </row>
+	    <row>
+	      <entry>status icon when there is no new mail</entry>
+	      <entry>mn-no-mail</entry>
 	    </row>
 	    <row>
 	      <entry>local mailbox</entry>
@@ -1470,14 +1406,6 @@ if (! success) {
 	    <row>
 	      <entry>mail reader</entry>
 	      <entry>mn-mail-reader</entry>
-	    </row>
-	    <row>
-	      <entry>main window</entry>
-	      <entry>mn-main-window</entry>
-	    </row>
-	    <row>
-	      <entry>leave fullscreen</entry>
-	      <entry>mn-leave-fullscreen</entry>
 	    </row>
 	    <row>
 	      <entry>connect (in the SSL/TLS confirmation dialog)</entry>
@@ -1550,6 +1478,99 @@ widget "*" style "mn-icons"</programlisting>
     </sect2>
   </sect1>
     
+  <sect1 id="faq">
+    <title>Frequently Asked Questions</title>
+    <qandaset defaultlabel="number">
+      <qandaentry>
+	<question>
+	  <para>
+	    How can I access the <link
+	    linkend="properties">Properties</link> dialog?
+	  </para>
+	</question>
+	<answer>
+	  <para>
+	    Choose
+	    <menuchoice>
+	      <guimenu>Desktop</guimenu>
+	      <guisubmenu>Preferences</guisubmenu>
+	      <guimenuitem>Mail Notification</guimenuitem>
+	    </menuchoice> (this location may vary across systems) or type
+	    <command>mail-notification -p</command> in a terminal.
+	  </para>
+	</answer>
+      </qandaentry>
+      <qandaentry>
+	<question>
+	  <para>
+	    You say that &app; supports &lt;insert mailbox type or
+	    feature&gt;, but there is no such entry in the <link
+	    linkend="mailbox-properties">Mailbox Properties</link>
+	    dialog.
+	  </para>
+	</question>
+	<answer>
+	  <para>
+	    &app; was built without support for &lt;insert mailbox
+	    type or feature&gt;.
+	  </para>
+	  <para>
+	    If you have installed &app; from a package, contact the
+	    package maintainer and ask him to enable &lt;insert
+	    mailbox type or feature&gt; support.
+	  </para>
+	  <para>
+	    If you have built &app; yourself, install the &lt;insert
+	    mailbox type or feature&gt; prerequisites (they are listed
+	    in the <filename>INSTALL</filename> file), then rebuild
+	    &app;.
+	  </para>
+	</answer>
+      </qandaentry>
+      <qandaentry>
+	<question>
+	  <para>
+	    I need &ssl;/&tls; for connecting to my &pop3; or &imap;
+	    server, but the &ssl;/&tls; options are greyed out.
+	  </para>
+	</question>
+	<answer>
+	  <para>
+	    See the previous question.
+	  </para>
+	</answer>
+      </qandaentry>
+      <qandaentry>
+	<question>
+	  <para>
+	    How can I monitor multiple &imap; folders?
+	  </para>
+	</question>
+	<answer>
+	  <para>
+	    Add each folder as a separate &app; mailbox.
+	  </para>
+	</answer>
+      </qandaentry>
+      <qandaentry>
+	<question>
+	  <para>
+	    Can I monitor a &lt;insert webmail provider&gt; account?
+	  </para>
+	</question>
+	<answer>
+	  <para>
+	    &app; has no native support for &lt;insert webmail
+	    provider&gt; mailboxes. However, &app; supports the &pop3;
+	    and &imap; protocols; you can therefore use a separate
+	    application for providing &pop3; or &imap; access to the
+	    &lt;insert webmail provider&gt; account.
+	  </para>
+	</answer>
+      </qandaentry>
+    </qandaset>
+  </sect1>
+
   <sect1 id="about">
     <title>About &app;</title>
     <para>
@@ -1572,15 +1593,21 @@ widget "*" style "mn-icons"</programlisting>
       <itemizedlist>
 	<!-- We don't use <firstname> and <surname> because we can't -->
 	<!-- unambiguously split some names. -->
+	<listitem><para>Claudio André</para></listitem>
 	<listitem><para>Hendrik Brandt</para></listitem>
+	<listitem><para>Kim Briggs</para></listitem>
+	<listitem><para>Hiroshi Hasebe</para></listitem>
 	<listitem><para>Duarte Henriques</para></listitem>
 	<listitem><para>Dan Korostelev</para></listitem>
+	<listitem><para>Pav Lucistnik</para></listitem>
 	<listitem><para>Filip Miletic</para></listitem>
 	<listitem><para>Phil Nelson</para></listitem>
 	<listitem><para>Maurycy Pawłowski-Wieroński</para></listitem>
 	<listitem><para>Vladimir Petkov</para></listitem>
+	<listitem><para>Benoît Rouits</para></listitem>
 	<listitem><para>Tomasz Sarota-Raczek</para></listitem>
 	<listitem><para>Edwin Shin</para></listitem>
+	<listitem><para>Marcel J. Zwiebel</para></listitem>
       </itemizedlist>
     </sect2>
 

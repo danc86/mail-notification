@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,16 +21,17 @@
 #include <signal.h>
 #include <gnome.h>
 #include <libgnomevfs/gnome-vfs.h>
-#ifdef WITH_MIME
+#if WITH_MIME
 #include <gmime/gmime.h>
 #include "mn-gmime-stream-vfs.h"
 #endif
-#if defined(WITH_MBOX) || defined(WITH_MH) || defined(WITH_MAILDIR) || defined(WITH_SYLPHEED)
+#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
 #include "mn-vfs-mailbox.h"
 #endif
-#ifdef WITH_EVOLUTION
+#if WITH_EVOLUTION
 #include "mn-corba-object.h"
 #endif
+#include "mn-locked-callback.h"
 #include "mn-conf.h"
 #include "mn-util.h"
 #include "mn-stock.h"
@@ -43,6 +44,18 @@
 #define AUTOMATION_IID			"OAFIID:GNOME_MailNotification_Automation"
 #define AUTOMATION_FACTORY_IID		"OAFIID:GNOME_MailNotification_Automation_Factory"
 
+#define AUTOMATION_METHOD(method) \
+  GNOME_MailNotification_Automation_ ## method(automation, &env); \
+  mn_main_handle_bonobo_exception(&env, "GNOME:MailNotification:Automation:" #method)
+
+/*** types *******************************************************************/
+
+typedef struct
+{
+  const char	*name;
+  gboolean	enabled;
+} Component;
+
 /*** variables ***************************************************************/
 
 static gboolean arg_enable_info = FALSE;
@@ -52,13 +65,17 @@ static gboolean arg_enable_info = FALSE;
 static BonoboObject *mn_main_automation_factory_cb (BonoboGenericFactory *factory,
 						    const char *iid,
 						    gpointer closure);
-static void	mn_main_list_features	(void);
+static void	mn_main_print_components (const Component *components,
+					  int n_components);
+static void	mn_main_print_version	(void);
 static void	mn_main_info_log_cb	(const char	*log_domain,
 					 GLogLevelFlags	log_level,
 					 const char	*message,
 					 gpointer	user_data);
 
 static void	mn_main_init_classes	(void);
+static void	mn_main_handle_bonobo_exception (CORBA_Environment *env,
+						 const char        *method);
 
 /*** implementation **********************************************************/
 
@@ -70,71 +87,65 @@ mn_main_automation_factory_cb (BonoboGenericFactory *factory,
   if (! strcmp(iid, AUTOMATION_IID))
     return BONOBO_OBJECT(mn_automation_new());
 
-  g_return_val_if_reached(NULL);
+  g_assert_not_reached();
+  return NULL;
 }
 
 static void
-mn_main_list_features (void)
+mn_main_print_components (const Component *components, int n_components)
 {
-  gboolean first;
+  int i;
 
-#define PRINT_COMPONENT(feature)	\
-  {					\
-    if (first)				\
-      first = FALSE;			\
-    else				\
-      g_print(", ");			\
-					\
-    g_print("%s", (feature));		\
-  }
+  for (i = 0; i < n_components; i++)
+    g_print("  %-30s %s\n", components[i].name, components[i].enabled ? _("yes") : _("no"));
+}
 
+static void
+mn_main_print_version (void)
+{
   /*
    * Here and everywhere else, we order the backends by descending
    * order of (believed) popularity.
    */
 
-  first = TRUE; g_print(_("Compiled-in mailbox backends: "));
-#ifdef WITH_MBOX
-  PRINT_COMPONENT("mbox");
-#endif
-#ifdef WITH_MH
-  PRINT_COMPONENT("MH");
-#endif
-#ifdef WITH_MAILDIR
-  PRINT_COMPONENT("Maildir");
-#endif
-#ifdef WITH_POP3
-  PRINT_COMPONENT("POP3");
-#endif
-#ifdef WITH_IMAP
-  PRINT_COMPONENT("IMAP");
-#endif
-#ifdef WITH_GMAIL
-  PRINT_COMPONENT("Gmail");
-#endif
-#ifdef WITH_EVOLUTION
-  PRINT_COMPONENT("Evolution");
-#endif
-#ifdef WITH_SYLPHEED
-  PRINT_COMPONENT("Sylpheed");
-#endif
-  g_print("\n");
-  
-#if defined(WITH_POP3) || defined(WITH_IMAP)
-  first = TRUE; g_print(_("Compiled-in POP3 and IMAP features: "));
-#ifdef WITH_SSL
-  PRINT_COMPONENT("SSL/TLS");
-#endif
-#ifdef WITH_SASL
-  PRINT_COMPONENT("SASL");
-#endif
-#ifdef WITH_IPV6
-  PRINT_COMPONENT("IPv6");
-#endif
-  g_print("\n");
-#endif /* WITH_POP3 || WITH_IMAP */
+  Component mailbox_backends[] = {
+    { "mbox",			WITH_MBOX		},
+    { "mh",			WITH_MH			},
+    { "Maildir",		WITH_MAILDIR		},
+    { "POP3",			WITH_POP3		},
+    { "IMAP",			WITH_IMAP		},
+    { "Gmail",			WITH_GMAIL		},
+    { "Evolution",		WITH_EVOLUTION		},
+    { "Sylpheed",		WITH_SYLPHEED		}
+  };
 
-#undef PRINT_COMPONENT
+  Component pi_features[] = {
+    { "SSL/TLS",		WITH_SSL		},
+    { "SASL",			WITH_SASL		},
+    { "IPv6",			WITH_IPV6		}
+  };
+
+  Component sylpheed_features[] = {
+    { ".sylpheed_mark locking",	WITH_SYLPHEED_LOCKING	}
+  };
+
+  g_print(_("%s version %s\n"), _("Mail Notification"), VERSION);
+  g_print("Copyright (C) 2003-2006 Jean-Yves Lefort.\n");
+
+  g_print("\n");
+
+  g_print(_("Mailbox backends:\n"));
+  mn_main_print_components(mailbox_backends, G_N_ELEMENTS(mailbox_backends));
+
+  g_print("\n");
+
+  g_print(_("POP3 and IMAP features:\n"));
+  mn_main_print_components(pi_features, G_N_ELEMENTS(pi_features));
+
+  g_print("\n");
+
+  g_print(_("Sylpheed features:\n"));
+  mn_main_print_components(sylpheed_features, G_N_ELEMENTS(sylpheed_features));
 }
 
 static void
@@ -153,7 +164,7 @@ mn_main_init_classes (void)
   int i;
 
   g_type_class_ref(MN_TYPE_AUTOMATION);
-#ifdef WITH_MIME
+#if WITH_MIME
   g_type_class_ref(MN_TYPE_GMIME_STREAM_VFS);
   g_type_class_ref(GMIME_TYPE_PARSER);
   g_type_class_ref(GMIME_TYPE_STREAM_MEM);
@@ -161,11 +172,11 @@ mn_main_init_classes (void)
 #endif /* WITH_MIME */
   for (i = 0; mn_mailbox_types[i]; i++)
     g_type_class_ref(mn_mailbox_types[i]);
-#if defined(WITH_MBOX) || defined(WITH_MH) || defined(WITH_MAILDIR) || defined(WITH_SYLPHEED)
+#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
   for (i = 0; mn_vfs_mailbox_backend_types[i]; i++)
     g_type_class_ref(mn_vfs_mailbox_backend_types[i]);
 #endif
-#ifdef WITH_EVOLUTION
+#if WITH_EVOLUTION
   g_type_class_ref(MN_TYPE_CORBA_OBJECT);
 #endif
   g_type_class_ref(MN_TYPE_MAILBOXES);
@@ -173,11 +184,26 @@ mn_main_init_classes (void)
   g_type_class_ref(MN_TYPE_SHELL);
 }
 
+static void
+mn_main_handle_bonobo_exception (CORBA_Environment *env, const char *method)
+{
+  g_return_if_fail(env != NULL);
+  g_return_if_fail(method != NULL);
+
+  if (BONOBO_EX(env))
+    {
+      char *errmsg;
+
+      errmsg = bonobo_exception_get_text(env);
+      mn_fatal_error_dialog(NULL, _("A Bonobo exception (%s) has occurred in %s()."), errmsg, method);
+      g_free(errmsg);
+    }
+}
+
 int
 main (int argc, char **argv)
 {
-  gboolean arg_list_features = FALSE;
-  gboolean arg_display_main_window = FALSE;
+  gboolean arg_version = FALSE;
   gboolean arg_display_properties = FALSE;
   gboolean arg_display_about = FALSE;
   gboolean arg_close_popup = FALSE;
@@ -186,30 +212,21 @@ main (int argc, char **argv)
   gboolean arg_quit = FALSE;
   const struct poptOption popt_options[] = {
     {
+      "version",
+      'v',
+      POPT_ARG_NONE,
+      &arg_version,
+      0,
+      N_("Show version information"),
+      NULL
+    },
+    {
       "enable-info",
       'i',
       POPT_ARG_NONE,
       &arg_enable_info,
       0,
       N_("Enable informational output"),
-      NULL
-    },
-    {
-      "list-features",
-      'l',
-      POPT_ARG_NONE,
-      &arg_list_features,
-      0,
-      N_("List the compiled-in features"),
-      NULL
-    },
-    {
-      "display-main-window",
-      'm',
-      POPT_ARG_NONE,
-      &arg_display_main_window,
-      0,
-      N_("Display the main window"),
       NULL
     },
     {
@@ -272,7 +289,7 @@ main (int argc, char **argv)
   BonoboGenericFactory *automation_factory;
   GClosure *automation_factory_closure;
   Bonobo_RegistrationResult result;
-      
+
   g_log_set_fatal_mask(G_LOG_DOMAIN, G_LOG_LEVEL_CRITICAL);
   g_log_set_handler(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, mn_main_info_log_cb, NULL);
 
@@ -287,8 +304,8 @@ main (int argc, char **argv)
   g_thread_init(NULL);
   if (! g_thread_supported())
     /*
-     * We can't use mn_error_dialog() because gtk_init() has not been
-     * called yet.
+     * We cannot use mn_fatal_error_dialog() because gtk_init() has
+     * not been called yet.
      */
     g_critical(_("multi-threading is not available"));
   gdk_threads_init();
@@ -303,14 +320,9 @@ main (int argc, char **argv)
 		     GNOME_PARAM_POPT_TABLE, popt_options,
 		     NULL);
 
-  mn_mailbox_init_types();
-#if defined(WITH_MBOX) || defined(WITH_MH) || defined(WITH_MAILDIR) || defined(WITH_SYLPHEED)
-  mn_vfs_mailbox_init_types();
-#endif
-
-  if (arg_list_features)
+  if (arg_version)
     {
-      mn_main_list_features();
+      mn_main_print_version();
       exit(0);
     }
 
@@ -319,13 +331,10 @@ main (int argc, char **argv)
       mn_conf_unset_obsolete();
       exit(0);
     }
-  
-  /* mn-client-session uses sockets, we don't want to die on SIGPIPE */
-  signal(SIGPIPE, SIG_IGN);
 
   GDK_THREADS_ENTER();
 
-  icon = mn_pixbuf_new(MN_IMAGE_FILE(GNOMEPIXMAPSDIR, "mail-notification.png"));
+  icon = mn_pixbuf_new(GNOMEPIXMAPSDIR G_DIR_SEPARATOR_S "mail-notification.png");
   if (icon)
     {
       gtk_window_set_default_icon(icon);
@@ -347,7 +356,8 @@ main (int argc, char **argv)
       {
 	CORBA_Environment env;
 	GNOME_MailNotification_Automation automation;
-	
+	gboolean display_properties;
+
 	CORBA_exception_init(&env);
 
 	automation = bonobo_activation_activate_from_id(AUTOMATION_IID, 0, NULL, &env);
@@ -359,7 +369,7 @@ main (int argc, char **argv)
 	    if (result == Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
 	      {
 		g_message(_("quitting Mail Notification"));
-		GNOME_MailNotification_Automation_quit(automation, &env);
+		AUTOMATION_METHOD(quit);
 	      }
 	    else
 	      g_message(_("Mail Notification is not running"));
@@ -368,16 +378,26 @@ main (int argc, char **argv)
 	  {
 	    if (result != Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
 	      {
+		mn_mailbox_init_types();
+#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
+		mn_vfs_mailbox_init_types();
+#endif
+
+		/* mn-client-session uses sockets, we don't want to die on SIGPIPE */
+		signal(SIGPIPE, SIG_IGN);
+
 		if (! gnome_vfs_init())
 		  mn_fatal_error_dialog(NULL, _("Unable to initialize the GnomeVFS library."));
 
 		gnome_authentication_manager_init();
 
-#ifdef WITH_MIME
+#if WITH_MIME
 		g_mime_init(0);
 #endif
-	      
+
+		mn_locked_callback_init();
 		mn_conf_init();
+
 		/*
 		 * Work around
 		 * http://bugzilla.gnome.org/show_bug.cgi?id=64764:
@@ -385,35 +405,48 @@ main (int argc, char **argv)
 		 * thread is created.
 		 */
 		mn_main_init_classes();
+
 		mn_shell_new();
 	      }
-      
-	    if (arg_display_main_window)
-	      GNOME_MailNotification_Automation_displayMainWindow(automation, &env);
+
 	    if (arg_display_properties)
-	      GNOME_MailNotification_Automation_displayProperties(automation, &env);
+	      display_properties = TRUE;
+	    else /* also display the properties dialog if there are no mailboxes */
+	      {
+		CORBA_boolean has;
+		has = AUTOMATION_METHOD(hasMailboxes);
+		display_properties = has == CORBA_FALSE;
+	      }
+
+	    if (display_properties)
+	      {
+		AUTOMATION_METHOD(displayProperties);
+	      }
 	    if (arg_display_about)
-	      GNOME_MailNotification_Automation_displayAbout(automation, &env);
+	      {
+		AUTOMATION_METHOD(displayAbout);
+	      }
 	    if (arg_close_popup)
-	      GNOME_MailNotification_Automation_closePopup(automation, &env);
-	    
+	      {
+		AUTOMATION_METHOD(closePopup);
+	      }
+
 	    if (result == Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
 	      {
 		if (arg_update)
 		  {
 		    g_message(_("updating the mail status"));
-		    GNOME_MailNotification_Automation_update(automation, &env);
+		    AUTOMATION_METHOD(update);
 		  }
-		
-		if (! (arg_display_main_window
-		       || arg_display_properties
+
+		if (! (display_properties
 		       || arg_display_about
 		       || arg_close_popup
 		       || arg_update))
 		  g_message(_("Mail Notification is already running"));
 	      }
 	  }
-      
+
 	bonobo_object_release_unref(automation, &env);
 	CORBA_exception_free(&env);
       }
@@ -428,11 +461,12 @@ main (int argc, char **argv)
       break;
 
     default:
-      g_return_val_if_reached(1);
+      g_assert_not_reached();
+      return 1;
     }
 
   gdk_notify_startup_complete();
-  
+
   if (result != Bonobo_ACTIVATION_REG_ALREADY_ACTIVE && ! arg_quit)
     gtk_main();
 

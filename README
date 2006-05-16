@@ -11,9 +11,9 @@ Index
 
 0. About this document
 
-	$Id: README,v 1.28 2005/08/07 13:14:38 jylefort Exp $
+	$Id: README,v 1.32 2006/05/15 04:32:34 jylefort Exp $
 
-	Copyright (C) 2003-2005 Jean-Yves Lefort.
+	Copyright (C) 2003-2006 Jean-Yves Lefort.
 
 	This document is part of Mail Notification.
 	It may be distributed under the same terms as Mail Notification.
@@ -50,17 +50,71 @@ Index
 	  hang.
 
 	  http://bugzilla.gnome.org/show_bug.cgi?id=152023
+	  fixed:
+		- FreeBSD port x11-toolkits/libgnomeui >= 2.10.0_1
+		- libgnomeui CVS >= 20060102
+		- libgnomeui >= 2.13.2
+
 	  http://bugzilla.gnome.org/show_bug.cgi?id=312180
+	  fixed:
+		- FreeBSD port x11-toolkits/libgnomeui >= 2.10.1_1
+		- libgnomeui CVS >= 20060208
 
 	* An infinite loop in GnomeVFS may affect mailboxes which use
 	  HTTP authentication (for instance, Gmail mailboxes).
 
 	  http://bugzilla.gnome.org/show_bug.cgi?id=310596
-	  (fixed on 20050723)
+	  fixed:
+		- GnomeVFS CVS >= 20050724
+		- GnomeVFS >= 2.11.90
 
-	* An unidentified bug, probably in the Metacity window
-	  manager, may sometimes cause the mail summary popup to be
-	  misplaced.
+	* If GnomeVFS was built with GnuTLS support, a GnomeVFS bug
+	  may cause Mail Notification to crash when accessing a
+	  mailbox over SSL (for instance, a Gmail mailbox) with
+	  GnomeVFS. The crash is accompanied by an error message
+	  similar to the following:
+
+		mail-notification: ath.c:181: _gcry_ath_mutex_lock: Assertion `*lock == ((ath_mutex_t) 0)' failed.
+		Xlib: unexpected async reply (sequence 0x2cc0)!
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=172813
+	  fixed:
+		- GnomeVFS CVS >= 20050411
+		- GnomeVFS >= 2.11.1
+
+	* When Mail Notification is trying to contact Evolution, a
+	  file descriptor leak in bonobo-activation causes the
+	  bonobo-activation-server process to leak one file descriptor
+	  per second.
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=315650
+	  fixed:
+		- FreeBSD port devel/libbonobo >= 2.10.1_1
+
+	* An infinite loop in GnomeVFS may affect mailboxes which use
+	  the GnomeVFS bzip2 method.
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=322652
+	  fixed:
+		- FreeBSD port devel/gnomevfs2 >= 2.12.1.1_4
+		- GnomeVFS CVS >= 20051201
+		- GnomeVFS >= 2.13.2
+
+	* A bug in GnomeVFS may prevent successful authentication if
+	  an username or password contains special characters such as
+	  '@'.
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=89106
+	  fixed:
+		- GnomeVFS CVS >= 20050716
+		- GnomeVFS >= 2.11.90
+
+	* A bug in GnomeVFS may occasionally cause mbox, MH, Maildir
+	  and Sylpheed mailbox changes to stay undetected.
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=341585
+	  fixed:
+		- FreeBSD port devel/gnomevfs2 >= 2.14.1_2
 
 3. Installation instructions
 

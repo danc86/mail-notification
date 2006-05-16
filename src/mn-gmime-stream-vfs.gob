@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <libgnomevfs/gnome-vfs.h>
@@ -80,7 +80,7 @@ class MN:GMime:Stream:VFS from GMime:Stream
 
     VFS_READ(self, buf, len, &bytes_read, -1);
     stream->position += bytes_read;
-    
+
     return bytes_read;
   }
 
@@ -110,7 +110,7 @@ class MN:GMime:Stream:VFS from GMime:Stream
     /* nop */
     return 0;			/* success */
   }
-  
+
   override (GMime:Stream) int
     close (GMimeStream *stream)
   {
@@ -174,13 +174,13 @@ class MN:GMime:Stream:VFS from GMime:Stream
 	    if (real < stream->bound_start)
 	      real = stream->bound_start;
 	    stream->position = real;
-	    
+
 	    return real;
 	  }
 	real = stream->bound_end + offset;
 	break;
       }
-    
+
     if (stream->bound_end != -1)
       real = MIN(real, stream->bound_end);
     real = MAX(real, stream->bound_start);
@@ -190,13 +190,13 @@ class MN:GMime:Stream:VFS from GMime:Stream
 
     return real;
   }
-  
+
   override (GMime:Stream) off_t
     tell (GMimeStream *stream)
   {
     return stream->position;
   }
-  
+
   override (GMime:Stream) ssize_t
     length (GMimeStream *stream)
   {
@@ -209,10 +209,10 @@ class MN:GMime:Stream:VFS from GMime:Stream
     VFS_SEEK(self, GNOME_VFS_SEEK_END, 0, -1);
     VFS_TELL(self, &bound_end, -1);
     VFS_SEEK(self, GNOME_VFS_SEEK_START, stream->position, -1);
-    
+
     if (bound_end < stream->bound_start)
       return -1;
-    
+
     return bound_end - stream->bound_start;
   }
 
@@ -264,10 +264,10 @@ class MN:GMime:Stream:VFS from GMime:Stream
 	self = GET_NEW;
 	selfp->handle = handle;
 	selfp->uri = gnome_vfs_uri_to_string(uri, GNOME_VFS_URI_HIDE_NONE);
-    
+
 	stream = GMIME_STREAM(self);
 	g_mime_stream_construct(stream, current_position, -1);
-    
+
 	/* check for EOF */
 	if (g_mime_stream_length(stream) <= 0)
 	  selfp->eof = TRUE;

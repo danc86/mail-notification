@@ -1,0 +1,16 @@
+# -*- mode: makefile -*-
+
+# change this to the path to mkinstalldirs on your system
+# po/Makefile.in.in requires mkinstalldirs, but intltoolize does not provide it
+MKINSTALLDIRS = /usr/local/gnu-autotools/share/automake-1.9/mkinstalldirs
+
+all:
+	cd aml && $(MAKE) -f Makefile.aml
+	aml/aml src/automake.xml > src/Makefile.am
+	libtoolize
+	intltoolize --force
+	ln -sf $(MKINSTALLDIRS) mkinstalldirs
+	aclocal -I m4
+	autoheader
+	autoconf
+	automake --add-missing --force-missing

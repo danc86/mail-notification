@@ -23,13 +23,21 @@
 #include "mn-message.h"
 
 MNMessage *mn_message_new_from_mime_message (MNMailbox *mailbox,
-					     GMimeMessage *mime_message);
+					     GMimeMessage *mime_message,
+					     MNMessageFlags flags,
+					     gboolean handle_status);
 MNMessage *mn_message_new_from_mime_stream (MNMailbox *mailbox,
-					    GMimeStream *mime_stream);
+					    GMimeStream *mime_stream,
+					    MNMessageFlags flags,
+					    gboolean handle_status);
 MNMessage *mn_message_new_from_uri (MNMailbox *mailbox,
-				    GnomeVFSURI *uri);
+				    GnomeVFSURI *uri,
+				    MNMessageFlags flags,
+				    gboolean handle_status);
 MNMessage *mn_message_new_from_buffer (MNMailbox *mailbox,
 				       const char *buffer,
-				       unsigned int len);
+				       unsigned int len,
+				       MNMessageFlags flags,
+				       gboolean handle_status);
 
 #endif /* _MN_MESSAGE_MIME_H */

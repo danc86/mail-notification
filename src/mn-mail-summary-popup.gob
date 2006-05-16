@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <gtk/gtk.h>
 %}
 
 %privateheader{
+#include "mn-locked-callback.h"
 #include "mn-shell.h"
 %}
 
@@ -30,31 +31,40 @@ requires 2.0.12
 #include "config.h"
 #include <glib/gi18n.h>
 #include <eel/eel.h>
-#include "mn-util.h"
 #include "mn-conf.h"
 #include "mn-stock.h"
-#include "mn-message-view.h"
+#include "mn-standard-message-view.h"
+#include "mn-compact-message-view.h"
 %}
+
+enum MN_MAIL_SUMMARY_POPUP_LAYOUT
+{
+  STANDARD,
+  COMPACT
+} MN:Mail:Summary:Popup:Layout;
 
 class MN:Mail:Summary:Popup from Gtk:Window
 {
   private GtkWidget *image;
   private GtkWidget *title;
+  private GtkWidget *vbox;
   private GtkWidget *message_view;
 
   private GdkGravity gravity = -1;
 
-  private unsigned int timeout_id;
+  private MNLockedGSource *timeout_source;
+
+  private GSList *messages destroywith mn_g_object_slist_free;
 
   init (self)
   {
     mn_container_create_interface(GTK_CONTAINER(self),
-				  MN_INTERFACE_FILE("mail-summary-popup.glade"),
+				  UIDIR G_DIR_SEPARATOR_S "mail-summary-popup.glade",
 				  "eventbox",
 				  "mn_mail_summary_popup_",
 				  "image", &selfp->image,
 				  "mn-mail-summary-popup-title", &selfp->title,
-				  "mn-message-view", &selfp->message_view,
+				  "vbox", &selfp->vbox,
 				  NULL);
 
     gtk_widget_set_name(GTK_WIDGET(self), "mn-mail-summary-popup");
@@ -78,7 +88,7 @@ class MN:Mail:Summary:Popup from Gtk:Window
      * with appropriate properties (but a drawback is
      * http://bugzilla.gnome.org/show_bug.cgi?id=154593).
      */
-    
+
     gtk_window_set_title(GTK_WINDOW(self), "");
     gtk_window_set_resizable(GTK_WINDOW(self), FALSE);
     gtk_window_set_keep_above(GTK_WINDOW(self), TRUE);
@@ -89,23 +99,22 @@ class MN:Mail:Summary:Popup from Gtk:Window
     gtk_window_set_focus_on_map(GTK_WINDOW(self), FALSE);
     gtk_window_stick(GTK_WINDOW(self));
 
-    gtk_image_set_from_stock(GTK_IMAGE(selfp->image), MN_STOCK_MAIL_SUMMARY, -1);
-
+    self_set_layout(self);
     self_set_title_font(self);
-    self_set_contents_font(self);
 
     if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE))
       self_install_timeout(self);
 
-    mn_conf_notifications_add(self,
-			      MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE, self_notify_autoclose_cb, self,
-			      MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_NAMESPACE, self_notify_delay_cb, self,
-			      MN_CONF_MAIL_SUMMARY_POPUP_POSITION, self_notify_geometry_cb, self,
-			      MN_CONF_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE, self_notify_geometry_cb, self,
-			      MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE, self_notify_fonts_aspect_source_cb, self,
-			      MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_FONT, self_notify_fonts_title_font_cb, self,
-			      MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_FONT, self_notify_fonts_contents_font_cb, self,
-			      NULL);
+    mn_g_object_gconf_notifications_add_gdk_locked(self,
+						   MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE, self_notify_autoclose_cb, self,
+						   MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_NAMESPACE, self_notify_delay_cb, self,
+						   MN_CONF_MAIL_SUMMARY_POPUP_LAYOUT, self_notify_layout_cb, self,
+						   MN_CONF_MAIL_SUMMARY_POPUP_POSITION, self_notify_geometry_cb, self,
+						   MN_CONF_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE, self_notify_geometry_cb, self,
+						   MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE, self_notify_fonts_aspect_source_cb, self,
+						   MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_FONT, self_notify_fonts_title_font_cb, self,
+						   MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_FONT, self_notify_fonts_contents_font_cb, self,
+						   NULL);
 
     g_object_connect(self,
 		     "signal::realize", self_realize_set_decorations_h, NULL,
@@ -118,8 +127,8 @@ class MN:Mail:Summary:Popup from Gtk:Window
   {
     Self *self = SELF(object);
 
-    if (selfp->timeout_id)
-      g_source_remove(selfp->timeout_id);
+    if (selfp->timeout_source)
+      mn_locked_g_source_remove(selfp->timeout_source);
 
     PARENT_HANDLER(object);
   }
@@ -141,7 +150,7 @@ class MN:Mail:Summary:Popup from Gtk:Window
     g_signal_handlers_disconnect_by_func(self, self_realize_set_geometry_h, NULL);
     self_set_geometry(self);
   }
-  
+
   private void
     notify_autoclose_cb (GConfClient *client,
 			 unsigned int cnxn_id,
@@ -150,19 +159,15 @@ class MN:Mail:Summary:Popup from Gtk:Window
   {
     Self *self = user_data;
 
-    GDK_THREADS_ENTER();
-
     if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE))
       {
-	if (! selfp->timeout_id)
+	if (! selfp->timeout_source)
 	  self_install_timeout(self);
       }
     else
-      mn_source_clear(&selfp->timeout_id);
-    
-    GDK_THREADS_LEAVE();
+      mn_locked_g_source_clear(&selfp->timeout_source);
   }
-  
+
   private void
     notify_delay_cb (GConfClient *client,
 		     unsigned int cnxn_id,
@@ -171,11 +176,18 @@ class MN:Mail:Summary:Popup from Gtk:Window
   {
     Self *self = user_data;
 
-    GDK_THREADS_ENTER();
-
     self_reset_timeout(self);
-    
-    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    notify_layout_cb (GConfClient *client,
+		      unsigned int cnxn_id,
+		      GConfEntry *entry,
+		      gpointer user_data)
+  {
+    Self *self = user_data;
+
+    self_set_layout(self);
   }
 
   private void
@@ -186,11 +198,7 @@ class MN:Mail:Summary:Popup from Gtk:Window
   {
     Self *self = user_data;
 
-    GDK_THREADS_ENTER();
-
     self_set_geometry(self);
-
-    GDK_THREADS_LEAVE();
   }
 
   private void
@@ -201,12 +209,8 @@ class MN:Mail:Summary:Popup from Gtk:Window
   {
     Self *self = user_data;
 
-    GDK_THREADS_ENTER();
-
     self_set_title_font(self);
     self_set_contents_font(self);
-
-    GDK_THREADS_LEAVE();
   }
 
   private void
@@ -217,13 +221,9 @@ class MN:Mail:Summary:Popup from Gtk:Window
   {
     Self *self = user_data;
 
-    GDK_THREADS_ENTER();
-
     self_set_title_font(self);
-
-    GDK_THREADS_LEAVE();
   }
-  
+
   private void
     notify_fonts_contents_font_cb (GConfClient *client,
 				   unsigned int cnxn_id,
@@ -232,32 +232,65 @@ class MN:Mail:Summary:Popup from Gtk:Window
   {
     Self *self = user_data;
 
-    GDK_THREADS_ENTER();
-
     self_set_contents_font(self);
-
-    GDK_THREADS_LEAVE();
   }
 
   private void
     install_timeout (self)
   {
-    g_return_if_fail(selfp->timeout_id == 0);
+    g_return_if_fail(selfp->timeout_source == NULL);
 
-    selfp->timeout_id = mn_timeout_add(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_MINUTES,
-				       MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_SECONDS,
-				       (GSourceFunc) self_timeout_cb,
-				       self);
+    selfp->timeout_source = mn_conf_timeout_add_gdk_locked(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_MINUTES,
+							   MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_SECONDS,
+							   self_timeout_cb,
+							   self);
   }
 
   private gboolean
-    timeout_cb (self)
+    timeout_cb (gpointer data)
   {
-    GDK_THREADS_ENTER();
+    Self *self = data;
+
     gtk_widget_destroy(GTK_WIDGET(self));
-    GDK_THREADS_LEAVE();
-  
+
     return FALSE;		/* remove timeout */
+  }
+
+  private void
+    set_layout (self)
+  {
+    if (selfp->message_view)
+      gtk_widget_destroy(selfp->message_view);
+
+    switch (mn_conf_get_enum_value(MN_TYPE_MAIL_SUMMARY_POPUP_LAYOUT, MN_CONF_MAIL_SUMMARY_POPUP_LAYOUT))
+      {
+      case MN_MAIL_SUMMARY_POPUP_LAYOUT_STANDARD:
+	gtk_image_set_from_stock(GTK_IMAGE(selfp->image), MN_STOCK_MAIL_SUMMARY, -1);
+	/* translators: header capitalization */
+	gtk_label_set_markup(GTK_LABEL(selfp->title), _("<span size=\"larger\" weight=\"bold\">Mail Summary</span>"));
+	selfp->message_view = mn_standard_message_view_new();
+	break;
+
+      case MN_MAIL_SUMMARY_POPUP_LAYOUT_COMPACT:
+	gtk_image_set_from_stock(GTK_IMAGE(selfp->image), MN_STOCK_MAIL_SUMMARY, GTK_ICON_SIZE_SMALL_TOOLBAR);
+	/* translators: header capitalization */
+	gtk_label_set_markup(GTK_LABEL(selfp->title), _("<span weight=\"bold\">Mail Summary</span>"));
+	selfp->message_view = mn_compact_message_view_new();
+	break;
+
+      default:
+	g_assert_not_reached();
+	break;
+      }
+
+    gtk_widget_set_name(selfp->message_view, "mn-message-view");
+    mn_message_view_set_messages(MN_MESSAGE_VIEW(selfp->message_view), selfp->messages);
+    gtk_widget_show(selfp->message_view);
+
+    gtk_box_pack_start(GTK_BOX(selfp->vbox), selfp->message_view, TRUE, TRUE, 0);
+    g_signal_connect_swapped(selfp->message_view, "button-press-event", G_CALLBACK(self_button_press_event_h), self);
+
+    self_set_contents_font(self);
   }
 
   private void
@@ -289,7 +322,7 @@ class MN:Mail:Summary:Popup from Gtk:Window
     screen_width = gdk_screen_width();
     screen_height = gdk_screen_height();
 
-    g_return_if_fail(position >= 0 && position < G_N_ELEMENTS(gravity_mapping));
+    g_assert(position >= 0 && position < G_N_ELEMENTS(gravity_mapping));
     gravity = gravity_mapping[position];
 
     x = (gravity == GDK_GRAVITY_NORTH_WEST || gravity == GDK_GRAVITY_SOUTH_WEST)
@@ -342,7 +375,7 @@ class MN:Mail:Summary:Popup from Gtk:Window
   {
     self_set_font(self, selfp->message_view, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_FONT);
   }
-  
+
   private void
     set_font (self,
 	      Gtk:Widget *widget (check null type),
@@ -353,7 +386,7 @@ class MN:Mail:Summary:Popup from Gtk:Window
     if (mn_conf_get_enum_value(MN_TYPE_ASPECT_SOURCE, MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE) == MN_ASPECT_SOURCE_CUSTOM)
       {
 	char *str;
-	
+
 	str = eel_gconf_get_string(conf_key);
 	if (str)
 	  {
@@ -361,16 +394,19 @@ class MN:Mail:Summary:Popup from Gtk:Window
 	    g_free(str);
 	  }
       }
-    
+
     gtk_widget_modify_font(widget, font_desc);
     if (font_desc)
       pango_font_description_free(font_desc);
   }
-  
+
   public void
     set_messages (self, GSList *messages (check null))
   {
-    mn_message_view_set_messages(MN_MESSAGE_VIEW(selfp->message_view), messages);
+    mn_g_object_slist_free(selfp->messages);
+    selfp->messages = mn_g_object_slist_copy(messages);
+
+    g_object_set(selfp->message_view, "messages", selfp->messages, NULL);
   }
 
   public void
@@ -378,7 +414,7 @@ class MN:Mail:Summary:Popup from Gtk:Window
   {
     if (eel_gconf_get_boolean(MN_CONF_MAIL_SUMMARY_POPUP_AUTOCLOSE))
       {
-	mn_source_clear(&selfp->timeout_id);
+	mn_locked_g_source_clear(&selfp->timeout_source);
 	self_install_timeout(self);
       }
   }
@@ -397,16 +433,5 @@ class MN:Mail:Summary:Popup from Gtk:Window
     gtk_widget_destroy(GTK_WIDGET(self));
 
     return TRUE;		/* do not propagate event */
-  }
-
-  protected GtkWidget *
-    message_view_new_cb (void)
-  {
-    GtkWidget *view;
-
-    view = mn_message_view_new(TRUE, FALSE);
-    gtk_widget_show(view);
-
-    return view;
   }
 }

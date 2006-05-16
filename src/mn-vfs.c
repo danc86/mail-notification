@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ mn_vfs_read_line (MNVFSReadLineContext **context,
 	  else
 	    break;		/* error */
 	}
-      
+
       (*context)->terminator = strchr((*context)->buf->str, '\n');
       if ((*context)->terminator || (*context)->last_result == GNOME_VFS_ERROR_EOF)
 	{
@@ -131,7 +131,7 @@ mn_vfs_test (GnomeVFSURI *uri, GFileTest test)
     options |= GNOME_VFS_FILE_INFO_FOLLOW_LINKS;
   if (test & G_FILE_TEST_IS_EXECUTABLE)
     options |= GNOME_VFS_FILE_INFO_GET_ACCESS_RIGHTS;
-  
+
   file_info = gnome_vfs_file_info_new();
   if (gnome_vfs_get_file_info_uri(uri, file_info, options) == GNOME_VFS_OK)
     {
@@ -172,4 +172,19 @@ mn_vfs_read_entire_file_uri (GnomeVFSURI *uri,
   g_free(text_uri);
 
   return result;
+}
+
+char *
+mn_vfs_get_local_path (GnomeVFSURI *uri)
+{
+  char *text_uri;
+  char *path;
+
+  g_return_val_if_fail(uri != NULL, NULL);
+
+  text_uri = gnome_vfs_uri_to_string(uri, GNOME_VFS_URI_HIDE_NONE);
+  path = gnome_vfs_get_local_path_from_uri(text_uri);
+  g_free(text_uri);
+
+  return path;
 }

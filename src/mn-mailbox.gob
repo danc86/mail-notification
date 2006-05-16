@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2003-2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include "config.h"
 #include <stdarg.h>
+#include <time.h>
 #include <libxml/tree.h>
 %}
 
@@ -32,6 +33,8 @@ typedef struct _MNMailboxConfiguration MNMailboxConfiguration;
 %}
 
 %privateheader{
+#include "mn-locked-callback.h"
+
 typedef enum
 {
   /* save to mailboxes.xml */
@@ -50,24 +53,25 @@ typedef enum
 #include <glib/gi18n.h>
 #include <eel/eel.h>
 #include <libgnomevfs/gnome-vfs.h>
-#if defined(WITH_MBOX) || defined(WITH_MH) || defined(WITH_MAILDIR) || defined(WITH_SYLPHEED)
+#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
 #include "mn-system-vfs-mailbox.h"
 #include "mn-custom-vfs-mailbox.h"
 #endif
-#ifdef WITH_POP3
+#if WITH_POP3
 #include "mn-pop3-mailbox.h"
 #endif
-#ifdef WITH_IMAP
+#if WITH_IMAP
 #include "mn-imap-mailbox.h"
 #endif
-#ifdef WITH_GMAIL
+#if WITH_GMAIL
 #include "mn-gmail-mailbox.h"
 #endif
-#ifdef WITH_EVOLUTION
+#if WITH_EVOLUTION
 #include "mn-evolution-mailbox.h"
 #endif
 #include "mn-util.h"
 #include "mn-message.h"
+#include "mn-conf.h"
 
 struct _MNMailboxConfiguration
 {
@@ -77,11 +81,36 @@ struct _MNMailboxConfiguration
 };
 
 GType mn_mailbox_types[MN_MAILBOX_MAX_TYPES + 1];
+
+typedef struct
+{
+  GHashTable	*other;
+  gboolean	changed;
+} CompareMessagesInfo;
 %}
 
-class MN:Mailbox from G:Object
+class MN:Mailbox from G:Object (abstract)
 {
   classwide const char *type;
+  classwide int default_check_delay = -1;
+
+  private gboolean added;
+
+  /**
+   * added:
+   * @self: the object which received the signal
+   *
+   * This signal gets emitted after the mailbox is removed from the
+   * mailboxes list.
+   **/
+  signal NONE (NONE)
+    void added (self)
+  {
+    selfp->added = TRUE;
+
+    self_update_check_timeout(self);
+    self_check(self);
+  }
 
   /**
    * removed:
@@ -91,58 +120,195 @@ class MN:Mailbox from G:Object
    * mailboxes list.
    **/
   signal NONE (NONE)
-    void removed (self);
+    void removed (self)
+  {
+    mn_locked_g_source_clear(&selfp->check_timeout_source);
+  }
 
   public char *runtime_name destroywith g_free;
-  
+
   public char *name destroywith g_free;
   property STRING name (link, flags = MN_MAILBOX_PARAM_PERMANENT);
 
-  public char *stock_id;
+  public char *stock_id destroywith g_free;
   property STRING stock_id (link, export);
 
-  public char *format;
+  public char *format destroywith g_free;
   property STRING format (link, export);
 
-  public gboolean must_poll;
-  property BOOLEAN must_poll (default_value = TRUE, link, export, flags = CONSTRUCT);
+  private MNLockedGSource *check_timeout_source;
 
+  public int runtime_check_delay;
+
+  public int check_delay;
+  property INT check_delay (link,
+			    flags = CONSTRUCT | MN_MAILBOX_PARAM_PERMANENT,
+			    default_value = -1);
+
+  private gboolean poll = TRUE;
+  property BOOLEAN poll (export)
+    set
+    {
+      gboolean new_poll = g_value_get_boolean(VAL);
+
+      /*
+       * We do nothing unless the property has changed, because we do
+       * not want to reset an already existing check timeout.
+       */
+      if (new_poll != selfp->poll)
+	{
+	  selfp->poll = new_poll;
+	  if (selfp->added)
+	    self_update_check_timeout(self);
+	}
+    }
+    get
+    {
+      g_value_set_boolean(VAL, selfp->poll);
+    };
+
+  private void
+    update_check_timeout (self)
+  {
+    g_assert(selfp->added == TRUE);
+
+    mn_locked_g_source_clear(&selfp->check_timeout_source);
+    if (selfp->poll && self->runtime_check_delay > 0)
+      selfp->check_timeout_source = mn_g_timeout_add_gdk_locked(self->runtime_check_delay * 1000, self_check_timeout_cb, self);
+  }
+
+  /* all unread (unseen and seen) messages */
+  private GSList *unfiltered_messages destroywith mn_g_object_slist_free;
+
+  /* unfiltered_messages after applying the "seen messages" filter */
   public GSList *messages destroywith mn_g_object_slist_free;
+
+  /* for performance: */
+  public unsigned int n_messages;	/* number of messages */
+  public time_t timestamp;		/* timestamp of most recent message */
+
   property POINTER messages (export, type = const GSList *)
     set
     {
-      GSList *messages;
-      GSList *l;
-      gboolean changed = FALSE;
-      gboolean has_new = FALSE;
+      mn_g_object_slist_free(selfp->unfiltered_messages);
+      selfp->unfiltered_messages = mn_g_object_slist_copy(g_value_get_pointer(VAL));
 
-      messages = g_value_get_pointer(VAL);
-      
-      MN_LIST_FOREACH(l, self->messages)
-	if (! mn_message_slist_find_by_id(messages, l->data))
-	  {
-	    changed = TRUE;
-	    break;
-	  }
-      
-      MN_LIST_FOREACH(l, messages)
-	if (! mn_message_slist_find_by_id(self->messages, l->data))
-	  {
-	    changed = TRUE;
-	    has_new = TRUE;
-	    break;
-	  }
-
-      mn_g_object_slist_free(self->messages);
-      self->messages = mn_g_object_slist_copy(messages);
-
-      if (changed)
-	self_messages_changed(self, has_new);
+      self_filter_messages(self);
     }
     get
     {
       g_value_set_pointer(VAL, self->messages);
     };
+
+  private GHashTable *messages_hash_table destroywith g_hash_table_destroy;
+
+  /**
+   * filter_messages:
+   * @self: the mailbox to act upon
+   *
+   * Apply the "seen mail" filter to @self->unfiltered_messages, and
+   * store the resulting list in @self->messages. Additionally, if
+   * @self->messages has changed, emit the "messages-changed" signal.
+   **/
+  private void
+    filter_messages (self)
+  {
+    gboolean display_seen_mail;
+    GSList *messages = NULL;
+    GHashTable *messages_hash_table;
+    GSList *l;
+    gboolean changed = FALSE;
+    gboolean has_new = FALSE;
+
+    /* filter messages */
+
+    self->n_messages = 0;
+    self->timestamp = 0;
+
+    messages_hash_table = g_hash_table_new(g_str_hash, g_str_equal);
+    display_seen_mail = eel_gconf_get_boolean(MN_CONF_DISPLAY_SEEN_MAIL);
+
+    MN_LIST_FOREACH(l, selfp->unfiltered_messages)
+      {
+	MNMessage *message = l->data;
+
+	if (display_seen_mail || message->error || (message->flags & MN_MESSAGE_NEW) != 0)
+	  {
+	    self->n_messages++;
+	    if (message->sent_time > self->timestamp)
+	      self->timestamp = message->sent_time;
+
+	    messages = g_slist_prepend(messages, g_object_ref(message));
+	    g_hash_table_replace(messages_hash_table, message->id, message);
+	  }
+      }
+
+    if (! messages)
+      {
+	g_hash_table_destroy(messages_hash_table);
+	messages_hash_table = NULL;
+      }
+
+    /* detect changes */
+
+    if (self_compare_messages(selfp->messages_hash_table, messages_hash_table))
+      changed = TRUE;
+    if (self_compare_messages(messages_hash_table, selfp->messages_hash_table))
+      changed = has_new = TRUE;
+
+    if (self->messages)
+      {
+	mn_g_object_slist_free(self->messages);
+	g_hash_table_destroy(selfp->messages_hash_table);
+      }
+
+    self->messages = messages;
+    selfp->messages_hash_table = messages_hash_table;
+
+    if (changed)
+      self_messages_changed(self, has_new);
+  }
+
+  /**
+   * compare_messages:
+   * @messages1: a %GHashTable containing %MNMessage objects
+   * @messages2: another %GHashTable containing %MNMessage objects
+   *
+   * Compares @messages1 and @messages2.
+   *
+   * Return value: %TRUE if @messages1 contains messages not present
+   * in @messages2, %FALSE otherwise.
+   **/
+  private gboolean
+    compare_messages (GHashTable *messages1, GHashTable *messages2)
+  {
+    if (messages1)
+      {
+	if (messages2)
+	  {
+	    CompareMessagesInfo info;
+
+	    info.other = messages2;
+	    info.changed = FALSE;
+	    g_hash_table_foreach(messages1, (GHFunc) self_compare_messages_cb, &info);
+
+	    return info.changed;
+	  }
+	else
+	  return TRUE;
+      }
+    else
+      return FALSE;
+  }
+
+  private void
+    compare_messages_cb (const char *id,
+			 MNMessage *message,
+			 CompareMessagesInfo *info)
+  {
+    if (! info->changed && ! g_hash_table_lookup(info->other, id))
+      info->changed = TRUE;
+  }
 
   /**
    * messages-changed:
@@ -152,10 +318,10 @@ class MN:Mailbox from G:Object
    * This signal gets emitted whenever the messages property changes.
    *
    * It is considered that the property changes if a new message
-   * appears or if an old message disappears. If an existing message
-   * changes while keeping the same id, this signal is not emitted
-   * (use the "notify::messages" signal if you need notification of
-   * such events).
+   * appears or if an old message disappears. If the contents of an
+   * existing message change but the message keeps the same id, this
+   * signal is not emitted (use the "notify::messages" signal if you
+   * need notification of such events).
    **/
   signal private NONE (BOOLEAN)
     void messages_changed (self, gboolean has_new);
@@ -188,17 +354,17 @@ class MN:Mailbox from G:Object
 	error = g_strdup_vprintf(format, args);
 	va_end(args);
       }
-    
+
     g_object_set(G_OBJECT(self), MN_MAILBOX_PROP_ERROR(error), NULL);
     g_free(error);
   }
-  
+
   public void
     init_types (void)
   {
     int i = 0;
 
-#if defined(WITH_MBOX) || defined(WITH_MH) || defined(WITH_MAILDIR) || defined(WITH_SYLPHEED)
+#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
     /*
      * MNSystemVFSMailbox must be registered before
      * MNCustomVFSMailbox, because the latter's parse_uri() method
@@ -207,22 +373,22 @@ class MN:Mailbox from G:Object
     mn_mailbox_types[i++] = MN_TYPE_SYSTEM_VFS_MAILBOX;
     mn_mailbox_types[i++] = MN_TYPE_CUSTOM_VFS_MAILBOX;
 #endif
-#ifdef WITH_POP3
+#if WITH_POP3
     mn_mailbox_types[i++] = MN_TYPE_POP3_MAILBOX;
 #endif
-#ifdef WITH_IMAP
+#if WITH_IMAP
     mn_mailbox_types[i++] = MN_TYPE_IMAP_MAILBOX;
 #endif
-#ifdef WITH_GMAIL
+#if WITH_GMAIL
     mn_mailbox_types[i++] = MN_TYPE_GMAIL_MAILBOX;
 #endif
-#ifdef WITH_EVOLUTION
+#if WITH_EVOLUTION
     mn_mailbox_types[i++] = MN_TYPE_EVOLUTION_MAILBOX;
 #endif
     mn_mailbox_types[i] = 0;
   }
 
-  private GType
+  public GType
     get_type_from_name (const char *type)
   {
     int i;
@@ -232,7 +398,7 @@ class MN:Mailbox from G:Object
 	SelfClass *class;
 
 	class = g_type_class_peek(mn_mailbox_types[i]);
-	g_return_val_if_fail(class != NULL, 0);
+	g_assert(class != NULL);
 
 	if (! strcmp(class->type, type))
 	  return mn_mailbox_types[i];
@@ -241,14 +407,44 @@ class MN:Mailbox from G:Object
     return 0;
   }
 
+  init (self)
+  {
+    mn_g_object_gconf_notification_add_gdk_locked(self, MN_CONF_DISPLAY_SEEN_MAIL, self_notify_display_seen_messages_cb, self);
+  }
+
+  override (G:Object) void
+    finalize (GObject *object)
+  {
+    Self *self = SELF(object);
+
+    /*
+     * Even though we clear the source in removed(), it might have
+     * been reinstalled afterwards (by a mn_mailbox_set_poll() call
+     * from a check thread, etc).
+     */
+    if (selfp->check_timeout_source)
+      mn_locked_g_source_remove(selfp->check_timeout_source);
+
+    PARENT_HANDLER(object);
+  }
+
+  private void
+    notify_display_seen_messages_cb (GConfClient *client,
+				     unsigned int cnxn_id,
+				     GConfEntry *entry,
+				     gpointer user_data)
+  {
+    Self *self = user_data;
+
+    self_filter_messages(self);
+  }
+
   public MNMailbox *
-    new (const char *type, const char *first, ...)
+    new (const char *type (check null), const char *first, ...)
   {
     va_list args;
     GType type_id;
     GObject *object;
-
-    g_return_val_if_fail(type != NULL, NULL);
 
     type_id = self_get_type_from_name(type);
     if (! type_id)
@@ -260,17 +456,15 @@ class MN:Mailbox from G:Object
 
     return SELF(object);
   }
-  
+
   public MNMailbox *
-    new_from_xml_node (xmlNode *node, GError **err)
+    new_from_xml_node (xmlNode *node (check null), GError **err)
   {
     char *type;
     Self *self = NULL;
     GParamSpec **properties;
     unsigned int n_properties;
     int i;
-
-    g_return_val_if_fail(node != NULL, NULL);
 
     type = xmlGetProp(node, "type");
     if (! type)
@@ -306,22 +500,22 @@ class MN:Mailbox from G:Object
 			  g_param_spec_get_name(properties[i]), content, G_VALUE_TYPE_NAME(&value));
 
 	      g_value_unset(&value);
-	      xmlFree(content);
+	      g_free(content);
 	    }
 	}
     g_free(properties);
-    
+
     if (! self_validate(self, err))
       {
 	g_object_unref(self);
 	self = NULL;
       }
-    
+
   end:
     g_free(type);
     return self;
   }
-  
+
   public xmlNode *
     xml_node_new (self)
   {
@@ -332,14 +526,14 @@ class MN:Mailbox from G:Object
 
     node = xmlNewNode(NULL, "mailbox");
     xmlSetProp(node, "type", SELF_GET_CLASS(self)->type);
-    
+
     properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(self), &n_properties);
     for (i = 0; i < n_properties; i++)
       if ((properties[i]->flags & MN_MAILBOX_PARAM_PERMANENT) != 0)
 	{
 	  GValue value = { 0, };
 	  gboolean is_default;
-	  
+
 	  g_value_init(&value, G_PARAM_SPEC_VALUE_TYPE(properties[i]));
 	  g_object_get_property(G_OBJECT(self), g_param_spec_get_name(properties[i]), &value);
 
@@ -363,7 +557,7 @@ class MN:Mailbox from G:Object
 	    }
 	  else
 	    is_default = g_param_value_defaults(properties[i], &value);
-	  
+
 	  if (! is_default)
 	    {
 	      char *str;
@@ -372,14 +566,14 @@ class MN:Mailbox from G:Object
 	      xmlSetProp(node, g_param_spec_get_name(properties[i]), str);
 	      g_free(str);
 	    }
-	  
+
 	  g_value_unset(&value);
 	}
     g_free(properties);
 
     return node;
   }
-  
+
   public MNMailbox *
     new_from_uri (const char *uri (check null))
   {
@@ -390,7 +584,7 @@ class MN:Mailbox from G:Object
 	MNMailboxClass *class;
 
 	class = g_type_class_peek(mn_mailbox_types[i]);
-	g_return_val_if_fail(class != NULL, NULL);
+	g_assert(class != NULL);
 
 	if (class->parse_uri)
 	  {
@@ -401,16 +595,16 @@ class MN:Mailbox from G:Object
 	      return mailbox;
 	  }
       }
-    
+
     return NULL;
   }
-  
+
   public MNMailbox *
     new_from_configuration (MNMailboxConfiguration *config (check null))
   {
     return g_object_newv(config->type, config->n_parameters, config->parameters);
   }
-  
+
   public MNMailboxConfiguration *
     get_configuration (self)
   {
@@ -433,7 +627,7 @@ class MN:Mailbox from G:Object
 
 	  g_value_init(&parameter.value, G_PARAM_SPEC_VALUE_TYPE(properties[i]));
 	  g_object_get_property(object, parameter.name, &parameter.value);
-	  
+
 	  g_array_append_val(parameters, parameter);
 	}
     g_free(properties);
@@ -488,10 +682,10 @@ class MN:Mailbox from G:Object
 	g_object_unref(self);
 	self = NULL;
       }
-    
+
     return self;
   }
-  
+
   private MNMailbox *
     parse_obsolete_uri (const char *uri (check null))
   {
@@ -550,7 +744,7 @@ class MN:Mailbox from G:Object
        * For backward compatibility with previous versions of Mail
        * Notification, we also support ;auth= (in lowercase).
        */
-      
+
       pat = g_strdup_printf("%%%i[^:]:%%%i[^;];%%*1[aA]%%*1[uU]%%*1[tT]%%*1[hH]=%%%is", len, len, len);
       n = sscanf(auth_buf, pat, username_buf, password_buf, authmech_buf);
       g_free(pat);
@@ -607,14 +801,14 @@ class MN:Mailbox from G:Object
 	  pat = g_strdup_printf("[%%%i[^]]]:%%u", len);
 	  n = sscanf(hostport_buf, pat, hostname_buf, &_port);
 	  g_free(pat);
-	
+
 	  if (n < 1)
 	    {
 	      pat = g_strdup_printf("%%%i[^:]:%%u", len);
 	      n = sscanf(hostport_buf, pat, hostname_buf, &_port);
 	      g_free(pat);
 	    }
-	
+
 	  if (n == 2)
 	    has_port = TRUE;
 	}
@@ -629,7 +823,7 @@ class MN:Mailbox from G:Object
       if (has_queries)
 	{
 	  int i;
-	  
+
 	  queries = g_strsplit(queries_buf, "&", 0);
 	  for (i = 0; queries[i]; i++)
 	    {
@@ -647,7 +841,7 @@ class MN:Mailbox from G:Object
 
     if (! strcmp(scheme, "pop") || ! strcmp(scheme, "pops"))
       {
-#ifdef WITH_POP3
+#if WITH_POP3
 	MNPIMailboxConnectionType connection_type;
 
 	if (queries && eel_g_strv_find(queries, "STLS") != -1)
@@ -669,7 +863,7 @@ class MN:Mailbox from G:Object
       }
     else if (! strcmp(scheme, "imap") || ! strcmp(scheme, "imaps"))
       {
-#ifdef WITH_IMAP
+#if WITH_IMAP
 	MNPIMailboxConnectionType connection_type;
 
 	if (queries && eel_g_strv_find(queries, "STARTTLS") != -1)
@@ -690,12 +884,12 @@ class MN:Mailbox from G:Object
 			NULL);
 
 	if (queries && eel_g_strv_find(queries, "noidle") != -1)
-	  g_object_set(G_OBJECT(self), "use-idle-extension", MN_IMAP_MAILBOX_USE_IDLE_NEVER, NULL);
+	  g_object_set(G_OBJECT(self), MN_IMAP_MAILBOX_PROP_USE_IDLE_EXTENSION(MN_IMAP_MAILBOX_USE_IDLE_NEVER), NULL);
 #endif
       }
     else if (! strcmp(scheme, "gmail"))
       {
-#ifdef WITH_GMAIL
+#if WITH_GMAIL
 	self = self_new("gmail",
 			"username", username,
 			"password", password,
@@ -713,7 +907,17 @@ class MN:Mailbox from G:Object
 
     return self;
   }
-  
+
+  private gboolean
+    check_timeout_cb (gpointer data)
+  {
+    Self *self = data;
+
+    self_check(self);
+
+    return TRUE;		/* continue */
+  }
+
   private gboolean
     validate (self, GError **err)
   {
@@ -728,17 +932,17 @@ class MN:Mailbox from G:Object
 	  GValue value = { 0, };
 	  const char *str;
 	  gboolean is_empty;
-	  
-	  g_return_val_if_fail(G_IS_PARAM_SPEC_STRING(properties[i]), FALSE);
-	  
+
+	  g_assert(G_IS_PARAM_SPEC_STRING(properties[i]));
+
 	  g_value_init(&value, G_TYPE_STRING);
 	  g_object_get_property(G_OBJECT(self), g_param_spec_get_name(properties[i]), &value);
-	  
+
 	  str = g_value_get_string(&value);
 	  is_empty = ! str || ! *str;
-	  
+
 	  g_value_unset(&value);
-	  
+
 	  if (is_empty)
 	    {
 	      g_set_error(err, 0, 0, _("property \"%s\" has no value"), g_param_spec_get_name(properties[i]));
@@ -749,7 +953,7 @@ class MN:Mailbox from G:Object
 
     return TRUE;
   }
-  
+
   virtual public void
     seal (self)
   {
@@ -758,20 +962,27 @@ class MN:Mailbox from G:Object
 	g_free(self->runtime_name);
 	self->runtime_name = g_strdup(self->name);
       }
+
+    self->runtime_check_delay = self->check_delay != -1
+      ? self->check_delay
+      : SELF_GET_CLASS(self)->default_check_delay;
   }
 
   virtual private MNMailbox *
     parse_uri (self, const char *uri);
 
   virtual public void
-    check (self);
-  
+    check (self)
+  {
+    g_assert(selfp->added == TRUE);
+  }
+
   protected void
     notice (self, const char *format (check null), ...)
   {
     va_list args;
     char *message;
-    
+
     va_start(args, format);
     message = g_strdup_vprintf(format, args);
     va_end(args);
@@ -848,7 +1059,7 @@ class MN:Mailbox from G:Object
 
     return TRUE;
   }
-  
+
   private char *
     export_string (const GValue *value (check null))
   {
@@ -867,7 +1078,7 @@ class MN:Mailbox from G:Object
 
 	enum_class = g_type_class_ref(G_VALUE_TYPE(value));
 	enum_value = g_enum_get_value(enum_class, g_value_get_enum(value));
-	g_return_val_if_fail(enum_value != NULL, NULL);
+	g_assert(enum_value != NULL);
 
 	str = g_strdup(enum_value->value_nick);
 	g_type_class_unref(enum_class);

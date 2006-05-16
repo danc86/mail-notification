@@ -1,399 +1,335 @@
+# Generated from automake.xml using Jean-Yves Lefort's aml.
+include $(top_srcdir)/aml/aml.make
 bin_PROGRAMS = mail-notification
-
+mail_notification_CPPFLAGS = $(WARN_CFLAGS)
+mail_notification_CPPFLAGS += -I$(top_srcdir)
+mail_notification_CPPFLAGS += -DG_LOG_DOMAIN="\"$(PACKAGE)\""
+mail_notification_CPPFLAGS += -DPREFIX="\"$(prefix)\""
+mail_notification_CPPFLAGS += -DSYSCONFDIR="\"$(sysconfdir)\""
+mail_notification_CPPFLAGS += -DDATADIR="\"$(datadir)\""
+mail_notification_CPPFLAGS += -DLIBDIR="\"$(libdir)\""
+mail_notification_CPPFLAGS += -DGNOMELOCALEDIR="\"$(datadir)/locale\""
+mail_notification_CPPFLAGS += -DGNOMEPIXMAPSDIR="\"$(datadir)/pixmaps\""
+mail_notification_CPPFLAGS += -DUIDIR="\"$(pkgdatadir)/ui\""
+mail_notification_LDFLAGS = -export-dynamic
+mail_notification_LDFLAGS += $(INTLLIBS)
+mail_notification_CPPFLAGS += $(GNOME_CFLAGS)
+mail_notification_LDFLAGS += $(GNOME_LIBS)
+mail_notification_SOURCES = mn-main.c
+mail_notification_SOURCES += eggtrayicon.c
+mail_notification_SOURCES += eggtrayicon.h
+mail_notification_SOURCES += mn-conf.c
+mail_notification_SOURCES += mn-conf.h
+mail_notification_SOURCES += mn-locked-callback.c
+mail_notification_SOURCES += mn-locked-callback.h
+mail_notification_SOURCES += mn-stock.c
+mail_notification_SOURCES += mn-stock.h
+mail_notification_SOURCES += mn-util.c
+mail_notification_SOURCES += mn-util.h
+mail_notification_SOURCES += mn-vfs.c
+mail_notification_SOURCES += mn-vfs.h
+mail_notification_SOURCES += nautilus-cell-renderer-pixbuf-emblem.c
+mail_notification_SOURCES += nautilus-cell-renderer-pixbuf-emblem.h
+mail_notification_SOURCES += mn-about-dialog.gob mn-about-dialog.gob.stamp
+mail_notification_SOURCES += mn-about-dialog-private.h mn-about-dialog.c mn-about-dialog.h
+BUILT_SOURCES = mn-about-dialog.gob.stamp
+MAINTAINERCLEANFILES = mn-about-dialog.gob.stamp
+MAINTAINERCLEANFILES += mn-about-dialog-private.h mn-about-dialog.c mn-about-dialog.h
+mail_notification_SOURCES += mn-autodetect-mailbox-properties.gob mn-autodetect-mailbox-properties.gob.stamp
+mail_notification_SOURCES += mn-autodetect-mailbox-properties-private.h mn-autodetect-mailbox-properties.c mn-autodetect-mailbox-properties.h
+BUILT_SOURCES += mn-autodetect-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-autodetect-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-autodetect-mailbox-properties-private.h mn-autodetect-mailbox-properties.c mn-autodetect-mailbox-properties.h
+mail_notification_SOURCES += mn-automation.gob mn-automation.gob.stamp
+mail_notification_SOURCES += mn-automation-private.h mn-automation.c mn-automation.h
+BUILT_SOURCES += mn-automation.gob.stamp
+MAINTAINERCLEANFILES += mn-automation.gob.stamp
+MAINTAINERCLEANFILES += mn-automation-private.h mn-automation.c mn-automation.h
+mail_notification_SOURCES += mn-blinking-image.gob mn-blinking-image.gob.stamp
+mail_notification_SOURCES += mn-blinking-image-private.h mn-blinking-image.c mn-blinking-image.h
+BUILT_SOURCES += mn-blinking-image.gob.stamp
+MAINTAINERCLEANFILES += mn-blinking-image.gob.stamp
+MAINTAINERCLEANFILES += mn-blinking-image-private.h mn-blinking-image.c mn-blinking-image.h
+mail_notification_SOURCES += mn-compact-message-view.gob mn-compact-message-view.gob.stamp
+mail_notification_SOURCES += mn-compact-message-view-private.h mn-compact-message-view.c mn-compact-message-view.h
+BUILT_SOURCES += mn-compact-message-view.gob.stamp
+MAINTAINERCLEANFILES += mn-compact-message-view.gob.stamp
+MAINTAINERCLEANFILES += mn-compact-message-view-private.h mn-compact-message-view.c mn-compact-message-view.h
+mail_notification_SOURCES += mn-dialog.gob mn-dialog.gob.stamp
+mail_notification_SOURCES += mn-dialog-private.h mn-dialog.c mn-dialog.h
+BUILT_SOURCES += mn-dialog.gob.stamp
+MAINTAINERCLEANFILES += mn-dialog.gob.stamp
+MAINTAINERCLEANFILES += mn-dialog-private.h mn-dialog.c mn-dialog.h
+mail_notification_SOURCES += mn-mail-icon.gob mn-mail-icon.gob.stamp
+mail_notification_SOURCES += mn-mail-icon-private.h mn-mail-icon.c mn-mail-icon.h
+BUILT_SOURCES += mn-mail-icon.gob.stamp
+MAINTAINERCLEANFILES += mn-mail-icon.gob.stamp
+MAINTAINERCLEANFILES += mn-mail-icon-private.h mn-mail-icon.c mn-mail-icon.h
+mail_notification_SOURCES += mn-mail-summary-popup.gob mn-mail-summary-popup.gob.stamp
+mail_notification_SOURCES += mn-mail-summary-popup-private.h mn-mail-summary-popup.c mn-mail-summary-popup.h
+BUILT_SOURCES += mn-mail-summary-popup.gob.stamp
+MAINTAINERCLEANFILES += mn-mail-summary-popup.gob.stamp
+MAINTAINERCLEANFILES += mn-mail-summary-popup-private.h mn-mail-summary-popup.c mn-mail-summary-popup.h
+mail_notification_SOURCES += mn-mailbox.gob mn-mailbox.gob.stamp
+mail_notification_SOURCES += mn-mailbox-private.h mn-mailbox.c mn-mailbox.h
+BUILT_SOURCES += mn-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-mailbox-private.h mn-mailbox.c mn-mailbox.h
+mail_notification_SOURCES += mn-mailbox-properties.gob mn-mailbox-properties.gob.stamp
+mail_notification_SOURCES += mn-mailbox-properties-private.h mn-mailbox-properties.c mn-mailbox-properties.h
+BUILT_SOURCES += mn-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-mailbox-properties-private.h mn-mailbox-properties.c mn-mailbox-properties.h
+mail_notification_SOURCES += mn-mailbox-properties-dialog.gob mn-mailbox-properties-dialog.gob.stamp
+mail_notification_SOURCES += mn-mailbox-properties-dialog-private.h mn-mailbox-properties-dialog.c mn-mailbox-properties-dialog.h
+BUILT_SOURCES += mn-mailbox-properties-dialog.gob.stamp
+MAINTAINERCLEANFILES += mn-mailbox-properties-dialog.gob.stamp
+MAINTAINERCLEANFILES += mn-mailbox-properties-dialog-private.h mn-mailbox-properties-dialog.c mn-mailbox-properties-dialog.h
+mail_notification_SOURCES += mn-mailbox-view.gob mn-mailbox-view.gob.stamp
+mail_notification_SOURCES += mn-mailbox-view-private.h mn-mailbox-view.c mn-mailbox-view.h
+BUILT_SOURCES += mn-mailbox-view.gob.stamp
+MAINTAINERCLEANFILES += mn-mailbox-view.gob.stamp
+MAINTAINERCLEANFILES += mn-mailbox-view-private.h mn-mailbox-view.c mn-mailbox-view.h
+mail_notification_SOURCES += mn-mailboxes.gob mn-mailboxes.gob.stamp
+mail_notification_SOURCES += mn-mailboxes-private.h mn-mailboxes.c mn-mailboxes.h
+BUILT_SOURCES += mn-mailboxes.gob.stamp
+MAINTAINERCLEANFILES += mn-mailboxes.gob.stamp
+MAINTAINERCLEANFILES += mn-mailboxes-private.h mn-mailboxes.c mn-mailboxes.h
+mail_notification_SOURCES += mn-message.gob mn-message.gob.stamp
+mail_notification_SOURCES += mn-message-private.h mn-message.c mn-message.h
+BUILT_SOURCES += mn-message.gob.stamp
+MAINTAINERCLEANFILES += mn-message.gob.stamp
+MAINTAINERCLEANFILES += mn-message-private.h mn-message.c mn-message.h
+mail_notification_SOURCES += mn-message-view.gob mn-message-view.gob.stamp
+mail_notification_SOURCES += mn-message-view-private.h mn-message-view.c mn-message-view.h
+BUILT_SOURCES += mn-message-view.gob.stamp
+MAINTAINERCLEANFILES += mn-message-view.gob.stamp
+MAINTAINERCLEANFILES += mn-message-view-private.h mn-message-view.c mn-message-view.h
+mail_notification_SOURCES += mn-properties-dialog.gob mn-properties-dialog.gob.stamp
+mail_notification_SOURCES += mn-properties-dialog-private.h mn-properties-dialog.c mn-properties-dialog.h
+BUILT_SOURCES += mn-properties-dialog.gob.stamp
+MAINTAINERCLEANFILES += mn-properties-dialog.gob.stamp
+MAINTAINERCLEANFILES += mn-properties-dialog-private.h mn-properties-dialog.c mn-properties-dialog.h
+mail_notification_SOURCES += mn-shell.gob mn-shell.gob.stamp
+mail_notification_SOURCES += mn-shell-private.h mn-shell.c mn-shell.h
+BUILT_SOURCES += mn-shell.gob.stamp
+MAINTAINERCLEANFILES += mn-shell.gob.stamp
+MAINTAINERCLEANFILES += mn-shell-private.h mn-shell.c mn-shell.h
+mail_notification_SOURCES += mn-standard-message-view.gob mn-standard-message-view.gob.stamp
+mail_notification_SOURCES += mn-standard-message-view-private.h mn-standard-message-view.c mn-standard-message-view.h
+BUILT_SOURCES += mn-standard-message-view.gob.stamp
+MAINTAINERCLEANFILES += mn-standard-message-view.gob.stamp
+MAINTAINERCLEANFILES += mn-standard-message-view-private.h mn-standard-message-view.c mn-standard-message-view.h
+mail_notification_SOURCES += mn-text-table.gob mn-text-table.gob.stamp
+mail_notification_SOURCES += mn-text-table-private.h mn-text-table.c mn-text-table.h
+BUILT_SOURCES += mn-text-table.gob.stamp
+MAINTAINERCLEANFILES += mn-text-table.gob.stamp
+MAINTAINERCLEANFILES += mn-text-table-private.h mn-text-table.c mn-text-table.h
+mail_notification_SOURCES += mn-tooltips.gob mn-tooltips.gob.stamp
+mail_notification_SOURCES += mn-tooltips-private.h mn-tooltips.c mn-tooltips.h
+BUILT_SOURCES += mn-tooltips.gob.stamp
+MAINTAINERCLEANFILES += mn-tooltips.gob.stamp
+MAINTAINERCLEANFILES += mn-tooltips-private.h mn-tooltips.c mn-tooltips.h
+mail_notification_SOURCES += GNOME_MailNotification.idl
+nodist_mail_notification_SOURCES = GNOME_MailNotification-common.c GNOME_MailNotification-skels.c GNOME_MailNotification-stubs.c GNOME_MailNotification.h
+BUILT_SOURCES += GNOME_MailNotification-common.c GNOME_MailNotification-skels.c GNOME_MailNotification-stubs.c GNOME_MailNotification.h
+CLEANFILES = GNOME_MailNotification-common.c GNOME_MailNotification-skels.c GNOME_MailNotification-stubs.c GNOME_MailNotification.h
 if WITH_MBOX
-mbox_gob_sources = mn-mbox-mailbox-backend.gob
-mbox_gob_built_sources = \
-	mn-mbox-mailbox-backend-private.h	\
-	mn-mbox-mailbox-backend.c		\
-	mn-mbox-mailbox-backend.h
+mail_notification_SOURCES += mn-mbox-mailbox-backend.gob mn-mbox-mailbox-backend.gob.stamp
+mail_notification_SOURCES += mn-mbox-mailbox-backend-private.h mn-mbox-mailbox-backend.c mn-mbox-mailbox-backend.h
+BUILT_SOURCES += mn-mbox-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-mbox-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-mbox-mailbox-backend-private.h mn-mbox-mailbox-backend.c mn-mbox-mailbox-backend.h
 endif
-
 if WITH_MH
-mh_gob_sources = mn-mh-mailbox-backend.gob
-mh_gob_built_sources = \
-	mn-mh-mailbox-backend-private.h		\
-	mn-mh-mailbox-backend.c			\
-	mn-mh-mailbox-backend.h
+mail_notification_SOURCES += mn-mh-mailbox-backend.gob mn-mh-mailbox-backend.gob.stamp
+mail_notification_SOURCES += mn-mh-mailbox-backend-private.h mn-mh-mailbox-backend.c mn-mh-mailbox-backend.h
+BUILT_SOURCES += mn-mh-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-mh-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-mh-mailbox-backend-private.h mn-mh-mailbox-backend.c mn-mh-mailbox-backend.h
 endif
-
 if WITH_MAILDIR
-maildir_gob_sources = mn-maildir-mailbox-backend.gob
-maildir_gob_built_sources = \
-	mn-maildir-mailbox-backend-private.h	\
-	mn-maildir-mailbox-backend.c		\
-	mn-maildir-mailbox-backend.h
+mail_notification_SOURCES += mn-maildir-mailbox-backend.gob mn-maildir-mailbox-backend.gob.stamp
+mail_notification_SOURCES += mn-maildir-mailbox-backend-private.h mn-maildir-mailbox-backend.c mn-maildir-mailbox-backend.h
+BUILT_SOURCES += mn-maildir-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-maildir-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-maildir-mailbox-backend-private.h mn-maildir-mailbox-backend.c mn-maildir-mailbox-backend.h
 endif
-
 if WITH_POP3
-pop3_gob_sources = \
-	mn-pop3-mailbox-properties.gob	\
-	mn-pop3-mailbox.gob
-pop3_gob_built_sources = \
-	mn-pop3-mailbox-properties-private.h	\
-	mn-pop3-mailbox-properties.c		\
-	mn-pop3-mailbox-properties.h		\
-	mn-pop3-mailbox-private.h		\
-	mn-pop3-mailbox.c			\
-	mn-pop3-mailbox.h
-md5_sources = mn-md5.c mn-md5.h
+mail_notification_SOURCES += mn-md5.c
+mail_notification_SOURCES += mn-md5.h
+mail_notification_SOURCES += mn-pop3-mailbox.gob mn-pop3-mailbox.gob.stamp
+mail_notification_SOURCES += mn-pop3-mailbox-private.h mn-pop3-mailbox.c mn-pop3-mailbox.h
+BUILT_SOURCES += mn-pop3-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-pop3-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-pop3-mailbox-private.h mn-pop3-mailbox.c mn-pop3-mailbox.h
+mail_notification_SOURCES += mn-pop3-mailbox-properties.gob mn-pop3-mailbox-properties.gob.stamp
+mail_notification_SOURCES += mn-pop3-mailbox-properties-private.h mn-pop3-mailbox-properties.c mn-pop3-mailbox-properties.h
+BUILT_SOURCES += mn-pop3-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-pop3-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-pop3-mailbox-properties-private.h mn-pop3-mailbox-properties.c mn-pop3-mailbox-properties.h
 endif
-
 if WITH_IMAP
-imap_gob_sources = \
-	mn-imap-mailbox-properties.gob	\
-	mn-imap-mailbox.gob
-imap_gob_built_sources = \
-	mn-imap-mailbox-properties-private.h	\
-	mn-imap-mailbox-properties.c		\
-	mn-imap-mailbox-properties.h		\
-	mn-imap-mailbox-private.h		\
-	mn-imap-mailbox.c			\
-	mn-imap-mailbox.h
+mail_notification_SOURCES += mn-imap-mailbox.gob mn-imap-mailbox.gob.stamp
+mail_notification_SOURCES += mn-imap-mailbox-private.h mn-imap-mailbox.c mn-imap-mailbox.h
+BUILT_SOURCES += mn-imap-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-imap-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-imap-mailbox-private.h mn-imap-mailbox.c mn-imap-mailbox.h
+mail_notification_SOURCES += mn-imap-mailbox-properties.gob mn-imap-mailbox-properties.gob.stamp
+mail_notification_SOURCES += mn-imap-mailbox-properties-private.h mn-imap-mailbox-properties.c mn-imap-mailbox-properties.h
+BUILT_SOURCES += mn-imap-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-imap-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-imap-mailbox-properties-private.h mn-imap-mailbox-properties.c mn-imap-mailbox-properties.h
 endif
-
 if WITH_POP3_OR_IMAP
-client_session_sources = mn-client-session.c mn-client-session.h
-pi_gob_sources = \
-	mn-auth-combo-box.gob			\
-	mn-pi-mailbox-properties.gob		\
-	mn-pi-mailbox.gob
-pi_gob_built_sources = \
-	mn-auth-combo-box-private.h			\
-	mn-auth-combo-box.c				\
-	mn-auth-combo-box.h				\
-	mn-pi-mailbox-properties-private.h		\
-	mn-pi-mailbox-properties.c			\
-	mn-pi-mailbox-properties.h			\
-	mn-pi-mailbox-private.h				\
-	mn-pi-mailbox.c					\
-	mn-pi-mailbox.h
+mail_notification_SOURCES += mn-client-session.c
+mail_notification_SOURCES += mn-client-session.h
+mail_notification_SOURCES += mn-auth-combo-box.gob mn-auth-combo-box.gob.stamp
+mail_notification_SOURCES += mn-auth-combo-box-private.h mn-auth-combo-box.c mn-auth-combo-box.h
+BUILT_SOURCES += mn-auth-combo-box.gob.stamp
+MAINTAINERCLEANFILES += mn-auth-combo-box.gob.stamp
+MAINTAINERCLEANFILES += mn-auth-combo-box-private.h mn-auth-combo-box.c mn-auth-combo-box.h
+mail_notification_SOURCES += mn-pi-mailbox.gob mn-pi-mailbox.gob.stamp
+mail_notification_SOURCES += mn-pi-mailbox-private.h mn-pi-mailbox.c mn-pi-mailbox.h
+BUILT_SOURCES += mn-pi-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-pi-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-pi-mailbox-private.h mn-pi-mailbox.c mn-pi-mailbox.h
+mail_notification_SOURCES += mn-pi-mailbox-properties.gob mn-pi-mailbox-properties.gob.stamp
+mail_notification_SOURCES += mn-pi-mailbox-properties-private.h mn-pi-mailbox-properties.c mn-pi-mailbox-properties.h
+BUILT_SOURCES += mn-pi-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-pi-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-pi-mailbox-properties-private.h mn-pi-mailbox-properties.c mn-pi-mailbox-properties.h
 endif
-
 if WITH_POP3_OR_IMAP_OR_GMAIL
-authenticated_mailbox_gob_sources = \
-	mn-authenticated-mailbox-properties.gob	\
-	mn-authenticated-mailbox.gob
-authenticated_mailbox_gob_built_sources = \
-	mn-authenticated-mailbox-properties-private.h	\
-	mn-authenticated-mailbox-properties.c		\
-	mn-authenticated-mailbox-properties.h		\
-	mn-authenticated-mailbox-private.h		\
-	mn-authenticated-mailbox.c			\
-	mn-authenticated-mailbox.h
+mail_notification_SOURCES += mn-authenticated-mailbox.gob mn-authenticated-mailbox.gob.stamp
+mail_notification_SOURCES += mn-authenticated-mailbox-private.h mn-authenticated-mailbox.c mn-authenticated-mailbox.h
+BUILT_SOURCES += mn-authenticated-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-authenticated-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-authenticated-mailbox-private.h mn-authenticated-mailbox.c mn-authenticated-mailbox.h
+mail_notification_SOURCES += mn-authenticated-mailbox-properties.gob mn-authenticated-mailbox-properties.gob.stamp
+mail_notification_SOURCES += mn-authenticated-mailbox-properties-private.h mn-authenticated-mailbox-properties.c mn-authenticated-mailbox-properties.h
+BUILT_SOURCES += mn-authenticated-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-authenticated-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-authenticated-mailbox-properties-private.h mn-authenticated-mailbox-properties.c mn-authenticated-mailbox-properties.h
 endif
-
 if WITH_SYLPHEED
-sylpheed_gob_sources = mn-sylpheed-mailbox-backend.gob
-sylpheed_gob_built_sources = \
-	mn-sylpheed-mailbox-backend-private.h	\
-	mn-sylpheed-mailbox-backend.c		\
-	mn-sylpheed-mailbox-backend.h
+mail_notification_SOURCES += mn-sylpheed-mailbox-backend.gob mn-sylpheed-mailbox-backend.gob.stamp
+mail_notification_SOURCES += mn-sylpheed-mailbox-backend-private.h mn-sylpheed-mailbox-backend.c mn-sylpheed-mailbox-backend.h
+BUILT_SOURCES += mn-sylpheed-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-sylpheed-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-sylpheed-mailbox-backend-private.h mn-sylpheed-mailbox-backend.c mn-sylpheed-mailbox-backend.h
 endif
-
 if WITH_GMAIL
-gmail_gob_sources = \
-	mn-gmail-mailbox-properties.gob	\
-	mn-gmail-mailbox.gob
-gmail_gob_built_sources = \
-	mn-gmail-mailbox-properties-private.h	\
-	mn-gmail-mailbox-properties.c		\
-	mn-gmail-mailbox-properties.h		\
-	mn-gmail-mailbox-private.h		\
-	mn-gmail-mailbox.c			\
-	mn-gmail-mailbox.h
+mail_notification_SOURCES += mn-gmail-mailbox.gob mn-gmail-mailbox.gob.stamp
+mail_notification_SOURCES += mn-gmail-mailbox-private.h mn-gmail-mailbox.c mn-gmail-mailbox.h
+BUILT_SOURCES += mn-gmail-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-gmail-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-gmail-mailbox-private.h mn-gmail-mailbox.c mn-gmail-mailbox.h
+mail_notification_SOURCES += mn-gmail-mailbox-properties.gob mn-gmail-mailbox-properties.gob.stamp
+mail_notification_SOURCES += mn-gmail-mailbox-properties-private.h mn-gmail-mailbox-properties.c mn-gmail-mailbox-properties.h
+BUILT_SOURCES += mn-gmail-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-gmail-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-gmail-mailbox-properties-private.h mn-gmail-mailbox-properties.c mn-gmail-mailbox-properties.h
 endif
-
 if WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED
-vfs_mailbox_gob_sources = \
-	mn-custom-vfs-mailbox.gob		\
-	mn-system-vfs-mailbox-properties.gob	\
-	mn-system-vfs-mailbox.gob		\
-	mn-vfs-mailbox-backend.gob 		\
-	mn-vfs-mailbox.gob
-vfs_mailbox_gob_built_sources = \
-	mn-custom-vfs-mailbox-private.h			\
-	mn-custom-vfs-mailbox.c				\
-	mn-custom-vfs-mailbox.h				\
-	mn-system-vfs-mailbox-properties-private.h	\
-	mn-system-vfs-mailbox-properties.c		\
-	mn-system-vfs-mailbox-properties.h		\
-	mn-system-vfs-mailbox-private.h			\
-	mn-system-vfs-mailbox.c				\
-	mn-system-vfs-mailbox.h				\
-	mn-vfs-mailbox-backend-private.h		\
-	mn-vfs-mailbox-backend.c			\
-	mn-vfs-mailbox-backend.h			\
-	mn-vfs-mailbox-private.h			\
-	mn-vfs-mailbox.c				\
-	mn-vfs-mailbox.h
+mail_notification_SOURCES += mn-custom-vfs-mailbox.gob mn-custom-vfs-mailbox.gob.stamp
+mail_notification_SOURCES += mn-custom-vfs-mailbox-private.h mn-custom-vfs-mailbox.c mn-custom-vfs-mailbox.h
+BUILT_SOURCES += mn-custom-vfs-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-custom-vfs-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-custom-vfs-mailbox-private.h mn-custom-vfs-mailbox.c mn-custom-vfs-mailbox.h
+mail_notification_SOURCES += mn-system-vfs-mailbox.gob mn-system-vfs-mailbox.gob.stamp
+mail_notification_SOURCES += mn-system-vfs-mailbox-private.h mn-system-vfs-mailbox.c mn-system-vfs-mailbox.h
+BUILT_SOURCES += mn-system-vfs-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-system-vfs-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-system-vfs-mailbox-private.h mn-system-vfs-mailbox.c mn-system-vfs-mailbox.h
+mail_notification_SOURCES += mn-system-vfs-mailbox-properties.gob mn-system-vfs-mailbox-properties.gob.stamp
+mail_notification_SOURCES += mn-system-vfs-mailbox-properties-private.h mn-system-vfs-mailbox-properties.c mn-system-vfs-mailbox-properties.h
+BUILT_SOURCES += mn-system-vfs-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-system-vfs-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-system-vfs-mailbox-properties-private.h mn-system-vfs-mailbox-properties.c mn-system-vfs-mailbox-properties.h
+mail_notification_SOURCES += mn-vfs-mailbox.gob mn-vfs-mailbox.gob.stamp
+mail_notification_SOURCES += mn-vfs-mailbox-private.h mn-vfs-mailbox.c mn-vfs-mailbox.h
+BUILT_SOURCES += mn-vfs-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-vfs-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-vfs-mailbox-private.h mn-vfs-mailbox.c mn-vfs-mailbox.h
+mail_notification_SOURCES += mn-vfs-mailbox-backend.gob mn-vfs-mailbox-backend.gob.stamp
+mail_notification_SOURCES += mn-vfs-mailbox-backend-private.h mn-vfs-mailbox-backend.c mn-vfs-mailbox-backend.h
+BUILT_SOURCES += mn-vfs-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-vfs-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-vfs-mailbox-backend-private.h mn-vfs-mailbox-backend.c mn-vfs-mailbox-backend.h
 endif
-
 if WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION
-reentrant_mailbox_gob_sources = mn-reentrant-mailbox.gob
-reentrant_mailbox_gob_built_sources = \
-	mn-reentrant-mailbox-private.h	\
-	mn-reentrant-mailbox.c		\
-	mn-reentrant-mailbox.h
+mail_notification_SOURCES += mn-reentrant-mailbox.gob mn-reentrant-mailbox.gob.stamp
+mail_notification_SOURCES += mn-reentrant-mailbox-private.h mn-reentrant-mailbox.c mn-reentrant-mailbox.h
+BUILT_SOURCES += mn-reentrant-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-reentrant-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-reentrant-mailbox-private.h mn-reentrant-mailbox.c mn-reentrant-mailbox.h
 endif
-
 if WITH_MIME
-mime_gob_sources = \
-	mn-gmime-stream-vfs.gob
-mime_gob_built_sources = \
-	mn-gmime-stream-vfs-private.h	\
-	mn-gmime-stream-vfs.c		\
-	mn-gmime-stream-vfs.h
-mime_sources = \
-	mn-message-mime.c	\
-	mn-message-mime.h
+mail_notification_CPPFLAGS += $(GMIME_CFLAGS)
+mail_notification_LDFLAGS += $(GMIME_LIBS)
+mail_notification_SOURCES += mn-message-mime.c
+mail_notification_SOURCES += mn-message-mime.h
+mail_notification_SOURCES += mn-gmime-stream-vfs.gob mn-gmime-stream-vfs.gob.stamp
+mail_notification_SOURCES += mn-gmime-stream-vfs-private.h mn-gmime-stream-vfs.c mn-gmime-stream-vfs.h
+BUILT_SOURCES += mn-gmime-stream-vfs.gob.stamp
+MAINTAINERCLEANFILES += mn-gmime-stream-vfs.gob.stamp
+MAINTAINERCLEANFILES += mn-gmime-stream-vfs-private.h mn-gmime-stream-vfs.c mn-gmime-stream-vfs.h
 endif
-
 if WITH_SSL
-ssl_sources = mn-ssl.c mn-ssl.h
+mail_notification_CPPFLAGS += $(OPENSSL_CFLAGS)
+mail_notification_LDFLAGS += $(OPENSSL_LIBS)
+mail_notification_SOURCES += mn-ssl.c
+mail_notification_SOURCES += mn-ssl.h
 endif
-
 if WITH_SASL
-sasl_sources = mn-sasl.c mn-sasl.h
+mail_notification_CPPFLAGS += $(SASL_CFLAGS)
+mail_notification_LDFLAGS += $(SASL_LIBS)
+mail_notification_SOURCES += mn-sasl.c
+mail_notification_SOURCES += mn-sasl.h
 endif
-
 if WITH_EVOLUTION
-evolution_plugin_eplug = org-gnome-mail-notification.eplug
-
-evolution_shared_sources = mn-evolution.h
-
-evolution_shared_idl_sources = GNOME_MailNotification_Evolution.idl
-evolution_shared_idl_built_sources = \
-	GNOME_MailNotification_Evolution-common.c	\
-	GNOME_MailNotification_Evolution-stubs.c	\
-	GNOME_MailNotification_Evolution-skels.c	\
-	GNOME_MailNotification_Evolution.h
-
-evolution_plugin_gob_sources = mn-evolution-glue.gob
-evolution_plugin_gob_built_sources = \
-	mn-evolution-glue-private.h	\
-	mn-evolution-glue.c		\
-	mn-evolution-glue.h
-
-evolution_gob_sources = \
-	mn-corba-object.gob			\
-	mn-evolution-mailbox-properties.gob	\
-	mn-evolution-mailbox.gob
-evolution_gob_built_sources = \
-	mn-corba-object-private.h			\
-	mn-corba-object.c				\
-	mn-corba-object.h				\
-	mn-evolution-mailbox-properties-private.h	\
-	mn-evolution-mailbox-properties.c		\
-	mn-evolution-mailbox-properties.h		\
-	mn-evolution-mailbox-private.h			\
-	mn-evolution-mailbox.c				\
-	mn-evolution-mailbox.h
-
-evolution_plugin_DATA = $(evolution_plugin_eplug)
-evolution_plugin_LTLIBRARIES = liborg-gnome-mail-notification.la
-
-nodist_liborg_gnome_mail_notification_la_SOURCES = \
-	$(evolution_shared_idl_built_sources)
-liborg_gnome_mail_notification_la_SOURCES = \
-	$(evolution_shared_sources)		\
-	$(evolution_shared_idl_sources)		\
-	$(evolution_plugin_gob_sources)		\
-	$(evolution_plugin_gob_built_sources)	\
-	mn-evolution-folder-tree-control.c	\
-	mn-evolution-folder-tree-control.h	\
-	mn-evolution-plugin.c
-
-liborg_gnome_mail_notification_la_CPPFLAGS = $(WARN_CFLAGS) \
-	-I$(top_srcdir) \
-	-DG_LOG_DOMAIN="\"$(PACKAGE)\"" \
-	$(EVOLUTION_PLUGIN_CFLAGS)
-liborg_gnome_mail_notification_la_LDFLAGS = -avoid-version -module $(EVOLUTION_PLUGIN_LIBS)
+mail_notification_SOURCES += mn-evolution.h
+mail_notification_SOURCES += mn-corba-object.gob mn-corba-object.gob.stamp
+mail_notification_SOURCES += mn-corba-object-private.h mn-corba-object.c mn-corba-object.h
+BUILT_SOURCES += mn-corba-object.gob.stamp
+MAINTAINERCLEANFILES += mn-corba-object.gob.stamp
+MAINTAINERCLEANFILES += mn-corba-object-private.h mn-corba-object.c mn-corba-object.h
+mail_notification_SOURCES += mn-evolution-mailbox.gob mn-evolution-mailbox.gob.stamp
+mail_notification_SOURCES += mn-evolution-mailbox-private.h mn-evolution-mailbox.c mn-evolution-mailbox.h
+BUILT_SOURCES += mn-evolution-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-evolution-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-evolution-mailbox-private.h mn-evolution-mailbox.c mn-evolution-mailbox.h
+mail_notification_SOURCES += mn-evolution-mailbox-properties.gob mn-evolution-mailbox-properties.gob.stamp
+mail_notification_SOURCES += mn-evolution-mailbox-properties-private.h mn-evolution-mailbox-properties.c mn-evolution-mailbox-properties.h
+BUILT_SOURCES += mn-evolution-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-evolution-mailbox-properties.gob.stamp
+MAINTAINERCLEANFILES += mn-evolution-mailbox-properties-private.h mn-evolution-mailbox-properties.c mn-evolution-mailbox-properties.h
+mail_notification_SOURCES += GNOME_MailNotification_Evolution.idl
+nodist_mail_notification_SOURCES += GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
+BUILT_SOURCES += GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
+CLEANFILES += GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
 endif
-
-idl_sources = $(evolution_shared_idl_sources) GNOME_MailNotification.idl
-idl_built_sources = \
-	$(evolution_shared_idl_built_sources)	\
-	GNOME_MailNotification-common.c		\
-	GNOME_MailNotification-stubs.c		\
-	GNOME_MailNotification-skels.c		\
-	GNOME_MailNotification.h
-
-gob_sources = \
-	$(mbox_gob_sources)			\
-	$(mh_gob_sources)			\
-	$(maildir_gob_sources)			\
-	$(pop3_gob_sources)			\
-	$(imap_gob_sources)			\
-	$(authenticated_mailbox_gob_sources)	\
-	$(pi_gob_sources)			\
-	$(sylpheed_gob_sources)			\
-	$(gmail_gob_sources)			\
-	$(evolution_gob_sources)		\
-	$(vfs_mailbox_gob_sources)		\
-	$(reentrant_mailbox_gob_sources)	\
-	$(mime_gob_sources)			\
-	mn-about-dialog.gob			\
-	mn-autodetect-mailbox-properties.gob	\
-	mn-automation.gob			\
-	mn-blinking-image.gob			\
-	mn-dialog.gob				\
-	mn-mail-icon.gob			\
-	mn-mail-summary-popup.gob		\
-	mn-mailbox-properties-dialog.gob	\
-	mn-mailbox-properties.gob		\
-	mn-mailbox-view.gob			\
-	mn-mailbox.gob				\
-	mn-mailboxes.gob			\
-	mn-main-window.gob			\
-	mn-message-view.gob			\
-	mn-message.gob				\
-	mn-properties-dialog.gob		\
-	mn-shell.gob				\
-	mn-tooltips.gob
-gob_built_sources = \
-	$(mbox_gob_built_sources)			\
-	$(mh_gob_built_sources)				\
-	$(maildir_gob_built_sources)			\
-	$(pop3_gob_built_sources)			\
-	$(imap_gob_built_sources)			\
-	$(authenticated_mailbox_gob_built_sources)	\
-	$(pi_gob_built_sources)				\
-	$(sylpheed_gob_built_sources)			\
-	$(gmail_gob_built_sources)			\
-	$(evolution_gob_built_sources)			\
-	$(vfs_mailbox_gob_built_sources)		\
-	$(reentrant_mailbox_gob_built_sources)		\
-	$(mime_gob_built_sources)			\
-	mn-about-dialog-private.h			\
-	mn-about-dialog.c				\
-	mn-about-dialog.h				\
-	mn-autodetect-mailbox-properties-private.h	\
-	mn-autodetect-mailbox-properties.c		\
-	mn-autodetect-mailbox-properties.h		\
-	mn-automation-private.h				\
-	mn-automation.c					\
-	mn-automation.h					\
-	mn-blinking-image-private.h			\
-	mn-blinking-image.c				\
-	mn-blinking-image.h				\
-	mn-dialog-private.h				\
-	mn-dialog.c					\
-	mn-dialog.h					\
-	mn-mail-icon-private.h				\
-	mn-mail-icon.c					\
-	mn-mail-icon.h					\
-	mn-mail-summary-popup-private.h			\
-	mn-mail-summary-popup.c				\
-	mn-mail-summary-popup.h				\
-	mn-mailbox-properties-dialog-private.h		\
-	mn-mailbox-properties-dialog.c			\
-	mn-mailbox-properties-dialog.h			\
-	mn-mailbox-properties-private.h			\
-	mn-mailbox-properties.c				\
-	mn-mailbox-properties.h				\
-	mn-mailbox-view-private.h			\
-	mn-mailbox-view.c				\
-	mn-mailbox-view.h				\
-	mn-mailbox-private.h				\
-	mn-mailbox.c					\
-	mn-mailbox.h					\
-	mn-mailboxes-private.h				\
-	mn-mailboxes.c					\
-	mn-mailboxes.h					\
-	mn-main-window-private.h			\
-	mn-main-window.c				\
-	mn-main-window.h				\
-	mn-message-view-private.h			\
-	mn-message-view.c				\
-	mn-message-view.h				\
-	mn-message-private.h				\
-	mn-message.c					\
-	mn-message.h					\
-	mn-properties-dialog-private.h			\
-	mn-properties-dialog.c				\
-	mn-properties-dialog.h				\
-	mn-shell-private.h				\
-	mn-shell.c					\
-	mn-shell.h					\
-	mn-tooltips-private.h				\
-	mn-tooltips.c					\
-	mn-tooltips.h
-
-egg_built_sources = \
-	eggmarshalers.c	\
-	eggmarshalers.h
-
-nodist_mail_notification_SOURCES = $(idl_built_sources)
-mail_notification_SOURCES = \
-	$(idl_sources)				\
-	$(gob_sources)				\
-	$(gob_built_sources)			\
-	$(egg_built_sources)			\
-	$(md5_sources)				\
-	$(client_session_sources)		\
-	$(ssl_sources)				\
-	$(sasl_sources)				\
-	$(mime_sources)				\
-	$(evolution_shared_sources)		\
-	egg-editable-toolbar.c			\
-	egg-editable-toolbar.h			\
-	egg-toolbar-editor.c			\
-	egg-toolbar-editor.h			\
-	egg-toolbars-model.c			\
-	egg-toolbars-model.h			\
-	eggtrayicon.c				\
-	eggtrayicon.h				\
-	mn-conf.c				\
-	mn-conf.h				\
-	mn-main.c				\
-	mn-stock.c				\
-	mn-stock.h				\
-	mn-util.c				\
-	mn-util.h				\
-	mn-vfs.c				\
-	mn-vfs.h				\
-	nautilus-cell-renderer-pixbuf-emblem.c	\
-	nautilus-cell-renderer-pixbuf-emblem.h
-BUILT_SOURCES = \
-	$(evolution_plugin_gob_built_sources)	\
-	$(idl_built_sources)			\
-	$(gob_built_sources)			\
-	$(egg_built_sources)
-
-mail_notification_CPPFLAGS = $(WARN_CFLAGS) $(GNOME_CFLAGS) $(GMIME_CFLAGS) $(OPENSSL_CFLAGS) $(SASL_CFLAGS) \
-	-I$(top_srcdir) \
-	-DPREFIX="\"$(prefix)\"" \
-	-DSYSCONFDIR="\"$(sysconfdir)\"" \
-	-DDATADIR="\"$(datadir)\"" \
-	-DLIBDIR="\"$(libdir)\"" \
-	-DGNOMELOCALEDIR="\"$(datadir)/locale\"" \
-	-DGNOMEPIXMAPSDIR="\"$(datadir)/pixmaps\"" \
-	-DUIDIR="\"$(pkgdatadir)/ui\"" \
-	-DG_LOG_DOMAIN="\"$(PACKAGE)\""
-mail_notification_LDFLAGS = $(INTLLIBS) $(GNOME_LIBS) $(GMIME_LIBS) $(OPENSSL_LIBS) $(SASL_LIBS)
-
-CLEANFILES = $(evolution_plugin_eplug) $(idl_built_sources)
-MAINTAINERCLEANFILES = $(evolution_plugin_gob_built_sources) $(gob_built_sources) $(egg_built_sources)
-
-EXTRA_DIST = eggmarshalers.list org-gnome-mail-notification.eplug.in
-
-%.c %.h %-private.h: %.gob
-	$(GOB2) --always-private-header --exit-on-warn $<
-
-%-common.c %-stubs.c %-skels.c %.h: %.idl $(ORBIT_IDL)
-	$(ORBIT_IDL) -I$(LIBBONOBO_IDL) -I$(BONOBO_ACTIVATION_IDL) $<
-
-eggmarshalers.h: eggmarshalers.list
-	cd $(srcdir) \
-	&& $(GLIB_GENMARSHAL) --prefix=_egg_marshal eggmarshalers.list --header > xgen-emh \
-	&& cp xgen-emh eggmarshalers.h \
-	&& rm -f xgen-emh xgen-emh~
-
-eggmarshalers.c: eggmarshalers.list
-	cd $(srcdir) \
-	&& $(GLIB_GENMARSHAL) --prefix=_egg_marshal eggmarshalers.list --body > xgen-emc \
-	&& cp xgen-emc eggmarshalers.c \
-	&& rm -f xgen-emc xgen-emc~
-
-%.eplug: %.eplug.in
-	sed -e 's|\@PLUGINDIR\@|$(evolution_plugindir)|' $< > $@
+if WITH_EVOLUTION
+evolution_plugin_LTLIBRARIES = liborg-gnome-mail-notification.la
+liborg_gnome_mail_notification_la_CPPFLAGS = $(WARN_CFLAGS)
+liborg_gnome_mail_notification_la_CPPFLAGS += -I$(top_srcdir)
+liborg_gnome_mail_notification_la_CPPFLAGS += -DG_LOG_DOMAIN="\"$(PACKAGE)\""
+liborg_gnome_mail_notification_la_LDFLAGS = -avoid-version -module
+liborg_gnome_mail_notification_la_CPPFLAGS += $(EVOLUTION_PLUGIN_CFLAGS)
+liborg_gnome_mail_notification_la_LDFLAGS += $(EVOLUTION_PLUGIN_LIBS)
+liborg_gnome_mail_notification_la_SOURCES = mn-evolution-plugin.c
+liborg_gnome_mail_notification_la_SOURCES += mn-evolution.h
+liborg_gnome_mail_notification_la_SOURCES += mn-evolution-folder-tree-control.c
+liborg_gnome_mail_notification_la_SOURCES += mn-evolution-folder-tree-control.h
+liborg_gnome_mail_notification_la_SOURCES += mn-evolution-glue.gob mn-evolution-glue.gob.stamp
+liborg_gnome_mail_notification_la_SOURCES += mn-evolution-glue-private.h mn-evolution-glue.c mn-evolution-glue.h
+BUILT_SOURCES += mn-evolution-glue.gob.stamp
+MAINTAINERCLEANFILES += mn-evolution-glue.gob.stamp
+MAINTAINERCLEANFILES += mn-evolution-glue-private.h mn-evolution-glue.c mn-evolution-glue.h
+liborg_gnome_mail_notification_la_SOURCES += GNOME_MailNotification_Evolution.idl
+nodist_liborg_gnome_mail_notification_la_SOURCES = GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
+BUILT_SOURCES += GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
+CLEANFILES += GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
+endif
+include $(srcdir)/aml.make

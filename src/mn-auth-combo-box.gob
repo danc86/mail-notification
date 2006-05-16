@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <gtk/gtk.h>
@@ -25,7 +25,7 @@ requires 2.0.12
 %{
 #include "config.h"
 #include <glib/gi18n.h>
-#ifdef WITH_SASL
+#if WITH_SASL
 #include <sasl/sasl.h>
 #include "mn-sasl.h"
 #endif /* WITH_SASL */
@@ -51,23 +51,23 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
 
       model = gtk_combo_box_get_model(GTK_COMBO_BOX(self));
       valid = gtk_tree_model_get_iter_first(model, &iter);
-    
+
       while (valid)
 	{
 	  char *this_mech;
 	  gboolean found;
-	  
+
 	  gtk_tree_model_get(model, &iter, COLUMN_MECHANISM, &this_mech, -1);
 	  found = (! this_mech && ! mechanism)
 	    || (this_mech && mechanism && ! strcmp(this_mech, mechanism));
 	  g_free(this_mech);
-	  
+
 	  if (found)
 	    {
 	      gtk_combo_box_set_active_iter(GTK_COMBO_BOX(self), &iter);
 	      break;
 	    }
-	  
+
 	  valid = gtk_tree_model_iter_next(model, &iter);
 	}
     }
@@ -84,7 +84,7 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
 
       g_value_take_string(VAL, mechanism);
     };
-  
+
   init (self)
   {
     GtkListStore *store;
@@ -99,9 +99,9 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
     gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(self), renderer,
 				   "markup", COLUMN_LABEL,
 				   NULL);
-    
+
     self_append(self, NULL, _("<span style=\"italic\">autodetect</span>"));
-#ifdef WITH_SASL
+#if WITH_SASL
     if (mn_sasl_init(NULL))
       {
         const char **mechanisms;
@@ -150,7 +150,7 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
 
     /* put "autodetect" (NULL mechanism) on top of the list */
     if (mechanism_a && mechanism_b)
-      coll = mn_utf8_strcasecoll(label_a, label_b);
+      coll = g_utf8_collate(label_a, label_b);
     else if (mechanism_a || mechanism_b)
       coll = mechanism_a ? 1 : -1;
     else
@@ -161,7 +161,7 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
 
     return coll;
   }
-  
+
   public void
     append (self, const char *mechanism, const char *label (check null))
   {
@@ -169,7 +169,7 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
     GtkTreeIter iter;
 
     model = gtk_combo_box_get_model(GTK_COMBO_BOX(self));
-    
+
     gtk_list_store_append(GTK_LIST_STORE(model), &iter);
     gtk_list_store_set(GTK_LIST_STORE(model), &iter,
 		       COLUMN_MECHANISM, mechanism,

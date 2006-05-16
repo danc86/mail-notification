@@ -26,9 +26,10 @@ module GNOME
     {
       typedef unsigned long time_t;
 
-      struct Message 
+      struct Message
       {
 	time_t	sent_time;
+	time_t	received_time;
 	string	id;
 	string	from;
 	string	subject;

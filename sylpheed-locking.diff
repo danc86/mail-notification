@@ -1,0 +1,69 @@
+--- libsylph/procmsg.c.orig	Fri Mar 10 03:26:28 2006
++++ libsylph/procmsg.c	Tue May  9 04:16:46 2006
+@@ -23,6 +23,9 @@
+ #include <glib/gi18n.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <string.h>
++#include <fcntl.h>
++#include <unistd.h>
+ 
+ #include "utils.h"
+ #include "procmsg.h"
+@@ -759,6 +762,20 @@
+ 	fclose(fp);
+ }
+ 
++/* play nice with other applications who'd like to read our data files */
++static void procmsg_lock_data_file(int fd)
++{
++	struct flock lock;
++
++	memset(&lock, 0, sizeof(lock));
++	lock.l_start = 0;		/* from l_whence */
++	lock.l_len = 0;			/* to end of file */
++	lock.l_type = F_WRLCK;		/* write lock */
++	lock.l_whence = SEEK_CUR;	/* from current position */
++
++	fcntl(fd, F_SETLKW, &lock);
++}
++
+ FILE *procmsg_open_data_file(const gchar *file, guint version,
+ 			     DataOpenMode mode, gchar *buf, size_t buf_size)
+ {
+@@ -768,8 +785,21 @@
+ 	g_return_val_if_fail(file != NULL, NULL);
+ 
+ 	if (mode == DATA_WRITE) {
+-		if ((fp = g_fopen(file, "wb")) == NULL) {
+-			FILE_OP_ERROR(file, "fopen");
++		int fd;
++
++		if ((fd = g_open(file, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR)) < 0) {
++			FILE_OP_ERROR(file, "open");
++			return NULL;
++		}
++		procmsg_lock_data_file(fd);
++		if (ftruncate(fd, 0) < 0) {
++			close(fd);
++			FILE_OP_ERROR(file, "ftruncate");
++			return NULL;
++		}
++		if ((fp = fdopen(fd, "wb")) == NULL) {
++			close(fd);
++			FILE_OP_ERROR(file, "fdopen");
+ 			return NULL;
+ 		}
+ 		if (change_file_mode_rw(fp, file) < 0)
+@@ -800,8 +830,10 @@
+ 	if (fp) {
+ 		/* reopen with append mode */
+ 		fclose(fp);
+-		if ((fp = g_fopen(file, "ab")) == NULL)
++		if ((fp = g_fopen(file, "ab")) == NULL) {
+ 			FILE_OP_ERROR(file, "fopen");
++		} else
++			procmsg_lock_data_file(fileno(fp));
+ 	} else {
+ 		/* open with overwrite mode if mark file doesn't exist or
+ 		   version is different */

@@ -37,7 +37,7 @@ main (int argc, char **argv)
   result = gnome_vfs_open(&handle, argv[1], GNOME_VFS_OPEN_READ);
   if (result != GNOME_VFS_OK)
     g_critical("unable to open %s: %s", argv[1], gnome_vfs_result_to_string(result));
-  
+
   while ((result = mn_vfs_read_line(&context, handle, &line)) == GNOME_VFS_OK)
     g_print("line: %s\n", line);
 

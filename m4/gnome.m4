@@ -9,13 +9,13 @@
 dnl AM_PATH_GNOME_PREFIX([ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
 dnl
 AC_DEFUN([AM_PATH_GNOME_PREFIX],
-[PKG_PROG_PKG_CONFIG
+[AC_REQUIRE([PKG_PROG_PKG_CONFIG])
 
 AC_MSG_CHECKING([for the GNOME installation prefix])
 
 gnome_prefix=""
 if test -n "$PKG_CONFIG"; then
-	gnome_prefix=`$PKG_CONFIG --variable prefix libgnome-2.0`
+	gnome_prefix=`$PKG_CONFIG --variable prefix libgnome-2.0 2>/dev/null`
 fi
 
 if test -n "$gnome_prefix"; then
@@ -31,7 +31,7 @@ AC_SUBST(gnome_prefix)])
 dnl AM_PATH_GNOME_CAPPLETDIR
 dnl
 AC_DEFUN([AM_PATH_GNOME_CAPPLETDIR],
-[PKG_PROG_PKG_CONFIG
+[AC_REQUIRE([PKG_PROG_PKG_CONFIG])
 
 AC_MSG_CHECKING([for the GNOME capplet directory])
 

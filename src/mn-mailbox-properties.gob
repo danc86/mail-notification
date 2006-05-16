@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-requires 2.0.12
+requires 2.0.14
 
 %headertop{
 #include <gtk/gtk.h>
@@ -24,23 +24,41 @@ requires 2.0.12
 #include "mn-mailbox.h"
 %}
 
-class MN:Mailbox:Properties from Gtk:VBox
+class MN:Mailbox:Properties from Gtk:VBox (abstract)
 {
   classwide const char *type;
   classwide const char *stock_id;
   classwide const char *combo_label;
   classwide const char *section_label;
+  classwide gboolean no_check_delay_unless_complete;
 
   protected GtkSizeGroup *label_size_group = {gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL)} unrefwith g_object_unref;
+  protected GtkSizeGroup *entry_size_group = {gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL)} unrefwith g_object_unref;
   protected GtkSizeGroup *entry_button_size_group = {gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL)} unrefwith g_object_unref;
-  
+
   protected GSList *entries destroywith g_slist_free;
 
   property BOOLEAN complete
     get { g_value_set_boolean(VAL, TRUE); };
+
   property STRING default_name
     get { g_value_set_string(VAL, NULL); };
-  
+
+  property INT default_check_delay
+    get
+    {
+      GType mailbox_type;
+      MNMailboxClass *class;
+
+      mailbox_type = mn_mailbox_get_type_from_name(SELF_GET_CLASS(self)->type);
+      g_assert(mailbox_type != 0);
+
+      class = g_type_class_peek(mailbox_type);
+      g_assert(class != NULL);
+
+      g_value_set_int(VAL, class->default_check_delay);
+    };
+
   virtual public void
     set_mailbox (self, MNMailbox *mailbox);
 
@@ -49,7 +67,7 @@ class MN:Mailbox:Properties from Gtk:VBox
   {
     return mn_mailbox_new(SELF_GET_CLASS(self)->type, NULL);
   }
-  
+
   init (self)
   {
     gtk_box_set_spacing(GTK_BOX(self), 6);
@@ -66,24 +84,10 @@ class MN:Mailbox:Properties from Gtk:VBox
   {
     g_object_notify(G_OBJECT(self), "default-name");
   }
-  
-  protected void
-    add_entry (self, Gtk:Entry *entry (check null type))
-  {
-    self->entries = g_slist_append(self->entries, entry);
-  }
 
   protected void
-    add_entries (self, GtkEntry *entry, ...)
+    notify_default_check_delay (self)
   {
-    va_list args;
-
-    va_start(args, entry);
-    while (entry)
-      {
-	self_add_entry(self, entry);
-	entry = va_arg(args, GtkEntry *);
-      }
-    va_end(args);
+    g_object_notify(G_OBJECT(self), "default-check-delay");
   }
 }

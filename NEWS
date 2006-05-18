@@ -1,3 +1,16 @@
+3.0 Release Candidate 2			May 18, 2006
+
+	* Evolution changes:
+		* Evolution crashed when a message without Subject or
+		  From header was received: fixed
+		* Mail Notification could crash when removing an
+		  Evolution mailbox: fixed
+
+	* Updated translations:
+		* Japanese (Hiroshi Hasebe)
+		* Czech (Pav Lucistnik)
+		* Dutch (Marcel J. Zwiebel)
+
 3.0 Release Candidate 1			May 16, 2006
 
 	* Core changes:

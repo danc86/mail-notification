@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -580,46 +580,34 @@ mn_locked_bonobo_listener_cb (BonoboListener *listener,
 
 /**
  * mn_bonobo_event_source_client_remove_listener_locked:
- * @object: the object holding @listener
+ * @object: the object holding @listener, or %CORBA_OBJECT_NIL
  * @listener: a listener handle
  * @opt_ev: optional CORBA environment
  *
- * Removes @listener from the @object event source. The callback
- * function will no longer be executed. The listener lock must be held
- * while calling this function. After calling this function, the
- * reference returned by
- * mn_bonobo_event_source_client_add_listener_full_locked() must be
- * released with:
- *
- *   bonobo_object_release_unref(mn_locked_bonobo_listener_get_listener(listener), NULL);
+ * Removes @listener from the @object event source (if @object is not
+ * %CORBA_OBJECT_NIL), then destroys @listener. The callback function
+ * will no longer be executed. If @object is not %CORBA_OBJECT_NIL,
+ * then the listener lock must be held while calling this function.
  **/
 void
 mn_bonobo_event_source_client_remove_listener_locked (Bonobo_Unknown object,
 						      MNLockedBonoboListener *listener,
 						      CORBA_Environment *opt_ev)
 {
-  g_return_if_fail(object != CORBA_OBJECT_NIL);
+  Bonobo_Listener handle;
+
   g_return_if_fail(listener != NULL);
   g_return_if_fail(listener->type == CALLBACK_TYPE_BONOBO_LISTENER);
   g_return_if_fail(listener->removed == FALSE);
 
-  listener->removed = TRUE;
-  bonobo_event_source_client_remove_listener(object, listener->handle, opt_ev);
-}
+  handle = listener->handle;
 
-/**
- * mn_locked_bonobo_listener_get_listener:
- * @listener: a listener handle
- *
- * Obtains the underlying %Bonobo_Listener object of @listener.
- *
- * Return value: the %Bonobo_Listener object of @listener
- **/
-Bonobo_Listener
-mn_locked_bonobo_listener_get_listener (MNLockedBonoboListener *listener)
-{
-  g_return_val_if_fail(listener != NULL, CORBA_OBJECT_NIL);
-  g_return_val_if_fail(listener->type == CALLBACK_TYPE_BONOBO_LISTENER, CORBA_OBJECT_NIL);
+  if (object != CORBA_OBJECT_NIL)
+    {
+      listener->removed = TRUE;
+      bonobo_event_source_client_remove_listener(object, handle, opt_ev);
+      /* listener has been freed in the closure destroy callback */
+    }
 
-  return listener->handle;
+  bonobo_object_release_unref(handle, NULL);
 }

@@ -8,24 +8,24 @@
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: mail-notification 2.0\n"
+"Project-Id-Version: mail-notification 3.0-rc2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-01-04 14:00+0100\n"
-"PO-Revision-Date: \n"
+"POT-Creation-Date: 2006-05-16 13:49+0200\n"
+"PO-Revision-Date: 2006-05-18 15:01+0200\n"
 "Last-Translator: Marcel J. Zwiebel <mj.zwiebel@nonux.nl>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n>1;"
+"Plural-Forms: nplurals=2; plural=n>1;\n"
 
 #: ../data/GNOME_MailNotification.server.in.in.h:1
 msgid "Mail Notification automation"
-msgstr "Automatische E-Mail notificatie"
+msgstr "Automatische e-mail notificatie"
 
 #: ../data/GNOME_MailNotification.server.in.in.h:2
 msgid "Mail Notification automation factory"
-msgstr "Automatische E-Mail notificatie fabriek"
+msgstr "Automatische e-mail notificatie fabriek"
 
 #: ../data/GNOME_MailNotification_Evolution.server.in.h:1
 msgid "Evolution folder tree control"
@@ -44,14 +44,12 @@ msgid "Mail Notification / Evolution glue factory"
 msgstr "E-mail notificatie / Evolution verbinding fabriek"
 
 #: ../data/mail-notification-properties.desktop.in.h:1
-#: ../src/mn-main-window.gob:209
 msgid "Configure Mail Notification"
-msgstr "De e-mail notificatie instellen"
+msgstr "E-mail notificatie instellen"
 
 #: ../data/mail-notification-properties.desktop.in.h:2
-#: ../data/mail-notification.desktop.in.h:2
-#: ../data/mail-notification.soundlist.in.h:1 ../src/mn-mail-icon.gob:223
-#: ../src/mn-main.c:285 ../src/mn-main.c:301
+#: ../data/mail-notification.desktop.in.h:2 ../src/mn-mail-icon.gob:227
+#: ../src/mn-main.c:132 ../src/mn-main.c:302 ../src/mn-main.c:318
 msgid "Mail Notification"
 msgstr "E-mail notificatie"
 
@@ -60,201 +58,156 @@ msgid "Get notified when new mail arrives"
 msgstr "Informeer mij wanneer nieuwe e-mail berichten binnenkomen"
 
 #: ../data/mail-notification.schemas.in.h:1
+msgid "Always display an icon"
+msgstr "Toon altijd een icoon"
+
+#: ../data/mail-notification.schemas.in.h:2
 msgid "Automatically close the mail summary popup"
 msgstr "Het e-mail overzichtsvenster automatisch sluiten"
 
-#: ../data/mail-notification.schemas.in.h:2
+#: ../data/mail-notification.schemas.in.h:3
 msgid "Blink on errors"
 msgstr "Bij fouten knipperen"
 
-#: ../data/mail-notification.schemas.in.h:3
-msgid "Delay between mail checks (minutes part)."
-msgstr "Wachttijd tussen het controleren van e-mail (minutengedeelte)."
-
 #: ../data/mail-notification.schemas.in.h:4
-msgid "Delay between mail checks (seconds part)."
-msgstr "Wachttijd tussen het controleren van e-mail (secondengedeelte)."
+msgid "Click action"
+msgstr "Muisklik-actie"
 
 #: ../data/mail-notification.schemas.in.h:5
-msgid "Display mail summary in tooltip"
-msgstr "Overzicht nieuwe e-mail in mini-weergave (tooltip)"
+msgid "Display seen mail"
+msgstr "Laat gelezen e-mail berichten zien"
 
 #: ../data/mail-notification.schemas.in.h:6
-msgid "Do not show the immediate notification error dialog"
-msgstr "Laat de directe notificatie foutmelding niet zien"
-
-#: ../data/mail-notification.schemas.in.h:7
-msgid "Double-click action"
-msgstr "Dubbelklik actie"
-
-#: ../data/mail-notification.schemas.in.h:8
 msgid "Enable mail summary popup"
 msgstr "Mini-overzicht (popup) nieuwe e-mail activeren"
 
-#: ../data/mail-notification.schemas.in.h:9
+#: ../data/mail-notification.schemas.in.h:7
 msgid "Fingerprints of trusted X509 certificates"
 msgstr "Vingerafdrukken van betrouwbare X509 certificaten"
 
-#: ../data/mail-notification.schemas.in.h:10
-msgid "Height of edit toolbars dialog"
-msgstr "Hoogte van de invoer werkbalken dialoogvenster"
-
-#: ../data/mail-notification.schemas.in.h:11
-msgid "Height of main window"
-msgstr "Hoogte van het hoofdvenster"
-
-#: ../data/mail-notification.schemas.in.h:12
+#: ../data/mail-notification.schemas.in.h:8
 msgid "Height of properties dialog"
 msgstr "Hoogte van het instellingen dialoogvenster"
 
-#: ../data/mail-notification.schemas.in.h:13
+#: ../data/mail-notification.schemas.in.h:9
 msgid "Mail read command"
 msgstr "Opdracht bij het lezen van e-mail"
 
-#: ../data/mail-notification.schemas.in.h:14
-msgid "Mail reader command"
-msgstr "Opdracht voor het starten van het e-mail programma"
-
-#: ../data/mail-notification.schemas.in.h:15
+#: ../data/mail-notification.schemas.in.h:10
 msgid "Mail summary popup contents font"
 msgstr "Lettertype in het e-mail overzichtsvenster"
 
-#: ../data/mail-notification.schemas.in.h:16
+#: ../data/mail-notification.schemas.in.h:11
 msgid "Mail summary popup fonts aspect source"
 msgstr "Locatie lettertypes voor het e-mail overzichtsvenster"
 
-#: ../data/mail-notification.schemas.in.h:17
+#: ../data/mail-notification.schemas.in.h:12
 msgid "Mail summary popup horizontal offset"
 msgstr "Horizontale plaatsing van het e-mail overzichtsvenster"
 
-#: ../data/mail-notification.schemas.in.h:18
+#: ../data/mail-notification.schemas.in.h:13
 msgid "Mail summary popup position"
 msgstr "Positie van het e-mail overzichtsvenster"
 
-#: ../data/mail-notification.schemas.in.h:19
+#: ../data/mail-notification.schemas.in.h:14
 msgid "Mail summary popup title font"
 msgstr "Lettertype voor de titel van het e-mail overzichtsvenster"
 
-#: ../data/mail-notification.schemas.in.h:20
+#: ../data/mail-notification.schemas.in.h:15
 msgid "Mail summary popup vertical offset"
 msgstr "Horizontale plaatsing van het e-mail overzichtsvenster"
 
-#: ../data/mail-notification.schemas.in.h:21
-msgid "Minutes between mail checks"
-msgstr "Wachttijd in minuten tussen de controles van nieuwe e-mail"
-
-#: ../data/mail-notification.schemas.in.h:22
+#: ../data/mail-notification.schemas.in.h:16
 msgid "Minutes to wait before closing the mail summary popup"
 msgstr "Wachttijd in minuten voordat het e-mail overzichtsvenster gesloten wordt"
 
-#: ../data/mail-notification.schemas.in.h:23
+#: ../data/mail-notification.schemas.in.h:17
 msgid "New mail command"
 msgstr "Opdracht bij ontvangst van nieuwe e-mail"
 
-#: ../data/mail-notification.schemas.in.h:24
+#: ../data/mail-notification.schemas.in.h:18
 msgid "Only display recent mail in mail summary popup"
 msgstr "Laat alleen meest recente e-mail zien in overzichtsvenster"
 
-#: ../data/mail-notification.schemas.in.h:25
+#: ../data/mail-notification.schemas.in.h:19
 msgid "Run a command when all mail is read"
 msgstr "Opdracht na het lezen van alle nieuwe e-mail"
 
-#: ../data/mail-notification.schemas.in.h:26
+#: ../data/mail-notification.schemas.in.h:20
 msgid "Run a command when new mail arrives"
 msgstr "Voer een opdracht uit als nieuwe e-mail arriveert"
 
-#: ../data/mail-notification.schemas.in.h:27
-msgid "Seconds between mail checks"
-msgstr "Wachttijd in seconden tussen het controleren van e-mail"
-
-#: ../data/mail-notification.schemas.in.h:28
+#: ../data/mail-notification.schemas.in.h:21
 msgid "Seconds to wait before closing the mail summary popup"
 msgstr "Wachttijd in seconden voordat het e-mail overzichtsvenster gesloten wordt"
 
-#: ../data/mail-notification.schemas.in.h:29
-msgid "Set a mail reader"
-msgstr "Instelling keuze e-mail programma opslaan"
-
-#: ../data/mail-notification.schemas.in.h:30
+#: ../data/mail-notification.schemas.in.h:22
 msgid ""
-"The action to perform when the icon is double-clicked. Must be \"display-"
-"main-window\", \"launch-mail-reader\" or \"update-mail-status\"."
+"The action to perform when the icon is clicked. Must be \"display-properties-"
+"dialog\", \"launch-mail-reader\" or \"update-mail-status\"."
 msgstr ""
-"De opdracht die uitgevoerd moet worden bij een dubbelklik op het icoon. Heeft "
-"ofwel de waarde »display-mail-window«, »launch-mail-reader« of  »update-"
-"mail-status«."
+"De opdracht die uitgevoerd moet worden bij een muisklik op het icoon. "
+"Heeft ofwel de waarde \"display-properties-"
+"dialog\", \"launch-mail-reader\" of \"update-mail-status\"."
 
-#: ../data/mail-notification.schemas.in.h:31
+#: ../data/mail-notification.schemas.in.h:23
 msgid ""
 "The amount of time to wait before closing the mail summary popup (minutes "
 "part)."
 msgstr ""
 "Wachttijd voordat het e-mail overzichtsvenster gesloten wordt (minutendeel)."
 
-#: ../data/mail-notification.schemas.in.h:32
+#: ../data/mail-notification.schemas.in.h:24
 msgid ""
 "The amount of time to wait before closing the mail summary popup (seconds "
 "part)."
 msgstr ""
 "Wachttijd voordat het e-mail overzichtsvenster gesloten wordt (secondendeel)."
 
-#: ../data/mail-notification.schemas.in.h:33
+#: ../data/mail-notification.schemas.in.h:25
 msgid ""
 "The aspect source of the mail summary popup fonts. Must be \"theme\" or "
 "\"custom\"."
 msgstr ""
 "Het aspect gedeelte van de lettertypes voor de overzichtsweergave (popup). "
-"De waarde moet »theme« of »custom« zijn."
+"De waarde moet \"theme\" of \"custom\" zijn."
 
-#: ../data/mail-notification.schemas.in.h:34
-msgid "The command to run to launch the mail reader."
-msgstr "De opdracht om het e-mail programma te starten"
-
-#: ../data/mail-notification.schemas.in.h:35
+#: ../data/mail-notification.schemas.in.h:26
 msgid "The command to run when all mail is read."
 msgstr "Opdracht die uitgevoerd moet worden wanneer alle e-mail gelezen is"
 
-#: ../data/mail-notification.schemas.in.h:36
+#: ../data/mail-notification.schemas.in.h:27
 msgid "The command to run when new mail arrives."
 msgstr "Opdracht die uitgevoerd moet worden wanneer nieuwe e-mail arriveert."
 
-#: ../data/mail-notification.schemas.in.h:37
+#: ../data/mail-notification.schemas.in.h:28
 msgid "The custom font to use for the contents of the mail summary popup."
-msgstr ""
-"Het eigen lettertype voor het e-mail overzichtsvenster."
+msgstr "Het eigen lettertype voor het e-mail overzichtsvenster."
 
-#: ../data/mail-notification.schemas.in.h:38
+#: ../data/mail-notification.schemas.in.h:29
 msgid "The custom font to use for the title of the mail summary popup."
 msgstr "Het eigen lettertype voor de titel van het e-mail overzichtsvenster."
 
-#: ../data/mail-notification.schemas.in.h:39
-msgid "The height of the edit toolbars dialog in pixels."
-msgstr "Hoogte van de invoer werkbalken dialoogvenster in pixels."
-
-#: ../data/mail-notification.schemas.in.h:40
-msgid "The height of the main window in pixels."
-msgstr "Hoogte van het hoofdvenster in pixels."
-
-#: ../data/mail-notification.schemas.in.h:41
+#: ../data/mail-notification.schemas.in.h:30
 msgid "The height of the properties dialog in pixels."
 msgstr "Hoogte van het instellingen dialoogvenster in pixels"
 
-#: ../data/mail-notification.schemas.in.h:42
+#: ../data/mail-notification.schemas.in.h:31
 msgid ""
 "The list of trusted SSL/TLS servers (hostname:port) lacking a X509 "
 "certificate."
 msgstr ""
-"De list met betrouwbare SSL/TLS-servers (hostname:port) zonder X509-"
+"De lijst met betrouwbare SSL/TLS-servers (hostname:port) zonder X509-"
 "certificaat."
 
-#: ../data/mail-notification.schemas.in.h:43
+#: ../data/mail-notification.schemas.in.h:32
 msgid ""
 "The list of trusted X509 certificates, represented by their MD5 fingerprint."
 msgstr ""
-"De lijst met betrouwbare X509-certificaten, gerepresenteerd door hun MD5"
-"vingerafdruk."
+"De lijst met betrouwbare X509-certificaten, gerepresenteerd door hun "
+"MD5vingerafdruk."
 
-#: ../data/mail-notification.schemas.in.h:44
+#: ../data/mail-notification.schemas.in.h:33
 msgid ""
 "The number of pixels to leave between the left or right side of the screen "
 "and the mail summary popup."
@@ -262,7 +215,7 @@ msgstr ""
 "Het aantal pixels ruimte links en rechts tussen de rand ven het beeldscherm "
 "en het e-mail overzichtsvenster."
 
-#: ../data/mail-notification.schemas.in.h:45
+#: ../data/mail-notification.schemas.in.h:34
 msgid ""
 "The number of pixels to leave between the top or bottom side of the screen "
 "and the mail summary popup."
@@ -270,157 +223,98 @@ msgstr ""
 "Het aantal pixels ruimte boven en onder tussen de rand ven het beeldscherm "
 "en het e-mail overzichtsvenster."
 
-#: ../data/mail-notification.schemas.in.h:46
+#: ../data/mail-notification.schemas.in.h:35
 msgid ""
 "The position of the mail summary popup. Must be \"top-left\", \"top-right\", "
 "\"bottom-left\" or \"bottom-right\"."
 msgstr ""
-"De positie van e-mail overzichtsvenster. De waarden moeten zijn »boven-links«, "
-"»boven-rechts«, »onder-links« oder »onder-rechts«."
+"De positie van e-mail overzichtsvenster. De waarden moeten zijn \"boven-"
+"links\", \"boven-rechts\", \"onder-links\" oder \"onder-rechts\"."
 
-#: ../data/mail-notification.schemas.in.h:47
+#: ../data/mail-notification.schemas.in.h:36
 msgid ""
-"The style of the toolbars. Must be \"desktop-default\", \"icons\", \"text\", "
-"\"both\" or \"both-horiz\"."
+"The type of mail summary to display in the icon's tooltip. Must be \"standard"
+"\", \"compact\" or \"none\"."
 msgstr ""
-"De stijl voor de werkbalken. Dit moet zijn »desktop-default«, »icons«, »text«, "
-"»both« of »both-horiz«."
+"Het type e-mailoverzicht dat getoond wordt in de tooltip van het icoon. Moet zijn \"standard"
+"\",\"compact\" of \"none\"."
 
-#: ../data/mail-notification.schemas.in.h:48
-msgid "The width of the edit toolbars dialog in pixels."
-msgstr "Hoogte van de invoer werkbalken dialoogvenster in pixels."
-
-#: ../data/mail-notification.schemas.in.h:49
-msgid "The width of the main window in pixels."
-msgstr "Hoogte van het hoofdvenster in pixels."
-
-#: ../data/mail-notification.schemas.in.h:50
+#: ../data/mail-notification.schemas.in.h:37
 msgid "The width of the properties dialog in pixels."
 msgstr "Hoogte van het instellingen dialoogvenster in pixels."
 
-#: ../data/mail-notification.schemas.in.h:51
-msgid "Toolbars style"
-msgstr "Stijl werkbalken"
+#: ../data/mail-notification.schemas.in.h:38
+msgid "Tooltip mail summary"
+msgstr "Tooltip e-mail overzicht"
 
-#: ../data/mail-notification.schemas.in.h:52
+#: ../data/mail-notification.schemas.in.h:39
 msgid "Trusted servers list"
 msgstr "Lijst trusted servers"
 
-#: ../data/mail-notification.schemas.in.h:53
-msgid "View statusbar"
-msgstr "Statusbalk zichtbaar"
-
-#: ../data/mail-notification.schemas.in.h:54
-msgid "View toolbars"
-msgstr "Werkbalken zichtbaar"
-
-#: ../data/mail-notification.schemas.in.h:55
+#: ../data/mail-notification.schemas.in.h:40
 msgid "Whether the status icon should blink on errors or not."
-msgstr ""
-"Moet het e-mail icoon bij het optreden van fouten knipperen"
+msgstr "Moet het e-mail icoon bij het optreden van fouten knipperen"
 
-#: ../data/mail-notification.schemas.in.h:56
-msgid "Whether the statusbar should be visible or not."
-msgstr "Moet de statusbalk zichtbaar zijn."
-
-#: ../data/mail-notification.schemas.in.h:57
-msgid "Whether the toolbars should be visible or not."
-msgstr "Moeten de werkbalken zichtbaar zijn."
-
-#: ../data/mail-notification.schemas.in.h:58
+#: ../data/mail-notification.schemas.in.h:41
 msgid "Whether to automatically close the mail summary popup or not."
-msgstr ""
-"Moet het e-mail overzichtsvenster (popup) automatisch gesloten worden."
+msgstr "Moet het e-mail overzichtsvenster (popup) automatisch gesloten worden."
 
-#: ../data/mail-notification.schemas.in.h:59
-msgid "Whether to display the mail summary in the status icon tooltip or not."
-msgstr ""
-"Moet het e-mail overzicht in het statusbericht van het icoon (tooltip) worden getoond."
+#: ../data/mail-notification.schemas.in.h:42
+msgid "Whether to display an icon when there is no new mail or not."
+msgstr "Moet een icoon getoond worden als nieuwe e-mail arriveert."
 
-#: ../data/mail-notification.schemas.in.h:60
+#: ../data/mail-notification.schemas.in.h:43
+msgid "Whether to display seen mail or not."
+msgstr "Moet eerder getoonde e-mail opnieuw getoond worden."
+
+#: ../data/mail-notification.schemas.in.h:44
 msgid "Whether to display the mail summary popup when new mail arrives or not."
-msgstr ""
-"Moet het e-mail overzichtsvenster getoond worden bij het arriveren van e-mail."
+msgstr "Moet het e-mail overzichtsvenster getoond worden bij het arriveren van e-mail."
 
-#: ../data/mail-notification.schemas.in.h:61
+#: ../data/mail-notification.schemas.in.h:45
 msgid ""
 "Whether to hide previously displayed mail in the mail summary popup or not."
 msgstr ""
 "Moet reeds getoonde e-mail in het overzichtsvenster verborgen worden."
 
-#: ../data/mail-notification.schemas.in.h:62
-msgid ""
-"Whether to prevent the immediate notification error dialog from being "
-"displayed or not."
-msgstr ""
-"Moet het direct tonen van een foutbericht worden voorkomen."
-
-#: ../data/mail-notification.schemas.in.h:63
+#: ../data/mail-notification.schemas.in.h:46
 msgid "Whether to run a command when all mail is read or not."
-msgstr ""
-"Moet een opdracht uitgevoerd worden als alle e-mail gelezen is."
+msgstr "Moet een opdracht uitgevoerd worden als alle e-mail gelezen is."
 
-#: ../data/mail-notification.schemas.in.h:64
+#: ../data/mail-notification.schemas.in.h:47
 msgid "Whether to run a command when new mail arrives or not."
-msgstr ""
-"Moet een opdracht uitgevoerd worden als een nieuwe e-mail arriveert."
+msgstr "Moet een opdracht uitgevoerd worden als een nieuwe e-mail arriveert."
 
-#: ../data/mail-notification.schemas.in.h:65
-msgid "Whether to set a mail reader or not."
-msgstr "Moet een e-mail programma gekozen worden."
-
-#: ../data/mail-notification.schemas.in.h:66
-msgid "Width of edit toolbars dialog"
-msgstr "Breedte van het invoer werkbalken venster."
-
-#: ../data/mail-notification.schemas.in.h:67
-msgid "Width of main window"
-msgstr "Breedte van het hoofdvenster."
-
-#: ../data/mail-notification.schemas.in.h:68
+#: ../data/mail-notification.schemas.in.h:48
 msgid "Width of properties dialog"
 msgstr "Breedte van het instellingenvenster"
 
-#: ../data/mail-notification.soundlist.in.h:2
-msgid "New Mail"
-msgstr "Nieuwe e-mail"
-
-#: ../src/egg-editable-toolbar.c:534
-msgid "_Remove Toolbar"
-msgstr "W_erkbalken verwijderen"
-
-#: ../src/egg-toolbar-editor.c:555
-msgid "Separator"
-msgstr "Scheidingslijn"
-
-#: ../src/eggtrayicon.c:128
+#: ../src/eggtrayicon.c:132
 msgid "Orientation"
-msgstr "Orientatie"
+msgstr "Oriëntatie"
 
-#: ../src/eggtrayicon.c:129
+#: ../src/eggtrayicon.c:133
 msgid "The orientation of the tray."
-msgstr "De orientatie van het mededelingengebied."
+msgstr "De oriëntatie van het mededelingengebied."
 
-#: ../src/mn-about-dialog.gob:48
+#: ../src/mn-about-dialog.gob:49
 msgid "A Mail Notification Icon"
-msgstr ""
-"Een e-mail icoon dat verschijnt als er nieuwe e-mail berichten in uw postbus "
-"zijn gearriveerd."
+msgstr "Een e-mail icoon dat verschijnt als er nieuwe e-mail berichten in uw postbus zijn gearriveerd."
 
 #.
 #. * translators: Your Name <your-email>
 #. * optionally followed by one or more: \nOther Contributor's Name <his-email>
 #.
-#: ../src/mn-about-dialog.gob:56
+#: ../src/mn-about-dialog.gob:57
 msgid "translator-credits"
 msgstr "Marcel J. Zwiebel <mj.zwiebel@nonux.nl>"
 
-#: ../src/mn-about-dialog.gob:78
+#: ../src/mn-about-dialog.gob:79
 msgid "Unable to open link"
 msgstr "De verwijzing kan niet geopend worden"
 
 #: ../src/mn-auth-combo-box.gob:103
-#: ../src/mn-autodetect-mailbox-properties.gob:92
+#: ../src/mn-autodetect-mailbox-properties.gob:109
 msgid "<span style=\"italic\">autodetect</span>"
 msgstr "<span style=\"italic\">automatische detectie</span>"
 
@@ -432,126 +326,100 @@ msgstr "Gebr_uikersnaam:"
 msgid "_Password:"
 msgstr "_Wachtwoord:"
 
-#: ../src/mn-authenticated-mailbox.gob:152
-#, c-format
-msgid ""
-"Mail Notification was unable to log into %s mailbox %s, possibly because the "
-"credentials you have entered are invalid.\n"
-"\n"
-"Please re-enter your credentials."
-msgstr ""
-"De e-mail notificatie kon zich niet aanmelden bij postbus %s »%s« "
-"Een mogelijke verklaring kan zijn dat de opgegeven combinatie "
-"gebruikersnaam/wachtwoord onjuist is. \n"
-"\n"
-"Geef u aub opnieuw uw gebruikersnaam/wachtwoord."
-
-#: ../src/mn-authenticated-mailbox.gob:153
-#, c-format
-msgid "Enter your credentials for %s mailbox %s."
-msgstr "Geef aub uw gebruikersnaam/wachtwoord voor postbus %s »%s« ."
-
-#. keep the title in sync with gnome-authentication-manager
-#: ../src/mn-authenticated-mailbox.gob:195
-msgid "Authentication Required"
-msgstr "Aanmelding is verplicht"
-
-#: ../src/mn-autodetect-mailbox-properties.gob:93
+#: ../src/mn-autodetect-mailbox-properties.gob:110
 msgid "Location"
 msgstr "Locatie"
 
-#: ../src/mn-autodetect-mailbox-properties.gob:103
+#: ../src/mn-autodetect-mailbox-properties.gob:122
 msgid "_Location:"
 msgstr "_Locatie:"
 
-#: ../src/mn-autodetect-mailbox-properties.gob:110
+#. translators: header capitalization
+#: ../src/mn-autodetect-mailbox-properties.gob:130
 msgid "_Browse..."
 msgstr "_Doorzoeken..."
 
-#: ../src/mn-autodetect-mailbox-properties.gob:149
+#. translators: header capitalization
+#: ../src/mn-autodetect-mailbox-properties.gob:172
 msgid "Select a File or Folder"
 msgstr "Selecteer een bestand of map"
 
-#: ../src/mn-client-session.c:248
+#: ../src/mn-client-session.c:247
 #, c-format
 msgid "resolving %s"
 msgstr "connectie maken met %s"
 
-#: ../src/mn-client-session.c:264
+#: ../src/mn-client-session.c:263
 #, c-format
 msgid "unable to resolve %s: %s"
 msgstr "er kon geen connectie worden gemaakt met %s: %s"
 
-#: ../src/mn-client-session.c:308
-#, c-format
+#: ../src/mn-client-session.c:304
+msgid "network address #%i"
+msgstr "netwerkadres #%i"
+
+#: ../src/mn-client-session.c:307
+msgid "unable to convert network address #%i into textual form: %s"
+msgstr "het netwerkadres #%i kan niet als tekst geconverteerd worden: %s"
+
+#: ../src/mn-client-session.c:318
 msgid "%s: unsupported address family"
 msgstr "%s: adresfamilie wordt niet ondersteund "
 
-#: ../src/mn-client-session.c:315
-#, c-format
+#: ../src/mn-client-session.c:325
 msgid "%s: unable to create socket: %s"
 msgstr "%s: Socket kon niet aangemaakt worden: %s"
 
-#: ../src/mn-client-session.c:319
-#, c-format
+#: ../src/mn-client-session.c:329
 msgid "connecting to %s (%s) port %i"
 msgstr "connectie maken met %s (%s) via poort %i"
 
-#: ../src/mn-client-session.c:322
-#, c-format
+#: ../src/mn-client-session.c:332
 msgid "unable to connect: %s"
 msgstr "er kan geen verbinding worden gemaakt: %s"
 
-#: ../src/mn-client-session.c:327
+#: ../src/mn-client-session.c:337
 msgid "connected successfully"
 msgstr "verbinding geslaagd"
 
 #. if reached, we couldn't find a working address
-#: ../src/mn-client-session.c:333
-#, c-format
+#: ../src/mn-client-session.c:351
 msgid "unable to connect to %s"
 msgstr "er kan geen verbinding gemaakt worden met %s"
 
-#: ../src/mn-client-session.c:360
-#, c-format
+#: ../src/mn-client-session.c:378
 msgid "unable to initialize the OpenSSL library: %s"
 msgstr "de OpenSSL bibliotheek kan niet geinitialiseerd worden: %s"
 
-#: ../src/mn-client-session.c:368
-#, c-format
+#: ../src/mn-client-session.c:386
 msgid "unable to create a SSL/TLS object: %s"
 msgstr "een SSL/TLS object kan niet aangemaakt worden: %s"
 
-#: ../src/mn-client-session.c:374
-#, c-format
+#: ../src/mn-client-session.c:392
 msgid "unable to set the SSL/TLS file descriptor: %s"
 msgstr "een SSL/TLS descriptor kan niet gezet worden: %s"
 
-#: ../src/mn-client-session.c:380
-#, c-format
+#: ../src/mn-client-session.c:398
 msgid "unable to perform the SSL/TLS handshake: %s"
 msgstr "een SSL/TLS handshake kan niet uitgevoerd worden: %s"
 
-#: ../src/mn-client-session.c:386
+#: ../src/mn-client-session.c:404
 msgid "untrusted server"
 msgstr "niet-betrouwbare server"
 
-#: ../src/mn-client-session.c:390
-#, c-format
+#: ../src/mn-client-session.c:408
 msgid "a SSL/TLS layer is now active (%s, %s %i-bit)"
 msgstr "een SSL/TLS layer is nu actief (%s, %s %i-Bit)"
 
-#: ../src/mn-client-session.c:437
-#, c-format
+#: ../src/mn-client-session.c:455
 msgid "%s, fingerprint: %s"
 msgstr "%s, vingerafdruk %s"
 
-#: ../src/mn-client-session.c:466
+#: ../src/mn-client-session.c:484
 msgid "missing certificate"
 msgstr "missend certificaat"
 
-#: ../src/mn-client-session.c:492
-#, c-format
+#: ../src/mn-client-session.c:510
 msgid ""
 "Mail Notification was unable to trust \"%s\" (%s). It is possible that "
 "someone is intercepting your communication to obtain your confidential "
@@ -561,828 +429,641 @@ msgid ""
 "to \"%s\". If you choose to connect to the server, this message will not be "
 "shown again."
 msgstr ""
-"E-mail notificatie kan »%s« niet vertrouwen (%s). Het is mogelijk dat iemand uw communicatie "
-"ondesrchept om vertrouwelijke informatie te verkrijgen.\n"
+"E-mail notificatie kan \"%s\" niet vertrouwen (%s). Het is mogelijk dat iemand "
+"uw communicatie ondesrchept om vertrouwelijke informatie te verkrijgen.\n"
 "\n"
-"U moet alleen verbinding maken met de server als u er zeker van bent dat u verbinding "
-"heeft met »%s«. Als u er toch voor kiest om verbinding met de server te maken, dan zal "
-"deze boodschap niet meer getoond worden."
+"U moet alleen verbinding maken met de server als u er zeker van bent dat u "
+"verbinding heeft met \"%s\". Als u er toch voor kiest om verbinding met de "
+"server te maken, dan zal deze boodschap niet meer getoond worden."
 
-#: ../src/mn-client-session.c:507
+#: ../src/mn-client-session.c:525
 msgid "Connect to untrusted server?"
 msgstr "Wilt u verbinding maken met een niet-betrouwbare server?"
 
-#: ../src/mn-client-session.c:571
-#, c-format
+#: ../src/mn-client-session.c:590
 msgid "response \"%s\" is not valid in current context"
-msgstr "het antwoord »%s« is niet geldig binnen de huidige context"
+msgstr "het antwoord \"%s\" is niet geldig binnen de huidige context"
 
-#: ../src/mn-client-session.c:599
-#, c-format
+#: ../src/mn-client-session.c:619
 msgid "unable to parse response \"%s\""
-msgstr "het antwoord »%s« kan niet geanalyseerd worden"
+msgstr "het antwoord \"%s\" kan niet geanalyseerd worden"
 
-#: ../src/mn-client-session.c:649 ../src/mn-client-session.c:656
-#, c-format
+#: ../src/mn-client-session.c:669 ../src/mn-client-session.c:676
 msgid "unable to read from server: %s"
 msgstr "lezen van de server is niet mogelijk: %s"
 
-#: ../src/mn-client-session.c:654
+#: ../src/mn-client-session.c:674
 msgid "unable to read from server: EOF"
 msgstr "lezen van de server is niet mogelijk: EOF"
 
-#: ../src/mn-client-session.c:666
-#, c-format
+#: ../src/mn-client-session.c:686
 msgid "unable to decode data using SASL: %s"
 msgstr "de gegevens kunnen niet met behulp van SASL gedecodeerd worden: %s"
 
-#: ../src/mn-client-session.c:811
-#, c-format
+#: ../src/mn-client-session.c:831
 msgid "unable to encode data using SASL: %s"
 msgstr "de gegevens kunnen niet met behulp van SASL gecodeerd worden: %s"
 
-#: ../src/mn-client-session.c:842 ../src/mn-client-session.c:849
-#, c-format
+#: ../src/mn-client-session.c:862 ../src/mn-client-session.c:869
 msgid "unable to write to server: %s"
 msgstr "schrijven op de server is niet mogelijk: %s"
 
-#: ../src/mn-client-session.c:847
+#: ../src/mn-client-session.c:867
 msgid "unable to write to server: EOF"
 msgstr "schrijven op de server is niet mogelijk: EOF"
 
-#: ../src/mn-client-session.c:878 ../src/mn-pop3-mailbox.gob:468
-#, c-format
+#: ../src/mn-client-session.c:898 ../src/mn-pop3-mailbox.gob:433
 msgid "unable to encode Base64: %s"
 msgstr "de gegevens kunnen niet met behulp van Base64 gecodeerd worden: %s"
 
-#: ../src/mn-client-session.c:1056
-#, c-format
+#: ../src/mn-client-session.c:1075
 msgid "unable to initialize the SASL library: %s"
 msgstr "Dee SASL-bibliotheek kan niet geinitialiseerd worden: %s"
 
-#: ../src/mn-client-session.c:1068
-#, c-format
+#: ../src/mn-client-session.c:1087
 msgid "unable to retrieve local address of socket: %s"
 msgstr "het locale adres van socket kan niet opgevraagd worden: %s"
 
-#: ../src/mn-client-session.c:1074
-#, c-format
+#: ../src/mn-client-session.c:1093
 msgid "unable to retrieve remote address of socket: %s"
-msgstr ""
-"het externe adres van socket kan niet opgevraagd worden:: %s"
+msgstr "het externe adres van socket kan niet opgevraagd worden: %s"
 
-#: ../src/mn-client-session.c:1108
-#, c-format
+#: ../src/mn-client-session.c:1127
 msgid "unable to set SASL security properties: %s"
-msgstr "de SASL-veiligheidseigenschappen kunnen  niet gezet worden: %s"
+msgstr "de SASL-veiligheidseigenschappen kunnen niet gezet worden: %s"
 
-#: ../src/mn-client-session.c:1132
+#: ../src/mn-client-session.c:1151
 msgid ""
 "unable to start SASL authentication: SASL asked for something we did not know"
 msgstr ""
-"de SASL-authenticatie kan niet gestart worden: SASL vroeg naar iets waar we geen verstand van hebben"
+"de SASL-authenticatie kan niet gestart worden: SASL vroeg naar iets waar we "
+"geen verstand van hebben"
 
-#: ../src/mn-client-session.c:1151
-#, c-format
+#: ../src/mn-client-session.c:1170
 msgid "unable to start SASL authentication: %s"
 msgstr "de SASL-authenticatie kan niet gestart worden: %s"
 
-#: ../src/mn-client-session.c:1155
-#, c-format
+#: ../src/mn-client-session.c:1174
 msgid "unable to create a SASL connection: %s"
 msgstr "Er kan geen SASL-verbinding worden gemaakt: %s"
 
-#: ../src/mn-client-session.c:1202
+#: ../src/mn-client-session.c:1221
 msgid "SASL asked for something we did not know, aborting SASL authentication"
-msgstr ""
-"SASL vroeg naar iets waar we geen verstand van hebben, SASL-authenticatie "
-"wordt afgebroken"
+msgstr "SASL vroeg naar iets waar we geen verstand van hebben, SASL-authenticatie wordt afgebroken"
 
-#: ../src/mn-client-session.c:1219
-#, c-format
+#: ../src/mn-client-session.c:1238
 msgid "%s, aborting SASL authentication"
 msgstr "%s, SASL-authenticatie wordt afgebroken"
 
 #. compliance error
-#: ../src/mn-client-session.c:1224
-#, c-format
+#: ../src/mn-client-session.c:1243
 msgid "unable to decode Base64 input from server: %s"
 msgstr "de Base64-invoer van de server kan niet gedecodeerd worden: %s"
 
-#: ../src/mn-client-session.c:1260
-#, c-format
+#: ../src/mn-client-session.c:1279
 msgid "a SASL security layer of strength factor %i is now active"
 msgstr "de SASL-veiligheidslaag met sterkte niveau %i is nu geactiveerd"
 
 #. a security layer is active but we can't retrieve maxoutbuf -> fatal
-#: ../src/mn-client-session.c:1265
-#, c-format
+#: ../src/mn-client-session.c:1284
 msgid "unable to get SASL_MAXOUTBUF property: %s"
 msgstr "de waarde SASL_MAXOUTBUF kan niet worden gevonden: %s"
 
-#: ../src/mn-client-session.c:1271
-#, c-format
+#: ../src/mn-client-session.c:1290
 msgid "warning: unable to get SASL_SSF property: %s"
 msgstr "waarschuwing: de waarde SASL_SSF kan niet worden gevonden: %s"
 
-#: ../src/mn-conf.c:240
+#: ../src/mn-client-session.c:1449
+msgid "unknown server error"
+msgstr "onbekende server-fout :-("
+
+#: ../src/mn-compact-message-view.gob:45
+msgid "Mailbox"
+msgstr "Postbus"
+
+#: ../src/mn-compact-message-view.gob:46
+msgid "From"
+msgstr "Van"
+
+#: ../src/mn-compact-message-view.gob:47
+msgid "Subject"
+msgstr "Onderwerp"
+
+#: ../src/mn-compact-message-view.gob:48
+msgid "Sent"
+msgstr "Verzonden"
+
+#: ../src/mn-conf.c:262
 msgid "A directory creation error has occurred"
 msgstr "Bij het aanmaken van een map is een fout opgetreden"
 
-#: ../src/mn-conf.c:241
-#, c-format
+#: ../src/mn-conf.c:263
 msgid "Unable to create directory \"%s\": %s."
-msgstr "de map »%s« kan niet aangemaakt worden: %s."
+msgstr "de map \"%s\" kan niet aangemaakt worden: %s."
 
-#: ../src/mn-conf.c:317
-#, c-format
+#: ../src/mn-conf.c:402
 msgid "recursively unsetting %s"
 msgstr "%s recursief terugzetten"
 
-#: ../src/mn-conf.c:321
+#: ../src/mn-conf.c:406
 msgid "syncing the GConf database"
 msgstr "synchroniseren met de GConf-database"
 
-#: ../src/mn-conf.c:324
+#: ../src/mn-conf.c:409
 msgid "completed"
 msgstr "voltooid"
+
+#: ../src/mn-conf.c:1137
+msgid "A command error has occurred in Mail Notification"
+msgstr "Een fout is opgtreden in e-mail notificatie tijdens het uitvoeren van een opdracht."
+
+#: ../src/mn-conf.c:1138
+msgid "Unable to execute \"%s\": %s."
+msgstr "\"%s\" kan niet uitgevoerd worden: %s."
 
 #: ../src/mn-custom-vfs-mailbox.gob:76
 msgid "invalid location"
 msgstr "ongeldige locatie"
 
-#: ../src/mn-evolution-folder-tree-control.c:86
+#: ../src/mn-evolution-folder-tree-control.c:91
 msgid "The currently selected URI"
 msgstr "De huidige geselecteerde URI"
 
-#: ../src/mn-evolution-mailbox-properties.gob:67
+#. translators: header capitalization
+#: ../src/mn-evolution-mailbox-properties.gob:68
 msgid "Folder"
 msgstr "Map"
 
-#: ../src/mn-evolution-mailbox-properties.gob:169
+#: ../src/mn-evolution-mailbox-properties.gob:159
 msgid ""
 "Mail Notification can not contact Evolution. Make sure that Evolution is "
 "running and that the Evolution Mail Notification plugin is loaded."
-msgstr "E-mail notificatie kan geen verbinding maken met Evolution. "
-"Controleer of Evolution gestart is en dat de Mail Notification plugin "
-"geactiveerd is."
+msgstr ""
+"E-mail notificatie kan geen verbinding maken met Evolution. Controleer of "
+"Evolution gestart is en dat de Mail Notification plugin geactiveerd is."
 
-#: ../src/mn-evolution-mailbox.gob:61
+#: ../src/mn-evolution-mailbox.gob:75
 msgid "folder not found"
 msgstr "map niet gevonden"
 
-#: ../src/mn-evolution-mailbox.gob:182
+#: ../src/mn-evolution-mailbox.gob:216
 msgid "unable to contact Evolution"
 msgstr "er kan geen verbinding met Evolution gemaakt worden"
 
-#: ../src/mn-evolution-plugin.c:130 ../src/mn-evolution-plugin.c:134
+#: ../src/mn-evolution-plugin.c:136 ../src/mn-evolution-plugin.c:140
 msgid "Unable to activate the Mail Notification plugin"
 msgstr "De Evolution-plugin Mail Notification kan niet geactiveerd worden"
 
-#: ../src/mn-evolution-plugin.c:130
-#, c-format
+#: ../src/mn-evolution-plugin.c:136
 msgid ""
 "Bonobo could not locate the %s server. Please check your Mail Notification "
 "installation."
 msgstr ""
-"Bonobo kan de %s server niet vinden. Controleer aub "
-"de installatie van E-mail notificatie."
+"Bonobo kan de %s server niet vinden. Controleer aub de installatie van E-"
+"mail notificatie."
 
-#: ../src/mn-evolution-plugin.c:134 ../src/mn-main.c:427
-#, c-format
+#: ../src/mn-evolution-plugin.c:140 ../src/mn-main.c:460
 msgid ""
 "Bonobo was unable to register the %s server. Please check your Mail "
 "Notification installation."
 msgstr ""
-"Bonobo kan niet aanmelden bij de %s server. Controleer aub "
-"de installatie van E-mail notificatie."
+"Bonobo kan niet aanmelden bij de %s server. Controleer aub de installatie "
+"van e-mail notificatie."
 
-#: ../src/mn-gmail-mailbox.gob:111
+#: ../src/mn-gmail-mailbox.gob:103
 msgid "invalid feed location"
 msgstr "ongeldig feed-adres"
 
-#: ../src/mn-gmail-mailbox.gob:125
-#, c-format
+#: ../src/mn-gmail-mailbox.gob:117
 msgid "retrieving feed from %s"
 msgstr "feed wordt bij %s opgevraagd"
 
-#: ../src/mn-gmail-mailbox.gob:132
-#, c-format
+#: ../src/mn-gmail-mailbox.gob:124
 msgid "unable to retrieve feed: %s"
 msgstr "de feed kan niet opgevraagd worden: %s"
 
-#: ../src/mn-gmail-mailbox.gob:147 ../src/mn-gmail-mailbox.gob:194
+#: ../src/mn-gmail-mailbox.gob:139 ../src/mn-gmail-mailbox.gob:187
 msgid "unable to parse feed"
 msgstr "de feed kan niet geanalyseerd worden"
 
-#: ../src/mn-gmime-stream-vfs.gob:49
-#: ../src/mn-sylpheed-mailbox-backend.gob:152
-#, c-format
+#: ../src/mn-gmime-stream-vfs.gob:50
+#: ../src/mn-sylpheed-mailbox-backend.gob:205
 msgid "unable to read %s: %s"
 msgstr "%s kan niet gelezen worden: %s"
 
-#: ../src/mn-gmime-stream-vfs.gob:51
-#, c-format
+#: ../src/mn-gmime-stream-vfs.gob:52
 msgid "unable to write to %s: %s"
 msgstr "er kan niet naar %s geschreven worden: %s"
 
-#: ../src/mn-gmime-stream-vfs.gob:53
-#, c-format
+#: ../src/mn-gmime-stream-vfs.gob:54
 msgid "unable to seek in %s: %s"
 msgstr "er kan niet gezocht worden in in %s: %s"
 
-#: ../src/mn-gmime-stream-vfs.gob:55
-#, c-format
+#: ../src/mn-gmime-stream-vfs.gob:56
 msgid "unable to tell position of %s: %s"
-msgstr "onmogleijk om de positie van %s vast te stellen: %s"
+msgstr "onmogelijk om de positie van %s vast te stellen: %s"
 
-#: ../src/mn-gmime-stream-vfs.gob:57 ../src/mn-mh-mailbox-backend.gob:158
-#, c-format
+#: ../src/mn-gmime-stream-vfs.gob:58 ../src/mn-mh-mailbox-backend.gob:164
 msgid "unable to close %s: %s"
 msgstr "%s kan niet gesloten worden: %s"
 
-#: ../src/mn-imap-mailbox-properties.gob:113
+#: ../src/mn-imap-mailbox-properties.gob:114
+#: ../src/mn-standard-message-view.gob:62
 msgid "Mailbox:"
-msgstr "Posbus:"
+msgstr "Postbus:"
 
-#: ../src/mn-imap-mailbox-properties.gob:117
+#: ../src/mn-imap-mailbox-properties.gob:118
 msgid "in_box"
 msgstr "In_box"
 
-#: ../src/mn-imap-mailbox-properties.gob:128
+#: ../src/mn-imap-mailbox-properties.gob:129
 msgid "oth_er:"
 msgstr "_Ander:"
 
-#: ../src/mn-imap-mailbox-properties.gob:139
+#: ../src/mn-imap-mailbox-properties.gob:140
 msgid "ne_ver"
 msgstr "n_ooit"
 
-#: ../src/mn-imap-mailbox-properties.gob:140
+#: ../src/mn-imap-mailbox-properties.gob:141
 msgid "au_todetect"
 msgstr "au_tomatische detectie"
 
-#: ../src/mn-imap-mailbox-properties.gob:141
+#: ../src/mn-imap-mailbox-properties.gob:142
 msgid "al_ways"
 msgstr "al_tijd"
 
-#: ../src/mn-imap-mailbox-properties.gob:173
+#: ../src/mn-imap-mailbox-properties.gob:174
 msgid "Use the <span style=\"italic\">IDLE</span> extension:"
 msgstr "Gebruik de <span style=\"italic\">IDLE</span> extensie:"
 
-#: ../src/mn-imap-mailbox.gob:390
+#: ../src/mn-imap-mailbox.gob:384
 msgid "server did not send capabilities"
 msgstr "geen ontvangst van de server-capaciteiten"
 
-#: ../src/mn-imap-mailbox.gob:573
+#: ../src/mn-imap-mailbox.gob:551
 msgid "server advertised LOGINDISABLED, not using LOGIN authentication"
-msgstr ""
-"de server heeft geroepen LOGINDISABLED, LOGIN-authorisatie wordt niet "
-"gebruikt"
+msgstr "de server heeft geroepen LOGINDISABLED, LOGIN-authorisatie wordt niet gebruikt"
 
-#: ../src/mn-imap-mailbox.gob:574
+#: ../src/mn-imap-mailbox.gob:552
 msgid "unable to login"
 msgstr "aanmelding mislukt"
 
 #. compliance error
-#: ../src/mn-imap-mailbox.gob:714
-msgid "server did not send search results"
-msgstr "de server heeft geen zoekresultaten verzonden"
-
-#. compliance error
-#: ../src/mn-imap-mailbox.gob:792
+#: ../src/mn-imap-mailbox.gob:752
 msgid "server did not send all the messages we requested"
 msgstr "de server heeft niet alle opgegeven berichten verzonden"
 
-#: ../src/mn-imap-mailbox.gob:859
+#: ../src/mn-imap-mailbox.gob:822
 msgid "unable to fetch message"
 msgstr "berichten konden niet opgehaald worden"
 
-#: ../src/mn-imap-mailbox.gob:875
+#: ../src/mn-imap-mailbox.gob:847
 msgid ""
 "\"Use the IDLE extension\" set to \"never\" in the mailbox properties, "
 "logging out"
-msgstr "»Gebruik de IDLE-extensie« wordt gezet op »nooit« in de postbus-eigenschap, "
+msgstr ""
+"\"Gebruik de IDLE-extensie\" wordt gezet op \"nooit\" in de postbus-eigenschap, "
 "afmelden"
 
-#: ../src/mn-imap-mailbox.gob:886
-#, c-format
+#: ../src/mn-imap-mailbox.gob:858
 msgid "the remote server runs %s, not using the IDLE extension"
 msgstr "de externe server gebruikt %s, de IDLE-extensie wordt niet gebruikt"
 
-#: ../src/mn-imap-mailbox.gob:891
-#, c-format
+#: ../src/mn-imap-mailbox.gob:863
 msgid ""
 "the remote server runs %s, the IDLE extension might not function properly"
-msgstr "de externe server gebruikt %s, de IDLE-extensie zou misschien niet goed kunnen werken"
+msgstr ""
+"de externe server gebruikt %s, de IDLE-extensie zou misschien niet goed "
+"kunnen werken"
 
-#: ../src/mn-imap-mailbox.gob:900
+#: ../src/mn-imap-mailbox.gob:872
 msgid "the remote server does not support the IDLE extension, logging out"
 msgstr "de externe server ondersteund de IDLE-extensie niet, er wordt afgemeld"
 
-#: ../src/mn-imap-mailbox.gob:1251 ../src/mn-pop3-mailbox.gob:1124
-msgid "unknown server error"
-msgstr "onbekende server-fout :-("
-
-#: ../src/mn-imap-mailbox.gob:1357 ../src/mn-pop3-mailbox.gob:311
+#: ../src/mn-imap-mailbox.gob:1377 ../src/mn-pop3-mailbox.gob:296
 msgid "server does not support in-band SSL/TLS"
 msgstr "de server ondersteund geen in-band SSL/TLS"
 
-#: ../src/mn-imap-mailbox.gob:1381 ../src/mn-pop3-mailbox.gob:997
+#: ../src/mn-imap-mailbox.gob:1401 ../src/mn-pop3-mailbox.gob:947
 msgid ""
 "a SASL authentication mechanism was selected but SASL support has not been "
 "compiled in"
 msgstr ""
-"u heeft authenticatie met behulp van SASL gekozen, echter "
-"SASL-ondersteuning is bij de aanmaak van het programma niet ingesteld"
+"u heeft authenticatie met behulp van SASL gekozen, echter SASL-ondersteuning "
+"is bij de aanmaak van het programma niet ingesteld"
 
-#: ../src/mn-imap-mailbox.gob:1391 ../src/mn-pop3-mailbox.gob:1017
-#, c-format
+#: ../src/mn-imap-mailbox.gob:1411 ../src/mn-pop3-mailbox.gob:967
 msgid "unknown authentication mechanism \"%s\""
-msgstr "onbekend authenticatie-mechanisme »%s«"
+msgstr "onbekend authenticatie-mechanisme \"%s\""
 
-#: ../src/mn-imap-mailbox.gob:1423 ../src/mn-pop3-mailbox.gob:1053
-#, c-format
+#: ../src/mn-imap-mailbox.gob:1443 ../src/mn-pop3-mailbox.gob:1003
 msgid "disabling mechanism \"%s\" and retrying SASL authentication"
-msgstr "het mechanisme %s wordt uitgeschakeld en een nieuwe poging wordt gewaagd met behulp van SASL-authenticatie"
+msgstr "het mechanisme \"%s\" wordt uitgeschakeld en een nieuwe poging wordt gewaagd met behulp van SASL-authenticatie"
 
-#: ../src/mn-imap-mailbox.gob:1435
+#: ../src/mn-imap-mailbox.gob:1455
 msgid "falling back to IMAP LOGIN authentication"
 msgstr "er wordt teruggevallen op authenticatie via IMAP LOGIN"
 
-#: ../src/mn-imap-mailbox.gob:1447 ../src/mn-pop3-mailbox.gob:1082
+#: ../src/mn-imap-mailbox.gob:1467 ../src/mn-pop3-mailbox.gob:1032
 msgid "authentication failed"
 msgstr "authenticatie mislukt"
 
-#: ../src/mn-mail-icon.gob:91
-msgid "Main _Window"
-msgstr "_Hoofdvenster"
+#. success; caller must switch state itself
+#. compliance error
+#: ../src/mn-imap-mailbox.gob:1528
+msgid "server did not send search results"
+msgstr "de server heeft geen zoekresultaten verzonden"
 
-#: ../src/mn-mail-icon.gob:92 ../src/mn-main-window.gob:165
+#. translators: header capitalization
+#: ../src/mn-mail-icon.gob:89
 msgid "_Mail Reader"
 msgstr "_E-mail programma"
 
-#: ../src/mn-mail-icon.gob:93 ../src/mn-main-window.gob:173
+#. translators: header capitalization
+#: ../src/mn-mail-icon.gob:91 ../src/mn-mailbox-view.gob:312
 msgid "_Update"
 msgstr "_Bijwerken"
 
-#: ../src/mn-mail-icon.gob:99
+#. translators: header capitalization
+#: ../src/mn-mail-icon.gob:98
 msgid "R_emove From Notification Area"
 msgstr "V_erwijderen van medelingengebied"
 
-#: ../src/mn-mailbox-properties-dialog.gob:88
-#, c-format
+#. translators: header capitalization
+#: ../src/mn-mail-summary-popup.gob:270
+msgid "<span size=\"larger\" weight=\"bold\">Mail Summary</span>"
+msgstr "<span size=\"larger\" weight=\"bold\">Overzicht e-mail berichten</span>"
+
+#. translators: header capitalization
+#: ../src/mn-mail-summary-popup.gob:277
+msgid "<span weight=\"bold\">Mail Summary</span>"
+msgstr "<span weight=\"bold\">Overzicht e-mail berichten</span>"
+
+#. translators: header capitalization
+#: ../src/mn-mailbox-properties-dialog.gob:89
 msgid "%s Properties"
 msgstr "%s Eigenschappen"
 
-#: ../src/mn-mailbox-properties-dialog.gob:205
+#. translators: header capitalization
+#: ../src/mn-mailbox-properties-dialog.gob:232
 msgid "Add a Mailbox"
 msgstr "Een postbus toevoegen"
 
-#: ../src/mn-mailbox-view.gob:179
+#: ../src/mn-mailbox-view.gob:248
 msgid "A paste error has occurred"
 msgstr "Een invoegfout is opgetreden"
 
-#: ../src/mn-mailbox-view.gob:320 ../src/mn-message-view.gob:313
-msgid "Mailbox"
-msgstr "Postbus"
-
-#: ../src/mn-mailbox-view.gob:523
-#, c-format
+#: ../src/mn-mailbox-view.gob:557
 msgid "unhandled %s mailbox (%s)"
 msgstr "onbehandelde %s-postbus (%s)"
 
-#: ../src/mn-mailbox-view.gob:528
-#, c-format
+#: ../src/mn-mailbox-view.gob:562
 msgid "%s mailbox"
 msgstr "%s-postbus"
 
-#: ../src/mn-mailbox-view.gob:543
+#: ../src/mn-mailbox-view.gob:577
 msgid "detecting mailbox type..."
 msgstr "detecteren postbustype..."
 
-#: ../src/mn-mailbox.gob:278
+#: ../src/mn-mailbox.gob:472
 msgid "\"type\" attribute missing"
-msgstr "eigenschap »type« werd niet gevonden"
+msgstr "eigenschap \"type\" werd niet gevonden"
 
-#: ../src/mn-mailbox.gob:285
-#, c-format
+#: ../src/mn-mailbox.gob:479
 msgid "unknown mailbox type \"%s\""
 msgstr "onbekend type postbus »%s«"
 
-#: ../src/mn-mailbox.gob:305
-#, c-format
+#: ../src/mn-mailbox.gob:499
 msgid ""
 "property \"%s\": unable to transform string \"%s\" into a value of type \"%s"
 "\""
-msgstr "eigenschap »%s«: het is niet mogelijk de tekenreeks »%s« in een waarde van "
-"type »%s« om te zetten"
+msgstr ""
+"eigenschap \"%s\": het is niet mogelijk de tekenreeks \"%s\" in een waarde van "
+"type \"%s\" om te zetten"
 
-#: ../src/mn-mailbox.gob:744
-#, c-format
+#: ../src/mn-mailbox.gob:948
 msgid "property \"%s\" has no value"
-msgstr "eigenschap »%s« heeft geen waarde"
+msgstr "eigenschap \"%s\" heeft geen waarde"
 
-#: ../src/mn-mailboxes.gob:203
+#: ../src/mn-mailboxes.gob:239
 msgid "An error has occurred while importing old mailboxes"
 msgstr "Bij het importeren van oude postbussen is een fout opgetreden"
 
-#: ../src/mn-mailboxes.gob:248
+#: ../src/mn-mailboxes.gob:265
 msgid "Unable to load the mailboxes configuration"
 msgstr "Het is niet mogelijk de postbus-configuratie te laden"
 
-#: ../src/mn-mailboxes.gob:294
+#: ../src/mn-mailboxes.gob:311
 msgid "Unable to parse the XML document."
 msgstr "Het XML-document kan niet geanalyseerd worden."
 
-#: ../src/mn-mailboxes.gob:301
+#: ../src/mn-mailboxes.gob:318
 msgid "The root element is missing."
 msgstr "Het basiselement (root) is niet aanwezig."
 
-#: ../src/mn-mailboxes.gob:307
-#, c-format
+#: ../src/mn-mailboxes.gob:324
 msgid "The root element \"%s\" is invalid."
-msgstr "Het basiselement (root) »%s« is niet geldig."
+msgstr "Het basiselement (root) \"%s\" is niet geldig."
 
-#: ../src/mn-mailboxes.gob:330
-#, c-format
+#: ../src/mn-mailboxes.gob:347
 msgid "On line %i: %s."
 msgstr "Op regel %i: %s"
 
-#: ../src/mn-mailboxes.gob:335
-#, c-format
+#: ../src/mn-mailboxes.gob:352
 msgid "On line %i: unknown element \"%s\"."
-msgstr "Op regel %i: onbekend element »%s«."
+msgstr "Op regel %i: onbekend element \"%s\"."
 
-#: ../src/mn-mailboxes.gob:346
+#: ../src/mn-mailboxes.gob:361
 msgid "An error has occurred while loading the mailboxes configuration"
 msgid_plural "Errors have occurred while loading the mailboxes configuration"
 msgstr[0] "Bij het laden van de postbusinstellingen is een fout opgetreden."
 msgstr[1] "Bij het laden van de postbusinstellingen zijn meerdere fouten opgetreden."
 
-#: ../src/mn-mailboxes.gob:371
+#: ../src/mn-mailboxes.gob:386
 msgid "Unable to save the mailboxes configuration"
 msgstr "De postbusinstellingen kunnen niet opgeslagen worden"
 
-#: ../src/mn-mailboxes.gob:417
+#: ../src/mn-mailboxes.gob:428
+msgid "Unable to remove %s: %s."
+msgstr "%s kan niet verwijderd worden: %s"
+
+#: ../src/mn-mailboxes.gob:436
+msgid "Unable to create %s: %s."
+msgstr "%s kan niet gecreëerd worden: %s"
+
+#: ../src/mn-mailboxes.gob:443
+msgid "Unable to open %s for writing: %s."
+msgstr "%s kan niet geopend worden voor schrijfactie: %s"
+
+#: ../src/mn-mailboxes.gob:450
 msgid "Unable to write the XML document."
-msgstr "Het XML-document kan niet geschreven worden."
+msgstr "Het XML-document kan niet weggeschreven worden."
+
+#: ../src/mn-mailboxes.gob:456
+msgid "Unable to close %s: %s."
+msgstr "%s kan niet gesloten worden: %s"
+
+#: ../src/mn-mailboxes.gob:466 ../src/mn-mailboxes.gob:473
+msgid "Unable to rename %s to %s: %s."
+msgstr "%s kan niet worden hernoemd naar %s: %s"
 
 #. non fatal
-#: ../src/mn-mailboxes.gob:433
-#, c-format
+#: ../src/mn-mailboxes.gob:479
 msgid "unable to delete %s: %s"
 msgstr "%s kan niet verwijderd worden: %s"
 
-#: ../src/mn-mailboxes.gob:457
-#, c-format
+#: ../src/mn-mailboxes.gob:509
 msgid "%s has %i new message"
 msgid_plural "%s has %i new messages"
 msgstr[0] "%s heeft %i nieuw bericht"
 msgstr[1] "%s heeft %i nieuwe berichten"
 
-#: ../src/mn-mailboxes.gob:483
-#, c-format
+#: ../src/mn-mailboxes.gob:535
 msgid "%s reported an error: %s"
 msgstr "%s heeft een fout gemeld: %s"
 
-#: ../src/mn-maildir-mailbox-backend.gob:111
-#, c-format
-msgid "unable to open folder \"new\": %s"
-msgstr "de map »new« kan niet geopend worden: %s"
+#: ../src/mn-maildir-mailbox-backend.gob:125
+msgid "unable to open folder \"%s\": %s"
+msgstr "de map \"%s\" kan niet geopend worden: %s"
 
-#: ../src/mn-maildir-mailbox-backend.gob:144
-#, c-format
-msgid "unable to close folder \"new\": %s"
-msgstr "de map »new« kan niet gesloten worden: %s"
+#: ../src/mn-maildir-mailbox-backend.gob:173
+msgid "unable to close folder \"%s\": %s"
+msgstr "de map \"%s\" kan niet gesloten worden: %s"
 
-#: ../src/mn-maildir-mailbox-backend.gob:147
-#, c-format
-msgid "error while reading folder \"new\": %s"
-msgstr "fout bij het lezen van map »new«: %s"
+#: ../src/mn-maildir-mailbox-backend.gob:176
+msgid "error while reading folder \"%s\": %s"
+msgstr "fout bij het lezen van map \"%s\": %s"
 
-#: ../src/mn-main-window.gob:106
-msgid "Help messages"
-msgstr "Helpteksten"
+#: ../src/mn-main.c:100
+msgid "yes"
+msgstr "ja"
 
-#: ../src/mn-main-window.gob:107
-msgid "Count messages"
-msgstr "Tel berichten"
+#: ../src/mn-main.c:100
+msgid "no"
+msgstr "nee"
 
-#. Toplevel
-#: ../src/mn-main-window.gob:156
-msgid "_Mail"
-msgstr "_E-mail"
+#: ../src/mn-main.c:132
+msgid "%s version %s\n"
+msgstr "%s versie %s\n"
 
-#: ../src/mn-main-window.gob:157
-msgid "_Edit"
-msgstr "Be_werken"
+#: ../src/mn-main.c:137
+msgid "Mailbox backends:\n"
+msgstr "Postbuskoppelingen:\n"
 
-#: ../src/mn-main-window.gob:158
-msgid "_View"
-msgstr "Beel_d"
+#: ../src/mn-main.c:142
+msgid "POP3 and IMAP features:\n"
+msgstr "Ingebouwde POP3- und IMAP-mogelijkheden:\n"
 
-#: ../src/mn-main-window.gob:159
-msgid "_Help"
-msgstr "_Hulp"
+#: ../src/mn-main.c:147
+msgid "Sylpheed features:\n"
+msgstr "Sylpheed-funtionaliteit:\n"
 
-#: ../src/mn-main-window.gob:167
-msgid "Launch the mail reader"
-msgstr "Start het e-mail programma"
+#: ../src/mn-main.c:198
+msgid "A Bonobo exception (%s) has occurred in %s()."
+msgstr "Een Bonobo-exceptie (%s) is opgetreden in %s()."
 
-#. Reload
-#: ../src/mn-main-window.gob:175 ../src/mn-main.c:248
-msgid "Update the mail status"
-msgstr "Kijk of er nieuwe berichten zijn"
+#: ../src/mn-main.c:220
+msgid "Show version information"
+msgstr "Toon versie-informatie"
 
-#: ../src/mn-main-window.gob:181
-msgid "_Close"
-msgstr "_Sluiten"
-
-#: ../src/mn-main-window.gob:183
-msgid "Close this window"
-msgstr "Sluit dit venster"
-
-#: ../src/mn-main-window.gob:189
-msgid "_Quit"
-msgstr "_Afsluiten"
-
-#: ../src/mn-main-window.gob:191 ../src/mn-main.c:266
-msgid "Quit Mail Notification"
-msgstr "E-mail notificatie afsluiten"
-
-#: ../src/mn-main-window.gob:199 ../src/mn-main-window.gob:247
-msgid "_Toolbars"
-msgstr "_Werkbalken"
-
-#: ../src/mn-main-window.gob:201
-msgid "Customize the toolbars"
-msgstr "Werkbalken aanpassen"
-
-#: ../src/mn-main-window.gob:207
-msgid "_Preferences"
-msgstr "_Voorkeuren"
-
-#: ../src/mn-main-window.gob:217
-msgid "Toolbars Styl_e"
-msgstr "Werkbalkstijl_en"
-
-#: ../src/mn-main-window.gob:219
-msgid "Customize the toolbars style"
-msgstr "Werkbalkstijl aanpassen"
-
-#: ../src/mn-main-window.gob:227
-msgid "_Contents"
-msgstr "I_nhoud"
-
-#: ../src/mn-main-window.gob:229
-msgid "Display help"
-msgstr "Toon help"
-
-#: ../src/mn-main-window.gob:235
-msgid "_About"
-msgstr "_Info"
-
-#: ../src/mn-main-window.gob:237
-msgid "Display credits"
-msgstr "Toon meewerkenden"
-
-#: ../src/mn-main-window.gob:249
-msgid "Show or hide the toolbars"
-msgstr "Toon of verberg werkbalken"
-
-#: ../src/mn-main-window.gob:256
-msgid "_Statusbar"
-msgstr "_Statusbalk"
-
-#: ../src/mn-main-window.gob:258
-msgid "Show or hide the statusbar"
-msgstr "Toon of verberg de statusbalk"
-
-#: ../src/mn-main-window.gob:269
-msgid "_Desktop Default"
-msgstr "_Standaard bureaublad"
-
-#: ../src/mn-main-window.gob:271
-msgid "Set the toolbars style to the desktop default setting"
-msgstr "Stel de werkbalkstylen in naar de standaard van het bureaublad"
-
-#: ../src/mn-main-window.gob:277
-msgid "I_cons Only"
-msgstr "Alleen i_conen"
-
-#: ../src/mn-main-window.gob:279
-msgid "Only display the toolbars icons"
-msgstr "Toon alleen werkbalkiconen"
-
-#: ../src/mn-main-window.gob:285
-msgid "_Text Only"
-msgstr "Alleen _tekst"
-
-#: ../src/mn-main-window.gob:287
-msgid "Only display the toolbars text"
-msgstr "Toon alleen werkbalkteksten"
-
-#: ../src/mn-main-window.gob:293
-msgid "Text Belo_w Icons"
-msgstr "Tekst _onder de iconen"
-
-#: ../src/mn-main-window.gob:295
-msgid "Display the toolbars text below the icons"
-msgstr "Toon de werkbalkteksten onder de iconen"
-
-#: ../src/mn-main-window.gob:301
-msgid "Text Be_side Icons"
-msgstr "Tekst _naast de iconen"
-
-#: ../src/mn-main-window.gob:303
-msgid "Display the toolbars text beside the icons"
-msgstr "Toon de werkbalkteksten naast de iconen"
-
-#: ../src/mn-main-window.gob:345
-#, c-format
-msgid "unable to load menus.xml: %s"
-msgstr "menus.xml kunnen niet geladen worden: %s"
-
-#: ../src/mn-main-window.gob:388
-msgid "unable to load toolbars.xml"
-msgstr "toolbars.xml kunnen niet geladen worden"
-
-#: ../src/mn-main-window.gob:439
-#, c-format
-msgid "%i new message"
-msgid_plural "%i new messages"
-msgstr[0] "%i nieuw bericht"
-msgstr[1] "%i nieuwe berichten"
-
-#.
-#. * Here and everywhere else, we order the backends by descending
-#. * order of (believed) popularity.
-#.
-#: ../src/mn-main.c:96
-msgid "Compiled-in mailbox backends: "
-msgstr "Ingebouwde postbustypen: "
-
-#: ../src/mn-main.c:124
-msgid "Compiled-in POP3 and IMAP features: "
-msgstr "Ingebouwde POP3- und IMAP-mogelijkheden: "
-
-#: ../src/mn-main.c:194
+#: ../src/mn-main.c:229
 msgid "Enable informational output"
 msgstr "Uitvoer informatie activeren"
 
-#: ../src/mn-main.c:203
-msgid "List the compiled-in features"
-msgstr "Ingebouwde mogelijkheden tonen"
-
-#: ../src/mn-main.c:212
-msgid "Display the main window"
-msgstr "Toon het hoofdvenster"
-
-#: ../src/mn-main.c:221
+#: ../src/mn-main.c:238
 msgid "Display the properties dialog"
 msgstr "Toon het eigenschappenvenster"
 
-#: ../src/mn-main.c:230
+#: ../src/mn-main.c:247
 msgid "Display the about dialog"
 msgstr "Toon het informatievenster"
 
-#: ../src/mn-main.c:239
+#: ../src/mn-main.c:256
 msgid "Close the mail summary popup"
 msgstr "Sluit het e-mail overzichtsvenster"
 
-#: ../src/mn-main.c:257
+#: ../src/mn-main.c:265
+msgid "Update the mail status"
+msgstr "Kijk of er nieuwe berichten zijn"
+
+#: ../src/mn-main.c:274
 msgid "Unset obsolete GConf configuration"
 msgstr "Geef overbodige GConf-configuratie vrij"
 
+#: ../src/mn-main.c:283
+msgid "Quit Mail Notification"
+msgstr "E-mail notificatie afsluiten"
+
 #.
-#. * We can't use mn_error_dialog() because gtk_init() has not been
-#. * called yet.
+#. * We cannot use mn_fatal_error_dialog() because gtk_init() has
+#. * not been called yet.
 #.
-#: ../src/mn-main.c:293
+#: ../src/mn-main.c:310
 msgid "multi-threading is not available"
 msgstr "multi-threading wordt niet ondersteund"
 
-#: ../src/mn-main.c:355
+#: ../src/mn-main.c:365
 msgid ""
 "Bonobo could not locate the automation object. Please check your Mail "
 "Notification installation."
 msgstr ""
-"Bonobo kan het automation object niet vinden. Controleer aub "
-"de installatie van e-mail notificatie."
+"Bonobo kan het automation object niet vinden. Controleer aub de installatie "
+"van e-mail notificatie."
 
-#: ../src/mn-main.c:361
+#: ../src/mn-main.c:371
 msgid "quitting Mail Notification"
 msgstr "E-mail notificatie wordt afgesloten"
 
-#: ../src/mn-main.c:365
+#: ../src/mn-main.c:375
 msgid "Mail Notification is not running"
 msgstr "E-mail notificatie is niet actief"
 
-#: ../src/mn-main.c:372
+#: ../src/mn-main.c:390
 msgid "Unable to initialize the GnomeVFS library."
 msgstr "De GnomeVFS-bibliotheek kan niet geinitialiseerd worden."
 
-#: ../src/mn-main.c:404
+#: ../src/mn-main.c:438
 msgid "updating the mail status"
 msgstr "bijwerken e-mail status"
 
-#: ../src/mn-main.c:413
+#: ../src/mn-main.c:446
 msgid "Mail Notification is already running"
 msgstr "De e-mail notificatie is reeds actief"
 
-#: ../src/mn-main.c:423
-#, c-format
+#: ../src/mn-main.c:456
 msgid ""
 "Bonobo could not locate the %s file. Please check your Mail Notification "
 "installation."
 msgstr ""
-"Bonobo kan het %s-bestand vinden. Controleer aub "
-"de installatie van e-mail notificatie."
+"Bonobo kan het %s-bestand vinden. Controleer aub de installatie van e-mail "
+"notificatie."
 
-#: ../src/mn-mbox-mailbox-backend.gob:209
-#, c-format
+#: ../src/mn-mbox-mailbox-backend.gob:281
 msgid "unable to close file: %s"
 msgstr "bestand kan niet gesloten worden: %s"
 
-#: ../src/mn-mbox-mailbox-backend.gob:222
-#, c-format
+#: ../src/mn-mbox-mailbox-backend.gob:298
 msgid "unable to open mailbox: %s"
 msgstr "postbus kan niet geopend worden: %s"
 
-#: ../src/mn-message-mime.c:104
+#: ../src/mn-message-mime.c:121
 msgid "unable to parse MIME message"
 msgstr "het MIME-bericht kan niet verwerkt worden"
 
-#: ../src/mn-message-view.gob:82
-msgid "You have no new mail."
-msgstr "U heeft geen nieuwe e-mail berichten."
-
-#: ../src/mn-message-view.gob:322
-msgid "Unreadable message"
-msgstr "onleesbaar bericht"
-
-#: ../src/mn-message-view.gob:330
-msgid "From"
-msgstr "Van"
-
-#: ../src/mn-message-view.gob:338
-msgid "Subject"
-msgstr "Onderwerp"
-
-#: ../src/mn-message-view.gob:349
-msgid "Sent"
-msgstr "Verzonden"
-
-#: ../src/mn-message.gob:99
+#: ../src/mn-message.gob:111
 msgid "Unknown"
 msgstr "Onbekend"
 
-#: ../src/mn-message.gob:124
-#, c-format
-msgid "%i second ago"
-msgid_plural "%i seconds ago"
-msgstr[0] "%i seconden geleden"
-
-#: ../src/mn-message.gob:128
-#, c-format
-msgid "about %i minute ago"
-msgid_plural "about %i minutes ago"
-msgstr[0] "ongeveer %i minuut geleden"
-msgstr[1] "ongeveer %i minuten geleden"
-
-#: ../src/mn-message.gob:133
-#, c-format
-msgid "about %i hour ago"
-msgid_plural "about %i hours ago"
-msgstr[0] "ongeveer %i uur geleden"
-msgstr[1] "ongeveer %i uren geleden"
-
-#: ../src/mn-message.gob:138
-#, c-format
-msgid "about %i day ago"
-msgid_plural "about %i days ago"
-msgstr[0] "ongeveer %i dag geleden"
-msgstr[1] "ongeveer %i dagen geleden"
-
-#: ../src/mn-message.gob:143
-#, c-format
-msgid "about %i week ago"
-msgid_plural "about %i weeks ago"
-msgstr[0] "ongeveer %i week geleden"
-msgstr[1] "ongeveer %i weken geleden"
-
 #. translators: "none" is used like "Mailbox: none"
-#: ../src/mn-message.gob:163
+#: ../src/mn-message.gob:130
 msgid "none"
 msgstr "geen"
 
-#: ../src/mn-mh-mailbox-backend.gob:161
-#, c-format
+#: ../src/mn-mh-mailbox-backend.gob:167
 msgid "error while reading %s: %s"
 msgstr "fout bij het lezen van %s: %s"
 
-#: ../src/mn-mh-mailbox-backend.gob:174
-#, c-format
+#: ../src/mn-mh-mailbox-backend.gob:180
 msgid "unable to open %s: %s"
 msgstr "%s kan niet geopend worden: %s"
 
@@ -1391,7 +1072,7 @@ msgid "sta_ndard"
 msgstr "sta_ndaard"
 
 #: ../src/mn-pi-mailbox-properties.gob:68
-msgid "_in-band SSL/TLS"
+msgid "in-band SS_L/TLS"
 msgstr "_in-band SSL/TLS"
 
 #: ../src/mn-pi-mailbox-properties.gob:69
@@ -1399,32 +1080,54 @@ msgid "SSL/TLS on sepa_rate port"
 msgstr "SSL/TLS over een apa_rte poort"
 
 #: ../src/mn-pi-mailbox-properties.gob:73
-msgid "_Hostname:"
+msgid "Ho_stname:"
 msgstr "_Server:"
 
-#: ../src/mn-pi-mailbox-properties.gob:93
+#. translators: header capitalization
+#: ../src/mn-pi-mailbox-properties.gob:94
 msgid "_Details"
 msgstr "_Details"
 
-#: ../src/mn-pi-mailbox-properties.gob:148
+#: ../src/mn-pi-mailbox-properties.gob:149
 msgid "Connection type:"
 msgstr "Connectietype:"
 
-#: ../src/mn-pi-mailbox-properties.gob:155
+#: ../src/mn-pi-mailbox-properties.gob:156
 msgid "Port:"
 msgstr "Poort:"
 
-#: ../src/mn-pi-mailbox-properties.gob:178
-msgid "_Authentication mechanism:"
+#: ../src/mn-pi-mailbox-properties.gob:179
+msgid "Authent_ication mechanism:"
 msgstr "_Authenticatiemechanisme:"
 
-#: ../src/mn-pi-mailbox.gob:113
+#: ../src/mn-pi-mailbox.gob:151
 msgid "SSL/TLS support has not been compiled in"
-msgstr ""
-"ondersteuning voor SSL/TLS is niet in het "
-"programma ingebouwd"
+msgstr "ondersteuning voor SSL/TLS is niet in het programma ingebouwd"
 
-#: ../src/mn-pop3-mailbox.gob:359
+#: ../src/mn-pi-mailbox.gob:317
+msgid ""
+"Mail Notification was unable to log into %s mailbox %s, possibly because the "
+"credentials you have entered are invalid.\n"
+"\n"
+"Please re-enter your credentials."
+msgstr ""
+"De e-mail notificatie kon zich niet aanmelden bij postbus %s %s Een "
+"mogelijke verklaring kan zijn dat de opgegeven combinatie gebruikersnaam/"
+"wachtwoord onjuist is. \n"
+"\n"
+"Geeft u aub opnieuw uw gebruikersnaam/wachtwoord."
+
+#: ../src/mn-pi-mailbox.gob:318
+msgid "Enter your credentials for %s mailbox %s."
+msgstr "Geef aub uw gebruikersnaam/wachtwoord voor postbus %s %s ."
+
+#. keep the title in sync with gnome-authentication-manager
+#. translators: header capitalization
+#: ../src/mn-pi-mailbox.gob:361
+msgid "Authentication Required"
+msgstr "Aanmelding is verplicht"
+
+#: ../src/mn-pop3-mailbox.gob:344
 msgid "invalid arguments for the LOGIN-DELAY capability"
 msgstr "ongeldige argumenten voor de LOGIN-DELAY functie"
 
@@ -1434,37 +1137,38 @@ msgstr "ongeldige argumenten voor de LOGIN-DELAY functie"
 #. * servers nevertheless, by retrying without the SASL
 #. * initial client response.
 #.
-#: ../src/mn-pop3-mailbox.gob:519
+#: ../src/mn-pop3-mailbox.gob:485
 msgid ""
 "SASL authentication with initial client response failed, retrying without "
 "initial client response"
-msgstr "De SASL-authenticate met initieel client-antwoord is mislukt, er "
-"wordt een nieuwe poging zonder client-antwoord onedernomen"
+msgstr ""
+"De SASL-authenticate met initieel client-antwoord is mislukt, er wordt een "
+"nieuwe poging zonder client-antwoord onedernomen"
 
-#: ../src/mn-pop3-mailbox.gob:733
+#: ../src/mn-pop3-mailbox.gob:696
 msgid "unknown error"
 msgstr "onbekende fout"
 
-#: ../src/mn-pop3-mailbox.gob:828
-#, c-format
+#: ../src/mn-pop3-mailbox.gob:791
 msgid "honouring LOGIN-DELAY, sleeping for %i second"
 msgid_plural "honouring LOGIN-DELAY, sleeping for %i seconds"
 msgstr[0] "LOGIN-DELAY wordt gehonoreerd, er wordt %i seconde gewacht"
 msgstr[1] "LOGIN-DELAY wordt gehonoreerd, er wordt %i seconden gewacht"
 
-#: ../src/mn-pop3-mailbox.gob:1009
+#: ../src/mn-pop3-mailbox.gob:959
 msgid "server does not support APOP authentication"
 msgstr "de server ondersteund geen APOP-authenticatie."
 
-#: ../src/mn-pop3-mailbox.gob:1065
+#: ../src/mn-pop3-mailbox.gob:1015
 msgid "falling back to APOP authentication"
 msgstr "er wordt teruggevallen op APOP-authenticaties"
 
-#: ../src/mn-pop3-mailbox.gob:1070
+#: ../src/mn-pop3-mailbox.gob:1020
 msgid "falling back to USER/PASS authentication"
 msgstr "er wordt teruggevallen op USER/PASS-authenticatie"
 
-#: ../src/mn-properties-dialog.gob:170 ../ui/properties-dialog.glade.h:10
+#. translators: header capitalization
+#: ../src/mn-properties-dialog.gob:173 ../ui/properties-dialog.glade.h:23
 msgid "Mail Notification Properties"
 msgstr "Instellingen e-mail notificatie"
 
@@ -1484,428 +1188,432 @@ msgstr "links onder"
 msgid "bottom right"
 msgstr "rechts onder"
 
-#: ../src/mn-properties-dialog.gob:329
+#: ../src/mn-properties-dialog.gob:332
 msgid "No mailbox selected."
 msgstr "Geen postbus geselecteerd."
 
-#: ../src/mn-properties-dialog.gob:334
-#, c-format
+#: ../src/mn-properties-dialog.gob:337
 msgid "%i mailbox selected."
 msgid_plural "%i mailboxes selected."
 msgstr[0] "%i postbus geselecteerd."
 msgstr[1] "%i postbussen geselecteerd."
 
-#: ../src/mn-properties-dialog.gob:465
-#, c-format
+#: ../src/mn-properties-dialog.gob:456
 msgid "Test message #%i"
-msgstr "Testbericht nr. %i"
+msgstr "Testbericht %i"
 
-#: ../src/mn-properties-dialog.gob:470
+#. translators: header capitalization
+#: ../src/mn-properties-dialog.gob:462
 msgid "Mail Notification Properties Dialog"
 msgstr "Instellingenvenster e-mail notificatie"
 
-#: ../src/mn-shell.gob:109
-msgid "You have new mail."
-msgstr "U heeft nieuwe e-mail berichten."
-
-#: ../src/mn-shell.gob:374
+#. translators: header capitalization
+#: ../src/mn-shell.gob:381
 msgid "Mailboxes Having New Mail"
 msgstr "Postbussen met nieuwe e-mail berichten"
 
-#: ../src/mn-shell.gob:393
+#. translators: header capitalization
+#: ../src/mn-shell.gob:400
 msgid "Errors"
 msgstr "Fouten"
 
-#: ../src/mn-shell.gob:408
+#. translators: header capitalization
+#: ../src/mn-shell.gob:416
 msgid "Mail Summary"
 msgstr "Overzicht e-mail berichten"
+
+#: ../src/mn-shell.gob:445
+msgid "You have no new mail."
+msgstr "U heeft geen nieuwe e-mail berichten."
 
 #: ../src/mn-ssl.c:76
 msgid "unknown SSL/TLS error"
 msgstr "onbekende SSL/TLS-fout"
 
-#: ../src/mn-stock.c:28
+#: ../src/mn-standard-message-view.gob:64
+msgid "Unreadable message:"
+msgstr "onleesbaar bericht"
+
+#: ../src/mn-standard-message-view.gob:67
+msgid "From:"
+msgstr "Van"
+
+#: ../src/mn-standard-message-view.gob:68
+msgid "Subject:"
+msgstr "Onderwerp"
+
+#: ../src/mn-standard-message-view.gob:72
+msgid "Sent:"
+msgstr "Verzonden"
+
+#. translators: header capitalization
+#: ../src/mn-stock.c:29
 msgid "Select _All"
 msgstr "_Alles selecteren"
 
-#: ../src/mn-stock.c:29
-msgid "Leave Fullscreen"
-msgstr "Volledig scherm verlaten"
-
-#: ../src/mn-stock.c:30
+#. translators: header capitalization
+#: ../src/mn-stock.c:32
 msgid "Co_nnect"
 msgstr "_Verbinden"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:170
-#, c-format
+#: ../src/mn-sylpheed-mailbox-backend.gob:223
 msgid "unable to open folder: %s"
 msgstr "map kan niet geopend worden: %s"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:209
-#, c-format
+#: ../src/mn-sylpheed-mailbox-backend.gob:276
 msgid "unable to close folder: %s"
 msgstr "map kan niet gesloten worden: %s"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:212
-#, c-format
+#: ../src/mn-sylpheed-mailbox-backend.gob:279
 msgid "error while reading folder: %s"
 msgstr "fout bij het lezen van map: %s"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:255
+#: ../src/mn-sylpheed-mailbox-backend.gob:420
 msgid "unexpected end of file"
 msgstr "unverwacht einde van bestand"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:269
-#, c-format
+#: ../src/mn-sylpheed-mailbox-backend.gob:438
 msgid "incompatible file version \"%i\""
-msgstr "bestandsverie is niet compatibel »%i«"
+msgstr "bestandsversie is niet compatibel »%i«"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:272
+#: ../src/mn-sylpheed-mailbox-backend.gob:441
 msgid "file version missing"
-msgstr "bestandsversie niet aanwezig"
+msgstr "bestandsversie is niet aanwezig"
 
-#: ../src/mn-system-vfs-mailbox-properties.gob:39
-#: ../src/mn-system-vfs-mailbox-properties.gob:47
+#: ../src/mn-system-vfs-mailbox-properties.gob:40
+#: ../src/mn-system-vfs-mailbox-properties.gob:48
 #: ../src/mn-system-vfs-mailbox.gob:45
 msgid "System mailbox"
 msgstr "Systeempostbus"
 
-#: ../src/mn-system-vfs-mailbox-properties.gob:68
-#, c-format
+#: ../src/mn-system-vfs-mailbox-properties.gob:70
 msgid "Your system mailbox is <span weight=\"bold\">%s</span>."
-msgstr ""
-"Uw postbus is <span weight=\"bold\">%s</span>."
+msgstr "Uw systeempostbus is <span weight=\"bold\">%s</span>."
 
-#: ../src/mn-system-vfs-mailbox-properties.gob:75
+#: ../src/mn-system-vfs-mailbox-properties.gob:77
 msgid ""
 "The location of your system mailbox could not be detected. Check the MAIL "
 "environment variable."
 msgstr ""
 "De locatie van de systeempostbus is onvindbaar. Contorleer aub de "
-"omgevingsvariabele »MAIL«."
+"omgevingsvariabele MAIL."
 
 #: ../src/mn-system-vfs-mailbox.gob:72
-msgid "MAIL environment variable not defined"
-msgstr "De omgevingsvariable »MAIL« is niet gezet"
+msgid "system mailbox not found"
+msgstr "Systeempostbus niet gevonden"
 
-#: ../src/mn-util.c:281
-#, c-format
+#: ../src/mn-util.c:349
 msgid "error loading image: %s"
 msgstr "fout bij laden afbeelding: %s"
 
-#: ../src/mn-util.c:298
-#, c-format
-msgid "widget \"%s\" not found in interface \"%s\""
-msgstr "Widget »%s« kan niet in interface »%s« worden gevonden"
+#: ../src/mn-util.c:365
+msgid ""
+"Unable to load interface \"%s\". Please check your Mail Notification "
+"installation."
+msgstr ""
+"Kan de \"%s\"-interface niet laden. Controleer aub de installatie van e-mail "
+"notificatie."
 
-#: ../src/mn-util.c:398
-#, c-format
-msgid "unable to open self as a module: %s"
-msgstr "kan niet zelf als een module openen: %s"
+#: ../src/mn-util.c:380
+msgid ""
+"Widget \"%s\" not found in interface \"%s\". Please check your Mail "
+"Notification installation."
+msgstr ""
+"Schermelement \"%s\" niet gevonden in de interface. Controleer aub de installatie van e-mail "
+"notificatie."
 
-#: ../src/mn-util.c:403
-#, c-format
-msgid "signal handler \"%s\" not found"
-msgstr "kan signaalfilter »%s« niet vinden"
+#: ../src/mn-util.c:449
+msgid "Unable to open self as a module (%s)."
+msgstr "kan niet zelf als een module openen (%s)."
 
-#: ../src/mn-util.c:556 ../src/mn-util.c:579 ../src/mn-util.c:601
-#: ../src/mn-util.c:623
+#: ../src/mn-util.c:454
+msgid ""
+"Signal handler \"%s\" not found. Please check your Mail Notification "
+"installation."
+msgstr ""
+"Signaalafhandeling \"%s\" niet gevonden. Controleer aub de installatie van e-mail "
+"notificatie."
+
+#: ../src/mn-util.c:605 ../src/mn-util.c:628 ../src/mn-util.c:648
+#: ../src/mn-util.c:670
 msgid "A drag and drop error has occurred"
 msgstr "Een drag'n'drop-fout is opgetreden"
 
-#: ../src/mn-util.c:557
+#: ../src/mn-util.c:606
 msgid "An invalid location list has been received."
 msgstr "Ontvangst van een ongeldige adreslijst."
 
-#: ../src/mn-util.c:602
+#: ../src/mn-util.c:649
 msgid "An invalid Mozilla location has been received."
 msgstr "Ontvangst van een ongeldig Mozilla-adres."
 
-#: ../src/mn-util.c:678
+#: ../src/mn-util.c:725
 msgid "Unable to display help"
 msgstr "Kan geen helpinformatie tonen"
 
-#: ../src/mn-util.c:692
-#, c-format
+#: ../src/mn-util.c:739
 msgid "Unable to create a thread: %s."
 msgstr "Kan geen thread aanmaken: %s."
 
-#: ../src/mn-util.c:782
-msgid "_Do not show this message again"
-msgstr "_Laat deze melding niet opnieuw zien"
-
-#: ../src/mn-util.c:892
-#, c-format
+#: ../src/mn-util.c:899
 msgid ""
 "The following location is invalid:\n"
 "\n"
 "%s"
+msgid_plural ""
 "The following locations are invalid:\n"
 "\n"
 "%s"
-msgstr ""
+msgstr[0] ""
 "De volgende locatie is ongeldig:\n"
 "\n"
+"%sDe volgende locaties zijn ongeldig:\n"
+"\n"
 "%s"
-"De volgende locaties zijn ongeldig:\n"
+msgstr[1] ""
+"De volgende locatie is ongeldig:\n"
+"\n"
+"%sDe volgende locaties zijn ongeldig:\n"
 "\n"
 "%s"
 
-#: ../src/mn-util.c:912
+#: ../src/mn-util.c:919
 msgid "A fatal error has occurred in Mail Notification"
-msgstr ""
-"Een fatale fout is opgetreden in e-mail notificatie "
+msgstr "Een fatale fout is opgetreden in e-mail notificatie "
 
-#: ../src/mn-util.c:951
-#, c-format
+#: ../src/mn-util.c:958
 msgid "unable to get current time: %s"
 msgstr "kan de huidige tijd niet bepalen: %s"
 
-#: ../src/mn-util.c:1013
-#, c-format
-msgid "invalid signal specification \"%s\""
-msgstr "ongeldige signaalspecificatie »%s«"
+#: ../src/mn-util.c:1250
+msgid "%i second ago"
+msgid_plural "%i seconds ago"
+msgstr[0] "%i seconden geleden"
 
-#: ../src/mn-util.c:1052
-msgid "A command error has occurred in Mail Notification"
-msgstr ""
-"Een fout is opgtreden in e-mail notificatie tijdens het"
-"uitvoeren van een opdracht."
+#: ../src/mn-util.c:1254
+msgid "about %i minute ago"
+msgid_plural "about %i minutes ago"
+msgstr[0] "ongeveer %i minuut geleden"
+msgstr[1] "ongeveer %i minuten geleden"
 
-#: ../src/mn-util.c:1053
-#, c-format
-msgid "Unable to execute \"%s\": %s."
-msgstr "»%s« kan niet uitgevoerd worden: %s."
+#: ../src/mn-util.c:1259
+msgid "about %i hour ago"
+msgid_plural "about %i hours ago"
+msgstr[0] "ongeveer %i uur geleden"
+msgstr[1] "ongeveer %i uren geleden"
 
-#: ../src/mn-util.c:1311
-#, c-format
-msgid "unable to rename %s to %s: %s"
-msgstr "%s kan niet worden hernoemd naar %s: %s"
+#: ../src/mn-util.c:1264
+msgid "about %i day ago"
+msgid_plural "about %i days ago"
+msgstr[0] "ongeveer %i dag geleden"
+msgstr[1] "ongeveer %i dagen geleden"
 
-#: ../src/mn-vfs-mailbox-backend.gob:117
-#, c-format
-msgid "unable to monitor mailbox contents (%s), poll mode activated"
-msgstr "de postbusinhoud (%s) kan niet in de gaten worden gehouden, poll modus wordt geactiveerd"
+#: ../src/mn-util.c:1269
+msgid "about %i week ago"
+msgid_plural "about %i weeks ago"
+msgstr[0] "ongeveer %i week geleden"
+msgstr[1] "ongeveer %i weken geleden"
 
-#: ../src/mn-vfs-mailbox.gob:238
-#, c-format
-msgid "unable to monitor mailbox type (%s), poll mode activated"
-msgstr "het postbustype (%s) kan niet in de gaten worden gehouden, poll modus wordt geactiveerd"
+#: ../src/mn-util.c:1282
+msgid "unknown date"
+msgstr "onbekende datum"
 
-#: ../src/mn-vfs-mailbox.gob:307
+#: ../src/mn-vfs-mailbox.gob:221
+msgid "unable to monitor %s (%s), poll mode activated"
+msgstr "%s (%s) kan niet in de gaten worden gehouden, poll modus wordt geactiveerd"
+
+#: ../src/mn-vfs-mailbox.gob:385
 msgid "unknown mailbox format"
 msgstr "onbekend postbusformaat"
 
-#: ../src/mn-vfs-mailbox.gob:307
+#: ../src/mn-vfs-mailbox.gob:385
 msgid "does not exist"
 msgstr "bestaat niet"
 
-#: ../src/mn-vfs-mailbox.gob:377
-#, c-format
-msgid ""
-"As a fallback, they will be checked every %i second (this delay is "
-"configurable from the Properties Dialog)."
-"As a fallback, they will be checked every %i seconds (this delay is "
-"configurable from the Properties Dialog)."
-msgstr ""
-"Als alternatief worden deze elke %i seconde gecontroleerd (deze waarde kan "
-"aangepast worden in het instellingenvenster)."
-"Als alternatief worden deze elke %i seconden gecontroleerd (deze waarde kan "
-"aangepast worden in het instellingenvenster)."
-
-#: ../src/mn-vfs-mailbox.gob:388
-#, c-format
-msgid ""
-"As a fallback, they will be checked every %i minute (this delay is "
-"configurable from the Properties Dialog)."
-"As a fallback, they will be checked every %i minutes (this delay is "
-"configurable from the Properties Dialog)."
-msgstr ""
-"Als alternatief worden deze elke %i minuut gecontroleerd (deze waarde kan "
-"aangepast worden in het instellingenvenster)."
-"Als alternatief worden deze elke %i minuten gecontroleerd (deze waarde kan "
-"aangepast worden in het instellingenvenster)."
-
-#: ../src/mn-vfs-mailbox.gob:399
-#, c-format
-msgid ""
-"As a fallback, they will be checked approximately every %i minute (this "
-"delay is configurable from the Properties Dialog)."
-"As a fallback, they will be checked approximately every %i minutes (this "
-"delay is configurable from the Properties Dialog)."
-msgstr ""
-"Als alternatief worden deze elke %i minuut gecontroleerd (deze waarde kan "
-"aangepast worden in het instellingenvenster)."
-"Als alternatief worden deze elke %i minuten gecontroleerd (deze waarde kan "
-"aangepast worden in het instellingenvenster)."
-
-#: ../src/mn-vfs-mailbox.gob:415
-msgid "A monitoring error has occurred"
-msgstr "Bij het in de gaten houden is een fout opgetreden"
-
-#: ../src/mn-vfs-mailbox.gob:416
-#, c-format
-msgid ""
-"Mail Notification was unable to enable immediate notification for one or "
-"more mailboxes. %s"
-msgstr ""
-"De e-mail notificatie was niet in staat onmiddeijk notificatie te geven "
-"voor 1 of meer postbussen: %s"
-
-#: ../ui/edit-toolbars-dialog.glade.h:1
-msgid "Edit Toolbars"
-msgstr "Werkbalken aanpassen"
-
-#: ../ui/edit-toolbars-dialog.glade.h:2
-msgid "_Add a New Toolbar"
-msgstr "Een nieuwe werkb_alk toevoegen"
-
-#: ../ui/edit-toolbars-dialog.glade.h:3
-#: ../ui/mailbox-properties-dialog.glade.h:4
-msgid "_Use Default"
-msgstr "Gebr_uik standaardwaarde"
-
-#: ../ui/mail-summary-popup.glade.h:1
-msgid "<span size=\"larger\" weight=\"bold\">Mail Summary</span>"
-msgstr "<span size=\"larger\" weight=\"bold\">Overzicht e-mail berichten</span>"
-
-#: ../ui/mailbox-properties-dialog.glade.h:1 ../ui/properties-dialog.glade.h:4
+#. translators: header capitalization
+#: ../ui/mailbox-properties-dialog.glade.h:2 ../ui/properties-dialog.glade.h:8
 msgid "<span weight=\"bold\">General</span>"
 msgstr "<span weight=\"bold\">Algemeen</span>"
 
-#: ../ui/mailbox-properties-dialog.glade.h:2
+#: ../ui/mailbox-properties-dialog.glade.h:3
+msgid "Delay between mail chec_ks:"
+msgstr "_Wachttijd tussen controleren e-mail:"
+
+#: ../ui/mailbox-properties-dialog.glade.h:4
 msgid "Mailbox _name:"
 msgstr "Postbus_naam:"
 
-#: ../ui/mailbox-properties-dialog.glade.h:3
-msgid "Mailbox _type:"
+#. translators: header capitalization
+#: ../ui/mailbox-properties-dialog.glade.h:6
+msgid "Use De_fault"
+msgstr "Gebr_uik standaardwaarde"
+
+#: ../ui/mailbox-properties-dialog.glade.h:7
+msgid "_Mailbox type:"
 msgstr "Postbus_type:"
 
-#: ../ui/properties-dialog.glade.h:1
-msgid "<span weight=\"bold\">Commands</span>"
-msgstr "<span weight=\"bold\">Opdrachten</span>"
+#. translators: header capitalization
+#: ../ui/mailbox-properties-dialog.glade.h:9
+msgid "_Use Default"
+msgstr "Gebr_uik standaardwaarde"
 
-#: ../ui/properties-dialog.glade.h:2
-msgid "<span weight=\"bold\">Double-click Action</span>"
-msgstr "<span weight=\"bold\">Actie bij dubbelklikken</span>"
-
-#: ../ui/properties-dialog.glade.h:3
-msgid "<span weight=\"bold\">Fonts</span>"
-msgstr "<span weight=\"bold\">Letterypen</span>"
-
-#: ../ui/properties-dialog.glade.h:5
-msgid "<span weight=\"bold\">Mailbox List</span>"
-msgstr "<span weight=\"bold\">Postbuslijst</span>"
-
-#: ../ui/properties-dialog.glade.h:6
-msgid "<span weight=\"bold\">Position</span>"
-msgstr "<span weight=\"bold\">Positie</span>"
-
-#: ../ui/properties-dialog.glade.h:7
-msgid "Co_ntents:"
-msgstr "I_nhoud:"
-
-#: ../ui/properties-dialog.glade.h:8
-msgid "Dis_play mail summary in tooltip"
-msgstr "_Laat overzicht e-mail in tooltip zien"
-
-#: ../ui/properties-dialog.glade.h:9
-msgid "General"
-msgstr "Algemeen"
-
-#: ../ui/properties-dialog.glade.h:11
-msgid "Mail Summary Popup"
-msgstr "Popup overzicht e-mail"
-
-#: ../ui/properties-dialog.glade.h:12
-msgid "Mailboxes"
-msgstr "Postbussen"
-
-#: ../ui/properties-dialog.glade.h:13
-msgid "Only display _recent mail"
-msgstr "Laat alleen _recente e-mail berichten zien"
-
-#: ../ui/properties-dialog.glade.h:14
-msgid "Use these _fonts:"
-msgstr "Gebruik volgende _lettertypen:"
-
-#: ../ui/properties-dialog.glade.h:15
-msgid "When _all mail has been read:"
-msgstr "Als _alle e-mail is gelezen:"
-
-#: ../ui/properties-dialog.glade.h:16
-msgid "When _new mail arrives:"
-msgstr "Wanneer nieuwe e-mail arriveert:"
-
-#: ../ui/properties-dialog.glade.h:17
-msgid "_Automatically close after:"
-msgstr "_Automatisch sluiten na:"
-
-#: ../ui/properties-dialog.glade.h:18
-msgid "_Blink on errors"
-msgstr "Knipperen _bij fouten"
-
-#: ../ui/properties-dialog.glade.h:19
-msgid "_Delay between mail checks:"
-msgstr "_Wachttijd tussen controleren e-mail:"
-
-#: ../ui/properties-dialog.glade.h:20
-msgid "_Display a Test Popup"
-msgstr "_Toon een test-popupvenster"
-
-#: ../ui/properties-dialog.glade.h:21
-msgid "_Display the main window"
-msgstr "_Toon het hoofdvenster"
-
-#: ../ui/properties-dialog.glade.h:22
-msgid "_Enable mail summary popup"
-msgstr "_Activeer popupvenster e-mail overzicht"
-
-#: ../ui/properties-dialog.glade.h:23
-msgid "_Horizontal offset:"
-msgstr "_Horizontale afstand:"
-
-#: ../ui/properties-dialog.glade.h:24
-msgid "_Launch the mail reader"
-msgstr "_Start het e-mail programma"
-
-#: ../ui/properties-dialog.glade.h:25
-msgid "_Mail reader:"
-msgstr "_E-mail programma:"
-
-#: ../ui/properties-dialog.glade.h:26
-msgid "_Position:"
-msgstr "_Positie:"
-
-#: ../ui/properties-dialog.glade.h:27
-msgid "_Start Mail Notification on GNOME login"
-msgstr "_Start e-mail notificatie als GNOME start"
-
-#: ../ui/properties-dialog.glade.h:28
-msgid "_Title:"
-msgstr "_Titel:"
-
-#: ../ui/properties-dialog.glade.h:29
-msgid "_Update the mail status"
-msgstr "_Controleer op nieuwe e-mail berichten"
-
-#: ../ui/properties-dialog.glade.h:30
-msgid "_Use fonts from theme"
-msgstr "Lettertypen van het _thema gebruiken"
-
-#: ../ui/properties-dialog.glade.h:31
-msgid "_Vertical offset:"
-msgstr "_Verticale afstand:"
-
-#: ../ui/properties-dialog.glade.h:32
+#: ../ui/mailbox-properties-dialog.glade.h:10
+#: ../ui/properties-dialog.glade.h:48
 msgid "minutes"
 msgstr "minuten"
 
-#: ../ui/properties-dialog.glade.h:33
-msgid "pixels"
-msgstr "pixels"
-
-#: ../ui/properties-dialog.glade.h:34
+#: ../ui/mailbox-properties-dialog.glade.h:11
+#: ../ui/properties-dialog.glade.h:52
 msgid "seconds"
 msgstr "seconden"
 
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:2
+msgid "<span weight=\"bold\">Click Action</span>"
+msgstr "<span weight=\"bold\">Actie bij muisklik</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:4
+msgid "<span weight=\"bold\">Commands</span>"
+msgstr "<span weight=\"bold\">Opdrachten</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:6
+msgid "<span weight=\"bold\">Fonts</span>"
+msgstr "<span weight=\"bold\">Letterypen</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:10
+msgid "<span weight=\"bold\">Layout</span>"
+msgstr "<span weight=\"bold\">Layout</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:12
+msgid "<span weight=\"bold\">Mailbox List</span>"
+msgstr "<span weight=\"bold\">Postbuslijst</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:14
+msgid "<span weight=\"bold\">Position</span>"
+msgstr "<span weight=\"bold\">Positie</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:16
+msgid "<span weight=\"bold\">Tooltip Mail Summary</span>"
+msgstr "<span weight=\"bold\">Overzicht e-mail berichten</span>"
+
+#: ../ui/properties-dialog.glade.h:17
+msgid "Co_ntents:"
+msgstr "I_nhoud:"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:19
+msgid "General"
+msgstr "Algemeen"
+
+#: ../ui/properties-dialog.glade.h:20
+msgid "Hide p_reviously displayed mail"
+msgstr "Ver_berg eerder getoonde e-mail"
+
+#: ../ui/properties-dialog.glade.h:21
+msgid "Hori_zontal offset:"
+msgstr "_Horizontale plaatsing:"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:25
+msgid "Mail Summary Popup"
+msgstr "Popupvenster"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:27
+msgid "Status Icon"
+msgstr "Statusicoon"
+
+#: ../ui/properties-dialog.glade.h:28
+msgid "Use these _fonts:"
+msgstr "_Gebruik volgende lettertypen:"
+
+#: ../ui/properties-dialog.glade.h:29
+msgid "When _new mail arrives:"
+msgstr "Wanneer _nieuwe e-mail arriveert:"
+
+#: ../ui/properties-dialog.glade.h:30
+msgid "When all mail has _been read:"
+msgstr "Wanneer alle e-mail is ge_lezen:"
+
+#: ../ui/properties-dialog.glade.h:31
+msgid "_Always display"
+msgstr "Laat _altijd zien"
+
+#: ../ui/properties-dialog.glade.h:32
+msgid "_Automatically close after:"
+msgstr "Automat_isch sluiten na:"
+
+#: ../ui/properties-dialog.glade.h:33
+msgid "_Blink on errors"
+msgstr "_Knipperen bij fouten"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:35
+msgid "_Display a Test Popup"
+msgstr "_Toon een test-popupvenster"
+
+#: ../ui/properties-dialog.glade.h:36
+msgid "_Display seen mail"
+msgstr "T_oon alle ongelezen e-mail berichten"
+
+#: ../ui/properties-dialog.glade.h:37
+msgid "_Display this dialog"
+msgstr "Toon dit _dialoogvenster"
+
+#: ../ui/properties-dialog.glade.h:38
+msgid "_Enable mail summary popup"
+msgstr "_Activeer popupvenster nieuwe e-mail"
+
+#: ../ui/properties-dialog.glade.h:39
+msgid "_Launch the mail reader"
+msgstr "Start het _e-mail programma"
+
+#: ../ui/properties-dialog.glade.h:40
+msgid "_None"
+msgstr "_Geen"
+
+#: ../ui/properties-dialog.glade.h:41
+msgid "_Position:"
+msgstr "_Positie:"
+
+#: ../ui/properties-dialog.glade.h:42
+msgid "_Title:"
+msgstr "Tite_l:"
+
+#: ../ui/properties-dialog.glade.h:43
+msgid "_Update the mail status"
+msgstr "_Controleer op nieuwe e-mail berichten"
+
+#: ../ui/properties-dialog.glade.h:44
+msgid "_Use fonts from theme"
+msgstr "L_ettertypen van het thema gebruiken"
+
+#: ../ui/properties-dialog.glade.h:45
+msgid "_Vertical offset:"
+msgstr "_Verticale plaatsing:"
+
+#: ../ui/properties-dialog.glade.h:46
+msgid "icon tooltip's mail summary layout|Co_mpact"
+msgstr "Co_mpact"
+
+#: ../ui/properties-dialog.glade.h:47
+msgid "icon tooltip's mail summary layout|_Standard"
+msgstr "_Standaard"
+
+#: ../ui/properties-dialog.glade.h:49
+msgid "pixels"
+msgstr "pixels"
+
+#: ../ui/properties-dialog.glade.h:50
+msgid "popup's mail summary layout|Co_mpact"
+msgstr "Co_mpact"
+
+#: ../ui/properties-dialog.glade.h:51
+msgid "popup's mail summary layout|_Standard"
+msgstr "_Standaard"

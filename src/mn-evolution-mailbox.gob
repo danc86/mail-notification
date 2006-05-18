@@ -109,16 +109,12 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 	g_assert(selfp->glue != NULL);
 
 	glue = mn_corba_object_get_object(selfp->glue);
-	if (glue != CORBA_OBJECT_NIL)
-	  {
-	    g_static_mutex_lock(&listeners_mutex);
-	    mn_bonobo_event_source_client_remove_listener_locked(glue, selfp->listener, NULL);
-	    g_static_mutex_unlock(&listeners_mutex);
 
-	    CORBA_Object_release(glue, NULL);
-	  }
+	g_static_mutex_lock(&listeners_mutex);
+	mn_bonobo_event_source_client_remove_listener_locked(glue, selfp->listener, NULL);
+	g_static_mutex_unlock(&listeners_mutex);
 
-	bonobo_object_release_unref(mn_locked_bonobo_listener_get_listener(selfp->listener), NULL);
+	CORBA_Object_release(glue, NULL);
 	selfp->listener = NULL;
       }
 
@@ -180,7 +176,7 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
       {
 	if (selfp->listener)
 	  {
-	    bonobo_object_release_unref(mn_locked_bonobo_listener_get_listener(selfp->listener), NULL);
+	    mn_bonobo_event_source_client_remove_listener_locked(CORBA_OBJECT_NIL, selfp->listener, NULL);
 	    selfp->listener = NULL;
 	  }
       }
@@ -265,12 +261,13 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 	    if (message_seq->_buffer[i].received_time > last_browsed)
 	      flags |= MN_MESSAGE_NEW;
 
+#define unbox(str) (*(str) ? (str) : NULL)
 	    messages = g_slist_prepend(messages, mn_message_new(MN_MAILBOX(mailbox),
 								NULL,
 								message_seq->_buffer[i].sent_time,
 								message_seq->_buffer[i].id,
-								message_seq->_buffer[i].from,
-								message_seq->_buffer[i].subject,
+								unbox(message_seq->_buffer[i].from),
+								unbox(message_seq->_buffer[i].subject),
 								flags));
 
 	    if (mn_reentrant_mailbox_check_aborted(mailbox, check_id))

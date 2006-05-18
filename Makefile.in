@@ -67,7 +67,7 @@ RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	uninstall-recursive
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = aml art data help m4 po src ui tests
+DIST_SUBDIRS = art data help m4 po src ui tests
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -82,6 +82,7 @@ distcleancheck_listfiles = find . -type f -print
 ACLOCAL = @ACLOCAL@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
+AML = @AML@
 AMTAR = @AMTAR@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -284,10 +285,11 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-SUBDIRS = aml art data help m4 po src ui $(am__append_1)
+SUBDIRS = art data help m4 po src ui $(am__append_1)
 EXTRA_DIST = \
 	Makefile.autogen	\
 	TRANSLATING		\
+	aml.make		\
 	autogen.sh		\
 	intltool-extract.in	\
 	intltool-merge.in	\

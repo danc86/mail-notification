@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,6 +79,5 @@ MNLockedBonoboListener *mn_bonobo_event_source_client_add_listener_full_locked (
 void mn_bonobo_event_source_client_remove_listener_locked (Bonobo_Unknown object,
 							   MNLockedBonoboListener *listener,
 							   CORBA_Environment *opt_ev);
-Bonobo_Listener mn_locked_bonobo_listener_get_listener (MNLockedBonoboListener *listener);
 
 #endif /* _MN_LOCKED_CALLBACK_H */

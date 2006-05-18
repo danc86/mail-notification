@@ -1,4 +1,4 @@
-AC_INIT([Mail Notification], 3.0-rc1, jylefort@brutele.be)
+AC_INIT([Mail Notification], 3.0-rc2, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mn-main.c)
 
 AC_PREREQ(2.59)
@@ -40,7 +40,7 @@ GETTEXT_PACKAGE=mail-notification
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", [Define to the gettext package name])
 AC_SUBST(GETTEXT_PACKAGE)
 
-ALL_LINGUAS="bg cs de fr ja nl pl pt pt_BR ru sr sr@Latn"
+ALL_LINGUAS="bg cs de fr ja nl pl pt pt_BR ru sr sr@Latn sv"
 AM_GLIB_GNU_GETTEXT
 
 AC_PROG_INTLTOOL
@@ -83,9 +83,10 @@ AM_PATH_ORBIT_IDL(, [AC_MSG_ERROR([unable to find the orbit-idl-2 program])])
 
 IDL_CHECK_MODULES(BONOBO, [libbonobo-2.0 bonobo-activation-2.0],, [AC_MSG_ERROR([unable to find the Bonobo IDL modules])])
 
-### optional libraries
+### optional libraries and programs
 
 # not needed by end-users, as generated files are distributed
+AC_PATH_PROG(AML, aml)
 AC_PATH_PROG(GOB2, gob2)
 
 MN_FEATURE_VAR_NAME(mime)=no
@@ -191,7 +192,6 @@ MN_FEATURES_DEFINE([mbox, mh, maildir, pop3, imap, ssl, sasl, ipv6, gmail, evolu
 ### output
 
 AC_CONFIG_FILES(Makefile
-		aml/Makefile
 		art/Makefile
 		data/Makefile
 		help/Makefile

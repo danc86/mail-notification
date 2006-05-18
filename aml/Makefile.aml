@@ -1,9 +1,0 @@
-# -*- mode: makefile -*-
-#
-# Since aml is needed to generate Makefile.am files, we need a plain
-# Makefile (this file) to build aml itself.
-
-WARN_CFLAGS = -Wall -Werror
-
-aml: aml.c
-	$(CC) $(CFLAGS) $(WARN_CFLAGS) `pkg-config --cflags --libs glib-2.0 libxml-2.0` -o aml aml.c

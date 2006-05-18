@@ -40,7 +40,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/aml.make $(top_srcdir)/aml/aml.make
+	$(srcdir)/aml.make $(top_srcdir)/aml.make
 bin_PROGRAMS = mail-notification$(EXEEXT)
 @WITH_MBOX_TRUE@am__append_1 = mn-mbox-mailbox-backend.gob \
 @WITH_MBOX_TRUE@	mn-mbox-mailbox-backend.gob.stamp \
@@ -590,6 +590,7 @@ DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
+AML = @AML@
 AMTAR = @AMTAR@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -952,7 +953,7 @@ all: $(BUILT_SOURCES)
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .o .obj
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/aml/aml.make $(srcdir)/aml.make $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/aml.make $(srcdir)/aml.make $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -2154,7 +2155,7 @@ distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
 distdir: $(DISTFILES)
-	$(mkdir_p) $(distdir)/../aml
+	$(mkdir_p) $(distdir)/..
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -2286,10 +2287,8 @@ uninstall-am: uninstall-binPROGRAMS uninstall-evolution_pluginDATA \
 	uninstall-evolution_pluginLTLIBRARIES uninstall-info-am
 
 
-# intentionally do not add aml/aml to sources (Makefile.am is distributed)
-Makefile.am: automake.xml $(top_srcdir)/aml/aml.c $(top_srcdir)/aml/Makefile.aml
-	cd $(top_srcdir)/aml && $(MAKE) -f Makefile.aml $(AM_MAKEFLAGS) aml
-	$(top_srcdir)/aml/aml $< > $@.aml && mv -f $@.aml $@
+Makefile.am: automake.xml $(AML)
+	$(AML) $< > $@.aml && mv -f $@.aml $@
 
 # intentionally do not add $(GOB2) to sources (generated files are distributed)
 %.gob.stamp: %.gob

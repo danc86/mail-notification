@@ -8,10 +8,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mail-notification 2.0\n"
+"Project-Id-Version: mail-notification 3.0-rc2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-08-13 19:16+0200\n"
-"PO-Revision-Date: 2006-02-26 05:21+0100\n"
+"POT-Creation-Date: 2006-05-16 09:18+0200\n"
+"PO-Revision-Date: 2006-05-18 14:59+0200\n"
 "Last-Translator: Pav Lucistnik <pav@FreeBSD.org>\n"
 "Language-Team: Pav Lucistnik <pav@FreeBSD.org>\n"
 "MIME-Version: 1.0\n"
@@ -44,14 +44,12 @@ msgid "Mail Notification / Evolution glue factory"
 msgstr "Upozornění na poštu / Evolution glue factory"
 
 #: ../data/mail-notification-properties.desktop.in.h:1
-#: ../src/mn-main-window.gob:209
 msgid "Configure Mail Notification"
 msgstr "Nastavit upozornění na poštu"
 
 #: ../data/mail-notification-properties.desktop.in.h:2
-#: ../data/mail-notification.desktop.in.h:2
-#: ../data/mail-notification.soundlist.in.h:1 ../src/mn-mail-icon.gob:223
-#: ../src/mn-main.c:285 ../src/mn-main.c:301
+#: ../data/mail-notification.desktop.in.h:2 ../src/mn-mail-icon.gob:227
+#: ../src/mn-main.c:132 ../src/mn-main.c:302 ../src/mn-main.c:318
 msgid "Mail Notification"
 msgstr "Upozornění na poštu"
 
@@ -60,185 +58,141 @@ msgid "Get notified when new mail arrives"
 msgstr "Upozorňovat když přijde nová pošta"
 
 #: ../data/mail-notification.schemas.in.h:1
+msgid "Always display an icon"
+msgstr "Vždy zobrazovat ikonu"
+
+#: ../data/mail-notification.schemas.in.h:2
 msgid "Automatically close the mail summary popup"
 msgstr "Automaticky zavírat vyskakovací souhrn pošty"
 
-#: ../data/mail-notification.schemas.in.h:2
+#: ../data/mail-notification.schemas.in.h:3
 msgid "Blink on errors"
 msgstr "Blikat při chybě"
 
-#: ../data/mail-notification.schemas.in.h:3
-msgid "Delay between mail checks (minutes part)."
-msgstr "Interval mezi kontrolami pošty (minuty)."
-
 #: ../data/mail-notification.schemas.in.h:4
-msgid "Delay between mail checks (seconds part)."
-msgstr "Interval mezi kontrolami pošty (sekundy)."
+msgid "Click action"
+msgstr "Akce při kliknutí"
 
 #: ../data/mail-notification.schemas.in.h:5
-msgid "Display mail summary in tooltip"
-msgstr "Zobrazit souhrn pošty v tooltipu"
+msgid "Display seen mail"
+msgstr "Zobrazit přečtenou poštu"
 
 #: ../data/mail-notification.schemas.in.h:6
-msgid "Do not show the immediate notification error dialog"
-msgstr "Nezobrazovat okamžitě chybový dialog"
-
-#: ../data/mail-notification.schemas.in.h:7
-msgid "Double-click action"
-msgstr "Akce při dvojitém kliknutí"
-
-#: ../data/mail-notification.schemas.in.h:8
 msgid "Enable mail summary popup"
 msgstr "Povolit vyskakovací souhrn pošty"
 
-#: ../data/mail-notification.schemas.in.h:9
+#: ../data/mail-notification.schemas.in.h:7
 msgid "Fingerprints of trusted X509 certificates"
 msgstr "Obtisky důvěryhodných X509 certifikátů"
 
-#: ../data/mail-notification.schemas.in.h:10
-msgid "Height of edit toolbars dialog"
-msgstr "Výška dialogu pro úpravu lišty nástrojů"
-
-#: ../data/mail-notification.schemas.in.h:11
-msgid "Height of main window"
-msgstr "Výška hlavního okna"
-
-#: ../data/mail-notification.schemas.in.h:12
+#: ../data/mail-notification.schemas.in.h:8
 msgid "Height of properties dialog"
 msgstr "Výška dialogu nastavení"
 
-#: ../data/mail-notification.schemas.in.h:13
+#: ../data/mail-notification.schemas.in.h:9
 msgid "Mail read command"
 msgstr "Příkaz po přečtění pošty"
 
-#: ../data/mail-notification.schemas.in.h:14
-msgid "Mail reader command"
-msgstr "Příkaz pro spuštění poštovního programu"
-
-#: ../data/mail-notification.schemas.in.h:15
+#: ../data/mail-notification.schemas.in.h:10
 msgid "Mail summary popup contents font"
 msgstr "Písmo vyskakovacího souhrnu pošty"
 
-#: ../data/mail-notification.schemas.in.h:16
+#: ../data/mail-notification.schemas.in.h:11
 msgid "Mail summary popup fonts aspect source"
 msgstr "Zdroj vzhledu písma vyskakovacího souhrnu pošty"
 
-#: ../data/mail-notification.schemas.in.h:17
+#: ../data/mail-notification.schemas.in.h:12
 msgid "Mail summary popup horizontal offset"
 msgstr "Vodorovné odsazení vyskakovacího souhrnu pošty"
 
-#: ../data/mail-notification.schemas.in.h:18
+#: ../data/mail-notification.schemas.in.h:13
 msgid "Mail summary popup position"
 msgstr "Pozice vyskakovacího souhrnu pošty"
 
-#: ../data/mail-notification.schemas.in.h:19
+#: ../data/mail-notification.schemas.in.h:14
 msgid "Mail summary popup title font"
 msgstr "Písmo titulku vyskakovacího souhrnu pošty"
 
-#: ../data/mail-notification.schemas.in.h:20
+#: ../data/mail-notification.schemas.in.h:15
 msgid "Mail summary popup vertical offset"
 msgstr "Svislé odsazení vyskakovacího souhrnu pošty"
 
-#: ../data/mail-notification.schemas.in.h:21
-msgid "Minutes between mail checks"
-msgstr "Minuty mezi kontrolami pošty"
-
-#: ../data/mail-notification.schemas.in.h:22
+#: ../data/mail-notification.schemas.in.h:16
 msgid "Minutes to wait before closing the mail summary popup"
 msgstr "Minuty před zavřením vyskakovacího souhrnu pošty"
 
-#: ../data/mail-notification.schemas.in.h:23
+#: ../data/mail-notification.schemas.in.h:17
 msgid "New mail command"
 msgstr "Příkaz při nové poště"
 
-#: ../data/mail-notification.schemas.in.h:24
+#: ../data/mail-notification.schemas.in.h:18
 msgid "Only display recent mail in mail summary popup"
 msgstr "Zobrazit pouze nedávnou poštu ve vyskakovacím souhrnu pošty"
 
-#: ../data/mail-notification.schemas.in.h:25
+#: ../data/mail-notification.schemas.in.h:19
 msgid "Run a command when all mail is read"
 msgstr "Spustit příkaz při přečtení veškeré pošty"
 
-#: ../data/mail-notification.schemas.in.h:26
+#: ../data/mail-notification.schemas.in.h:20
 msgid "Run a command when new mail arrives"
 msgstr "Spustit příkaz při příchodu nové pošty"
 
-#: ../data/mail-notification.schemas.in.h:27
-msgid "Seconds between mail checks"
-msgstr "Sekundy mezi kontrolami pošty"
-
-#: ../data/mail-notification.schemas.in.h:28
+#: ../data/mail-notification.schemas.in.h:21
 msgid "Seconds to wait before closing the mail summary popup"
 msgstr "Sekundy před zavřením vyskakovacího souhrnu pošty"
 
-#: ../data/mail-notification.schemas.in.h:29
-msgid "Set a mail reader"
-msgstr "Nastavit poštovní program"
-
-#: ../data/mail-notification.schemas.in.h:30
+#: ../data/mail-notification.schemas.in.h:22
 msgid ""
-"The action to perform when the icon is double-clicked. Must be \"display-"
-"main-window\", \"launch-mail-reader\" or \"update-mail-status\"."
+"The action to perform when the icon is clicked. Must be \"display-properties-"
+"dialog\", \"launch-mail-reader\" or \"update-mail-status\"."
 msgstr ""
-"Kterou akci vykonat při dvojitém kliknutí na ikonu. Musí být \"display-"
-"main-window\" (zobrazit hlavní okno), \"launch-mail-reader\" (spustit "
-"poštovní program) nebo \"update-mail-status\" (aktualizovat stav pošty)."
+"Kterou akci vykonat při kliknutí na ikonu. Musí být \"display-properties-"
+"dialog\" (zobrazit dialog Vlastnosti), \"launch-mail-reader\" (spustit poštovní "
+"program) nebo \"update-mail-status\" (aktualizovat stav pošty)."
 
-#: ../data/mail-notification.schemas.in.h:31
+#: ../data/mail-notification.schemas.in.h:23
 msgid ""
 "The amount of time to wait before closing the mail summary popup (minutes "
 "part)."
 msgstr ""
 "Jak dlouho čekat před zavřením vyskakovacího souhrnu pošty (minutová část)."
 
-#: ../data/mail-notification.schemas.in.h:32
+#: ../data/mail-notification.schemas.in.h:24
 msgid ""
 "The amount of time to wait before closing the mail summary popup (seconds "
 "part)."
 msgstr ""
 "Jak dlouho čekat před zavřením vyskakovacího souhrnu pošty (sekundová část)."
 
-#: ../data/mail-notification.schemas.in.h:33
+#: ../data/mail-notification.schemas.in.h:25
 msgid ""
 "The aspect source of the mail summary popup fonts. Must be \"theme\" or "
 "\"custom\"."
 msgstr ""
-"Zdroj nastavení písma vyskakovacího souhrnu pošty. Musí být \"theme\" "
-"(z tématu) nebo \"custom\" (vlastní)."
+"Zdroj nastavení písma vyskakovacího souhrnu pošty. Musí být \"theme\" (z "
+"tématu) nebo \"custom\" (vlastní)."
 
-#: ../data/mail-notification.schemas.in.h:34
-msgid "The command to run to launch the mail reader."
-msgstr "Příkaz pro spuštění poštovního programu."
-
-#: ../data/mail-notification.schemas.in.h:35
+#: ../data/mail-notification.schemas.in.h:26
 msgid "The command to run when all mail is read."
 msgstr "Příkaz spouštěný po přečtení veškeré pošty."
 
-#: ../data/mail-notification.schemas.in.h:36
+#: ../data/mail-notification.schemas.in.h:27
 msgid "The command to run when new mail arrives."
 msgstr "Příkaz spouštěný když dorazí nová pošta."
 
-#: ../data/mail-notification.schemas.in.h:37
+#: ../data/mail-notification.schemas.in.h:28
 msgid "The custom font to use for the contents of the mail summary popup."
 msgstr "Vlastní písmo pro obsah vyskakovacího souhrnu pošty."
 
-#: ../data/mail-notification.schemas.in.h:38
+#: ../data/mail-notification.schemas.in.h:29
 msgid "The custom font to use for the title of the mail summary popup."
 msgstr "Vlastní písmo pro titulek vyskakovacího souhrnu pošty."
 
-#: ../data/mail-notification.schemas.in.h:39
-msgid "The height of the edit toolbars dialog in pixels."
-msgstr "Výška dialogu pro úpravu lišty nástrojů v pixelech."
-
-#: ../data/mail-notification.schemas.in.h:40
-msgid "The height of the main window in pixels."
-msgstr "Výška hlavního okna v pixelech."
-
-#: ../data/mail-notification.schemas.in.h:41
+#: ../data/mail-notification.schemas.in.h:30
 msgid "The height of the properties dialog in pixels."
 msgstr "Výška dialogu nastavení v pixelech."
 
-#: ../data/mail-notification.schemas.in.h:42
+#: ../data/mail-notification.schemas.in.h:31
 msgid ""
 "The list of trusted SSL/TLS servers (hostname:port) lacking a X509 "
 "certificate."
@@ -246,13 +200,13 @@ msgstr ""
 "Seznam důvěryhodných SSL/TLS serverů (jméno počítače:port), kterým chybí "
 "X509 certifikát."
 
-#: ../data/mail-notification.schemas.in.h:43
+#: ../data/mail-notification.schemas.in.h:32
 msgid ""
 "The list of trusted X509 certificates, represented by their MD5 fingerprint."
 msgstr ""
 "Seznam důvěryhodných X509 certifikátů, reprezentovaných jejími MD5 obtisky."
 
-#: ../data/mail-notification.schemas.in.h:44
+#: ../data/mail-notification.schemas.in.h:33
 msgid ""
 "The number of pixels to leave between the left or right side of the screen "
 "and the mail summary popup."
@@ -260,7 +214,7 @@ msgstr ""
 "Počet pixelů vynechaných mezi levým nebo pravým okrajem obrazovky a "
 "vyskakovacím souhrnem pošty."
 
-#: ../data/mail-notification.schemas.in.h:45
+#: ../data/mail-notification.schemas.in.h:34
 msgid ""
 "The number of pixels to leave between the top or bottom side of the screen "
 "and the mail summary popup."
@@ -268,133 +222,84 @@ msgstr ""
 "Počet pixelů vynechaných mezi horním nebo spodním okrajem obrazovky a "
 "vyskakovacím souhrnem pošty."
 
-#: ../data/mail-notification.schemas.in.h:46
+#: ../data/mail-notification.schemas.in.h:35
 msgid ""
 "The position of the mail summary popup. Must be \"top-left\", \"top-right\", "
 "\"bottom-left\" or \"bottom-right\"."
 msgstr ""
 "Umístění vyskakovacího souhrnu pošty. Musí být \"top-left\" (vlevo nahoře), "
-"\"top-right\" (vpravo nahoře), \"bottom-left\" (vlevo dole), \"bottom-right\" "
-"(vpravo dole)."
+"\"top-right\" (vpravo nahoře), \"bottom-left\" (vlevo dole), \"bottom-right"
+"\" (vpravo dole)."
 
-#: ../data/mail-notification.schemas.in.h:47
+#: ../data/mail-notification.schemas.in.h:36
 msgid ""
-"The style of the toolbars. Must be \"desktop-default\", \"icons\", \"text\", "
-"\"both\" or \"both-horiz\"."
+"The type of mail summary to display in the icon's tooltip. Must be \"standard"
+"\", \"compact\" or \"none\"."
 msgstr ""
-"Vzhled lišty nástrojů. Musí být \"desktop-default\", \"icons\", \"text\", "
-"\"both\" nebo \"both=horiz\"."
+"Který druh souhrnu pošty zobrazit v tooltipu ikony.  Musí být \"standard\" (standardní)"
+"\", \"compact\" (kompaktní) nebo \"none\" (žádný)."
 
-#: ../data/mail-notification.schemas.in.h:48
-msgid "The width of the edit toolbars dialog in pixels."
-msgstr "Šířka dialogu pro úpravu lišty nástrojů v pixelech."
-
-#: ../data/mail-notification.schemas.in.h:49
-msgid "The width of the main window in pixels."
-msgstr "Šířka hlavního okna v pixelech."
-
-#: ../data/mail-notification.schemas.in.h:50
+#: ../data/mail-notification.schemas.in.h:37
 msgid "The width of the properties dialog in pixels."
 msgstr "Šířka dialogu nastavení v pixelech."
 
-#: ../data/mail-notification.schemas.in.h:51
-msgid "Toolbars style"
-msgstr "Vzhled lišty nástrojů"
+#: ../data/mail-notification.schemas.in.h:38
+msgid "Tooltip mail summary"
+msgstr "Souhrn pošty v tooltipu"
 
-#: ../data/mail-notification.schemas.in.h:52
+#: ../data/mail-notification.schemas.in.h:39
 msgid "Trusted servers list"
 msgstr "Seznam důvěryhodných serverů"
 
-#: ../data/mail-notification.schemas.in.h:53
-msgid "View statusbar"
-msgstr "Zobrazit statovou lištu"
-
-#: ../data/mail-notification.schemas.in.h:54
-msgid "View toolbars"
-msgstr "Zobrazit lišty nástrojů"
-
-#: ../data/mail-notification.schemas.in.h:55
+#: ../data/mail-notification.schemas.in.h:40
 msgid "Whether the status icon should blink on errors or not."
 msgstr "Jestli má stavová ikona blikat při chybě nebo ne."
 
-#: ../data/mail-notification.schemas.in.h:56
-msgid "Whether the statusbar should be visible or not."
-msgstr "Jestli má být statová lišta viditelná nebo ne."
-
-#: ../data/mail-notification.schemas.in.h:57
-msgid "Whether the toolbars should be visible or not."
-msgstr "Jestli mají být lišty nástrojů viditelné nebo ne."
-
-#: ../data/mail-notification.schemas.in.h:58
+#: ../data/mail-notification.schemas.in.h:41
 msgid "Whether to automatically close the mail summary popup or not."
 msgstr "Jestli automaticky zavírat vyskakovací souhrn pošty nebo ne."
 
-#: ../data/mail-notification.schemas.in.h:59
-msgid "Whether to display the mail summary in the status icon tooltip or not."
-msgstr "Jestli zobrazit souhrn pošty v tooltipu statové ikony nebo ne."
+#: ../data/mail-notification.schemas.in.h:42
+msgid "Whether to display an icon when there is no new mail or not."
+msgstr "Jestli zobrazit ikonu, i když není žádná nová pošta, nebo ne."
 
-#: ../data/mail-notification.schemas.in.h:60
+#: ../data/mail-notification.schemas.in.h:43
+msgid "Whether to display seen mail or not."
+msgstr "Jestli zobrazit přečtenou poštu nebo ne."
+
+#: ../data/mail-notification.schemas.in.h:44
 msgid "Whether to display the mail summary popup when new mail arrives or not."
-msgstr "Jestli zobrazit vyskakovací souhrn pošty když dorazí nová pošta nebo ne."
+msgstr ""
+"Jestli zobrazit vyskakovací souhrn pošty když dorazí nová pošta nebo ne."
 
-#: ../data/mail-notification.schemas.in.h:61
+#: ../data/mail-notification.schemas.in.h:45
 msgid ""
 "Whether to hide previously displayed mail in the mail summary popup or not."
 msgstr ""
 "Jestli skrýt dříve zobrazenou poštu ve vyskakovacím souhrnu pošty nebo ne."
 
-#: ../data/mail-notification.schemas.in.h:62
-msgid ""
-"Whether to prevent the immediate notification error dialog from being "
-"displayed or not."
-msgstr ""
-"Jestli zabránit chybovému dialogu v zobrazování nebo ne."
-
-#: ../data/mail-notification.schemas.in.h:63
+#: ../data/mail-notification.schemas.in.h:46
 msgid "Whether to run a command when all mail is read or not."
 msgstr "Jestli spouštět příkaz po přečtení veškeré pošty nebo ne."
 
-#: ../data/mail-notification.schemas.in.h:64
+#: ../data/mail-notification.schemas.in.h:47
 msgid "Whether to run a command when new mail arrives or not."
 msgstr "Jestli spouštět příkaz při doručení nové pošty nebo ne."
 
-#: ../data/mail-notification.schemas.in.h:65
-msgid "Whether to set a mail reader or not."
-msgstr "Jestli nastavit poštovní program nebo ne."
-
-#: ../data/mail-notification.schemas.in.h:66
-msgid "Width of edit toolbars dialog"
-msgstr "Šířka dialogu pro úpravu lišt nástrojů"
-
-#: ../data/mail-notification.schemas.in.h:67
-msgid "Width of main window"
-msgstr "Šířka hlavního okna"
-
-#: ../data/mail-notification.schemas.in.h:68
+#: ../data/mail-notification.schemas.in.h:48
 msgid "Width of properties dialog"
 msgstr "Šířka dialogu nastavení"
 
-#: ../data/mail-notification.soundlist.in.h:2
-msgid "New Mail"
-msgstr "Nová pošta"
-
-#: ../src/egg-editable-toolbar.c:534
-msgid "_Remove Toolbar"
-msgstr "_Odstranit lištu nástrojů"
-
-#: ../src/egg-toolbar-editor.c:555
-msgid "Separator"
-msgstr "Oddělovač"
-
-#: ../src/eggtrayicon.c:128
+#: ../src/eggtrayicon.c:132
 msgid "Orientation"
 msgstr "Orientace"
 
-#: ../src/eggtrayicon.c:129
+#: ../src/eggtrayicon.c:133
 msgid "The orientation of the tray."
 msgstr "Orientace oznamovací oblasti."
 
-#: ../src/mn-about-dialog.gob:48
+#. translators: header capitalization
+#: ../src/mn-about-dialog.gob:49
 msgid "A Mail Notification Icon"
 msgstr "Ikona Upozornění na poštu"
 
@@ -402,16 +307,16 @@ msgstr "Ikona Upozornění na poštu"
 #. * translators: Your Name <your-email>
 #. * optionally followed by one or more: \nOther Contributor's Name <his-email>
 #.
-#: ../src/mn-about-dialog.gob:56
+#: ../src/mn-about-dialog.gob:57
 msgid "translator-credits"
 msgstr "Pav Lučištník &lt;pav@FreeBSD.org&gt;"
 
-#: ../src/mn-about-dialog.gob:78
+#: ../src/mn-about-dialog.gob:79
 msgid "Unable to open link"
 msgstr "Nemohu otevřít odkaz"
 
 #: ../src/mn-auth-combo-box.gob:103
-#: ../src/mn-autodetect-mailbox-properties.gob:92
+#: ../src/mn-autodetect-mailbox-properties.gob:109
 msgid "<span style=\"italic\">autodetect</span>"
 msgstr "<span style=\"italic\">autodetekovat</span>"
 
@@ -423,124 +328,113 @@ msgstr "_Jméno uživatele:"
 msgid "_Password:"
 msgstr "_Heslo:"
 
-#: ../src/mn-authenticated-mailbox.gob:152
-#, c-format
-msgid ""
-"Mail Notification was unable to log into %s mailbox %s, possibly because the "
-"credentials you have entered are invalid.\n"
-"\n"
-"Please re-enter your credentials."
-msgstr ""
-"Upozornění na poštu se nemohlo přihlásit do %s schránky %s, pravděpodobně "
-"protože přihlašovací údaje, které jste zadal, nejsou platné.\n"
-"\n"
-"Prosím zadejte znovu přihlašovací údaje."
-
-#: ../src/mn-authenticated-mailbox.gob:153
-#, c-format
-msgid "Enter your credentials for %s mailbox %s."
-msgstr "Zadejte přihlašovací údaje pro %s schránku %s."
-
-#. keep the title in sync with gnome-authentication-manager
-#: ../src/mn-authenticated-mailbox.gob:195
-msgid "Authentication Required"
-msgstr "Vyžadována autentizace"
-
-#: ../src/mn-autodetect-mailbox-properties.gob:93
+#: ../src/mn-autodetect-mailbox-properties.gob:110
 msgid "Location"
 msgstr "Umístění"
 
-#: ../src/mn-autodetect-mailbox-properties.gob:103
+#: ../src/mn-autodetect-mailbox-properties.gob:122
 msgid "_Location:"
 msgstr "_Umístění:"
 
-#: ../src/mn-autodetect-mailbox-properties.gob:110
+#. translators: header capitalization
+#: ../src/mn-autodetect-mailbox-properties.gob:130
 msgid "_Browse..."
 msgstr "_Procházet..."
 
-#: ../src/mn-autodetect-mailbox-properties.gob:149
+#. translators: header capitalization
+#: ../src/mn-autodetect-mailbox-properties.gob:172
 msgid "Select a File or Folder"
 msgstr "Zvolte soubor nebo složku"
 
-#: ../src/mn-client-session.c:248
+#: ../src/mn-client-session.c:247
 #, c-format
 msgid "resolving %s"
 msgstr "hledám %s"
 
-#: ../src/mn-client-session.c:264
+#: ../src/mn-client-session.c:263
 #, c-format
 msgid "unable to resolve %s: %s"
 msgstr "nemohu nalézt %s: %s"
 
-#: ../src/mn-client-session.c:308
+#: ../src/mn-client-session.c:304
+#, c-format
+msgid "network address #%i"
+msgstr "síťová adresa #%i"
+
+#: ../src/mn-client-session.c:307
+#, c-format
+msgid "unable to convert network address #%i into textual form: %s"
+msgstr "nemohu převést síťovou adresu #%i do textové podoby: %s"
+
+#: ../src/mn-client-session.c:318
 #, c-format
 msgid "%s: unsupported address family"
 msgstr "%s: nepodporovaná adresní rodina"
 
-#: ../src/mn-client-session.c:315
+#: ../src/mn-client-session.c:325
 #, c-format
 msgid "%s: unable to create socket: %s"
 msgstr "%s: nemohu vytvořit soket: %s"
 
-#: ../src/mn-client-session.c:319
+#: ../src/mn-client-session.c:329
 #, c-format
 msgid "connecting to %s (%s) port %i"
 msgstr "připojování k %s (%s) port %i"
 
-#: ../src/mn-client-session.c:322
+#: ../src/mn-client-session.c:332
 #, c-format
 msgid "unable to connect: %s"
 msgstr "nemohu se připojit: %s"
 
-#: ../src/mn-client-session.c:327
+#: ../src/mn-client-session.c:337
 msgid "connected successfully"
 msgstr "úspěšně připojen"
 
 #. if reached, we couldn't find a working address
-#: ../src/mn-client-session.c:333
+#: ../src/mn-client-session.c:351
 #, c-format
 msgid "unable to connect to %s"
 msgstr "nemohu se připojit k %s"
 
-#: ../src/mn-client-session.c:360
+#: ../src/mn-client-session.c:378
 #, c-format
 msgid "unable to initialize the OpenSSL library: %s"
 msgstr "nemohu inicializovat knihovnu OpenSSL: %s"
 
-#: ../src/mn-client-session.c:368
+#: ../src/mn-client-session.c:386
 #, c-format
 msgid "unable to create a SSL/TLS object: %s"
 msgstr "nemohu vytvořit SSL/TLS objekt: %s"
 
-#: ../src/mn-client-session.c:374
+#: ../src/mn-client-session.c:392
 #, c-format
 msgid "unable to set the SSL/TLS file descriptor: %s"
 msgstr "nemohu nastavit SSL/TLS deskriptor souboru: %s"
 
-#: ../src/mn-client-session.c:380
+#: ../src/mn-client-session.c:398
 #, c-format
 msgid "unable to perform the SSL/TLS handshake: %s"
 msgstr "nemohu provést SSL/TLS handshake: %s"
 
-#: ../src/mn-client-session.c:386
+#: ../src/mn-client-session.c:404
 msgid "untrusted server"
 msgstr "nedůvěryhodný server"
 
-#: ../src/mn-client-session.c:390
+#: ../src/mn-client-session.c:408
 #, c-format
 msgid "a SSL/TLS layer is now active (%s, %s %i-bit)"
 msgstr "SSL/TLS vrstva je nyní aktivní (%s, %s %i bitů)"
 
-#: ../src/mn-client-session.c:437
+#: ../src/mn-client-session.c:455
 #, c-format
 msgid "%s, fingerprint: %s"
 msgstr "%s, obtisk: %s"
 
-#: ../src/mn-client-session.c:466
+#: ../src/mn-client-session.c:484
 msgid "missing certificate"
 msgstr "chybí certifikát"
 
-#: ../src/mn-client-session.c:492
+#: ../src/mn-client-session.c:510
 #, c-format
 msgid ""
 "Mail Notification was unable to trust \"%s\" (%s). It is possible that "
@@ -551,162 +445,191 @@ msgid ""
 "to \"%s\". If you choose to connect to the server, this message will not be "
 "shown again."
 msgstr ""
-"\"%s\" (%s) není důvěryhodný. Je možné, že někdo zachycuje komunikaci "
-"za účelem získání důvěrných údajů.\n"
+"\"%s\" (%s) není důvěryhodný. Je možné, že někdo zachycuje komunikaci za "
+"účelem získání důvěrných údajů.\n"
 "\n"
-"Neměl byste se připojovat k serveru, pokud si nejste jistý, že jste připojen "
-" k \"%s\". Pokud zvolíte připojení k serveru, tato zpráva již nebude znovu "
-"zobrazena."
+"Neměl byste se připojovat k serveru, pokud si nejste jistý, že jste "
+"připojen  k \"%s\". Pokud zvolíte připojení k serveru, tato zpráva již "
+"nebude znovu zobrazena."
 
-#: ../src/mn-client-session.c:507
+#: ../src/mn-client-session.c:525
 msgid "Connect to untrusted server?"
 msgstr "Připojit k nedůvěryhodnému serveru?"
 
-#: ../src/mn-client-session.c:571
+#: ../src/mn-client-session.c:590
 #, c-format
 msgid "response \"%s\" is not valid in current context"
 msgstr "odezva \"%s\" není platná v aktuálním kontextu"
 
-#: ../src/mn-client-session.c:599
+#: ../src/mn-client-session.c:619
 #, c-format
 msgid "unable to parse response \"%s\""
 msgstr "nemohu zpracovat odezvu \"%s\""
 
-#: ../src/mn-client-session.c:649 ../src/mn-client-session.c:656
+#: ../src/mn-client-session.c:669 ../src/mn-client-session.c:676
 #, c-format
 msgid "unable to read from server: %s"
 msgstr "nemohu číst ze serveru: %s"
 
-#: ../src/mn-client-session.c:654
+#: ../src/mn-client-session.c:674
 msgid "unable to read from server: EOF"
 msgstr "nemohu část ze serveru: EOF"
 
-#: ../src/mn-client-session.c:666
+#: ../src/mn-client-session.c:686
 #, c-format
 msgid "unable to decode data using SASL: %s"
 msgstr "nemohu dešifrovat data pomoci SASL: %s"
 
-#: ../src/mn-client-session.c:811
+#: ../src/mn-client-session.c:831
 #, c-format
 msgid "unable to encode data using SASL: %s"
 msgstr "nemohu zašifrovat data pomoci SASL: %s"
 
-#: ../src/mn-client-session.c:842 ../src/mn-client-session.c:849
+#: ../src/mn-client-session.c:862 ../src/mn-client-session.c:869
 #, c-format
 msgid "unable to write to server: %s"
 msgstr "nemohu zapsat na server: %s"
 
-#: ../src/mn-client-session.c:847
+#: ../src/mn-client-session.c:867
 msgid "unable to write to server: EOF"
 msgstr "nemohu zapsat na server: EOF"
 
-#: ../src/mn-client-session.c:878 ../src/mn-pop3-mailbox.gob:468
+#: ../src/mn-client-session.c:898 ../src/mn-pop3-mailbox.gob:433
 #, c-format
 msgid "unable to encode Base64: %s"
 msgstr "nemohu převést do Base64: %s"
 
-#: ../src/mn-client-session.c:1056
+#: ../src/mn-client-session.c:1075
 #, c-format
 msgid "unable to initialize the SASL library: %s"
 msgstr "nemohu inicializovat knihovnu SASL: %s"
 
-#: ../src/mn-client-session.c:1068
+#: ../src/mn-client-session.c:1087
 #, c-format
 msgid "unable to retrieve local address of socket: %s"
 msgstr "nemohu získat místní adresu soketu: %s"
 
-#: ../src/mn-client-session.c:1074
+#: ../src/mn-client-session.c:1093
 #, c-format
 msgid "unable to retrieve remote address of socket: %s"
 msgstr "nemohu získat vzdálenou adresu soketu: %s"
 
-#: ../src/mn-client-session.c:1108
+#: ../src/mn-client-session.c:1127
 #, c-format
 msgid "unable to set SASL security properties: %s"
 msgstr "nemohu nastavit zabezpečení SASL: %s"
 
-#: ../src/mn-client-session.c:1132
+#: ../src/mn-client-session.c:1151
 msgid ""
 "unable to start SASL authentication: SASL asked for something we did not know"
-msgstr ""
-"nemohu zahájit ověření SASL: SASL se zeptal na něco, co neznáme"
+msgstr "nemohu zahájit ověření SASL: SASL se zeptal na něco, co neznáme"
 
-#: ../src/mn-client-session.c:1151
+#: ../src/mn-client-session.c:1170
 #, c-format
 msgid "unable to start SASL authentication: %s"
 msgstr "nemohu zahájit ověření SASL: %s"
 
-#: ../src/mn-client-session.c:1155
+#: ../src/mn-client-session.c:1174
 #, c-format
 msgid "unable to create a SASL connection: %s"
 msgstr "nemohu vytvořit SASL spojení: %s"
 
-#: ../src/mn-client-session.c:1202
+#: ../src/mn-client-session.c:1221
 msgid "SASL asked for something we did not know, aborting SASL authentication"
 msgstr "SASL se zeptal na něco, co neznáme, přerušuji ověření SASL"
 
-#: ../src/mn-client-session.c:1219
+#: ../src/mn-client-session.c:1238
 #, c-format
 msgid "%s, aborting SASL authentication"
 msgstr "%s, přerušuji ověření SASL"
 
 #. compliance error
-#: ../src/mn-client-session.c:1224
+#: ../src/mn-client-session.c:1243
 #, c-format
 msgid "unable to decode Base64 input from server: %s"
 msgstr "nemohu zpracovat Base64 údaje od serveru: %s"
 
-#: ../src/mn-client-session.c:1260
+#: ../src/mn-client-session.c:1279
 #, c-format
 msgid "a SASL security layer of strength factor %i is now active"
 msgstr "bezpečnostní vrstva SASL o bezpečnostním faktoru %i je nyní aktivní"
 
 #. a security layer is active but we can't retrieve maxoutbuf -> fatal
-#: ../src/mn-client-session.c:1265
+#: ../src/mn-client-session.c:1284
 #, c-format
 msgid "unable to get SASL_MAXOUTBUF property: %s"
 msgstr "nelze získat vlastnost SASL_MAXOUTBUF: %s"
 
-#: ../src/mn-client-session.c:1271
+#: ../src/mn-client-session.c:1290
 #, c-format
 msgid "warning: unable to get SASL_SSF property: %s"
 msgstr "varování: nelze získat vlastnost SASL_SSF: %s"
 
-#: ../src/mn-conf.c:240
+#: ../src/mn-client-session.c:1449
+msgid "unknown server error"
+msgstr "neznámá chyba serveru"
+
+#: ../src/mn-compact-message-view.gob:45
+msgid "Mailbox"
+msgstr "Schránka"
+
+#: ../src/mn-compact-message-view.gob:46
+msgid "From"
+msgstr "Od"
+
+#: ../src/mn-compact-message-view.gob:47
+msgid "Subject"
+msgstr "Předmět"
+
+#: ../src/mn-compact-message-view.gob:48
+msgid "Sent"
+msgstr "Odesláno"
+
+#: ../src/mn-conf.c:262
 msgid "A directory creation error has occurred"
 msgstr "Chyba při vytváření adresáře"
 
-#: ../src/mn-conf.c:241
+#: ../src/mn-conf.c:263
 #, c-format
 msgid "Unable to create directory \"%s\": %s."
 msgstr "Nemohu vytvořit adresář \"%s\": %s."
 
-#: ../src/mn-conf.c:317
+#: ../src/mn-conf.c:402
 #, c-format
 msgid "recursively unsetting %s"
 msgstr "rekurzivně odnastavuji %s"
 
-#: ../src/mn-conf.c:321
+#: ../src/mn-conf.c:406
 msgid "syncing the GConf database"
 msgstr "synchronizuji GConf databázi"
 
-#: ../src/mn-conf.c:324
+#: ../src/mn-conf.c:409
 msgid "completed"
 msgstr "dokončeno"
+
+#: ../src/mn-conf.c:1137
+msgid "A command error has occurred in Mail Notification"
+msgstr "Nastala chyba při spouštění příkazu"
+
+#: ../src/mn-conf.c:1138
+#, c-format
+msgid "Unable to execute \"%s\": %s."
+msgstr "Nemohu spustit \"%s\": %s."
 
 #: ../src/mn-custom-vfs-mailbox.gob:76
 msgid "invalid location"
 msgstr "neplatné umístění"
 
-#: ../src/mn-evolution-folder-tree-control.c:86
+#: ../src/mn-evolution-folder-tree-control.c:91
 msgid "The currently selected URI"
 msgstr "Vybrané URI"
 
-#: ../src/mn-evolution-mailbox-properties.gob:67
+#. translators: header capitalization
+#: ../src/mn-evolution-mailbox-properties.gob:68
 msgid "Folder"
 msgstr "Složka"
 
-#: ../src/mn-evolution-mailbox-properties.gob:169
+#: ../src/mn-evolution-mailbox-properties.gob:159
 msgid ""
 "Mail Notification can not contact Evolution. Make sure that Evolution is "
 "running and that the Evolution Mail Notification plugin is loaded."
@@ -714,28 +637,28 @@ msgstr ""
 "Nemohu se spojit s Evolution. Ujistěte se, že Evolution běží a že Evolution "
 "Mail Notification plugin je aktivní."
 
-#: ../src/mn-evolution-mailbox.gob:61
+#: ../src/mn-evolution-mailbox.gob:75
 msgid "folder not found"
 msgstr "složka nenalezena"
 
-#: ../src/mn-evolution-mailbox.gob:182
+#: ../src/mn-evolution-mailbox.gob:216
 msgid "unable to contact Evolution"
 msgstr "nemohu se spojit s Evolution"
 
-#: ../src/mn-evolution-plugin.c:130 ../src/mn-evolution-plugin.c:134
+#: ../src/mn-evolution-plugin.c:136 ../src/mn-evolution-plugin.c:140
 msgid "Unable to activate the Mail Notification plugin"
 msgstr "Nemohu aktivovat Mail Notification plugin"
 
-#: ../src/mn-evolution-plugin.c:130
+#: ../src/mn-evolution-plugin.c:136
 #, c-format
 msgid ""
 "Bonobo could not locate the %s server. Please check your Mail Notification "
 "installation."
 msgstr ""
-"Bonobo nemohlo nalézt server %s. Prosím zkontrolujte instalaci Upozornění "
-"na poštu."
+"Bonobo nemohlo nalézt server %s. Prosím zkontrolujte instalaci Upozornění na "
+"poštu."
 
-#: ../src/mn-evolution-plugin.c:134 ../src/mn-main.c:427
+#: ../src/mn-evolution-plugin.c:140 ../src/mn-main.c:460
 #, c-format
 msgid ""
 "Bonobo was unable to register the %s server. Please check your Mail "
@@ -744,26 +667,26 @@ msgstr ""
 "Bonobo nemohlo zaregistrovat server %s. Prosím zkontrolujte instalaci "
 "Upozornění na poštu."
 
-#: ../src/mn-gmail-mailbox.gob:111
+#: ../src/mn-gmail-mailbox.gob:103
 msgid "invalid feed location"
 msgstr "neplatné umístění zdroje"
 
-#: ../src/mn-gmail-mailbox.gob:125
+#: ../src/mn-gmail-mailbox.gob:117
 #, c-format
 msgid "retrieving feed from %s"
 msgstr "získávám zdroj z %s"
 
-#: ../src/mn-gmail-mailbox.gob:132
+#: ../src/mn-gmail-mailbox.gob:124
 #, c-format
 msgid "unable to retrieve feed: %s"
 msgstr "nemohu získat zdroj: %s"
 
-#: ../src/mn-gmail-mailbox.gob:147 ../src/mn-gmail-mailbox.gob:194
+#: ../src/mn-gmail-mailbox.gob:139 ../src/mn-gmail-mailbox.gob:187
 msgid "unable to parse feed"
 msgstr "nemohu zpracovat zdroj"
 
 #: ../src/mn-gmime-stream-vfs.gob:50
-#: ../src/mn-sylpheed-mailbox-backend.gob:152
+#: ../src/mn-sylpheed-mailbox-backend.gob:205
 #, c-format
 msgid "unable to read %s: %s"
 msgstr "nemohu číst %s: %s"
@@ -783,66 +706,62 @@ msgstr "nemohu posouvat v %s: %s"
 msgid "unable to tell position of %s: %s"
 msgstr "nemohu určit pozici v %s: %s"
 
-#: ../src/mn-gmime-stream-vfs.gob:58 ../src/mn-mh-mailbox-backend.gob:158
+#: ../src/mn-gmime-stream-vfs.gob:58 ../src/mn-mh-mailbox-backend.gob:164
 #, c-format
 msgid "unable to close %s: %s"
 msgstr "nemohu zavřít %s: %s"
 
-#: ../src/mn-imap-mailbox-properties.gob:113
+#: ../src/mn-imap-mailbox-properties.gob:114
+#: ../src/mn-standard-message-view.gob:62
 msgid "Mailbox:"
 msgstr "Schránka:"
 
-#: ../src/mn-imap-mailbox-properties.gob:117
+#: ../src/mn-imap-mailbox-properties.gob:118
 msgid "in_box"
 msgstr "_inbox"
 
-#: ../src/mn-imap-mailbox-properties.gob:128
+#: ../src/mn-imap-mailbox-properties.gob:129
 msgid "oth_er:"
 msgstr "_jiná:"
 
-#: ../src/mn-imap-mailbox-properties.gob:139
+#: ../src/mn-imap-mailbox-properties.gob:140
 msgid "ne_ver"
 msgstr "_nikdy"
 
-#: ../src/mn-imap-mailbox-properties.gob:140
+#: ../src/mn-imap-mailbox-properties.gob:141
 msgid "au_todetect"
 msgstr "_autodetekovat"
 
-#: ../src/mn-imap-mailbox-properties.gob:141
+#: ../src/mn-imap-mailbox-properties.gob:142
 msgid "al_ways"
 msgstr "_vždy"
 
-#: ../src/mn-imap-mailbox-properties.gob:173
+#: ../src/mn-imap-mailbox-properties.gob:174
 msgid "Use the <span style=\"italic\">IDLE</span> extension:"
 msgstr "Použít rozšíření <span style=\"italic\">IDLE</span>:"
 
-#: ../src/mn-imap-mailbox.gob:390
+#: ../src/mn-imap-mailbox.gob:384
 msgid "server did not send capabilities"
 msgstr "server neposlal capability"
 
-#: ../src/mn-imap-mailbox.gob:573
+#: ../src/mn-imap-mailbox.gob:551
 msgid "server advertised LOGINDISABLED, not using LOGIN authentication"
 msgstr "server ohlásil LOGINDISABLED, nepoužívám LOGIN přihlášení"
 
-#: ../src/mn-imap-mailbox.gob:574
+#: ../src/mn-imap-mailbox.gob:552
 msgid "unable to login"
 msgstr "nemohu se přihlásit"
 
 #. compliance error
-#: ../src/mn-imap-mailbox.gob:714
-msgid "server did not send search results"
-msgstr "server neposlal výsledky hledání"
-
-#. compliance error
-#: ../src/mn-imap-mailbox.gob:792
+#: ../src/mn-imap-mailbox.gob:752
 msgid "server did not send all the messages we requested"
 msgstr "server neposlal všechny zprávy, které jsme vyžádali"
 
-#: ../src/mn-imap-mailbox.gob:859
+#: ../src/mn-imap-mailbox.gob:822
 msgid "unable to fetch message"
 msgstr "nemohu stáhnout zprávu"
 
-#: ../src/mn-imap-mailbox.gob:875
+#: ../src/mn-imap-mailbox.gob:847
 msgid ""
 "\"Use the IDLE extension\" set to \"never\" in the mailbox properties, "
 "logging out"
@@ -850,31 +769,26 @@ msgstr ""
 "\"Použít rozšíření IDLE\" nastaveno na \"never\" ve vlastnostech schránky, "
 "odpojuji se"
 
-#: ../src/mn-imap-mailbox.gob:886
+#: ../src/mn-imap-mailbox.gob:858
 #, c-format
 msgid "the remote server runs %s, not using the IDLE extension"
 msgstr "vzdálený server běží %s, nepoužívám rozšíření IDLE"
 
-#: ../src/mn-imap-mailbox.gob:891
+#: ../src/mn-imap-mailbox.gob:863
 #, c-format
 msgid ""
 "the remote server runs %s, the IDLE extension might not function properly"
-msgstr ""
-"vzdálený server běží %s, rozšíření IDLE nemusí pracovat správně"
+msgstr "vzdálený server běží %s, rozšíření IDLE nemusí pracovat správně"
 
-#: ../src/mn-imap-mailbox.gob:900
+#: ../src/mn-imap-mailbox.gob:872
 msgid "the remote server does not support the IDLE extension, logging out"
 msgstr "vzdálený server nepodporuje rozšíření IDLE, odpojuji se"
 
-#: ../src/mn-imap-mailbox.gob:1251 ../src/mn-pop3-mailbox.gob:1124
-msgid "unknown server error"
-msgstr "neznámá chyba serveru"
-
-#: ../src/mn-imap-mailbox.gob:1357 ../src/mn-pop3-mailbox.gob:311
+#: ../src/mn-imap-mailbox.gob:1377 ../src/mn-pop3-mailbox.gob:296
 msgid "server does not support in-band SSL/TLS"
 msgstr "server nepodporuje in-band SSL/TLS"
 
-#: ../src/mn-imap-mailbox.gob:1381 ../src/mn-pop3-mailbox.gob:997
+#: ../src/mn-imap-mailbox.gob:1401 ../src/mn-pop3-mailbox.gob:947
 msgid ""
 "a SASL authentication mechanism was selected but SASL support has not been "
 "compiled in"
@@ -882,146 +796,183 @@ msgstr ""
 "přihlašovací mechanismus SASL byl vybrán, ale podpora SASL nebyla "
 "zkompilována "
 
-#: ../src/mn-imap-mailbox.gob:1391 ../src/mn-pop3-mailbox.gob:1017
+#: ../src/mn-imap-mailbox.gob:1411 ../src/mn-pop3-mailbox.gob:967
 #, c-format
 msgid "unknown authentication mechanism \"%s\""
 msgstr "neznámý přihlašovací mechanismus \"%s\""
 
-#: ../src/mn-imap-mailbox.gob:1423 ../src/mn-pop3-mailbox.gob:1053
+#: ../src/mn-imap-mailbox.gob:1443 ../src/mn-pop3-mailbox.gob:1003
 #, c-format
 msgid "disabling mechanism \"%s\" and retrying SASL authentication"
 msgstr "zakazuji mechanismus \"%s\" a zkouším znovu přihlášení SASL"
 
-#: ../src/mn-imap-mailbox.gob:1435
+#: ../src/mn-imap-mailbox.gob:1455
 msgid "falling back to IMAP LOGIN authentication"
 msgstr "zkouším přihlášení IMAP LOGIN"
 
-#: ../src/mn-imap-mailbox.gob:1447 ../src/mn-pop3-mailbox.gob:1082
+#: ../src/mn-imap-mailbox.gob:1467 ../src/mn-pop3-mailbox.gob:1032
 msgid "authentication failed"
 msgstr "přihlášení selhalo"
 
-#: ../src/mn-mail-icon.gob:91
-msgid "Main _Window"
-msgstr "_Hlavní okno"
+#. success; caller must switch state itself
+#. compliance error
+#: ../src/mn-imap-mailbox.gob:1528
+msgid "server did not send search results"
+msgstr "server neposlal výsledky hledání"
 
-#: ../src/mn-mail-icon.gob:92 ../src/mn-main-window.gob:165
+#. translators: header capitalization
+#: ../src/mn-mail-icon.gob:89
 msgid "_Mail Reader"
 msgstr "_Poštovní program"
 
-#: ../src/mn-mail-icon.gob:93 ../src/mn-main-window.gob:173
+#. translators: header capitalization
+#: ../src/mn-mail-icon.gob:91 ../src/mn-mailbox-view.gob:312
 msgid "_Update"
 msgstr "_Aktualizovat"
 
-#: ../src/mn-mail-icon.gob:99
+#. translators: header capitalization
+#: ../src/mn-mail-icon.gob:98
 msgid "R_emove From Notification Area"
 msgstr "_Odstranit z oznamovací oblasti"
 
-#: ../src/mn-mailbox-properties-dialog.gob:88
+#. translators: header capitalization
+#: ../src/mn-mail-summary-popup.gob:270
+msgid "<span size=\"larger\" weight=\"bold\">Mail Summary</span>"
+msgstr "<span size=\"larger\" weight=\"bold\">Souhrn pošty</span>"
+
+#. translators: header capitalization
+#: ../src/mn-mail-summary-popup.gob:277
+msgid "<span weight=\"bold\">Mail Summary</span>"
+msgstr "<span weight=\"bold\">Souhrn pošty</span>"
+
+#. translators: header capitalization
+#: ../src/mn-mailbox-properties-dialog.gob:89
 #, c-format
 msgid "%s Properties"
 msgstr "Vlastnosti %s"
 
-#: ../src/mn-mailbox-properties-dialog.gob:205
+#. translators: header capitalization
+#: ../src/mn-mailbox-properties-dialog.gob:232
 msgid "Add a Mailbox"
 msgstr "Přidat schránku"
 
-#: ../src/mn-mailbox-view.gob:179
+#: ../src/mn-mailbox-view.gob:248
 msgid "A paste error has occurred"
 msgstr "Chyba při vložení"
 
-#: ../src/mn-mailbox-view.gob:320 ../src/mn-message-view.gob:313
-msgid "Mailbox"
-msgstr "Schránka"
-
-#: ../src/mn-mailbox-view.gob:523
+#: ../src/mn-mailbox-view.gob:557
 #, c-format
 msgid "unhandled %s mailbox (%s)"
 msgstr "nezpracovaná %s schránka (%s)"
 
-#: ../src/mn-mailbox-view.gob:528
+#: ../src/mn-mailbox-view.gob:562
 #, c-format
 msgid "%s mailbox"
 msgstr "%s schránka"
 
-#: ../src/mn-mailbox-view.gob:543
+#: ../src/mn-mailbox-view.gob:577
 msgid "detecting mailbox type..."
 msgstr "detekuji typ schránky..."
 
-#: ../src/mn-mailbox.gob:278
+#: ../src/mn-mailbox.gob:472
 msgid "\"type\" attribute missing"
 msgstr "atribut \"type\" chybí"
 
-#: ../src/mn-mailbox.gob:285
+#: ../src/mn-mailbox.gob:479
 #, c-format
 msgid "unknown mailbox type \"%s\""
 msgstr "neznámý typ schránky \"%s\""
 
-#: ../src/mn-mailbox.gob:305
+#: ../src/mn-mailbox.gob:499
 #, c-format
 msgid ""
 "property \"%s\": unable to transform string \"%s\" into a value of type \"%s"
 "\""
-msgstr ""
-"vlastnost \"%s\": nemohu převést řetězec \"%s\" do hodnoty typu \"%s\""
+msgstr "vlastnost \"%s\": nemohu převést řetězec \"%s\" do hodnoty typu \"%s\""
 
-#: ../src/mn-mailbox.gob:744
+#: ../src/mn-mailbox.gob:948
 #, c-format
 msgid "property \"%s\" has no value"
 msgstr "vlastnost \"%s\" nemá žádnou hodnotu"
 
-#: ../src/mn-mailboxes.gob:203
+#: ../src/mn-mailboxes.gob:239
 msgid "An error has occurred while importing old mailboxes"
 msgstr "Při importování starých schránek nastala chyba"
 
-#: ../src/mn-mailboxes.gob:248
+#: ../src/mn-mailboxes.gob:265
 msgid "Unable to load the mailboxes configuration"
 msgstr "Nemohu načíst nastavení schránek"
 
-#: ../src/mn-mailboxes.gob:294
+#: ../src/mn-mailboxes.gob:311
 msgid "Unable to parse the XML document."
 msgstr "Nemohu zpracovat XML dokument."
 
-#: ../src/mn-mailboxes.gob:301
+#: ../src/mn-mailboxes.gob:318
 msgid "The root element is missing."
 msgstr "Kořenový elemtn chybí."
 
-#: ../src/mn-mailboxes.gob:307
+#: ../src/mn-mailboxes.gob:324
 #, c-format
 msgid "The root element \"%s\" is invalid."
 msgstr "Kořenový element \"%s\" je neplatný."
 
-#: ../src/mn-mailboxes.gob:330
+#: ../src/mn-mailboxes.gob:347
 #, c-format
 msgid "On line %i: %s."
 msgstr "Na řádku %i: %s."
 
-#: ../src/mn-mailboxes.gob:335
+#: ../src/mn-mailboxes.gob:352
 #, c-format
 msgid "On line %i: unknown element \"%s\"."
 msgstr "Na řádku %i: neznámý element \"%s\"."
 
-#: ../src/mn-mailboxes.gob:346
+#: ../src/mn-mailboxes.gob:361
 msgid "An error has occurred while loading the mailboxes configuration"
 msgid_plural "Errors have occurred while loading the mailboxes configuration"
 msgstr[0] "Při načítání nastavení schránek nastala chyba"
 msgstr[1] "Při načítání nastavení schránek nastaly chyby"
 msgstr[2] "Při načítání nastavení schránek nastaly chyby"
 
-#: ../src/mn-mailboxes.gob:371
+#: ../src/mn-mailboxes.gob:386
 msgid "Unable to save the mailboxes configuration"
 msgstr "Nemohu uložit nastavení schránek"
 
-#: ../src/mn-mailboxes.gob:417
+#: ../src/mn-mailboxes.gob:428
+#, c-format
+msgid "Unable to remove %s: %s."
+msgstr "Nemohu odstranit %s: %s."
+
+#: ../src/mn-mailboxes.gob:436
+#, c-format
+msgid "Unable to create %s: %s."
+msgstr "Nemohu vytvořit %s: %s."
+
+#: ../src/mn-mailboxes.gob:443
+#, c-format
+msgid "Unable to open %s for writing: %s."
+msgstr "Nemohu otevřít %s pro zápis: %s."
+
+#: ../src/mn-mailboxes.gob:450
 msgid "Unable to write the XML document."
 msgstr "Nemohu zapsat XML dokument."
 
+#: ../src/mn-mailboxes.gob:456
+#, c-format
+msgid "Unable to close %s: %s."
+msgstr "Nemohu zavřít %s: %s."
+
+#: ../src/mn-mailboxes.gob:466 ../src/mn-mailboxes.gob:473
+#, c-format
+msgid "Unable to rename %s to %s: %s."
+msgstr "Nemohu přejmenovat %s na %s: %s."
+
 #. non fatal
-#: ../src/mn-mailboxes.gob:433
+#: ../src/mn-mailboxes.gob:479
 #, c-format
 msgid "unable to delete %s: %s"
 msgstr "nemohu smazat %s: %s"
 
-#: ../src/mn-mailboxes.gob:457
+#: ../src/mn-mailboxes.gob:509
 #, c-format
 msgid "%s has %i new message"
 msgid_plural "%s has %i new messages"
@@ -1029,230 +980,97 @@ msgstr[0] "%s má %i novou zprávu"
 msgstr[1] "%s má %i nové zprávy"
 msgstr[2] "%s má %i nových zpráv"
 
-#: ../src/mn-mailboxes.gob:483
+#: ../src/mn-mailboxes.gob:535
 #, c-format
 msgid "%s reported an error: %s"
 msgstr "%s hlásí chybu: %s"
 
-#: ../src/mn-maildir-mailbox-backend.gob:111
+#: ../src/mn-maildir-mailbox-backend.gob:125
 #, c-format
-msgid "unable to open folder \"new\": %s"
-msgstr "nemohu otevřít služku \"new\": %s"
+msgid "unable to open folder \"%s\": %s"
+msgstr "nemohu otevřít služku \"%s\": %s"
 
-#: ../src/mn-maildir-mailbox-backend.gob:144
+#: ../src/mn-maildir-mailbox-backend.gob:173
 #, c-format
-msgid "unable to close folder \"new\": %s"
-msgstr "nemohu zavřít složku \"new\": %s"
+msgid "unable to close folder \"%s\": %s"
+msgstr "nemohu zavřít složku \"%s\": %s"
 
-#: ../src/mn-maildir-mailbox-backend.gob:147
+#: ../src/mn-maildir-mailbox-backend.gob:176
 #, c-format
-msgid "error while reading folder \"new\": %s"
-msgstr "chyba během čtení složky \"new\": %s"
+msgid "error while reading folder \"%s\": %s"
+msgstr "chyba během čtení složky \"%s\": %s"
 
-#: ../src/mn-main-window.gob:106
-msgid "Help messages"
-msgstr "Zprávy s nápovědou"
+#: ../src/mn-main.c:100
+msgid "yes"
+msgstr "ano"
 
-#: ../src/mn-main-window.gob:107
-msgid "Count messages"
-msgstr "Zprávy o počtu"
+#: ../src/mn-main.c:100
+msgid "no"
+msgstr "ne"
 
-#. Toplevel
-#: ../src/mn-main-window.gob:156
-msgid "_Mail"
-msgstr "_Pošta"
-
-#: ../src/mn-main-window.gob:157
-msgid "_Edit"
-msgstr "_Upravit"
-
-#: ../src/mn-main-window.gob:158
-msgid "_View"
-msgstr "_Zobrazit"
-
-#: ../src/mn-main-window.gob:159
-msgid "_Help"
-msgstr "_Nápověda"
-
-#: ../src/mn-main-window.gob:167
-msgid "Launch the mail reader"
-msgstr "Spustit poštovní program"
-
-#. Reload
-#: ../src/mn-main-window.gob:175 ../src/mn-main.c:248
-msgid "Update the mail status"
-msgstr "Aktualizovat stav pošty"
-
-#: ../src/mn-main-window.gob:181
-msgid "_Close"
-msgstr "_Zavřít"
-
-#: ../src/mn-main-window.gob:183
-msgid "Close this window"
-msgstr "Zavřít toto okno"
-
-#: ../src/mn-main-window.gob:189
-msgid "_Quit"
-msgstr "_Ukončit"
-
-#: ../src/mn-main-window.gob:191 ../src/mn-main.c:266
-msgid "Quit Mail Notification"
-msgstr "Ukončit Upozornění na poštu"
-
-#: ../src/mn-main-window.gob:199 ../src/mn-main-window.gob:247
-msgid "_Toolbars"
-msgstr "_Lišty nástrojů"
-
-#: ../src/mn-main-window.gob:201
-msgid "Customize the toolbars"
-msgstr "Upravit lišty nástrojů"
-
-#: ../src/mn-main-window.gob:207
-msgid "_Preferences"
-msgstr "_Nastavení"
-
-#: ../src/mn-main-window.gob:217
-msgid "Toolbars Styl_e"
-msgstr "_Vzhled lišt nástrojů"
-
-#: ../src/mn-main-window.gob:219
-msgid "Customize the toolbars style"
-msgstr "Upravit vzhled lišt nástrojů"
-
-#: ../src/mn-main-window.gob:227
-msgid "_Contents"
-msgstr "_Obsah"
-
-#: ../src/mn-main-window.gob:229
-msgid "Display help"
-msgstr "Zobrazit nápovědu"
-
-#: ../src/mn-main-window.gob:235
-msgid "_About"
-msgstr "_O Upozornění na poštu"
-
-#: ../src/mn-main-window.gob:237
-msgid "Display credits"
-msgstr "Kredity"
-
-#: ../src/mn-main-window.gob:249
-msgid "Show or hide the toolbars"
-msgstr "Zobrazit nebo skrýt lišty nástrojů"
-
-#: ../src/mn-main-window.gob:256
-msgid "_Statusbar"
-msgstr "_Statová lišta"
-
-#: ../src/mn-main-window.gob:258
-msgid "Show or hide the statusbar"
-msgstr "Zobrazit nebo skrýt statovou lištu"
-
-#: ../src/mn-main-window.gob:269
-msgid "_Desktop Default"
-msgstr "_Výchozí nastavení"
-
-#: ../src/mn-main-window.gob:271
-msgid "Set the toolbars style to the desktop default setting"
-msgstr "Nastaví vzhled lišt nástrojů do výchozího nastavení prostřední GNOME"
-
-#: ../src/mn-main-window.gob:277
-msgid "I_cons Only"
-msgstr "Pouze _ikony"
-
-#: ../src/mn-main-window.gob:279
-msgid "Only display the toolbars icons"
-msgstr "Zobrazí pouze ikony v lištách nástrojů"
-
-#: ../src/mn-main-window.gob:285
-msgid "_Text Only"
-msgstr "Pouze _text"
-
-#: ../src/mn-main-window.gob:287
-msgid "Only display the toolbars text"
-msgstr "Zobrazit pouze textové popisy v lištách nástrojů"
-
-#: ../src/mn-main-window.gob:293
-msgid "Text Belo_w Icons"
-msgstr "T_ext pod ikonami"
-
-#: ../src/mn-main-window.gob:295
-msgid "Display the toolbars text below the icons"
-msgstr "Zobrazit lišty nástrojů s texty pod ikonami"
-
-#: ../src/mn-main-window.gob:301
-msgid "Text Be_side Icons"
-msgstr "Text _vedle ikon"
-
-#: ../src/mn-main-window.gob:303
-msgid "Display the toolbars text beside the icons"
-msgstr "Zobrazit lišty nástrojů s texty vedle ikon"
-
-#: ../src/mn-main-window.gob:345
+#: ../src/mn-main.c:132
 #, c-format
-msgid "unable to load menus.xml: %s"
-msgstr "nemohu načíst menus.xml: %s"
+msgid "%s version %s\n"
+msgstr "%s verze %s\n"
 
-#: ../src/mn-main-window.gob:388
-msgid "unable to load toolbars.xml"
-msgstr "nemohu načíst toolbars.xml"
+#: ../src/mn-main.c:137
+msgid "Mailbox backends:\n"
+msgstr "Backendy poštovních schránek:\n"
 
-#: ../src/mn-main-window.gob:439
+#: ../src/mn-main.c:142
+msgid "POP3 and IMAP features:\n"
+msgstr "Funkce POP3 a IMAP:\n"
+
+#: ../src/mn-main.c:147
+msgid "Sylpheed features:\n"
+msgstr "Funkce Sylpheed:\n"
+
+#: ../src/mn-main.c:198
 #, c-format
-msgid "%i new message"
-msgid_plural "%i new messages"
-msgstr[0] "%i nová zpráva"
-msgstr[1] "%i nové zprávy"
-msgstr[2] "%i nových zpráv"
+msgid "A Bonobo exception (%s) has occurred in %s()."
+msgstr "Bonobo vyjímka (%s) nastala v %s()."
 
-#.
-#. * Here and everywhere else, we order the backends by descending
-#. * order of (believed) popularity.
-#.
-#: ../src/mn-main.c:96
-msgid "Compiled-in mailbox backends: "
-msgstr "Podporované typy schránek v této kompilaci: "
+#: ../src/mn-main.c:220
+msgid "Show version information"
+msgstr "Zobrazit informace o verzi"
 
-#: ../src/mn-main.c:124
-msgid "Compiled-in POP3 and IMAP features: "
-msgstr "Funkce POP3 a IMAP zahrnuté v této kompilaci: "
-
-#: ../src/mn-main.c:194
+#: ../src/mn-main.c:229
 msgid "Enable informational output"
 msgstr "Povolit informační výstup"
 
-#: ../src/mn-main.c:203
-msgid "List the compiled-in features"
-msgstr "Vypsat funkce zahrnuté v této kompilaci"
-
-#: ../src/mn-main.c:212
-msgid "Display the main window"
-msgstr "Zobrazit hlavní okno"
-
-#: ../src/mn-main.c:221
+#: ../src/mn-main.c:238
 msgid "Display the properties dialog"
 msgstr "Zobrazit dialog nastavení"
 
-#: ../src/mn-main.c:230
+#: ../src/mn-main.c:247
 msgid "Display the about dialog"
 msgstr "Zobrazit dialog O aplikaci"
 
-#: ../src/mn-main.c:239
+#: ../src/mn-main.c:256
 msgid "Close the mail summary popup"
 msgstr "Zavřít vyskakovací souhrn pošty"
 
-#: ../src/mn-main.c:257
+#: ../src/mn-main.c:265
+msgid "Update the mail status"
+msgstr "Aktualizovat stav pošty"
+
+#: ../src/mn-main.c:274
 msgid "Unset obsolete GConf configuration"
 msgstr "Odnastavit zastaralé nastavení GConf"
 
+#: ../src/mn-main.c:283
+msgid "Quit Mail Notification"
+msgstr "Ukončit Upozornění na poštu"
+
 #.
-#. * We can't use mn_error_dialog() because gtk_init() has not been
-#. * called yet.
+#. * We cannot use mn_fatal_error_dialog() because gtk_init() has
+#. * not been called yet.
 #.
-#: ../src/mn-main.c:293
+#: ../src/mn-main.c:310
 msgid "multi-threading is not available"
 msgstr "vlákna nejsou k dispozici"
 
-#: ../src/mn-main.c:355
+#: ../src/mn-main.c:365
 msgid ""
 "Bonobo could not locate the automation object. Please check your Mail "
 "Notification installation."
@@ -1260,124 +1078,64 @@ msgstr ""
 "Bonobo nemůže nalézt automation objekt. Prosím zkontrolujte instalaci "
 "Upozornění na poštu."
 
-#: ../src/mn-main.c:361
+#: ../src/mn-main.c:371
 msgid "quitting Mail Notification"
 msgstr "ukončuji Upozornění na poštu"
 
-#: ../src/mn-main.c:365
+#: ../src/mn-main.c:375
 msgid "Mail Notification is not running"
 msgstr "Upozornění na poštu neběží"
 
-#: ../src/mn-main.c:372
+#: ../src/mn-main.c:390
 msgid "Unable to initialize the GnomeVFS library."
 msgstr "Nemohu inicializovat knihovnu GnomeVFS."
 
-#: ../src/mn-main.c:404
+#: ../src/mn-main.c:438
 msgid "updating the mail status"
 msgstr "aktualizuji stav pošty"
 
-#: ../src/mn-main.c:413
+#: ../src/mn-main.c:446
 msgid "Mail Notification is already running"
 msgstr "Upozornění na poštu již běží"
 
-#: ../src/mn-main.c:423
+#: ../src/mn-main.c:456
 #, c-format
 msgid ""
 "Bonobo could not locate the %s file. Please check your Mail Notification "
 "installation."
 msgstr ""
-"Bonobo nemohlo najít soubor %s. Prosím zkontrolujte instalaci Upozornění "
-"na poštu."
+"Bonobo nemohlo najít soubor %s. Prosím zkontrolujte instalaci Upozornění na "
+"poštu."
 
-#: ../src/mn-mbox-mailbox-backend.gob:209
+#: ../src/mn-mbox-mailbox-backend.gob:281
 #, c-format
 msgid "unable to close file: %s"
 msgstr "nemohu zavřít soubor: %s"
 
-#: ../src/mn-mbox-mailbox-backend.gob:226
+#: ../src/mn-mbox-mailbox-backend.gob:298
 #, c-format
 msgid "unable to open mailbox: %s"
 msgstr "nemohu otevřít soubor: %s"
 
-#: ../src/mn-message-mime.c:104
+#: ../src/mn-message-mime.c:121
 msgid "unable to parse MIME message"
 msgstr "nemohu zpracovat MIME zprávu"
 
-#: ../src/mn-message-view.gob:82
-msgid "You have no new mail."
-msgstr "Nemáte žádnou novou poštu."
-
-#: ../src/mn-message-view.gob:322
-msgid "Unreadable message"
-msgstr "Nečitelná zpráva"
-
-#: ../src/mn-message-view.gob:330
-msgid "From"
-msgstr "Od"
-
-#: ../src/mn-message-view.gob:338
-msgid "Subject"
-msgstr "Předmět"
-
-#: ../src/mn-message-view.gob:349
-msgid "Sent"
-msgstr "Odesláno"
-
-#: ../src/mn-message.gob:99
+#: ../src/mn-message.gob:111
 msgid "Unknown"
 msgstr "Neznámý"
 
-#: ../src/mn-message.gob:124
-#, c-format
-msgid "%i second ago"
-msgid_plural "%i seconds ago"
-msgstr[0] "před %i sekundou"
-msgstr[1] "před %i sekundami"
-msgstr[2] "před %i sekundami"
-
-#: ../src/mn-message.gob:128
-#, c-format
-msgid "about %i minute ago"
-msgid_plural "about %i minutes ago"
-msgstr[0] "před %i minutou"
-msgstr[1] "před %i minutami"
-msgstr[2] "před %i minutami"
-
-#: ../src/mn-message.gob:133
-#, c-format
-msgid "about %i hour ago"
-msgid_plural "about %i hours ago"
-msgstr[0] "před %i hodinou"
-msgstr[1] "před %i hodinami"
-msgstr[2] "před %i hodinami"
-
-#: ../src/mn-message.gob:138
-#, c-format
-msgid "about %i day ago"
-msgid_plural "about %i days ago"
-msgstr[0] "před %i dnem"
-msgstr[1] "před %i dny"
-msgstr[2] "před %i dny"
-
-#: ../src/mn-message.gob:143
-#, c-format
-msgid "about %i week ago"
-msgid_plural "about %i weeks ago"
-msgstr[0] "před %i týdnem"
-msgstr[1] "před %i týdny"
-msgstr[2] "před %i týdny"
-
 #. translators: "none" is used like "Mailbox: none"
-#: ../src/mn-message.gob:163
+#: ../src/mn-message.gob:130
 msgid "none"
 msgstr "žádná"
 
-#: ../src/mn-mh-mailbox-backend.gob:161
+#: ../src/mn-mh-mailbox-backend.gob:167
 #, c-format
 msgid "error while reading %s: %s"
 msgstr "chyba při čtení %s: %s"
 
-#: ../src/mn-mh-mailbox-backend.gob:174
+#: ../src/mn-mh-mailbox-backend.gob:180
 #, c-format
 msgid "unable to open %s: %s"
 msgstr "nemohu otevřít %s: %s"
@@ -1387,38 +1145,63 @@ msgid "sta_ndard"
 msgstr "_běžný"
 
 #: ../src/mn-pi-mailbox-properties.gob:68
-msgid "_in-band SSL/TLS"
-msgstr "_SSL/TLS"
+msgid "in-band SS_L/TLS"
+msgstr "SS_L/TLS"
 
 #: ../src/mn-pi-mailbox-properties.gob:69
 msgid "SSL/TLS on sepa_rate port"
 msgstr "SSL/TLS _na samostatném portu"
 
 #: ../src/mn-pi-mailbox-properties.gob:73
-msgid "_Hostname:"
+msgid "Ho_stname:"
 msgstr "_Jméno počítače:"
 
-#: ../src/mn-pi-mailbox-properties.gob:93
+#. translators: header capitalization
+#: ../src/mn-pi-mailbox-properties.gob:94
 msgid "_Details"
 msgstr "_Detaily"
 
-#: ../src/mn-pi-mailbox-properties.gob:148
+#: ../src/mn-pi-mailbox-properties.gob:149
 msgid "Connection type:"
 msgstr "_Typ spojení:"
 
-#: ../src/mn-pi-mailbox-properties.gob:155
+#: ../src/mn-pi-mailbox-properties.gob:156
 msgid "Port:"
 msgstr "Port:"
 
-#: ../src/mn-pi-mailbox-properties.gob:178
-msgid "_Authentication mechanism:"
+#: ../src/mn-pi-mailbox-properties.gob:179
+msgid "Authent_ication mechanism:"
 msgstr "_Přihlašovací mechanismus:"
 
-#: ../src/mn-pi-mailbox.gob:113
+#: ../src/mn-pi-mailbox.gob:151
 msgid "SSL/TLS support has not been compiled in"
 msgstr "Podpora SSL/TLS není zahrnuta v této kompilaci"
 
-#: ../src/mn-pop3-mailbox.gob:359
+#: ../src/mn-pi-mailbox.gob:317
+#, c-format
+msgid ""
+"Mail Notification was unable to log into %s mailbox %s, possibly because the "
+"credentials you have entered are invalid.\n"
+"\n"
+"Please re-enter your credentials."
+msgstr ""
+"Upozornění na poštu se nemohlo přihlásit do %s schránky %s, pravděpodobně "
+"protože přihlašovací údaje, které jste zadal, nejsou platné.\n"
+"\n"
+"Prosím zadejte znovu přihlašovací údaje."
+
+#: ../src/mn-pi-mailbox.gob:318
+#, c-format
+msgid "Enter your credentials for %s mailbox %s."
+msgstr "Zadejte přihlašovací údaje pro %s schránku %s."
+
+#. keep the title in sync with gnome-authentication-manager
+#. translators: header capitalization
+#: ../src/mn-pi-mailbox.gob:361
+msgid "Authentication Required"
+msgstr "Vyžadována autentizace"
+
+#: ../src/mn-pop3-mailbox.gob:344
 msgid "invalid arguments for the LOGIN-DELAY capability"
 msgstr "nesmyslné hodnoty pro LOGIN-DELAY capabilitu"
 
@@ -1428,19 +1211,19 @@ msgstr "nesmyslné hodnoty pro LOGIN-DELAY capabilitu"
 #. * servers nevertheless, by retrying without the SASL
 #. * initial client response.
 #.
-#: ../src/mn-pop3-mailbox.gob:519
+#: ../src/mn-pop3-mailbox.gob:485
 msgid ""
 "SASL authentication with initial client response failed, retrying without "
 "initial client response"
 msgstr ""
-"Přihlášení SASL s úvodní odezvou klienta selhalo, zkouším bez úvodní odezvy "
-" klienta"
+"Přihlášení SASL s úvodní odezvou klienta selhalo, zkouším bez úvodní odezvy  "
+"klienta"
 
-#: ../src/mn-pop3-mailbox.gob:733
+#: ../src/mn-pop3-mailbox.gob:696
 msgid "unknown error"
 msgstr "neznámá chyba"
 
-#: ../src/mn-pop3-mailbox.gob:828
+#: ../src/mn-pop3-mailbox.gob:791
 #, c-format
 msgid "honouring LOGIN-DELAY, sleeping for %i second"
 msgid_plural "honouring LOGIN-DELAY, sleeping for %i seconds"
@@ -1448,19 +1231,20 @@ msgstr[0] "respektuji LOGIN-DELAY, čekám %i sekundu"
 msgstr[1] "respektuji LOGIN-DELAY, čekám %i sekundy"
 msgstr[2] "respektuji LOGIN-DELAY, čekám %i sekund"
 
-#: ../src/mn-pop3-mailbox.gob:1009
+#: ../src/mn-pop3-mailbox.gob:959
 msgid "server does not support APOP authentication"
 msgstr "server nepodporuje přihlášení APOP"
 
-#: ../src/mn-pop3-mailbox.gob:1065
+#: ../src/mn-pop3-mailbox.gob:1015
 msgid "falling back to APOP authentication"
 msgstr "zkouším přihlášení APOP"
 
-#: ../src/mn-pop3-mailbox.gob:1070
+#: ../src/mn-pop3-mailbox.gob:1020
 msgid "falling back to USER/PASS authentication"
 msgstr "zkouším přihlášení USER/PASS"
 
-#: ../src/mn-properties-dialog.gob:170 ../ui/properties-dialog.glade.h:10
+#. translators: header capitalization
+#: ../src/mn-properties-dialog.gob:173 ../ui/properties-dialog.glade.h:23
 msgid "Mail Notification Properties"
 msgstr "Vlastnosti Upozornění na poštu"
 
@@ -1480,11 +1264,11 @@ msgstr "vlevo dole"
 msgid "bottom right"
 msgstr "vpravo dole"
 
-#: ../src/mn-properties-dialog.gob:329
+#: ../src/mn-properties-dialog.gob:332
 msgid "No mailbox selected."
 msgstr "Není vybrána žádná schránka."
 
-#: ../src/mn-properties-dialog.gob:334
+#: ../src/mn-properties-dialog.gob:337
 #, c-format
 msgid "%i mailbox selected."
 msgid_plural "%i mailboxes selected."
@@ -1492,87 +1276,106 @@ msgstr[0] "Vybrána %i schránka."
 msgstr[1] "Vybrány %i schránky."
 msgstr[2] "Vybráno %i schránek."
 
-#: ../src/mn-properties-dialog.gob:465
+#: ../src/mn-properties-dialog.gob:456
 #, c-format
 msgid "Test message #%i"
 msgstr "Ukázková zpráva #%i"
 
-#: ../src/mn-properties-dialog.gob:470
+#. translators: header capitalization
+#: ../src/mn-properties-dialog.gob:462
 msgid "Mail Notification Properties Dialog"
 msgstr "Dialog nastavení Upozornění na poštu"
 
-#: ../src/mn-shell.gob:109
-msgid "You have new mail."
-msgstr "Máte novou poštu."
-
-#: ../src/mn-shell.gob:374
+#. translators: header capitalization
+#: ../src/mn-shell.gob:381
 msgid "Mailboxes Having New Mail"
 msgstr "Schránky s novou poštou"
 
-#: ../src/mn-shell.gob:393
+#. translators: header capitalization
+#: ../src/mn-shell.gob:400
 msgid "Errors"
 msgstr "Chyby"
 
-#: ../src/mn-shell.gob:408
+#. translators: header capitalization
+#: ../src/mn-shell.gob:416
 msgid "Mail Summary"
 msgstr "Souhrn pošty"
+
+#: ../src/mn-shell.gob:445
+msgid "You have no new mail."
+msgstr "Nemáte žádnou novou poštu."
 
 #: ../src/mn-ssl.c:76
 msgid "unknown SSL/TLS error"
 msgstr "neznámá SSL/TLS chyba"
 
-#: ../src/mn-stock.c:28
+#: ../src/mn-standard-message-view.gob:64
+msgid "Unreadable message:"
+msgstr "Nečitelná zpráva:"
+
+#: ../src/mn-standard-message-view.gob:67
+msgid "From:"
+msgstr "Od:"
+
+#: ../src/mn-standard-message-view.gob:68
+msgid "Subject:"
+msgstr "Předmět:"
+
+#: ../src/mn-standard-message-view.gob:72
+msgid "Sent:"
+msgstr "Odesláno:"
+
+#. translators: header capitalization
+#: ../src/mn-stock.c:29
 msgid "Select _All"
 msgstr "Vybrat _vše"
 
-#: ../src/mn-stock.c:29
-msgid "Leave Fullscreen"
-msgstr "Opustit celoobrazovkové zobrazení"
-
-#: ../src/mn-stock.c:30
+#. translators: header capitalization
+#. translators: header capitalization
+#: ../src/mn-stock.c:32
 msgid "Co_nnect"
 msgstr "_Připojit"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:170
+#: ../src/mn-sylpheed-mailbox-backend.gob:223
 #, c-format
 msgid "unable to open folder: %s"
 msgstr "nemohu otevřít složku: %s"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:209
+#: ../src/mn-sylpheed-mailbox-backend.gob:276
 #, c-format
 msgid "unable to close folder: %s"
 msgstr "nemohu zavřít složku: %s"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:212
+#: ../src/mn-sylpheed-mailbox-backend.gob:279
 #, c-format
 msgid "error while reading folder: %s"
 msgstr "chyba při čtení složky: %s"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:256
+#: ../src/mn-sylpheed-mailbox-backend.gob:420
 msgid "unexpected end of file"
 msgstr "neočekávaný konec souboru"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:270
+#: ../src/mn-sylpheed-mailbox-backend.gob:438
 #, c-format
 msgid "incompatible file version \"%i\""
 msgstr "nekompatibilní verze souboru \"%i\""
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:273
+#: ../src/mn-sylpheed-mailbox-backend.gob:441
 msgid "file version missing"
 msgstr "chybí verze souboru"
 
-#: ../src/mn-system-vfs-mailbox-properties.gob:39
-#: ../src/mn-system-vfs-mailbox-properties.gob:47
+#: ../src/mn-system-vfs-mailbox-properties.gob:40
+#: ../src/mn-system-vfs-mailbox-properties.gob:48
 #: ../src/mn-system-vfs-mailbox.gob:45
 msgid "System mailbox"
 msgstr "Systémová schránka"
 
-#: ../src/mn-system-vfs-mailbox-properties.gob:68
+#: ../src/mn-system-vfs-mailbox-properties.gob:70
 #, c-format
 msgid "Your system mailbox is <span weight=\"bold\">%s</span>."
 msgstr "Vaše systémová schránka je <span weight=\"bold\">%s</span>."
 
-#: ../src/mn-system-vfs-mailbox-properties.gob:75
+#: ../src/mn-system-vfs-mailbox-properties.gob:77
 msgid ""
 "The location of your system mailbox could not be detected. Check the MAIL "
 "environment variable."
@@ -1581,56 +1384,69 @@ msgstr ""
 "prostředí MAIL."
 
 #: ../src/mn-system-vfs-mailbox.gob:72
-msgid "MAIL environment variable not defined"
-msgstr "Proměnná prostředí MAIL není definována"
+msgid "system mailbox not found"
+msgstr "systémová schránka nebyla nalezena"
 
-#: ../src/mn-util.c:281
+#: ../src/mn-util.c:349
 #, c-format
 msgid "error loading image: %s"
 msgstr "nemohu načíst obrázek: %s"
 
-#: ../src/mn-util.c:298
+#: ../src/mn-util.c:365
 #, c-format
-msgid "widget \"%s\" not found in interface \"%s\""
-msgstr "widget \"%s\" nebyl nalezen v rozhraní \"%s\""
+msgid ""
+"Unable to load interface \"%s\". Please check your Mail Notification "
+"installation."
+msgstr ""
+"Nelze načíst rozhraní \"%s\". Prosím zkontrolujte instalaci Upozornění na "
+"poštu."
 
-#: ../src/mn-util.c:398
+#: ../src/mn-util.c:380
 #, c-format
-msgid "unable to open self as a module: %s"
-msgstr "nemohu otevřít sebe jako modul: %s"
+msgid ""
+"Widget \"%s\" not found in interface \"%s\". Please check your Mail "
+"Notification installation."
+msgstr ""
+"Widget \"%s\" nebyl nalezen v rozhraní \"%s\". Prosím zkontrolujte instalaci Upozornění na "
+"poštu."
 
-#: ../src/mn-util.c:403
+#: ../src/mn-util.c:449
 #, c-format
-msgid "signal handler \"%s\" not found"
-msgstr "signal handler \"%s\" nebyl nalezen"
+msgid "Unable to open self as a module (%s)."
+msgstr "Nemohu otevřít sebe jako modul (%s)."
 
-#: ../src/mn-util.c:556 ../src/mn-util.c:579 ../src/mn-util.c:601
-#: ../src/mn-util.c:623
+#: ../src/mn-util.c:454
+#, c-format
+msgid ""
+"Signal handler \"%s\" not found. Please check your Mail Notification "
+"installation."
+msgstr ""
+"Singal handler \"%s\" nebyl nalezen. Prosím zkontrolujte instalaci Upozornění na "
+"poštu."
+
+#: ../src/mn-util.c:605 ../src/mn-util.c:628 ../src/mn-util.c:648
+#: ../src/mn-util.c:670
 msgid "A drag and drop error has occurred"
 msgstr "Nastala chyba přetažení"
 
-#: ../src/mn-util.c:557
+#: ../src/mn-util.c:606
 msgid "An invalid location list has been received."
 msgstr "Obdržen neplatný seznam umístění."
 
-#: ../src/mn-util.c:602
+#: ../src/mn-util.c:649
 msgid "An invalid Mozilla location has been received."
 msgstr "Obdrženo neplatné umístění programu Mozilla."
 
-#: ../src/mn-util.c:678
+#: ../src/mn-util.c:725
 msgid "Unable to display help"
 msgstr "Nemohu zobrazit nápovědu"
 
-#: ../src/mn-util.c:692
+#: ../src/mn-util.c:739
 #, c-format
 msgid "Unable to create a thread: %s."
 msgstr "Nemohu vytvořit vlákno: %s."
 
-#: ../src/mn-util.c:782
-msgid "_Do not show this message again"
-msgstr "_Příště nezobrazit tuto zprávu"
-
-#: ../src/mn-util.c:892
+#: ../src/mn-util.c:899
 #, c-format
 msgid ""
 "The following location is invalid:\n"
@@ -1653,271 +1469,567 @@ msgstr[2] ""
 "\n"
 "%s"
 
-#: ../src/mn-util.c:912
+#: ../src/mn-util.c:919
 msgid "A fatal error has occurred in Mail Notification"
 msgstr "Nastala fatální chyba"
 
-#: ../src/mn-util.c:951
+#: ../src/mn-util.c:958
 #, c-format
 msgid "unable to get current time: %s"
 msgstr "nemohu získat aktuální čas: %s"
 
-#: ../src/mn-util.c:1013
+#: ../src/mn-util.c:1250
 #, c-format
-msgid "invalid signal specification \"%s\""
-msgstr "neplatná specifikace signálu \"%s\""
+msgid "%i second ago"
+msgid_plural "%i seconds ago"
+msgstr[0] "před %i sekundou"
+msgstr[1] "před %i sekundami"
+msgstr[2] "před %i sekundami"
 
-#: ../src/mn-util.c:1052
-msgid "A command error has occurred in Mail Notification"
-msgstr "Nastala chyba při spouštění příkazu"
-
-#: ../src/mn-util.c:1053
+#: ../src/mn-util.c:1254
 #, c-format
-msgid "Unable to execute \"%s\": %s."
-msgstr "Nemohu spustit \"%s\": %s."
+msgid "about %i minute ago"
+msgid_plural "about %i minutes ago"
+msgstr[0] "před %i minutou"
+msgstr[1] "před %i minutami"
+msgstr[2] "před %i minutami"
 
-#: ../src/mn-util.c:1311
+#: ../src/mn-util.c:1259
 #, c-format
-msgid "unable to rename %s to %s: %s"
-msgstr "nemohu přejmenovat %s na %s: %s"
+msgid "about %i hour ago"
+msgid_plural "about %i hours ago"
+msgstr[0] "před %i hodinou"
+msgstr[1] "před %i hodinami"
+msgstr[2] "před %i hodinami"
 
-#: ../src/mn-vfs-mailbox-backend.gob:117
+#: ../src/mn-util.c:1264
 #, c-format
-msgid "unable to monitor mailbox contents (%s), poll mode activated"
-msgstr "nemohu sledovat obsah schránky (%s), poll režim aktivován"
+msgid "about %i day ago"
+msgid_plural "about %i days ago"
+msgstr[0] "před %i dnem"
+msgstr[1] "před %i dny"
+msgstr[2] "před %i dny"
 
-#: ../src/mn-vfs-mailbox.gob:238
+#: ../src/mn-util.c:1269
 #, c-format
-msgid "unable to monitor mailbox type (%s), poll mode activated"
-msgstr "nemohu sledovat typ schránky (%s), poll režim aktivován"
+msgid "about %i week ago"
+msgid_plural "about %i weeks ago"
+msgstr[0] "před %i týdnem"
+msgstr[1] "před %i týdny"
+msgstr[2] "před %i týdny"
 
-#: ../src/mn-vfs-mailbox.gob:307
+#: ../src/mn-util.c:1282
+msgid "unknown date"
+msgstr "neznámé datum"
+
+#: ../src/mn-vfs-mailbox.gob:221
+#, c-format
+msgid "unable to monitor %s (%s), poll mode activated"
+msgstr "nemohu sledovat %s (%s), poll režim aktivován"
+
+#: ../src/mn-vfs-mailbox.gob:385
 msgid "unknown mailbox format"
 msgstr "neznámý formát schránky"
 
-#: ../src/mn-vfs-mailbox.gob:307
+#: ../src/mn-vfs-mailbox.gob:385
 msgid "does not exist"
 msgstr "neexistuje"
 
-#: ../src/mn-vfs-mailbox.gob:377
-#, c-format
-msgid ""
-"As a fallback, they will be checked every %i second (this delay is "
-"configurable from the Properties Dialog)."
-msgid_plural ""
-"As a fallback, they will be checked every %i seconds (this delay is "
-"configurable from the Properties Dialog)."
-msgstr[0] ""
-"Kontrola proběhne každou %i sekundu (tento interval je nastavitelný "
-"v dialogu Nastavení)."
-msgstr[1] ""
-"Kontrola proběhne každé %i sekundy (tento interval je nastavitelný "
-"v dialogu Nastavení)."
-msgstr[2] ""
-"Kontrola proběhne každých %i sekund (tento interval je nastavitelný "
-"v dialogu Nastavení)."
-
-#: ../src/mn-vfs-mailbox.gob:388
-#, c-format
-msgid ""
-"As a fallback, they will be checked every %i minute (this delay is "
-"configurable from the Properties Dialog)."
-msgid_plural ""
-"As a fallback, they will be checked every %i minutes (this delay is "
-"configurable from the Properties Dialog)."
-msgstr[0] ""
-"Kontrola proběhne každou %i minutu (tento interval je nastavitelný "
-"v dialogu Nastavení)."
-msgstr[1] ""
-"Kontrola proběhne každé %i minuty (tento interval je nastavitelný "
-"v dialogu Nastavení)."
-msgstr[2] ""
-"Kontrola proběhne každých %i minut (tento interval je nastavitelný "
-"v dialogu Nastavení)."
-
-#: ../src/mn-vfs-mailbox.gob:399
-#, c-format
-msgid ""
-"As a fallback, they will be checked approximately every %i minute (this "
-"delay is configurable from the Properties Dialog)."
-msgid_plural ""
-"As a fallback, they will be checked approximately every %i minutes (this "
-"delay is configurable from the Properties Dialog)."
-msgstr[0] ""
-"Kontrola proběhne přibližně každou %i minutu (tento interval je nastavitelný "
-"v dialogu Nastavení)."
-msgstr[1] ""
-"Kontrola proběhne přibližně každé %i minuty (tento interval je nastavitelný "
-"v dialogu Nastavení)."
-msgstr[2] ""
-"Kontrola proběhne přibližně každých %i minut (tento interval je nastavitelný "
-"v dialogu Nastavení)."
-
-#: ../src/mn-vfs-mailbox.gob:415
-msgid "A monitoring error has occurred"
-msgstr "Nastala chyba sledování"
-
-#: ../src/mn-vfs-mailbox.gob:416
-#, c-format
-msgid ""
-"Mail Notification was unable to enable immediate notification for one or "
-"more mailboxes. %s"
-msgstr ""
-"Nemohu zapnout okamžité upozorňování pro jednu nebo více schránek. %s"
-
-#: ../ui/edit-toolbars-dialog.glade.h:1
-msgid "Edit Toolbars"
-msgstr "Upravit lišty nástrojů"
-
-#: ../ui/edit-toolbars-dialog.glade.h:2
-msgid "_Add a New Toolbar"
-msgstr "_Přidat novou lištu nástrojů"
-
-#: ../ui/edit-toolbars-dialog.glade.h:3
-#: ../ui/mailbox-properties-dialog.glade.h:4
-msgid "_Use Default"
-msgstr "_Použít výchozí"
-
-#: ../ui/mail-summary-popup.glade.h:1
-msgid "<span size=\"larger\" weight=\"bold\">Mail Summary</span>"
-msgstr "<span size=\"larger\" weight=\"bold\">Souhrn pošty</span>"
-
-#: ../ui/mailbox-properties-dialog.glade.h:1 ../ui/properties-dialog.glade.h:4
+#. translators: header capitalization
+#: ../ui/mailbox-properties-dialog.glade.h:2 ../ui/properties-dialog.glade.h:8
 msgid "<span weight=\"bold\">General</span>"
 msgstr "<span weight=\"bold\">Všeobecné</span>"
 
-#: ../ui/mailbox-properties-dialog.glade.h:2
+#: ../ui/mailbox-properties-dialog.glade.h:3
+msgid "Delay between mail chec_ks:"
+msgstr "_Interval mezi kontrolami pošty:"
+
+#: ../ui/mailbox-properties-dialog.glade.h:4
 msgid "Mailbox _name:"
 msgstr "_Jméno schránky:"
 
-#: ../ui/mailbox-properties-dialog.glade.h:3
-msgid "Mailbox _type:"
+#. translators: header capitalization
+#: ../ui/mailbox-properties-dialog.glade.h:6
+msgid "Use De_fault"
+msgstr "_Použít výchozí"
+
+#: ../ui/mailbox-properties-dialog.glade.h:7
+msgid "_Mailbox type:"
 msgstr "_Typ schránky:"
 
-#: ../ui/properties-dialog.glade.h:1
-msgid "<span weight=\"bold\">Commands</span>"
-msgstr "<span weight=\"bold\">Příkazy</span>"
+#. translators: header capitalization
+#: ../ui/mailbox-properties-dialog.glade.h:9
+msgid "_Use Default"
+msgstr "_Použít výchozí"
 
-#: ../ui/properties-dialog.glade.h:2
-msgid "<span weight=\"bold\">Double-click Action</span>"
-msgstr "<span weight=\"bold\">Dvojité kliknutí</span>"
-
-#: ../ui/properties-dialog.glade.h:3
-msgid "<span weight=\"bold\">Fonts</span>"
-msgstr "<span weight=\"bold\">Písma</span>"
-
-#: ../ui/properties-dialog.glade.h:5
-msgid "<span weight=\"bold\">Mailbox List</span>"
-msgstr "<span weight=\"bold\">Seznam schránek</span>"
-
-#: ../ui/properties-dialog.glade.h:6
-msgid "<span weight=\"bold\">Position</span>"
-msgstr "<span weight=\"bold\">Umístění</span>"
-
-#: ../ui/properties-dialog.glade.h:7
-msgid "Co_ntents:"
-msgstr "_Obsah:"
-
-#: ../ui/properties-dialog.glade.h:8
-msgid "Dis_play mail summary in tooltip"
-msgstr "Z_obrazovat souhrn pošty v tooltipu"
-
-#: ../ui/properties-dialog.glade.h:9
-msgid "General"
-msgstr "Všeobecné"
-
-#: ../ui/properties-dialog.glade.h:11
-msgid "Mail Summary Popup"
-msgstr "Vyskakovací souhrn pošty"
-
-#: ../ui/properties-dialog.glade.h:12
-msgid "Mailboxes"
-msgstr "Schránky"
-
-#: ../ui/properties-dialog.glade.h:13
-msgid "Only display _recent mail"
-msgstr "Zobrazovat _pouze nedávnou poštu"
-
-#: ../ui/properties-dialog.glade.h:14
-msgid "Use these _fonts:"
-msgstr "Použít _tato písma:"
-
-#: ../ui/properties-dialog.glade.h:15
-msgid "When _all mail has been read:"
-msgstr "Když _je veškerá pošta přečtena:"
-
-#: ../ui/properties-dialog.glade.h:16
-msgid "When _new mail arrives:"
-msgstr "Když _dorazí nová pošta:"
-
-#: ../ui/properties-dialog.glade.h:17
-msgid "_Automatically close after:"
-msgstr "_Automaticky zavřít po:"
-
-#: ../ui/properties-dialog.glade.h:18
-msgid "_Blink on errors"
-msgstr "_Blikat při chybě"
-
-#: ../ui/properties-dialog.glade.h:19
-msgid "_Delay between mail checks:"
-msgstr "_Interval mezi kontrolami pošty:"
-
-#: ../ui/properties-dialog.glade.h:20
-msgid "_Display a Test Popup"
-msgstr "Zo_brazit ukázku"
-
-#: ../ui/properties-dialog.glade.h:21
-msgid "_Display the main window"
-msgstr "Zobrazit _hlavní okno"
-
-#: ../ui/properties-dialog.glade.h:22
-msgid "_Enable mail summary popup"
-msgstr "Zapnout vyskakovací _souhrn pošty"
-
-#: ../ui/properties-dialog.glade.h:23
-msgid "_Horizontal offset:"
-msgstr "_Horizontální odsazení:"
-
-#: ../ui/properties-dialog.glade.h:24
-msgid "_Launch the mail reader"
-msgstr "Sp_ustit poštovní program"
-
-#: ../ui/properties-dialog.glade.h:25
-msgid "_Mail reader:"
-msgstr "_Poštovní program:"
-
-#: ../ui/properties-dialog.glade.h:26
-msgid "_Position:"
-msgstr "_Umístění:"
-
-#: ../ui/properties-dialog.glade.h:27
-msgid "_Start Mail Notification on GNOME login"
-msgstr "_Spustit Upozornění na poštu při spuštění GNOME"
-
-#: ../ui/properties-dialog.glade.h:28
-msgid "_Title:"
-msgstr "_Titulek:"
-
-#: ../ui/properties-dialog.glade.h:29
-msgid "_Update the mail status"
-msgstr "_Aktualizovat stav pošty"
-
-#: ../ui/properties-dialog.glade.h:30
-msgid "_Use fonts from theme"
-msgstr "P_oužít písma z tématu"
-
-#: ../ui/properties-dialog.glade.h:31
-msgid "_Vertical offset:"
-msgstr "_Vertikální odsazení:"
-
-#: ../ui/properties-dialog.glade.h:32
+#: ../ui/mailbox-properties-dialog.glade.h:10
+#: ../ui/properties-dialog.glade.h:48
 msgid "minutes"
 msgstr "minut"
 
+#: ../ui/mailbox-properties-dialog.glade.h:11
+#: ../ui/properties-dialog.glade.h:52
+msgid "seconds"
+msgstr "sekund"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:2
+msgid "<span weight=\"bold\">Click Action</span>"
+msgstr "<span weight=\"bold\">Kliknutí</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:4
+msgid "<span weight=\"bold\">Commands</span>"
+msgstr "<span weight=\"bold\">Příkazy</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:6
+msgid "<span weight=\"bold\">Fonts</span>"
+msgstr "<span weight=\"bold\">Písma</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:10
+msgid "<span weight=\"bold\">Layout</span>"
+msgstr "<span weight=\"bold\">Rozložení</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:12
+msgid "<span weight=\"bold\">Mailbox List</span>"
+msgstr "<span weight=\"bold\">Seznam schránek</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:14
+msgid "<span weight=\"bold\">Position</span>"
+msgstr "<span weight=\"bold\">Umístění</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:16
+msgid "<span weight=\"bold\">Tooltip Mail Summary</span>"
+msgstr "<span weight=\"bold\">Souhrn pošty v tooltipu</span>"
+
+#: ../ui/properties-dialog.glade.h:17
+msgid "Co_ntents:"
+msgstr "_Obsah:"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:19
+msgid "General"
+msgstr "Všeobecné"
+
+#: ../ui/properties-dialog.glade.h:20
+msgid "Hide p_reviously displayed mail"
+msgstr "Skrýt _dříve zobrazenou poštu"
+
+#: ../ui/properties-dialog.glade.h:21
+msgid "Hori_zontal offset:"
+msgstr "_Horizontální odsazení:"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:25
+msgid "Mail Summary Popup"
+msgstr "Vyskakovací souhrn pošty"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:27
+msgid "Status Icon"
+msgstr "Stavová ikona"
+
+#: ../ui/properties-dialog.glade.h:28
+msgid "Use these _fonts:"
+msgstr "Použít _tato písma:"
+
+#: ../ui/properties-dialog.glade.h:29
+msgid "When _new mail arrives:"
+msgstr "Když _dorazí nová pošta:"
+
+#: ../ui/properties-dialog.glade.h:30
+msgid "When all mail has _been read:"
+msgstr "Když veškerá pošta _byla přečtena:"
+
+#: ../ui/properties-dialog.glade.h:31
+msgid "_Always display"
+msgstr "_Vždy zobrazit"
+
+#: ../ui/properties-dialog.glade.h:32
+msgid "_Automatically close after:"
+msgstr "_Automaticky zavřít po:"
+
 #: ../ui/properties-dialog.glade.h:33
+msgid "_Blink on errors"
+msgstr "_Blikat při chybě"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:35
+msgid "_Display a Test Popup"
+msgstr "Zo_brazit ukázku"
+
+#: ../ui/properties-dialog.glade.h:36
+msgid "_Display seen mail"
+msgstr "Zobrazit přečtenou poštu"
+
+#: ../ui/properties-dialog.glade.h:37
+msgid "_Display this dialog"
+msgstr "Zobrazit tento dialog"
+
+#: ../ui/properties-dialog.glade.h:38
+msgid "_Enable mail summary popup"
+msgstr "Zapnout vyskakovací _souhrn pošty"
+
+#: ../ui/properties-dialog.glade.h:39
+msgid "_Launch the mail reader"
+msgstr "Sp_ustit poštovní program"
+
+#: ../ui/properties-dialog.glade.h:40
+msgid "_None"
+msgstr "Žádný"
+
+#: ../ui/properties-dialog.glade.h:41
+msgid "_Position:"
+msgstr "_Umístění:"
+
+#: ../ui/properties-dialog.glade.h:42
+msgid "_Title:"
+msgstr "_Titulek:"
+
+#: ../ui/properties-dialog.glade.h:43
+msgid "_Update the mail status"
+msgstr "_Aktualizovat stav pošty"
+
+#: ../ui/properties-dialog.glade.h:44
+msgid "_Use fonts from theme"
+msgstr "P_oužít písma z tématu"
+
+#: ../ui/properties-dialog.glade.h:45
+msgid "_Vertical offset:"
+msgstr "_Vertikální odsazení:"
+
+#: ../ui/properties-dialog.glade.h:46
+msgid "icon tooltip's mail summary layout|Co_mpact"
+msgstr "rozložení souhrnu pošty v tooltipu ikony|_Kompaktní"
+
+#: ../ui/properties-dialog.glade.h:47
+msgid "icon tooltip's mail summary layout|_Standard"
+msgstr "rozložení souhrnu pošty v tooltipu ikony|_Standardní"
+
+#: ../ui/properties-dialog.glade.h:49
 msgid "pixels"
 msgstr "pixelů"
 
-#: ../ui/properties-dialog.glade.h:34
-msgid "seconds"
-msgstr "sekund"
+#: ../ui/properties-dialog.glade.h:50
+msgid "popup's mail summary layout|Co_mpact"
+msgstr "rozložení vyskakovacího souhrnu pošty|_Kompaktní"
+
+#: ../ui/properties-dialog.glade.h:51
+msgid "popup's mail summary layout|_Standard"
+msgstr "rozložení vyskakovacího souhrnu pošty|_Standardní"
+
+#~ msgid "Delay between mail checks (minutes part)."
+#~ msgstr "Interval mezi kontrolami pošty (minuty)."
+
+#~ msgid "Delay between mail checks (seconds part)."
+#~ msgstr "Interval mezi kontrolami pošty (sekundy)."
+
+#~ msgid "Display mail summary in tooltip"
+#~ msgstr "Zobrazit souhrn pošty v tooltipu"
+
+#~ msgid "Do not show the immediate notification error dialog"
+#~ msgstr "Nezobrazovat okamžitě chybový dialog"
+
+#~ msgid "Height of edit toolbars dialog"
+#~ msgstr "Výška dialogu pro úpravu lišty nástrojů"
+
+#~ msgid "Height of main window"
+#~ msgstr "Výška hlavního okna"
+
+#~ msgid "Mail reader command"
+#~ msgstr "Příkaz pro spuštění poštovního programu"
+
+#~ msgid "Minutes between mail checks"
+#~ msgstr "Minuty mezi kontrolami pošty"
+
+#~ msgid "Seconds between mail checks"
+#~ msgstr "Sekundy mezi kontrolami pošty"
+
+#~ msgid "Set a mail reader"
+#~ msgstr "Nastavit poštovní program"
+
+#~ msgid "The command to run to launch the mail reader."
+#~ msgstr "Příkaz pro spuštění poštovního programu."
+
+#~ msgid "The height of the edit toolbars dialog in pixels."
+#~ msgstr "Výška dialogu pro úpravu lišty nástrojů v pixelech."
+
+#~ msgid "The height of the main window in pixels."
+#~ msgstr "Výška hlavního okna v pixelech."
+
+#~ msgid ""
+#~ "The style of the toolbars. Must be \"desktop-default\", \"icons\", \"text"
+#~ "\", \"both\" or \"both-horiz\"."
+#~ msgstr ""
+#~ "Vzhled lišty nástrojů. Musí být \"desktop-default\", \"icons\", \"text\", "
+#~ "\"both\" nebo \"both=horiz\"."
+
+#~ msgid "The width of the edit toolbars dialog in pixels."
+#~ msgstr "Šířka dialogu pro úpravu lišty nástrojů v pixelech."
+
+#~ msgid "The width of the main window in pixels."
+#~ msgstr "Šířka hlavního okna v pixelech."
+
+#~ msgid "Toolbars style"
+#~ msgstr "Vzhled lišty nástrojů"
+
+#~ msgid "View statusbar"
+#~ msgstr "Zobrazit statovou lištu"
+
+#~ msgid "View toolbars"
+#~ msgstr "Zobrazit lišty nástrojů"
+
+#~ msgid "Whether the statusbar should be visible or not."
+#~ msgstr "Jestli má být statová lišta viditelná nebo ne."
+
+#~ msgid "Whether the toolbars should be visible or not."
+#~ msgstr "Jestli mají být lišty nástrojů viditelné nebo ne."
+
+#~ msgid ""
+#~ "Whether to display the mail summary in the status icon tooltip or not."
+#~ msgstr "Jestli zobrazit souhrn pošty v tooltipu statové ikony nebo ne."
+
+#~ msgid ""
+#~ "Whether to prevent the immediate notification error dialog from being "
+#~ "displayed or not."
+#~ msgstr "Jestli zabránit chybovému dialogu v zobrazování nebo ne."
+
+#~ msgid "Width of edit toolbars dialog"
+#~ msgstr "Šířka dialogu pro úpravu lišt nástrojů"
+
+#~ msgid "Width of main window"
+#~ msgstr "Šířka hlavního okna"
+
+#~ msgid "New Mail"
+#~ msgstr "Nová pošta"
+
+#~ msgid "_Remove Toolbar"
+#~ msgstr "_Odstranit lištu nástrojů"
+
+#~ msgid "Separator"
+#~ msgstr "Oddělovač"
+
+#~ msgid "Main _Window"
+#~ msgstr "_Hlavní okno"
+
+#~ msgid "Help messages"
+#~ msgstr "Zprávy s nápovědou"
+
+#~ msgid "Count messages"
+#~ msgstr "Zprávy o počtu"
+
+#~ msgid "_Mail"
+#~ msgstr "_Pošta"
+
+#~ msgid "_Edit"
+#~ msgstr "_Upravit"
+
+#~ msgid "_View"
+#~ msgstr "_Zobrazit"
+
+#~ msgid "_Help"
+#~ msgstr "_Nápověda"
+
+#~ msgid "Launch the mail reader"
+#~ msgstr "Spustit poštovní program"
+
+#~ msgid "_Close"
+#~ msgstr "_Zavřít"
+
+#~ msgid "Close this window"
+#~ msgstr "Zavřít toto okno"
+
+#~ msgid "_Quit"
+#~ msgstr "_Ukončit"
+
+#~ msgid "_Toolbars"
+#~ msgstr "_Lišty nástrojů"
+
+#~ msgid "Customize the toolbars"
+#~ msgstr "Upravit lišty nástrojů"
+
+#~ msgid "_Preferences"
+#~ msgstr "_Nastavení"
+
+#~ msgid "Toolbars Styl_e"
+#~ msgstr "_Vzhled lišt nástrojů"
+
+#~ msgid "Customize the toolbars style"
+#~ msgstr "Upravit vzhled lišt nástrojů"
+
+#~ msgid "_Contents"
+#~ msgstr "_Obsah"
+
+#~ msgid "Display help"
+#~ msgstr "Zobrazit nápovědu"
+
+#~ msgid "_About"
+#~ msgstr "_O Upozornění na poštu"
+
+#~ msgid "Display credits"
+#~ msgstr "Kredity"
+
+#~ msgid "Show or hide the toolbars"
+#~ msgstr "Zobrazit nebo skrýt lišty nástrojů"
+
+#~ msgid "_Statusbar"
+#~ msgstr "_Statová lišta"
+
+#~ msgid "Show or hide the statusbar"
+#~ msgstr "Zobrazit nebo skrýt statovou lištu"
+
+#~ msgid "_Desktop Default"
+#~ msgstr "_Výchozí nastavení"
+
+#~ msgid "Set the toolbars style to the desktop default setting"
+#~ msgstr ""
+#~ "Nastaví vzhled lišt nástrojů do výchozího nastavení prostřední GNOME"
+
+#~ msgid "I_cons Only"
+#~ msgstr "Pouze _ikony"
+
+#~ msgid "_Text Only"
+#~ msgstr "Pouze _text"
+
+#~ msgid "Only display the toolbars text"
+#~ msgstr "Zobrazit pouze textové popisy v lištách nástrojů"
+
+#~ msgid "Text Belo_w Icons"
+#~ msgstr "T_ext pod ikonami"
+
+#~ msgid "Display the toolbars text below the icons"
+#~ msgstr "Zobrazit lišty nástrojů s texty pod ikonami"
+
+#~ msgid "Text Be_side Icons"
+#~ msgstr "Text _vedle ikon"
+
+#~ msgid "Display the toolbars text beside the icons"
+#~ msgstr "Zobrazit lišty nástrojů s texty vedle ikon"
+
+#~ msgid "unable to load menus.xml: %s"
+#~ msgstr "nemohu načíst menus.xml: %s"
+
+#~ msgid "unable to load toolbars.xml"
+#~ msgstr "nemohu načíst toolbars.xml"
+
+#~ msgid "%i new message"
+#~ msgid_plural "%i new messages"
+#~ msgstr[0] "%i nová zpráva"
+#~ msgstr[1] "%i nové zprávy"
+#~ msgstr[2] "%i nových zpráv"
+
+#~ msgid "Compiled-in mailbox backends: "
+#~ msgstr "Podporované typy schránek v této kompilaci: "
+
+#~ msgid "List the compiled-in features"
+#~ msgstr "Vypsat funkce zahrnuté v této kompilaci"
+
+#~ msgid "Display the main window"
+#~ msgstr "Zobrazit hlavní okno"
+
+#~ msgid "You have new mail."
+#~ msgstr "Máte novou poštu."
+
+#~ msgid "Leave Fullscreen"
+#~ msgstr "Opustit celoobrazovkové zobrazení"
+
+#~ msgid "MAIL environment variable not defined"
+#~ msgstr "Proměnná prostředí MAIL není definována"
+
+#~ msgid "widget \"%s\" not found in interface \"%s\""
+#~ msgstr "widget \"%s\" nebyl nalezen v rozhraní \"%s\""
+
+#~ msgid "signal handler \"%s\" not found"
+#~ msgstr "signal handler \"%s\" nebyl nalezen"
+
+#~ msgid "_Do not show this message again"
+#~ msgstr "_Příště nezobrazit tuto zprávu"
+
+#~ msgid "invalid signal specification \"%s\""
+#~ msgstr "neplatná specifikace signálu \"%s\""
+
+#~ msgid "unable to monitor mailbox contents (%s), poll mode activated"
+#~ msgstr "nemohu sledovat obsah schránky (%s), poll režim aktivován"
+
+#~ msgid ""
+#~ "As a fallback, they will be checked every %i second (this delay is "
+#~ "configurable from the Properties Dialog)."
+#~ msgid_plural ""
+#~ "As a fallback, they will be checked every %i seconds (this delay is "
+#~ "configurable from the Properties Dialog)."
+#~ msgstr[0] ""
+#~ "Kontrola proběhne každou %i sekundu (tento interval je nastavitelný v "
+#~ "dialogu Nastavení)."
+#~ msgstr[1] ""
+#~ "Kontrola proběhne každé %i sekundy (tento interval je nastavitelný v "
+#~ "dialogu Nastavení)."
+#~ msgstr[2] ""
+#~ "Kontrola proběhne každých %i sekund (tento interval je nastavitelný v "
+#~ "dialogu Nastavení)."
+
+#~ msgid ""
+#~ "As a fallback, they will be checked every %i minute (this delay is "
+#~ "configurable from the Properties Dialog)."
+#~ msgid_plural ""
+#~ "As a fallback, they will be checked every %i minutes (this delay is "
+#~ "configurable from the Properties Dialog)."
+#~ msgstr[0] ""
+#~ "Kontrola proběhne každou %i minutu (tento interval je nastavitelný v "
+#~ "dialogu Nastavení)."
+#~ msgstr[1] ""
+#~ "Kontrola proběhne každé %i minuty (tento interval je nastavitelný v "
+#~ "dialogu Nastavení)."
+#~ msgstr[2] ""
+#~ "Kontrola proběhne každých %i minut (tento interval je nastavitelný v "
+#~ "dialogu Nastavení)."
+
+#~ msgid ""
+#~ "As a fallback, they will be checked approximately every %i minute (this "
+#~ "delay is configurable from the Properties Dialog)."
+#~ msgid_plural ""
+#~ "As a fallback, they will be checked approximately every %i minutes (this "
+#~ "delay is configurable from the Properties Dialog)."
+#~ msgstr[0] ""
+#~ "Kontrola proběhne přibližně každou %i minutu (tento interval je "
+#~ "nastavitelný v dialogu Nastavení)."
+#~ msgstr[1] ""
+#~ "Kontrola proběhne přibližně každé %i minuty (tento interval je "
+#~ "nastavitelný v dialogu Nastavení)."
+#~ msgstr[2] ""
+#~ "Kontrola proběhne přibližně každých %i minut (tento interval je "
+#~ "nastavitelný v dialogu Nastavení)."
+
+#~ msgid "A monitoring error has occurred"
+#~ msgstr "Nastala chyba sledování"
+
+#~ msgid ""
+#~ "Mail Notification was unable to enable immediate notification for one or "
+#~ "more mailboxes. %s"
+#~ msgstr ""
+#~ "Nemohu zapnout okamžité upozorňování pro jednu nebo více schránek. %s"
+
+#~ msgid "Edit Toolbars"
+#~ msgstr "Upravit lišty nástrojů"
+
+#~ msgid "_Add a New Toolbar"
+#~ msgstr "_Přidat novou lištu nástrojů"
+
+#~ msgid "Dis_play mail summary in tooltip"
+#~ msgstr "Z_obrazovat souhrn pošty v tooltipu"
+
+#~ msgid "Mailboxes"
+#~ msgstr "Schránky"
+
+#~ msgid "_Display the main window"
+#~ msgstr "Zobrazit _hlavní okno"
+
+#~ msgid "_Mail reader:"
+#~ msgstr "_Poštovní program:"
+
+#~ msgid "_Start Mail Notification on GNOME login"
+#~ msgstr "_Spustit Upozornění na poštu při spuštění GNOME"

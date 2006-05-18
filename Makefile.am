@@ -1,4 +1,4 @@
-SUBDIRS = aml art data help m4 po src ui
+SUBDIRS = art data help m4 po src ui
 
 if WITH_REGRESSION_TESTS
 SUBDIRS += tests
@@ -7,6 +7,7 @@ endif
 EXTRA_DIST = \
 	Makefile.autogen	\
 	TRANSLATING		\
+	aml.make		\
 	autogen.sh		\
 	intltool-extract.in	\
 	intltool-merge.in	\

@@ -205,7 +205,10 @@ class MN:Evolution:Mailbox:Properties from MN:Mailbox:Properties
 
 	    name = GNOME_MailNotification_Evolution_Glue_getFolderName(glue, uri, &name_env);
 	    if (BONOBO_EX(&name_env))
-	      name = NULL;
+	      {
+		CORBA_free(name);
+		name = NULL;
+	      }
 
 	    CORBA_exception_free(&name_env);
 

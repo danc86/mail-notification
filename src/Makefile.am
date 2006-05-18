@@ -1,5 +1,5 @@
 # Generated from automake.xml using Jean-Yves Lefort's aml.
-include $(top_srcdir)/aml/aml.make
+include $(top_srcdir)/aml.make
 bin_PROGRAMS = mail-notification
 mail_notification_CPPFLAGS = $(WARN_CFLAGS)
 mail_notification_CPPFLAGS += -I$(top_srcdir)

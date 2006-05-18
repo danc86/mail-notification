@@ -175,9 +175,9 @@ mn_evolution_mailbox_properties_class_init (MNEvolutionMailboxPropertiesClass * 
 
 #line 82 "mn-evolution-mailbox-properties.gob"
 	g_object_class->dispose = ___dispose;
-#line 240 "mn-evolution-mailbox-properties.gob"
+#line 243 "mn-evolution-mailbox-properties.gob"
 	mn_mailbox_properties_class->set_mailbox = ___9_mn_evolution_mailbox_properties_set_mailbox;
-#line 256 "mn-evolution-mailbox-properties.gob"
+#line 259 "mn-evolution-mailbox-properties.gob"
 	mn_mailbox_properties_class->get_mailbox = ___a_mn_evolution_mailbox_properties_get_mailbox;
 #line 183 "mn-evolution-mailbox-properties.c"
 	g_object_class->finalize = ___finalize;
@@ -457,7 +457,10 @@ mn_evolution_mailbox_properties_selected_uri_changed_cb (BonoboListener * listen
 
 	    name = GNOME_MailNotification_Evolution_Glue_getFolderName(glue, uri, &name_env);
 	    if (BONOBO_EX(&name_env))
-	      name = NULL;
+	      {
+		CORBA_free(name);
+		name = NULL;
+	      }
 
 	    CORBA_exception_free(&name_env);
 
@@ -479,42 +482,42 @@ mn_evolution_mailbox_properties_selected_uri_changed_cb (BonoboListener * listen
     g_object_notify(G_OBJECT(self), "complete");
     g_object_notify(G_OBJECT(self), "default-name");
   }}
-#line 483 "mn-evolution-mailbox-properties.c"
+#line 486 "mn-evolution-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 231 "mn-evolution-mailbox-properties.gob"
+#line 234 "mn-evolution-mailbox-properties.gob"
 static void 
 mn_evolution_mailbox_properties_sync (MNEvolutionMailboxProperties * self)
-#line 489 "mn-evolution-mailbox-properties.c"
+#line 492 "mn-evolution-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Mailbox:Properties::sync"
-#line 231 "mn-evolution-mailbox-properties.gob"
+#line 234 "mn-evolution-mailbox-properties.gob"
 	g_return_if_fail (self != NULL);
-#line 231 "mn-evolution-mailbox-properties.gob"
+#line 234 "mn-evolution-mailbox-properties.gob"
 	g_return_if_fail (MN_IS_EVOLUTION_MAILBOX_PROPERTIES (self));
-#line 496 "mn-evolution-mailbox-properties.c"
+#line 499 "mn-evolution-mailbox-properties.c"
 {
-#line 233 "mn-evolution-mailbox-properties.gob"
+#line 236 "mn-evolution-mailbox-properties.gob"
 	
     g_return_if_fail(selfp->tree != NULL);
 
     if (selfp->uri)
       bonobo_widget_set_property(BONOBO_WIDGET(selfp->tree), "selected-uri", BONOBO_ARG_STRING, selfp->uri, NULL);
   }}
-#line 505 "mn-evolution-mailbox-properties.c"
+#line 508 "mn-evolution-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 240 "mn-evolution-mailbox-properties.gob"
+#line 243 "mn-evolution-mailbox-properties.gob"
 static void 
 ___9_mn_evolution_mailbox_properties_set_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED, MNMailbox * mailbox)
-#line 511 "mn-evolution-mailbox-properties.c"
+#line 514 "mn-evolution-mailbox-properties.c"
 #define PARENT_HANDLER(___properties,___mailbox) \
 	{ if(MN_MAILBOX_PROPERTIES_CLASS(parent_class)->set_mailbox) \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->set_mailbox)(___properties,___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Mailbox:Properties::set_mailbox"
 {
-#line 242 "mn-evolution-mailbox-properties.gob"
+#line 245 "mn-evolution-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     MNEvolutionMailbox *evolution_mailbox = MN_EVOLUTION_MAILBOX(mailbox);
@@ -528,14 +531,14 @@ ___9_mn_evolution_mailbox_properties_set_mailbox (MNMailboxProperties * properti
     if (selfp->tree)
       self_sync(self);
   }}
-#line 532 "mn-evolution-mailbox-properties.c"
+#line 535 "mn-evolution-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 256 "mn-evolution-mailbox-properties.gob"
+#line 259 "mn-evolution-mailbox-properties.gob"
 static MNMailbox * 
 ___a_mn_evolution_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED)
-#line 539 "mn-evolution-mailbox-properties.c"
+#line 542 "mn-evolution-mailbox-properties.c"
 #define PARENT_HANDLER(___properties) \
 	((MN_MAILBOX_PROPERTIES_CLASS(parent_class)->get_mailbox)? \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->get_mailbox)(___properties): \
@@ -543,7 +546,7 @@ ___a_mn_evolution_mailbox_properties_get_mailbox (MNMailboxProperties * properti
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Mailbox:Properties::get_mailbox"
 {
-#line 258 "mn-evolution-mailbox-properties.gob"
+#line 261 "mn-evolution-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     MNMailbox *mailbox;
@@ -557,6 +560,6 @@ ___a_mn_evolution_mailbox_properties_get_mailbox (MNMailboxProperties * properti
 
     return mailbox;
   }}
-#line 561 "mn-evolution-mailbox-properties.c"
+#line 564 "mn-evolution-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER

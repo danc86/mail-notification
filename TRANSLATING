@@ -16,7 +16,7 @@ Index
 
 0. About this document
 
-	$Id: TRANSLATING,v 1.3 2006/03/04 05:16:03 jylefort Exp $
+	$Id: TRANSLATING,v 1.4 2006/05/18 12:48:28 jylefort Exp $
 
 	Copyright (C) 2005, 2006 Jean-Yves Lefort.
 
@@ -108,7 +108,7 @@ Index
 8. Application name
 
 	The application name ("Mail Notification") should be
-	translated. In English, it is treated as a proper noun and
-	capitalized accordingly. However, appropriate classification
-	(common noun or proper noun) and capitalization may vary from
-	language to language.
+	translated. For historical reasons, in English, it is treated
+	as a proper noun and capitalized accordingly. However, in the
+	target language, it should be translated as a common noun
+	(such as "the washing machine" or "the mail notifier").

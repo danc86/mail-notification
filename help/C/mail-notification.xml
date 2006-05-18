@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "3.0 Release Candidate 1">
-  <!ENTITY manrevision "2.13">
-  <!ENTITY date "Tuesday, May 16, 2006">
+  <!ENTITY appversion "3.0 Release Candidate 2">
+  <!ENTITY manrevision "2.14">
+  <!ENTITY date "Thursday, May 18, 2006">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,7 +26,7 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.130 2006/05/16 00:10:50 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.132 2006/05/18 13:28:55 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (C) 2004-2006 Jean-Yves Lefort -->
@@ -127,6 +127,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.13</revnumber>
+	<date>Tuesday, May 16, 2006</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -1602,6 +1613,7 @@ widget "*" style "mn-icons"</programlisting>
 	<listitem><para>Pav Lucistnik</para></listitem>
 	<listitem><para>Filip Miletic</para></listitem>
 	<listitem><para>Phil Nelson</para></listitem>
+	<listitem><para>Daniel Nylander</para></listitem>
 	<listitem><para>Maurycy Pawłowski-Wieroński</para></listitem>
 	<listitem><para>Vladimir Petkov</para></listitem>
 	<listitem><para>Benoît Rouits</para></listitem>

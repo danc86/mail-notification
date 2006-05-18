@@ -37,6 +37,16 @@ requires 2.0.14
 
 class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_Evolution_Glue)
 {
+  /*
+   * CORBA_string_dup() accepts a null pointer but in
+   * giop_send_buffer_append_string() ORBit doesn't.
+   */
+  private CORBA_char *
+    CORBA_string_dup_null (const CORBA_char *str)
+  {
+    return CORBA_string_dup(str ? str : "");
+  }
+
   BonoboObject private GNOME_MailNotification_Evolution_MessageSeq *
     getUnseenMessages (PortableServer_Servant servant,
 		       const CORBA_char *folder_uri,
@@ -90,8 +100,8 @@ class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_
 	    seq->_buffer[i].sent_time = camel_message_info_date_sent(info);
 	    seq->_buffer[i].received_time = camel_message_info_date_received(info);
 	    seq->_buffer[i].id = CORBA_string_dup(hexhash);
-	    seq->_buffer[i].from = CORBA_string_dup(camel_message_info_from(info));
-	    seq->_buffer[i].subject = CORBA_string_dup(camel_message_info_subject(info));
+	    seq->_buffer[i].from = self_CORBA_string_dup_null(camel_message_info_from(info));
+	    seq->_buffer[i].subject = self_CORBA_string_dup_null(camel_message_info_subject(info));
 	  }
 
 	CORBA_sequence_set_release(seq, CORBA_TRUE);
@@ -116,7 +126,7 @@ class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_
     folder = mail_tool_uri_to_folder(folder_uri, 0, NULL);
     if (folder)
       {
-	name = CORBA_string_dup(camel_folder_get_name(folder));
+	name = self_CORBA_string_dup_null(camel_folder_get_name(folder));
 	camel_object_unref(folder);
       }
     else

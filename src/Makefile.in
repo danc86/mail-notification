@@ -611,6 +611,7 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DATADIRNAME = @DATADIRNAME@
+DEBUG_CFLAGS = @DEBUG_CFLAGS@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 ECHO = @ECHO@
@@ -794,10 +795,10 @@ target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
 GOBFLAGS = --always-private-header --no-touch --exit-on-warn
-mail_notification_CPPFLAGS = $(WARN_CFLAGS) -I$(top_srcdir) \
-	-DG_LOG_DOMAIN="\"$(PACKAGE)\"" -DPREFIX="\"$(prefix)\"" \
-	-DSYSCONFDIR="\"$(sysconfdir)\"" -DDATADIR="\"$(datadir)\"" \
-	-DLIBDIR="\"$(libdir)\"" \
+mail_notification_CPPFLAGS = $(WARN_CFLAGS) $(DEBUG_CFLAGS) \
+	-I$(top_srcdir) -DG_LOG_DOMAIN="\"$(PACKAGE)\"" \
+	-DPREFIX="\"$(prefix)\"" -DSYSCONFDIR="\"$(sysconfdir)\"" \
+	-DDATADIR="\"$(datadir)\"" -DLIBDIR="\"$(libdir)\"" \
 	-DGNOMELOCALEDIR="\"$(datadir)/locale\"" \
 	-DGNOMEPIXMAPSDIR="\"$(datadir)/pixmaps\"" \
 	-DUIDIR="\"$(pkgdatadir)/ui\"" $(GNOME_CFLAGS) \
@@ -928,7 +929,8 @@ CLEANFILES = GNOME_MailNotification-common.c \
 	GNOME_MailNotification.h $(am__append_49) $(evolution_eplug)
 @WITH_EVOLUTION_TRUE@evolution_plugin_LTLIBRARIES = liborg-gnome-mail-notification.la
 @WITH_EVOLUTION_TRUE@liborg_gnome_mail_notification_la_CPPFLAGS =  \
-@WITH_EVOLUTION_TRUE@	$(WARN_CFLAGS) -I$(top_srcdir) \
+@WITH_EVOLUTION_TRUE@	$(WARN_CFLAGS) $(DEBUG_CFLAGS) \
+@WITH_EVOLUTION_TRUE@	-I$(top_srcdir) \
 @WITH_EVOLUTION_TRUE@	-DG_LOG_DOMAIN="\"$(PACKAGE)\"" \
 @WITH_EVOLUTION_TRUE@	$(EVOLUTION_PLUGIN_CFLAGS)
 @WITH_EVOLUTION_TRUE@liborg_gnome_mail_notification_la_LDFLAGS =  \

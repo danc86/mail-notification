@@ -1,4 +1,4 @@
-AC_INIT([Mail Notification], 3.0-rc2, jylefort@brutele.be)
+AC_INIT([Mail Notification], 3.0, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mn-main.c)
 
 AC_PREREQ(2.59)
@@ -22,6 +22,7 @@ MN_ARG_ENABLE(sylpheed, [disable Sylpheed support])
 MN_ARG_ENABLE(sylpheed-locking, [enable .sylpheed_mark locking], no)
 
 MN_ARG_COMPILE_WARNINGS
+MN_ARG_DEBUG
 MN_ARG_ENABLE(regression-tests, [build and run regression tests], no)
 
 ### initialization

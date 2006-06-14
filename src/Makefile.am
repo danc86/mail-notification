@@ -2,6 +2,7 @@
 include $(top_srcdir)/aml.make
 bin_PROGRAMS = mail-notification
 mail_notification_CPPFLAGS = $(WARN_CFLAGS)
+mail_notification_CPPFLAGS += $(DEBUG_CFLAGS)
 mail_notification_CPPFLAGS += -I$(top_srcdir)
 mail_notification_CPPFLAGS += -DG_LOG_DOMAIN="\"$(PACKAGE)\""
 mail_notification_CPPFLAGS += -DPREFIX="\"$(prefix)\""
@@ -313,6 +314,7 @@ endif
 if WITH_EVOLUTION
 evolution_plugin_LTLIBRARIES = liborg-gnome-mail-notification.la
 liborg_gnome_mail_notification_la_CPPFLAGS = $(WARN_CFLAGS)
+liborg_gnome_mail_notification_la_CPPFLAGS += $(DEBUG_CFLAGS)
 liborg_gnome_mail_notification_la_CPPFLAGS += -I$(top_srcdir)
 liborg_gnome_mail_notification_la_CPPFLAGS += -DG_LOG_DOMAIN="\"$(PACKAGE)\""
 liborg_gnome_mail_notification_la_LDFLAGS = -avoid-version -module

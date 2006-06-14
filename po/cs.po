@@ -8,10 +8,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mail-notification 3.0-rc2\n"
+"Project-Id-Version: mail-notification 3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2006-05-16 09:18+0200\n"
-"PO-Revision-Date: 2006-05-18 14:59+0200\n"
+"PO-Revision-Date: 2006-06-14 09:23+0200\n"
 "Last-Translator: Pav Lucistnik <pav@FreeBSD.org>\n"
 "Language-Team: Pav Lucistnik <pav@FreeBSD.org>\n"
 "MIME-Version: 1.0\n"

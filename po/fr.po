@@ -8,10 +8,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mail-notification 3.0-rc2\n"
+"Project-Id-Version: mail-notification 3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2006-05-16 02:11+0200\n"
-"PO-Revision-Date: 2006-05-18 15:00+0200\n"
+"PO-Revision-Date: 2006-06-14 09:23+0200\n"
 "Last-Translator: Jean-Yves Lefort <jylefort@brutele.be>\n"
 "Language-Team: Jean-Yves Lefort <jylefort@brutele.be>\n"
 "MIME-Version: 1.0\n"

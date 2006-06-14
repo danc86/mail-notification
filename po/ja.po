@@ -8,10 +8,10 @@
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: mail-notification 3.0-rc2\n"
+"Project-Id-Version: mail-notification 3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2006-04-29 11:50+0900\n"
-"PO-Revision-Date: 2006-05-18 15:27+0200\n"
+"PO-Revision-Date: 2006-06-14 09:22+0200\n"
 "Last-Translator: Hiroshi Hasebe <hhasebe@DVOI.COM>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -166,8 +166,8 @@ msgid ""
 "The aspect source of the mail summary popup fonts. Must be \"theme\" or "
 "\"custom\"."
 msgstr ""
-"メール一覧ポップアップで使うフォントの選択基準. \"theme\" もしくは \"custom"
-"\" を指定."
+"メール一覧ポップアップで使うフォントの選択基準. \"theme\"もしくは\"custom"
+"\"を指定."
 
 #: data/mail-notification.schemas.in.h:26
 msgid "The command to run when all mail is read."
@@ -340,12 +340,12 @@ msgstr "ファイルもしくはフォルダを選択"
 #: src/mn-client-session.c:247
 #, c-format
 msgid "resolving %s"
-msgstr "%s を解決中"
+msgstr "%sを解決中"
 
 #: src/mn-client-session.c:263
 #, c-format
 msgid "unable to resolve %s: %s"
-msgstr "%s の解決に失敗: %s"
+msgstr "%sの解決に失敗: %s"
 
 #: src/mn-client-session.c:304
 #, c-format
@@ -360,7 +360,7 @@ msgstr "ネットワークアドレス#%iの文字列への変換に失敗: %s"
 #: src/mn-client-session.c:318
 #, c-format
 msgid "%s: unsupported address family"
-msgstr "%s: そのアドレス形式はサポートされていません"
+msgstr "%s: サポートされていないアドレス形式"
 
 #: src/mn-client-session.c:325
 #, c-format
@@ -385,7 +385,7 @@ msgstr "接続に成功"
 #: src/mn-client-session.c:351
 #, c-format
 msgid "unable to connect to %s"
-msgstr "%s への接続に失敗"
+msgstr "%sへの接続に失敗"
 
 #: src/mn-client-session.c:378
 #, c-format
@@ -449,12 +449,12 @@ msgstr "信頼性が確認されていないサーバーに接続しますか?"
 #: src/mn-client-session.c:590
 #, c-format
 msgid "response \"%s\" is not valid in current context"
-msgstr "このコンテキストでの応答 \"%s\" は無効です"
+msgstr "このコンテキストでの応答\"%s\"は無効です"
 
 #: src/mn-client-session.c:619
 #, c-format
 msgid "unable to parse response \"%s\""
-msgstr "応答 \"%s\" の解析に失敗"
+msgstr "応答\"%s\"の解析に失敗"
 
 #: src/mn-client-session.c:669 src/mn-client-session.c:676
 #, c-format
@@ -468,7 +468,7 @@ msgstr "サーバーからの読み出しに失敗: EOF"
 #: src/mn-client-session.c:686
 #, c-format
 msgid "unable to decode data using SASL: %s"
-msgstr "SALSでデコードに失敗: %s"
+msgstr "SASLでデコードに失敗: %s"
 
 #: src/mn-client-session.c:831
 #, c-format
@@ -604,7 +604,7 @@ msgstr "メール着信通知システムの内部でコマンドエラーが発
 #: src/mn-conf.c:1138
 #, c-format
 msgid "Unable to execute \"%s\": %s."
-msgstr "\"%s\" の実行に失敗: %s."
+msgstr "\"%s\"の実行に失敗: %s."
 
 #: src/mn-custom-vfs-mailbox.gob:76
 msgid "invalid location"
@@ -624,7 +624,7 @@ msgid ""
 "Mail Notification can not contact Evolution. Make sure that Evolution is "
 "running and that the Evolution Mail Notification plugin is loaded."
 msgstr ""
-"Evolutionに接続できません. Evolutionが稼働しており, "
+"Evolutionに接続できません. Evolutionが稼働しており, かつ"
 "Evolutionプラグインが読み込まれていることをご確認ください."
 
 #: src/mn-evolution-mailbox.gob:75
@@ -645,7 +645,7 @@ msgid ""
 "Bonobo could not locate the %s server. Please check your Mail Notification "
 "installation."
 msgstr ""
-"Bonoboが%sサーバーを検出できませんでした. メール着信通知システムが正しく"
+"Bonoboがサーバー%sを検出できませんでした. メール着信通知システムが正しく"
 "インストールされているかどうかをご確認ください."
 
 #: src/mn-evolution-plugin.c:140 src/mn-main.c:460
@@ -654,7 +654,7 @@ msgid ""
 "Bonobo was unable to register the %s server. Please check your Mail "
 "Notification installation."
 msgstr ""
-"Bonoboが%sサーバーを登録できませんでした. メール着信通知システムが正しく"
+"Bonoboがサーバー%sを登録できませんでした. メール着信通知システムが正しく"
 "インストールされているかどうかをご確認ください."
 
 #: src/mn-gmail-mailbox.gob:103
@@ -726,7 +726,7 @@ msgstr "常に(_W)"
 
 #: src/mn-imap-mailbox-properties.gob:174
 msgid "Use the <span style=\"italic\">IDLE</span> extension:"
-msgstr "拡張機能 <span style=\"italic\">IDLE</span> を使用します:"
+msgstr "拡張機能<span style=\"italic\">IDLE</span>を使用します:"
 
 #: src/mn-imap-mailbox.gob:384
 msgid "server did not send capabilities"
@@ -754,7 +754,7 @@ msgid ""
 "\"Use the IDLE extension\" set to \"never\" in the mailbox properties, "
 "logging out"
 msgstr ""
-"メールボックスの設定で \"Use the IDLE extension\" が \"never\" "
+"メールボックスの設定で\"Use the IDLE extension\"が\"never\""
 "になっています. ログアウトします"
 
 #: src/mn-imap-mailbox.gob:858
@@ -767,8 +767,8 @@ msgstr "サーバーで%sが稼働しています. 拡張機能IDLEは使用し�
 msgid ""
 "the remote server runs %s, the IDLE extension might not function properly"
 msgstr ""
-"サーバーで%sが稼働しています. 拡張機能 IDLE が正常に"
-"機能しないおそれがあります"
+"サーバーで%sが稼働しています. 拡張機能 IDLE が正常に機能しないおそれが"
+"あります"
 
 #: src/mn-imap-mailbox.gob:872
 msgid "the remote server does not support the IDLE extension, logging out"
@@ -783,7 +783,7 @@ msgid ""
 "a SASL authentication mechanism was selected but SASL support has not been "
 "compiled in"
 msgstr ""
-"SASL認証が選択されていますが, コンパイル時にSASLの使用が指定されて"
+"SASL認証が選択されましたが, コンパイル時にSASLの使用が指定されて"
 "いません"
 
 #: src/mn-imap-mailbox.gob:1411 src/mn-pop3-mailbox.gob:967
@@ -794,7 +794,7 @@ msgstr "\"%s\"は未知の認証方式です"
 #: src/mn-imap-mailbox.gob:1443 src/mn-pop3-mailbox.gob:1003
 #, c-format
 msgid "disabling mechanism \"%s\" and retrying SASL authentication"
-msgstr "\"%s\"を無効にし, SASL認証を再試行します"
+msgstr "\"%s\"を無効にし, SASL認証で再試行します"
 
 #: src/mn-imap-mailbox.gob:1455
 msgid "falling back to IMAP LOGIN authentication"
@@ -1000,7 +1000,7 @@ msgstr "%sバージョン%s\n"
 
 #: src/mn-main.c:137
 msgid "Mailbox backends:\n"
-msgstr "メールボックスバックエンド:\n"
+msgstr "メールボックスのバックエンド:\n"
 
 #: src/mn-main.c:142
 msgid "POP3 and IMAP features:\n"
@@ -1139,7 +1139,7 @@ msgstr "SSL/TLSポートの番号を指定(_R)"
 
 #: src/mn-pi-mailbox-properties.gob:73
 msgid "Ho_stname:"
-msgstr "サーバー(_H):"
+msgstr "サーバー(_S):"
 
 #. translators: header capitalization
 #: src/mn-pi-mailbox-properties.gob:94
@@ -1289,7 +1289,7 @@ msgstr "未知のSSL/TLSエラー"
 
 #: src/mn-standard-message-view.gob:64
 msgid "Unreadable message:"
-msgstr "メッセージを判読できません"
+msgstr "メッセージを判読できません:"
 
 #: src/mn-standard-message-view.gob:67
 msgid "From:"

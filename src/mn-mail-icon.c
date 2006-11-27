@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 31 "mn-mail-icon.gob"
+#line 32 "mn-mail-icon.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
@@ -47,6 +47,7 @@ typedef MNMailIconClass SelfClass;
 /* here are local prototypes */
 static void mn_mail_icon_activate (MNMailIcon * self) G_GNUC_UNUSED;
 static void mn_mail_icon_activate_mail_reader (MNMailIcon * self) G_GNUC_UNUSED;
+static void mn_mail_icon_activate_open_latest_message (MNMailIcon * self) G_GNUC_UNUSED;
 static void mn_mail_icon_activate_update (MNMailIcon * self) G_GNUC_UNUSED;
 static void mn_mail_icon_activate_properties (MNMailIcon * self) G_GNUC_UNUSED;
 static void mn_mail_icon_activate_help (MNMailIcon * self) G_GNUC_UNUSED;
@@ -69,6 +70,9 @@ static void mn_mail_icon_popup_menu_position_cb (GtkMenu * menu, int * x, int * 
 #define self_connect__activate_mail_reader(object,func,data)	mn_mail_icon_connect__activate_mail_reader((object),(func),(data))
 #define self_connect_after__activate_mail_reader(object,func,data)	mn_mail_icon_connect_after__activate_mail_reader((object),(func),(data))
 #define self_connect_data__activate_mail_reader(object,func,data,destroy_data,flags)	mn_mail_icon_connect_data__activate_mail_reader((object),(func),(data),(destroy_data),(flags))
+#define self_connect__activate_open_latest_message(object,func,data)	mn_mail_icon_connect__activate_open_latest_message((object),(func),(data))
+#define self_connect_after__activate_open_latest_message(object,func,data)	mn_mail_icon_connect_after__activate_open_latest_message((object),(func),(data))
+#define self_connect_data__activate_open_latest_message(object,func,data,destroy_data,flags)	mn_mail_icon_connect_data__activate_open_latest_message((object),(func),(data),(destroy_data),(flags))
 #define self_connect__activate_update(object,func,data)	mn_mail_icon_connect__activate_update((object),(func),(data))
 #define self_connect_after__activate_update(object,func,data)	mn_mail_icon_connect_after__activate_update((object),(func),(data))
 #define self_connect_data__activate_update(object,func,data,destroy_data,flags)	mn_mail_icon_connect_data__activate_update((object),(func),(data),(destroy_data),(flags))
@@ -88,6 +92,7 @@ static void mn_mail_icon_popup_menu_position_cb (GtkMenu * menu, int * x, int * 
 enum {
 	ACTIVATE_SIGNAL,
 	ACTIVATE_MAIL_READER_SIGNAL,
+	ACTIVATE_OPEN_LATEST_MESSAGE_SIGNAL,
 	ACTIVATE_UPDATE_SIGNAL,
 	ACTIVATE_PROPERTIES_SIGNAL,
 	ACTIVATE_HELP_SIGNAL,
@@ -104,6 +109,7 @@ static EggTrayIconClass *parent_class = NULL;
 /* Short form macros */
 #define self_activate mn_mail_icon_activate
 #define self_activate_mail_reader mn_mail_icon_activate_mail_reader
+#define self_activate_open_latest_message mn_mail_icon_activate_open_latest_message
 #define self_activate_update mn_mail_icon_activate_update
 #define self_activate_properties mn_mail_icon_activate_properties
 #define self_activate_help mn_mail_icon_activate_help
@@ -167,9 +173,9 @@ ___dispose (GObject *obj_self)
 	MNMailIcon *self G_GNUC_UNUSED = MN_MAIL_ICON (obj_self);
 	if (G_OBJECT_CLASS (parent_class)->dispose) \
 		(* G_OBJECT_CLASS (parent_class)->dispose) (obj_self);
-#line 41 "mn-mail-icon.gob"
+#line 42 "mn-mail-icon.gob"
 	if(self->_priv->tooltips) { g_object_unref ((gpointer) self->_priv->tooltips); self->_priv->tooltips = NULL; }
-#line 173 "mn-mail-icon.c"
+#line 179 "mn-mail-icon.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -182,16 +188,16 @@ ___finalize(GObject *obj_self)
 	gpointer priv G_GNUC_UNUSED = self->_priv;
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 45 "mn-mail-icon.gob"
+#line 46 "mn-mail-icon.gob"
 	if(self->_priv->menu) { gtk_widget_destroy ((gpointer) self->_priv->menu); self->_priv->menu = NULL; }
-#line 188 "mn-mail-icon.c"
+#line 194 "mn-mail-icon.c"
 }
 #undef __GOB_FUNCTION__
 
-#line 64 "mn-mail-icon.gob"
+#line 68 "mn-mail-icon.gob"
 static void 
 mn_mail_icon_class_init (MNMailIconClass * class G_GNUC_UNUSED)
-#line 195 "mn-mail-icon.c"
+#line 201 "mn-mail-icon.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon::class_init"
 	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
@@ -213,6 +219,14 @@ mn_mail_icon_class_init (MNMailIconClass * class G_GNUC_UNUSED)
 			G_TYPE_FROM_CLASS (g_object_class),
 			(GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
 			G_STRUCT_OFFSET (MNMailIconClass, activate_mail_reader),
+			NULL, NULL,
+			g_cclosure_marshal_VOID__VOID,
+			G_TYPE_NONE, 0);
+	object_signals[ACTIVATE_OPEN_LATEST_MESSAGE_SIGNAL] =
+		g_signal_new ("activate_open_latest_message",
+			G_TYPE_FROM_CLASS (g_object_class),
+			(GSignalFlags)(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
+			G_STRUCT_OFFSET (MNMailIconClass, activate_open_latest_message),
 			NULL, NULL,
 			g_cclosure_marshal_VOID__VOID,
 			G_TYPE_NONE, 0);
@@ -259,6 +273,7 @@ mn_mail_icon_class_init (MNMailIconClass * class G_GNUC_UNUSED)
 
 	class->activate = NULL;
 	class->activate_mail_reader = NULL;
+	class->activate_open_latest_message = NULL;
 	class->activate_update = NULL;
 	class->activate_properties = NULL;
 	class->activate_help = NULL;
@@ -267,7 +282,7 @@ mn_mail_icon_class_init (MNMailIconClass * class G_GNUC_UNUSED)
 	g_object_class->dispose = ___dispose;
 	g_object_class->finalize = ___finalize;
  {
-#line 65 "mn-mail-icon.gob"
+#line 69 "mn-mail-icon.gob"
 
     GtkBindingSet *binding_set;
 
@@ -281,28 +296,28 @@ mn_mail_icon_class_init (MNMailIconClass * class G_GNUC_UNUSED)
     gtk_binding_entry_add_signal(binding_set, GDK_ISO_Enter, GDK_MOD1_MASK, "activate-properties", 0);
     gtk_binding_entry_add_signal(binding_set, GDK_KP_Enter, GDK_MOD1_MASK, "activate-properties", 0);
   
-#line 285 "mn-mail-icon.c"
+#line 300 "mn-mail-icon.c"
  }
 }
 #undef __GOB_FUNCTION__
-#line 79 "mn-mail-icon.gob"
+#line 83 "mn-mail-icon.gob"
 static void 
 mn_mail_icon_init (MNMailIcon * self G_GNUC_UNUSED)
-#line 292 "mn-mail-icon.c"
+#line 307 "mn-mail-icon.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_MAIL_ICON,MNMailIconPrivate);
-#line 41 "mn-mail-icon.gob"
+#line 42 "mn-mail-icon.gob"
 	self->_priv->tooltips = mn_tooltips_new();
-#line 298 "mn-mail-icon.c"
-#line 43 "mn-mail-icon.gob"
+#line 313 "mn-mail-icon.c"
+#line 44 "mn-mail-icon.gob"
 	self->image = mn_blinking_image_new();
-#line 301 "mn-mail-icon.c"
-#line 45 "mn-mail-icon.gob"
+#line 316 "mn-mail-icon.c"
+#line 46 "mn-mail-icon.gob"
 	self->_priv->menu = gtk_menu_new();
-#line 304 "mn-mail-icon.c"
+#line 319 "mn-mail-icon.c"
  {
-#line 80 "mn-mail-icon.gob"
+#line 84 "mn-mail-icon.gob"
 
     GtkMenuShell *shell;
     GtkWidget *properties_item;
@@ -314,6 +329,8 @@ mn_mail_icon_init (MNMailIcon * self G_GNUC_UNUSED)
     /* translators: header capitalization */
     self->mail_reader_item = mn_menu_shell_append(shell, MN_STOCK_MAIL_READER, _("_Mail Reader"));
     /* translators: header capitalization */
+    self->open_latest_message_item = mn_menu_shell_append(shell, MN_STOCK_OPEN_MESSAGE, _("_Open Latest Message"));
+    /* translators: header capitalization */
     self->update_item = mn_menu_shell_append(shell, GTK_STOCK_REFRESH, _("_Update"));
     mn_menu_shell_append(shell, NULL, NULL);
     properties_item = mn_menu_shell_append(shell, GTK_STOCK_PROPERTIES, NULL);
@@ -324,6 +341,7 @@ mn_mail_icon_init (MNMailIcon * self G_GNUC_UNUSED)
     remove_item = mn_menu_shell_append(shell, GTK_STOCK_REMOVE, _("R_emove From Notification Area"));
 
     g_signal_connect_swapped(self->mail_reader_item, "activate", G_CALLBACK(self_activate_mail_reader), self);
+    g_signal_connect_swapped(self->open_latest_message_item, "activate", G_CALLBACK(self_activate_open_latest_message), self);
     g_signal_connect_swapped(self->update_item, "activate", G_CALLBACK(self_activate_update), self);
     g_signal_connect_swapped(properties_item, "activate", G_CALLBACK(self_activate_properties), self);
     g_signal_connect_swapped(help_item, "activate", G_CALLBACK(self_activate_help), self);
@@ -348,15 +366,15 @@ mn_mail_icon_init (MNMailIcon * self G_GNUC_UNUSED)
     gtk_widget_show(self->image);
     gtk_widget_show(selfp->event_box);
   
-#line 352 "mn-mail-icon.c"
+#line 370 "mn-mail-icon.c"
  }
 }
 #undef __GOB_FUNCTION__
 
-#line 49 "mn-mail-icon.gob"
+#line 51 "mn-mail-icon.gob"
 static void 
 mn_mail_icon_activate (MNMailIcon * self)
-#line 360 "mn-mail-icon.c"
+#line 378 "mn-mail-icon.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -364,11 +382,11 @@ mn_mail_icon_activate (MNMailIcon * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 49 "mn-mail-icon.gob"
+#line 51 "mn-mail-icon.gob"
 	g_return_if_fail (self != NULL);
-#line 49 "mn-mail-icon.gob"
+#line 51 "mn-mail-icon.gob"
 	g_return_if_fail (MN_IS_MAIL_ICON (self));
-#line 372 "mn-mail-icon.c"
+#line 390 "mn-mail-icon.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -382,10 +400,10 @@ memset (&___param_values, 0, sizeof (___param_values));
 	g_value_unset (&___param_values[0]);
 }
 
-#line 51 "mn-mail-icon.gob"
+#line 53 "mn-mail-icon.gob"
 static void 
 mn_mail_icon_activate_mail_reader (MNMailIcon * self)
-#line 389 "mn-mail-icon.c"
+#line 407 "mn-mail-icon.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -393,11 +411,11 @@ mn_mail_icon_activate_mail_reader (MNMailIcon * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 51 "mn-mail-icon.gob"
+#line 53 "mn-mail-icon.gob"
 	g_return_if_fail (self != NULL);
-#line 51 "mn-mail-icon.gob"
+#line 53 "mn-mail-icon.gob"
 	g_return_if_fail (MN_IS_MAIL_ICON (self));
-#line 401 "mn-mail-icon.c"
+#line 419 "mn-mail-icon.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -411,10 +429,10 @@ memset (&___param_values, 0, sizeof (___param_values));
 	g_value_unset (&___param_values[0]);
 }
 
-#line 53 "mn-mail-icon.gob"
+#line 55 "mn-mail-icon.gob"
 static void 
-mn_mail_icon_activate_update (MNMailIcon * self)
-#line 418 "mn-mail-icon.c"
+mn_mail_icon_activate_open_latest_message (MNMailIcon * self)
+#line 436 "mn-mail-icon.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -422,11 +440,40 @@ mn_mail_icon_activate_update (MNMailIcon * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 53 "mn-mail-icon.gob"
+#line 55 "mn-mail-icon.gob"
 	g_return_if_fail (self != NULL);
-#line 53 "mn-mail-icon.gob"
+#line 55 "mn-mail-icon.gob"
 	g_return_if_fail (MN_IS_MAIL_ICON (self));
-#line 430 "mn-mail-icon.c"
+#line 448 "mn-mail-icon.c"
+
+	___param_values[0].g_type = 0;
+	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
+	g_value_set_instance (&___param_values[0], (gpointer) self);
+
+	g_signal_emitv (___param_values,
+		object_signals[ACTIVATE_OPEN_LATEST_MESSAGE_SIGNAL],
+		0 /* detail */,
+		&___return_val);
+
+	g_value_unset (&___param_values[0]);
+}
+
+#line 57 "mn-mail-icon.gob"
+static void 
+mn_mail_icon_activate_update (MNMailIcon * self)
+#line 465 "mn-mail-icon.c"
+{
+	GValue ___param_values[1];
+	GValue ___return_val;
+
+memset (&___return_val, 0, sizeof (___return_val));
+memset (&___param_values, 0, sizeof (___param_values));
+
+#line 57 "mn-mail-icon.gob"
+	g_return_if_fail (self != NULL);
+#line 57 "mn-mail-icon.gob"
+	g_return_if_fail (MN_IS_MAIL_ICON (self));
+#line 477 "mn-mail-icon.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -440,10 +487,10 @@ memset (&___param_values, 0, sizeof (___param_values));
 	g_value_unset (&___param_values[0]);
 }
 
-#line 55 "mn-mail-icon.gob"
+#line 59 "mn-mail-icon.gob"
 static void 
 mn_mail_icon_activate_properties (MNMailIcon * self)
-#line 447 "mn-mail-icon.c"
+#line 494 "mn-mail-icon.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -451,11 +498,11 @@ mn_mail_icon_activate_properties (MNMailIcon * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 55 "mn-mail-icon.gob"
+#line 59 "mn-mail-icon.gob"
 	g_return_if_fail (self != NULL);
-#line 55 "mn-mail-icon.gob"
+#line 59 "mn-mail-icon.gob"
 	g_return_if_fail (MN_IS_MAIL_ICON (self));
-#line 459 "mn-mail-icon.c"
+#line 506 "mn-mail-icon.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -469,10 +516,10 @@ memset (&___param_values, 0, sizeof (___param_values));
 	g_value_unset (&___param_values[0]);
 }
 
-#line 57 "mn-mail-icon.gob"
+#line 61 "mn-mail-icon.gob"
 static void 
 mn_mail_icon_activate_help (MNMailIcon * self)
-#line 476 "mn-mail-icon.c"
+#line 523 "mn-mail-icon.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -480,11 +527,11 @@ mn_mail_icon_activate_help (MNMailIcon * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 57 "mn-mail-icon.gob"
+#line 61 "mn-mail-icon.gob"
 	g_return_if_fail (self != NULL);
-#line 57 "mn-mail-icon.gob"
+#line 61 "mn-mail-icon.gob"
 	g_return_if_fail (MN_IS_MAIL_ICON (self));
-#line 488 "mn-mail-icon.c"
+#line 535 "mn-mail-icon.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -498,10 +545,10 @@ memset (&___param_values, 0, sizeof (___param_values));
 	g_value_unset (&___param_values[0]);
 }
 
-#line 59 "mn-mail-icon.gob"
+#line 63 "mn-mail-icon.gob"
 static void 
 mn_mail_icon_activate_about (MNMailIcon * self)
-#line 505 "mn-mail-icon.c"
+#line 552 "mn-mail-icon.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -509,11 +556,11 @@ mn_mail_icon_activate_about (MNMailIcon * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 59 "mn-mail-icon.gob"
+#line 63 "mn-mail-icon.gob"
 	g_return_if_fail (self != NULL);
-#line 59 "mn-mail-icon.gob"
+#line 63 "mn-mail-icon.gob"
 	g_return_if_fail (MN_IS_MAIL_ICON (self));
-#line 517 "mn-mail-icon.c"
+#line 564 "mn-mail-icon.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -527,10 +574,10 @@ memset (&___param_values, 0, sizeof (___param_values));
 	g_value_unset (&___param_values[0]);
 }
 
-#line 61 "mn-mail-icon.gob"
+#line 65 "mn-mail-icon.gob"
 static void 
 mn_mail_icon_activate_remove (MNMailIcon * self)
-#line 534 "mn-mail-icon.c"
+#line 581 "mn-mail-icon.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -538,11 +585,11 @@ mn_mail_icon_activate_remove (MNMailIcon * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 61 "mn-mail-icon.gob"
+#line 65 "mn-mail-icon.gob"
 	g_return_if_fail (self != NULL);
-#line 61 "mn-mail-icon.gob"
+#line 65 "mn-mail-icon.gob"
 	g_return_if_fail (MN_IS_MAIL_ICON (self));
-#line 546 "mn-mail-icon.c"
+#line 593 "mn-mail-icon.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -558,14 +605,14 @@ memset (&___param_values, 0, sizeof (___param_values));
 
 
 
-#line 126 "mn-mail-icon.gob"
+#line 133 "mn-mail-icon.gob"
 static gboolean 
 mn_mail_icon_show_help_h (GtkWidget * widget, GtkWidgetHelpType help_type, gpointer user_data)
-#line 565 "mn-mail-icon.c"
+#line 612 "mn-mail-icon.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon::show_help_h"
 {
-#line 130 "mn-mail-icon.gob"
+#line 137 "mn-mail-icon.gob"
 	
     if (help_type == GTK_WIDGET_HELP_TOOLTIP)
       {
@@ -575,17 +622,17 @@ mn_mail_icon_show_help_h (GtkWidget * widget, GtkWidgetHelpType help_type, gpoin
     else
       return FALSE;
   }}
-#line 579 "mn-mail-icon.c"
+#line 626 "mn-mail-icon.c"
 #undef __GOB_FUNCTION__
 
-#line 140 "mn-mail-icon.gob"
+#line 147 "mn-mail-icon.gob"
 static gboolean 
 mn_mail_icon_button_press_event_h (GtkWidget * widget, GdkEventButton * event, gpointer user_data)
-#line 585 "mn-mail-icon.c"
+#line 632 "mn-mail-icon.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon::button_press_event_h"
 {
-#line 144 "mn-mail-icon.gob"
+#line 151 "mn-mail-icon.gob"
 	
     Self *self = user_data;
 
@@ -599,17 +646,17 @@ mn_mail_icon_button_press_event_h (GtkWidget * widget, GdkEventButton * event, g
 
     return FALSE;		/* propagate event */
   }}
-#line 603 "mn-mail-icon.c"
+#line 650 "mn-mail-icon.c"
 #undef __GOB_FUNCTION__
 
-#line 158 "mn-mail-icon.gob"
+#line 165 "mn-mail-icon.gob"
 static gboolean 
 mn_mail_icon_button_release_event_h (GtkWidget * widget, GdkEventButton * event, gpointer user_data)
-#line 609 "mn-mail-icon.c"
+#line 656 "mn-mail-icon.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon::button_release_event_h"
 {
-#line 162 "mn-mail-icon.gob"
+#line 169 "mn-mail-icon.gob"
 	
     Self *self = user_data;
 
@@ -621,17 +668,17 @@ mn_mail_icon_button_release_event_h (GtkWidget * widget, GdkEventButton * event,
 
     return FALSE;		/* propagate event */
   }}
-#line 625 "mn-mail-icon.c"
+#line 672 "mn-mail-icon.c"
 #undef __GOB_FUNCTION__
 
-#line 174 "mn-mail-icon.gob"
+#line 181 "mn-mail-icon.gob"
 static gboolean 
 mn_mail_icon_popup_menu_h (GtkWidget * widget, gpointer user_data)
-#line 631 "mn-mail-icon.c"
+#line 678 "mn-mail-icon.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon::popup_menu_h"
 {
-#line 176 "mn-mail-icon.gob"
+#line 183 "mn-mail-icon.gob"
 	
     Self *self = user_data;
 
@@ -640,17 +687,17 @@ mn_mail_icon_popup_menu_h (GtkWidget * widget, gpointer user_data)
 
     return TRUE;		/* a menu was activated */
   }}
-#line 644 "mn-mail-icon.c"
+#line 691 "mn-mail-icon.c"
 #undef __GOB_FUNCTION__
 
-#line 185 "mn-mail-icon.gob"
+#line 192 "mn-mail-icon.gob"
 static void 
 mn_mail_icon_popup_menu_position_cb (GtkMenu * menu, int * x, int * y, gboolean * push_in, gpointer user_data)
-#line 650 "mn-mail-icon.c"
+#line 697 "mn-mail-icon.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon::popup_menu_position_cb"
 {
-#line 191 "mn-mail-icon.gob"
+#line 198 "mn-mail-icon.gob"
 	
     GtkWidget *widget = user_data;
 
@@ -671,57 +718,57 @@ mn_mail_icon_popup_menu_position_cb (GtkMenu * menu, int * x, int * y, gboolean 
 
     *push_in = TRUE;
   }}
-#line 675 "mn-mail-icon.c"
+#line 722 "mn-mail-icon.c"
 #undef __GOB_FUNCTION__
 
-#line 212 "mn-mail-icon.gob"
+#line 219 "mn-mail-icon.gob"
 void 
 mn_mail_icon_set_tip (MNMailIcon * self, const char * tip)
-#line 681 "mn-mail-icon.c"
+#line 728 "mn-mail-icon.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon::set_tip"
-#line 212 "mn-mail-icon.gob"
+#line 219 "mn-mail-icon.gob"
 	g_return_if_fail (self != NULL);
-#line 212 "mn-mail-icon.gob"
+#line 219 "mn-mail-icon.gob"
 	g_return_if_fail (MN_IS_MAIL_ICON (self));
-#line 688 "mn-mail-icon.c"
+#line 735 "mn-mail-icon.c"
 {
-#line 214 "mn-mail-icon.gob"
+#line 221 "mn-mail-icon.gob"
 	
     mn_tooltips_set_tip(selfp->tooltips, selfp->event_box, tip);
   }}
-#line 694 "mn-mail-icon.c"
+#line 741 "mn-mail-icon.c"
 #undef __GOB_FUNCTION__
 
-#line 218 "mn-mail-icon.gob"
+#line 225 "mn-mail-icon.gob"
 void 
 mn_mail_icon_set_tip_widget (MNMailIcon * self, GtkWidget * tip_widget)
-#line 700 "mn-mail-icon.c"
+#line 747 "mn-mail-icon.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon::set_tip_widget"
-#line 218 "mn-mail-icon.gob"
+#line 225 "mn-mail-icon.gob"
 	g_return_if_fail (self != NULL);
-#line 218 "mn-mail-icon.gob"
+#line 225 "mn-mail-icon.gob"
 	g_return_if_fail (MN_IS_MAIL_ICON (self));
-#line 707 "mn-mail-icon.c"
+#line 754 "mn-mail-icon.c"
 {
-#line 220 "mn-mail-icon.gob"
+#line 227 "mn-mail-icon.gob"
 	
     mn_tooltips_set_tip_widget(selfp->tooltips, selfp->event_box, tip_widget);
   }}
-#line 713 "mn-mail-icon.c"
+#line 760 "mn-mail-icon.c"
 #undef __GOB_FUNCTION__
 
-#line 224 "mn-mail-icon.gob"
+#line 231 "mn-mail-icon.gob"
 GtkWidget * 
 mn_mail_icon_new (void)
-#line 719 "mn-mail-icon.c"
+#line 766 "mn-mail-icon.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon::new"
 {
-#line 226 "mn-mail-icon.gob"
+#line 233 "mn-mail-icon.gob"
 	
     return GTK_WIDGET(GET_NEW_VARG("title", _("Mail Notification"), NULL));
   }}
-#line 727 "mn-mail-icon.c"
+#line 774 "mn-mail-icon.c"
 #undef __GOB_FUNCTION__

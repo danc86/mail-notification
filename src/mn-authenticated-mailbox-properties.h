@@ -36,6 +36,7 @@ typedef struct _MNAuthenticatedMailboxProperties MNAuthenticatedMailboxPropertie
 struct _MNAuthenticatedMailboxProperties {
 	MNMailboxProperties __parent__;
 	/*< private >*/
+	GtkWidget * account_vbox; /* protected */
 	GtkWidget * username_vbox; /* protected */
 	GtkWidget * username_label; /* protected */
 	GtkWidget * username_entry; /* protected */

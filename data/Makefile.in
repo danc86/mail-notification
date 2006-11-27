@@ -70,6 +70,7 @@ DATA = $(autostart_DATA) $(gnome_capplet_DATA) $(schemas_DATA) \
 	$(server_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
+ALL_LINGUAS = @ALL_LINGUAS@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AML = @AML@
@@ -199,15 +200,19 @@ WITH_IMAP_TRUE = @WITH_IMAP_TRUE@
 WITH_MAILDIR_FALSE = @WITH_MAILDIR_FALSE@
 WITH_MAILDIR_TRUE = @WITH_MAILDIR_TRUE@
 WITH_MBOX_FALSE = @WITH_MBOX_FALSE@
-WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_FALSE = @WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_FALSE@
-WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_FALSE = @WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_FALSE@
-WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE = @WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@
-WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE = @WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@
+WITH_MBOX_OR_MOZILLA_FALSE = @WITH_MBOX_OR_MOZILLA_FALSE@
+WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_FALSE = @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_FALSE@
+WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_FALSE = @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_FALSE@
+WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE = @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@
+WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE = @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@
+WITH_MBOX_OR_MOZILLA_TRUE = @WITH_MBOX_OR_MOZILLA_TRUE@
 WITH_MBOX_TRUE = @WITH_MBOX_TRUE@
 WITH_MH_FALSE = @WITH_MH_FALSE@
 WITH_MH_TRUE = @WITH_MH_TRUE@
 WITH_MIME_FALSE = @WITH_MIME_FALSE@
 WITH_MIME_TRUE = @WITH_MIME_TRUE@
+WITH_MOZILLA_FALSE = @WITH_MOZILLA_FALSE@
+WITH_MOZILLA_TRUE = @WITH_MOZILLA_TRUE@
 WITH_POP3_FALSE = @WITH_POP3_FALSE@
 WITH_POP3_OR_IMAP_FALSE = @WITH_POP3_OR_IMAP_FALSE@
 WITH_POP3_OR_IMAP_OR_GMAIL_FALSE = @WITH_POP3_OR_IMAP_OR_GMAIL_FALSE@
@@ -248,7 +253,6 @@ build_os = @build_os@
 build_vendor = @build_vendor@
 datadir = @datadir@
 evolution_plugindir = @evolution_plugindir@
-evolution_source_dir = @evolution_source_dir@
 exec_prefix = @exec_prefix@
 gnome_cappletdir = @gnome_cappletdir@
 gnome_prefix = @gnome_prefix@
@@ -296,7 +300,7 @@ EXTRA_DIST = \
 	GNOME_MailNotification_Evolution.server.in	\
 	mail-notification-properties.desktop.in		\
 	mail-notification.desktop.in			\
-	mail-notification.schemas.in
+	mail-notification.schemas.in.in
 
 CLEANFILES = \
 	$(evolution_server)			\
@@ -304,7 +308,8 @@ CLEANFILES = \
 	GNOME_MailNotification.server.in	\
 	mail-notification-properties.desktop	\
 	mail-notification.desktop		\
-	mail-notification.schemas
+	mail-notification.schemas		\
+	mail-notification.schemas.in
 
 all: all-am
 
@@ -558,6 +563,9 @@ uninstall-am: uninstall-autostartDATA uninstall-gnome_cappletDATA \
 
 GNOME_MailNotification.server.in: GNOME_MailNotification.server.in.in
 	sed -e 's|\@bindir\@|$(bindir)|' GNOME_MailNotification.server.in.in > GNOME_MailNotification.server.in
+
+mail-notification.schemas.in: mail-notification.schemas.in.in
+	sed -e 's|\@gnome_prefix\@|$(gnome_prefix)|' mail-notification.schemas.in.in > mail-notification.schemas.in
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

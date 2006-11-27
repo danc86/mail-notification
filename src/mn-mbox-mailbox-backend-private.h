@@ -9,19 +9,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-struct _MNmboxMailboxBackendPrivate {
-#line 40 "mn-mbox-mailbox-backend.gob"
-	GnomeVFSURI * uri;
-#line 41 "mn-mbox-mailbox-backend.gob"
-	GnomeVFSFileSize last_size;
-#line 42 "mn-mbox-mailbox-backend.gob"
-	time_t last_mtime;
-#line 43 "mn-mbox-mailbox-backend.gob"
-	time_t last_ctime;
-#line 45 "mn-mbox-mailbox-backend.gob"
-	GMutex * mutex;
-#line 24 "mn-mbox-mailbox-backend-private.h"
-};
 
 #ifdef __cplusplus
 }

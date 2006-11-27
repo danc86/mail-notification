@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -26,7 +27,7 @@ requires 2.0.14
 #include "config.h"
 #include <glib/gi18n.h>
 #include <libgnomevfs/gnome-vfs-utils.h>
-#include "mn-mailbox-properties.h"
+#include "mn-mailbox-properties-private.h"
 #include "mn-system-vfs-mailbox.h"
 #include "mn-stock.h"
 %}
@@ -50,8 +51,13 @@ class MN:System:VFS:Mailbox:Properties from MN:Mailbox:Properties
 
   init (self)
   {
+    MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
+    GtkWidget *location_vbox;
     GtkWidget *label;
     const char *system_uri;
+
+    /* translators: header capitalization */
+    location_vbox = mn_mailbox_properties_add_general_section(properties, _("Location"));
 
     label = gtk_label_new(NULL);
 
@@ -77,6 +83,6 @@ class MN:System:VFS:Mailbox:Properties from MN:Mailbox:Properties
       gtk_label_set_text(GTK_LABEL(label), _("The location of your system mailbox could not be detected. Check the MAIL environment variable."));
 
     gtk_widget_show(label);
-    gtk_box_pack_start(GTK_BOX(self), label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(location_vbox), label, FALSE, FALSE, 0);
   }
 }

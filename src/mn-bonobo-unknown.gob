@@ -1,5 +1,9 @@
 /* 
- * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * MN:Bonobo:Unknown - a Bonobo_Unknown wrapper providing connection
+ * monitoring.
+ *
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +15,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -30,27 +34,20 @@ requires 2.0.14
 #include <gtk/gtk.h>
 %}
 
-class MN:CORBA:Object from G:Object
+class MN:Bonobo:Unknown from G:Object
 {
-  private CORBA_Object object = CORBA_OBJECT_NIL
-    destroy { if (VAR != CORBA_OBJECT_NIL) CORBA_Object_release(VAR, NULL); };
-  property POINTER object (export, type = CORBA_Object)
+  private Bonobo_Unknown object = CORBA_OBJECT_NIL
+    unref { bonobo_object_release_unref(VAR, NULL); };
+  property POINTER object (export, type = Bonobo_Unknown)
     set
     {
-      if (selfp->object != CORBA_OBJECT_NIL)
-	CORBA_Object_release(selfp->object, NULL);
-
+      bonobo_object_release_unref(selfp->object, NULL);
       selfp->object = g_value_get_pointer(VAL);
-
-      if (selfp->object != CORBA_OBJECT_NIL)
-	CORBA_Object_duplicate(selfp->object, NULL);
+      bonobo_object_dup_ref(selfp->object, NULL);
     }
     get
     {
-      if (selfp->object != CORBA_OBJECT_NIL)
-	CORBA_Object_duplicate(selfp->object, NULL);
-
-      g_value_set_pointer(VAL, selfp->object);
+      g_value_set_pointer(VAL, bonobo_object_dup_ref(selfp->object, NULL));
     };
 
   private char *iid destroywith g_free;
@@ -63,17 +60,11 @@ class MN:CORBA:Object from G:Object
   {
     GObject *object;
     Self *self;
-    CORBA_Object corba_object;
 
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
     self = SELF(object);
 
-    corba_object = bonobo_activation_activate_from_id(selfp->iid, 0, NULL, NULL);
-    if (corba_object != CORBA_OBJECT_NIL)
-      {
-	self_set_object(self, corba_object);
-	CORBA_Object_release(corba_object, NULL);
-      }
+    self_activate(self);
 
     selfp->monitor_source = mn_g_timeout_add_gdk_locked(1000, self_monitor_cb, self);
 
@@ -81,7 +72,7 @@ class MN:CORBA:Object from G:Object
   }
 
   override (G:Object) void
-    finalize (GObject *object)
+    dispose (GObject *object)
   {
     Self *self = SELF(object);
 
@@ -101,23 +92,27 @@ class MN:CORBA:Object from G:Object
 	  self_set_object(self, CORBA_OBJECT_NIL);
       }
     else
-      {
-	CORBA_Object object;
-
-	object = bonobo_activation_activate_from_id(selfp->iid, 0, NULL, NULL);
-	if (object != CORBA_OBJECT_NIL)
-	  {
-	    self_set_object(self, object);
-	    CORBA_Object_release(object, NULL);
-	  }
-      }
+      self_activate(self);
 
     return TRUE;		/* keep source */
   }
 
-  public MNCORBAObject *
+  private void
+    activate (self)
+  {
+    Bonobo_Unknown object;
+
+    object = bonobo_activation_activate_from_id(selfp->iid, 0, NULL, NULL);
+    if (object != CORBA_OBJECT_NIL)
+      {
+	self_set_object(self, object);
+	bonobo_object_release_unref(object, NULL);
+      }
+  }
+
+  public MNBonoboUnknown *
     new (const char *iid)
   {
-    return GET_NEW_VARG(MN_CORBA_OBJECT_PROP_IID((char *) iid), NULL);
+    return GET_NEW_VARG(MN_BONOBO_UNKNOWN_PROP_IID((char *) iid), NULL);
   }
 }

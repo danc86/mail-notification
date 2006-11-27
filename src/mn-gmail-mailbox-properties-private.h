@@ -10,7 +10,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNGmailMailboxPropertiesPrivate {
-#line 44 "mn-gmail-mailbox-properties.gob"
+#line 45 "mn-gmail-mailbox-properties.gob"
 	char * location;
 #line 16 "mn-gmail-mailbox-properties-private.h"
 };

@@ -29,12 +29,12 @@
 #ifndef _MN_MD5_H
 #define _MN_MD5_H
 
-#include <sys/types.h>
+#include <stdint.h>
 
 typedef struct
 {
-  u_int32_t state[4];		/* state (ABCD) */
-  u_int32_t count[2];		/* number of bits, modulo 2^64 (lsb first) */
+  uint32_t state[4];		/* state (ABCD) */
+  uint32_t count[2];		/* number of bits, modulo 2^64 (lsb first) */
   unsigned char buffer[64];	/* input buffer */
 } MNMD5Context;
 

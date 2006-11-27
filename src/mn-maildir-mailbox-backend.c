@@ -20,10 +20,11 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 25 "mn-maildir-mailbox-backend.gob"
+#line 26 "mn-maildir-mailbox-backend.gob"
 
 #include "config.h"
 #include <string.h>
+#include <stdlib.h>
 #include <glib/gi18n.h>
 #include <eel/eel.h>
 #include "mn-mailbox-private.h"
@@ -33,7 +34,7 @@
 #include "mn-util.h"
 #include "mn-message-mime.h"
 
-#line 37 "mn-maildir-mailbox-backend.c"
+#line 38 "mn-maildir-mailbox-backend.c"
 /* self casting macros */
 #define SELF(x) MN_MAILDIR_MAILBOX_BACKEND(x)
 #define SELF_CONST(x) MN_MAILDIR_MAILBOX_BACKEND_CONST(x)
@@ -51,10 +52,12 @@ typedef MNMaildirMailboxBackendClass SelfClass;
 static void mn_maildir_mailbox_backend_init (MNMaildirMailboxBackend * o) G_GNUC_UNUSED;
 static void mn_maildir_mailbox_backend_class_init (MNMaildirMailboxBackendClass * class) G_GNUC_UNUSED;
 static void ___2_mn_maildir_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend, const char * info_uri, GnomeVFSMonitorEventType event_type) G_GNUC_UNUSED;
-static gboolean ___3_mn_maildir_mailbox_backend_is (MNVFSMailboxBackend * dummy, MNVFSMailbox * mailbox) G_GNUC_UNUSED;
+static gboolean ___3_mn_maildir_mailbox_backend_is (MNVFSMailboxBackend * dummy, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox) G_GNUC_UNUSED;
 static void mn_maildir_mailbox_backend_monitor_directory (MNMaildirMailboxBackend * self, unsigned long check_id, const char * dir) G_GNUC_UNUSED;
 static gboolean mn_maildir_mailbox_backend_scan_directory (MNMaildirMailboxBackend * self, unsigned long check_id, const char * dir, gboolean new, GSList ** messages, GError ** err) G_GNUC_UNUSED;
 static void ___6_mn_maildir_mailbox_backend_check (MNVFSMailboxBackend * backend, unsigned long check_id) G_GNUC_UNUSED;
+static int mn_maildir_mailbox_backend_flags_sort_cb (const void * a, const void * b) G_GNUC_UNUSED;
+static gboolean ___8_mn_maildir_mailbox_backend_mark_as_read (MNVFSMailboxBackend * dummy, MNVFSMessage * message, GError ** err) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
 static MNVFSMailboxBackendClass *parent_class = NULL;
@@ -62,6 +65,7 @@ static MNVFSMailboxBackendClass *parent_class = NULL;
 /* Short form macros */
 #define self_monitor_directory mn_maildir_mailbox_backend_monitor_directory
 #define self_scan_directory mn_maildir_mailbox_backend_scan_directory
+#define self_flags_sort_cb mn_maildir_mailbox_backend_flags_sort_cb
 GType
 mn_maildir_mailbox_backend_get_type (void)
 {
@@ -110,46 +114,48 @@ mn_maildir_mailbox_backend_init (MNMaildirMailboxBackend * o G_GNUC_UNUSED)
 #define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::init"
 }
 #undef __GOB_FUNCTION__
-#line 40 "mn-maildir-mailbox-backend.gob"
+#line 42 "mn-maildir-mailbox-backend.gob"
 static void 
 mn_maildir_mailbox_backend_class_init (MNMaildirMailboxBackendClass * class G_GNUC_UNUSED)
-#line 117 "mn-maildir-mailbox-backend.c"
+#line 121 "mn-maildir-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::class_init"
 	MNVFSMailboxBackendClass *mn_vfs_mailbox_backend_class = (MNVFSMailboxBackendClass *)class;
 
 	parent_class = g_type_class_ref (MN_TYPE_VFS_MAILBOX_BACKEND);
 
-#line 45 "mn-maildir-mailbox-backend.gob"
+#line 47 "mn-maildir-mailbox-backend.gob"
 	mn_vfs_mailbox_backend_class->monitor_cb = ___2_mn_maildir_mailbox_backend_monitor_cb;
-#line 67 "mn-maildir-mailbox-backend.gob"
+#line 69 "mn-maildir-mailbox-backend.gob"
 	mn_vfs_mailbox_backend_class->is = ___3_mn_maildir_mailbox_backend_is;
-#line 182 "mn-maildir-mailbox-backend.gob"
+#line 187 "mn-maildir-mailbox-backend.gob"
 	mn_vfs_mailbox_backend_class->check = ___6_mn_maildir_mailbox_backend_check;
-#line 130 "mn-maildir-mailbox-backend.c"
+#line 231 "mn-maildir-mailbox-backend.gob"
+	mn_vfs_mailbox_backend_class->mark_as_read = ___8_mn_maildir_mailbox_backend_mark_as_read;
+#line 136 "mn-maildir-mailbox-backend.c"
  {
-#line 41 "mn-maildir-mailbox-backend.gob"
+#line 43 "mn-maildir-mailbox-backend.gob"
 
     MN_VFS_MAILBOX_BACKEND_CLASS(class)->format = "Maildir";
   
-#line 136 "mn-maildir-mailbox-backend.c"
+#line 142 "mn-maildir-mailbox-backend.c"
  }
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 45 "mn-maildir-mailbox-backend.gob"
+#line 47 "mn-maildir-mailbox-backend.gob"
 static void 
 ___2_mn_maildir_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend G_GNUC_UNUSED, const char * info_uri, GnomeVFSMonitorEventType event_type)
-#line 146 "mn-maildir-mailbox-backend.c"
+#line 152 "mn-maildir-mailbox-backend.c"
 #define PARENT_HANDLER(___backend,___info_uri,___event_type) \
 	{ if(MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->monitor_cb) \
 		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->monitor_cb)(___backend,___info_uri,___event_type); }
 {
 #define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::monitor_cb"
 {
-#line 49 "mn-maildir-mailbox-backend.gob"
+#line 51 "mn-maildir-mailbox-backend.gob"
 	
     if (event_type == GNOME_VFS_MONITOR_EVENT_CHANGED
 	|| event_type == GNOME_VFS_MONITOR_EVENT_DELETED
@@ -167,25 +173,25 @@ ___2_mn_maildir_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend G_GNUC
 	  }
       }
   }}
-#line 171 "mn-maildir-mailbox-backend.c"
+#line 177 "mn-maildir-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 67 "mn-maildir-mailbox-backend.gob"
+#line 69 "mn-maildir-mailbox-backend.gob"
 static gboolean 
-___3_mn_maildir_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSMailbox * mailbox)
-#line 178 "mn-maildir-mailbox-backend.c"
-#define PARENT_HANDLER(___dummy,___mailbox) \
+___3_mn_maildir_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox)
+#line 184 "mn-maildir-mailbox-backend.c"
+#define PARENT_HANDLER(___dummy,___class,___mailbox) \
 	((MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->is)? \
-		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->is)(___dummy,___mailbox): \
+		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->is)(___dummy,___class,___mailbox): \
 		((gboolean )0))
 {
 #define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::is"
 {
-#line 69 "mn-maildir-mailbox-backend.gob"
+#line 73 "mn-maildir-mailbox-backend.gob"
 	
     int i; 
-    const char *constitutive_dirs[] = { "cur", "new", "tmp" };
+    static const char *constitutive_dirs[] = { "cur", "new", "tmp" };
     gboolean is = FALSE;
 
     for (i = 0; i < G_N_ELEMENTS(constitutive_dirs); i++)
@@ -202,25 +208,25 @@ ___3_mn_maildir_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, M
 
     return is;
   }}
-#line 206 "mn-maildir-mailbox-backend.c"
+#line 212 "mn-maildir-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 89 "mn-maildir-mailbox-backend.gob"
+#line 93 "mn-maildir-mailbox-backend.gob"
 static void 
 mn_maildir_mailbox_backend_monitor_directory (MNMaildirMailboxBackend * self, unsigned long check_id, const char * dir)
-#line 213 "mn-maildir-mailbox-backend.c"
+#line 219 "mn-maildir-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::monitor_directory"
-#line 89 "mn-maildir-mailbox-backend.gob"
+#line 93 "mn-maildir-mailbox-backend.gob"
 	g_return_if_fail (self != NULL);
-#line 89 "mn-maildir-mailbox-backend.gob"
+#line 93 "mn-maildir-mailbox-backend.gob"
 	g_return_if_fail (MN_IS_MAILDIR_MAILBOX_BACKEND (self));
-#line 89 "mn-maildir-mailbox-backend.gob"
+#line 93 "mn-maildir-mailbox-backend.gob"
 	g_return_if_fail (dir != NULL);
-#line 222 "mn-maildir-mailbox-backend.c"
+#line 228 "mn-maildir-mailbox-backend.c"
 {
-#line 91 "mn-maildir-mailbox-backend.gob"
+#line 95 "mn-maildir-mailbox-backend.gob"
 	
     MNVFSMailboxBackend *backend = MN_VFS_MAILBOX_BACKEND(self);
     GnomeVFSURI *uri;
@@ -233,26 +239,26 @@ mn_maildir_mailbox_backend_monitor_directory (MNMaildirMailboxBackend * self, un
     mn_vfs_mailbox_backend_monitor(backend, check_id, text_uri, GNOME_VFS_MONITOR_DIRECTORY);
     g_free(text_uri);
   }}
-#line 237 "mn-maildir-mailbox-backend.c"
+#line 243 "mn-maildir-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 104 "mn-maildir-mailbox-backend.gob"
+#line 108 "mn-maildir-mailbox-backend.gob"
 static gboolean 
 mn_maildir_mailbox_backend_scan_directory (MNMaildirMailboxBackend * self, unsigned long check_id, const char * dir, gboolean new, GSList ** messages, GError ** err)
-#line 243 "mn-maildir-mailbox-backend.c"
+#line 249 "mn-maildir-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::scan_directory"
-#line 104 "mn-maildir-mailbox-backend.gob"
+#line 108 "mn-maildir-mailbox-backend.gob"
 	g_return_val_if_fail (self != NULL, (gboolean )0);
-#line 104 "mn-maildir-mailbox-backend.gob"
+#line 108 "mn-maildir-mailbox-backend.gob"
 	g_return_val_if_fail (MN_IS_MAILDIR_MAILBOX_BACKEND (self), (gboolean )0);
-#line 104 "mn-maildir-mailbox-backend.gob"
+#line 108 "mn-maildir-mailbox-backend.gob"
 	g_return_val_if_fail (dir != NULL, (gboolean )0);
-#line 104 "mn-maildir-mailbox-backend.gob"
+#line 108 "mn-maildir-mailbox-backend.gob"
 	g_return_val_if_fail (messages != NULL, (gboolean )0);
-#line 254 "mn-maildir-mailbox-backend.c"
+#line 260 "mn-maildir-mailbox-backend.c"
 {
-#line 111 "mn-maildir-mailbox-backend.gob"
+#line 115 "mn-maildir-mailbox-backend.gob"
 	
     MNVFSMailboxBackend *backend = MN_VFS_MAILBOX_BACKEND(self);
     GnomeVFSURI *uri;
@@ -276,7 +282,6 @@ mn_maildir_mailbox_backend_scan_directory (MNMaildirMailboxBackend * self, unsig
     while ((result = gnome_vfs_directory_read_next(handle, file_info)) == GNOME_VFS_OK)
       if (file_info->name[0] != '.')
 	{
-	  GnomeVFSURI *message_uri;
 	  MNMessageFlags flags = 0;
 
 	  if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
@@ -300,9 +305,11 @@ mn_maildir_mailbox_backend_scan_directory (MNMaildirMailboxBackend * self, unsig
 		continue; /* no info, or message seen/trashed: ignore it */
 	    }
 
-	  message_uri = gnome_vfs_uri_append_file_name(uri, file_info->name);
-	  *messages = g_slist_prepend(*messages, mn_message_new_from_uri(MN_MAILBOX(backend->mailbox), message_uri, flags, FALSE));
-	  gnome_vfs_uri_unref(message_uri);
+	  *messages = g_slist_prepend(*messages, mn_vfs_message_new(backend,
+								    uri,
+								    file_info->name,
+								    flags,
+								    FALSE));
 	}
     gnome_vfs_uri_unref(uri);
     gnome_vfs_file_info_unref(file_info);
@@ -323,20 +330,20 @@ mn_maildir_mailbox_backend_scan_directory (MNMaildirMailboxBackend * self, unsig
 
     return FALSE;
   }}
-#line 327 "mn-maildir-mailbox-backend.c"
+#line 334 "mn-maildir-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 182 "mn-maildir-mailbox-backend.gob"
+#line 187 "mn-maildir-mailbox-backend.gob"
 static void 
 ___6_mn_maildir_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, unsigned long check_id)
-#line 333 "mn-maildir-mailbox-backend.c"
+#line 340 "mn-maildir-mailbox-backend.c"
 #define PARENT_HANDLER(___backend,___check_id) \
 	{ if(MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->check) \
 		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->check)(___backend,___check_id); }
 {
 #define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::check"
 {
-#line 184 "mn-maildir-mailbox-backend.gob"
+#line 189 "mn-maildir-mailbox-backend.gob"
 	
     Self *self = SELF(backend);
     GSList *messages = NULL;
@@ -367,6 +374,97 @@ ___6_mn_maildir_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUS
     if (err)
       g_error_free(err);
   }}
-#line 371 "mn-maildir-mailbox-backend.c"
+#line 378 "mn-maildir-mailbox-backend.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 220 "mn-maildir-mailbox-backend.gob"
+static int 
+mn_maildir_mailbox_backend_flags_sort_cb (const void * a, const void * b)
+#line 385 "mn-maildir-mailbox-backend.c"
+{
+#define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::flags_sort_cb"
+{
+#line 222 "mn-maildir-mailbox-backend.gob"
+	
+    char ca = *((char *) a);
+    char cb = *((char *) b);
+
+    /* sort flags using ASCII order, see http://cr.yp.to/proto/maildir.html */
+
+    return ca - cb;
+  }}
+#line 398 "mn-maildir-mailbox-backend.c"
+#undef __GOB_FUNCTION__
+
+#line 231 "mn-maildir-mailbox-backend.gob"
+static gboolean 
+___8_mn_maildir_mailbox_backend_mark_as_read (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSMessage * message, GError ** err)
+#line 404 "mn-maildir-mailbox-backend.c"
+#define PARENT_HANDLER(___dummy,___message,___err) \
+	((MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->mark_as_read)? \
+		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->mark_as_read)(___dummy,___message,___err): \
+		((gboolean )0))
+{
+#define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::mark_as_read"
+{
+#line 235 "mn-maildir-mailbox-backend.gob"
+	
+    char *old_flags;
+    char *old_filename;
+    char *new_filename;
+    GnomeVFSURI *dir_uri;
+    GnomeVFSURI *new_uri;
+    GnomeVFSResult result;
+    gboolean status;
+
+    /* http://cr.yp.to/proto/maildir.html */
+
+    old_filename = gnome_vfs_uri_extract_short_name(message->vfs_uri);
+
+    old_flags = strrchr(old_filename, ',');
+    if (old_flags)
+      {
+	char *new_flags;
+	int old_len;
+	char *base_filename;
+
+	/* append the S (seen) flag */
+
+	old_flags++;
+	g_assert(strchr(old_flags, 'S') == NULL);
+
+	old_len = strlen(old_flags);
+	new_flags = g_new(char, old_len + 2); /* + space for S and nul */
+	memcpy(new_flags, old_flags, old_len);
+	new_flags[old_len] = 'S';
+	new_flags[old_len + 1] = 0;
+	qsort(new_flags, old_len + 1, sizeof(char), self_flags_sort_cb);
+
+	base_filename = g_strndup(old_filename, old_flags - old_filename - 1);
+	new_filename = g_strdup_printf("%s,%s", base_filename, new_flags);
+	g_free(base_filename);
+	g_free(new_flags);
+      }
+    else
+      new_filename = g_strconcat(old_filename, ":2,S", NULL);
+
+    g_free(old_filename);
+
+    dir_uri = gnome_vfs_uri_append_path(MN_VFS_MAILBOX(MN_MESSAGE(message)->mailbox)->vfs_uri, "cur");
+    new_uri = gnome_vfs_uri_append_file_name(dir_uri, new_filename);
+    gnome_vfs_uri_unref(dir_uri);
+    g_free(new_filename);
+
+    result = gnome_vfs_move_uri(message->vfs_uri, new_uri, TRUE);
+    status = result == GNOME_VFS_OK;
+    if (! status)
+      g_set_error(err, 0, 0, "%s", gnome_vfs_result_to_string(result));
+
+    gnome_vfs_uri_unref(new_uri);
+
+    return status;
+  }}
+#line 469 "mn-maildir-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER

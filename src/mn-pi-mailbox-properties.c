@@ -22,17 +22,19 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 27 "mn-pi-mailbox-properties.gob"
+#line 28 "mn-pi-mailbox-properties.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
+#include "mn-mailbox-properties-dialog.h"
+#include "mn-mailbox-properties-dialog-private.h"
 #include "mn-mailbox-properties-private.h"
 #include "mn-authenticated-mailbox-properties-private.h"
 #include "mn-auth-combo-box.h"
 #include "mn-util.h"
 #include "mn-stock.h"
 
-#line 36 "mn-pi-mailbox-properties.c"
+#line 38 "mn-pi-mailbox-properties.c"
 /* self casting macros */
 #define SELF(x) MN_PI_MAILBOX_PROPERTIES(x)
 #define SELF_CONST(x) MN_PI_MAILBOX_PROPERTIES_CONST(x)
@@ -49,12 +51,13 @@ typedef MNPIMailboxPropertiesClass SelfClass;
 /* here are local prototypes */
 static void mn_pi_mailbox_properties_class_init (MNPIMailboxPropertiesClass * class) G_GNUC_UNUSED;
 static void mn_pi_mailbox_properties_init (MNPIMailboxProperties * self) G_GNUC_UNUSED;
-static void mn_pi_mailbox_properties_add_connection_type (MNPIMailboxProperties * self, MNPIMailboxConnectionType type, const char * mnemonic) G_GNUC_UNUSED;
+static void mn_pi_mailbox_properties_add_connection_type (MNPIMailboxProperties * self, GtkBox * type_vbox, MNPIMailboxConnectionType type, const char * mnemonic) G_GNUC_UNUSED;
 static void mn_pi_mailbox_properties_add_authentication (MNPIMailboxProperties * self) G_GNUC_UNUSED;
-static void mn_pi_mailbox_properties_notify_expanded_h (GObject * object, GParamSpec * pspec, gpointer user_data) G_GNUC_UNUSED;
 static void mn_pi_mailbox_properties_radio_toggled_h (GtkToggleButton * togglebutton, gpointer user_data) G_GNUC_UNUSED;
-static void ___7_mn_pi_mailbox_properties_set_mailbox (MNMailboxProperties * properties, MNMailbox * mailbox) G_GNUC_UNUSED;
-static MNMailbox * ___8_mn_pi_mailbox_properties_get_mailbox (MNMailboxProperties * properties) G_GNUC_UNUSED;
+static void ___6_mn_pi_mailbox_properties_activate (MNMailboxProperties * properties) G_GNUC_UNUSED;
+static void ___7_mn_pi_mailbox_properties_deactivate (MNMailboxProperties * properties) G_GNUC_UNUSED;
+static void ___8_mn_pi_mailbox_properties_set_mailbox (MNMailboxProperties * properties, MNMailbox * mailbox) G_GNUC_UNUSED;
+static MNMailbox * ___9_mn_pi_mailbox_properties_get_mailbox (MNMailboxProperties * properties) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
 static MNAuthenticatedMailboxPropertiesClass *parent_class = NULL;
@@ -62,7 +65,6 @@ static MNAuthenticatedMailboxPropertiesClass *parent_class = NULL;
 /* Short form macros */
 #define self_add_connection_type mn_pi_mailbox_properties_add_connection_type
 #define self_add_authentication mn_pi_mailbox_properties_add_authentication
-#define self_notify_expanded_h mn_pi_mailbox_properties_notify_expanded_h
 #define self_radio_toggled_h mn_pi_mailbox_properties_radio_toggled_h
 #define self_get_contents mn_pi_mailbox_properties_get_contents
 GType
@@ -107,104 +109,114 @@ GET_NEW_VARG (const char *first, ...)
 	return ret;
 }
 
-#line 46 "mn-pi-mailbox-properties.gob"
+
+static void
+___dispose (GObject *obj_self)
+{
+#define __GOB_FUNCTION__ "MN:PI:Mailbox:Properties::dispose"
+	MNPIMailboxProperties *self G_GNUC_UNUSED = MN_PI_MAILBOX_PROPERTIES (obj_self);
+	if (G_OBJECT_CLASS (parent_class)->dispose) \
+		(* G_OBJECT_CLASS (parent_class)->dispose) (obj_self);
+#line 43 "mn-pi-mailbox-properties.gob"
+	if(self->connection_page) { g_object_unref ((gpointer) self->connection_page); self->connection_page = NULL; }
+#line 123 "mn-pi-mailbox-properties.c"
+#line 44 "mn-pi-mailbox-properties.gob"
+	if(self->connection_size_group) { g_object_unref ((gpointer) self->connection_size_group); self->connection_size_group = NULL; }
+#line 126 "mn-pi-mailbox-properties.c"
+}
+#undef __GOB_FUNCTION__
+
+#line 49 "mn-pi-mailbox-properties.gob"
 static void 
 mn_pi_mailbox_properties_class_init (MNPIMailboxPropertiesClass * class G_GNUC_UNUSED)
-#line 114 "mn-pi-mailbox-properties.c"
+#line 133 "mn-pi-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox:Properties::class_init"
+	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
 	MNMailboxPropertiesClass *mn_mailbox_properties_class = (MNMailboxPropertiesClass *)class;
 
 	parent_class = g_type_class_ref (MN_TYPE_AUTHENTICATED_MAILBOX_PROPERTIES);
 
-#line 217 "mn-pi-mailbox-properties.gob"
-	mn_mailbox_properties_class->set_mailbox = ___7_mn_pi_mailbox_properties_set_mailbox;
-#line 232 "mn-pi-mailbox-properties.gob"
-	mn_mailbox_properties_class->get_mailbox = ___8_mn_pi_mailbox_properties_get_mailbox;
-#line 125 "mn-pi-mailbox-properties.c"
+#line 197 "mn-pi-mailbox-properties.gob"
+	mn_mailbox_properties_class->activate = ___6_mn_pi_mailbox_properties_activate;
+#line 208 "mn-pi-mailbox-properties.gob"
+	mn_mailbox_properties_class->deactivate = ___7_mn_pi_mailbox_properties_deactivate;
+#line 216 "mn-pi-mailbox-properties.gob"
+	mn_mailbox_properties_class->set_mailbox = ___8_mn_pi_mailbox_properties_set_mailbox;
+#line 230 "mn-pi-mailbox-properties.gob"
+	mn_mailbox_properties_class->get_mailbox = ___9_mn_pi_mailbox_properties_get_mailbox;
+#line 149 "mn-pi-mailbox-properties.c"
+	g_object_class->dispose = ___dispose;
  {
-#line 47 "mn-pi-mailbox-properties.gob"
+#line 50 "mn-pi-mailbox-properties.gob"
 
     MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
 
     p_class->stock_id = MN_STOCK_REMOTE;
   
-#line 133 "mn-pi-mailbox-properties.c"
+#line 158 "mn-pi-mailbox-properties.c"
  }
 }
 #undef __GOB_FUNCTION__
-#line 53 "mn-pi-mailbox-properties.gob"
+#line 56 "mn-pi-mailbox-properties.gob"
 static void 
 mn_pi_mailbox_properties_init (MNPIMailboxProperties * self G_GNUC_UNUSED)
-#line 140 "mn-pi-mailbox-properties.c"
+#line 165 "mn-pi-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox:Properties::init"
+#line 44 "mn-pi-mailbox-properties.gob"
+	self->connection_size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+#line 170 "mn-pi-mailbox-properties.c"
  {
-#line 54 "mn-pi-mailbox-properties.gob"
+#line 57 "mn-pi-mailbox-properties.gob"
 
     MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
     MNAuthenticatedMailboxProperties *auth = MN_AUTHENTICATED_MAILBOX_PROPERTIES(self);
     GtkWidget *hbox;
     GtkWidget *label;
-    GtkWidget *expander;
-    GtkSizeGroup *radio_size_group;
+    GtkWidget *type_section;
+    GtkWidget *type_vbox;
     int i;
-    const struct
+    static const struct
     {
       MNPIMailboxConnectionType	type;
       const char		*mnemonic;
     } connection_types[] = {
-      { MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL,		N_("sta_ndard")			},
-      { MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL,	N_("in-band SS_L/TLS")		},
-      { MN_PI_MAILBOX_CONNECTION_TYPE_SSL,		N_("SSL/TLS on sepa_rate port")	}
+      { MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL,		N_("_Standard")			},
+      { MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL,	N_("In-_band SSL/TLS")		},
+      { MN_PI_MAILBOX_CONNECTION_TYPE_SSL,		N_("SSL/TLS on s_eparate port")	}
     };
 
     hbox = mn_authenticated_mailbox_properties_field_new(auth,
-							 _("Ho_stname:"),
+							 _("_Server:"),
 							 &label,
-							 &self->hostname_entry);
+							 &self->server_entry);
 
-    gtk_box_pack_start(GTK_BOX(self), hbox, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(self), auth->username_vbox, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(self), auth->password_vbox, FALSE, FALSE, 0);
-
-    self->details_size_group = gtk_size_group_new(GTK_SIZE_GROUP_NONE);
-
-    gtk_size_group_add_widget(self->details_size_group, auth->username_label);
-    gtk_size_group_add_widget(self->details_size_group, auth->password_label);
-    gtk_size_group_add_widget(self->details_size_group, label);
+    gtk_box_pack_start(GTK_BOX(auth->account_vbox), hbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(auth->account_vbox), auth->username_vbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(auth->account_vbox), auth->password_vbox, FALSE, FALSE, 0);
 
     properties->entries = mn_g_slist_append_elements(properties->entries,
-						     self->hostname_entry,
+						     self->server_entry,
 						     auth->username_entry,
 						     auth->password_entry,
 						     NULL);
 
+    self->connection_page = gtk_vbox_new(FALSE, 18);
+    gtk_container_set_border_width(GTK_CONTAINER(self->connection_page), 12);
+    mn_mailbox_properties_dialog_set_help_section(self->connection_page, "mailbox-properties-connection");
+    mn_gtk_object_ref_and_sink(GTK_OBJECT(self->connection_page));
+
     /* translators: header capitalization */
-    expander = gtk_expander_new_with_mnemonic(_("_Details"));
-    gtk_expander_set_spacing(GTK_EXPANDER(expander), 6);
-
-    self->details_vbox = gtk_vbox_new(FALSE, 6);
-    gtk_container_add(GTK_CONTAINER(expander), self->details_vbox);
-
-    gtk_box_pack_start(GTK_BOX(self), expander, FALSE, FALSE, 0);
-    gtk_widget_show_all(expander);
-
-    radio_size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+    type_section = mn_hig_section_new_with_box(_("Connection Type"), NULL, &type_vbox);
+    gtk_box_pack_start(GTK_BOX(self->connection_page), type_section, FALSE, FALSE, 0);
+    gtk_widget_show(type_section);
 
     for (i = 0; i < MN_PI_MAILBOX_N_CONNECTION_TYPES; i++)
-      {
-	self_add_connection_type(self,
-				 connection_types[i].type,
-				 _(connection_types[i].mnemonic));
-
-	gtk_size_group_add_widget(radio_size_group, self->conn_radio[i]);
-
-	properties->entries = g_slist_append(properties->entries, self->port_spin[i]);
-	g_signal_connect(self->conn_radio[i], "toggled", G_CALLBACK(self_radio_toggled_h), self);
-      }
-
-    g_object_unref(radio_size_group);
+      self_add_connection_type(self,
+			       GTK_BOX(type_vbox),
+			       connection_types[i].type,
+			       _(connection_types[i].mnemonic));
 
 #ifndef WITH_SSL
     gtk_widget_set_sensitive(self->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL], FALSE);
@@ -217,44 +229,42 @@ mn_pi_mailbox_properties_init (MNPIMailboxProperties * self G_GNUC_UNUSED)
 
     self_add_authentication(self);
 
-    g_object_connect(self->hostname_entry,
+    gtk_widget_show_all(self->connection_page);
+
+    g_object_connect(self->server_entry,
 		     "swapped-signal::changed", mn_mailbox_properties_notify_complete, self,
 		     "swapped-signal::changed", mn_mailbox_properties_notify_default_name, self,
 		     NULL);
 
     g_signal_connect_swapped(auth->username_entry, "changed", G_CALLBACK(mn_mailbox_properties_notify_default_name), self);
-
-    g_signal_connect(expander, "notify::expanded", G_CALLBACK(self_notify_expanded_h), self);
   
-#line 230 "mn-pi-mailbox-properties.c"
+#line 242 "mn-pi-mailbox-properties.c"
  }
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 140 "mn-pi-mailbox-properties.gob"
+#line 127 "mn-pi-mailbox-properties.gob"
 static void 
-mn_pi_mailbox_properties_add_connection_type (MNPIMailboxProperties * self, MNPIMailboxConnectionType type, const char * mnemonic)
-#line 240 "mn-pi-mailbox-properties.c"
+mn_pi_mailbox_properties_add_connection_type (MNPIMailboxProperties * self, GtkBox * type_vbox, MNPIMailboxConnectionType type, const char * mnemonic)
+#line 252 "mn-pi-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox:Properties::add_connection_type"
-#line 140 "mn-pi-mailbox-properties.gob"
+#line 127 "mn-pi-mailbox-properties.gob"
 	g_return_if_fail (self != NULL);
-#line 140 "mn-pi-mailbox-properties.gob"
+#line 127 "mn-pi-mailbox-properties.gob"
 	g_return_if_fail (MN_IS_PI_MAILBOX_PROPERTIES (self));
-#line 140 "mn-pi-mailbox-properties.gob"
+#line 127 "mn-pi-mailbox-properties.gob"
+	g_return_if_fail (type_vbox != NULL);
+#line 127 "mn-pi-mailbox-properties.gob"
 	g_return_if_fail (mnemonic != NULL);
-#line 249 "mn-pi-mailbox-properties.c"
+#line 263 "mn-pi-mailbox-properties.c"
 {
-#line 144 "mn-pi-mailbox-properties.gob"
+#line 132 "mn-pi-mailbox-properties.gob"
 	
-    GtkWidget *label;
     GtkWidget *hbox;
     GtkWidget *port_label;
-
-    label = gtk_label_new(type == 0 ? _("Connection type:") : NULL);
-    gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 
     self->conn_radio[type] = type == 0
       ? gtk_radio_button_new_with_mnemonic(NULL, mnemonic)
@@ -263,40 +273,48 @@ mn_pi_mailbox_properties_add_connection_type (MNPIMailboxProperties * self, MNPI
     port_label = gtk_label_new(_("Port:"));
 
     self->port_spin[type] = gtk_spin_button_new_with_range(0, 0xFFFF, 1);
+    gtk_entry_set_activates_default(GTK_ENTRY(self->port_spin[type]), TRUE);
     gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(self->port_spin[type]), TRUE);
 
     hbox = gtk_hbox_new(FALSE, 12);
-    gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(hbox), self->conn_radio[type], TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), self->conn_radio[type], FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), port_label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), self->port_spin[type], FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(self->details_vbox), hbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(type_vbox, hbox, FALSE, FALSE, 0);
     gtk_widget_show_all(hbox);
 
-    gtk_size_group_add_widget(self->details_size_group, label);
+    gtk_size_group_add_widget(self->connection_size_group, self->conn_radio[type]);
+
+    g_signal_connect(self->conn_radio[type], "toggled", G_CALLBACK(self_radio_toggled_h), self);
   }}
-#line 279 "mn-pi-mailbox-properties.c"
+#line 291 "mn-pi-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 172 "mn-pi-mailbox-properties.gob"
+#line 158 "mn-pi-mailbox-properties.gob"
 static void 
 mn_pi_mailbox_properties_add_authentication (MNPIMailboxProperties * self)
-#line 285 "mn-pi-mailbox-properties.c"
+#line 297 "mn-pi-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox:Properties::add_authentication"
-#line 172 "mn-pi-mailbox-properties.gob"
+#line 158 "mn-pi-mailbox-properties.gob"
 	g_return_if_fail (self != NULL);
-#line 172 "mn-pi-mailbox-properties.gob"
+#line 158 "mn-pi-mailbox-properties.gob"
 	g_return_if_fail (MN_IS_PI_MAILBOX_PROPERTIES (self));
-#line 292 "mn-pi-mailbox-properties.c"
+#line 304 "mn-pi-mailbox-properties.c"
 {
-#line 174 "mn-pi-mailbox-properties.gob"
+#line 160 "mn-pi-mailbox-properties.gob"
 	
+    GtkWidget *section;
+    GtkWidget *vbox;
     GtkWidget *hbox;
     GtkWidget *label;
 
+    /* translators: header capitalization */
+    section = mn_hig_section_new_with_box(_("Authentication"), NULL, &vbox);
+    gtk_box_pack_start(GTK_BOX(self->connection_page), section, FALSE, FALSE, 0);
+
     hbox = gtk_hbox_new(FALSE, 12);
-    label = gtk_label_new_with_mnemonic(_("Authent_ication mechanism:"));
+    label = gtk_label_new_with_mnemonic(_("_Mechanism:"));
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 
     self->auth_combo = mn_auth_combo_box_new();
@@ -304,48 +322,28 @@ mn_pi_mailbox_properties_add_authentication (MNPIMailboxProperties * self)
 
     gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), self->auth_combo, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(self->details_vbox), hbox, FALSE, FALSE, 0);
-    gtk_widget_show_all(hbox);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
-    gtk_size_group_add_widget(self->details_size_group, label);
+    gtk_size_group_add_widget(self->connection_size_group, label);
   }}
-#line 313 "mn-pi-mailbox-properties.c"
+#line 330 "mn-pi-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 193 "mn-pi-mailbox-properties.gob"
-static void 
-mn_pi_mailbox_properties_notify_expanded_h (GObject * object, GParamSpec * pspec, gpointer user_data)
-#line 319 "mn-pi-mailbox-properties.c"
-{
-#define __GOB_FUNCTION__ "MN:PI:Mailbox:Properties::notify_expanded_h"
-{
-#line 195 "mn-pi-mailbox-properties.gob"
-	
-    Self *self = user_data;
-
-    gtk_size_group_set_mode(self->details_size_group,
-			    gtk_expander_get_expanded(GTK_EXPANDER(object))
-			    ? GTK_SIZE_GROUP_HORIZONTAL
-			    : GTK_SIZE_GROUP_NONE);
-  }}
-#line 332 "mn-pi-mailbox-properties.c"
-#undef __GOB_FUNCTION__
-
-#line 204 "mn-pi-mailbox-properties.gob"
+#line 184 "mn-pi-mailbox-properties.gob"
 static void 
 mn_pi_mailbox_properties_radio_toggled_h (GtkToggleButton * togglebutton, gpointer user_data)
-#line 338 "mn-pi-mailbox-properties.c"
+#line 336 "mn-pi-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox:Properties::radio_toggled_h"
-#line 204 "mn-pi-mailbox-properties.gob"
+#line 184 "mn-pi-mailbox-properties.gob"
 	g_return_if_fail (togglebutton != NULL);
-#line 204 "mn-pi-mailbox-properties.gob"
+#line 184 "mn-pi-mailbox-properties.gob"
 	g_return_if_fail (GTK_IS_TOGGLE_BUTTON (togglebutton));
-#line 204 "mn-pi-mailbox-properties.gob"
+#line 184 "mn-pi-mailbox-properties.gob"
 	g_return_if_fail (user_data != NULL);
-#line 347 "mn-pi-mailbox-properties.c"
+#line 345 "mn-pi-mailbox-properties.c"
 {
-#line 207 "mn-pi-mailbox-properties.gob"
+#line 187 "mn-pi-mailbox-properties.gob"
 	
     Self *self = user_data;
     int i;
@@ -355,29 +353,63 @@ mn_pi_mailbox_properties_radio_toggled_h (GtkToggleButton * togglebutton, gpoint
 
     g_object_notify(G_OBJECT(self), "complete");
   }}
-#line 359 "mn-pi-mailbox-properties.c"
+#line 357 "mn-pi-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 217 "mn-pi-mailbox-properties.gob"
+#line 197 "mn-pi-mailbox-properties.gob"
 static void 
-___7_mn_pi_mailbox_properties_set_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED, MNMailbox * mailbox)
-#line 365 "mn-pi-mailbox-properties.c"
+___6_mn_pi_mailbox_properties_activate (MNMailboxProperties * properties G_GNUC_UNUSED)
+#line 363 "mn-pi-mailbox-properties.c"
+#define PARENT_HANDLER(___properties) \
+	{ if(MN_MAILBOX_PROPERTIES_CLASS(parent_class)->activate) \
+		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->activate)(___properties); }
+{
+#define __GOB_FUNCTION__ "MN:PI:Mailbox:Properties::activate"
+{
+#line 199 "mn-pi-mailbox-properties.gob"
+	
+    Self *self = SELF(properties);
+
+    PARENT_HANDLER(properties);
+
+    gtk_notebook_insert_page(GTK_NOTEBOOK(MN_MAILBOX_PROPERTIES_DIALOG(properties->dialog)->notebook), self->connection_page, NULL, 1);
+    gtk_notebook_set_tab_label_text(GTK_NOTEBOOK(MN_MAILBOX_PROPERTIES_DIALOG(properties->dialog)->notebook), self->connection_page, _("Connection"));
+  }}
+#line 379 "mn-pi-mailbox-properties.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 208 "mn-pi-mailbox-properties.gob"
+static void 
+___7_mn_pi_mailbox_properties_deactivate (MNMailboxProperties * properties G_GNUC_UNUSED)
+#line 386 "mn-pi-mailbox-properties.c"
+#define PARENT_HANDLER(___properties) \
+	{ if(MN_MAILBOX_PROPERTIES_CLASS(parent_class)->deactivate) \
+		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->deactivate)(___properties); }
+{
+#define __GOB_FUNCTION__ "MN:PI:Mailbox:Properties::deactivate"
+{
+#line 210 "mn-pi-mailbox-properties.gob"
+	
+    PARENT_HANDLER(properties);
+
+    gtk_notebook_remove_page(GTK_NOTEBOOK(MN_MAILBOX_PROPERTIES_DIALOG(properties->dialog)->notebook), 1);
+  }}
+#line 399 "mn-pi-mailbox-properties.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 216 "mn-pi-mailbox-properties.gob"
+static void 
+___8_mn_pi_mailbox_properties_set_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED, MNMailbox * mailbox)
+#line 406 "mn-pi-mailbox-properties.c"
 #define PARENT_HANDLER(___properties,___mailbox) \
 	{ if(MN_MAILBOX_PROPERTIES_CLASS(parent_class)->set_mailbox) \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->set_mailbox)(___properties,___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox:Properties::set_mailbox"
-#line 217 "mn-pi-mailbox-properties.gob"
-	g_return_if_fail (properties != NULL);
-#line 217 "mn-pi-mailbox-properties.gob"
-	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES (properties));
-#line 217 "mn-pi-mailbox-properties.gob"
-	g_return_if_fail (mailbox != NULL);
-#line 217 "mn-pi-mailbox-properties.gob"
-	g_return_if_fail (MN_IS_MAILBOX (mailbox));
-#line 379 "mn-pi-mailbox-properties.c"
 {
-#line 220 "mn-pi-mailbox-properties.gob"
+#line 218 "mn-pi-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     MNPIMailbox *pi_mailbox = MN_PI_MAILBOX(mailbox);
@@ -386,17 +418,17 @@ ___7_mn_pi_mailbox_properties_set_mailbox (MNMailboxProperties * properties G_GN
 
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->conn_radio[pi_mailbox->connection_type]), TRUE);
     mn_auth_combo_box_set_active_mechanism(MN_AUTH_COMBO_BOX(self->auth_combo), pi_mailbox->authmech);
-    gtk_entry_set_text(GTK_ENTRY(self->hostname_entry), pi_mailbox->hostname);
+    gtk_entry_set_text(GTK_ENTRY(self->server_entry), pi_mailbox->hostname);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(self->port_spin[pi_mailbox->connection_type]), pi_mailbox->runtime_port);
   }}
-#line 393 "mn-pi-mailbox-properties.c"
+#line 425 "mn-pi-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 232 "mn-pi-mailbox-properties.gob"
+#line 230 "mn-pi-mailbox-properties.gob"
 static MNMailbox * 
-___8_mn_pi_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED)
-#line 400 "mn-pi-mailbox-properties.c"
+___9_mn_pi_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED)
+#line 432 "mn-pi-mailbox-properties.c"
 #define PARENT_HANDLER(___properties) \
 	((MN_MAILBOX_PROPERTIES_CLASS(parent_class)->get_mailbox)? \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->get_mailbox)(___properties): \
@@ -404,12 +436,12 @@ ___8_mn_pi_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_GN
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox:Properties::get_mailbox"
 {
-#line 234 "mn-pi-mailbox-properties.gob"
+#line 232 "mn-pi-mailbox-properties.gob"
 	
     MNMailbox *mailbox;
     MNPIMailboxConnectionType connection_type;
     char *authmech;
-    const char *hostname;
+    const char *server;
     int port;
 
     mailbox = PARENT_HANDLER(properties);
@@ -417,13 +449,13 @@ ___8_mn_pi_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_GN
     self_get_contents(SELF(properties),
 		      &connection_type,
 		      &authmech,
-		      &hostname,
+		      &server,
 		      &port);
 
     g_object_set(mailbox,
 		 MN_PI_MAILBOX_PROP_CONNECTION_TYPE(connection_type),
 		 MN_PI_MAILBOX_PROP_AUTHMECH(authmech),
-		 MN_PI_MAILBOX_PROP_HOSTNAME((char *) hostname),
+		 MN_PI_MAILBOX_PROP_HOSTNAME((char *) server),
 		 MN_PI_MAILBOX_PROP_PORT(port),
 		 NULL);
 
@@ -431,23 +463,23 @@ ___8_mn_pi_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_GN
 
     return mailbox;
   }}
-#line 435 "mn-pi-mailbox-properties.c"
+#line 467 "mn-pi-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 261 "mn-pi-mailbox-properties.gob"
+#line 259 "mn-pi-mailbox-properties.gob"
 void 
-mn_pi_mailbox_properties_get_contents (MNPIMailboxProperties * self, MNPIMailboxConnectionType * connection_type, char ** authmech, const char ** hostname, int * port)
-#line 442 "mn-pi-mailbox-properties.c"
+mn_pi_mailbox_properties_get_contents (MNPIMailboxProperties * self, MNPIMailboxConnectionType * connection_type, char ** authmech, const char ** server, int * port)
+#line 474 "mn-pi-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox:Properties::get_contents"
-#line 261 "mn-pi-mailbox-properties.gob"
+#line 259 "mn-pi-mailbox-properties.gob"
 	g_return_if_fail (self != NULL);
-#line 261 "mn-pi-mailbox-properties.gob"
+#line 259 "mn-pi-mailbox-properties.gob"
 	g_return_if_fail (MN_IS_PI_MAILBOX_PROPERTIES (self));
-#line 449 "mn-pi-mailbox-properties.c"
+#line 481 "mn-pi-mailbox-properties.c"
 {
-#line 267 "mn-pi-mailbox-properties.gob"
+#line 265 "mn-pi-mailbox-properties.gob"
 	
     MNPIMailboxConnectionType _connection_type;
 
@@ -471,10 +503,10 @@ mn_pi_mailbox_properties_get_contents (MNPIMailboxProperties * self, MNPIMailbox
       *connection_type = _connection_type;
     if (authmech)
       *authmech = mn_auth_combo_box_get_active_mechanism(MN_AUTH_COMBO_BOX(self->auth_combo));
-    if (hostname)
-      *hostname = gtk_entry_get_text(GTK_ENTRY(self->hostname_entry));
+    if (server)
+      *server = gtk_entry_get_text(GTK_ENTRY(self->server_entry));
     if (port)
       *port = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(self->port_spin[_connection_type]));
   }}
-#line 480 "mn-pi-mailbox-properties.c"
+#line 512 "mn-pi-mailbox-properties.c"
 #undef __GOB_FUNCTION__

@@ -37,9 +37,9 @@ typedef struct _MNPIMailboxProperties MNPIMailboxProperties;
 struct _MNPIMailboxProperties {
 	MNAuthenticatedMailboxProperties __parent__;
 	/*< private >*/
-	GtkWidget * hostname_entry; /* protected */
-	GtkWidget * details_vbox; /* protected */
-	GtkSizeGroup * details_size_group; /* protected */
+	GtkWidget * server_entry; /* protected */
+	GtkWidget * connection_page; /* protected */
+	GtkSizeGroup * connection_size_group; /* protected */
 	GtkWidget * conn_radio[MN_PI_MAILBOX_N_CONNECTION_TYPES]; /* protected */
 	GtkWidget * port_spin[MN_PI_MAILBOX_N_CONNECTION_TYPES]; /* protected */
 	GtkWidget * auth_combo; /* protected */

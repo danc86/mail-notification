@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 25 "mn-authenticated-mailbox.gob"
+#line 26 "mn-authenticated-mailbox.gob"
 
 #include "config.h"
 #include "mn-mailbox-private.h"
@@ -114,10 +114,10 @@ ___finalize(GObject *obj_self)
 	gpointer priv G_GNUC_UNUSED = self->_priv;
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 33 "mn-authenticated-mailbox.gob"
+#line 34 "mn-authenticated-mailbox.gob"
 	if(self->username) { g_free ((gpointer) self->username); self->username = NULL; }
 #line 120 "mn-authenticated-mailbox.c"
-#line 36 "mn-authenticated-mailbox.gob"
+#line 37 "mn-authenticated-mailbox.gob"
 	if(self->password) { g_free ((gpointer) self->password); self->password = NULL; }
 #line 123 "mn-authenticated-mailbox.c"
 }
@@ -141,7 +141,7 @@ mn_authenticated_mailbox_class_init (MNAuthenticatedMailboxClass * c G_GNUC_UNUS
 
 	parent_class = g_type_class_ref (MN_TYPE_MAILBOX);
 
-#line 41 "mn-authenticated-mailbox.gob"
+#line 42 "mn-authenticated-mailbox.gob"
 	mn_mailbox_class->check = ___1_mn_authenticated_mailbox_check;
 #line 147 "mn-authenticated-mailbox.c"
 	c->authenticated_check = NULL;
@@ -187,14 +187,14 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_USERNAME:
 		{
-#line 34 "mn-authenticated-mailbox.gob"
+#line 35 "mn-authenticated-mailbox.gob"
 { char *old = self->username; self->username = g_value_dup_string (VAL); g_free (old); }
 #line 193 "mn-authenticated-mailbox.c"
 		}
 		break;
 	case PROP_PASSWORD:
 		{
-#line 37 "mn-authenticated-mailbox.gob"
+#line 38 "mn-authenticated-mailbox.gob"
 { char *old = self->password; self->password = g_value_dup_string (VAL); g_free (old); }
 #line 200 "mn-authenticated-mailbox.c"
 		}
@@ -225,14 +225,14 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_USERNAME:
 		{
-#line 34 "mn-authenticated-mailbox.gob"
+#line 35 "mn-authenticated-mailbox.gob"
 g_value_set_string (VAL, self->username);
 #line 231 "mn-authenticated-mailbox.c"
 		}
 		break;
 	case PROP_PASSWORD:
 		{
-#line 37 "mn-authenticated-mailbox.gob"
+#line 38 "mn-authenticated-mailbox.gob"
 g_value_set_string (VAL, self->password);
 #line 238 "mn-authenticated-mailbox.c"
 		}
@@ -251,7 +251,7 @@ g_value_set_string (VAL, self->password);
 
 
 
-#line 41 "mn-authenticated-mailbox.gob"
+#line 42 "mn-authenticated-mailbox.gob"
 static void 
 ___1_mn_authenticated_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
 #line 258 "mn-authenticated-mailbox.c"
@@ -261,7 +261,7 @@ ___1_mn_authenticated_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::check"
 {
-#line 43 "mn-authenticated-mailbox.gob"
+#line 44 "mn-authenticated-mailbox.gob"
 	
     Self *self = SELF(mailbox);
 
@@ -280,19 +280,19 @@ ___1_mn_authenticated_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 58 "mn-authenticated-mailbox.gob"
+#line 59 "mn-authenticated-mailbox.gob"
 static void 
 mn_authenticated_mailbox_check_thread_cb (MNAuthenticatedMailbox * self)
 #line 287 "mn-authenticated-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::check_thread_cb"
-#line 58 "mn-authenticated-mailbox.gob"
+#line 59 "mn-authenticated-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 58 "mn-authenticated-mailbox.gob"
+#line 59 "mn-authenticated-mailbox.gob"
 	g_return_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self));
 #line 294 "mn-authenticated-mailbox.c"
 {
-#line 60 "mn-authenticated-mailbox.gob"
+#line 61 "mn-authenticated-mailbox.gob"
 	
     self_authenticated_check(self);
 
@@ -307,15 +307,15 @@ mn_authenticated_mailbox_check_thread_cb (MNAuthenticatedMailbox * self)
 #line 308 "mn-authenticated-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 72 "mn-authenticated-mailbox.gob"
+#line 73 "mn-authenticated-mailbox.gob"
 static void 
 mn_authenticated_mailbox_authenticated_check (MNAuthenticatedMailbox * self)
 #line 314 "mn-authenticated-mailbox.c"
 {
 	MNAuthenticatedMailboxClass *klass;
-#line 72 "mn-authenticated-mailbox.gob"
+#line 73 "mn-authenticated-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 72 "mn-authenticated-mailbox.gob"
+#line 73 "mn-authenticated-mailbox.gob"
 	g_return_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self));
 #line 321 "mn-authenticated-mailbox.c"
 	klass = MN_AUTHENTICATED_MAILBOX_GET_CLASS(self);

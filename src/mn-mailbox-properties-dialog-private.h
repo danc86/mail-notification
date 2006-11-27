@@ -9,57 +9,62 @@
 extern "C" {
 #endif /* __cplusplus */
 
+
+#line 27 "mn-mailbox-properties-dialog.gob"
+
+#include "mn-mailbox-properties.h"
+
+#line 18 "mn-mailbox-properties-dialog-private.h"
 struct _MNMailboxPropertiesDialogPrivate {
-#line 63 "mn-mailbox-properties-dialog.gob"
+#line 69 "mn-mailbox-properties-dialog.gob"
 	GtkWindow * dialog_parent;
-#line 66 "mn-mailbox-properties-dialog.gob"
+#line 72 "mn-mailbox-properties-dialog.gob"
 	MNMailbox * mailbox;
-#line 99 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * mailbox_type_label;
-#line 100 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * mailbox_type_combo;
-#line 101 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * mailbox_name_label;
-#line 102 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * mailbox_name_entry;
-#line 103 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * mailbox_name_default_button;
-#line 104 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * delay_label;
-#line 105 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * delay_hbox;
-#line 106 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * minutes_spin;
 #line 107 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * minutes_label;
+	GtkWidget * mailbox_type_label;
 #line 108 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * seconds_spin;
+	GtkWidget * mailbox_type_combo;
 #line 109 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * seconds_label;
+	GtkWidget * mailbox_name_label;
 #line 110 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * delay_default_button;
+	GtkWidget * mailbox_name_entry;
+#line 111 "mn-mailbox-properties-dialog.gob"
+	GtkWidget * mailbox_name_default_button;
 #line 112 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * type_section_label;
+	GtkWidget * delay_label;
 #line 113 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * properties_event_box;
+	GtkWidget * delay_hbox;
+#line 114 "mn-mailbox-properties-dialog.gob"
+	GtkWidget * minutes_spin;
 #line 115 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * apply_button;
+	GtkWidget * minutes_label;
 #line 116 "mn-mailbox-properties-dialog.gob"
-	GtkWidget * accept_button;
+	GtkWidget * seconds_spin;
+#line 117 "mn-mailbox-properties-dialog.gob"
+	GtkWidget * seconds_label;
 #line 118 "mn-mailbox-properties-dialog.gob"
-	GtkListStore * store;
+	GtkWidget * delay_default_button;
 #line 120 "mn-mailbox-properties-dialog.gob"
-	char * default_name;
+	GtkWidget * apply_button;
 #line 121 "mn-mailbox-properties-dialog.gob"
-	gboolean has_custom_name;
+	GtkWidget * accept_button;
 #line 123 "mn-mailbox-properties-dialog.gob"
-	int default_check_delay;
-#line 124 "mn-mailbox-properties-dialog.gob"
-	gboolean has_custom_check_delay;
+	GtkListStore * store;
+#line 125 "mn-mailbox-properties-dialog.gob"
+	char * default_name;
 #line 126 "mn-mailbox-properties-dialog.gob"
+	gboolean has_custom_name;
+#line 128 "mn-mailbox-properties-dialog.gob"
+	int default_check_delay;
+#line 129 "mn-mailbox-properties-dialog.gob"
+	gboolean has_custom_check_delay;
+#line 131 "mn-mailbox-properties-dialog.gob"
 	GSList * entries;
-#line 62 "mn-mailbox-properties-dialog-private.h"
+#line 133 "mn-mailbox-properties-dialog.gob"
+	MNMailboxProperties * active_properties;
+#line 66 "mn-mailbox-properties-dialog-private.h"
 };
+void 	mn_mailbox_properties_dialog_set_help_section	(GtkWidget * page, const char * section);
 void 	mn_mailbox_properties_dialog_type_changed_h	(MNMailboxPropertiesDialog * self, GtkComboBox * combobox);
 void 	mn_mailbox_properties_dialog_name_changed_h	(MNMailboxPropertiesDialog * self, GtkEditable * editable);
 void 	mn_mailbox_properties_dialog_name_default_button_clicked_h	(MNMailboxPropertiesDialog * self, GtkButton * button);

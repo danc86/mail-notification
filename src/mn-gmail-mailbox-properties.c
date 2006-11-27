@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 26 "mn-gmail-mailbox-properties.gob"
+#line 27 "mn-gmail-mailbox-properties.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
@@ -114,13 +114,13 @@ ___finalize(GObject *obj_self)
 	gpointer priv G_GNUC_UNUSED = self->_priv;
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 44 "mn-gmail-mailbox-properties.gob"
+#line 45 "mn-gmail-mailbox-properties.gob"
 	if(self->_priv->location) { g_free ((gpointer) self->_priv->location); self->_priv->location = NULL; }
 #line 120 "mn-gmail-mailbox-properties.c"
 }
 #undef __GOB_FUNCTION__
 
-#line 56 "mn-gmail-mailbox-properties.gob"
+#line 57 "mn-gmail-mailbox-properties.gob"
 static void 
 mn_gmail_mailbox_properties_class_init (MNGmailMailboxPropertiesClass * class G_GNUC_UNUSED)
 #line 127 "mn-gmail-mailbox-properties.c"
@@ -133,9 +133,9 @@ mn_gmail_mailbox_properties_class_init (MNGmailMailboxPropertiesClass * class G_
 
 	parent_class = g_type_class_ref (MN_TYPE_AUTHENTICATED_MAILBOX_PROPERTIES);
 
-#line 81 "mn-gmail-mailbox-properties.gob"
+#line 82 "mn-gmail-mailbox-properties.gob"
 	mn_mailbox_properties_class->set_mailbox = ___3_mn_gmail_mailbox_properties_set_mailbox;
-#line 92 "mn-gmail-mailbox-properties.gob"
+#line 93 "mn-gmail-mailbox-properties.gob"
 	mn_mailbox_properties_class->get_mailbox = ___4_mn_gmail_mailbox_properties_get_mailbox;
 #line 141 "mn-gmail-mailbox-properties.c"
 	g_object_class->finalize = ___finalize;
@@ -146,7 +146,7 @@ mn_gmail_mailbox_properties_class_init (MNGmailMailboxPropertiesClass * class G_
 		"default_name");
     }
  {
-#line 57 "mn-gmail-mailbox-properties.gob"
+#line 58 "mn-gmail-mailbox-properties.gob"
 
     MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
 
@@ -158,7 +158,7 @@ mn_gmail_mailbox_properties_class_init (MNGmailMailboxPropertiesClass * class G_
  }
 }
 #undef __GOB_FUNCTION__
-#line 65 "mn-gmail-mailbox-properties.gob"
+#line 66 "mn-gmail-mailbox-properties.gob"
 static void 
 mn_gmail_mailbox_properties_init (MNGmailMailboxProperties * self G_GNUC_UNUSED)
 #line 165 "mn-gmail-mailbox-properties.c"
@@ -166,13 +166,13 @@ mn_gmail_mailbox_properties_init (MNGmailMailboxProperties * self G_GNUC_UNUSED)
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox:Properties::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_GMAIL_MAILBOX_PROPERTIES,MNGmailMailboxPropertiesPrivate);
  {
-#line 66 "mn-gmail-mailbox-properties.gob"
+#line 67 "mn-gmail-mailbox-properties.gob"
 
     MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
     MNAuthenticatedMailboxProperties *auth = MN_AUTHENTICATED_MAILBOX_PROPERTIES(self);
 
-    gtk_box_pack_start(GTK_BOX(self), auth->username_vbox, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(self), auth->password_vbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(auth->account_vbox), auth->username_vbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(auth->account_vbox), auth->password_vbox, FALSE, FALSE, 0);
 
     properties->entries = mn_g_slist_append_elements(properties->entries,
 						     auth->username_entry,
@@ -200,7 +200,7 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_DEFAULT_NAME:
 		{
-#line 48 "mn-gmail-mailbox-properties.gob"
+#line 49 "mn-gmail-mailbox-properties.gob"
 
       const char *username;
 
@@ -225,7 +225,7 @@ ___object_get_property (GObject *object,
 
 
 
-#line 81 "mn-gmail-mailbox-properties.gob"
+#line 82 "mn-gmail-mailbox-properties.gob"
 static void 
 ___3_mn_gmail_mailbox_properties_set_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED, MNMailbox * mailbox)
 #line 232 "mn-gmail-mailbox-properties.c"
@@ -235,7 +235,7 @@ ___3_mn_gmail_mailbox_properties_set_mailbox (MNMailboxProperties * properties G
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox:Properties::set_mailbox"
 {
-#line 83 "mn-gmail-mailbox-properties.gob"
+#line 84 "mn-gmail-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     MNGmailMailbox *gmail_mailbox = MN_GMAIL_MAILBOX(mailbox);
@@ -248,7 +248,7 @@ ___3_mn_gmail_mailbox_properties_set_mailbox (MNMailboxProperties * properties G
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 92 "mn-gmail-mailbox-properties.gob"
+#line 93 "mn-gmail-mailbox-properties.gob"
 static MNMailbox * 
 ___4_mn_gmail_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED)
 #line 255 "mn-gmail-mailbox-properties.c"
@@ -259,7 +259,7 @@ ___4_mn_gmail_mailbox_properties_get_mailbox (MNMailboxProperties * properties G
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox:Properties::get_mailbox"
 {
-#line 94 "mn-gmail-mailbox-properties.gob"
+#line 95 "mn-gmail-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     MNMailbox *mailbox;

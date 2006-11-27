@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -31,7 +32,7 @@ requires 2.0.14
 #include "mn-mailbox-properties-private.h"
 #include "mn-util.h"
 #include "mn-properties-dialog.h"
-#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
+#if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
 #include "mn-custom-vfs-mailbox.h"
 #endif
 #include "mn-stock.h"
@@ -106,18 +107,21 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
 
     p_class->type = "custom-vfs";
     p_class->stock_id = MN_STOCK_UNKNOWN;
-    p_class->combo_label = _("<span style=\"italic\">autodetect</span>");
-    p_class->section_label = _("Location");
+    p_class->combo_label = _("Autodetect");
     p_class->no_check_delay_unless_complete = TRUE;
   }
 
   init (self)
   {
     MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
+    GtkWidget *location_vbox;
     GtkWidget *outer_hbox;
     GtkWidget *hbox;
     GtkWidget *label;
     GtkWidget *button;
+
+    /* translators: header capitalization */
+    location_vbox = mn_mailbox_properties_add_general_section(properties, _("Location"));
 
     label = gtk_label_new_with_mnemonic(_("_Location:"));
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
@@ -137,7 +141,7 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
 
     gtk_box_pack_start(GTK_BOX(outer_hbox), label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(outer_hbox), hbox, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(self), outer_hbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(location_vbox), outer_hbox, FALSE, FALSE, 0);
 
     gtk_widget_show_all(outer_hbox);
 
@@ -222,7 +226,7 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
   override (MN:Mailbox:Properties) void
     set_mailbox (MNMailboxProperties *properties, MNMailbox *mailbox)
   {
-#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
+#if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
     g_return_if_fail(MN_IS_CUSTOM_VFS_MAILBOX(mailbox));
 
     gtk_entry_set_text(GTK_ENTRY(SELF(properties)->_priv->location_entry), MN_CUSTOM_VFS_MAILBOX(mailbox)->uri);

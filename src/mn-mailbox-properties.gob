@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,32 +12,41 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
 
 %headertop{
 #include <gtk/gtk.h>
-#include <stdarg.h>
 #include "mn-mailbox.h"
 %}
 
-class MN:Mailbox:Properties from Gtk:VBox (abstract)
+%{
+#include "config.h"
+#include "mn-util.h"
+#include "mn-mailbox-properties-dialog.h"
+%}
+
+class MN:Mailbox:Properties from G:Object (abstract)
 {
   classwide const char *type;
   classwide const char *stock_id;
   classwide const char *combo_label;
-  classwide const char *section_label;
   classwide gboolean no_check_delay_unless_complete;
+
+  protected GtkWidget *dialog;
+  property POINTER dialog (flags = CONSTRUCT_ONLY, link, type = GtkWidget *);
 
   protected GtkSizeGroup *label_size_group = {gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL)} unrefwith g_object_unref;
   protected GtkSizeGroup *entry_size_group = {gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL)} unrefwith g_object_unref;
   protected GtkSizeGroup *entry_button_size_group = {gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL)} unrefwith g_object_unref;
 
   protected GSList *entries destroywith g_slist_free;
+
+  private GSList *general_sections destroywith mn_g_object_slist_free;
 
   property BOOLEAN complete
     get { g_value_set_boolean(VAL, TRUE); };
@@ -53,11 +63,16 @@ class MN:Mailbox:Properties from Gtk:VBox (abstract)
       mailbox_type = mn_mailbox_get_type_from_name(SELF_GET_CLASS(self)->type);
       g_assert(mailbox_type != 0);
 
-      class = g_type_class_peek(mailbox_type);
-      g_assert(class != NULL);
-
+      class = g_type_class_ref(mailbox_type);
       g_value_set_int(VAL, class->default_check_delay);
+      g_type_class_unref(class);
     };
+
+  virtual public void
+    activate (self);
+
+  virtual public void
+    deactivate (self);
 
   virtual public void
     set_mailbox (self, MNMailbox *mailbox);
@@ -68,9 +83,38 @@ class MN:Mailbox:Properties from Gtk:VBox (abstract)
     return mn_mailbox_new(SELF_GET_CLASS(self)->type, NULL);
   }
 
-  init (self)
+  protected GtkWidget *
+    add_general_section (self, const char *title (check null))
   {
-    gtk_box_set_spacing(GTK_BOX(self), 6);
+    GtkWidget *section;
+    GtkWidget *vbox;
+
+    section = mn_hig_section_new_with_box(title, NULL, &vbox);
+    mn_gtk_object_ref_and_sink(GTK_OBJECT(section));
+    gtk_widget_show(section);
+
+    selfp->general_sections = g_slist_append(selfp->general_sections, section);
+    return vbox;
+  }
+
+  override (MN:Mailbox:Properties) void
+    activate (MNMailboxProperties *properties)
+  {
+    Self *self = SELF(properties);
+    GSList *l;
+
+    MN_LIST_FOREACH(l, selfp->general_sections)
+      gtk_box_pack_start(GTK_BOX(MN_MAILBOX_PROPERTIES_DIALOG(properties->dialog)->general_vbox), l->data, FALSE, FALSE, 0);
+  }
+
+  override (MN:Mailbox:Properties) void
+    deactivate (MNMailboxProperties *properties)
+  {
+    Self *self = SELF(properties);
+    GSList *l;
+
+    MN_LIST_FOREACH(l, selfp->general_sections)
+      gtk_container_remove(GTK_CONTAINER(MN_MAILBOX_PROPERTIES_DIALOG(properties->dialog)->general_vbox), l->data);
   }
 
   protected void

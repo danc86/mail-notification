@@ -11,7 +11,7 @@ Index
 
 0. About this document
 
-	$Id: README,v 1.32 2006/05/15 04:32:34 jylefort Exp $
+	$Id: README,v 1.34 2006/11/22 17:56:46 jylefort Exp $
 
 	Copyright (C) 2003-2006 Jean-Yves Lefort.
 
@@ -31,8 +31,9 @@ Index
 	Mail Notification features include:
 
 		* multiple mailbox support
-		* mbox, MH, Maildir, POP3, IMAP, Gmail, Evolution and
-		  Sylpheed support
+		* mbox, MH, Maildir, POP3, IMAP, Gmail, Evolution,
+		  Mozilla products (Mozilla, SeaMonkey, Thunderbird,
+		  ...) and Sylpheed support
 		* SASL authentication support
 		* APOP authentication support
 		* SSL/TLS support
@@ -40,7 +41,7 @@ Index
 		* immediate notification (the status icon is updated
 		  immediately or within seconds after a mailbox
 		  changes)
-		* a mail summary
+		* message popups
 		* HIG 2.0 compliance
 
 2. Issues in third-party software affecting Mail Notification
@@ -90,6 +91,7 @@ Index
 	  http://bugzilla.gnome.org/show_bug.cgi?id=315650
 	  fixed:
 		- FreeBSD port devel/libbonobo >= 2.10.1_1
+		- libbonobo >= 2.15.3
 
 	* An infinite loop in GnomeVFS may affect mailboxes which use
 	  the GnomeVFS bzip2 method.
@@ -115,6 +117,7 @@ Index
 	  http://bugzilla.gnome.org/show_bug.cgi?id=341585
 	  fixed:
 		- FreeBSD port devel/gnomevfs2 >= 2.14.1_2
+		- GnomeVFS >= 2.15.90
 
 3. Installation instructions
 

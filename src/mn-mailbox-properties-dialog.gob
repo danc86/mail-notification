@@ -1,4 +1,5 @@
 /* 
+ * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -23,12 +24,15 @@ requires 2.0.14
 #include "mn-mailbox.h"
 %}
 
+%privateheader{
+#include "mn-mailbox-properties.h"
+%}
+
 %{
 #include "config.h"
 #include <glib/gi18n.h>
-#include "mn-mailbox-properties.h"
 #include "mn-autodetect-mailbox-properties.h"
-#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
+#if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
 #include "mn-system-vfs-mailbox-properties.h"
 #endif
 #if WITH_POP3
@@ -46,6 +50,8 @@ requires 2.0.14
 #include "mn-util.h"
 #include "mn-mailboxes.h"
 #include "mn-shell.h"
+
+#define HELP_SECTION "mn-mailbox-properties-help-section"
 
 enum {
   COLUMN_PROPERTIES,
@@ -96,6 +102,8 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
       g_value_set_object(VAL, selfp->mailbox);
     };
 
+  protected GtkWidget *notebook;
+  protected GtkWidget *general_vbox;
   private GtkWidget *mailbox_type_label;
   private GtkWidget *mailbox_type_combo;
   private GtkWidget *mailbox_name_label;
@@ -108,9 +116,6 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
   private GtkWidget *seconds_spin;
   private GtkWidget *seconds_label;
   private GtkWidget *delay_default_button;
-
-  private GtkWidget *type_section_label;
-  private GtkWidget *properties_event_box;
 
   private GtkWidget *apply_button;
   private GtkWidget *accept_button;
@@ -125,12 +130,15 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
 
   private GSList *entries destroywith g_slist_free;
 
+  private MNMailboxProperties *active_properties unrefwith g_object_unref;
+
   override (G:Object) GObject *
     constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
   {
     GObject *object;
     Self *self;
-    GtkCellRenderer *renderer;
+    GtkWidget *general_page;
+    GtkCellRenderer *renderer; 
     MNMailboxProperties *properties;
 
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
@@ -138,8 +146,10 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
 
     mn_container_create_interface(GTK_CONTAINER(self),
 				  UIDIR G_DIR_SEPARATOR_S "mailbox-properties-dialog.glade",
-				  "vbox",
+				  "notebook",
 				  "mn_mailbox_properties_dialog_",
+				  "notebook", &self->notebook,
+				  "general_vbox", &self->general_vbox,
 				  "mailbox_type_label", &selfp->mailbox_type_label,
 				  "mailbox_type_combo", &selfp->mailbox_type_combo,
 				  "mailbox_name_label", &selfp->mailbox_name_label,
@@ -152,8 +162,6 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
 				  "seconds_spin", &selfp->seconds_spin,
 				  "seconds_label", &selfp->seconds_label,
 				  "delay_default_button", &selfp->delay_default_button,
-				  "type_section_label", &selfp->type_section_label,
-				  "properties_event_box", &selfp->properties_event_box,
 				  NULL);
 
     gtk_window_set_resizable(GTK_WINDOW(self), FALSE);
@@ -167,15 +175,19 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
 						selfp->seconds_spin,
 						NULL);
 
+    general_page = gtk_notebook_get_nth_page(GTK_NOTEBOOK(self->notebook), 0);
+    g_assert(general_page != NULL);
+    self_set_help_section(general_page, "mailbox-properties-general");
+
     /* finish the type combo box */
 
     selfp->store = gtk_list_store_new(N_COLUMNS,
-				      GTK_TYPE_WIDGET,
+				      MN_TYPE_MAILBOX_PROPERTIES,
 				      G_TYPE_STRING,
 				      G_TYPE_STRING);
 
     self_add_type(self, MN_TYPE_AUTODETECT_MAILBOX_PROPERTIES);
-#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
+#if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
     self_add_type(self, MN_TYPE_SYSTEM_VFS_MAILBOX_PROPERTIES);
 #endif
 #if WITH_POP3
@@ -193,7 +205,7 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
 
     renderer = gtk_cell_renderer_pixbuf_new();
     g_object_set(renderer, "stock-size", GTK_ICON_SIZE_MENU, NULL);
-    gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(selfp->mailbox_type_combo), renderer, FALSE);;
+    gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(selfp->mailbox_type_combo), renderer, FALSE);
     gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(selfp->mailbox_type_combo), renderer,
 				   "stock-id", COLUMN_STOCK_ID,
 				   NULL);
@@ -202,7 +214,7 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
     g_object_set(renderer, "xpad", 6, NULL);
     gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(selfp->mailbox_type_combo), renderer, TRUE);
     gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(selfp->mailbox_type_combo), renderer,
-				   "markup", COLUMN_LABEL,
+				   "text", COLUMN_LABEL,
 				   NULL);
 
     gtk_combo_box_set_model(GTK_COMBO_BOX(selfp->mailbox_type_combo), GTK_TREE_MODEL(selfp->store));
@@ -250,7 +262,43 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
 
     gtk_widget_grab_default(selfp->accept_button);
 
+    /*
+     * HIG chapter 3:
+     * "When opening a dialog, provide initial keyboard focus to the
+     * component that you expect users to operate first. This focus is
+     * especially important for users who must use a keyboard to
+     * navigate your application."
+     */
+    gtk_widget_grab_focus(selfp->mailbox_type_combo);
+
+    g_signal_connect(self, "response", G_CALLBACK(self_response_h), NULL);
+
     return object;
+  }
+
+  private void
+    response_h (GtkDialog *dialog, int response, gpointer user_data)
+  {
+    Self *self = SELF(dialog);
+
+    if (response == GTK_RESPONSE_HELP)
+      {
+	int page_number;
+	GtkWidget *page;
+	const char *section;
+
+	page_number = gtk_notebook_get_current_page(GTK_NOTEBOOK(self->notebook));
+
+	page = gtk_notebook_get_nth_page(GTK_NOTEBOOK(self->notebook), page_number);
+	g_assert(page != NULL);
+
+	section = g_object_get_data(G_OBJECT(page), HELP_SECTION);
+	g_assert(section != NULL);
+
+	mn_display_help(GTK_WINDOW(self), section);
+      }
+
+    /* other responses are handled by the client */
   }
 
   private void
@@ -261,8 +309,7 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
     GtkTreeIter iter;
     GSList *l;
 
-    properties = g_object_new(type, NULL);
-    mn_gtk_object_ref_and_sink(GTK_OBJECT(properties));
+    properties = g_object_new(type, MN_MAILBOX_PROPERTIES_PROP_DIALOG(GTK_WIDGET(self)), NULL);
 
     p_class = MN_MAILBOX_PROPERTIES_GET_CLASS(properties);
 
@@ -272,8 +319,6 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
 		       COLUMN_STOCK_ID, p_class->stock_id,
 		       COLUMN_LABEL, p_class->combo_label,
 		       -1);
-
-    gtk_widget_show(GTK_WIDGET(properties));
 
     g_object_connect(properties,
 		     "swapped-signal::notify::complete", self_update_complete, self,
@@ -503,6 +548,13 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
       }
   }
 
+  protected void
+    set_help_section (Gtk:Widget *page (check null type),
+		      const char *section (check null))
+  {
+    g_object_set_data_full(G_OBJECT(page), HELP_SECTION, g_strdup(section), g_free);
+  }
+
   public GtkWidget *
     new (GtkWindow *parent, MNMailbox *mailbox)
   {
@@ -516,47 +568,35 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
   protected void
     type_changed_h (self, GtkComboBox *combobox)
   {
-    MNMailboxProperties *properties;
-    MNMailboxPropertiesClass *class;
-    char *markup;
-
-    properties = (MNMailboxProperties *) GTK_BIN(selfp->properties_event_box)->child;
-    if (properties)
+    if (selfp->active_properties)
       {
-	gtk_size_group_remove_widget(properties->label_size_group, selfp->mailbox_type_label);
-	gtk_size_group_remove_widget(properties->label_size_group, selfp->mailbox_name_label);
-	gtk_size_group_remove_widget(properties->entry_size_group, selfp->mailbox_name_entry);
-	gtk_size_group_remove_widget(properties->entry_size_group, selfp->delay_hbox);
-	gtk_size_group_remove_widget(properties->entry_button_size_group, selfp->mailbox_name_default_button);
-	gtk_size_group_remove_widget(properties->label_size_group, selfp->delay_label);
-	gtk_size_group_remove_widget(properties->entry_button_size_group, selfp->delay_default_button);
-	gtk_container_remove(GTK_CONTAINER(selfp->properties_event_box), GTK_WIDGET(properties));
+	mn_mailbox_properties_deactivate(selfp->active_properties);
+	gtk_size_group_remove_widget(selfp->active_properties->label_size_group, selfp->mailbox_type_label);
+	gtk_size_group_remove_widget(selfp->active_properties->label_size_group, selfp->mailbox_name_label);
+	gtk_size_group_remove_widget(selfp->active_properties->entry_size_group, selfp->mailbox_name_entry);
+	gtk_size_group_remove_widget(selfp->active_properties->entry_size_group, selfp->delay_hbox);
+	gtk_size_group_remove_widget(selfp->active_properties->entry_button_size_group, selfp->mailbox_name_default_button);
+	gtk_size_group_remove_widget(selfp->active_properties->label_size_group, selfp->delay_label);
+	gtk_size_group_remove_widget(selfp->active_properties->entry_button_size_group, selfp->delay_default_button);
+	g_object_unref(selfp->active_properties);
       }
 
-    properties = self_get_active_properties(self);
-    gtk_container_add(GTK_CONTAINER(selfp->properties_event_box), GTK_WIDGET(properties));
-    gtk_size_group_add_widget(properties->label_size_group, selfp->mailbox_type_label);
-    gtk_size_group_add_widget(properties->label_size_group, selfp->mailbox_name_label);
-    gtk_size_group_add_widget(properties->entry_size_group, selfp->mailbox_name_entry);
-    gtk_size_group_add_widget(properties->entry_size_group, selfp->delay_hbox);
-    gtk_size_group_add_widget(properties->entry_button_size_group, selfp->mailbox_name_default_button);
-    gtk_size_group_add_widget(properties->label_size_group, selfp->delay_label);
-    gtk_size_group_add_widget(properties->entry_button_size_group, selfp->delay_default_button);
-
-    class = MN_MAILBOX_PROPERTIES_GET_CLASS(properties);
-
-    markup = g_markup_printf_escaped("<span weight=\"bold\">%s</span>", class->section_label ? class->section_label : class->combo_label);
-    gtk_label_set_markup(GTK_LABEL(selfp->type_section_label), markup);
-    g_free(markup);
+    selfp->active_properties = self_get_active_properties(self);
+    mn_mailbox_properties_activate(selfp->active_properties);
+    gtk_size_group_add_widget(selfp->active_properties->label_size_group, selfp->mailbox_type_label);
+    gtk_size_group_add_widget(selfp->active_properties->label_size_group, selfp->mailbox_name_label);
+    gtk_size_group_add_widget(selfp->active_properties->entry_size_group, selfp->mailbox_name_entry);
+    gtk_size_group_add_widget(selfp->active_properties->entry_size_group, selfp->delay_hbox);
+    gtk_size_group_add_widget(selfp->active_properties->entry_button_size_group, selfp->mailbox_name_default_button);
+    gtk_size_group_add_widget(selfp->active_properties->label_size_group, selfp->delay_label);
+    gtk_size_group_add_widget(selfp->active_properties->entry_button_size_group, selfp->delay_default_button);
 
     if (! selfp->mailbox)	/* mode is add */
-      selected_type = G_TYPE_FROM_INSTANCE(properties);
+      selected_type = G_OBJECT_TYPE(selfp->active_properties);
 
     self_update_complete(self);
     self_update_default_name(self);
     self_update_default_check_delay(self);
-
-    g_object_unref(properties);
   }
 
   protected void
@@ -611,6 +651,7 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
 	g_assert(properties != NULL);
 
 	entries = g_slist_concat(g_slist_copy(selfp->entries), g_slist_copy(properties->entries));
+	g_object_unref(properties);
 
 	elem = g_slist_find(entries, entry);
 	g_assert(elem != NULL);

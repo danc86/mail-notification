@@ -10,7 +10,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 29 "mn-tooltips.gob"
+#line 32 "mn-tooltips.gob"
 
 #include "mn-locked-callback.h"
 
@@ -23,19 +23,19 @@ typedef struct
 
 #line 25 "mn-tooltips-private.h"
 struct _MNTooltipsPrivate {
-#line 76 "mn-tooltips.gob"
+#line 79 "mn-tooltips.gob"
 	GtkWidget * window;
-#line 77 "mn-tooltips.gob"
-	TooltipsData * active_data;
-#line 78 "mn-tooltips.gob"
-	GSList * data_list;
 #line 80 "mn-tooltips.gob"
-	gboolean use_sticky_delay;
+	TooltipsData * active_data;
 #line 81 "mn-tooltips.gob"
-	GTimeVal last_popdown;
-#line 82 "mn-tooltips.gob"
-	MNLockedGSource * timeout_source;
+	GSList * data_list;
+#line 83 "mn-tooltips.gob"
+	gboolean use_sticky_delay;
 #line 84 "mn-tooltips.gob"
+	GTimeVal last_popdown;
+#line 85 "mn-tooltips.gob"
+	MNLockedGSource * timeout_source;
+#line 87 "mn-tooltips.gob"
 	int border_width;
 #line 41 "mn-tooltips-private.h"
 };

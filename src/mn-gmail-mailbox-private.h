@@ -10,13 +10,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 25 "mn-gmail-mailbox.gob"
+#line 26 "mn-gmail-mailbox.gob"
 
 #include <libgnomevfs/gnome-vfs.h>
 
 #line 18 "mn-gmail-mailbox-private.h"
 struct _MNGmailMailboxPrivate {
-#line 58 "mn-gmail-mailbox.gob"
+#line 59 "mn-gmail-mailbox.gob"
 	GnomeVFSURI * uri;
 #line 22 "mn-gmail-mailbox-private.h"
 };

@@ -10,13 +10,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 25 "mn-message-view.gob"
+#line 26 "mn-message-view.gob"
 
 #include <time.h>
 
 #line 18 "mn-message-view-private.h"
 struct _MNMessageViewPrivate {
-#line 47 "mn-message-view.gob"
+#line 48 "mn-message-view.gob"
 	GSList * past_time_cells;
 #line 22 "mn-message-view-private.h"
 };

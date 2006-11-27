@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -41,15 +42,15 @@ class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties
     {
       MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
       gboolean complete;
-      const char *hostname;
+      const char *server;
 
       mn_pi_mailbox_properties_get_contents(pi,
 					    NULL,
 					    NULL,
-					    &hostname,
+					    &server,
 					    NULL);
 
-      complete = *hostname != 0;
+      complete = *server != 0;
 #ifndef WITH_SSL
       if (complete)
 	complete = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL]));
@@ -62,7 +63,7 @@ class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties
     get
     {
       const char *username;
-      const char *hostname;
+      const char *server;
 
       mn_authenticated_mailbox_properties_get_contents(MN_AUTHENTICATED_MAILBOX_PROPERTIES(self),
 						       &username,
@@ -70,10 +71,10 @@ class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties
       mn_pi_mailbox_properties_get_contents(MN_PI_MAILBOX_PROPERTIES(self),
 					    NULL,
 					    NULL,
-					    &hostname,
+					    &server,
 					    NULL);
 
-      g_value_take_string(VAL, mn_pop3_mailbox_build_name(username, hostname));
+      g_value_take_string(VAL, mn_pop3_mailbox_build_name(username, server));
     };
 
   class_init (class)

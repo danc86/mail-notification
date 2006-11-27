@@ -10,7 +10,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 29 "mn-pi-mailbox.gob"
+#line 30 "mn-pi-mailbox.gob"
 
 #include <gtk/gtk.h>
 #include "mn-client-session.h"
@@ -22,9 +22,9 @@ extern "C" {
 
 #line 24 "mn-pi-mailbox-private.h"
 struct _MNPIMailboxPrivate {
-#line 90 "mn-pi-mailbox.gob"
+#line 92 "mn-pi-mailbox.gob"
 	GtkWidget * auth_dialog;
-#line 93 "mn-pi-mailbox.gob"
+#line 95 "mn-pi-mailbox.gob"
 	gboolean auth_failed;
 #line 30 "mn-pi-mailbox-private.h"
 };

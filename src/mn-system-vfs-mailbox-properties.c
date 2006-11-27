@@ -22,12 +22,12 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 25 "mn-system-vfs-mailbox-properties.gob"
+#line 26 "mn-system-vfs-mailbox-properties.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
 #include <libgnomevfs/gnome-vfs-utils.h>
-#include "mn-mailbox-properties.h"
+#include "mn-mailbox-properties-private.h"
 #include "mn-system-vfs-mailbox.h"
 #include "mn-stock.h"
 
@@ -101,7 +101,7 @@ GET_NEW_VARG (const char *first, ...)
 	return ret;
 }
 
-#line 42 "mn-system-vfs-mailbox-properties.gob"
+#line 43 "mn-system-vfs-mailbox-properties.gob"
 static void 
 mn_system_vfs_mailbox_properties_class_init (MNSystemVFSMailboxPropertiesClass * class G_GNUC_UNUSED)
 #line 108 "mn-system-vfs-mailbox-properties.c"
@@ -121,7 +121,7 @@ mn_system_vfs_mailbox_properties_class_init (MNSystemVFSMailboxPropertiesClass *
 		"default_name");
     }
  {
-#line 43 "mn-system-vfs-mailbox-properties.gob"
+#line 44 "mn-system-vfs-mailbox-properties.gob"
 
     MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
 
@@ -133,17 +133,22 @@ mn_system_vfs_mailbox_properties_class_init (MNSystemVFSMailboxPropertiesClass *
  }
 }
 #undef __GOB_FUNCTION__
-#line 51 "mn-system-vfs-mailbox-properties.gob"
+#line 52 "mn-system-vfs-mailbox-properties.gob"
 static void 
 mn_system_vfs_mailbox_properties_init (MNSystemVFSMailboxProperties * self G_GNUC_UNUSED)
 #line 140 "mn-system-vfs-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:System:VFS:Mailbox:Properties::init"
  {
-#line 52 "mn-system-vfs-mailbox-properties.gob"
+#line 53 "mn-system-vfs-mailbox-properties.gob"
 
+    MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
+    GtkWidget *location_vbox;
     GtkWidget *label;
     const char *system_uri;
+
+    /* translators: header capitalization */
+    location_vbox = mn_mailbox_properties_add_general_section(properties, _("Location"));
 
     label = gtk_label_new(NULL);
 
@@ -169,9 +174,9 @@ mn_system_vfs_mailbox_properties_init (MNSystemVFSMailboxProperties * self G_GNU
       gtk_label_set_text(GTK_LABEL(label), _("The location of your system mailbox could not be detected. Check the MAIL environment variable."));
 
     gtk_widget_show(label);
-    gtk_box_pack_start(GTK_BOX(self), label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(location_vbox), label, FALSE, FALSE, 0);
   
-#line 175 "mn-system-vfs-mailbox-properties.c"
+#line 180 "mn-system-vfs-mailbox-properties.c"
  }
 }
 #undef __GOB_FUNCTION__
@@ -190,16 +195,16 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_COMPLETE:
 		{
-#line 37 "mn-system-vfs-mailbox-properties.gob"
+#line 38 "mn-system-vfs-mailbox-properties.gob"
  g_value_set_boolean(VAL, mn_system_vfs_mailbox_get_uri() != NULL); 
-#line 196 "mn-system-vfs-mailbox-properties.c"
+#line 201 "mn-system-vfs-mailbox-properties.c"
 		}
 		break;
 	case PROP_DEFAULT_NAME:
 		{
-#line 40 "mn-system-vfs-mailbox-properties.gob"
+#line 41 "mn-system-vfs-mailbox-properties.gob"
  g_value_set_string(VAL, _("System mailbox")); 
-#line 203 "mn-system-vfs-mailbox-properties.c"
+#line 208 "mn-system-vfs-mailbox-properties.c"
 		}
 		break;
 	default:

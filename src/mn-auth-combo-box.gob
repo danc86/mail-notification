@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -97,10 +98,10 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
     renderer = gtk_cell_renderer_text_new();
     gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(self), renderer, TRUE);
     gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(self), renderer,
-				   "markup", COLUMN_LABEL,
+				   "text", COLUMN_LABEL,
 				   NULL);
 
-    self_append(self, NULL, _("<span style=\"italic\">autodetect</span>"));
+    self_append(self, NULL, _("Autodetect"));
 #if WITH_SASL
     if (mn_sasl_init(NULL))
       {
@@ -110,13 +111,8 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
 	if (mechanisms)
 	  {
 	    int i;
-
 	    for (i = 0; mechanisms[i]; i++)
-	      {
-		char *escaped = g_markup_escape_text(mechanisms[i], -1);
-		self_append(self, mechanisms[i], escaped);
-		g_free(escaped);
-	      }
+	      self_append(self, mechanisms[i], mechanisms[i]);
 	  }
       }
 #endif /* WITH_SASL */

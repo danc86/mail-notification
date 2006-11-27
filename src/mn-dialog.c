@@ -92,14 +92,14 @@ mn_dialog_class_init (MNDialogClass * c G_GNUC_UNUSED)
 
 }
 #undef __GOB_FUNCTION__
-#line 27 "mn-dialog.gob"
+#line 28 "mn-dialog.gob"
 static void 
 mn_dialog_init (MNDialog * self G_GNUC_UNUSED)
 #line 99 "mn-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Dialog::init"
  {
-#line 28 "mn-dialog.gob"
+#line 29 "mn-dialog.gob"
 
     gtk_container_set_border_width(GTK_CONTAINER(self), 5);
     gtk_dialog_set_has_separator(GTK_DIALOG(self), FALSE);

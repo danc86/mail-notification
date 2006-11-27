@@ -1,0 +1,222 @@
+<gconfschemafile>
+  <schemalist>
+    <schema>
+      <key>/schemas/apps/mail-notification/commands/new-mail/enabled</key>
+      <applyto>/apps/mail-notification/commands/new-mail/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Run a command when new mail arrives</short>
+	<long>Whether to run a command when new mail arrives or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/commands/new-mail/command</key>
+      <applyto>/apps/mail-notification/commands/new-mail/command</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>play @gnome_prefix@/share/gnome/sounds/email.wav</default>
+      <locale name="C">
+        <short>New mail command</short>
+	<long>The command to run when new mail arrives.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/commands/mail-read/enabled</key>
+      <applyto>/apps/mail-notification/commands/mail-read/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Run a command when all mail is read</short>
+	<long>Whether to run a command when all mail is read or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/commands/mail-read/command</key>
+      <applyto>/apps/mail-notification/commands/mail-read/command</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <locale name="C">
+        <short>Mail read command</short>
+	<long>The command to run when all mail is read.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/commands/mail-changed/enabled</key>
+      <applyto>/apps/mail-notification/commands/mail-changed/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Run a command when the message list changes</short>
+	<long>Whether to run a command when the message list changes or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/commands/mail-changed/command</key>
+      <applyto>/apps/mail-notification/commands/mail-changed/command</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <locale name="C">
+        <short>Mail changed command</short>
+	<long>The command to run when the message list changes.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/ui/properties-dialog/height</key>
+      <applyto>/apps/mail-notification/ui/properties-dialog/height</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>-1</default>
+      <locale name="C">
+        <short>Height of properties dialog</short>
+        <long>The height of the properties dialog in pixels.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/ui/properties-dialog/width</key>
+      <applyto>/apps/mail-notification/ui/properties-dialog/width</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>-1</default>
+      <locale name="C">
+        <short>Width of properties dialog</short>
+        <long>The width of the properties dialog in pixels.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/blink-on-errors</key>
+      <applyto>/apps/mail-notification/blink-on-errors</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>1</default>
+      <locale name="C">
+        <short>Blink on errors</short>
+	<long>Whether the status icon should blink on errors or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/trusted-x509-certificates</key>
+      <applyto>/apps/mail-notification/trusted-x509-certificates</applyto>
+      <owner>mail-notification</owner>
+      <type>list</type>
+      <list_type>string</list_type>
+      <locale name="C">
+        <short>Fingerprints of trusted X509 certificates</short>
+	<long>The list of trusted X509 certificates, represented by their MD5 fingerprint.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/trusted-servers</key>
+      <applyto>/apps/mail-notification/trusted-servers</applyto>
+      <owner>mail-notification</owner>
+      <type>list</type>
+      <list_type>string</list_type>
+      <locale name="C">
+        <short>Trusted servers list</short>
+	<long>The list of trusted SSL/TLS servers (hostname:port) lacking a X509 certificate.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/display-seen-mail</key>
+      <applyto>/apps/mail-notification/display-seen-mail</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>1</default>
+      <locale name="C">
+        <short>Display seen mail</short>
+	<long>Whether to display seen mail or not.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/tooltip-mail-summary</key>
+      <applyto>/apps/mail-notification/tooltip-mail-summary</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>standard</default>
+      <locale name="C">
+        <short>Tooltip mail summary</short>
+	<long>The type of mail summary to display in the icon's tooltip. Must be "standard", "compact" or "none".</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/always-display-icon</key>
+      <applyto>/apps/mail-notification/always-display-icon</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Always display an icon</short>
+	<long>Whether to display an icon when there is no new mail or not.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/click-action-2</key>
+      <applyto>/apps/mail-notification/click-action-2</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>display-properties-dialog</default>
+      <locale name="C">
+        <short>Click action</short>
+	<long>The action to perform when the icon is clicked. Must be "display-properties-dialog", "launch-mail-reader", "open-latest-message" or "update-mail-status".</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/popups/enabled</key>
+      <applyto>/apps/mail-notification/popups/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>1</default>
+      <locale name="C">
+        <short>Enable message popups</short>
+	<long>Whether to enable message popups or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/popups/position</key>
+      <applyto>/apps/mail-notification/popups/position</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>attached</default>
+      <locale name="C">
+        <short>Message popups position</short>
+	<long>The position of the message popups. Must be "attached" or "free".</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/popups/expiration/enabled</key>
+      <applyto>/apps/mail-notification/popups/expiration/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>default</default>
+      <locale name="C">
+        <short>Expire message popups</short>
+	<long>Whether to expire message popups or not. Must be "default", "false" or "true".</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/popups/expiration/delay/minutes</key>
+      <applyto>/apps/mail-notification/popups/expiration/delay/minutes</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Minutes to wait before expiring message popups</short>
+        <long>If /apps/mail-notification/popups/expiration/enabled is set to "true", the amount of time to wait before expiring message popups (minutes part).</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/popups/expiration/delay/seconds</key>
+      <applyto>/apps/mail-notification/popups/expiration/delay/seconds</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>10</default>
+      <locale name="C">
+        <short>Seconds to wait before expiring message popups</short>
+        <long>If /apps/mail-notification/popups/expiration/enabled is set to "true", the amount of time to wait before expiring message popups (seconds part).</long>
+      </locale>
+    </schema>
+  </schemalist>
+</gconfschemafile>

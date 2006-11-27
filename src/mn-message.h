@@ -43,12 +43,13 @@ typedef struct _MNMessage MNMessage;
 struct _MNMessage {
 	GObject __parent__;
 	/*< public >*/
-	char * mailbox_name;
+	MNMailbox * mailbox;
 	char * error;
 	time_t sent_time;
 	char * id;
 	char * from;
 	char * subject;
+	char * uri;
 	MNMessageFlags flags;
 };
 
@@ -58,6 +59,13 @@ struct _MNMessage {
 typedef struct _MNMessageClass MNMessageClass;
 struct _MNMessageClass {
 	GObjectClass __parent__;
+	gboolean (* can_open_impl) (MNMessage * self);
+	gboolean (* open_impl) (MNMessage * self, GError ** err);
+	gboolean (* can_mark_as_read_impl) (MNMessage * self);
+	gboolean (* mark_as_read_impl) (MNMessage * self, GError ** err);
+	gboolean (* can_mark_as_spam) (MNMessage * self);
+	gboolean (* can_mark_as_spam_impl) (MNMessage * self);
+	gboolean (* mark_as_spam_impl) (MNMessage * self, GError ** err);
 };
 
 
@@ -65,23 +73,34 @@ struct _MNMessageClass {
  * Public methods
  */
 GType	mn_message_get_type	(void);
+gboolean 	mn_message_can_open	(MNMessage * self);
+gboolean 	mn_message_open	(MNMessage * self,
+					GError ** err);
+gboolean 	mn_message_can_mark_as_read	(MNMessage * self);
+gboolean 	mn_message_mark_as_read	(MNMessage * self,
+					GError ** err);
+gboolean 	mn_message_can_mark_as_spam	(MNMessage * self);
+gboolean 	mn_message_mark_as_spam	(MNMessage * self,
+					GError ** err);
 MNMessage * 	mn_message_new	(MNMailbox * mailbox,
 					const char * error,
 					time_t sent_time,
 					const char * id,
 					const char * from,
 					const char * subject,
+					const char * uri,
 					MNMessageFlags flags);
 MNMessage * 	mn_message_new_from_error	(MNMailbox * mailbox,
 					const char * error,
 					MNMessageFlags flags);
+xmlNode * 	mn_message_xml_node_new	(MNMessage * self);
 
 /*
  * Argument wrapping macros
  */
 #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
-#define MN_MESSAGE_PROP_MAILBOX_NAME(arg)    	"mailbox_name", __extension__ ({gchar *z = (arg); z;})
-#define MN_MESSAGE_GET_PROP_MAILBOX_NAME(arg)	"mailbox_name", __extension__ ({gchar **z = (arg); z;})
+#define MN_MESSAGE_PROP_MAILBOX(arg)    	"mailbox", __extension__ ({MNMailbox * z = (arg); z;})
+#define MN_MESSAGE_GET_PROP_MAILBOX(arg)	"mailbox", __extension__ ({MNMailbox * *z = (arg); z;})
 #define MN_MESSAGE_PROP_ERROR(arg)    	"error", __extension__ ({gchar *z = (arg); z;})
 #define MN_MESSAGE_GET_PROP_ERROR(arg)	"error", __extension__ ({gchar **z = (arg); z;})
 #define MN_MESSAGE_PROP_SENT_TIME(arg)    	"sent_time", __extension__ ({time_t z = (arg); z;})
@@ -92,11 +111,14 @@ MNMessage * 	mn_message_new_from_error	(MNMailbox * mailbox,
 #define MN_MESSAGE_GET_PROP_FROM(arg)	"from", __extension__ ({gchar **z = (arg); z;})
 #define MN_MESSAGE_PROP_SUBJECT(arg)    	"subject", __extension__ ({gchar *z = (arg); z;})
 #define MN_MESSAGE_GET_PROP_SUBJECT(arg)	"subject", __extension__ ({gchar **z = (arg); z;})
-#define MN_MESSAGE_PROP_FLAGS(arg)    	"flags", __extension__ ({MNMessageFlags z = (arg); z;})
-#define MN_MESSAGE_GET_PROP_FLAGS(arg)	"flags", __extension__ ({MNMessageFlags *z = (arg); z;})
+#define MN_MESSAGE_PROP_URI(arg)    	"uri", __extension__ ({gchar *z = (arg); z;})
+#define MN_MESSAGE_GET_PROP_URI(arg)	"uri", __extension__ ({gchar **z = (arg); z;})
+#define MN_MESSAGE_GET_PROP_FILENAME(arg)	"filename", __extension__ ({gchar **z = (arg); z;})
+#define MN_MESSAGE_PROP_FLAGS(arg)    	"flags", __extension__ ({guint z = (arg); z;})
+#define MN_MESSAGE_GET_PROP_FLAGS(arg)	"flags", __extension__ ({guint *z = (arg); z;})
 #else /* __GNUC__ && !__STRICT_ANSI__ */
-#define MN_MESSAGE_PROP_MAILBOX_NAME(arg)    	"mailbox_name",(gchar *)(arg)
-#define MN_MESSAGE_GET_PROP_MAILBOX_NAME(arg)	"mailbox_name",(gchar **)(arg)
+#define MN_MESSAGE_PROP_MAILBOX(arg)    	"mailbox",(MNMailbox * )(arg)
+#define MN_MESSAGE_GET_PROP_MAILBOX(arg)	"mailbox",(MNMailbox * *)(arg)
 #define MN_MESSAGE_PROP_ERROR(arg)    	"error",(gchar *)(arg)
 #define MN_MESSAGE_GET_PROP_ERROR(arg)	"error",(gchar **)(arg)
 #define MN_MESSAGE_PROP_SENT_TIME(arg)    	"sent_time",(time_t )(arg)
@@ -107,8 +129,11 @@ MNMessage * 	mn_message_new_from_error	(MNMailbox * mailbox,
 #define MN_MESSAGE_GET_PROP_FROM(arg)	"from",(gchar **)(arg)
 #define MN_MESSAGE_PROP_SUBJECT(arg)    	"subject",(gchar *)(arg)
 #define MN_MESSAGE_GET_PROP_SUBJECT(arg)	"subject",(gchar **)(arg)
-#define MN_MESSAGE_PROP_FLAGS(arg)    	"flags",(MNMessageFlags )(arg)
-#define MN_MESSAGE_GET_PROP_FLAGS(arg)	"flags",(MNMessageFlags *)(arg)
+#define MN_MESSAGE_PROP_URI(arg)    	"uri",(gchar *)(arg)
+#define MN_MESSAGE_GET_PROP_URI(arg)	"uri",(gchar **)(arg)
+#define MN_MESSAGE_GET_PROP_FILENAME(arg)	"filename",(gchar **)(arg)
+#define MN_MESSAGE_PROP_FLAGS(arg)    	"flags",(guint )(arg)
+#define MN_MESSAGE_GET_PROP_FLAGS(arg)	"flags",(guint *)(arg)
 #endif /* __GNUC__ && !__STRICT_ANSI__ */
 
 

@@ -22,13 +22,14 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 26 "mn-authenticated-mailbox-properties.gob"
+#line 27 "mn-authenticated-mailbox-properties.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
 #include "mn-authenticated-mailbox.h"
+#include "mn-mailbox-properties-private.h"
 
-#line 32 "mn-authenticated-mailbox-properties.c"
+#line 33 "mn-authenticated-mailbox-properties.c"
 /* self casting macros */
 #define SELF(x) MN_AUTHENTICATED_MAILBOX_PROPERTIES(x)
 #define SELF_CONST(x) MN_AUTHENTICATED_MAILBOX_PROPERTIES_CONST(x)
@@ -104,23 +105,27 @@ mn_authenticated_mailbox_properties_class_init (MNAuthenticatedMailboxProperties
 
 	parent_class = g_type_class_ref (MN_TYPE_MAILBOX_PROPERTIES);
 
-#line 90 "mn-authenticated-mailbox-properties.gob"
+#line 97 "mn-authenticated-mailbox-properties.gob"
 	mn_mailbox_properties_class->set_mailbox = ___3_mn_authenticated_mailbox_properties_set_mailbox;
-#line 100 "mn-authenticated-mailbox-properties.gob"
+#line 107 "mn-authenticated-mailbox-properties.gob"
 	mn_mailbox_properties_class->get_mailbox = ___4_mn_authenticated_mailbox_properties_get_mailbox;
-#line 112 "mn-authenticated-mailbox-properties.c"
+#line 113 "mn-authenticated-mailbox-properties.c"
 }
 #undef __GOB_FUNCTION__
-#line 41 "mn-authenticated-mailbox-properties.gob"
+#line 44 "mn-authenticated-mailbox-properties.gob"
 static void 
 mn_authenticated_mailbox_properties_init (MNAuthenticatedMailboxProperties * self G_GNUC_UNUSED)
-#line 118 "mn-authenticated-mailbox-properties.c"
+#line 119 "mn-authenticated-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Authenticated:Mailbox:Properties::init"
  {
-#line 42 "mn-authenticated-mailbox-properties.gob"
+#line 45 "mn-authenticated-mailbox-properties.gob"
 
+    MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
     const char *username;
+
+    /* translators: header capitalization */
+    self->account_vbox = mn_mailbox_properties_add_general_section(properties, _("Account"));
 
     self->username_vbox = self_field_new(self,
 					 _("_Username:"),
@@ -138,30 +143,30 @@ mn_authenticated_mailbox_properties_init (MNAuthenticatedMailboxProperties * sel
 
     gtk_entry_set_visibility(GTK_ENTRY(self->password_entry), FALSE);
   
-#line 142 "mn-authenticated-mailbox-properties.c"
+#line 147 "mn-authenticated-mailbox-properties.c"
  }
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 62 "mn-authenticated-mailbox-properties.gob"
+#line 69 "mn-authenticated-mailbox-properties.gob"
 GtkWidget * 
 mn_authenticated_mailbox_properties_field_new (MNAuthenticatedMailboxProperties * self, const char * mnemonic, GtkWidget ** label, GtkWidget ** entry)
-#line 152 "mn-authenticated-mailbox-properties.c"
+#line 157 "mn-authenticated-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Authenticated:Mailbox:Properties::field_new"
-#line 62 "mn-authenticated-mailbox-properties.gob"
+#line 69 "mn-authenticated-mailbox-properties.gob"
 	g_return_val_if_fail (self != NULL, (GtkWidget * )0);
-#line 62 "mn-authenticated-mailbox-properties.gob"
+#line 69 "mn-authenticated-mailbox-properties.gob"
 	g_return_val_if_fail (MN_IS_AUTHENTICATED_MAILBOX_PROPERTIES (self), (GtkWidget * )0);
-#line 62 "mn-authenticated-mailbox-properties.gob"
+#line 69 "mn-authenticated-mailbox-properties.gob"
 	g_return_val_if_fail (mnemonic != NULL, (GtkWidget * )0);
-#line 62 "mn-authenticated-mailbox-properties.gob"
+#line 69 "mn-authenticated-mailbox-properties.gob"
 	g_return_val_if_fail (entry != NULL, (GtkWidget * )0);
-#line 163 "mn-authenticated-mailbox-properties.c"
+#line 168 "mn-authenticated-mailbox-properties.c"
 {
-#line 67 "mn-authenticated-mailbox-properties.gob"
+#line 74 "mn-authenticated-mailbox-properties.gob"
 	
     GtkWidget *hbox;
     GtkWidget *_label;
@@ -184,20 +189,20 @@ mn_authenticated_mailbox_properties_field_new (MNAuthenticatedMailboxProperties 
 
     return hbox;
   }}
-#line 188 "mn-authenticated-mailbox-properties.c"
+#line 193 "mn-authenticated-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 90 "mn-authenticated-mailbox-properties.gob"
+#line 97 "mn-authenticated-mailbox-properties.gob"
 static void 
 ___3_mn_authenticated_mailbox_properties_set_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED, MNMailbox * mailbox)
-#line 194 "mn-authenticated-mailbox-properties.c"
+#line 199 "mn-authenticated-mailbox-properties.c"
 #define PARENT_HANDLER(___properties,___mailbox) \
 	{ if(MN_MAILBOX_PROPERTIES_CLASS(parent_class)->set_mailbox) \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->set_mailbox)(___properties,___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:Authenticated:Mailbox:Properties::set_mailbox"
 {
-#line 92 "mn-authenticated-mailbox-properties.gob"
+#line 99 "mn-authenticated-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     MNAuthenticatedMailbox *auth_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
@@ -205,14 +210,14 @@ ___3_mn_authenticated_mailbox_properties_set_mailbox (MNMailboxProperties * prop
     gtk_entry_set_text(GTK_ENTRY(self->username_entry), auth_mailbox->username ? auth_mailbox->username : "");
     gtk_entry_set_text(GTK_ENTRY(self->password_entry), auth_mailbox->password ? auth_mailbox->password : "");
   }}
-#line 209 "mn-authenticated-mailbox-properties.c"
+#line 214 "mn-authenticated-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 100 "mn-authenticated-mailbox-properties.gob"
+#line 107 "mn-authenticated-mailbox-properties.gob"
 static MNMailbox * 
 ___4_mn_authenticated_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED)
-#line 216 "mn-authenticated-mailbox-properties.c"
+#line 221 "mn-authenticated-mailbox-properties.c"
 #define PARENT_HANDLER(___properties) \
 	((MN_MAILBOX_PROPERTIES_CLASS(parent_class)->get_mailbox)? \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->get_mailbox)(___properties): \
@@ -220,7 +225,7 @@ ___4_mn_authenticated_mailbox_properties_get_mailbox (MNMailboxProperties * prop
 {
 #define __GOB_FUNCTION__ "MN:Authenticated:Mailbox:Properties::get_mailbox"
 {
-#line 102 "mn-authenticated-mailbox-properties.gob"
+#line 109 "mn-authenticated-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     MNMailbox *mailbox;
@@ -239,23 +244,23 @@ ___4_mn_authenticated_mailbox_properties_get_mailbox (MNMailboxProperties * prop
 
     return mailbox;
   }}
-#line 243 "mn-authenticated-mailbox-properties.c"
+#line 248 "mn-authenticated-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 121 "mn-authenticated-mailbox-properties.gob"
+#line 128 "mn-authenticated-mailbox-properties.gob"
 void 
 mn_authenticated_mailbox_properties_get_contents (MNAuthenticatedMailboxProperties * self, const char ** username, const char ** password)
-#line 250 "mn-authenticated-mailbox-properties.c"
+#line 255 "mn-authenticated-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Authenticated:Mailbox:Properties::get_contents"
-#line 121 "mn-authenticated-mailbox-properties.gob"
+#line 128 "mn-authenticated-mailbox-properties.gob"
 	g_return_if_fail (self != NULL);
-#line 121 "mn-authenticated-mailbox-properties.gob"
+#line 128 "mn-authenticated-mailbox-properties.gob"
 	g_return_if_fail (MN_IS_AUTHENTICATED_MAILBOX_PROPERTIES (self));
-#line 257 "mn-authenticated-mailbox-properties.c"
+#line 262 "mn-authenticated-mailbox-properties.c"
 {
-#line 125 "mn-authenticated-mailbox-properties.gob"
+#line 132 "mn-authenticated-mailbox-properties.gob"
 	
     if (username)
       {
@@ -272,5 +277,5 @@ mn_authenticated_mailbox_properties_get_contents (MNAuthenticatedMailboxProperti
 	*password = *_password ? _password : NULL;
       }
   }}
-#line 276 "mn-authenticated-mailbox-properties.c"
+#line 281 "mn-authenticated-mailbox-properties.c"
 #undef __GOB_FUNCTION__

@@ -10,19 +10,19 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 25 "mn-reentrant-mailbox.gob"
+#line 26 "mn-reentrant-mailbox.gob"
 
 #include "mn-locked-callback.h"
 
 #line 18 "mn-reentrant-mailbox-private.h"
 struct _MNReentrantMailboxPrivate {
-#line 44 "mn-reentrant-mailbox.gob"
+#line 45 "mn-reentrant-mailbox.gob"
 	GMutex * mutex;
-#line 46 "mn-reentrant-mailbox.gob"
+#line 47 "mn-reentrant-mailbox.gob"
 	MNLockedGSource * queue_check_source;
-#line 48 "mn-reentrant-mailbox.gob"
-	unsigned long check_id;
 #line 49 "mn-reentrant-mailbox.gob"
+	unsigned long check_id;
+#line 50 "mn-reentrant-mailbox.gob"
 	unsigned long check_unique_id;
 #line 28 "mn-reentrant-mailbox-private.h"
 };

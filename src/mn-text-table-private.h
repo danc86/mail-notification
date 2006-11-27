@@ -10,7 +10,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 29 "mn-text-table.gob"
+#line 30 "mn-text-table.gob"
 
 typedef struct
 {
@@ -20,17 +20,17 @@ typedef struct
 
 #line 22 "mn-text-table-private.h"
 struct _MNTextTablePrivate {
-#line 78 "mn-text-table.gob"
+#line 79 "mn-text-table.gob"
 	GQueue * rows;
-#line 81 "mn-text-table.gob"
+#line 82 "mn-text-table.gob"
 	GArray * column_sizes;
-#line 84 "mn-text-table.gob"
+#line 85 "mn-text-table.gob"
 	Row * row;
-#line 86 "mn-text-table.gob"
-	gboolean dirty;
 #line 87 "mn-text-table.gob"
-	int width;
+	gboolean dirty;
 #line 88 "mn-text-table.gob"
+	int width;
+#line 89 "mn-text-table.gob"
 	int height;
 #line 36 "mn-text-table-private.h"
 };

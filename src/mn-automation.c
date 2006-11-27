@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 26 "mn-automation.gob"
+#line 27 "mn-automation.gob"
 
 #include "mn-shell.h"
 
@@ -44,10 +44,10 @@ typedef MNAutomationClass SelfClass;
 static void mn_automation_init (MNAutomation * o) G_GNUC_UNUSED;
 static void mn_automation_class_init (MNAutomationClass * c) G_GNUC_UNUSED;
 static CORBA_boolean mn_automation_hasMailboxes (PortableServer_Servant servant, CORBA_Environment * env) G_GNUC_UNUSED;
+static CORBA_string mn_automation_getSummary (PortableServer_Servant servant, CORBA_Environment * env) G_GNUC_UNUSED;
 static void mn_automation_update (PortableServer_Servant servant, CORBA_Environment * env) G_GNUC_UNUSED;
 static void mn_automation_displayProperties (PortableServer_Servant servant, CORBA_Environment * env) G_GNUC_UNUSED;
 static void mn_automation_displayAbout (PortableServer_Servant servant, CORBA_Environment * env) G_GNUC_UNUSED;
-static void mn_automation_closePopup (PortableServer_Servant servant, CORBA_Environment * env) G_GNUC_UNUSED;
 static void mn_automation_quit (PortableServer_Servant servant, CORBA_Environment * env) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
@@ -55,10 +55,10 @@ static BonoboObjectClass *parent_class = NULL;
 
 /* Short form macros */
 #define self_hasMailboxes mn_automation_hasMailboxes
+#define self_getSummary mn_automation_getSummary
 #define self_update mn_automation_update
 #define self_displayProperties mn_automation_displayProperties
 #define self_displayAbout mn_automation_displayAbout
-#define self_closePopup mn_automation_closePopup
 #define self_quit mn_automation_quit
 #define self_new mn_automation_new
 GType
@@ -120,17 +120,17 @@ mn_automation_class_init (MNAutomationClass * c G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (BONOBO_TYPE_OBJECT);
 
-#line 32 "mn-automation.gob"
+#line 33 "mn-automation.gob"
 	c->_epv.hasMailboxes = self_hasMailboxes;
-#line 39 "mn-automation.gob"
+#line 40 "mn-automation.gob"
+	c->_epv.getSummary = self_getSummary;
+#line 55 "mn-automation.gob"
 	c->_epv.update = self_update;
-#line 46 "mn-automation.gob"
+#line 62 "mn-automation.gob"
 	c->_epv.displayProperties = self_displayProperties;
-#line 53 "mn-automation.gob"
+#line 69 "mn-automation.gob"
 	c->_epv.displayAbout = self_displayAbout;
-#line 60 "mn-automation.gob"
-	c->_epv.closePopup = self_closePopup;
-#line 67 "mn-automation.gob"
+#line 76 "mn-automation.gob"
 	c->_epv.quit = self_quit;
 #line 136 "mn-automation.c"
 }
@@ -138,14 +138,14 @@ mn_automation_class_init (MNAutomationClass * c G_GNUC_UNUSED)
 
 
 
-#line 32 "mn-automation.gob"
+#line 33 "mn-automation.gob"
 static CORBA_boolean 
 mn_automation_hasMailboxes (PortableServer_Servant servant, CORBA_Environment * env)
 #line 145 "mn-automation.c"
 {
 #define __GOB_FUNCTION__ "MN:Automation::hasMailboxes"
 {
-#line 34 "mn-automation.gob"
+#line 35 "mn-automation.gob"
 	
     g_assert(mn_shell != NULL);
     return mn_shell->mailboxes->list != NULL ? CORBA_TRUE : CORBA_FALSE;
@@ -153,91 +153,99 @@ mn_automation_hasMailboxes (PortableServer_Servant servant, CORBA_Environment * 
 #line 154 "mn-automation.c"
 #undef __GOB_FUNCTION__
 
-#line 39 "mn-automation.gob"
+#line 40 "mn-automation.gob"
+static CORBA_string 
+mn_automation_getSummary (PortableServer_Servant servant, CORBA_Environment * env)
+#line 160 "mn-automation.c"
+{
+#define __GOB_FUNCTION__ "MN:Automation::getSummary"
+{
+#line 42 "mn-automation.gob"
+	
+    char *summary;
+    CORBA_string csummary;
+
+    g_assert(mn_shell != NULL);
+
+    summary = mn_shell_get_summary(mn_shell);
+    csummary = CORBA_string_dup(summary);
+    g_free(summary);
+
+    return csummary;
+  }}
+#line 177 "mn-automation.c"
+#undef __GOB_FUNCTION__
+
+#line 55 "mn-automation.gob"
 static void 
 mn_automation_update (PortableServer_Servant servant, CORBA_Environment * env)
-#line 160 "mn-automation.c"
+#line 183 "mn-automation.c"
 {
 #define __GOB_FUNCTION__ "MN:Automation::update"
 {
-#line 41 "mn-automation.gob"
+#line 57 "mn-automation.gob"
 	
     g_assert(mn_shell != NULL);
     mn_mailboxes_check(mn_shell->mailboxes);
   }}
-#line 169 "mn-automation.c"
+#line 192 "mn-automation.c"
 #undef __GOB_FUNCTION__
 
-#line 46 "mn-automation.gob"
+#line 62 "mn-automation.gob"
 static void 
 mn_automation_displayProperties (PortableServer_Servant servant, CORBA_Environment * env)
-#line 175 "mn-automation.c"
+#line 198 "mn-automation.c"
 {
 #define __GOB_FUNCTION__ "MN:Automation::displayProperties"
 {
-#line 48 "mn-automation.gob"
+#line 64 "mn-automation.gob"
 	
     g_assert(mn_shell != NULL);
     mn_shell_display_properties_dialog(mn_shell);
   }}
-#line 184 "mn-automation.c"
+#line 207 "mn-automation.c"
 #undef __GOB_FUNCTION__
 
-#line 53 "mn-automation.gob"
+#line 69 "mn-automation.gob"
 static void 
 mn_automation_displayAbout (PortableServer_Servant servant, CORBA_Environment * env)
-#line 190 "mn-automation.c"
+#line 213 "mn-automation.c"
 {
 #define __GOB_FUNCTION__ "MN:Automation::displayAbout"
 {
-#line 55 "mn-automation.gob"
+#line 71 "mn-automation.gob"
 	
     g_assert(mn_shell != NULL);
     mn_shell_display_about_dialog(mn_shell);
   }}
-#line 199 "mn-automation.c"
+#line 222 "mn-automation.c"
 #undef __GOB_FUNCTION__
 
-#line 60 "mn-automation.gob"
-static void 
-mn_automation_closePopup (PortableServer_Servant servant, CORBA_Environment * env)
-#line 205 "mn-automation.c"
-{
-#define __GOB_FUNCTION__ "MN:Automation::closePopup"
-{
-#line 62 "mn-automation.gob"
-	
-    g_assert(mn_shell != NULL);
-    mn_shell_close_mail_summary_popup(mn_shell);
-  }}
-#line 214 "mn-automation.c"
-#undef __GOB_FUNCTION__
-
-#line 67 "mn-automation.gob"
+#line 76 "mn-automation.gob"
 static void 
 mn_automation_quit (PortableServer_Servant servant, CORBA_Environment * env)
-#line 220 "mn-automation.c"
+#line 228 "mn-automation.c"
 {
 #define __GOB_FUNCTION__ "MN:Automation::quit"
 {
-#line 69 "mn-automation.gob"
+#line 78 "mn-automation.gob"
 	
     g_assert(mn_shell != NULL);
     g_object_unref(mn_shell);
   }}
-#line 229 "mn-automation.c"
+#line 237 "mn-automation.c"
 #undef __GOB_FUNCTION__
 
-#line 74 "mn-automation.gob"
+#line 83 "mn-automation.gob"
 MNAutomation * 
 mn_automation_new (void)
-#line 235 "mn-automation.c"
+#line 243 "mn-automation.c"
 {
 #define __GOB_FUNCTION__ "MN:Automation::new"
 {
-#line 76 "mn-automation.gob"
+#line 85 "mn-automation.gob"
 	
     return GET_NEW;
   }}
-#line 243 "mn-automation.c"
+#line 251 "mn-automation.c"
 #undef __GOB_FUNCTION__

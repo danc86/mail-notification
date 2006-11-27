@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #include "config.h"
@@ -23,16 +24,8 @@
 #include <gtk/gtk.h>
 #include <libbonobo.h>
 #include <camel/camel-folder.h>
-
-#ifdef HAVE_EVOLUTION_2_2
-/* headers from the Evolution source tree */
-#include "mail/em-event.h"
-#include "mail/mail-tools.h"
-#else
 #include <mail/em-event.h>
 #include <mail/mail-tools.h>
-#endif
-
 #include "mn-evolution.h"
 #include "mn-evolution-glue.h"
 #include "mn-evolution-folder-tree-control.h"
@@ -41,18 +34,11 @@
 
 #define FACTORY			"_Factory"
 
-/*** variables ***************************************************************/
-
-static GSList *glue_event_sources = NULL;
-
 /*** functions ***************************************************************/
 
 static void mn_evolution_plugin_error_dialog (const char *primary,
 					      const char *format,
 					      ...);
-static BonoboObject *mn_evolution_plugin_glue_factory_cb (BonoboGenericFactory *factory,
-							  const char *iid,
-							  gpointer closure);
 static gboolean mn_evolution_plugin_factory_create (const char *factory_iid,
 						    BonoboFactoryCallback factory_cb,
 						    gpointer user_data);
@@ -87,26 +73,6 @@ mn_evolution_plugin_error_dialog (const char *primary, const char *format, ...)
 
   g_signal_connect(dialog, "response", G_CALLBACK(gtk_widget_destroy), NULL);
   gtk_widget_show(dialog);
-}
-
-static BonoboObject *
-mn_evolution_plugin_glue_factory_cb (BonoboGenericFactory *factory,
-				     const char *iid,
-				     gpointer closure)
-{
-  BonoboObject *object;
-  BonoboEventSource *event_source;
-
-  if (strcmp(iid, MN_EVOLUTION_GLUE_IID) != 0)
-    return NULL;
-
-  object = BONOBO_OBJECT(mn_evolution_glue_new());
-  event_source = bonobo_event_source_new();
-
-  glue_event_sources = g_slist_append(glue_event_sources, event_source);
-  bonobo_object_add_interface(object, BONOBO_OBJECT(event_source));
-
-  return object;
 }
 
 static gboolean
@@ -156,18 +122,14 @@ e_plugin_lib_enable (EPluginLib *ep, int enable)
 
   enabled = TRUE;
 
-  if (mn_evolution_plugin_factory_create(MN_EVOLUTION_GLUE_IID FACTORY, mn_evolution_plugin_glue_factory_cb, NULL)
+  if (mn_evolution_plugin_factory_create(MN_EVOLUTION_GLUE_IID FACTORY, mn_evolution_glue_factory_cb, NULL)
       && mn_evolution_plugin_factory_create(MN_EVOLUTION_FOLDER_TREE_CONTROL_IID FACTORY, mn_evolution_folder_tree_control_factory_cb, NULL))
     return 0;			/* success */
   else
     {
-      GSList *l;
-
-      for (l = glue_event_sources; l != NULL; l = l->next)
-	bonobo_object_release_unref(BONOBO_OBJREF(l->data), NULL);
-
-      g_slist_free(glue_event_sources);
-      glue_event_sources = NULL;
+      g_slist_foreach(mn_evolution_glues, (GFunc) bonobo_object_unref, NULL);
+      g_slist_free(mn_evolution_glues);
+      mn_evolution_glues = NULL;
 
       return 1;			/* failure */
     }
@@ -177,7 +139,7 @@ void
 org_gnome_mail_notification_folder_changed (EPlugin *plugin,
 					    EMEventTargetFolder *folder)
 {
-  if (glue_event_sources)
+  if (mn_evolution_glues)
     {
       BonoboArg *arg;
       GSList *l;
@@ -185,13 +147,16 @@ org_gnome_mail_notification_folder_changed (EPlugin *plugin,
       arg = bonobo_arg_new(BONOBO_ARG_STRING);
       BONOBO_ARG_SET_STRING(arg, folder->uri);
 
-      for (l = glue_event_sources; l != NULL; l = l->next)
-	bonobo_event_source_notify_listeners_full(l->data,
-						  MN_EVOLUTION_EVENT_PREFIX,
-						  MN_EVOLUTION_EVENT_FOLDER_CHANGED,
-						  NULL,
-						  arg,
-						  NULL);
+      for (l = mn_evolution_glues; l != NULL; l = l->next)
+	{
+	  MNEvolutionGlue *glue = l->data;
+	  bonobo_event_source_notify_listeners_full(glue->es,
+						    MN_EVOLUTION_GLUE_EVENT_PREFIX,
+						    MN_EVOLUTION_GLUE_EVENT_FOLDER_CHANGED,
+						    NULL,
+						    arg,
+						    NULL);
+	}
 
       bonobo_arg_release(arg);
     }
@@ -201,7 +166,7 @@ void
 org_gnome_mail_notification_message_reading (EPlugin *plugin,
 					     EMEventTargetMessage *message)
 {
-  if (glue_event_sources)
+  if (mn_evolution_glues)
     {
       BonoboArg *arg;
       char *url;
@@ -213,13 +178,16 @@ org_gnome_mail_notification_message_reading (EPlugin *plugin,
       BONOBO_ARG_SET_STRING(arg, url);
       g_free(url);
 
-      for (l = glue_event_sources; l != NULL; l = l->next)
-	bonobo_event_source_notify_listeners_full(l->data,
-						  MN_EVOLUTION_EVENT_PREFIX,
-						  MN_EVOLUTION_EVENT_MESSAGE_READING,
-						  NULL,
-						  arg,
-						  NULL);
+      for (l = mn_evolution_glues; l != NULL; l = l->next)
+	{
+	  MNEvolutionGlue *glue = l->data;
+	  bonobo_event_source_notify_listeners_full(glue->es,
+						    MN_EVOLUTION_GLUE_EVENT_PREFIX,
+						    MN_EVOLUTION_GLUE_EVENT_MESSAGE_READING,
+						    NULL,
+						    arg,
+						    NULL);
+	}
 
       bonobo_arg_release(arg);
     }

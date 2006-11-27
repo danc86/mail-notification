@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -23,20 +24,56 @@ requires 2.0.14
 #include "GNOME_MailNotification_Evolution.h"
 %}
 
+%h{
+extern GSList *mn_evolution_glues;
+%}
+
 %{
 #include <stdio.h>
 #include <camel/camel-folder.h>
-
-#ifdef HAVE_EVOLUTION_2_2
-/* headers from the Evolution source tree */
-#include "mail/mail-tools.h"
-#else
+#include <mail/em-folder-view.h>
+#include <mail/em-format.h>
+#include <mail/em-message-browser.h>
+#include <mail/em-utils.h>
+#include <mail/mail-session.h>
 #include <mail/mail-tools.h>
-#endif
+
+GSList *mn_evolution_glues = NULL;
 %}
 
 class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_Evolution_Glue)
 {
+  public BonoboEventSource *es;
+
+  override (G:Object) GObject *
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    Self *self;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    self = SELF(object);
+
+    self->es = bonobo_event_source_new();
+    /*
+     * bonobo_object_add_interface() takes ownership of the passed
+     * object, that's why we must not unref es above.
+     */
+    bonobo_object_add_interface(BONOBO_OBJECT(self), BONOBO_OBJECT(self->es));
+
+    mn_evolution_glues = g_slist_append(mn_evolution_glues, self);
+
+    return object;
+  }
+
+  override (G:Object) void
+    finalize (GObject *object)
+  {
+    mn_evolution_glues = g_slist_remove(mn_evolution_glues, object);
+
+    PARENT_HANDLER(object);
+  }
+
   /*
    * CORBA_string_dup() accepts a null pointer but in
    * giop_send_buffer_append_string() ORBit doesn't.
@@ -45,6 +82,18 @@ class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_
     CORBA_string_dup_null (const CORBA_char *str)
   {
     return CORBA_string_dup(str ? str : "");
+  }
+
+  private CamelFolder *
+    lookup_folder (const char *uri (check null), CORBA_Environment *env)
+  {
+    CamelFolder *folder;
+
+    folder = mail_tool_uri_to_folder(uri, 0, NULL);
+    if (! folder)
+      bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound);
+
+    return folder;
   }
 
   BonoboObject private GNOME_MailNotification_Evolution_MessageSeq *
@@ -58,12 +107,9 @@ class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_
     GSList *infos = NULL;
     GNOME_MailNotification_Evolution_MessageSeq *seq;
 
-    folder = mail_tool_uri_to_folder(folder_uri, 0, NULL);
+    folder = self_lookup_folder(folder_uri, env);
     if (! folder)
-      {
-	bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound);
-	return NULL;
-      }
+      return NULL;
 
     summary = camel_folder_get_summary(folder);
 
@@ -97,6 +143,9 @@ class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_
 	    for (j = 0; j < sizeof(id->id.hash); j++)
 	      sprintf(hexhash + j * 2, "%.2x", id->id.hash[j]);
 
+	    g_assert(camel_message_info_uid(info) != NULL);
+
+	    seq->_buffer[i].uid = CORBA_string_dup(camel_message_info_uid(info));
 	    seq->_buffer[i].sent_time = camel_message_info_date_sent(info);
 	    seq->_buffer[i].received_time = camel_message_info_date_received(info);
 	    seq->_buffer[i].id = CORBA_string_dup(hexhash);
@@ -123,21 +172,65 @@ class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_
     CamelFolder *folder;
     CORBA_string name = NULL;
 
-    folder = mail_tool_uri_to_folder(folder_uri, 0, NULL);
+    folder = self_lookup_folder(folder_uri, env);
     if (folder)
       {
 	name = self_CORBA_string_dup_null(camel_folder_get_name(folder));
 	camel_object_unref(folder);
       }
-    else
-      bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound);
 
     return name;
   }
 
-  public MNEvolutionGlue *
-    new (void)
+  BonoboObject private void
+    openMessage (PortableServer_Servant servant,
+		 const CORBA_char *folder_uri,
+		 const CORBA_char *message_uid,
+		 CORBA_Environment *env)
   {
-    return GET_NEW;
+    CamelFolder *folder;
+    GtkWidget *browser;
+
+    folder = self_lookup_folder(folder_uri, env);
+    if (! folder)
+      return;
+
+    /* modelled after Evolution's handleuri_got_folder() */
+
+    browser = em_message_browser_window_new();
+
+    em_format_set_session((EMFormat *) ((EMFolderView *) browser)->preview, session);
+    em_folder_view_set_folder((EMFolderView *) browser, folder, folder_uri);
+    em_folder_view_set_message((EMFolderView *) browser, message_uid, FALSE);
+    gtk_widget_show(((EMMessageBrowser *) browser)->window);
+
+    camel_object_unref(folder);
+  }
+
+  BonoboObject private void
+    setMessageFlags (PortableServer_Servant servant,
+		     const CORBA_char *folder_uri,
+		     const CORBA_char *message_uid,
+		     CORBA_unsigned_long flags,
+		     CORBA_Environment *env)
+  {
+    CamelFolder *folder;
+
+    folder = self_lookup_folder(folder_uri, env);
+    if (! folder)
+      return;
+
+    if (! camel_folder_set_message_flags(folder, message_uid, flags, flags))
+      bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_MessageNotFound);
+
+    camel_object_unref(folder);
+  }
+
+  public BonoboObject *
+    factory_cb (BonoboGenericFactory *factory,
+		const char *iid,
+		gpointer closure)
+  {
+    return BONOBO_OBJECT(GET_NEW);
   }
 }

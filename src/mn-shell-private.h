@@ -9,30 +9,16 @@
 extern "C" {
 #endif /* __cplusplus */
 
-
-#line 27 "mn-shell.gob"
-
-#include "mn-mail-icon.h"
-
-#line 18 "mn-shell-private.h"
 struct _MNShellPrivate {
-#line 59 "mn-shell.gob"
-	MNMailIcon * icon;
-#line 60 "mn-shell.gob"
-	gboolean has_new;
 #line 62 "mn-shell.gob"
-	GtkWidget * properties_dialog;
+	gboolean has_new;
 #line 64 "mn-shell.gob"
+	GtkWidget * properties_dialog;
+#line 65 "mn-shell.gob"
 	GSList * mailbox_properties_dialogs;
 #line 66 "mn-shell.gob"
-	GtkWidget * popup;
-#line 67 "mn-shell.gob"
-	GSList * popup_messages;
-#line 68 "mn-shell.gob"
-	GHashTable * popup_previous_messages;
-#line 70 "mn-shell.gob"
 	GtkWidget * about_dialog;
-#line 36 "mn-shell-private.h"
+#line 22 "mn-shell-private.h"
 };
 
 #ifdef __cplusplus

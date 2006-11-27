@@ -50,6 +50,9 @@ struct _MNMailbox {
 	/*< public >*/
 	char * runtime_name;
 	char * name;
+	char * open_command;
+	char * mark_as_read_command;
+	char * mark_as_spam_command;
 	char * stock_id;
 	char * format;
 	int runtime_check_delay;
@@ -112,6 +115,11 @@ void 	mn_mailbox_configuration_free	(MNMailboxConfiguration * config);
 MNMailbox * 	mn_mailbox_new_from_obsolete_uri	(const char * uri);
 void 	mn_mailbox_seal	(MNMailbox * self);
 void 	mn_mailbox_check	(MNMailbox * self);
+void 	mn_mailbox_mark_as_read	(gpointer _message);
+char * 	mn_mailbox_get_command	(MNMailbox * self,
+					const char * id);
+gboolean 	mn_mailbox_has_command	(MNMailbox * self,
+					const char * id);
 
 /*
  * Signal connection wrapper macros
@@ -145,6 +153,12 @@ void 	mn_mailbox_check	(MNMailbox * self);
 #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
 #define MN_MAILBOX_PROP_NAME(arg)    	"name", __extension__ ({gchar *z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_NAME(arg)	"name", __extension__ ({gchar **z = (arg); z;})
+#define MN_MAILBOX_PROP_OPEN_COMMAND(arg)    	"open_command", __extension__ ({gchar *z = (arg); z;})
+#define MN_MAILBOX_GET_PROP_OPEN_COMMAND(arg)	"open_command", __extension__ ({gchar **z = (arg); z;})
+#define MN_MAILBOX_PROP_MARK_AS_READ_COMMAND(arg)    	"mark_as_read_command", __extension__ ({gchar *z = (arg); z;})
+#define MN_MAILBOX_GET_PROP_MARK_AS_READ_COMMAND(arg)	"mark_as_read_command", __extension__ ({gchar **z = (arg); z;})
+#define MN_MAILBOX_PROP_MARK_AS_SPAM_COMMAND(arg)    	"mark_as_spam_command", __extension__ ({gchar *z = (arg); z;})
+#define MN_MAILBOX_GET_PROP_MARK_AS_SPAM_COMMAND(arg)	"mark_as_spam_command", __extension__ ({gchar **z = (arg); z;})
 #define MN_MAILBOX_PROP_STOCK_ID(arg)    	"stock_id", __extension__ ({gchar *z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_STOCK_ID(arg)	"stock_id", __extension__ ({gchar **z = (arg); z;})
 #define MN_MAILBOX_PROP_FORMAT(arg)    	"format", __extension__ ({gchar *z = (arg); z;})
@@ -160,6 +174,12 @@ void 	mn_mailbox_check	(MNMailbox * self);
 #else /* __GNUC__ && !__STRICT_ANSI__ */
 #define MN_MAILBOX_PROP_NAME(arg)    	"name",(gchar *)(arg)
 #define MN_MAILBOX_GET_PROP_NAME(arg)	"name",(gchar **)(arg)
+#define MN_MAILBOX_PROP_OPEN_COMMAND(arg)    	"open_command",(gchar *)(arg)
+#define MN_MAILBOX_GET_PROP_OPEN_COMMAND(arg)	"open_command",(gchar **)(arg)
+#define MN_MAILBOX_PROP_MARK_AS_READ_COMMAND(arg)    	"mark_as_read_command",(gchar *)(arg)
+#define MN_MAILBOX_GET_PROP_MARK_AS_READ_COMMAND(arg)	"mark_as_read_command",(gchar **)(arg)
+#define MN_MAILBOX_PROP_MARK_AS_SPAM_COMMAND(arg)    	"mark_as_spam_command",(gchar *)(arg)
+#define MN_MAILBOX_GET_PROP_MARK_AS_SPAM_COMMAND(arg)	"mark_as_spam_command",(gchar **)(arg)
 #define MN_MAILBOX_PROP_STOCK_ID(arg)    	"stock_id",(gchar *)(arg)
 #define MN_MAILBOX_GET_PROP_STOCK_ID(arg)	"stock_id",(gchar **)(arg)
 #define MN_MAILBOX_PROP_FORMAT(arg)    	"format",(gchar *)(arg)

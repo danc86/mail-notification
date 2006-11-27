@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 25 "mn-vfs-mailbox-backend.gob"
+#line 27 "mn-vfs-mailbox-backend.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
@@ -71,6 +71,7 @@ static GObjectClass *parent_class = NULL;
 #define self_monitor_cb mn_vfs_mailbox_backend_monitor_cb
 #define self_is mn_vfs_mailbox_backend_is
 #define self_check mn_vfs_mailbox_backend_check
+#define self_mark_as_read mn_vfs_mailbox_backend_mark_as_read
 GType
 mn_vfs_mailbox_backend_get_type (void)
 {
@@ -127,13 +128,14 @@ mn_vfs_mailbox_backend_class_init (MNVFSMailboxBackendClass * c G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (G_TYPE_OBJECT);
 
-#line 48 "mn-vfs-mailbox-backend.gob"
+#line 51 "mn-vfs-mailbox-backend.gob"
 	g_object_class->finalize = ___1_mn_vfs_mailbox_backend_finalize;
-#line 84 "mn-vfs-mailbox-backend.gob"
+#line 87 "mn-vfs-mailbox-backend.gob"
 	c->monitor_cb = ___real_mn_vfs_mailbox_backend_monitor_cb;
-#line 135 "mn-vfs-mailbox-backend.c"
+#line 136 "mn-vfs-mailbox-backend.c"
 	c->is = NULL;
 	c->check = NULL;
+	c->mark_as_read = NULL;
 	g_object_class->get_property = ___object_get_property;
 	g_object_class->set_property = ___object_set_property;
     {
@@ -165,9 +167,9 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_MAILBOX:
 		{
-#line 46 "mn-vfs-mailbox-backend.gob"
+#line 49 "mn-vfs-mailbox-backend.gob"
 self->mailbox = g_value_get_pointer (VAL);
-#line 171 "mn-vfs-mailbox-backend.c"
+#line 173 "mn-vfs-mailbox-backend.c"
 		}
 		break;
 	default:
@@ -196,9 +198,9 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_MAILBOX:
 		{
-#line 46 "mn-vfs-mailbox-backend.gob"
+#line 49 "mn-vfs-mailbox-backend.gob"
 g_value_set_pointer (VAL, self->mailbox);
-#line 202 "mn-vfs-mailbox-backend.c"
+#line 204 "mn-vfs-mailbox-backend.c"
 		}
 		break;
 	default:
@@ -215,17 +217,17 @@ g_value_set_pointer (VAL, self->mailbox);
 
 
 
-#line 48 "mn-vfs-mailbox-backend.gob"
+#line 51 "mn-vfs-mailbox-backend.gob"
 static void 
 ___1_mn_vfs_mailbox_backend_finalize (GObject * object G_GNUC_UNUSED)
-#line 222 "mn-vfs-mailbox-backend.c"
+#line 224 "mn-vfs-mailbox-backend.c"
 #define PARENT_HANDLER(___object) \
 	{ if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(___object); }
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox:Backend::finalize"
 {
-#line 50 "mn-vfs-mailbox-backend.gob"
+#line 53 "mn-vfs-mailbox-backend.gob"
 	
     Self *self = SELF(object);
 
@@ -238,112 +240,131 @@ ___1_mn_vfs_mailbox_backend_finalize (GObject * object G_GNUC_UNUSED)
 
     PARENT_HANDLER(object);
   }}
-#line 242 "mn-vfs-mailbox-backend.c"
+#line 244 "mn-vfs-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 63 "mn-vfs-mailbox-backend.gob"
+#line 66 "mn-vfs-mailbox-backend.gob"
 void 
 mn_vfs_mailbox_backend_monitor (MNVFSMailboxBackend * self, unsigned long check_id, const char * uri, GnomeVFSMonitorType type)
-#line 249 "mn-vfs-mailbox-backend.c"
+#line 251 "mn-vfs-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox:Backend::monitor"
-#line 63 "mn-vfs-mailbox-backend.gob"
+#line 66 "mn-vfs-mailbox-backend.gob"
 	g_return_if_fail (self != NULL);
-#line 63 "mn-vfs-mailbox-backend.gob"
+#line 66 "mn-vfs-mailbox-backend.gob"
 	g_return_if_fail (MN_IS_VFS_MAILBOX_BACKEND (self));
-#line 63 "mn-vfs-mailbox-backend.gob"
+#line 66 "mn-vfs-mailbox-backend.gob"
 	g_return_if_fail (uri != NULL);
-#line 258 "mn-vfs-mailbox-backend.c"
+#line 260 "mn-vfs-mailbox-backend.c"
 {
-#line 68 "mn-vfs-mailbox-backend.gob"
+#line 71 "mn-vfs-mailbox-backend.gob"
 	
     mn_reentrant_mailbox_lock(MN_REENTRANT_MAILBOX(self->mailbox));
     mn_vfs_mailbox_monitor(self->mailbox, uri, self, type, self_real_monitor_cb, self);
     mn_reentrant_mailbox_unlock(MN_REENTRANT_MAILBOX(self->mailbox));
   }}
-#line 266 "mn-vfs-mailbox-backend.c"
+#line 268 "mn-vfs-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 74 "mn-vfs-mailbox-backend.gob"
+#line 77 "mn-vfs-mailbox-backend.gob"
 static void 
 mn_vfs_mailbox_backend_real_monitor_cb (GnomeVFSMonitorHandle * handle, const char * monitor_uri, const char * info_uri, GnomeVFSMonitorEventType event_type, gpointer user_data)
-#line 272 "mn-vfs-mailbox-backend.c"
+#line 274 "mn-vfs-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox:Backend::real_monitor_cb"
 {
-#line 80 "mn-vfs-mailbox-backend.gob"
+#line 83 "mn-vfs-mailbox-backend.gob"
 	
     self_monitor_cb(user_data, info_uri, event_type);
   }}
-#line 280 "mn-vfs-mailbox-backend.c"
+#line 282 "mn-vfs-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 84 "mn-vfs-mailbox-backend.gob"
+#line 87 "mn-vfs-mailbox-backend.gob"
 static void 
 mn_vfs_mailbox_backend_monitor_cb (MNVFSMailboxBackend * self, const char * info_uri, GnomeVFSMonitorEventType event_type)
-#line 286 "mn-vfs-mailbox-backend.c"
+#line 288 "mn-vfs-mailbox-backend.c"
 {
 	MNVFSMailboxBackendClass *klass;
-#line 84 "mn-vfs-mailbox-backend.gob"
+#line 87 "mn-vfs-mailbox-backend.gob"
 	g_return_if_fail (self != NULL);
-#line 84 "mn-vfs-mailbox-backend.gob"
+#line 87 "mn-vfs-mailbox-backend.gob"
 	g_return_if_fail (MN_IS_VFS_MAILBOX_BACKEND (self));
-#line 293 "mn-vfs-mailbox-backend.c"
+#line 295 "mn-vfs-mailbox-backend.c"
 	klass = MN_VFS_MAILBOX_BACKEND_GET_CLASS(self);
 
 	if(klass->monitor_cb)
 		(*klass->monitor_cb)(self,info_uri,event_type);
 }
-#line 84 "mn-vfs-mailbox-backend.gob"
+#line 87 "mn-vfs-mailbox-backend.gob"
 static void 
 ___real_mn_vfs_mailbox_backend_monitor_cb (MNVFSMailboxBackend * self G_GNUC_UNUSED, const char * info_uri, GnomeVFSMonitorEventType event_type)
-#line 302 "mn-vfs-mailbox-backend.c"
+#line 304 "mn-vfs-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox:Backend::monitor_cb"
 {
-#line 88 "mn-vfs-mailbox-backend.gob"
+#line 91 "mn-vfs-mailbox-backend.gob"
 	
     if (event_type == GNOME_VFS_MONITOR_EVENT_CHANGED
 	|| event_type == GNOME_VFS_MONITOR_EVENT_DELETED
 	|| event_type == GNOME_VFS_MONITOR_EVENT_CREATED)
       mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self->mailbox));
   }}
-#line 313 "mn-vfs-mailbox-backend.c"
+#line 315 "mn-vfs-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 95 "mn-vfs-mailbox-backend.gob"
+#line 98 "mn-vfs-mailbox-backend.gob"
 gboolean 
-mn_vfs_mailbox_backend_is (MNVFSMailboxBackend * self, MNVFSMailbox * mailbox)
-#line 319 "mn-vfs-mailbox-backend.c"
+mn_vfs_mailbox_backend_is (MNVFSMailboxBackend * self, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox)
+#line 321 "mn-vfs-mailbox-backend.c"
 {
 	MNVFSMailboxBackendClass *klass;
-#line 95 "mn-vfs-mailbox-backend.gob"
+#line 98 "mn-vfs-mailbox-backend.gob"
 	g_return_val_if_fail (self != NULL, (gboolean )0);
-#line 95 "mn-vfs-mailbox-backend.gob"
+#line 98 "mn-vfs-mailbox-backend.gob"
 	g_return_val_if_fail (MN_IS_VFS_MAILBOX_BACKEND (self), (gboolean )0);
-#line 326 "mn-vfs-mailbox-backend.c"
+#line 328 "mn-vfs-mailbox-backend.c"
 	klass = MN_VFS_MAILBOX_BACKEND_GET_CLASS(self);
 
 	if(klass->is)
-		return (*klass->is)(self,mailbox);
+		return (*klass->is)(self,class,mailbox);
 	else
 		return (gboolean )(0);
 }
 
-#line 98 "mn-vfs-mailbox-backend.gob"
+#line 101 "mn-vfs-mailbox-backend.gob"
 void 
 mn_vfs_mailbox_backend_check (MNVFSMailboxBackend * self, unsigned long check_id)
-#line 338 "mn-vfs-mailbox-backend.c"
+#line 340 "mn-vfs-mailbox-backend.c"
 {
 	MNVFSMailboxBackendClass *klass;
-#line 98 "mn-vfs-mailbox-backend.gob"
+#line 101 "mn-vfs-mailbox-backend.gob"
 	g_return_if_fail (self != NULL);
-#line 98 "mn-vfs-mailbox-backend.gob"
+#line 101 "mn-vfs-mailbox-backend.gob"
 	g_return_if_fail (MN_IS_VFS_MAILBOX_BACKEND (self));
-#line 345 "mn-vfs-mailbox-backend.c"
+#line 347 "mn-vfs-mailbox-backend.c"
 	klass = MN_VFS_MAILBOX_BACKEND_GET_CLASS(self);
 
 	if(klass->check)
 		(*klass->check)(self,check_id);
+}
+
+#line 104 "mn-vfs-mailbox-backend.gob"
+gboolean 
+mn_vfs_mailbox_backend_mark_as_read (MNVFSMailboxBackend * self, MNVFSMessage * message, GError ** err)
+#line 357 "mn-vfs-mailbox-backend.c"
+{
+	MNVFSMailboxBackendClass *klass;
+#line 104 "mn-vfs-mailbox-backend.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 104 "mn-vfs-mailbox-backend.gob"
+	g_return_val_if_fail (MN_IS_VFS_MAILBOX_BACKEND (self), (gboolean )0);
+#line 364 "mn-vfs-mailbox-backend.c"
+	klass = MN_VFS_MAILBOX_BACKEND_GET_CLASS(self);
+
+	if(klass->mark_as_read)
+		return (*klass->mark_as_read)(self,message,err);
+	else
+		return (gboolean )(0);
 }

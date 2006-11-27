@@ -5,6 +5,7 @@
 
 
 #include "mn-reentrant-mailbox.h"
+#include "mn-bonobo-unknown.h"
 
 #ifndef __MN_EVOLUTION_MAILBOX_H__
 #define __MN_EVOLUTION_MAILBOX_H__

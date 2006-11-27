@@ -1,0 +1,190 @@
+/* 
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include <libbonoboui.h>
+%}
+
+%{
+#include "config.h"
+#include <string.h>
+#include <mail/mail-component.h>
+#include <mail/em-folder-tree.h>
+#include "mn-evolution.h"
+
+enum
+{
+  PROP_SELECTED_URI
+};
+%}
+
+class MN:Evolution:Folder:Tree:Control from Bonobo:Control
+{
+  private BonoboPropertyBag *pb unrefwith bonobo_object_unref;
+  private BonoboEventSource *es;
+
+  override (G:Object) GObject *
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    Self *self;
+    EMFolderTreeModel *model;
+    GtkWidget *tree;
+    BonoboControl *control;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    control = BONOBO_CONTROL(object);
+    self = SELF(object);
+
+    model = mail_component_peek_tree_model(mail_component_peek());
+    tree = em_folder_tree_new_with_model(model);
+    gtk_widget_show(tree);
+
+    bonobo_control_construct(control, tree);
+
+    selfp->pb = bonobo_property_bag_new(self_get_property, self_set_property, self);
+    bonobo_property_bag_add(selfp->pb,
+			    "selected-uri",
+			    PROP_SELECTED_URI,
+			    BONOBO_ARG_STRING,
+			    NULL,
+			    dgettext(GETTEXT_PACKAGE, "The currently selected URI"),
+			    0);
+    bonobo_control_set_properties(control, BONOBO_OBJREF(selfp->pb), NULL);
+
+    selfp->es = bonobo_event_source_new();
+    /*
+     * bonobo_object_add_interface() takes ownership of the passed
+     * object, that's why we must not unref es above.
+     */
+    bonobo_object_add_interface(BONOBO_OBJECT(control), BONOBO_OBJECT(selfp->es));
+
+    g_object_connect(tree,
+		     "signal::folder-selected", self_selected_h, self,
+		     "signal::folder-activated", self_activated_h, self,
+		     NULL);
+
+    return object;
+  }
+
+  private void
+    get_property (BonoboPropertyBag *bag,
+		  BonoboArg *arg,
+		  unsigned int arg_id,
+		  CORBA_Environment *env,
+		  gpointer user_data)
+  {
+    Self *self = user_data;
+    EMFolderTree *tree = EM_FOLDER_TREE(bonobo_control_get_widget(BONOBO_CONTROL(self)));
+
+    switch (arg_id)
+      {
+      case PROP_SELECTED_URI:
+	{
+	  char *selected_uri;
+
+	  selected_uri = em_folder_tree_get_selected_uri(tree);
+	  BONOBO_ARG_SET_STRING(arg, selected_uri);
+	  g_free(selected_uri);
+	}
+	break;
+
+      default:
+	bonobo_exception_set(env, ex_Bonobo_PropertyBag_NotFound);
+	break;
+      }
+  }
+
+  private void
+    set_property (BonoboPropertyBag *bag,
+		  const BonoboArg *arg,
+		  unsigned int arg_id,
+		  CORBA_Environment *env,
+		  gpointer user_data)
+  {
+    Self *self = user_data;
+    EMFolderTree *tree = EM_FOLDER_TREE(bonobo_control_get_widget(BONOBO_CONTROL(self)));
+
+    switch (arg_id)
+      {
+      case PROP_SELECTED_URI:
+	em_folder_tree_set_selected(tree, BONOBO_ARG_GET_STRING(arg));
+	break;
+
+      default:
+	bonobo_exception_set(env, ex_Bonobo_PropertyBag_NotFound);
+	break;
+      }
+  }
+
+  private void
+    selected_h (EMFolderTree *tree,
+		const char *full_name,
+		const char *uri,
+		guint32 flags,
+		gpointer user_data)
+  {
+    Self *self = user_data;
+    BonoboArg *arg;
+
+    arg = bonobo_arg_new(BONOBO_ARG_STRING);
+    BONOBO_ARG_SET_STRING(arg, uri);
+
+    bonobo_event_source_notify_listeners_full(selfp->pb->es,
+					      "Bonobo/Property",
+					      "change",
+					      "selected-uri",
+					      arg,
+					      NULL);
+
+    bonobo_arg_release(arg);
+  }
+
+  private void
+    activated_h (EMFolderTree *tree,
+		 const char *full_name,
+		 const char *uri,
+		 gpointer user_data)
+  {
+    Self *self = user_data;
+    BonoboArg *arg;
+
+    arg = bonobo_arg_new(BONOBO_ARG_STRING);
+    BONOBO_ARG_SET_STRING(arg, uri);
+
+    bonobo_event_source_notify_listeners_full(selfp->es,
+					      MN_EVOLUTION_FOLDER_TREE_CONTROL_EVENT_PREFIX,
+					      MN_EVOLUTION_FOLDER_TREE_CONTROL_EVENT_ACTIVATED,
+					      NULL,
+					      arg,
+					      NULL);
+
+    bonobo_arg_release(arg);
+  }
+
+  public BonoboObject *
+    factory_cb (BonoboGenericFactory *factory,
+		const char *iid,
+		gpointer closure)
+  {
+    return BONOBO_OBJECT(GET_NEW);
+  }
+}

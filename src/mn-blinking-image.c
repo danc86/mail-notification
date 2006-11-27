@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 29 "mn-blinking-image.gob"
+#line 30 "mn-blinking-image.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
@@ -114,10 +114,10 @@ ___finalize(GObject *obj_self)
 #define __GOB_FUNCTION__ "MN:Blinking:Image::finalize"
 	MNBlinkingImage *self G_GNUC_UNUSED = MN_BLINKING_IMAGE (obj_self);
 	gpointer priv G_GNUC_UNUSED = self->_priv;
-#line 64 "mn-blinking-image.gob"
+#line 65 "mn-blinking-image.gob"
 	___3_mn_blinking_image_finalize(obj_self);
 #line 120 "mn-blinking-image.c"
-#line 61 "mn-blinking-image.gob"
+#line 62 "mn-blinking-image.gob"
 	if(self->_priv->stock_id) { g_free ((gpointer) self->_priv->stock_id); self->_priv->stock_id = NULL; }
 #line 123 "mn-blinking-image.c"
 }
@@ -128,7 +128,7 @@ mn_blinking_image_init (MNBlinkingImage * o G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:Blinking:Image::init"
 	o->_priv = G_TYPE_INSTANCE_GET_PRIVATE(o,MN_TYPE_BLINKING_IMAGE,MNBlinkingImagePrivate);
-#line 54 "mn-blinking-image.gob"
+#line 55 "mn-blinking-image.gob"
 	o->_priv->is_on = TRUE;
 #line 134 "mn-blinking-image.c"
 }
@@ -143,7 +143,7 @@ mn_blinking_image_class_init (MNBlinkingImageClass * c G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (GTK_TYPE_IMAGE);
 
-#line 64 "mn-blinking-image.gob"
+#line 65 "mn-blinking-image.gob"
 	g_object_class->finalize = ___finalize;
 #line 149 "mn-blinking-image.c"
 	g_object_class->get_property = ___object_get_property;
@@ -178,7 +178,7 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_BLINKING:
 		{
-#line 39 "mn-blinking-image.gob"
+#line 40 "mn-blinking-image.gob"
 
       gboolean blinking = g_value_get_boolean(VAL);
       if (blinking != selfp->blinking)
@@ -222,7 +222,7 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_BLINKING:
 		{
-#line 54 "mn-blinking-image.gob"
+#line 55 "mn-blinking-image.gob"
 
       g_value_set_boolean(VAL, selfp->blinking);
     
@@ -243,33 +243,33 @@ ___object_get_property (GObject *object,
 
 
 
-#line 54 "mn-blinking-image.gob"
+#line 55 "mn-blinking-image.gob"
 gboolean 
 mn_blinking_image_get_blinking (MNBlinkingImage * self)
 #line 250 "mn-blinking-image.c"
 {
 #define __GOB_FUNCTION__ "MN:Blinking:Image::get_blinking"
 {
-#line 37 "mn-blinking-image.gob"
+#line 38 "mn-blinking-image.gob"
 		gboolean val; g_object_get (G_OBJECT (self), "blinking", &val, NULL); return val;
 }}
 #line 257 "mn-blinking-image.c"
 #undef __GOB_FUNCTION__
 
-#line 39 "mn-blinking-image.gob"
+#line 40 "mn-blinking-image.gob"
 void 
 mn_blinking_image_set_blinking (MNBlinkingImage * self, gboolean val)
 #line 263 "mn-blinking-image.c"
 {
 #define __GOB_FUNCTION__ "MN:Blinking:Image::set_blinking"
 {
-#line 37 "mn-blinking-image.gob"
+#line 38 "mn-blinking-image.gob"
 		g_object_set (G_OBJECT (self), "blinking", val, NULL);
 }}
 #line 270 "mn-blinking-image.c"
 #undef __GOB_FUNCTION__
 
-#line 64 "mn-blinking-image.gob"
+#line 65 "mn-blinking-image.gob"
 static void 
 ___3_mn_blinking_image_finalize (GObject * object G_GNUC_UNUSED)
 #line 276 "mn-blinking-image.c"
@@ -279,7 +279,7 @@ ___3_mn_blinking_image_finalize (GObject * object G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:Blinking:Image::finalize"
 {
-#line 66 "mn-blinking-image.gob"
+#line 67 "mn-blinking-image.gob"
 	
     Self *self = SELF(object);
 
@@ -292,19 +292,19 @@ ___3_mn_blinking_image_finalize (GObject * object G_GNUC_UNUSED)
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 75 "mn-blinking-image.gob"
+#line 76 "mn-blinking-image.gob"
 static void 
 mn_blinking_image_update (MNBlinkingImage * self, gboolean is_on)
 #line 299 "mn-blinking-image.c"
 {
 #define __GOB_FUNCTION__ "MN:Blinking:Image::update"
-#line 75 "mn-blinking-image.gob"
+#line 76 "mn-blinking-image.gob"
 	g_return_if_fail (self != NULL);
-#line 75 "mn-blinking-image.gob"
+#line 76 "mn-blinking-image.gob"
 	g_return_if_fail (MN_IS_BLINKING_IMAGE (self));
 #line 306 "mn-blinking-image.c"
 {
-#line 77 "mn-blinking-image.gob"
+#line 78 "mn-blinking-image.gob"
 	
     if (is_on)
       gtk_image_set_from_stock(GTK_IMAGE(self), selfp->stock_id, selfp->icon_size);
@@ -335,14 +335,14 @@ mn_blinking_image_update (MNBlinkingImage * self, gboolean is_on)
 #line 336 "mn-blinking-image.c"
 #undef __GOB_FUNCTION__
 
-#line 105 "mn-blinking-image.gob"
+#line 106 "mn-blinking-image.gob"
 static gboolean 
 mn_blinking_image_timeout_cb (gpointer data)
 #line 342 "mn-blinking-image.c"
 {
 #define __GOB_FUNCTION__ "MN:Blinking:Image::timeout_cb"
 {
-#line 107 "mn-blinking-image.gob"
+#line 108 "mn-blinking-image.gob"
 	
     Self *self = data;
 
@@ -353,35 +353,35 @@ mn_blinking_image_timeout_cb (gpointer data)
 #line 354 "mn-blinking-image.c"
 #undef __GOB_FUNCTION__
 
-#line 115 "mn-blinking-image.gob"
+#line 116 "mn-blinking-image.gob"
 GtkWidget * 
 mn_blinking_image_new (void)
 #line 360 "mn-blinking-image.c"
 {
 #define __GOB_FUNCTION__ "MN:Blinking:Image::new"
 {
-#line 117 "mn-blinking-image.gob"
+#line 118 "mn-blinking-image.gob"
 	
     return GTK_WIDGET(GET_NEW);
   }}
 #line 368 "mn-blinking-image.c"
 #undef __GOB_FUNCTION__
 
-#line 121 "mn-blinking-image.gob"
+#line 122 "mn-blinking-image.gob"
 void 
 mn_blinking_image_set_from_stock (MNBlinkingImage * self, const char * stock_id, GtkIconSize icon_size)
 #line 374 "mn-blinking-image.c"
 {
 #define __GOB_FUNCTION__ "MN:Blinking:Image::set_from_stock"
-#line 121 "mn-blinking-image.gob"
+#line 122 "mn-blinking-image.gob"
 	g_return_if_fail (self != NULL);
-#line 121 "mn-blinking-image.gob"
+#line 122 "mn-blinking-image.gob"
 	g_return_if_fail (MN_IS_BLINKING_IMAGE (self));
-#line 121 "mn-blinking-image.gob"
+#line 122 "mn-blinking-image.gob"
 	g_return_if_fail (stock_id != NULL);
 #line 383 "mn-blinking-image.c"
 {
-#line 125 "mn-blinking-image.gob"
+#line 126 "mn-blinking-image.gob"
 	
     g_free(selfp->stock_id);
     selfp->stock_id = g_strdup(stock_id);

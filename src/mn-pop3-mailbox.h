@@ -59,7 +59,7 @@ struct _MNPOP3MailboxClass {
  */
 GType	mn_pop3_mailbox_get_type	(void);
 char * 	mn_pop3_mailbox_build_name	(const char * username,
-					const char * hostname);
+					const char * server);
 
 #ifdef __cplusplus
 }

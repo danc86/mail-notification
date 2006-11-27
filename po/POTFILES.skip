@@ -12,9 +12,9 @@ src/mn-authenticated-mailbox-properties.c
 src/mn-authenticated-mailbox.c
 src/mn-autodetect-mailbox-properties.c
 src/mn-automation.c
+src/mn-base-mbox-mailbox-backend.c
 src/mn-blinking-image.c
 src/mn-compact-message-view.c
-src/mn-corba-object.c
 src/mn-custom-vfs-mailbox.c
 src/mn-dialog.c
 src/mn-evolution-glue.c
@@ -26,7 +26,6 @@ src/mn-gmime-stream-vfs.c
 src/mn-imap-mailbox-properties.c
 src/mn-imap-mailbox.c
 src/mn-mail-icon.c
-src/mn-mail-summary-popup.c
 src/mn-mailbox-properties-dialog.c
 src/mn-mailbox-view.c
 src/mn-mailbox.c
@@ -39,6 +38,7 @@ src/mn-pi-mailbox-properties.c
 src/mn-pi-mailbox.c
 src/mn-pop3-mailbox-properties.c
 src/mn-pop3-mailbox.c
+src/mn-popup.c
 src/mn-properties-dialog.c
 src/mn-reentrant-mailbox.c
 src/mn-shell.c
@@ -46,6 +46,7 @@ src/mn-standard-message-view.c
 src/mn-sylpheed-mailbox-backend.c
 src/mn-system-vfs-mailbox-properties.c
 src/mn-system-vfs-mailbox.c
+src/mn-test-mailbox.c
 src/mn-text-table.c
 src/mn-tooltips.c
 src/mn-vfs-mailbox-backend.c

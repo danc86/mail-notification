@@ -22,19 +22,20 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 26 "mn-evolution-glue.gob"
+#line 31 "mn-evolution-glue.gob"
 
 #include <stdio.h>
 #include <camel/camel-folder.h>
-
-#ifdef HAVE_EVOLUTION_2_2
-/* headers from the Evolution source tree */
-#include "mail/mail-tools.h"
-#else
+#include <mail/em-folder-view.h>
+#include <mail/em-format.h>
+#include <mail/em-message-browser.h>
+#include <mail/em-utils.h>
+#include <mail/mail-session.h>
 #include <mail/mail-tools.h>
-#endif
 
-#line 38 "mn-evolution-glue.c"
+GSList *mn_evolution_glues = NULL;
+
+#line 39 "mn-evolution-glue.c"
 /* self casting macros */
 #define SELF(x) MN_EVOLUTION_GLUE(x)
 #define SELF_CONST(x) MN_EVOLUTION_GLUE_CONST(x)
@@ -51,18 +52,26 @@ typedef MNEvolutionGlueClass SelfClass;
 /* here are local prototypes */
 static void mn_evolution_glue_init (MNEvolutionGlue * o) G_GNUC_UNUSED;
 static void mn_evolution_glue_class_init (MNEvolutionGlueClass * c) G_GNUC_UNUSED;
+static GObject * ___1_mn_evolution_glue_constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam * construct_params) G_GNUC_UNUSED;
+static void ___2_mn_evolution_glue_finalize (GObject * object) G_GNUC_UNUSED;
 static CORBA_char * mn_evolution_glue_CORBA_string_dup_null (const CORBA_char * str) G_GNUC_UNUSED;
+static CamelFolder * mn_evolution_glue_lookup_folder (const char * uri, CORBA_Environment * env) G_GNUC_UNUSED;
 static GNOME_MailNotification_Evolution_MessageSeq * mn_evolution_glue_getUnseenMessages (PortableServer_Servant servant, const CORBA_char * folder_uri, CORBA_Environment * env) G_GNUC_UNUSED;
 static CORBA_string mn_evolution_glue_getFolderName (PortableServer_Servant servant, const CORBA_char * folder_uri, CORBA_Environment * env) G_GNUC_UNUSED;
+static void mn_evolution_glue_openMessage (PortableServer_Servant servant, const CORBA_char * folder_uri, const CORBA_char * message_uid, CORBA_Environment * env) G_GNUC_UNUSED;
+static void mn_evolution_glue_setMessageFlags (PortableServer_Servant servant, const CORBA_char * folder_uri, const CORBA_char * message_uid, CORBA_unsigned_long flags, CORBA_Environment * env) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
 static BonoboObjectClass *parent_class = NULL;
 
 /* Short form macros */
 #define self_CORBA_string_dup_null mn_evolution_glue_CORBA_string_dup_null
+#define self_lookup_folder mn_evolution_glue_lookup_folder
 #define self_getUnseenMessages mn_evolution_glue_getUnseenMessages
 #define self_getFolderName mn_evolution_glue_getFolderName
-#define self_new mn_evolution_glue_new
+#define self_openMessage mn_evolution_glue_openMessage
+#define self_setMessageFlags mn_evolution_glue_setMessageFlags
+#define self_factory_cb mn_evolution_glue_factory_cb
 GType
 mn_evolution_glue_get_type (void)
 {
@@ -119,41 +128,128 @@ static void
 mn_evolution_glue_class_init (MNEvolutionGlueClass * c G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::class_init"
+	GObjectClass *g_object_class = (GObjectClass *)c;
 
 	parent_class = g_type_class_ref (BONOBO_TYPE_OBJECT);
 
-#line 50 "mn-evolution-glue.gob"
+#line 48 "mn-evolution-glue.gob"
+	g_object_class->constructor = ___1_mn_evolution_glue_constructor;
+#line 69 "mn-evolution-glue.gob"
+	g_object_class->finalize = ___2_mn_evolution_glue_finalize;
+#line 140 "mn-evolution-glue.c"
+#line 99 "mn-evolution-glue.gob"
 	c->_epv.getUnseenMessages = self_getUnseenMessages;
-#line 118 "mn-evolution-glue.gob"
+#line 167 "mn-evolution-glue.gob"
 	c->_epv.getFolderName = self_getFolderName;
-#line 130 "mn-evolution-glue.c"
+#line 185 "mn-evolution-glue.gob"
+	c->_epv.openMessage = self_openMessage;
+#line 210 "mn-evolution-glue.gob"
+	c->_epv.setMessageFlags = self_setMessageFlags;
+#line 149 "mn-evolution-glue.c"
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 44 "mn-evolution-glue.gob"
+#line 48 "mn-evolution-glue.gob"
+static GObject * 
+___1_mn_evolution_glue_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_properties, GObjectConstructParam * construct_params)
+#line 158 "mn-evolution-glue.c"
+#define PARENT_HANDLER(___type,___n_construct_properties,___construct_params) \
+	((G_OBJECT_CLASS(parent_class)->constructor)? \
+		(* G_OBJECT_CLASS(parent_class)->constructor)(___type,___n_construct_properties,___construct_params): \
+		((GObject * )0))
+{
+#define __GOB_FUNCTION__ "MN:Evolution:Glue::constructor"
+{
+#line 50 "mn-evolution-glue.gob"
+	
+    GObject *object;
+    Self *self;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    self = SELF(object);
+
+    self->es = bonobo_event_source_new();
+    /*
+     * bonobo_object_add_interface() takes ownership of the passed
+     * object, that's why we must not unref es above.
+     */
+    bonobo_object_add_interface(BONOBO_OBJECT(self), BONOBO_OBJECT(self->es));
+
+    mn_evolution_glues = g_slist_append(mn_evolution_glues, self);
+
+    return object;
+  }}
+#line 185 "mn-evolution-glue.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 69 "mn-evolution-glue.gob"
+static void 
+___2_mn_evolution_glue_finalize (GObject * object G_GNUC_UNUSED)
+#line 192 "mn-evolution-glue.c"
+#define PARENT_HANDLER(___object) \
+	{ if(G_OBJECT_CLASS(parent_class)->finalize) \
+		(* G_OBJECT_CLASS(parent_class)->finalize)(___object); }
+{
+#define __GOB_FUNCTION__ "MN:Evolution:Glue::finalize"
+{
+#line 71 "mn-evolution-glue.gob"
+	
+    mn_evolution_glues = g_slist_remove(mn_evolution_glues, object);
+
+    PARENT_HANDLER(object);
+  }}
+#line 205 "mn-evolution-glue.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 81 "mn-evolution-glue.gob"
 static CORBA_char * 
 mn_evolution_glue_CORBA_string_dup_null (const CORBA_char * str)
-#line 139 "mn-evolution-glue.c"
+#line 212 "mn-evolution-glue.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::CORBA_string_dup_null"
 {
-#line 46 "mn-evolution-glue.gob"
+#line 83 "mn-evolution-glue.gob"
 	
     return CORBA_string_dup(str ? str : "");
   }}
-#line 147 "mn-evolution-glue.c"
+#line 220 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__
 
-#line 50 "mn-evolution-glue.gob"
+#line 87 "mn-evolution-glue.gob"
+static CamelFolder * 
+mn_evolution_glue_lookup_folder (const char * uri, CORBA_Environment * env)
+#line 226 "mn-evolution-glue.c"
+{
+#define __GOB_FUNCTION__ "MN:Evolution:Glue::lookup_folder"
+#line 87 "mn-evolution-glue.gob"
+	g_return_val_if_fail (uri != NULL, (CamelFolder * )0);
+#line 231 "mn-evolution-glue.c"
+{
+#line 89 "mn-evolution-glue.gob"
+	
+    CamelFolder *folder;
+
+    folder = mail_tool_uri_to_folder(uri, 0, NULL);
+    if (! folder)
+      bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound);
+
+    return folder;
+  }}
+#line 243 "mn-evolution-glue.c"
+#undef __GOB_FUNCTION__
+
+#line 99 "mn-evolution-glue.gob"
 static GNOME_MailNotification_Evolution_MessageSeq * 
 mn_evolution_glue_getUnseenMessages (PortableServer_Servant servant, const CORBA_char * folder_uri, CORBA_Environment * env)
-#line 153 "mn-evolution-glue.c"
+#line 249 "mn-evolution-glue.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::getUnseenMessages"
 {
-#line 54 "mn-evolution-glue.gob"
+#line 103 "mn-evolution-glue.gob"
 	
     CamelFolder *folder;
     GPtrArray *summary;
@@ -161,12 +257,9 @@ mn_evolution_glue_getUnseenMessages (PortableServer_Servant servant, const CORBA
     GSList *infos = NULL;
     GNOME_MailNotification_Evolution_MessageSeq *seq;
 
-    folder = mail_tool_uri_to_folder(folder_uri, 0, NULL);
+    folder = self_lookup_folder(folder_uri, env);
     if (! folder)
-      {
-	bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound);
-	return NULL;
-      }
+      return NULL;
 
     summary = camel_folder_get_summary(folder);
 
@@ -200,6 +293,9 @@ mn_evolution_glue_getUnseenMessages (PortableServer_Servant servant, const CORBA
 	    for (j = 0; j < sizeof(id->id.hash); j++)
 	      sprintf(hexhash + j * 2, "%.2x", id->id.hash[j]);
 
+	    g_assert(camel_message_info_uid(info) != NULL);
+
+	    seq->_buffer[i].uid = CORBA_string_dup(camel_message_info_uid(info));
 	    seq->_buffer[i].sent_time = camel_message_info_date_sent(info);
 	    seq->_buffer[i].received_time = camel_message_info_date_received(info);
 	    seq->_buffer[i].id = CORBA_string_dup(hexhash);
@@ -217,45 +313,96 @@ mn_evolution_glue_getUnseenMessages (PortableServer_Servant servant, const CORBA
 
     return seq;
   }}
-#line 221 "mn-evolution-glue.c"
+#line 317 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__
 
-#line 118 "mn-evolution-glue.gob"
+#line 167 "mn-evolution-glue.gob"
 static CORBA_string 
 mn_evolution_glue_getFolderName (PortableServer_Servant servant, const CORBA_char * folder_uri, CORBA_Environment * env)
-#line 227 "mn-evolution-glue.c"
+#line 323 "mn-evolution-glue.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::getFolderName"
 {
-#line 122 "mn-evolution-glue.gob"
+#line 171 "mn-evolution-glue.gob"
 	
     CamelFolder *folder;
     CORBA_string name = NULL;
 
-    folder = mail_tool_uri_to_folder(folder_uri, 0, NULL);
+    folder = self_lookup_folder(folder_uri, env);
     if (folder)
       {
 	name = self_CORBA_string_dup_null(camel_folder_get_name(folder));
 	camel_object_unref(folder);
       }
-    else
-      bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound);
 
     return name;
   }}
-#line 247 "mn-evolution-glue.c"
+#line 341 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__
 
-#line 138 "mn-evolution-glue.gob"
-MNEvolutionGlue * 
-mn_evolution_glue_new (void)
-#line 253 "mn-evolution-glue.c"
+#line 185 "mn-evolution-glue.gob"
+static void 
+mn_evolution_glue_openMessage (PortableServer_Servant servant, const CORBA_char * folder_uri, const CORBA_char * message_uid, CORBA_Environment * env)
+#line 347 "mn-evolution-glue.c"
 {
-#define __GOB_FUNCTION__ "MN:Evolution:Glue::new"
+#define __GOB_FUNCTION__ "MN:Evolution:Glue::openMessage"
 {
-#line 140 "mn-evolution-glue.gob"
+#line 190 "mn-evolution-glue.gob"
 	
-    return GET_NEW;
+    CamelFolder *folder;
+    GtkWidget *browser;
+
+    folder = self_lookup_folder(folder_uri, env);
+    if (! folder)
+      return;
+
+    /* modelled after Evolution's handleuri_got_folder() */
+
+    browser = em_message_browser_window_new();
+
+    em_format_set_session((EMFormat *) ((EMFolderView *) browser)->preview, session);
+    em_folder_view_set_folder((EMFolderView *) browser, folder, folder_uri);
+    em_folder_view_set_message((EMFolderView *) browser, message_uid, FALSE);
+    gtk_widget_show(((EMMessageBrowser *) browser)->window);
+
+    camel_object_unref(folder);
   }}
-#line 261 "mn-evolution-glue.c"
+#line 371 "mn-evolution-glue.c"
+#undef __GOB_FUNCTION__
+
+#line 210 "mn-evolution-glue.gob"
+static void 
+mn_evolution_glue_setMessageFlags (PortableServer_Servant servant, const CORBA_char * folder_uri, const CORBA_char * message_uid, CORBA_unsigned_long flags, CORBA_Environment * env)
+#line 377 "mn-evolution-glue.c"
+{
+#define __GOB_FUNCTION__ "MN:Evolution:Glue::setMessageFlags"
+{
+#line 216 "mn-evolution-glue.gob"
+	
+    CamelFolder *folder;
+
+    folder = self_lookup_folder(folder_uri, env);
+    if (! folder)
+      return;
+
+    if (! camel_folder_set_message_flags(folder, message_uid, flags, flags))
+      bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_MessageNotFound);
+
+    camel_object_unref(folder);
+  }}
+#line 394 "mn-evolution-glue.c"
+#undef __GOB_FUNCTION__
+
+#line 229 "mn-evolution-glue.gob"
+BonoboObject * 
+mn_evolution_glue_factory_cb (BonoboGenericFactory * factory, const char * iid, gpointer closure)
+#line 400 "mn-evolution-glue.c"
+{
+#define __GOB_FUNCTION__ "MN:Evolution:Glue::factory_cb"
+{
+#line 233 "mn-evolution-glue.gob"
+	
+    return BONOBO_OBJECT(GET_NEW);
+  }}
+#line 408 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__

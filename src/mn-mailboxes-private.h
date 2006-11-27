@@ -10,17 +10,17 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 25 "mn-mailboxes.gob"
+#line 26 "mn-mailboxes.gob"
 
 #include "mn-locked-callback.h"
 
 #line 18 "mn-mailboxes-private.h"
 struct _MNMailboxesPrivate {
-#line 51 "mn-mailboxes.gob"
-	GSList * add_queue;
-#line 52 "mn-mailboxes.gob"
-	GSList * remove_queue;
 #line 53 "mn-mailboxes.gob"
+	GSList * add_queue;
+#line 54 "mn-mailboxes.gob"
+	GSList * remove_queue;
+#line 55 "mn-mailboxes.gob"
 	MNLockedGSource * queue_idle_source;
 #line 26 "mn-mailboxes-private.h"
 };

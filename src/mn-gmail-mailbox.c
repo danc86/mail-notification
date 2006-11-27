@@ -20,7 +20,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 29 "mn-gmail-mailbox.gob"
+#line 30 "mn-gmail-mailbox.gob"
 
 #include "config.h"
 #include <string.h>
@@ -62,7 +62,7 @@ static void mn_gmail_mailbox_class_init (MNGmailMailboxClass * class) G_GNUC_UNU
 static void mn_gmail_mailbox_init (MNGmailMailbox * self) G_GNUC_UNUSED;
 static void ___3_mn_gmail_mailbox_seal (MNMailbox * mailbox) G_GNUC_UNUSED;
 static void ___4_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox) G_GNUC_UNUSED;
-static void mn_gmail_mailbox_parse_entry (xmlNode * node, time_t * sent_time, char ** id, char ** from, char ** subject) G_GNUC_UNUSED;
+static void mn_gmail_mailbox_parse_entry (xmlNode * node, time_t * sent_time, char ** id, char ** from, char ** subject, char ** url) G_GNUC_UNUSED;
 static char * mn_gmail_mailbox_parse_author (xmlNode * node) G_GNUC_UNUSED;
 static time_t mn_gmail_mailbox_parse_date (const char * w3c_datetime) G_GNUC_UNUSED;
 
@@ -129,7 +129,7 @@ ___dispose (GObject *obj_self)
 	MNGmailMailbox *self G_GNUC_UNUSED = MN_GMAIL_MAILBOX (obj_self);
 	if (G_OBJECT_CLASS (parent_class)->dispose) \
 		(* G_OBJECT_CLASS (parent_class)->dispose) (obj_self);
-#line 58 "mn-gmail-mailbox.gob"
+#line 59 "mn-gmail-mailbox.gob"
 	if(self->_priv->uri) { gnome_vfs_uri_unref ((gpointer) self->_priv->uri); self->_priv->uri = NULL; }
 #line 135 "mn-gmail-mailbox.c"
 }
@@ -144,13 +144,13 @@ ___finalize(GObject *obj_self)
 	gpointer priv G_GNUC_UNUSED = self->_priv;
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 52 "mn-gmail-mailbox.gob"
+#line 53 "mn-gmail-mailbox.gob"
 	if(self->location) { g_free ((gpointer) self->location); self->location = NULL; }
 #line 150 "mn-gmail-mailbox.c"
 }
 #undef __GOB_FUNCTION__
 
-#line 60 "mn-gmail-mailbox.gob"
+#line 61 "mn-gmail-mailbox.gob"
 static void 
 mn_gmail_mailbox_class_init (MNGmailMailboxClass * class G_GNUC_UNUSED)
 #line 157 "mn-gmail-mailbox.c"
@@ -164,9 +164,9 @@ mn_gmail_mailbox_class_init (MNGmailMailboxClass * class G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (MN_TYPE_AUTHENTICATED_MAILBOX);
 
-#line 77 "mn-gmail-mailbox.gob"
+#line 78 "mn-gmail-mailbox.gob"
 	mn_mailbox_class->seal = ___3_mn_gmail_mailbox_seal;
-#line 86 "mn-gmail-mailbox.gob"
+#line 87 "mn-gmail-mailbox.gob"
 	mn_authenticated_mailbox_class->authenticated_check = ___4_mn_gmail_mailbox_authenticated_check;
 #line 172 "mn-gmail-mailbox.c"
 	g_object_class->dispose = ___dispose;
@@ -187,7 +187,7 @@ mn_gmail_mailbox_class_init (MNGmailMailboxClass * class G_GNUC_UNUSED)
 		param_spec);
     }
  {
-#line 61 "mn-gmail-mailbox.gob"
+#line 62 "mn-gmail-mailbox.gob"
 
     MN_MAILBOX_CLASS(class)->type = "gmail";
 
@@ -201,7 +201,7 @@ mn_gmail_mailbox_class_init (MNGmailMailboxClass * class G_GNUC_UNUSED)
  }
 }
 #undef __GOB_FUNCTION__
-#line 71 "mn-gmail-mailbox.gob"
+#line 72 "mn-gmail-mailbox.gob"
 static void 
 mn_gmail_mailbox_init (MNGmailMailbox * self G_GNUC_UNUSED)
 #line 208 "mn-gmail-mailbox.c"
@@ -209,7 +209,7 @@ mn_gmail_mailbox_init (MNGmailMailbox * self G_GNUC_UNUSED)
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_GMAIL_MAILBOX,MNGmailMailboxPrivate);
  {
-#line 72 "mn-gmail-mailbox.gob"
+#line 73 "mn-gmail-mailbox.gob"
 
     mn_mailbox_set_format(MN_MAILBOX(self), "Gmail");
     mn_mailbox_set_stock_id(MN_MAILBOX(self), MN_STOCK_GMAIL);
@@ -233,7 +233,7 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_LOCATION:
 		{
-#line 53 "mn-gmail-mailbox.gob"
+#line 54 "mn-gmail-mailbox.gob"
 { char *old = self->location; self->location = g_value_dup_string (VAL); g_free (old); }
 #line 239 "mn-gmail-mailbox.c"
 		}
@@ -264,7 +264,7 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_LOCATION:
 		{
-#line 53 "mn-gmail-mailbox.gob"
+#line 54 "mn-gmail-mailbox.gob"
 g_value_set_string (VAL, self->location);
 #line 270 "mn-gmail-mailbox.c"
 		}
@@ -283,7 +283,7 @@ g_value_set_string (VAL, self->location);
 
 
 
-#line 77 "mn-gmail-mailbox.gob"
+#line 78 "mn-gmail-mailbox.gob"
 static void 
 ___3_mn_gmail_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
 #line 290 "mn-gmail-mailbox.c"
@@ -293,7 +293,7 @@ ___3_mn_gmail_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::seal"
 {
-#line 79 "mn-gmail-mailbox.gob"
+#line 80 "mn-gmail-mailbox.gob"
 	
     PARENT_HANDLER(mailbox);
 
@@ -304,7 +304,7 @@ ___3_mn_gmail_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 86 "mn-gmail-mailbox.gob"
+#line 87 "mn-gmail-mailbox.gob"
 static void 
 ___4_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GNUC_UNUSED)
 #line 311 "mn-gmail-mailbox.c"
@@ -314,7 +314,7 @@ ___4_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GN
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::authenticated_check"
 {
-#line 88 "mn-gmail-mailbox.gob"
+#line 89 "mn-gmail-mailbox.gob"
 	
     Self *self = SELF(mailbox);
     GnomeVFSResult result;
@@ -386,8 +386,9 @@ ___4_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GN
 	      char *id;
 	      char *from;
 	      char *subject;
+	      char *url;
 
-	      self_parse_entry(node, &sent_time, &id, &from, &subject);
+	      self_parse_entry(node, &sent_time, &id, &from, &subject, &url);
 
 	      messages = g_slist_prepend(messages, mn_message_new(MN_MAILBOX(self),
 								  NULL,
@@ -395,11 +396,13 @@ ___4_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GN
 								  id,
 								  from,
 								  subject,
+								  url,
 								  MN_MESSAGE_NEW));
 
 	      g_free(id);
 	      g_free(from);
 	      g_free(subject);
+	      g_free(url);
 	    }
 
 	GDK_THREADS_ENTER();
@@ -422,34 +425,37 @@ ___4_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GN
 
     xmlFreeDoc(doc);
   }}
-#line 426 "mn-gmail-mailbox.c"
+#line 429 "mn-gmail-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 196 "mn-gmail-mailbox.gob"
+#line 200 "mn-gmail-mailbox.gob"
 static void 
-mn_gmail_mailbox_parse_entry (xmlNode * node, time_t * sent_time, char ** id, char ** from, char ** subject)
-#line 433 "mn-gmail-mailbox.c"
+mn_gmail_mailbox_parse_entry (xmlNode * node, time_t * sent_time, char ** id, char ** from, char ** subject, char ** url)
+#line 436 "mn-gmail-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::parse_entry"
-#line 196 "mn-gmail-mailbox.gob"
+#line 200 "mn-gmail-mailbox.gob"
 	g_return_if_fail (node != NULL);
-#line 196 "mn-gmail-mailbox.gob"
+#line 200 "mn-gmail-mailbox.gob"
 	g_return_if_fail (sent_time != NULL);
-#line 196 "mn-gmail-mailbox.gob"
+#line 200 "mn-gmail-mailbox.gob"
 	g_return_if_fail (id != NULL);
-#line 196 "mn-gmail-mailbox.gob"
+#line 200 "mn-gmail-mailbox.gob"
 	g_return_if_fail (from != NULL);
-#line 196 "mn-gmail-mailbox.gob"
+#line 200 "mn-gmail-mailbox.gob"
 	g_return_if_fail (subject != NULL);
-#line 446 "mn-gmail-mailbox.c"
+#line 200 "mn-gmail-mailbox.gob"
+	g_return_if_fail (url != NULL);
+#line 451 "mn-gmail-mailbox.c"
 {
-#line 202 "mn-gmail-mailbox.gob"
+#line 207 "mn-gmail-mailbox.gob"
 	
     *sent_time = 0;
     *id = NULL;
     *from = NULL;
     *subject = NULL;
+    *url = NULL;
 
     for (node = node->children; node != NULL; node = node->next)
       if (node->type == XML_ELEMENT_NODE)
@@ -469,6 +475,11 @@ mn_gmail_mailbox_parse_entry (xmlNode * node, time_t * sent_time, char ** id, ch
 	      g_free(*from);
 	      *from = self_parse_author(node);
 	    }
+	  else if (! strcmp(node->name, "link"))
+	    {
+	      g_free(*url);
+	      *url = xmlGetProp(node, "href");
+	    }
 #ifdef HAVE_TIMEGM
 	  else if (! strcmp(node->name, "issued"))
 	    {
@@ -484,20 +495,20 @@ mn_gmail_mailbox_parse_entry (xmlNode * node, time_t * sent_time, char ** id, ch
 #endif
 	}
   }}
-#line 488 "mn-gmail-mailbox.c"
+#line 499 "mn-gmail-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 242 "mn-gmail-mailbox.gob"
+#line 253 "mn-gmail-mailbox.gob"
 static char * 
 mn_gmail_mailbox_parse_author (xmlNode * node)
-#line 494 "mn-gmail-mailbox.c"
+#line 505 "mn-gmail-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::parse_author"
-#line 242 "mn-gmail-mailbox.gob"
+#line 253 "mn-gmail-mailbox.gob"
 	g_return_val_if_fail (node != NULL, (char * )0);
-#line 499 "mn-gmail-mailbox.c"
+#line 510 "mn-gmail-mailbox.c"
 {
-#line 244 "mn-gmail-mailbox.gob"
+#line 255 "mn-gmail-mailbox.gob"
 	
     char *from;
     char *name = NULL;
@@ -527,20 +538,20 @@ mn_gmail_mailbox_parse_author (xmlNode * node)
 
     return from;
   }}
-#line 531 "mn-gmail-mailbox.c"
+#line 542 "mn-gmail-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 274 "mn-gmail-mailbox.gob"
+#line 285 "mn-gmail-mailbox.gob"
 static time_t 
 mn_gmail_mailbox_parse_date (const char * w3c_datetime)
-#line 537 "mn-gmail-mailbox.c"
+#line 548 "mn-gmail-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::parse_date"
-#line 274 "mn-gmail-mailbox.gob"
+#line 285 "mn-gmail-mailbox.gob"
 	g_return_val_if_fail (w3c_datetime != NULL, (time_t )0);
-#line 542 "mn-gmail-mailbox.c"
+#line 553 "mn-gmail-mailbox.c"
 {
-#line 276 "mn-gmail-mailbox.gob"
+#line 287 "mn-gmail-mailbox.gob"
 	
 #ifdef HAVE_TIMEGM
     time_t t = 0;
@@ -579,17 +590,17 @@ mn_gmail_mailbox_parse_date (const char * w3c_datetime)
     return 0;
 #endif
   }}
-#line 583 "mn-gmail-mailbox.c"
+#line 594 "mn-gmail-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 315 "mn-gmail-mailbox.gob"
+#line 326 "mn-gmail-mailbox.gob"
 char * 
 mn_gmail_mailbox_build_name (const char * username)
-#line 589 "mn-gmail-mailbox.c"
+#line 600 "mn-gmail-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::build_name"
 {
-#line 317 "mn-gmail-mailbox.gob"
+#line 328 "mn-gmail-mailbox.gob"
 	
     if (username)
       return g_str_has_suffix(username, "@gmail.com")
@@ -598,5 +609,5 @@ mn_gmail_mailbox_build_name (const char * username)
     else
       return g_strdup("gmail.com");
   }}
-#line 602 "mn-gmail-mailbox.c"
+#line 613 "mn-gmail-mailbox.c"
 #undef __GOB_FUNCTION__

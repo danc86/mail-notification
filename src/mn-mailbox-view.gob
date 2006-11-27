@@ -1,4 +1,5 @@
 /* 
+ * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -34,6 +35,7 @@ requires 2.0.14
 #include "mn-conf.h"
 #include "mn-mailbox.h"
 #include "nautilus-cell-renderer-pixbuf-emblem.h"
+#include "mn-test-mailbox.h"
 
 enum
 {
@@ -378,7 +380,13 @@ class MN:Mailbox:View from Gtk:Tree:View
     gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
 
     MN_LIST_FOREACH(l, mn_shell->mailboxes->list)
-      self_append(self, l->data);
+      {
+	MNMailbox *mailbox = l->data;
+
+	if (! MN_IS_TEST_MAILBOX(mailbox))
+	  self_append(self, l->data);
+      }
+
     self_update_sensitivity(self);
 
     mn_g_object_connect(self,
@@ -504,7 +512,8 @@ class MN:Mailbox:View from Gtk:Tree:View
   {
     Self *self = user_data;
 
-    self_append(self, mailbox);
+    if (! MN_IS_TEST_MAILBOX(mailbox))
+      self_append(self, mailbox);
   }
 
   private void
@@ -777,9 +786,7 @@ class MN:Mailbox:View from Gtk:Tree:View
 			       int response,
 			       gpointer user_data)
   {
-    if (response == GTK_RESPONSE_HELP)
-      mn_display_help(GTK_WINDOW(dialog), "mailbox-properties");
-    else if (response == GTK_RESPONSE_CANCEL)
+    if (response == GTK_RESPONSE_CANCEL)
       gtk_widget_destroy(GTK_WIDGET(dialog));
     else if (response == GTK_RESPONSE_ACCEPT)
       {
@@ -801,15 +808,10 @@ class MN:Mailbox:View from Gtk:Tree:View
 				int response,
 				gpointer user_data)
   {
-    if (response == GTK_RESPONSE_HELP)
-      mn_display_help(GTK_WINDOW(dialog), "mailbox-properties");
-    else
-      {
-	if (response == GTK_RESPONSE_APPLY || response == GTK_RESPONSE_OK)
-	  mn_mailbox_properties_dialog_apply(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
-	if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_OK)
-	  gtk_widget_destroy(GTK_WIDGET(dialog));
-      }
+    if (response == GTK_RESPONSE_APPLY || response == GTK_RESPONSE_OK)
+      mn_mailbox_properties_dialog_apply(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
+    if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_OK)
+      gtk_widget_destroy(GTK_WIDGET(dialog));
   }
 
   private void

@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -24,7 +25,7 @@ requires 2.0.14
 %}
 
 %h{
-#define MN_VFS_MAILBOX_MAX_BACKEND_TYPES	4
+#define MN_VFS_MAILBOX_MAX_BACKEND_TYPES	5
 extern GType mn_vfs_mailbox_backend_types[MN_VFS_MAILBOX_MAX_BACKEND_TYPES + 1];
 %}
 
@@ -40,6 +41,9 @@ extern GType mn_vfs_mailbox_backend_types[MN_VFS_MAILBOX_MAX_BACKEND_TYPES + 1];
 #include "mn-reentrant-mailbox-private.h"
 #if WITH_MBOX
 #include "mn-mbox-mailbox-backend.h"
+#endif
+#if WITH_MOZILLA
+#include "mn-mozilla-mailbox-backend.h"
 #endif
 #if WITH_MH
 #include "mn-mh-mailbox-backend.h"
@@ -84,6 +88,9 @@ class MN:VFS:Mailbox from MN:Reentrant:Mailbox (abstract)
 
 #if WITH_MBOX
     mn_vfs_mailbox_backend_types[i++] = MN_TYPE_MBOX_MAILBOX_BACKEND;
+#endif
+#if WITH_MOZILLA
+    mn_vfs_mailbox_backend_types[i++] = MN_TYPE_MOZILLA_MAILBOX_BACKEND;
 #endif
 #if WITH_MH
     mn_vfs_mailbox_backend_types[i++] = MN_TYPE_MH_MAILBOX_BACKEND;
@@ -317,6 +324,7 @@ class MN:VFS:Mailbox from MN:Reentrant:Mailbox (abstract)
   {
     Self *self = SELF(mailbox);
     MNVFSMailboxBackend *backend;
+    MNVFSMailboxBackendClass *class;
     GType backend_type = 0;
     gboolean exists;
 
@@ -330,7 +338,8 @@ class MN:VFS:Mailbox from MN:Reentrant:Mailbox (abstract)
 
     mn_reentrant_mailbox_unlock(mailbox);
 
-    if (backend && MN_VFS_MAILBOX_BACKEND_GET_CLASS(backend)->is(NULL, self))
+    class = backend ? MN_VFS_MAILBOX_BACKEND_GET_CLASS(backend) : NULL;
+    if (class && class->is(NULL, class, self))
       backend_type = G_OBJECT_TYPE(backend);
     else
       {
@@ -341,12 +350,10 @@ class MN:VFS:Mailbox from MN:Reentrant:Mailbox (abstract)
 
 	    for (i = 0; mn_vfs_mailbox_backend_types[i]; i++)
 	      {
-		MNVFSMailboxBackendClass *class;
-
 		class = g_type_class_peek(mn_vfs_mailbox_backend_types[i]);
 		g_assert(class != NULL);
 
-		if (class->is(NULL, self))
+		if (class->is(NULL, class, self))
 		  {
 		    backend_type = mn_vfs_mailbox_backend_types[i];
 		    break;

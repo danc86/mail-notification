@@ -10,7 +10,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNAuthenticatedMailboxPrivate {
-#line 39 "mn-authenticated-mailbox.gob"
+#line 40 "mn-authenticated-mailbox.gob"
 	gboolean checking;
 #line 16 "mn-authenticated-mailbox-private.h"
 };

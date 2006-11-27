@@ -1,0 +1,139 @@
+/* 
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%{
+#include "config.h"
+#include <libnotify/notify.h>
+#include "mn-message.h"
+#include "mn-shell.h"
+#include "mn-util.h"
+#include "mn-conf.h"
+#include "mn-locked-callback.h"
+#include "mn-popup.h"
+#include "mn-properties-dialog.h"
+%}
+
+class MN:Popups from G:Object
+{
+  private GHashTable *popups = {g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify) mn_g_object_null_unref)} destroywith g_hash_table_destroy;
+
+  init (self)
+  {
+    if (! notify_is_initted())
+      return;			/* libnotify init failed */
+
+    mn_g_object_gconf_notifications_add_gdk_locked(self,
+						   MN_CONF_POPUPS_NAMESPACE, self_notify_cb, self,
+						   NULL);
+
+    g_signal_connect(mn_shell->mailboxes, "messages-changed", G_CALLBACK(self_messages_changed_h), self);
+  }
+
+  private void
+    messages_changed_h (MNMailboxes *mailboxes,
+			gboolean has_new,
+			gpointer user_data)
+  {
+    Self *self = user_data;
+
+    self_update(self, FALSE);
+  }
+
+  private void
+    notify_cb (GConfClient *client,
+	       unsigned int cnxn_id,
+	       GConfEntry *entry,
+	       gpointer user_data)
+  {
+    Self *self = user_data;
+
+    self_update(self, TRUE);
+  }
+
+  private gboolean
+    clean_cb (const char *id,
+	      MNPopup *popup,
+	      gpointer user_data)
+  {
+    GHashTable *messages = user_data;
+
+    if (! g_hash_table_lookup(messages, id))
+      {
+	if (popup != NULL)
+	  mn_popup_close(popup);
+	return TRUE;		/* remove */
+      }
+    else
+      return FALSE;		/* keep */
+  }
+
+  private void
+    update (self, gboolean reshow_current_popups)
+  {
+    GHashTable *messages;
+    GSList *l;
+
+    /* remove notifications whose message no longer exists */
+
+    messages = g_hash_table_new(g_str_hash, g_str_equal);
+    MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
+      {
+	MNMessage *message = l->data;
+	g_hash_table_insert(messages, message->id, message);
+      }
+
+    g_hash_table_foreach_remove(selfp->popups, (GHRFunc) self_clean_cb, messages);
+    g_hash_table_destroy(messages);
+
+    /* send notifications for new messages */
+
+    MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
+      {
+	MNMessage *message = l->data;
+	MNPopup *popup = NULL;
+	gpointer ptr;
+
+	if (g_hash_table_lookup_extended(selfp->popups, message->id, NULL, &ptr))
+	  {
+	    MNPopup *cur_popup = ptr;
+
+	    if (reshow_current_popups && cur_popup && cur_popup->visible)
+	      mn_popup_close(cur_popup);
+	    else
+	      continue;
+	  }
+
+	if (eel_gconf_get_boolean(MN_CONF_POPUPS_ENABLED))
+	  {
+	    popup = mn_popup_new(message);
+	    mn_popup_show(popup);
+	  }
+
+	g_hash_table_replace(selfp->popups, g_strdup(message->id), popup);
+      }
+  }
+
+  public MNPopups *
+    new (void)
+  {
+    return GET_NEW;
+  }
+}

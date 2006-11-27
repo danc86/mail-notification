@@ -21,10 +21,13 @@ Translators:
 	  Maurycy Pawłowski-Wieroński <maurycy@abstrakcja.pl> (Polish)
 	* Marcel J. Zwiebel <mj.zwiebel@nonux.nl> (Dutch)
 
+Artists:
+	* Josef Vybíral <cornelius@vybiral.info>
+	  (art/*/apps/mail-notification.*)
+
 External code sources:
 	* libegg (src/egg*)
 	* Nautilus (src/nautilus*)
 
 External art sources (images taken as-is or slightly modified):
 	* Google (gmail.png)
-	* Evolution (mail-notification.png)

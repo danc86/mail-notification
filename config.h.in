@@ -15,9 +15,6 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* Define to 1 if the Evolution branch is 2.2 */
-#undef HAVE_EVOLUTION_2_2
-
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #undef HAVE_GETTEXT
 
@@ -110,6 +107,9 @@
 
 /* Define to 1 if mime is enabled, 0 otherwise */
 #undef WITH_MIME
+
+/* Define to 1 if mozilla is enabled, 0 otherwise */
+#undef WITH_MOZILLA
 
 /* Define to 1 if pop3 is enabled, 0 otherwise */
 #undef WITH_POP3

@@ -9,6 +9,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+struct _MNMailboxPropertiesPrivate {
+#line 49 "mn-mailbox-properties.gob"
+	GSList * general_sections;
+#line 16 "mn-mailbox-properties-private.h"
+};
+GtkWidget * 	mn_mailbox_properties_add_general_section	(MNMailboxProperties * self, const char * title);
 void 	mn_mailbox_properties_notify_complete	(MNMailboxProperties * self);
 void 	mn_mailbox_properties_notify_default_name	(MNMailboxProperties * self);
 void 	mn_mailbox_properties_notify_default_check_delay	(MNMailboxProperties * self);

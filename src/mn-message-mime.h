@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2004, 2005 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #ifndef _MN_MESSAGE_MIME_H
@@ -24,16 +25,35 @@
 
 MNMessage *mn_message_new_from_mime_message (MNMailbox *mailbox,
 					     GMimeMessage *mime_message,
+					     const char *uri,
 					     MNMessageFlags flags,
 					     gboolean handle_status);
+MNMessage *mn_message_new_from_mime_message_full (GType type,
+						  MNMailbox *mailbox,
+						  GMimeMessage *mime_message,
+						  const char *uri,
+						  MNMessageFlags flags,
+						  gboolean handle_status);
 MNMessage *mn_message_new_from_mime_stream (MNMailbox *mailbox,
 					    GMimeStream *mime_stream,
+					    const char *uri,
 					    MNMessageFlags flags,
 					    gboolean handle_status);
+MNMessage *mn_message_new_from_mime_stream_full (GType type,
+						 MNMailbox *mailbox,
+						 GMimeStream *mime_stream,
+						 const char *uri,
+						 MNMessageFlags flags,
+						 gboolean handle_status);
 MNMessage *mn_message_new_from_uri (MNMailbox *mailbox,
 				    GnomeVFSURI *uri,
 				    MNMessageFlags flags,
 				    gboolean handle_status);
+MNMessage *mn_message_new_from_uri_full (GType type,
+					 MNMailbox *mailbox,
+					 GnomeVFSURI *uri,
+					 MNMessageFlags flags,
+					 gboolean handle_status);
 MNMessage *mn_message_new_from_buffer (MNMailbox *mailbox,
 				       const char *buffer,
 				       unsigned int len,

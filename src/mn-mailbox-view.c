@@ -20,7 +20,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 25 "mn-mailbox-view.gob"
+#line 26 "mn-mailbox-view.gob"
 
 #include "config.h"
 #include <string.h>
@@ -33,6 +33,7 @@
 #include "mn-conf.h"
 #include "mn-mailbox.h"
 #include "nautilus-cell-renderer-pixbuf-emblem.h"
+#include "mn-test-mailbox.h"
 
 enum
 {
@@ -69,7 +70,7 @@ static struct
 
 static GtkClipboard *global_clipboard;
 
-#line 73 "mn-mailbox-view.c"
+#line 74 "mn-mailbox-view.c"
 /* self casting macros */
 #define SELF(x) MN_MAILBOX_VIEW(x)
 #define SELF_CONST(x) MN_MAILBOX_VIEW_CONST(x)
@@ -247,16 +248,16 @@ ___finalize(GObject *obj_self)
 	gpointer priv G_GNUC_UNUSED = self->_priv;
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 76 "mn-mailbox-view.gob"
+#line 78 "mn-mailbox-view.gob"
 	if(self->_priv->menu) { gtk_widget_destroy ((gpointer) self->_priv->menu); self->_priv->menu = NULL; }
-#line 253 "mn-mailbox-view.c"
+#line 254 "mn-mailbox-view.c"
 }
 #undef __GOB_FUNCTION__
 
-#line 261 "mn-mailbox-view.gob"
+#line 263 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_class_init (MNMailboxViewClass * class G_GNUC_UNUSED)
-#line 260 "mn-mailbox-view.c"
+#line 261 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::class_init"
 	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
@@ -322,24 +323,24 @@ mn_mailbox_view_class_init (MNMailboxViewClass * class G_GNUC_UNUSED)
 			g_cclosure_marshal_VOID__VOID,
 			G_TYPE_NONE, 0);
 
-#line 84 "mn-mailbox-view.gob"
+#line 86 "mn-mailbox-view.gob"
 	class->activate_update = ___real_mn_mailbox_view_activate_update;
-#line 106 "mn-mailbox-view.gob"
+#line 108 "mn-mailbox-view.gob"
 	class->activate_properties = ___real_mn_mailbox_view_activate_properties;
-#line 146 "mn-mailbox-view.gob"
+#line 148 "mn-mailbox-view.gob"
 	class->activate_add = ___real_mn_mailbox_view_activate_add;
-#line 161 "mn-mailbox-view.gob"
+#line 163 "mn-mailbox-view.gob"
 	class->activate_remove = ___real_mn_mailbox_view_activate_remove;
-#line 167 "mn-mailbox-view.gob"
+#line 169 "mn-mailbox-view.gob"
 	class->activate_cut = ___real_mn_mailbox_view_activate_cut;
-#line 174 "mn-mailbox-view.gob"
+#line 176 "mn-mailbox-view.gob"
 	class->activate_copy = ___real_mn_mailbox_view_activate_copy;
-#line 180 "mn-mailbox-view.gob"
+#line 182 "mn-mailbox-view.gob"
 	class->activate_paste = ___real_mn_mailbox_view_activate_paste;
-#line 340 "mn-mailbox-view.c"
+#line 341 "mn-mailbox-view.c"
 	g_object_class->finalize = ___finalize;
  {
-#line 262 "mn-mailbox-view.gob"
+#line 264 "mn-mailbox-view.gob"
 
     GtkBindingSet *binding_set;
     int i;
@@ -370,22 +371,22 @@ mn_mailbox_view_class_init (MNMailboxViewClass * class G_GNUC_UNUSED)
     gtk_binding_entry_add_signal(binding_set, GDK_ISO_Enter, GDK_MOD1_MASK, "activate-properties", 0);
     gtk_binding_entry_add_signal(binding_set, GDK_KP_Enter, GDK_MOD1_MASK, "activate-properties", 0);
   
-#line 374 "mn-mailbox-view.c"
+#line 375 "mn-mailbox-view.c"
  }
 }
 #undef __GOB_FUNCTION__
-#line 293 "mn-mailbox-view.gob"
+#line 295 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_init (MNMailboxView * self G_GNUC_UNUSED)
-#line 381 "mn-mailbox-view.c"
+#line 382 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_MAILBOX_VIEW,MNMailboxViewPrivate);
-#line 76 "mn-mailbox-view.gob"
+#line 78 "mn-mailbox-view.gob"
 	self->_priv->menu = gtk_menu_new();
-#line 387 "mn-mailbox-view.c"
+#line 388 "mn-mailbox-view.c"
  {
-#line 294 "mn-mailbox-view.gob"
+#line 296 "mn-mailbox-view.gob"
 
     GtkMenuShell *shell;
     GtkWidget *add_item;
@@ -473,7 +474,13 @@ mn_mailbox_view_init (MNMailboxView * self G_GNUC_UNUSED)
     gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
 
     MN_LIST_FOREACH(l, mn_shell->mailboxes->list)
-      self_append(self, l->data);
+      {
+	MNMailbox *mailbox = l->data;
+
+	if (! MN_IS_TEST_MAILBOX(mailbox))
+	  self_append(self, l->data);
+      }
+
     self_update_sensitivity(self);
 
     mn_g_object_connect(self,
@@ -495,15 +502,15 @@ mn_mailbox_view_init (MNMailboxView * self G_GNUC_UNUSED)
 		     "signal::row-activated", self_row_activated_h, NULL,
 		     NULL);
   
-#line 499 "mn-mailbox-view.c"
+#line 506 "mn-mailbox-view.c"
  }
 }
 #undef __GOB_FUNCTION__
 
-#line 84 "mn-mailbox-view.gob"
+#line 86 "mn-mailbox-view.gob"
 void 
 mn_mailbox_view_activate_update (MNMailboxView * self)
-#line 507 "mn-mailbox-view.c"
+#line 514 "mn-mailbox-view.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -511,11 +518,11 @@ mn_mailbox_view_activate_update (MNMailboxView * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 84 "mn-mailbox-view.gob"
+#line 86 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 84 "mn-mailbox-view.gob"
+#line 86 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 519 "mn-mailbox-view.c"
+#line 526 "mn-mailbox-view.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -528,31 +535,31 @@ memset (&___param_values, 0, sizeof (___param_values));
 
 	g_value_unset (&___param_values[0]);
 }
-#line 84 "mn-mailbox-view.gob"
+#line 86 "mn-mailbox-view.gob"
 static void 
 ___real_mn_mailbox_view_activate_update (MNMailboxView * self G_GNUC_UNUSED)
-#line 535 "mn-mailbox-view.c"
+#line 542 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::activate_update"
 {
-#line 86 "mn-mailbox-view.gob"
+#line 88 "mn-mailbox-view.gob"
 	
     GtkTreeSelection *selection;
 
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
     gtk_tree_selection_selected_foreach(selection, self_activate_update_cb, self);
   }}
-#line 546 "mn-mailbox-view.c"
+#line 553 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 93 "mn-mailbox-view.gob"
+#line 95 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_activate_update_cb (GtkTreeModel * model, GtkTreePath * path, GtkTreeIter * iter, gpointer data)
-#line 552 "mn-mailbox-view.c"
+#line 559 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::activate_update_cb"
 {
-#line 98 "mn-mailbox-view.gob"
+#line 100 "mn-mailbox-view.gob"
 	
     MNMailbox *mailbox;
 
@@ -560,13 +567,13 @@ mn_mailbox_view_activate_update_cb (GtkTreeModel * model, GtkTreePath * path, Gt
     mn_mailbox_check(mailbox);
     g_object_unref(mailbox);
   }}
-#line 564 "mn-mailbox-view.c"
+#line 571 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 106 "mn-mailbox-view.gob"
+#line 108 "mn-mailbox-view.gob"
 void 
 mn_mailbox_view_activate_properties (MNMailboxView * self)
-#line 570 "mn-mailbox-view.c"
+#line 577 "mn-mailbox-view.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -574,11 +581,11 @@ mn_mailbox_view_activate_properties (MNMailboxView * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 106 "mn-mailbox-view.gob"
+#line 108 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 106 "mn-mailbox-view.gob"
+#line 108 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 582 "mn-mailbox-view.c"
+#line 589 "mn-mailbox-view.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -591,31 +598,31 @@ memset (&___param_values, 0, sizeof (___param_values));
 
 	g_value_unset (&___param_values[0]);
 }
-#line 106 "mn-mailbox-view.gob"
+#line 108 "mn-mailbox-view.gob"
 static void 
 ___real_mn_mailbox_view_activate_properties (MNMailboxView * self G_GNUC_UNUSED)
-#line 598 "mn-mailbox-view.c"
+#line 605 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::activate_properties"
 {
-#line 108 "mn-mailbox-view.gob"
+#line 110 "mn-mailbox-view.gob"
 	
     GtkTreeSelection *selection;
 
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
     gtk_tree_selection_selected_foreach(selection, self_activate_properties_cb, self);
   }}
-#line 609 "mn-mailbox-view.c"
+#line 616 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 115 "mn-mailbox-view.gob"
+#line 117 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_activate_properties_cb (GtkTreeModel * model, GtkTreePath * path, GtkTreeIter * iter, gpointer data)
-#line 615 "mn-mailbox-view.c"
+#line 622 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::activate_properties_cb"
 {
-#line 120 "mn-mailbox-view.gob"
+#line 122 "mn-mailbox-view.gob"
 	
     Self *self = data;
     MNMailbox *mailbox;
@@ -641,13 +648,13 @@ mn_mailbox_view_activate_properties_cb (GtkTreeModel * model, GtkTreePath * path
 
     g_object_unref(mailbox);
   }}
-#line 645 "mn-mailbox-view.c"
+#line 652 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 146 "mn-mailbox-view.gob"
+#line 148 "mn-mailbox-view.gob"
 void 
 mn_mailbox_view_activate_add (MNMailboxView * self)
-#line 651 "mn-mailbox-view.c"
+#line 658 "mn-mailbox-view.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -655,11 +662,11 @@ mn_mailbox_view_activate_add (MNMailboxView * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 146 "mn-mailbox-view.gob"
+#line 148 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 146 "mn-mailbox-view.gob"
+#line 148 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 663 "mn-mailbox-view.c"
+#line 670 "mn-mailbox-view.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -672,14 +679,14 @@ memset (&___param_values, 0, sizeof (___param_values));
 
 	g_value_unset (&___param_values[0]);
 }
-#line 146 "mn-mailbox-view.gob"
+#line 148 "mn-mailbox-view.gob"
 static void 
 ___real_mn_mailbox_view_activate_add (MNMailboxView * self G_GNUC_UNUSED)
-#line 679 "mn-mailbox-view.c"
+#line 686 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::activate_add"
 {
-#line 148 "mn-mailbox-view.gob"
+#line 150 "mn-mailbox-view.gob"
 	
     GtkWidget *dialog;
 
@@ -692,13 +699,13 @@ ___real_mn_mailbox_view_activate_add (MNMailboxView * self G_GNUC_UNUSED)
 
     gtk_widget_show(dialog);
   }}
-#line 696 "mn-mailbox-view.c"
+#line 703 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 161 "mn-mailbox-view.gob"
+#line 163 "mn-mailbox-view.gob"
 void 
 mn_mailbox_view_activate_remove (MNMailboxView * self)
-#line 702 "mn-mailbox-view.c"
+#line 709 "mn-mailbox-view.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -706,11 +713,11 @@ mn_mailbox_view_activate_remove (MNMailboxView * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 161 "mn-mailbox-view.gob"
+#line 163 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 161 "mn-mailbox-view.gob"
+#line 163 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 714 "mn-mailbox-view.c"
+#line 721 "mn-mailbox-view.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -723,24 +730,24 @@ memset (&___param_values, 0, sizeof (___param_values));
 
 	g_value_unset (&___param_values[0]);
 }
-#line 161 "mn-mailbox-view.gob"
+#line 163 "mn-mailbox-view.gob"
 static void 
 ___real_mn_mailbox_view_activate_remove (MNMailboxView * self G_GNUC_UNUSED)
-#line 730 "mn-mailbox-view.c"
+#line 737 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::activate_remove"
 {
-#line 163 "mn-mailbox-view.gob"
+#line 165 "mn-mailbox-view.gob"
 	
     self_remove_mailbox(self);
   }}
-#line 738 "mn-mailbox-view.c"
+#line 745 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 167 "mn-mailbox-view.gob"
+#line 169 "mn-mailbox-view.gob"
 void 
 mn_mailbox_view_activate_cut (MNMailboxView * self)
-#line 744 "mn-mailbox-view.c"
+#line 751 "mn-mailbox-view.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -748,11 +755,11 @@ mn_mailbox_view_activate_cut (MNMailboxView * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 167 "mn-mailbox-view.gob"
+#line 169 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 167 "mn-mailbox-view.gob"
+#line 169 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 756 "mn-mailbox-view.c"
+#line 763 "mn-mailbox-view.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -765,25 +772,25 @@ memset (&___param_values, 0, sizeof (___param_values));
 
 	g_value_unset (&___param_values[0]);
 }
-#line 167 "mn-mailbox-view.gob"
+#line 169 "mn-mailbox-view.gob"
 static void 
 ___real_mn_mailbox_view_activate_cut (MNMailboxView * self G_GNUC_UNUSED)
-#line 772 "mn-mailbox-view.c"
+#line 779 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::activate_cut"
 {
-#line 169 "mn-mailbox-view.gob"
+#line 171 "mn-mailbox-view.gob"
 	
     self_copy_mailbox(self);
     self_remove_mailbox(self);
   }}
-#line 781 "mn-mailbox-view.c"
+#line 788 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 174 "mn-mailbox-view.gob"
+#line 176 "mn-mailbox-view.gob"
 void 
 mn_mailbox_view_activate_copy (MNMailboxView * self)
-#line 787 "mn-mailbox-view.c"
+#line 794 "mn-mailbox-view.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -791,11 +798,11 @@ mn_mailbox_view_activate_copy (MNMailboxView * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 174 "mn-mailbox-view.gob"
+#line 176 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 174 "mn-mailbox-view.gob"
+#line 176 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 799 "mn-mailbox-view.c"
+#line 806 "mn-mailbox-view.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -808,24 +815,24 @@ memset (&___param_values, 0, sizeof (___param_values));
 
 	g_value_unset (&___param_values[0]);
 }
-#line 174 "mn-mailbox-view.gob"
+#line 176 "mn-mailbox-view.gob"
 static void 
 ___real_mn_mailbox_view_activate_copy (MNMailboxView * self G_GNUC_UNUSED)
-#line 815 "mn-mailbox-view.c"
+#line 822 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::activate_copy"
 {
-#line 176 "mn-mailbox-view.gob"
+#line 178 "mn-mailbox-view.gob"
 	
     self_copy_mailbox(self);
   }}
-#line 823 "mn-mailbox-view.c"
+#line 830 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 180 "mn-mailbox-view.gob"
+#line 182 "mn-mailbox-view.gob"
 void 
 mn_mailbox_view_activate_paste (MNMailboxView * self)
-#line 829 "mn-mailbox-view.c"
+#line 836 "mn-mailbox-view.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -833,11 +840,11 @@ mn_mailbox_view_activate_paste (MNMailboxView * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 180 "mn-mailbox-view.gob"
+#line 182 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 180 "mn-mailbox-view.gob"
+#line 182 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 841 "mn-mailbox-view.c"
+#line 848 "mn-mailbox-view.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -850,14 +857,14 @@ memset (&___param_values, 0, sizeof (___param_values));
 
 	g_value_unset (&___param_values[0]);
 }
-#line 180 "mn-mailbox-view.gob"
+#line 182 "mn-mailbox-view.gob"
 static void 
 ___real_mn_mailbox_view_activate_paste (MNMailboxView * self G_GNUC_UNUSED)
-#line 857 "mn-mailbox-view.c"
+#line 864 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::activate_paste"
 {
-#line 182 "mn-mailbox-view.gob"
+#line 184 "mn-mailbox-view.gob"
 	
     GtkSelectionData *data;
 
@@ -936,19 +943,19 @@ ___real_mn_mailbox_view_activate_paste (MNMailboxView * self G_GNUC_UNUSED)
 	gtk_selection_data_free(data);
       }
   }}
-#line 940 "mn-mailbox-view.c"
+#line 947 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
 
 
-#line 404 "mn-mailbox-view.gob"
+#line 412 "mn-mailbox-view.gob"
 static int 
 mn_mailbox_view_sort_cb (GtkTreeModel * model, GtkTreeIter * a, GtkTreeIter * b, gpointer user_data)
-#line 948 "mn-mailbox-view.c"
+#line 955 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::sort_cb"
 {
-#line 409 "mn-mailbox-view.gob"
+#line 417 "mn-mailbox-view.gob"
 	
     MNMailbox *mailbox_a;
     MNMailbox *mailbox_b;
@@ -964,17 +971,17 @@ mn_mailbox_view_sort_cb (GtkTreeModel * model, GtkTreeIter * a, GtkTreeIter * b,
 
     return cmp;
   }}
-#line 968 "mn-mailbox-view.c"
+#line 975 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 425 "mn-mailbox-view.gob"
+#line 433 "mn-mailbox-view.gob"
 static gboolean 
 mn_mailbox_view_search_equal_cb (GtkTreeModel * model, int column, const char * key, GtkTreeIter * iter, gpointer search_data)
-#line 974 "mn-mailbox-view.c"
+#line 981 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::search_equal_cb"
 {
-#line 431 "mn-mailbox-view.gob"
+#line 439 "mn-mailbox-view.gob"
 	
     gboolean status = TRUE;
     GValue value = { 0, };
@@ -1032,26 +1039,26 @@ mn_mailbox_view_search_equal_cb (GtkTreeModel * model, int column, const char * 
 
     return status;
   }}
-#line 1036 "mn-mailbox-view.c"
+#line 1043 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 489 "mn-mailbox-view.gob"
+#line 497 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_append (MNMailboxView * self, MNMailbox * mailbox)
-#line 1042 "mn-mailbox-view.c"
+#line 1049 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::append"
-#line 489 "mn-mailbox-view.gob"
+#line 497 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 489 "mn-mailbox-view.gob"
+#line 497 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 489 "mn-mailbox-view.gob"
+#line 497 "mn-mailbox-view.gob"
 	g_return_if_fail (mailbox != NULL);
-#line 489 "mn-mailbox-view.gob"
+#line 497 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX (mailbox));
-#line 1053 "mn-mailbox-view.c"
+#line 1060 "mn-mailbox-view.c"
 {
-#line 491 "mn-mailbox-view.gob"
+#line 499 "mn-mailbox-view.gob"
 	
     GtkTreeModel *model;
     GtkTreeIter iter;
@@ -1060,33 +1067,34 @@ mn_mailbox_view_append (MNMailboxView * self, MNMailbox * mailbox)
     gtk_list_store_append(GTK_LIST_STORE(model), &iter);
     self_update_iter(self, &iter, mailbox);
   }}
-#line 1064 "mn-mailbox-view.c"
+#line 1071 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 500 "mn-mailbox-view.gob"
+#line 508 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_mailbox_added_h (MNMailboxes * mailboxes, MNMailbox * mailbox, gpointer user_data)
-#line 1070 "mn-mailbox-view.c"
+#line 1077 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::mailbox_added_h"
 {
-#line 504 "mn-mailbox-view.gob"
+#line 512 "mn-mailbox-view.gob"
 	
     Self *self = user_data;
 
-    self_append(self, mailbox);
+    if (! MN_IS_TEST_MAILBOX(mailbox))
+      self_append(self, mailbox);
   }}
-#line 1080 "mn-mailbox-view.c"
+#line 1088 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 510 "mn-mailbox-view.gob"
+#line 519 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_mailbox_notify_h (MNMailboxes * mailboxes, MNMailbox * mailbox, GParamSpec * pspec, gpointer user_data)
-#line 1086 "mn-mailbox-view.c"
+#line 1094 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::mailbox_notify_h"
 {
-#line 515 "mn-mailbox-view.gob"
+#line 524 "mn-mailbox-view.gob"
 	
     Self *self = user_data;
     GtkTreeIter iter;
@@ -1094,17 +1102,17 @@ mn_mailbox_view_mailbox_notify_h (MNMailboxes * mailboxes, MNMailbox * mailbox, 
     if (self_find_mailbox(self, mailbox, &iter))
       self_update_iter(self, &iter, mailbox);
   }}
-#line 1098 "mn-mailbox-view.c"
+#line 1106 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 523 "mn-mailbox-view.gob"
+#line 532 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_mailbox_removed_h (MNMailboxes * mailboxes, MNMailbox * mailbox, gpointer user_data)
-#line 1104 "mn-mailbox-view.c"
+#line 1112 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::mailbox_removed_h"
 {
-#line 527 "mn-mailbox-view.gob"
+#line 536 "mn-mailbox-view.gob"
 	
     Self *self = user_data;
     GtkTreeIter iter;
@@ -1117,28 +1125,28 @@ mn_mailbox_view_mailbox_removed_h (MNMailboxes * mailboxes, MNMailbox * mailbox,
 	gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
       }
   }}
-#line 1121 "mn-mailbox-view.c"
+#line 1129 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 540 "mn-mailbox-view.gob"
+#line 549 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_update_iter (MNMailboxView * self, GtkTreeIter * iter, MNMailbox * mailbox)
-#line 1127 "mn-mailbox-view.c"
+#line 1135 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::update_iter"
-#line 540 "mn-mailbox-view.gob"
+#line 549 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 540 "mn-mailbox-view.gob"
+#line 549 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 540 "mn-mailbox-view.gob"
+#line 549 "mn-mailbox-view.gob"
 	g_return_if_fail (iter != NULL);
-#line 540 "mn-mailbox-view.gob"
+#line 549 "mn-mailbox-view.gob"
 	g_return_if_fail (mailbox != NULL);
-#line 540 "mn-mailbox-view.gob"
+#line 549 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX (mailbox));
-#line 1140 "mn-mailbox-view.c"
+#line 1148 "mn-mailbox-view.c"
 {
-#line 544 "mn-mailbox-view.gob"
+#line 553 "mn-mailbox-view.gob"
 	
     GtkTreeModel *model;
     char *status;
@@ -1208,28 +1216,28 @@ mn_mailbox_view_update_iter (MNMailboxView * self, GtkTreeIter * iter, MNMailbox
     g_free(markup);
     g_free(text);
   }}
-#line 1212 "mn-mailbox-view.c"
+#line 1220 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 614 "mn-mailbox-view.gob"
+#line 623 "mn-mailbox-view.gob"
 static gboolean 
 mn_mailbox_view_find_mailbox (MNMailboxView * self, MNMailbox * mailbox, GtkTreeIter * iter)
-#line 1218 "mn-mailbox-view.c"
+#line 1226 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::find_mailbox"
-#line 614 "mn-mailbox-view.gob"
+#line 623 "mn-mailbox-view.gob"
 	g_return_val_if_fail (self != NULL, (gboolean )0);
-#line 614 "mn-mailbox-view.gob"
+#line 623 "mn-mailbox-view.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX_VIEW (self), (gboolean )0);
-#line 614 "mn-mailbox-view.gob"
+#line 623 "mn-mailbox-view.gob"
 	g_return_val_if_fail (mailbox != NULL, (gboolean )0);
-#line 614 "mn-mailbox-view.gob"
+#line 623 "mn-mailbox-view.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX (mailbox), (gboolean )0);
-#line 614 "mn-mailbox-view.gob"
+#line 623 "mn-mailbox-view.gob"
 	g_return_val_if_fail (iter != NULL, (gboolean )0);
-#line 1231 "mn-mailbox-view.c"
+#line 1239 "mn-mailbox-view.c"
 {
-#line 618 "mn-mailbox-view.gob"
+#line 627 "mn-mailbox-view.gob"
 	
     GtkTreeModel *model;
     GtkTreeIter our_iter;
@@ -1258,22 +1266,22 @@ mn_mailbox_view_find_mailbox (MNMailboxView * self, MNMailbox * mailbox, GtkTree
 
     return FALSE;
   }}
-#line 1262 "mn-mailbox-view.c"
+#line 1270 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 647 "mn-mailbox-view.gob"
+#line 656 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_update_sensitivity (MNMailboxView * self)
-#line 1268 "mn-mailbox-view.c"
+#line 1276 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::update_sensitivity"
-#line 647 "mn-mailbox-view.gob"
+#line 656 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 647 "mn-mailbox-view.gob"
+#line 656 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 1275 "mn-mailbox-view.c"
+#line 1283 "mn-mailbox-view.c"
 {
-#line 649 "mn-mailbox-view.gob"
+#line 658 "mn-mailbox-view.gob"
 	
     GtkTreeSelection *selection;
     SensitivityInfo info = { FALSE, FALSE };
@@ -1287,17 +1295,17 @@ mn_mailbox_view_update_sensitivity (MNMailboxView * self)
     gtk_widget_set_sensitive(selfp->cut_item, info.has_selection);
     gtk_widget_set_sensitive(selfp->copy_item, info.has_selection);
   }}
-#line 1291 "mn-mailbox-view.c"
+#line 1299 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 663 "mn-mailbox-view.gob"
+#line 672 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_update_sensitivity_cb (GtkTreeModel * model, GtkTreePath * path, GtkTreeIter * iter, gpointer data)
-#line 1297 "mn-mailbox-view.c"
+#line 1305 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::update_sensitivity_cb"
 {
-#line 668 "mn-mailbox-view.gob"
+#line 677 "mn-mailbox-view.gob"
 	
     SensitivityInfo *info = data;
 
@@ -1312,39 +1320,39 @@ mn_mailbox_view_update_sensitivity_cb (GtkTreeModel * model, GtkTreePath * path,
 	g_object_unref(mailbox);
       }
   }}
-#line 1316 "mn-mailbox-view.c"
+#line 1324 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 683 "mn-mailbox-view.gob"
+#line 692 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_remove_mailbox (MNMailboxView * self)
-#line 1322 "mn-mailbox-view.c"
+#line 1330 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::remove_mailbox"
-#line 683 "mn-mailbox-view.gob"
+#line 692 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 683 "mn-mailbox-view.gob"
+#line 692 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 1329 "mn-mailbox-view.c"
+#line 1337 "mn-mailbox-view.c"
 {
-#line 685 "mn-mailbox-view.gob"
+#line 694 "mn-mailbox-view.gob"
 	
     GtkTreeSelection *selection;
 
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
     gtk_tree_selection_selected_foreach(selection, self_remove_mailbox_cb, NULL);
   }}
-#line 1338 "mn-mailbox-view.c"
+#line 1346 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 692 "mn-mailbox-view.gob"
+#line 701 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_remove_mailbox_cb (GtkTreeModel * model, GtkTreePath * path, GtkTreeIter * iter, gpointer data)
-#line 1344 "mn-mailbox-view.c"
+#line 1352 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::remove_mailbox_cb"
 {
-#line 697 "mn-mailbox-view.gob"
+#line 706 "mn-mailbox-view.gob"
 	
     MNMailbox *mailbox;
 
@@ -1352,22 +1360,22 @@ mn_mailbox_view_remove_mailbox_cb (GtkTreeModel * model, GtkTreePath * path, Gtk
     mn_mailboxes_queue_remove(mn_shell->mailboxes, mailbox);
     g_object_unref(mailbox);
   }}
-#line 1356 "mn-mailbox-view.c"
+#line 1364 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 705 "mn-mailbox-view.gob"
+#line 714 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_copy_mailbox (MNMailboxView * self)
-#line 1362 "mn-mailbox-view.c"
+#line 1370 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::copy_mailbox"
-#line 705 "mn-mailbox-view.gob"
+#line 714 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 705 "mn-mailbox-view.gob"
+#line 714 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 1369 "mn-mailbox-view.c"
+#line 1377 "mn-mailbox-view.c"
 {
-#line 707 "mn-mailbox-view.gob"
+#line 716 "mn-mailbox-view.gob"
 	
     GSList *configurations = NULL;
     GtkTreeSelection *selection;
@@ -1387,17 +1395,17 @@ mn_mailbox_view_copy_mailbox (MNMailboxView * self)
 					 configurations);
     g_assert(status == TRUE);
   }}
-#line 1391 "mn-mailbox-view.c"
+#line 1399 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 727 "mn-mailbox-view.gob"
+#line 736 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_copy_mailbox_cb (GtkTreeModel * model, GtkTreePath * path, GtkTreeIter * iter, gpointer data)
-#line 1397 "mn-mailbox-view.c"
+#line 1405 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::copy_mailbox_cb"
 {
-#line 732 "mn-mailbox-view.gob"
+#line 741 "mn-mailbox-view.gob"
 	
     GSList **configurations = data;
     MNMailbox *mailbox;
@@ -1406,17 +1414,17 @@ mn_mailbox_view_copy_mailbox_cb (GtkTreeModel * model, GtkTreePath * path, GtkTr
     *configurations = g_slist_append(*configurations, mn_mailbox_get_configuration(mailbox));
     g_object_unref(mailbox);
   }}
-#line 1410 "mn-mailbox-view.c"
+#line 1418 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 741 "mn-mailbox-view.gob"
+#line 750 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_get_clipboard_cb (GtkClipboard * clipboard, GtkSelectionData * selection_data, unsigned int info, gpointer user_data_or_owner)
-#line 1416 "mn-mailbox-view.c"
+#line 1424 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::get_clipboard_cb"
 {
-#line 746 "mn-mailbox-view.gob"
+#line 755 "mn-mailbox-view.gob"
 	
     const GSList *configurations = user_data_or_owner;
     unsigned char buf[sizeof(configurations)];
@@ -1428,59 +1436,57 @@ mn_mailbox_view_get_clipboard_cb (GtkClipboard * clipboard, GtkSelectionData * s
 			   buf,
 			   sizeof(buf));
   }}
-#line 1432 "mn-mailbox-view.c"
+#line 1440 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 758 "mn-mailbox-view.gob"
+#line 767 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_clear_clipboard_cb (GtkClipboard * clipboard, gpointer user_data_or_owner)
-#line 1438 "mn-mailbox-view.c"
+#line 1446 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::clear_clipboard_cb"
 {
-#line 760 "mn-mailbox-view.gob"
+#line 769 "mn-mailbox-view.gob"
 	
     GSList *configurations = user_data_or_owner;
 
     eel_g_slist_free_deep_custom(configurations, (GFunc) mn_mailbox_configuration_free, NULL);
   }}
-#line 1448 "mn-mailbox-view.c"
+#line 1456 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 766 "mn-mailbox-view.gob"
+#line 775 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_select_all (MNMailboxView * self)
-#line 1454 "mn-mailbox-view.c"
+#line 1462 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::select_all"
-#line 766 "mn-mailbox-view.gob"
+#line 775 "mn-mailbox-view.gob"
 	g_return_if_fail (self != NULL);
-#line 766 "mn-mailbox-view.gob"
+#line 775 "mn-mailbox-view.gob"
 	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 1461 "mn-mailbox-view.c"
+#line 1469 "mn-mailbox-view.c"
 {
-#line 768 "mn-mailbox-view.gob"
+#line 777 "mn-mailbox-view.gob"
 	
     GtkTreeSelection *selection;
 
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
     gtk_tree_selection_select_all(selection);
   }}
-#line 1470 "mn-mailbox-view.c"
+#line 1478 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 775 "mn-mailbox-view.gob"
+#line 784 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_properties_add_response_h (GtkDialog * dialog, int response, gpointer user_data)
-#line 1476 "mn-mailbox-view.c"
+#line 1484 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::properties_add_response_h"
 {
-#line 779 "mn-mailbox-view.gob"
+#line 788 "mn-mailbox-view.gob"
 	
-    if (response == GTK_RESPONSE_HELP)
-      mn_display_help(GTK_WINDOW(dialog), "mailbox-properties");
-    else if (response == GTK_RESPONSE_CANCEL)
+    if (response == GTK_RESPONSE_CANCEL)
       gtk_widget_destroy(GTK_WIDGET(dialog));
     else if (response == GTK_RESPONSE_ACCEPT)
       {
@@ -1496,59 +1502,54 @@ mn_mailbox_view_properties_add_response_h (GtkDialog * dialog, int response, gpo
 	gtk_widget_destroy(GTK_WIDGET(dialog));
       }
   }}
-#line 1500 "mn-mailbox-view.c"
+#line 1506 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 799 "mn-mailbox-view.gob"
+#line 806 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_properties_edit_response_h (GtkDialog * dialog, int response, gpointer user_data)
-#line 1506 "mn-mailbox-view.c"
+#line 1512 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::properties_edit_response_h"
 {
-#line 803 "mn-mailbox-view.gob"
+#line 810 "mn-mailbox-view.gob"
 	
-    if (response == GTK_RESPONSE_HELP)
-      mn_display_help(GTK_WINDOW(dialog), "mailbox-properties");
-    else
-      {
-	if (response == GTK_RESPONSE_APPLY || response == GTK_RESPONSE_OK)
-	  mn_mailbox_properties_dialog_apply(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
-	if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_OK)
-	  gtk_widget_destroy(GTK_WIDGET(dialog));
-      }
+    if (response == GTK_RESPONSE_APPLY || response == GTK_RESPONSE_OK)
+      mn_mailbox_properties_dialog_apply(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
+    if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_OK)
+      gtk_widget_destroy(GTK_WIDGET(dialog));
   }}
-#line 1522 "mn-mailbox-view.c"
+#line 1523 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 815 "mn-mailbox-view.gob"
+#line 817 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_popup_menu (MNMailboxView * self, unsigned int button, guint32 activate_time)
-#line 1528 "mn-mailbox-view.c"
+#line 1529 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::popup_menu"
-#line 815 "mn-mailbox-view.gob"
-	g_return_if_fail (self != NULL);
-#line 815 "mn-mailbox-view.gob"
-	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
-#line 1535 "mn-mailbox-view.c"
-{
 #line 817 "mn-mailbox-view.gob"
+	g_return_if_fail (self != NULL);
+#line 817 "mn-mailbox-view.gob"
+	g_return_if_fail (MN_IS_MAILBOX_VIEW (self));
+#line 1536 "mn-mailbox-view.c"
+{
+#line 819 "mn-mailbox-view.gob"
 	
     gtk_clipboard_request_targets(global_clipboard, self_popup_menu_targets_received_cb, self);
     gtk_menu_popup(GTK_MENU(selfp->menu), NULL, NULL, NULL, NULL, button, activate_time);
   }}
-#line 1542 "mn-mailbox-view.c"
+#line 1543 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 822 "mn-mailbox-view.gob"
+#line 824 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_popup_menu_targets_received_cb (GtkClipboard * clipboard, GdkAtom * atoms, int n_atoms, gpointer data)
-#line 1548 "mn-mailbox-view.c"
+#line 1549 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::popup_menu_targets_received_cb"
 {
-#line 827 "mn-mailbox-view.gob"
+#line 829 "mn-mailbox-view.gob"
 	
     Self *self = data;
     int i;
@@ -1564,17 +1565,17 @@ mn_mailbox_view_popup_menu_targets_received_cb (GtkClipboard * clipboard, GdkAto
 
     gtk_widget_set_sensitive(selfp->paste_item, can_paste);
   }}
-#line 1568 "mn-mailbox-view.c"
+#line 1569 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 843 "mn-mailbox-view.gob"
+#line 845 "mn-mailbox-view.gob"
 static gboolean 
 mn_mailbox_view_popup_menu_h (GtkWidget * widget, gpointer user_data)
-#line 1574 "mn-mailbox-view.c"
+#line 1575 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::popup_menu_h"
 {
-#line 845 "mn-mailbox-view.gob"
+#line 847 "mn-mailbox-view.gob"
 	
     Self *self = SELF(widget);
 
@@ -1583,51 +1584,51 @@ mn_mailbox_view_popup_menu_h (GtkWidget * widget, gpointer user_data)
 
     return TRUE;		/* a menu was activated */
   }}
-#line 1587 "mn-mailbox-view.c"
+#line 1588 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 854 "mn-mailbox-view.gob"
+#line 856 "mn-mailbox-view.gob"
 static gboolean 
 mn_mailbox_view_button_press_event_h (GtkWidget * widget, GdkEventButton * event, gpointer user_data)
-#line 1593 "mn-mailbox-view.c"
+#line 1594 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::button_press_event_h"
 {
-#line 858 "mn-mailbox-view.gob"
+#line 860 "mn-mailbox-view.gob"
 	
     if (event->button == 3)
       self_popup_menu(SELF(widget), event->button, event->time);
 
     return FALSE;			/* propagate event */
   }}
-#line 1604 "mn-mailbox-view.c"
+#line 1605 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 865 "mn-mailbox-view.gob"
+#line 867 "mn-mailbox-view.gob"
 static void 
 mn_mailbox_view_row_activated_h (GtkTreeView * treeview, GtkTreePath * path, GtkTreeViewColumn * column, gpointer user_data)
-#line 1610 "mn-mailbox-view.c"
+#line 1611 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::row_activated_h"
 {
-#line 870 "mn-mailbox-view.gob"
+#line 872 "mn-mailbox-view.gob"
 	
     self_activate_properties(SELF(treeview));
   }}
-#line 1618 "mn-mailbox-view.c"
+#line 1619 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__
 
-#line 874 "mn-mailbox-view.gob"
+#line 876 "mn-mailbox-view.gob"
 GtkWidget * 
 mn_mailbox_view_new (void)
-#line 1624 "mn-mailbox-view.c"
+#line 1625 "mn-mailbox-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:View::new"
 {
-#line 876 "mn-mailbox-view.gob"
+#line 878 "mn-mailbox-view.gob"
 	
     g_return_val_if_fail(mn_shell != NULL, NULL);
     return GTK_WIDGET(GET_NEW);
   }}
-#line 1633 "mn-mailbox-view.c"
+#line 1634 "mn-mailbox-view.c"
 #undef __GOB_FUNCTION__

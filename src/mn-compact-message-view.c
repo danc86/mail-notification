@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 25 "mn-compact-message-view.gob"
+#line 26 "mn-compact-message-view.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
@@ -117,7 +117,7 @@ mn_compact_message_view_class_init (MNCompactMessageViewClass * c G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (MN_TYPE_MESSAGE_VIEW);
 
-#line 36 "mn-compact-message-view.gob"
+#line 37 "mn-compact-message-view.gob"
 	mn_message_view_class->update = ___1_mn_compact_message_view_update;
 #line 123 "mn-compact-message-view.c"
 }
@@ -125,7 +125,7 @@ mn_compact_message_view_class_init (MNCompactMessageViewClass * c G_GNUC_UNUSED)
 
 
 
-#line 36 "mn-compact-message-view.gob"
+#line 37 "mn-compact-message-view.gob"
 static void 
 ___1_mn_compact_message_view_update (MNMessageView * view G_GNUC_UNUSED, GSList * messages)
 #line 132 "mn-compact-message-view.c"
@@ -135,7 +135,7 @@ ___1_mn_compact_message_view_update (MNMessageView * view G_GNUC_UNUSED, GSList 
 {
 #define __GOB_FUNCTION__ "MN:Compact:Message:View::update"
 {
-#line 38 "mn-compact-message-view.gob"
+#line 39 "mn-compact-message-view.gob"
 	
     Self *self = SELF(view);
     time_t now;
@@ -159,25 +159,25 @@ ___1_mn_compact_message_view_update (MNMessageView * view G_GNUC_UNUSED, GSList 
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 58 "mn-compact-message-view.gob"
+#line 59 "mn-compact-message-view.gob"
 static void 
 mn_compact_message_view_append_message (MNCompactMessageView * self, time_t now, MNMessage * message)
 #line 166 "mn-compact-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Compact:Message:View::append_message"
-#line 58 "mn-compact-message-view.gob"
+#line 59 "mn-compact-message-view.gob"
 	g_return_if_fail (self != NULL);
-#line 58 "mn-compact-message-view.gob"
+#line 59 "mn-compact-message-view.gob"
 	g_return_if_fail (MN_IS_COMPACT_MESSAGE_VIEW (self));
-#line 58 "mn-compact-message-view.gob"
+#line 59 "mn-compact-message-view.gob"
 	g_return_if_fail (message != NULL);
-#line 58 "mn-compact-message-view.gob"
+#line 59 "mn-compact-message-view.gob"
 	g_return_if_fail (MN_IS_MESSAGE (message));
 #line 177 "mn-compact-message-view.c"
 {
-#line 60 "mn-compact-message-view.gob"
+#line 61 "mn-compact-message-view.gob"
 	
-    self_append_cell(self, message->mailbox_name);
+    self_append_cell(self, message->mailbox->runtime_name);
     if (message->error)
       self_append_cell(self, message->error);
     else
@@ -194,21 +194,21 @@ mn_compact_message_view_append_message (MNCompactMessageView * self, time_t now,
 #line 195 "mn-compact-message-view.c"
 #undef __GOB_FUNCTION__
 
-#line 76 "mn-compact-message-view.gob"
+#line 77 "mn-compact-message-view.gob"
 static void 
 mn_compact_message_view_append_header (MNCompactMessageView * self, const char * name)
 #line 201 "mn-compact-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Compact:Message:View::append_header"
-#line 76 "mn-compact-message-view.gob"
+#line 77 "mn-compact-message-view.gob"
 	g_return_if_fail (self != NULL);
-#line 76 "mn-compact-message-view.gob"
+#line 77 "mn-compact-message-view.gob"
 	g_return_if_fail (MN_IS_COMPACT_MESSAGE_VIEW (self));
-#line 76 "mn-compact-message-view.gob"
+#line 77 "mn-compact-message-view.gob"
 	g_return_if_fail (name != NULL);
 #line 210 "mn-compact-message-view.c"
 {
-#line 78 "mn-compact-message-view.gob"
+#line 79 "mn-compact-message-view.gob"
 	
     char *markup;
 
@@ -219,35 +219,35 @@ mn_compact_message_view_append_header (MNCompactMessageView * self, const char *
 #line 220 "mn-compact-message-view.c"
 #undef __GOB_FUNCTION__
 
-#line 86 "mn-compact-message-view.gob"
+#line 87 "mn-compact-message-view.gob"
 static void 
 mn_compact_message_view_append_cell (MNCompactMessageView * self, const char * text)
 #line 226 "mn-compact-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Compact:Message:View::append_cell"
-#line 86 "mn-compact-message-view.gob"
+#line 87 "mn-compact-message-view.gob"
 	g_return_if_fail (self != NULL);
-#line 86 "mn-compact-message-view.gob"
+#line 87 "mn-compact-message-view.gob"
 	g_return_if_fail (MN_IS_COMPACT_MESSAGE_VIEW (self));
-#line 86 "mn-compact-message-view.gob"
+#line 87 "mn-compact-message-view.gob"
 	g_return_if_fail (text != NULL);
 #line 235 "mn-compact-message-view.c"
 {
-#line 88 "mn-compact-message-view.gob"
+#line 89 "mn-compact-message-view.gob"
 	
     mn_text_table_append_text_cell(MN_TEXT_TABLE(self), text);
   }}
 #line 241 "mn-compact-message-view.c"
 #undef __GOB_FUNCTION__
 
-#line 92 "mn-compact-message-view.gob"
+#line 93 "mn-compact-message-view.gob"
 GtkWidget * 
 mn_compact_message_view_new (void)
 #line 247 "mn-compact-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Compact:Message:View::new"
 {
-#line 94 "mn-compact-message-view.gob"
+#line 95 "mn-compact-message-view.gob"
 	
     return GTK_WIDGET(GET_NEW);
   }}

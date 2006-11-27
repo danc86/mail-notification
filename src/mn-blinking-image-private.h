@@ -10,21 +10,21 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 25 "mn-blinking-image.gob"
+#line 26 "mn-blinking-image.gob"
 
 #include "mn-locked-callback.h"
 
 #line 18 "mn-blinking-image-private.h"
 struct _MNBlinkingImagePrivate {
-#line 36 "mn-blinking-image.gob"
+#line 37 "mn-blinking-image.gob"
 	gboolean blinking;
-#line 58 "mn-blinking-image.gob"
-	MNLockedGSource * timeout_source;
 #line 59 "mn-blinking-image.gob"
+	MNLockedGSource * timeout_source;
+#line 60 "mn-blinking-image.gob"
 	gboolean is_on;
-#line 61 "mn-blinking-image.gob"
-	char * stock_id;
 #line 62 "mn-blinking-image.gob"
+	char * stock_id;
+#line 63 "mn-blinking-image.gob"
 	GtkIconSize icon_size;
 #line 30 "mn-blinking-image-private.h"
 };

@@ -1,0 +1,83 @@
+/* 
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include "mn-mailbox.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include "mn-message.h"
+#include "mn-util.h"
+%}
+
+class MN:Test:Mailbox from MN:Mailbox
+{
+  init (self)
+  {
+    MNMailbox *mailbox = MN_MAILBOX(self);
+
+    mn_mailbox_set_poll(mailbox, FALSE);
+    mailbox->runtime_name = g_strdup(_("Test mailbox"));
+  }
+
+  override (MN:Mailbox) void
+    check (MNMailbox *mailbox)
+  {
+    GSList *messages = NULL;
+    time_t now;
+    int i;
+
+    PARENT_HANDLER(mailbox);
+
+    now = mn_time();
+
+    for (i = 1; i < 4; i++)
+      {
+	MNMessage *message;
+	char *subject;
+
+	subject = g_strdup_printf(_("Test message #%i"), i);
+	message = mn_message_new(mailbox,
+				 NULL,
+				 now,
+				 NULL,
+				 /* translators: header capitalization */
+				 _("Mail Notification Properties Dialog"),
+				 subject,
+				 NULL,
+				 MN_MESSAGE_NEW);
+	g_free(subject);
+
+	messages = g_slist_append(messages, message);
+      }
+
+    mn_mailbox_set_messages(mailbox, messages);
+    mn_g_object_slist_free(messages);
+  }
+
+  public MNMailbox *
+    new (void)
+  {
+    return MN_MAILBOX(GET_NEW);
+  }
+}

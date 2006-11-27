@@ -1,4 +1,4 @@
-AC_INIT([Mail Notification], 3.0, jylefort@brutele.be)
+AC_INIT([Mail Notification], 4.0-rc1, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mn-main.c)
 
 AC_PREREQ(2.59)
@@ -18,11 +18,12 @@ MN_ARG_ENABLE(sasl, [disable SASL authentication support])
 MN_ARG_ENABLE(ipv6, [disable IPv6 support])
 MN_ARG_ENABLE(gmail, [disable Gmail support])
 MN_ARG_ENABLE(evolution, [disable Evolution support])
+MN_ARG_ENABLE(mozilla, [disable Mozilla products support])
 MN_ARG_ENABLE(sylpheed, [disable Sylpheed support])
 MN_ARG_ENABLE(sylpheed-locking, [enable .sylpheed_mark locking], no)
 
 MN_ARG_COMPILE_WARNINGS
-MN_ARG_DEBUG
+MN_ARG_DEBUG(yes)
 MN_ARG_ENABLE(regression-tests, [build and run regression tests], no)
 
 ### initialization
@@ -41,7 +42,7 @@ GETTEXT_PACKAGE=mail-notification
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", [Define to the gettext package name])
 AC_SUBST(GETTEXT_PACKAGE)
 
-ALL_LINGUAS="bg cs de fr ja nl pl pt pt_BR ru sr sr@Latn sv"
+ALL_LINGUAS="bg ca cs de fr ja nl pl pt pt_BR ru sr sr@Latn sv"
 AM_GLIB_GNU_GETTEXT
 
 AC_PROG_INTLTOOL
@@ -69,7 +70,7 @@ AC_STRUCT_TM
 
 AM_PATH_GTK_2_0(2.6.0,, [AC_MSG_ERROR([unable to find the GTK+ library])])
 
-PKG_CHECK_MODULES(GNOME, [gthread-2.0 gconf-2.0 >= 2.4.0 libgnomeui-2.0 gnome-vfs-2.0 libglade-2.0 eel-2.0 >= 2.6.0 bonobo-activation-2.0 libxml-2.0],, [AC_MSG_ERROR([unable to find the GNOME libraries])])
+PKG_CHECK_MODULES(GNOME, [gthread-2.0 gconf-2.0 >= 2.4.0 libgnomeui-2.0 >= 2.8.0 gnome-vfs-2.0 libglade-2.0 eel-2.0 >= 2.6.0 bonobo-activation-2.0 libxml-2.0 libnotify],, [AC_MSG_ERROR([unable to find the GNOME libraries])])
 AM_GCONF_SOURCE_2
 
 AM_PATH_GNOME_PREFIX
@@ -96,6 +97,7 @@ if MN_FEATURE_ENABLED(mbox) ||
    MN_FEATURE_ENABLED(maildir) ||
    MN_FEATURE_ENABLED(pop3) ||
    MN_FEATURE_ENABLED(imap) ||
+   MN_FEATURE_ENABLED(mozilla) ||
    MN_FEATURE_ENABLED(sylpheed); then
 	PKG_CHECK_MODULES(GMIME, [gmime-2.0 >= 2.1.0], [MN_FEATURE_VAR_NAME(mime)=yes], [:])
 	if MN_FEATURE_DISABLED(mime); then
@@ -113,6 +115,9 @@ if MN_FEATURE_ENABLED(mbox) ||
 		fi
 		if MN_FEATURE_ENABLED(imap); then
 			MN_FEATURE_DISABLE(imap, [GMime not found])
+		fi
+		if MN_FEATURE_ENABLED(mozilla); then
+			MN_FEATURE_DISABLE(mozilla, [GMime not found])
 		fi
 		if MN_FEATURE_ENABLED(sylpheed); then
 			MN_FEATURE_DISABLE(sylpheed, [GMime not found])
@@ -145,22 +150,15 @@ fi
 
 if MN_FEATURE_ENABLED(evolution); then
 	evolution=no
-	AM_PATH_EVOLUTION_PLUGIN(2.8,, [evolution=yes])
+	AM_PATH_EVOLUTION_PLUGIN(2.10,, [evolution=yes])
+	if test $evolution = no; then
+		AM_PATH_EVOLUTION_PLUGIN(2.8,, [evolution=yes])
+	fi
 	if test $evolution = no; then
 		AM_PATH_EVOLUTION_PLUGIN(2.6,, [evolution=yes])
 	fi
 	if test $evolution = no; then
 		AM_PATH_EVOLUTION_PLUGIN(2.4,, [evolution=yes])
-	fi
-	if test $evolution = no; then
-		AM_PATH_EVOLUTION_PLUGIN(2.2,, [evolution=yes])
-		if test $evolution = yes; then
-			AM_PATH_EVOLUTION_SOURCEDIR([mail/em-event.h, mail/em-folder-tree.h, mail/mail-component.h, mail/mail-tools.h],, [evolution=no])
-		fi
-		if test $evolution = yes; then
-			EVOLUTION_PLUGIN_CFLAGS="$EVOLUTION_PLUGIN_CFLAGS -I$evolution_source_dir"
-			AC_DEFINE(HAVE_EVOLUTION_2_2, 1, [Define to 1 if the Evolution branch is 2.2])
-		fi
 	fi
 	if test $evolution = no; then
 		MN_FEATURE_DISABLE(evolution, [Evolution not found])
@@ -170,14 +168,16 @@ fi
 ### Automake conditionals
 
 AM_CONDITIONAL(WITH_MBOX, [MN_FEATURE_ENABLED(mbox)])
+AM_CONDITIONAL(WITH_MOZILLA, [MN_FEATURE_ENABLED(mozilla)])
+AM_CONDITIONAL(WITH_MBOX_OR_MOZILLA, [MN_FEATURE_ENABLED(mbox) || MN_FEATURE_ENABLED(mozilla)])
 AM_CONDITIONAL(WITH_MH, [MN_FEATURE_ENABLED(mh)])
 AM_CONDITIONAL(WITH_MAILDIR, [MN_FEATURE_ENABLED(maildir)])
 AM_CONDITIONAL(WITH_POP3, [MN_FEATURE_ENABLED(pop3)])
 AM_CONDITIONAL(WITH_IMAP, [MN_FEATURE_ENABLED(imap)])
 AM_CONDITIONAL(WITH_POP3_OR_IMAP, [MN_FEATURE_ENABLED(pop3) || MN_FEATURE_ENABLED(imap)])
 AM_CONDITIONAL(WITH_POP3_OR_IMAP_OR_GMAIL, [MN_FEATURE_ENABLED(pop3) || MN_FEATURE_ENABLED(imap) || MN_FEATURE_ENABLED(gmail)])
-AM_CONDITIONAL(WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED, [MN_FEATURE_ENABLED(mbox) || MN_FEATURE_ENABLED(mh) || MN_FEATURE_ENABLED(maildir) || MN_FEATURE_ENABLED(sylpheed)])
-AM_CONDITIONAL(WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION, [MN_FEATURE_ENABLED(mbox) || MN_FEATURE_ENABLED(mh) || MN_FEATURE_ENABLED(maildir) || MN_FEATURE_ENABLED(sylpheed) || MN_FEATURE_ENABLED(evolution)])
+AM_CONDITIONAL(WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED, [MN_FEATURE_ENABLED(mbox) || MN_FEATURE_ENABLED(mozilla) || MN_FEATURE_ENABLED(mh) || MN_FEATURE_ENABLED(maildir) || MN_FEATURE_ENABLED(sylpheed)])
+AM_CONDITIONAL(WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION, [MN_FEATURE_ENABLED(mbox) || MN_FEATURE_ENABLED(mozilla) || MN_FEATURE_ENABLED(mh) || MN_FEATURE_ENABLED(maildir) || MN_FEATURE_ENABLED(sylpheed) || MN_FEATURE_ENABLED(evolution)])
 AM_CONDITIONAL(WITH_SSL, [MN_FEATURE_ENABLED(ssl)])
 AM_CONDITIONAL(WITH_SASL, [MN_FEATURE_ENABLED(sasl)])
 AM_CONDITIONAL(WITH_GMAIL, [MN_FEATURE_ENABLED(gmail)])
@@ -188,7 +188,7 @@ AM_CONDITIONAL(WITH_REGRESSION_TESTS, [MN_FEATURE_ENABLED(regression-tests)])
 
 ### config.h definitions
 
-MN_FEATURES_DEFINE([mbox, mh, maildir, pop3, imap, ssl, sasl, ipv6, gmail, evolution, sylpheed, sylpheed-locking, mime])
+MN_FEATURES_DEFINE([mbox, mh, maildir, pop3, imap, ssl, sasl, ipv6, gmail, evolution, mozilla, sylpheed, sylpheed-locking, mime])
 
 ### output
 
@@ -216,7 +216,7 @@ MN_REPORT_ARGS([prefix, exec-prefix])
 Installation directories
 MN_REPORT_ARGS([bindir, datadir, sysconfdir, libdir])
 Mailbox backends
-MN_REPORT_FEATURES([mbox, mh, maildir, pop3, imap, gmail, evolution, sylpheed, sylpheed-locking])
+MN_REPORT_FEATURES([mbox, mh, maildir, pop3, imap, gmail, evolution, mozilla, sylpheed, sylpheed-locking])
 POP3 and IMAP features
 MN_REPORT_FEATURES([ssl, sasl, ipv6])
 EOF

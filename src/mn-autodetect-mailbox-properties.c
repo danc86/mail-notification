@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 26 "mn-autodetect-mailbox-properties.gob"
+#line 27 "mn-autodetect-mailbox-properties.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
@@ -31,7 +31,7 @@
 #include "mn-mailbox-properties-private.h"
 #include "mn-util.h"
 #include "mn-properties-dialog.h"
-#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
+#if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
 #include "mn-custom-vfs-mailbox.h"
 #endif
 #include "mn-stock.h"
@@ -130,7 +130,7 @@ ___finalize(GObject *obj_self)
 }
 #undef __GOB_FUNCTION__
 
-#line 103 "mn-autodetect-mailbox-properties.gob"
+#line 104 "mn-autodetect-mailbox-properties.gob"
 static void 
 mn_autodetect_mailbox_properties_class_init (MNAutodetectMailboxPropertiesClass * class G_GNUC_UNUSED)
 #line 137 "mn-autodetect-mailbox-properties.c"
@@ -143,9 +143,9 @@ mn_autodetect_mailbox_properties_class_init (MNAutodetectMailboxPropertiesClass 
 
 	parent_class = g_type_class_ref (MN_TYPE_MAILBOX_PROPERTIES);
 
-#line 222 "mn-autodetect-mailbox-properties.gob"
+#line 226 "mn-autodetect-mailbox-properties.gob"
 	mn_mailbox_properties_class->set_mailbox = ___6_mn_autodetect_mailbox_properties_set_mailbox;
-#line 234 "mn-autodetect-mailbox-properties.gob"
+#line 238 "mn-autodetect-mailbox-properties.gob"
 	mn_mailbox_properties_class->get_mailbox = ___7_mn_autodetect_mailbox_properties_get_mailbox;
 #line 151 "mn-autodetect-mailbox-properties.c"
 	g_object_class->finalize = ___finalize;
@@ -162,24 +162,23 @@ mn_autodetect_mailbox_properties_class_init (MNAutodetectMailboxPropertiesClass 
 		"default_check_delay");
     }
  {
-#line 104 "mn-autodetect-mailbox-properties.gob"
+#line 105 "mn-autodetect-mailbox-properties.gob"
 
     MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
 
     p_class->type = "custom-vfs";
     p_class->stock_id = MN_STOCK_UNKNOWN;
-    p_class->combo_label = _("<span style=\"italic\">autodetect</span>");
-    p_class->section_label = _("Location");
+    p_class->combo_label = _("Autodetect");
     p_class->no_check_delay_unless_complete = TRUE;
   
-#line 176 "mn-autodetect-mailbox-properties.c"
+#line 175 "mn-autodetect-mailbox-properties.c"
  }
 }
 #undef __GOB_FUNCTION__
 #line 114 "mn-autodetect-mailbox-properties.gob"
 static void 
 mn_autodetect_mailbox_properties_init (MNAutodetectMailboxProperties * self G_GNUC_UNUSED)
-#line 183 "mn-autodetect-mailbox-properties.c"
+#line 182 "mn-autodetect-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Autodetect:Mailbox:Properties::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_AUTODETECT_MAILBOX_PROPERTIES,MNAutodetectMailboxPropertiesPrivate);
@@ -187,10 +186,14 @@ mn_autodetect_mailbox_properties_init (MNAutodetectMailboxProperties * self G_GN
 #line 115 "mn-autodetect-mailbox-properties.gob"
 
     MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
+    GtkWidget *location_vbox;
     GtkWidget *outer_hbox;
     GtkWidget *hbox;
     GtkWidget *label;
     GtkWidget *button;
+
+    /* translators: header capitalization */
+    location_vbox = mn_mailbox_properties_add_general_section(properties, _("Location"));
 
     label = gtk_label_new_with_mnemonic(_("_Location:"));
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
@@ -210,7 +213,7 @@ mn_autodetect_mailbox_properties_init (MNAutodetectMailboxProperties * self G_GN
 
     gtk_box_pack_start(GTK_BOX(outer_hbox), label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(outer_hbox), hbox, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(self), outer_hbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(location_vbox), outer_hbox, FALSE, FALSE, 0);
 
     gtk_widget_show_all(outer_hbox);
 
@@ -226,7 +229,7 @@ mn_autodetect_mailbox_properties_init (MNAutodetectMailboxProperties * self G_GN
 
     g_signal_connect(button, "clicked", G_CALLBACK(self_browse_clicked_h), self);
   
-#line 230 "mn-autodetect-mailbox-properties.c"
+#line 233 "mn-autodetect-mailbox-properties.c"
  }
 }
 #undef __GOB_FUNCTION__
@@ -245,7 +248,7 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_COMPLETE:
 		{
-#line 49 "mn-autodetect-mailbox-properties.gob"
+#line 50 "mn-autodetect-mailbox-properties.gob"
 
       const char *location;
       gboolean complete = FALSE;
@@ -265,12 +268,12 @@ ___object_get_property (GObject *object,
 
       g_value_set_boolean(VAL, complete);
     
-#line 269 "mn-autodetect-mailbox-properties.c"
+#line 272 "mn-autodetect-mailbox-properties.c"
 		}
 		break;
 	case PROP_DEFAULT_NAME:
 		{
-#line 71 "mn-autodetect-mailbox-properties.gob"
+#line 72 "mn-autodetect-mailbox-properties.gob"
 
       char *name = NULL;
       MNMailbox *mailbox;
@@ -285,12 +288,12 @@ ___object_get_property (GObject *object,
 
       g_value_take_string(VAL, name);
     
-#line 289 "mn-autodetect-mailbox-properties.c"
+#line 292 "mn-autodetect-mailbox-properties.c"
 		}
 		break;
 	case PROP_DEFAULT_CHECK_DELAY:
 		{
-#line 88 "mn-autodetect-mailbox-properties.gob"
+#line 89 "mn-autodetect-mailbox-properties.gob"
 
       int check_delay = -1;
       MNMailbox *mailbox;
@@ -305,7 +308,7 @@ ___object_get_property (GObject *object,
 
       g_value_set_int(VAL, check_delay);
     
-#line 309 "mn-autodetect-mailbox-properties.c"
+#line 312 "mn-autodetect-mailbox-properties.c"
 		}
 		break;
 	default:
@@ -322,14 +325,14 @@ ___object_get_property (GObject *object,
 
 
 
-#line 157 "mn-autodetect-mailbox-properties.gob"
+#line 161 "mn-autodetect-mailbox-properties.gob"
 static void 
 mn_autodetect_mailbox_properties_browse_clicked_h (GtkButton * button, gpointer user_data)
-#line 329 "mn-autodetect-mailbox-properties.c"
+#line 332 "mn-autodetect-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Autodetect:Mailbox:Properties::browse_clicked_h"
 {
-#line 159 "mn-autodetect-mailbox-properties.gob"
+#line 163 "mn-autodetect-mailbox-properties.gob"
 	
     Self *self = user_data;
     GtkWidget *toplevel;
@@ -369,32 +372,32 @@ mn_autodetect_mailbox_properties_browse_clicked_h (GtkButton * button, gpointer 
 
     gtk_widget_show(selfp->chooser);
   }}
-#line 373 "mn-autodetect-mailbox-properties.c"
+#line 376 "mn-autodetect-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 199 "mn-autodetect-mailbox-properties.gob"
+#line 203 "mn-autodetect-mailbox-properties.gob"
 static void 
 mn_autodetect_mailbox_properties_current_folder_changed_h (GtkFileChooser * chooser, gpointer user_data)
-#line 379 "mn-autodetect-mailbox-properties.c"
+#line 382 "mn-autodetect-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Autodetect:Mailbox:Properties::current_folder_changed_h"
 {
-#line 201 "mn-autodetect-mailbox-properties.gob"
+#line 205 "mn-autodetect-mailbox-properties.gob"
 	
     g_free(current_folder_uri);
     current_folder_uri = gtk_file_chooser_get_current_folder_uri(chooser);
   }}
-#line 388 "mn-autodetect-mailbox-properties.c"
+#line 391 "mn-autodetect-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 206 "mn-autodetect-mailbox-properties.gob"
+#line 210 "mn-autodetect-mailbox-properties.gob"
 static void 
 mn_autodetect_mailbox_properties_chooser_response_h (GtkDialog * dialog, int response, gpointer user_data)
-#line 394 "mn-autodetect-mailbox-properties.c"
+#line 397 "mn-autodetect-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Autodetect:Mailbox:Properties::chooser_response_h"
 {
-#line 208 "mn-autodetect-mailbox-properties.gob"
+#line 212 "mn-autodetect-mailbox-properties.gob"
 	
     if (response == 1)
       {
@@ -408,22 +411,22 @@ mn_autodetect_mailbox_properties_chooser_response_h (GtkDialog * dialog, int res
 
     gtk_widget_destroy(GTK_WIDGET(dialog));
   }}
-#line 412 "mn-autodetect-mailbox-properties.c"
+#line 415 "mn-autodetect-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 222 "mn-autodetect-mailbox-properties.gob"
+#line 226 "mn-autodetect-mailbox-properties.gob"
 static void 
 ___6_mn_autodetect_mailbox_properties_set_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED, MNMailbox * mailbox)
-#line 418 "mn-autodetect-mailbox-properties.c"
+#line 421 "mn-autodetect-mailbox-properties.c"
 #define PARENT_HANDLER(___properties,___mailbox) \
 	{ if(MN_MAILBOX_PROPERTIES_CLASS(parent_class)->set_mailbox) \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->set_mailbox)(___properties,___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:Autodetect:Mailbox:Properties::set_mailbox"
 {
-#line 224 "mn-autodetect-mailbox-properties.gob"
+#line 228 "mn-autodetect-mailbox-properties.gob"
 	
-#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
+#if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
     g_return_if_fail(MN_IS_CUSTOM_VFS_MAILBOX(mailbox));
 
     gtk_entry_set_text(GTK_ENTRY(SELF(properties)->_priv->location_entry), MN_CUSTOM_VFS_MAILBOX(mailbox)->uri);
@@ -431,14 +434,14 @@ ___6_mn_autodetect_mailbox_properties_set_mailbox (MNMailboxProperties * propert
     g_assert_not_reached();
 #endif
   }}
-#line 435 "mn-autodetect-mailbox-properties.c"
+#line 438 "mn-autodetect-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 234 "mn-autodetect-mailbox-properties.gob"
+#line 238 "mn-autodetect-mailbox-properties.gob"
 static MNMailbox * 
 ___7_mn_autodetect_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED)
-#line 442 "mn-autodetect-mailbox-properties.c"
+#line 445 "mn-autodetect-mailbox-properties.c"
 #define PARENT_HANDLER(___properties) \
 	((MN_MAILBOX_PROPERTIES_CLASS(parent_class)->get_mailbox)? \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->get_mailbox)(___properties): \
@@ -446,13 +449,13 @@ ___7_mn_autodetect_mailbox_properties_get_mailbox (MNMailboxProperties * propert
 {
 #define __GOB_FUNCTION__ "MN:Autodetect:Mailbox:Properties::get_mailbox"
 {
-#line 236 "mn-autodetect-mailbox-properties.gob"
+#line 240 "mn-autodetect-mailbox-properties.gob"
 	
     const char *uri;
 
     uri = gtk_entry_get_text(GTK_ENTRY(SELF(properties)->_priv->location_entry));
     return mn_mailbox_new_from_uri(uri);
   }}
-#line 457 "mn-autodetect-mailbox-properties.c"
+#line 460 "mn-autodetect-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER

@@ -9,7 +9,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-void 	mn_pi_mailbox_properties_get_contents	(MNPIMailboxProperties * self, MNPIMailboxConnectionType * connection_type, char ** authmech, const char ** hostname, int * port);
+void 	mn_pi_mailbox_properties_get_contents	(MNPIMailboxProperties * self, MNPIMailboxConnectionType * connection_type, char ** authmech, const char ** server, int * port);
 
 #ifdef __cplusplus
 }

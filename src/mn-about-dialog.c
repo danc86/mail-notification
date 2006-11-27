@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 26 "mn-about-dialog.gob"
+#line 27 "mn-about-dialog.gob"
 
 #include <gnome.h>
 #include "mn-util.h"
@@ -93,7 +93,7 @@ GET_NEW_VARG (const char *first, ...)
 	return ret;
 }
 
-#line 33 "mn-about-dialog.gob"
+#line 34 "mn-about-dialog.gob"
 static void 
 mn_about_dialog_class_init (MNAboutDialogClass * class G_GNUC_UNUSED)
 #line 100 "mn-about-dialog.c"
@@ -103,7 +103,7 @@ mn_about_dialog_class_init (MNAboutDialogClass * class G_GNUC_UNUSED)
 	parent_class = g_type_class_ref (GTK_TYPE_ABOUT_DIALOG);
 
  {
-#line 34 "mn-about-dialog.gob"
+#line 35 "mn-about-dialog.gob"
 
     gtk_about_dialog_set_email_hook(self_activate_link_cb, "mailto:", NULL);
     gtk_about_dialog_set_url_hook(self_activate_link_cb, NULL, NULL);
@@ -112,18 +112,18 @@ mn_about_dialog_class_init (MNAboutDialogClass * class G_GNUC_UNUSED)
  }
 }
 #undef __GOB_FUNCTION__
-#line 39 "mn-about-dialog.gob"
+#line 40 "mn-about-dialog.gob"
 static void 
 mn_about_dialog_init (MNAboutDialog * self G_GNUC_UNUSED)
 #line 119 "mn-about-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:About:Dialog::init"
  {
-#line 40 "mn-about-dialog.gob"
+#line 41 "mn-about-dialog.gob"
 
     GtkAboutDialog *about = GTK_ABOUT_DIALOG(self);
-    const char *authors[] = { "Jean-Yves Lefort <jylefort@brutele.be>", NULL };
-    const char *documenters[] = { "Jean-Yves Lefort <jylefort@brutele.be>", NULL };
+    static const char *authors[] = { "Jean-Yves Lefort <jylefort@brutele.be>", NULL };
+    static const char *documenters[] = { "Jean-Yves Lefort <jylefort@brutele.be>", NULL };
     GdkPixbuf *logo;
 
     gtk_about_dialog_set_version(about, VERSION);
@@ -145,34 +145,31 @@ mn_about_dialog_init (MNAboutDialog * self G_GNUC_UNUSED)
 	gtk_about_dialog_set_logo(about, logo);
 	g_object_unref(logo);
       }
+
+    g_signal_connect(self, "response", G_CALLBACK(gtk_widget_destroy), NULL);
   
-#line 150 "mn-about-dialog.c"
+#line 152 "mn-about-dialog.c"
  }
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 67 "mn-about-dialog.gob"
+#line 70 "mn-about-dialog.gob"
 static void 
 mn_about_dialog_activate_link_cb (GtkAboutDialog * about, const char * link, gpointer data)
-#line 160 "mn-about-dialog.c"
+#line 162 "mn-about-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:About:Dialog::activate_link_cb"
 {
-#line 71 "mn-about-dialog.gob"
+#line 74 "mn-about-dialog.gob"
 	
-    GError *err = NULL;
     const char *prefix = data;
     char *url;
 
     url = prefix ? g_strconcat(prefix, link, NULL) : g_strdup(link);
-    if (! gnome_url_show(url, &err))
-      {
-        mn_error_dialog(GTK_WINDOW(about), _("Unable to open link"), "%s", err->message);
-	g_error_free(err);
-      }
+    mn_open_link(GTK_WINDOW(about), url);
     g_free(url);
   }}
-#line 178 "mn-about-dialog.c"
+#line 175 "mn-about-dialog.c"
 #undef __GOB_FUNCTION__

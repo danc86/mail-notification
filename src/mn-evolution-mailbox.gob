@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,21 +12,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
 
 %headertop{
 #include "mn-reentrant-mailbox.h"
+#include "mn-bonobo-unknown.h"
 %}
 
 %privateheader{
 #include <time.h>
 #include "GNOME_MailNotification_Evolution.h"
-#include "mn-corba-object.h"
 #include "mn-locked-callback.h"
 %}
 
@@ -39,6 +40,8 @@ requires 2.0.14
 #include "mn-message.h"
 #include "mn-util.h"
 #include "mn-stock.h"
+#include "mn-evolution-message.h"
+#include "mn-evolution-glue-client.h"
 
 static GStaticMutex listeners_mutex = G_STATIC_MUTEX_INIT;
 %}
@@ -55,7 +58,7 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
   public char *folder_name destroywith g_free;
   property STRING folder_name (link, flags = MN_MAILBOX_PARAM_PERMANENT | MN_MAILBOX_PARAM_REQUIRED);
 
-  private MNCORBAObject *glue unrefwith g_object_unref;
+  private MNBonoboUnknown *glue;
   private MNLockedBonoboListener *listener;
 
   private time_t last_browsed;
@@ -73,6 +76,7 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
     MN_MAILBOX_CLASS(class)->default_check_delay = 60 * 1;
 
     bonobo_exception_add_handler_str(ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound, _("folder not found"));
+    bonobo_exception_add_handler_str(ex_GNOME_MailNotification_Evolution_Glue_MessageNotFound, _("message not found"));
   }
 
   init (self)
@@ -98,24 +102,28 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
   {
     Self *self = SELF(object);
 
-    /*
-     * We are no longer operational after dispose (see unrefwith
-     * above), so we must remove our listener.
-     */
     if (selfp->listener)
       {
 	GNOME_MailNotification_Evolution_Glue glue;
 
 	g_assert(selfp->glue != NULL);
 
-	glue = mn_corba_object_get_object(selfp->glue);
+	glue = mn_bonobo_unknown_get_object(selfp->glue);
+	g_assert(glue != CORBA_OBJECT_NIL);
 
 	g_static_mutex_lock(&listeners_mutex);
 	mn_bonobo_event_source_client_remove_listener_locked(glue, selfp->listener, NULL);
 	g_static_mutex_unlock(&listeners_mutex);
 
-	CORBA_Object_release(glue, NULL);
+	bonobo_object_release_unref(glue, NULL);
 	selfp->listener = NULL;
+      }
+
+    if (selfp->glue)
+      {
+	g_signal_handlers_disconnect_by_func(selfp->glue, mn_reentrant_mailbox_queue_check, self);
+	mn_evolution_glue_client_unuse();
+	selfp->glue = NULL;
       }
 
     PARENT_HANDLER(object);
@@ -131,7 +139,7 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
     Self *self = user_data;
     const char *uri;
 
-    if (! strcmp(event_name, MN_EVOLUTION_EVENT_PREFIX ":" MN_EVOLUTION_EVENT_MESSAGE_READING))
+    if (! strcmp(event_name, MN_EVOLUTION_GLUE_EVENT_PREFIX ":" MN_EVOLUTION_GLUE_EVENT_MESSAGE_READING))
       {
 	uri = BONOBO_ARG_GET_STRING(any);
 	if (! strcmp(uri, self->uri))
@@ -145,7 +153,7 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 	    mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self));
 	  }
       }
-    else if (! strcmp(event_name, MN_EVOLUTION_EVENT_PREFIX ":" MN_EVOLUTION_EVENT_FOLDER_CHANGED))
+    else if (! strcmp(event_name, MN_EVOLUTION_GLUE_EVENT_PREFIX ":" MN_EVOLUTION_GLUE_EVENT_FOLDER_CHANGED))
       {
 	uri = BONOBO_ARG_GET_STRING(any);
 	if (! strcmp(uri, self->uri))
@@ -166,11 +174,11 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 
     if (! selfp->glue)
       {
-	selfp->glue = mn_corba_object_new(MN_EVOLUTION_GLUE_IID);
+	selfp->glue = mn_evolution_glue_client_use();
 	g_signal_connect_swapped(selfp->glue, "notify::object", G_CALLBACK(mn_reentrant_mailbox_queue_check), self);
       }
 
-    glue = mn_corba_object_get_object(selfp->glue);
+    glue = mn_bonobo_unknown_get_object(selfp->glue);
 
     if (glue == CORBA_OBJECT_NIL)
       {
@@ -185,7 +193,7 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 	if (! selfp->listener)
 	  selfp->listener = mn_bonobo_event_source_client_add_listener_full_locked(glue,
 										   self_listener_cb,
-										   MN_EVOLUTION_EVENT_PREFIX,
+										   MN_EVOLUTION_GLUE_EVENT_PREFIX,
 										   NULL,
 										   self,
 										   (MNLockFunc) mn_g_static_mutex_lock,
@@ -195,7 +203,7 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 
     if (! selfp->listener && glue != CORBA_OBJECT_NIL)
       {
-	CORBA_Object_release(glue, NULL);
+	bonobo_object_release_unref(glue, NULL);
 	glue = CORBA_OBJECT_NIL;
       }
 
@@ -262,13 +270,13 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 	      flags |= MN_MESSAGE_NEW;
 
 #define unbox(str) (*(str) ? (str) : NULL)
-	    messages = g_slist_prepend(messages, mn_message_new(MN_MAILBOX(mailbox),
-								NULL,
-								message_seq->_buffer[i].sent_time,
-								message_seq->_buffer[i].id,
-								unbox(message_seq->_buffer[i].from),
-								unbox(message_seq->_buffer[i].subject),
-								flags));
+	    messages = g_slist_prepend(messages, mn_evolution_message_new(MN_MAILBOX(mailbox),
+									  message_seq->_buffer[i].sent_time,
+									  message_seq->_buffer[i].id,
+									  unbox(message_seq->_buffer[i].from),
+									  unbox(message_seq->_buffer[i].subject),
+									  flags,
+									  message_seq->_buffer[i].uid));
 
 	    if (mn_reentrant_mailbox_check_aborted(mailbox, check_id))
 	      break;
@@ -293,6 +301,6 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
       }
 
     CORBA_exception_free(&env);
-    CORBA_Object_release(glue, NULL);
+    bonobo_object_release_unref(glue, NULL);
   }
 }

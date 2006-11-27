@@ -5,6 +5,7 @@
 
 
 #include "mn-vfs-mailbox.h"
+#include "mn-vfs-message.h"
 
 #ifndef __MN_VFS_MAILBOX_BACKEND_H__
 #define __MN_VFS_MAILBOX_BACKEND_H__
@@ -45,8 +46,9 @@ typedef struct _MNVFSMailboxBackendClass MNVFSMailboxBackendClass;
 struct _MNVFSMailboxBackendClass {
 	GObjectClass __parent__;
 	void (* monitor_cb) (MNVFSMailboxBackend * self, const char * info_uri, GnomeVFSMonitorEventType event_type);
-	gboolean (* is) (MNVFSMailboxBackend * self, MNVFSMailbox * mailbox);
+	gboolean (* is) (MNVFSMailboxBackend * self, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox);
 	void (* check) (MNVFSMailboxBackend * self, unsigned long check_id);
+	gboolean (* mark_as_read) (MNVFSMailboxBackend * self, MNVFSMessage * message, GError ** err);
 	const char * format;
 };
 
@@ -56,9 +58,13 @@ struct _MNVFSMailboxBackendClass {
  */
 GType	mn_vfs_mailbox_backend_get_type	(void);
 gboolean 	mn_vfs_mailbox_backend_is	(MNVFSMailboxBackend * self,
+					MNVFSMailboxBackendClass * class,
 					MNVFSMailbox * mailbox);
 void 	mn_vfs_mailbox_backend_check	(MNVFSMailboxBackend * self,
 					unsigned long check_id);
+gboolean 	mn_vfs_mailbox_backend_mark_as_read	(MNVFSMailboxBackend * self,
+					MNVFSMessage * message,
+					GError ** err);
 
 /*
  * Argument wrapping macros

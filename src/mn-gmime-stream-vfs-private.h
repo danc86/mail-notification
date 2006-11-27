@@ -10,11 +10,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNGMimeStreamVFSPrivate {
-#line 63 "mn-gmime-stream-vfs.gob"
-	GnomeVFSHandle * handle;
 #line 64 "mn-gmime-stream-vfs.gob"
-	char * uri;
+	GnomeVFSHandle * handle;
 #line 65 "mn-gmime-stream-vfs.gob"
+	char * uri;
+#line 66 "mn-gmime-stream-vfs.gob"
 	gboolean eof;
 #line 20 "mn-gmime-stream-vfs-private.h"
 };

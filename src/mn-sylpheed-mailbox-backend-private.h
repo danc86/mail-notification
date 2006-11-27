@@ -10,15 +10,15 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 25 "mn-sylpheed-mailbox-backend.gob"
+#line 26 "mn-sylpheed-mailbox-backend.gob"
 
 #include "mn-locked-callback.h"
 
 #line 18 "mn-sylpheed-mailbox-backend-private.h"
 struct _MNSylpheedMailboxBackendPrivate {
-#line 70 "mn-sylpheed-mailbox-backend.gob"
+#line 72 "mn-sylpheed-mailbox-backend.gob"
 	MNLockedGSource * monitor_timeout_source;
-#line 71 "mn-sylpheed-mailbox-backend.gob"
+#line 73 "mn-sylpheed-mailbox-backend.gob"
 	gboolean can_lock_mark_file;
 #line 24 "mn-sylpheed-mailbox-backend-private.h"
 };

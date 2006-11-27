@@ -1,0 +1,126 @@
+/* 
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include "mn-message.h"
+%}
+
+%{
+#include "config.h"
+#include <camel/camel-folder-summary.h>
+#include "GNOME_MailNotification_Evolution.h"
+#include "mn-evolution-mailbox.h"
+#include "mn-message-private.h"
+#include "mn-evolution-glue-client.h"
+#include "mn-util.h"
+
+#define GLUE_METHOD(invocation)						\
+  {									\
+    MNEvolutionMailbox *mailbox = MN_EVOLUTION_MAILBOX(message->mailbox); \
+    MNBonoboUnknown *glue_wrapper;					\
+    GNOME_MailNotification_Evolution_Glue glue;				\
+    CORBA_Environment env;						\
+    gboolean status = TRUE;						\
+									\
+    glue_wrapper = mn_evolution_glue_client_use();			\
+									\
+    glue = mn_bonobo_unknown_get_object(glue_wrapper);			\
+    if (glue == CORBA_OBJECT_NIL)					\
+      {									\
+	g_set_error(err, 0, 0, _("Unable to contact Evolution."));	\
+	return FALSE;							\
+      }									\
+									\
+    invocation;								\
+    if (BONOBO_EX(&env))						\
+      {									\
+	char *errmsg;							\
+									\
+	errmsg = bonobo_exception_get_text(&env);			\
+	g_set_error(err, 0, 0, _("An Evolution error has occurred: %s."), errmsg); \
+	g_free(errmsg);							\
+									\
+	status = FALSE;							\
+      }									\
+    									\
+    bonobo_object_release_unref(glue, NULL);				\
+    mn_evolution_glue_client_unuse();					\
+									\
+    return status;							\
+  }
+%}
+
+class MN:Evolution:Message from MN:Message
+{
+  private char *uid destroywith g_free;
+  property STRING uid (link, flags = CONSTRUCT_ONLY | MN_MESSAGE_PARAM_EXPORT);
+
+  public MNMessage *
+    new (MNMailbox *mailbox,
+	 time_t sent_time,
+	 const char *id,
+	 const char *from,
+	 const char *subject,
+	 MNMessageFlags flags,
+	 const char *uid (check null))
+  {
+    return MN_MESSAGE(GET_NEW_VARG(MN_MESSAGE_PROP_MAILBOX(mailbox),
+				   MN_MESSAGE_PROP_SENT_TIME(sent_time),
+				   MN_MESSAGE_PROP_ID((char *) id),
+				   MN_MESSAGE_PROP_FROM((char *) from),
+				   MN_MESSAGE_PROP_SUBJECT((char *) subject),
+				   MN_MESSAGE_PROP_FLAGS(flags),
+				   MN_EVOLUTION_MESSAGE_PROP_UID((char *) uid),
+				   NULL));
+  }
+
+  override (MN:Message) gboolean
+    can_open_impl (MNMessage *message)
+  {
+    return TRUE;
+  }
+
+  override (MN:Message) gboolean
+    open_impl (MNMessage *message, GError **err)
+  {
+    Self *self = SELF(message);
+    GLUE_METHOD(GNOME_MailNotification_Evolution_Glue_openMessage(glue, mailbox->uri, selfp->uid, &env));
+  }
+
+  private gboolean
+    set_flags (self, guint32 flags, GError **err)
+  {
+    MNMessage *message = MN_MESSAGE(self);
+    GLUE_METHOD(GNOME_MailNotification_Evolution_Glue_setMessageFlags(glue, mailbox->uri, selfp->uid, flags, &env));
+  }
+
+  override (MN:Message) gboolean
+    mark_as_read_impl (MNMessage *message, GError **err)
+  {
+    return self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN, err);
+  }
+
+  override (MN:Message) gboolean
+    mark_as_spam_impl (MNMessage *message, GError **err)
+  {
+    return self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN | CAMEL_MESSAGE_JUNK | CAMEL_MESSAGE_JUNK_LEARN, err);
+  }
+}

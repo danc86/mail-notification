@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,13 +12,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #include "config.h"
 #include <string.h>
+#include <glib/gi18n.h>
 #include "mn-vfs.h"
 
 /*** cpp *********************************************************************/
@@ -170,6 +172,141 @@ mn_vfs_read_entire_file_uri (GnomeVFSURI *uri,
   text_uri = gnome_vfs_uri_to_string(uri, GNOME_VFS_URI_HIDE_NONE);
   result = gnome_vfs_read_entire_file(text_uri, file_size, file_contents);
   g_free(text_uri);
+
+  return result;
+}
+
+GnomeVFSResult
+mn_vfs_write_entire_file_uri (GnomeVFSURI *uri,
+			      gsize file_size,
+			      const char *file_contents,
+			      gboolean exclusive,
+			      unsigned int perms)
+{
+  GnomeVFSHandle *handle;
+  GnomeVFSResult result;
+  GnomeVFSFileSize bytes_written = 0;
+
+  result = gnome_vfs_create_uri(&handle, uri, GNOME_VFS_OPEN_WRITE | GNOME_VFS_OPEN_TRUNCATE, exclusive, perms);
+  if (result != GNOME_VFS_OK)
+    return result;
+
+  while (bytes_written < file_size)
+    {
+      GnomeVFSFileSize this_bytes_written;
+
+      result = gnome_vfs_write(handle, file_contents + bytes_written, file_size - bytes_written, &this_bytes_written);
+      if (result != GNOME_VFS_OK)
+	{
+	  gnome_vfs_close(handle);
+	  return result;
+	}
+
+      bytes_written += this_bytes_written;
+    }
+
+  return gnome_vfs_close(handle);
+}
+
+gboolean
+mn_vfs_write_entire_file_uri_safe (GnomeVFSURI *uri,
+				   gsize file_size,
+				   const char *file_contents,
+				   unsigned int perms,
+				   GError **err)
+{
+  GnomeVFSResult result;
+  char *text_uri;
+  GnomeVFSURI *tmp_uri;
+  char *tmp_text_uri;
+  GnomeVFSURI *old_uri;
+  char *old_text_uri;
+  gboolean status = FALSE;
+  gboolean old_exists;
+
+  g_return_val_if_fail(uri != NULL, FALSE);
+
+  text_uri = gnome_vfs_uri_to_string(uri, GNOME_VFS_URI_HIDE_PASSWORD);
+  tmp_uri = mn_vfs_uri_append_file_suffix(uri, ".tmp");
+  tmp_text_uri = gnome_vfs_uri_to_string(tmp_uri, GNOME_VFS_URI_HIDE_PASSWORD);
+  old_uri = mn_vfs_uri_append_file_suffix(uri, ".old");
+  old_text_uri = gnome_vfs_uri_to_string(old_uri, GNOME_VFS_URI_HIDE_PASSWORD);
+
+  if (mn_vfs_test(tmp_uri, G_FILE_TEST_EXISTS))
+    {
+      result = gnome_vfs_unlink_from_uri(tmp_uri);
+      if (result != GNOME_VFS_OK)
+	{
+	  g_set_error(err, 0, 0, _("Unable to remove %s: %s."), tmp_text_uri, gnome_vfs_result_to_string(result));
+	  goto end;
+	}
+    }
+
+  result = mn_vfs_write_entire_file_uri(tmp_uri, file_size, file_contents, TRUE, perms);
+  if (result != GNOME_VFS_OK)
+    {
+      g_set_error(err, 0, 0, _("Unable to write %s: %s."), tmp_text_uri, gnome_vfs_result_to_string(result));
+      goto end;
+    }
+
+  old_exists = mn_vfs_test(uri, G_FILE_TEST_EXISTS);
+  if (old_exists)
+    {
+      result = gnome_vfs_move_uri(uri, old_uri, TRUE);
+      if (result != GNOME_VFS_OK)
+	{
+	  g_set_error(err, 0, 0, _("Unable to rename %s to %s: %s."), text_uri, old_text_uri, gnome_vfs_result_to_string(result));
+	  goto end;
+	}
+    }
+
+  result = gnome_vfs_move_uri(tmp_uri, uri, TRUE);
+  if (result != GNOME_VFS_OK)
+    {
+      g_set_error(err, 0, 0, _("Unable to rename %s to %s: %s."), tmp_text_uri, text_uri, gnome_vfs_result_to_string(result));
+      goto end;
+    }
+
+  if (old_exists)
+    {
+      GnomeVFSResult this_result;
+
+      this_result = gnome_vfs_unlink_from_uri(old_uri);
+      if (this_result != GNOME_VFS_OK) /* non fatal */
+	g_warning(_("unable to delete %s: %s"), old_text_uri, gnome_vfs_result_to_string(this_result));
+    }
+
+  status = TRUE;		/* success */
+
+ end:
+  g_free(text_uri);
+  gnome_vfs_uri_unref(tmp_uri);
+  g_free(tmp_text_uri);
+  gnome_vfs_uri_unref(old_uri);
+  g_free(old_text_uri);
+
+  return status;
+}
+
+GnomeVFSURI *
+mn_vfs_uri_append_file_suffix (GnomeVFSURI *uri, const char *suffix)
+{
+  GnomeVFSURI *result;
+
+  g_return_val_if_fail(uri != NULL, NULL);
+  g_return_val_if_fail(suffix != NULL, NULL);
+
+  result = gnome_vfs_uri_dup(uri);
+  if (result->text)
+    {
+      char *new_text;
+
+      new_text = g_strconcat(result->text, suffix, NULL);
+      g_free(result->text);
+      result->text = new_text;
+    }
+  else
+    result->text = g_strdup(suffix);
 
   return result;
 }

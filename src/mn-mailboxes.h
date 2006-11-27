@@ -71,6 +71,8 @@ void 	mn_mailboxes_add	(MNMailboxes * self,
 					MNMailbox * mailbox);
 void 	mn_mailboxes_queue_add	(MNMailboxes * self,
 					MNMailbox * mailbox);
+void 	mn_mailboxes_remove	(MNMailboxes * self,
+					MNMailbox * mailbox);
 void 	mn_mailboxes_queue_remove	(MNMailboxes * self,
 					MNMailbox * mailbox);
 int 	mn_mailboxes_compare_by_name_func	(gconstpointer a,

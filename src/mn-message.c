@@ -22,13 +22,15 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 33 "mn-message.gob"
+#line 44 "mn-message.gob"
 
 #include "config.h"
-#include <glib/gi18n.h>
+#include <errno.h>
+#include <gnome.h>
+#include <libgnomevfs/gnome-vfs.h>
 #include "mn-util.h"
 
-#line 32 "mn-message.c"
+#line 34 "mn-message.c"
 /* self casting macros */
 #define SELF(x) MN_MESSAGE(x)
 #define SELF_CONST(x) MN_MESSAGE_CONST(x)
@@ -48,15 +50,34 @@ static void ___object_get_property (GObject *object, guint property_id, GValue *
 static void mn_message_init (MNMessage * o) G_GNUC_UNUSED;
 static void mn_message_class_init (MNMessageClass * c) G_GNUC_UNUSED;
 static GObject * ___1_mn_message_constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam * construct_params) G_GNUC_UNUSED;
+static gboolean mn_message_get_subst (MNMessage * self, const char * prop_name, char ** result) G_GNUC_UNUSED;
+static char * mn_message_subst_command (MNMessage * self, const char * command, GError ** err) G_GNUC_UNUSED;
+static gboolean mn_message_execute_command_real (MNMessage * self, const char * command, GError ** err) G_GNUC_UNUSED;
+static gboolean mn_message_execute_command (MNMessage * self, const char * id, gboolean * status, GError ** err) G_GNUC_UNUSED;
+static gboolean ___real_mn_message_can_open_impl (MNMessage * self);
+static gboolean mn_message_can_open_impl (MNMessage * self) G_GNUC_UNUSED;
+static gboolean ___real_mn_message_open_impl (MNMessage * self, GError ** err);
+static gboolean mn_message_open_impl (MNMessage * self, GError ** err) G_GNUC_UNUSED;
+static gboolean ___real_mn_message_can_mark_as_read_impl (MNMessage * self);
+static gboolean mn_message_can_mark_as_read_impl (MNMessage * self) G_GNUC_UNUSED;
+static gboolean mn_message_mark_as_read_real (MNMessage * self, GError ** err) G_GNUC_UNUSED;
+static gboolean mn_message_mark_as_read_impl (MNMessage * self, GError ** err) G_GNUC_UNUSED;
+static gboolean ___real_mn_message_can_mark_as_spam (MNMessage * self);
+static gboolean ___real_mn_message_can_mark_as_spam_impl (MNMessage * self);
+static gboolean mn_message_can_mark_as_spam_impl (MNMessage * self) G_GNUC_UNUSED;
+static gboolean mn_message_mark_as_spam_real (MNMessage * self, GError ** err) G_GNUC_UNUSED;
+static gboolean mn_message_mark_as_spam_impl (MNMessage * self, GError ** err) G_GNUC_UNUSED;
 
 enum {
 	PROP_0,
-	PROP_MAILBOX_NAME,
+	PROP_MAILBOX,
 	PROP_ERROR,
 	PROP_SENT_TIME,
 	PROP_ID,
 	PROP_FROM,
 	PROP_SUBJECT,
+	PROP_URI,
+	PROP_FILENAME,
 	PROP_FLAGS
 };
 
@@ -64,8 +85,27 @@ enum {
 static GObjectClass *parent_class = NULL;
 
 /* Short form macros */
+#define self_get_subst mn_message_get_subst
+#define self_subst_command mn_message_subst_command
+#define self_execute_command_real mn_message_execute_command_real
+#define self_execute_command mn_message_execute_command
+#define self_can_open mn_message_can_open
+#define self_can_open_impl mn_message_can_open_impl
+#define self_open mn_message_open
+#define self_open_impl mn_message_open_impl
+#define self_can_mark_as_read mn_message_can_mark_as_read
+#define self_can_mark_as_read_impl mn_message_can_mark_as_read_impl
+#define self_mark_as_read_real mn_message_mark_as_read_real
+#define self_mark_as_read mn_message_mark_as_read
+#define self_mark_as_read_impl mn_message_mark_as_read_impl
+#define self_can_mark_as_spam mn_message_can_mark_as_spam
+#define self_can_mark_as_spam_impl mn_message_can_mark_as_spam_impl
+#define self_mark_as_spam_real mn_message_mark_as_spam_real
+#define self_mark_as_spam mn_message_mark_as_spam
+#define self_mark_as_spam_impl mn_message_mark_as_spam_impl
 #define self_new mn_message_new
 #define self_new_from_error mn_message_new_from_error
+#define self_xml_node_new mn_message_xml_node_new
 GType
 mn_message_get_type (void)
 {
@@ -116,21 +156,21 @@ ___finalize(GObject *obj_self)
 	MNMessage *self G_GNUC_UNUSED = MN_MESSAGE (obj_self);
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 42 "mn-message.gob"
-	if(self->mailbox_name) { g_free ((gpointer) self->mailbox_name); self->mailbox_name = NULL; }
-#line 122 "mn-message.c"
-#line 46 "mn-message.gob"
+#line 67 "mn-message.gob"
 	if(self->error) { g_free ((gpointer) self->error); self->error = NULL; }
-#line 125 "mn-message.c"
-#line 54 "mn-message.gob"
+#line 162 "mn-message.c"
+#line 75 "mn-message.gob"
 	if(self->id) { g_free ((gpointer) self->id); self->id = NULL; }
-#line 128 "mn-message.c"
-#line 58 "mn-message.gob"
+#line 165 "mn-message.c"
+#line 79 "mn-message.gob"
 	if(self->from) { g_free ((gpointer) self->from); self->from = NULL; }
-#line 131 "mn-message.c"
-#line 62 "mn-message.gob"
+#line 168 "mn-message.c"
+#line 83 "mn-message.gob"
 	if(self->subject) { g_free ((gpointer) self->subject); self->subject = NULL; }
-#line 134 "mn-message.c"
+#line 171 "mn-message.c"
+#line 87 "mn-message.gob"
+	if(self->uri) { g_free ((gpointer) self->uri); self->uri = NULL; }
+#line 174 "mn-message.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -148,30 +188,42 @@ mn_message_class_init (MNMessageClass * c G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (G_TYPE_OBJECT);
 
-#line 68 "mn-message.gob"
+#line 99 "mn-message.gob"
 	g_object_class->constructor = ___1_mn_message_constructor;
-#line 154 "mn-message.c"
+#line 326 "mn-message.gob"
+	c->can_open_impl = ___real_mn_message_can_open_impl;
+#line 346 "mn-message.gob"
+	c->open_impl = ___real_mn_message_open_impl;
+#line 358 "mn-message.gob"
+	c->can_mark_as_read_impl = ___real_mn_message_can_mark_as_read_impl;
+#line 200 "mn-message.c"
+	c->mark_as_read_impl = NULL;
+#line 390 "mn-message.gob"
+	c->can_mark_as_spam = ___real_mn_message_can_mark_as_spam;
+#line 396 "mn-message.gob"
+	c->can_mark_as_spam_impl = ___real_mn_message_can_mark_as_spam_impl;
+#line 206 "mn-message.c"
+	c->mark_as_spam_impl = NULL;
 	g_object_class->finalize = ___finalize;
 	g_object_class->get_property = ___object_get_property;
 	g_object_class->set_property = ___object_set_property;
     {
 	GParamSpec   *param_spec;
 
-	param_spec = g_param_spec_string
-		("mailbox_name" /* name */,
+	param_spec = g_param_spec_pointer
+		("mailbox" /* name */,
 		 NULL /* nick */,
 		 NULL /* blurb */,
-		 NULL /* default_value */,
 		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 	g_object_class_install_property (g_object_class,
-		PROP_MAILBOX_NAME,
+		PROP_MAILBOX,
 		param_spec);
 	param_spec = g_param_spec_string
 		("error" /* name */,
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MESSAGE_PARAM_EXPORT | G_PARAM_CONSTRUCT_ONLY));
 	g_object_class_install_property (g_object_class,
 		PROP_ERROR,
 		param_spec);
@@ -182,7 +234,7 @@ mn_message_class_init (MNMessageClass * c G_GNUC_UNUSED)
 		 0 /* minimum */,
 		 G_MAXULONG /* maximum */,
 		 0 /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MESSAGE_PARAM_EXPORT | G_PARAM_CONSTRUCT_ONLY));
 	g_object_class_install_property (g_object_class,
 		PROP_SENT_TIME,
 		param_spec);
@@ -191,7 +243,7 @@ mn_message_class_init (MNMessageClass * c G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MESSAGE_PARAM_EXPORT | G_PARAM_CONSTRUCT_ONLY));
 	g_object_class_install_property (g_object_class,
 		PROP_ID,
 		param_spec);
@@ -200,7 +252,7 @@ mn_message_class_init (MNMessageClass * c G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MESSAGE_PARAM_EXPORT | G_PARAM_CONSTRUCT_ONLY));
 	g_object_class_install_property (g_object_class,
 		PROP_FROM,
 		param_spec);
@@ -209,9 +261,27 @@ mn_message_class_init (MNMessageClass * c G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MESSAGE_PARAM_EXPORT | G_PARAM_CONSTRUCT_ONLY));
 	g_object_class_install_property (g_object_class,
 		PROP_SUBJECT,
+		param_spec);
+	param_spec = g_param_spec_string
+		("uri" /* name */,
+		 NULL /* nick */,
+		 NULL /* blurb */,
+		 NULL /* default_value */,
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MESSAGE_PARAM_EXPORT | G_PARAM_CONSTRUCT_ONLY));
+	g_object_class_install_property (g_object_class,
+		PROP_URI,
+		param_spec);
+	param_spec = g_param_spec_string
+		("filename" /* name */,
+		 NULL /* nick */,
+		 NULL /* blurb */,
+		 NULL /* default_value */,
+		 (GParamFlags)(G_PARAM_READABLE | MN_MESSAGE_PARAM_EXPORT));
+	g_object_class_install_property (g_object_class,
+		PROP_FILENAME,
 		param_spec);
 	param_spec = g_param_spec_uint
 		("flags" /* name */,
@@ -240,53 +310,60 @@ ___object_set_property (GObject *object,
 	self = MN_MESSAGE (object);
 
 	switch (property_id) {
-	case PROP_MAILBOX_NAME:
+	case PROP_MAILBOX:
 		{
-#line 43 "mn-message.gob"
-{ char *old = self->mailbox_name; self->mailbox_name = g_value_dup_string (VAL); g_free (old); }
-#line 248 "mn-message.c"
+#line 64 "mn-message.gob"
+self->mailbox = g_value_get_pointer (VAL);
+#line 318 "mn-message.c"
 		}
 		break;
 	case PROP_ERROR:
 		{
-#line 47 "mn-message.gob"
+#line 68 "mn-message.gob"
 { char *old = self->error; self->error = g_value_dup_string (VAL); g_free (old); }
-#line 255 "mn-message.c"
+#line 325 "mn-message.c"
 		}
 		break;
 	case PROP_SENT_TIME:
 		{
-#line 51 "mn-message.gob"
+#line 72 "mn-message.gob"
 self->sent_time = g_value_get_ulong (VAL);
-#line 262 "mn-message.c"
+#line 332 "mn-message.c"
 		}
 		break;
 	case PROP_ID:
 		{
-#line 55 "mn-message.gob"
+#line 76 "mn-message.gob"
 { char *old = self->id; self->id = g_value_dup_string (VAL); g_free (old); }
-#line 269 "mn-message.c"
+#line 339 "mn-message.c"
 		}
 		break;
 	case PROP_FROM:
 		{
-#line 59 "mn-message.gob"
+#line 80 "mn-message.gob"
 { char *old = self->from; self->from = g_value_dup_string (VAL); g_free (old); }
-#line 276 "mn-message.c"
+#line 346 "mn-message.c"
 		}
 		break;
 	case PROP_SUBJECT:
 		{
-#line 63 "mn-message.gob"
+#line 84 "mn-message.gob"
 { char *old = self->subject; self->subject = g_value_dup_string (VAL); g_free (old); }
-#line 283 "mn-message.c"
+#line 353 "mn-message.c"
+		}
+		break;
+	case PROP_URI:
+		{
+#line 88 "mn-message.gob"
+{ char *old = self->uri; self->uri = g_value_dup_string (VAL); g_free (old); }
+#line 360 "mn-message.c"
 		}
 		break;
 	case PROP_FLAGS:
 		{
-#line 66 "mn-message.gob"
+#line 97 "mn-message.gob"
 self->flags = g_value_get_uint (VAL);
-#line 290 "mn-message.c"
+#line 367 "mn-message.c"
 		}
 		break;
 	default:
@@ -313,53 +390,69 @@ ___object_get_property (GObject *object,
 	self = MN_MESSAGE (object);
 
 	switch (property_id) {
-	case PROP_MAILBOX_NAME:
+	case PROP_MAILBOX:
 		{
-#line 43 "mn-message.gob"
-g_value_set_string (VAL, self->mailbox_name);
-#line 321 "mn-message.c"
+#line 64 "mn-message.gob"
+g_value_set_pointer (VAL, self->mailbox);
+#line 398 "mn-message.c"
 		}
 		break;
 	case PROP_ERROR:
 		{
-#line 47 "mn-message.gob"
+#line 68 "mn-message.gob"
 g_value_set_string (VAL, self->error);
-#line 328 "mn-message.c"
+#line 405 "mn-message.c"
 		}
 		break;
 	case PROP_SENT_TIME:
 		{
-#line 51 "mn-message.gob"
+#line 72 "mn-message.gob"
 g_value_set_ulong (VAL, self->sent_time);
-#line 335 "mn-message.c"
+#line 412 "mn-message.c"
 		}
 		break;
 	case PROP_ID:
 		{
-#line 55 "mn-message.gob"
+#line 76 "mn-message.gob"
 g_value_set_string (VAL, self->id);
-#line 342 "mn-message.c"
+#line 419 "mn-message.c"
 		}
 		break;
 	case PROP_FROM:
 		{
-#line 59 "mn-message.gob"
+#line 80 "mn-message.gob"
 g_value_set_string (VAL, self->from);
-#line 349 "mn-message.c"
+#line 426 "mn-message.c"
 		}
 		break;
 	case PROP_SUBJECT:
 		{
-#line 63 "mn-message.gob"
+#line 84 "mn-message.gob"
 g_value_set_string (VAL, self->subject);
-#line 356 "mn-message.c"
+#line 433 "mn-message.c"
+		}
+		break;
+	case PROP_URI:
+		{
+#line 88 "mn-message.gob"
+g_value_set_string (VAL, self->uri);
+#line 440 "mn-message.c"
+		}
+		break;
+	case PROP_FILENAME:
+		{
+#line 92 "mn-message.gob"
+
+      g_value_take_string(VAL, self->uri ? gnome_vfs_get_local_path_from_uri(self->uri) : NULL);
+    
+#line 449 "mn-message.c"
 		}
 		break;
 	case PROP_FLAGS:
 		{
-#line 66 "mn-message.gob"
+#line 97 "mn-message.gob"
 g_value_set_uint (VAL, self->flags);
-#line 363 "mn-message.c"
+#line 456 "mn-message.c"
 		}
 		break;
 	default:
@@ -376,10 +469,10 @@ g_value_set_uint (VAL, self->flags);
 
 
 
-#line 68 "mn-message.gob"
+#line 99 "mn-message.gob"
 static GObject * 
 ___1_mn_message_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_properties, GObjectConstructParam * construct_params)
-#line 383 "mn-message.c"
+#line 476 "mn-message.c"
 #define PARENT_HANDLER(___type,___n_construct_properties,___construct_params) \
 	((G_OBJECT_CLASS(parent_class)->constructor)? \
 		(* G_OBJECT_CLASS(parent_class)->constructor)(___type,___n_construct_properties,___construct_params): \
@@ -387,13 +480,15 @@ ___1_mn_message_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_
 {
 #define __GOB_FUNCTION__ "MN:Message::constructor"
 {
-#line 70 "mn-message.gob"
+#line 101 "mn-message.gob"
 	
     GObject *object;
     Self *self;
 
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
     self = SELF(object);
+
+    g_assert(MN_IS_MAILBOX(self->mailbox));
 
     if (! self->id)
       {
@@ -435,49 +530,671 @@ ___1_mn_message_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_
 
     return object;
   }}
-#line 439 "mn-message.c"
+#line 534 "mn-message.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 118 "mn-message.gob"
+#line 151 "mn-message.gob"
+static gboolean 
+mn_message_get_subst (MNMessage * self, const char * prop_name, char ** result)
+#line 541 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::get_subst"
+#line 151 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 151 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 151 "mn-message.gob"
+	g_return_val_if_fail (prop_name != NULL, (gboolean )0);
+#line 151 "mn-message.gob"
+	g_return_val_if_fail (result != NULL, (gboolean )0);
+#line 552 "mn-message.c"
+{
+#line 155 "mn-message.gob"
+	
+    GParamSpec **properties;
+    unsigned int n_properties;
+    gboolean status = FALSE;
+    int i;
+
+    properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(self), &n_properties);
+    for (i = 0; i < n_properties; i++)
+      if ((properties[i]->flags & MN_MESSAGE_PARAM_EXPORT) != 0
+	  && ! strcmp(g_param_spec_get_name(properties[i]), prop_name))
+	{
+	  GValue value = { 0, };
+
+	  g_value_init(&value, G_PARAM_SPEC_VALUE_TYPE(properties[i]));
+	  g_object_get_property(G_OBJECT(self), prop_name, &value);
+
+	  *result = mn_g_value_to_string(&value);
+	  g_value_unset(&value);
+
+	  status = TRUE;
+	  break;
+	}
+    g_free(properties);
+
+    return status;
+  }}
+#line 581 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 182 "mn-message.gob"
+static char * 
+mn_message_subst_command (MNMessage * self, const char * command, GError ** err)
+#line 587 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::subst_command"
+#line 182 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (char * )0);
+#line 182 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (char * )0);
+#line 182 "mn-message.gob"
+	g_return_val_if_fail (command != NULL, (char * )0);
+#line 596 "mn-message.c"
+{
+#line 184 "mn-message.gob"
+	
+    GString *result;
+    const char *p;
+
+    result = g_string_new(NULL);
+
+    for (p = command; *p;)
+      if (*p == '%')
+	{
+	  char *prop_name = NULL;
+
+	  if (p[1] == '%')
+	    {
+	      g_string_append_c(result, '%');
+	      p += 2;
+	    }
+	  else if (p[1] == '{')
+	    {
+	      char *end;
+
+	      end = strchr(p + 2, '}');
+	      if (! end)
+		{
+		  g_set_error(err, 0, 0, _("unterminated substitution"));
+		  goto error;
+		}
+
+	      prop_name = g_strndup(p + 2, end - p - 2);
+	      p = end + 1;
+	    }
+	  else
+	    {
+	      const char *end = p + 1;
+
+	      while (g_ascii_isalnum(*end) || *end == '-' || *end == '_')
+		end++;
+
+	      prop_name = g_strndup(p + 1, end - p - 1);
+	      p = end;
+	    }
+
+	  if (prop_name)
+	    {
+	      gboolean ok = FALSE;
+
+	      if (*prop_name)
+		{
+		  char *value;
+
+		  if (self_get_subst(self, prop_name, &value))
+		    {
+		      char *quoted;
+
+		      quoted = mn_shell_quote_safe(value ? value : "");
+		      g_free(value);
+
+		      g_string_append(result, quoted);
+		      g_free(quoted);
+
+		      ok = TRUE;
+		    }
+		  else
+		    g_set_error(err, 0, 0, _("unknown substitution \"%s\""), prop_name);
+		}
+	      else
+		g_set_error(err, 0, 0, _("empty substitution"));
+
+	      g_free(prop_name);
+	      if (! ok)
+		goto error;
+	    }
+	}
+      else
+	{
+	  g_string_append_c(result, *p);
+	  p++;
+	}
+
+    goto end;			/* success */
+
+  error:
+    g_string_free(result, TRUE);
+    result = NULL;
+
+  end:
+    return result ? g_string_free(result, FALSE) : NULL;
+  }}
+#line 686 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 272 "mn-message.gob"
+static gboolean 
+mn_message_execute_command_real (MNMessage * self, const char * command, GError ** err)
+#line 692 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::execute_command_real"
+#line 272 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 272 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 272 "mn-message.gob"
+	g_return_val_if_fail (command != NULL, (gboolean )0);
+#line 701 "mn-message.c"
+{
+#line 276 "mn-message.gob"
+	
+    char *subst;
+    int status;
+
+    subst = self_subst_command(self, command, err);
+    if (! subst)
+      return FALSE;
+
+    status = gnome_execute_shell(NULL, subst);
+    g_free(subst);
+
+    if (status < 0)
+      {
+	g_set_error(err, 0, 0, "%s", g_strerror(errno));
+	return FALSE;
+      }
+
+    return TRUE;
+  }}
+#line 723 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 296 "mn-message.gob"
+static gboolean 
+mn_message_execute_command (MNMessage * self, const char * id, gboolean * status, GError ** err)
+#line 729 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::execute_command"
+#line 296 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 296 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 296 "mn-message.gob"
+	g_return_val_if_fail (id != NULL, (gboolean )0);
+#line 296 "mn-message.gob"
+	g_return_val_if_fail (status != NULL, (gboolean )0);
+#line 740 "mn-message.c"
+{
+#line 301 "mn-message.gob"
+	
+    char *command;
+    GError *tmp_err = NULL;
+
+    command = mn_mailbox_get_command(self->mailbox, id);
+    if (! command)
+      return FALSE;
+
+    *status = self_execute_command_real(self, command, &tmp_err);
+    if (! *status)
+      {
+	g_set_error(err, 0, 0, _("Unable to execute \"%s\": %s."), command, tmp_err->message);
+	g_error_free(tmp_err);
+      }
+
+    g_free(command);
+    return TRUE;
+  }}
+#line 761 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 320 "mn-message.gob"
+gboolean 
+mn_message_can_open (MNMessage * self)
+#line 767 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::can_open"
+#line 320 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 320 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 774 "mn-message.c"
+{
+#line 322 "mn-message.gob"
+	
+    return mn_mailbox_has_command(self->mailbox, "open") || self_can_open_impl(self);
+  }}
+#line 780 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 326 "mn-message.gob"
+static gboolean 
+mn_message_can_open_impl (MNMessage * self)
+#line 786 "mn-message.c"
+{
+	MNMessageClass *klass;
+#line 326 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 326 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 793 "mn-message.c"
+	klass = MN_MESSAGE_GET_CLASS(self);
+
+	if(klass->can_open_impl)
+		return (*klass->can_open_impl)(self);
+	else
+		return (gboolean )(0);
+}
+#line 326 "mn-message.gob"
+static gboolean 
+___real_mn_message_can_open_impl (MNMessage * self G_GNUC_UNUSED)
+#line 804 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::can_open_impl"
+{
+#line 328 "mn-message.gob"
+	
+    return self->uri != NULL;
+  }}
+#line 812 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 332 "mn-message.gob"
+gboolean 
+mn_message_open (MNMessage * self, GError ** err)
+#line 818 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::open"
+#line 332 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 332 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 825 "mn-message.c"
+{
+#line 334 "mn-message.gob"
+	
+    gboolean status;
+
+    if (self_execute_command(self, "open", &status, err))
+      {
+	mn_mailbox_mark_as_read(self);
+	return status;
+      }
+    else
+      return self_open_impl(self, err);
+  }}
+#line 839 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 346 "mn-message.gob"
+static gboolean 
+mn_message_open_impl (MNMessage * self, GError ** err)
+#line 845 "mn-message.c"
+{
+	MNMessageClass *klass;
+#line 346 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 346 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 852 "mn-message.c"
+	klass = MN_MESSAGE_GET_CLASS(self);
+
+	if(klass->open_impl)
+		return (*klass->open_impl)(self,err);
+	else
+		return (gboolean )(0);
+}
+#line 346 "mn-message.gob"
+static gboolean 
+___real_mn_message_open_impl (MNMessage * self G_GNUC_UNUSED, GError ** err)
+#line 863 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::open_impl"
+{
+#line 348 "mn-message.gob"
+	
+    return gnome_url_show(self->uri, err);
+  }}
+#line 871 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 352 "mn-message.gob"
+gboolean 
+mn_message_can_mark_as_read (MNMessage * self)
+#line 877 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::can_mark_as_read"
+#line 352 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 352 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 884 "mn-message.c"
+{
+#line 354 "mn-message.gob"
+	
+    return mn_mailbox_has_command(self->mailbox, "mark-as-read") || self_can_mark_as_read_impl(self);
+  }}
+#line 890 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 358 "mn-message.gob"
+static gboolean 
+mn_message_can_mark_as_read_impl (MNMessage * self)
+#line 896 "mn-message.c"
+{
+	MNMessageClass *klass;
+#line 358 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 358 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 903 "mn-message.c"
+	klass = MN_MESSAGE_GET_CLASS(self);
+
+	if(klass->can_mark_as_read_impl)
+		return (*klass->can_mark_as_read_impl)(self);
+	else
+		return (gboolean )(0);
+}
+#line 358 "mn-message.gob"
+static gboolean 
+___real_mn_message_can_mark_as_read_impl (MNMessage * self G_GNUC_UNUSED)
+#line 914 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::can_mark_as_read_impl"
+{
+#line 360 "mn-message.gob"
+	
+    return SELF_GET_CLASS(self)->mark_as_read_impl != NULL;
+  }}
+#line 922 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 364 "mn-message.gob"
+static gboolean 
+mn_message_mark_as_read_real (MNMessage * self, GError ** err)
+#line 928 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::mark_as_read_real"
+#line 364 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 364 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 935 "mn-message.c"
+{
+#line 366 "mn-message.gob"
+	
+    gboolean status;
+
+    if (self_execute_command(self, "mark-as-read", &status, err))
+      return status;
+    else
+      return self_mark_as_read_impl(self, err);
+  }}
+#line 946 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 375 "mn-message.gob"
+gboolean 
+mn_message_mark_as_read (MNMessage * self, GError ** err)
+#line 952 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::mark_as_read"
+#line 375 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 375 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 959 "mn-message.c"
+{
+#line 377 "mn-message.gob"
+	
+    if (self_mark_as_read_real(self, err))
+      {
+	mn_mailbox_mark_as_read(self);
+	return TRUE;
+      }
+    else
+      return FALSE;
+  }}
+#line 971 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 387 "mn-message.gob"
+static gboolean 
+mn_message_mark_as_read_impl (MNMessage * self, GError ** err)
+#line 977 "mn-message.c"
+{
+	MNMessageClass *klass;
+#line 387 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 387 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 984 "mn-message.c"
+	klass = MN_MESSAGE_GET_CLASS(self);
+
+	if(klass->mark_as_read_impl)
+		return (*klass->mark_as_read_impl)(self,err);
+	else
+		return (gboolean )(0);
+}
+
+#line 390 "mn-message.gob"
+gboolean 
+mn_message_can_mark_as_spam (MNMessage * self)
+#line 996 "mn-message.c"
+{
+	MNMessageClass *klass;
+#line 390 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 390 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 1003 "mn-message.c"
+	klass = MN_MESSAGE_GET_CLASS(self);
+
+	if(klass->can_mark_as_spam)
+		return (*klass->can_mark_as_spam)(self);
+	else
+		return (gboolean )(0);
+}
+#line 390 "mn-message.gob"
+static gboolean 
+___real_mn_message_can_mark_as_spam (MNMessage * self G_GNUC_UNUSED)
+#line 1014 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::can_mark_as_spam"
+{
+#line 392 "mn-message.gob"
+	
+    return mn_mailbox_has_command(self->mailbox, "mark-as-spam") || self_can_mark_as_spam_impl(self);
+  }}
+#line 1022 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 396 "mn-message.gob"
+static gboolean 
+mn_message_can_mark_as_spam_impl (MNMessage * self)
+#line 1028 "mn-message.c"
+{
+	MNMessageClass *klass;
+#line 396 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 396 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 1035 "mn-message.c"
+	klass = MN_MESSAGE_GET_CLASS(self);
+
+	if(klass->can_mark_as_spam_impl)
+		return (*klass->can_mark_as_spam_impl)(self);
+	else
+		return (gboolean )(0);
+}
+#line 396 "mn-message.gob"
+static gboolean 
+___real_mn_message_can_mark_as_spam_impl (MNMessage * self G_GNUC_UNUSED)
+#line 1046 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::can_mark_as_spam_impl"
+{
+#line 398 "mn-message.gob"
+	
+    return SELF_GET_CLASS(self)->mark_as_spam_impl != NULL;
+  }}
+#line 1054 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 402 "mn-message.gob"
+static gboolean 
+mn_message_mark_as_spam_real (MNMessage * self, GError ** err)
+#line 1060 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::mark_as_spam_real"
+#line 402 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 402 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 1067 "mn-message.c"
+{
+#line 404 "mn-message.gob"
+	
+    gboolean status;
+
+    if (self_execute_command(self, "mark-as-spam", &status, err))
+      return status;
+    else
+      return self_mark_as_spam_impl(self, err);
+  }}
+#line 1078 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 413 "mn-message.gob"
+gboolean 
+mn_message_mark_as_spam (MNMessage * self, GError ** err)
+#line 1084 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::mark_as_spam"
+#line 413 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 413 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 1091 "mn-message.c"
+{
+#line 415 "mn-message.gob"
+	
+    if (self_mark_as_spam_real(self, err))
+      {
+	mn_mailbox_mark_as_read(self);
+	return TRUE;
+      }
+    else
+      return FALSE;
+  }}
+#line 1103 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 425 "mn-message.gob"
+static gboolean 
+mn_message_mark_as_spam_impl (MNMessage * self, GError ** err)
+#line 1109 "mn-message.c"
+{
+	MNMessageClass *klass;
+#line 425 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 425 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (gboolean )0);
+#line 1116 "mn-message.c"
+	klass = MN_MESSAGE_GET_CLASS(self);
+
+	if(klass->mark_as_spam_impl)
+		return (*klass->mark_as_spam_impl)(self,err);
+	else
+		return (gboolean )(0);
+}
+
+#line 428 "mn-message.gob"
 MNMessage * 
-mn_message_new (MNMailbox * mailbox, const char * error, time_t sent_time, const char * id, const char * from, const char * subject, MNMessageFlags flags)
-#line 446 "mn-message.c"
+mn_message_new (MNMailbox * mailbox, const char * error, time_t sent_time, const char * id, const char * from, const char * subject, const char * uri, MNMessageFlags flags)
+#line 1128 "mn-message.c"
 {
 #define __GOB_FUNCTION__ "MN:Message::new"
+#line 428 "mn-message.gob"
+	g_return_val_if_fail (mailbox != NULL, (MNMessage * )0);
+#line 428 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MAILBOX (mailbox), (MNMessage * )0);
+#line 1135 "mn-message.c"
 {
-#line 126 "mn-message.gob"
+#line 437 "mn-message.gob"
 	
-    g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
-
-    /* translators: "none" is used like "Mailbox: none" */
-    return GET_NEW_VARG(MN_MESSAGE_PROP_MAILBOX_NAME(mailbox ? mailbox->runtime_name : _("none")),
+    return GET_NEW_VARG(MN_MESSAGE_PROP_MAILBOX(mailbox),
 			MN_MESSAGE_PROP_ERROR((char *) error),
 			MN_MESSAGE_PROP_SENT_TIME(sent_time),
 			MN_MESSAGE_PROP_ID((char *) id),
 			MN_MESSAGE_PROP_FROM((char *) from),
 			MN_MESSAGE_PROP_SUBJECT((char *) subject),
+			MN_MESSAGE_PROP_URI((char *) uri),
 			MN_MESSAGE_PROP_FLAGS(flags),
 			NULL);
   }}
-#line 464 "mn-message.c"
+#line 1149 "mn-message.c"
 #undef __GOB_FUNCTION__
 
-#line 140 "mn-message.gob"
+#line 449 "mn-message.gob"
 MNMessage * 
 mn_message_new_from_error (MNMailbox * mailbox, const char * error, MNMessageFlags flags)
-#line 470 "mn-message.c"
+#line 1155 "mn-message.c"
 {
 #define __GOB_FUNCTION__ "MN:Message::new_from_error"
-#line 140 "mn-message.gob"
+#line 449 "mn-message.gob"
+	g_return_val_if_fail (mailbox != NULL, (MNMessage * )0);
+#line 449 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MAILBOX (mailbox), (MNMessage * )0);
+#line 449 "mn-message.gob"
 	g_return_val_if_fail (error != NULL, (MNMessage * )0);
-#line 475 "mn-message.c"
+#line 1164 "mn-message.c"
 {
-#line 144 "mn-message.gob"
+#line 453 "mn-message.gob"
 	
-    g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
-
-    return self_new(mailbox, error, 0, NULL, NULL, NULL, flags);
+    return self_new(mailbox, error, 0, NULL, NULL, NULL, NULL, flags);
   }}
-#line 483 "mn-message.c"
+#line 1170 "mn-message.c"
+#undef __GOB_FUNCTION__
+
+#line 457 "mn-message.gob"
+xmlNode * 
+mn_message_xml_node_new (MNMessage * self)
+#line 1176 "mn-message.c"
+{
+#define __GOB_FUNCTION__ "MN:Message::xml_node_new"
+#line 457 "mn-message.gob"
+	g_return_val_if_fail (self != NULL, (xmlNode * )0);
+#line 457 "mn-message.gob"
+	g_return_val_if_fail (MN_IS_MESSAGE (self), (xmlNode * )0);
+#line 1183 "mn-message.c"
+{
+#line 459 "mn-message.gob"
+	
+    xmlNode *node;
+
+    node = xmlNewNode(NULL, "message");
+
+    xmlSetProp(node, "mailbox", self->mailbox->runtime_name);
+
+    if ((self->flags & MN_MESSAGE_NEW) != 0)
+      xmlSetProp(node, "new", "true");
+
+    mn_xml_export_properties(G_OBJECT(self), node);
+
+    return node;
+  }}
+#line 1200 "mn-message.c"
 #undef __GOB_FUNCTION__

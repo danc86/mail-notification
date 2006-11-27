@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 25 "mn-custom-vfs-mailbox.gob"
+#line 26 "mn-custom-vfs-mailbox.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
@@ -110,7 +110,7 @@ ___finalize(GObject *obj_self)
 	MNCustomVFSMailbox *self G_GNUC_UNUSED = MN_CUSTOM_VFS_MAILBOX (obj_self);
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 34 "mn-custom-vfs-mailbox.gob"
+#line 35 "mn-custom-vfs-mailbox.gob"
 	if(self->uri) { g_free ((gpointer) self->uri); self->uri = NULL; }
 #line 116 "mn-custom-vfs-mailbox.c"
 }
@@ -122,7 +122,7 @@ mn_custom_vfs_mailbox_init (MNCustomVFSMailbox * o G_GNUC_UNUSED)
 #define __GOB_FUNCTION__ "MN:Custom:VFS:Mailbox::init"
 }
 #undef __GOB_FUNCTION__
-#line 37 "mn-custom-vfs-mailbox.gob"
+#line 38 "mn-custom-vfs-mailbox.gob"
 static void 
 mn_custom_vfs_mailbox_class_init (MNCustomVFSMailboxClass * class G_GNUC_UNUSED)
 #line 129 "mn-custom-vfs-mailbox.c"
@@ -133,11 +133,11 @@ mn_custom_vfs_mailbox_class_init (MNCustomVFSMailboxClass * class G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (MN_TYPE_VFS_MAILBOX);
 
-#line 42 "mn-custom-vfs-mailbox.gob"
+#line 43 "mn-custom-vfs-mailbox.gob"
 	mn_mailbox_class->seal = ___2_mn_custom_vfs_mailbox_seal;
-#line 50 "mn-custom-vfs-mailbox.gob"
+#line 51 "mn-custom-vfs-mailbox.gob"
 	mn_mailbox_class->parse_uri = ___3_mn_custom_vfs_mailbox_parse_uri;
-#line 66 "mn-custom-vfs-mailbox.gob"
+#line 67 "mn-custom-vfs-mailbox.gob"
 	mn_mailbox_class->check = ___4_mn_custom_vfs_mailbox_check;
 #line 143 "mn-custom-vfs-mailbox.c"
 	g_object_class->finalize = ___finalize;
@@ -157,7 +157,7 @@ mn_custom_vfs_mailbox_class_init (MNCustomVFSMailboxClass * class G_GNUC_UNUSED)
 		param_spec);
     }
  {
-#line 38 "mn-custom-vfs-mailbox.gob"
+#line 39 "mn-custom-vfs-mailbox.gob"
 
     MN_MAILBOX_CLASS(class)->type = "custom-vfs";
   
@@ -180,7 +180,7 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_URI:
 		{
-#line 35 "mn-custom-vfs-mailbox.gob"
+#line 36 "mn-custom-vfs-mailbox.gob"
 { char *old = self->uri; self->uri = g_value_dup_string (VAL); g_free (old); }
 #line 186 "mn-custom-vfs-mailbox.c"
 		}
@@ -211,7 +211,7 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_URI:
 		{
-#line 35 "mn-custom-vfs-mailbox.gob"
+#line 36 "mn-custom-vfs-mailbox.gob"
 g_value_set_string (VAL, self->uri);
 #line 217 "mn-custom-vfs-mailbox.c"
 		}
@@ -230,7 +230,7 @@ g_value_set_string (VAL, self->uri);
 
 
 
-#line 42 "mn-custom-vfs-mailbox.gob"
+#line 43 "mn-custom-vfs-mailbox.gob"
 static void 
 ___2_mn_custom_vfs_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
 #line 237 "mn-custom-vfs-mailbox.c"
@@ -240,7 +240,7 @@ ___2_mn_custom_vfs_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:Custom:VFS:Mailbox::seal"
 {
-#line 44 "mn-custom-vfs-mailbox.gob"
+#line 45 "mn-custom-vfs-mailbox.gob"
 	
     MN_VFS_MAILBOX(mailbox)->uri = gnome_vfs_make_uri_canonical(SELF(mailbox)->uri);
 
@@ -250,7 +250,7 @@ ___2_mn_custom_vfs_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 50 "mn-custom-vfs-mailbox.gob"
+#line 51 "mn-custom-vfs-mailbox.gob"
 static MNMailbox * 
 ___3_mn_custom_vfs_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const char * uri)
 #line 257 "mn-custom-vfs-mailbox.c"
@@ -261,7 +261,7 @@ ___3_mn_custom_vfs_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const cha
 {
 #define __GOB_FUNCTION__ "MN:Custom:VFS:Mailbox::parse_uri"
 {
-#line 52 "mn-custom-vfs-mailbox.gob"
+#line 53 "mn-custom-vfs-mailbox.gob"
 	
     GnomeVFSURI *vfs_uri;
     MNMailbox *mailbox = NULL;
@@ -279,7 +279,7 @@ ___3_mn_custom_vfs_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const cha
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 66 "mn-custom-vfs-mailbox.gob"
+#line 67 "mn-custom-vfs-mailbox.gob"
 static void 
 ___4_mn_custom_vfs_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
 #line 286 "mn-custom-vfs-mailbox.c"
@@ -289,7 +289,7 @@ ___4_mn_custom_vfs_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:Custom:VFS:Mailbox::check"
 {
-#line 68 "mn-custom-vfs-mailbox.gob"
+#line 69 "mn-custom-vfs-mailbox.gob"
 	
     if (MN_VFS_MAILBOX(mailbox)->vfs_uri)
       {

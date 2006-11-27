@@ -1,0 +1,81 @@
+/* 
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include "mn-base-mbox-mailbox-backend.h"
+%}
+
+%{
+#include "config.h"
+#include <stdlib.h>
+#include <limits.h>
+#include "mn-base-mbox-mailbox-backend-private.h"
+#include "mn-message-mime.h"
+#include "mn-util.h"
+
+/* taken from base/public/nsMsgMessageFlags.h in the Mozilla Mail&News sources */
+/* in X-Mozilla-Status */
+#define MOZILLA_MSG_FLAG_READ		0x0001
+#define MOZILLA_MSG_FLAG_EXPUNGED	0x0008
+/* in X-Mozilla-Status2 */
+#define MOZILLA_MSG_FLAG_NEW		0x10000
+%}
+
+class MN:Mozilla:Mailbox:Backend from MN:Base:Mbox:Mailbox:Backend
+{
+  class_init (class)
+  {
+    MN_VFS_MAILBOX_BACKEND_CLASS(class)->format = "Mozilla";
+  }
+
+  override (MN:Base:Mbox:Mailbox:Backend) MNMessage *
+    get_new_message (MNBaseMboxMailboxBackend *backend, GMimeMessage *mime_message)
+  {
+    int flags;
+
+    flags = self_get_status_flags(mime_message, "X-Mozilla-Status");
+    if ((flags & MOZILLA_MSG_FLAG_READ) == 0
+	&& (flags & MOZILLA_MSG_FLAG_EXPUNGED) == 0)
+      {
+	int mn_flags = 0;
+
+	if ((self_get_status_flags(mime_message, "X-Mozilla-Status2") & MOZILLA_MSG_FLAG_NEW) != 0)
+	  mn_flags |= MN_MESSAGE_NEW;
+
+	return mn_message_new_from_mime_message(MN_MAILBOX(MN_VFS_MAILBOX_BACKEND(backend)->mailbox), mime_message, NULL, mn_flags, FALSE);
+      }
+    else
+      return NULL;
+  }
+
+  private int
+    get_status_flags (GMime:Message *mime_message (check null type),
+		      const char *header_name (check null))
+  {
+    const char *header;
+
+    header = g_mime_message_get_header(mime_message, header_name);
+    if (header && mn_str_ishex(header))
+      return strtol(header, NULL, 16);
+    else
+      return 0;
+  }
+}

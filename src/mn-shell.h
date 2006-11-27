@@ -7,6 +7,8 @@
 #include <gtk/gtk.h>
 #include "mn-mailboxes.h"
 #include "mn-mailbox-properties-dialog.h"
+#include "mn-mail-icon.h"
+#include "mn-popups.h"
 
 #ifndef __MN_SHELL_H__
 #define __MN_SHELL_H__
@@ -50,6 +52,8 @@ struct _MNShell {
 	GObject __parent__;
 	/*< public >*/
 	MNMailboxes * mailboxes;
+	MNMailIcon * icon;
+	MNPopups * popups;
 	/*< private >*/
 	MNShellPrivate *_priv;
 };
@@ -70,29 +74,20 @@ GType	mn_shell_get_type	(void);
 MNShell * 	mn_shell_new	(void);
 void 	mn_shell_display_properties_dialog	(MNShell * self);
 void 	mn_shell_display_about_dialog	(MNShell * self);
-void 	mn_shell_close_mail_summary_popup	(MNShell * self);
 void 	mn_shell_add_mailbox_properties_dialog	(MNShell * self,
 					MNMailboxPropertiesDialog * dialog);
 MNMailboxPropertiesDialog * 	mn_shell_get_mailbox_properties_dialog	(MNShell * self,
 					MNMailbox * mailbox);
+char * 	mn_shell_get_summary	(MNShell * self);
 
 
 extern MNShell *mn_shell;
 
 
 typedef enum {
-	MN_POSITION_TOP_LEFT,
-	MN_POSITION_TOP_RIGHT,
-	MN_POSITION_BOTTOM_LEFT,
-	MN_POSITION_BOTTOM_RIGHT
-} MNPosition;
-#define MN_TYPE_POSITION mn_position_get_type()
-GType mn_position_get_type (void);
-
-
-typedef enum {
 	MN_ACTION_DISPLAY_PROPERTIES_DIALOG,
 	MN_ACTION_LAUNCH_MAIL_READER,
+	MN_ACTION_OPEN_LATEST_MESSAGE,
 	MN_ACTION_UPDATE_MAIL_STATUS
 } MNAction;
 #define MN_TYPE_ACTION mn_action_get_type()
@@ -100,11 +95,20 @@ GType mn_action_get_type (void);
 
 
 typedef enum {
-	MN_ASPECT_SOURCE_THEME,
-	MN_ASPECT_SOURCE_CUSTOM
-} MNAspectSource;
-#define MN_TYPE_ASPECT_SOURCE mn_aspect_source_get_type()
-GType mn_aspect_source_get_type (void);
+	MN_EXPIRATION_ENABLED_DEFAULT,
+	MN_EXPIRATION_ENABLED_FALSE,
+	MN_EXPIRATION_ENABLED_TRUE
+} MNExpirationEnabled;
+#define MN_TYPE_EXPIRATION_ENABLED mn_expiration_enabled_get_type()
+GType mn_expiration_enabled_get_type (void);
+
+
+typedef enum {
+	MN_POPUP_POSITION_ATTACHED,
+	MN_POPUP_POSITION_FREE
+} MNPopupPosition;
+#define MN_TYPE_POPUP_POSITION mn_popup_position_get_type()
+GType mn_popup_position_get_type (void);
 
 
 #ifdef __cplusplus

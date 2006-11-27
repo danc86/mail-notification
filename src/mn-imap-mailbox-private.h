@@ -10,17 +10,17 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 39 "mn-imap-mailbox.gob"
+#line 40 "mn-imap-mailbox.gob"
 
 #include "mn-client-session.h"
 
 #line 18 "mn-imap-mailbox-private.h"
 struct _MNIMAPMailboxPrivate {
-#line 160 "mn-imap-mailbox.gob"
+#line 161 "mn-imap-mailbox.gob"
 	int removed;
-#line 163 "mn-imap-mailbox.gob"
+#line 164 "mn-imap-mailbox.gob"
 	GMutex * mutex;
-#line 165 "mn-imap-mailbox.gob"
+#line 166 "mn-imap-mailbox.gob"
 	MNClientSessionPrivate * idle_session;
 #line 26 "mn-imap-mailbox-private.h"
 };

@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "3.0">
-  <!ENTITY manrevision "2.15">
-  <!ENTITY date "Wednesday, June 14, 2006">
+  <!ENTITY appversion "4.0 Release Candidate 1">
+  <!ENTITY manrevision "2.16">
+  <!ENTITY date "Monday, November 27, 2006">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -21,15 +21,16 @@
   <!ENTITY sasl "<link linkend=&#34;sasl&#34;>SASL</link>">
   <!ENTITY ssl "<link linkend=&#34;pop3&#34;>SSL</link>">
   <!ENTITY tls "<link linkend=&#34;pop3&#34;>TLS</link>">
+  <!ENTITY mozilla "<link linkend=&#34;mozilla&#34;>Mozilla</link>">
   <!ENTITY sylpheed "<link linkend=&#34;sylpheed&#34;>Sylpheed</link>">
   <!ENTITY gmail "<link linkend=&#34;gmail&#34;>Gmail</link>">
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.133 2006/06/14 07:44:48 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.148 2006/11/27 20:59:55 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
-<!-- Copyright (C) 2004-2006 Jean-Yves Lefort -->
+<!-- Copyright (C) 2003-2006 Jean-Yves Lefort -->
 <!-- All rights reserved. -->
 
 <!-- Redistribution and use in source (SGML DocBook) and 'compiled' -->
@@ -127,6 +128,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.15</revnumber>
+	<date>Wednesday, June 14, 2006</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -335,13 +347,13 @@
     </para>
     <itemizedlist>
       <listitem><para>multiple mailbox support</para></listitem>
-      <listitem><para>&mbox;, &mh;, &maildir;, &pop3;, &imap;, &gmail;, Evolution and &sylpheed; support</para></listitem>
+      <listitem><para>&mbox;, &mh;, &maildir;, &pop3;, &imap;, &gmail;, Evolution, &mozilla; products (Mozilla, SeaMonkey, Thunderbird, &hellip;) and &sylpheed; support</para></listitem>
       <listitem><para>&sasl; authentication support</para></listitem>
       <listitem><para>APOP authentication support</para></listitem>
       <listitem><para>&ssl;/&tls; support</para></listitem>
       <listitem><para>automatic detection of mailbox format</para></listitem>
       <listitem><para><link linkend="immediate-notification">immediate notification</link> (the status icon is updated immediately or within seconds after a mailbox changes)</para></listitem>
-      <listitem><para>a mail summary</para></listitem>
+      <listitem><para>message popups</para></listitem>
       <listitem><para><ulink url="http://developer.gnome.org/projects/gup/hig" type="http">HIG</ulink> 2.0 compliance</para></listitem>
     </itemizedlist>
   </sect1>
@@ -356,7 +368,7 @@
       </para>
       <variablelist>
     	<varlistentry>
-	  <term><guimenu>Desktop</guimenu> menu</term>
+	  <term><guimenu>System</guimenu> menu</term>
 	  <listitem>
 	    <para>Choose
 	      <menuchoice>
@@ -383,12 +395,12 @@
 	    </para>
 	    <variablelist>
 	      <varlistentry>
-		<term>--version</term>
+		<term>-v, --version</term>
 		<listitem><para>Show version information and compiled-in features</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term>--enable-info</term>
+		<term>-i, --enable-info</term>
 		<listitem>
 		  <para>Enable informational output</para>
 		  <warning>
@@ -403,23 +415,23 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term>--display-properties</term>
+		<term>-p, --display-properties</term>
 		<listitem><para>Display the properties dialog</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term>--display-about</term>
+		<term>-a, --display-about</term>
 		<listitem><para>Display the about dialog</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term>--close-popup</term>
-		<listitem><para>Close the mail summary popup</para></listitem>
+		<term>-u, --update</term>
+		<listitem><para>Update the mail status</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term>--update</term>
-		<listitem><para>Update the mail status</para></listitem>
+		<term>-s, --print-summary</term>
+		<listitem><para>Print a XML mail summary</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
@@ -428,12 +440,12 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term>--quit</term>
+		<term>-q, --quit</term>
 		<listitem><para>Quit &app;</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term>--help</term>
+		<term>-?, --help</term>
 		<listitem><para>Show help</para></listitem>
 	      </varlistentry>
 	    </variablelist>
@@ -478,9 +490,9 @@
 	</listitem>
 	<listitem>
 	  <para>
-	    if the <link linkend="enable-mail-summary-popup">Enable mail summary popup</link>
-	    setting is enabled, an overview of new and unread messages is
-	    displayed
+	    if the <link linkend="enable-message-popups">Enable
+	    message popups</link> setting is enabled, information
+	    about each new message is popped up on your desktop
 	  </para>
 	</listitem>
       </itemizedlist>
@@ -501,7 +513,7 @@
     <title>Properties</title> 
     <para>To configure &app;, choose
       <menuchoice>
-	<guimenu>Desktop</guimenu>
+	<guimenu>System</guimenu>
 	<guisubmenu>Preferences</guisubmenu>
 	<guimenuitem>Mail Notification</guimenuitem>
       </menuchoice> (this location may vary across systems).
@@ -518,9 +530,14 @@
 	<para><link linkend="properties-status-icon">Status Icon</link></para>
       </listitem>
       <listitem>
-	<para><link linkend="properties-mail-summary-popup">Mail Summary Popup</link></para>
+	<para><link linkend="properties-message-popups">Message Popups</link></para>
       </listitem>
     </itemizedlist>
+    <para>
+      In addition, at the bottom of the dialog, the <guilabel>Test
+      messages</guilabel> option can be used to test the various
+      options against test messages.
+    </para>
 
     <sect2 id="properties-general">
       <title>General</title>
@@ -540,8 +557,9 @@
 		  <para>
 		    The following mailbox types make a distinction
 		    between seen and unseen mail: &mbox;, &maildir;,
-		    &pop3;, &imap;, Evolution and &sylpheed;. Other
-		    mailbox types consider all unread mail as unseen.
+		    &pop3;, &imap;, Evolution, &mozilla; and
+		    &sylpheed;. Other mailbox types consider all
+		    unread mail as unseen.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -698,7 +716,8 @@
 	      You can choose an action to be performed when the mail
 	      icon is clicked:
 	      <guilabel>display this dialog</guilabel>,
-	      <guilabel>launch the mail reader</guilabel> or
+	      <guilabel>launch the mail reader</guilabel>,
+	      <guilabel>open the latest message</guilabel> or
 	      <guilabel>update the mail status</guilabel>.
 	    </para>
 	  </listitem>
@@ -706,46 +725,20 @@
       </variablelist>
     </sect2>
 
-    <sect2 id="properties-mail-summary-popup">
-      <title>Mail Summary Popup</title>
+    <sect2 id="properties-message-popups">
+      <title>Message Popups</title>
       <variablelist>
 	<varlistentry>
 	  <term><guilabel>General</guilabel></term>
 	  <listitem>
 	    <variablelist>
-	      <varlistentry id="enable-mail-summary-popup">
-		<term><guilabel>Enable mail summary popup</guilabel></term>
+	      <varlistentry id="enable-message-popups">
+		<term><guilabel>Enable message popups</guilabel></term>
 		<listitem>
 		  <para>
-		    If this option is enabled, the mail summary popup
-		    will be displayed when new mail arrives.
-		  </para>
-		</listitem>
-	      </varlistentry>
-	      <varlistentry>
-		<term><guilabel>Automatically close after</guilabel></term>
-		<listitem>
-		  <para>
-		    If this option is enabled, the mail summary popup
-		    will be automatically closed after a delay has
-		    elapsed.
-		    <note>
-		      <para>
-			The timer is restarted when new mail arrives.
-		      </para>
-		    </note>
-		  </para>
-		</listitem>
-	      </varlistentry>
-	      <varlistentry>
-		<term><guilabel>Hide previously displayed mail</guilabel></term>
-		<listitem>
-		  <para>
-		    If this option is enabled, the mail summary popup
-		    will only show new mail once (that is, the next
-		    time the mail summary is popped up, it will only
-		    display mail that was received since it was last
-		    popped up).
+		    If this option is enabled, an information window
+		    will be popped up on your desktop whenever a new
+		    message arrives.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -755,33 +748,24 @@
 	<varlistentry>
 	  <term><guilabel>Position</guilabel></term>
 	  <listitem>
+	    <para>
+	      The location of the message popups on the screen.
+	    </para>
 	    <variablelist>
 	      <varlistentry>
-		<term><guilabel>Position</guilabel></term>
+		<term><guilabel>Attached to the status icon</guilabel></term>
 		<listitem>
 		  <para>
-		    The location of the mail summary popup on the
-		    screen.
+		    Message popups will be placed next to the status icon.
 		  </para>
 		</listitem>
 	      </varlistentry>
 	      <varlistentry>
-		<term><guilabel>Horizontal offset</guilabel></term>
+		<term><guilabel>In the popup stack</guilabel></term>
 		<listitem>
 		  <para>
-		    The number of pixels to leave between the left or
-		    right side of the screen and the mail summary
-		    popup.
-		  </para>
-		</listitem>
-	      </varlistentry>
-	      <varlistentry>
-		<term><guilabel>Vertical offset</guilabel></term>
-		<listitem>
-		  <para>
-		    The number of pixels to leave between the top or
-		    bottom side of the screen and the mail summary
-		    popup.
+		    Message popups will be stacked together in one
+		    corner of your screen.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -789,44 +773,12 @@
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
-	  <term><guilabel>Layout</guilabel></term>
+	  <term><guilabel>Expiration</guilabel></term>
 	  <listitem>
 	    <para>
-	      You can choose the layout of the mail summary:
-	      <guilabel>standard</guilabel> or
-	      <guilabel>compact</guilabel>.
-	    </para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term><guilabel>Fonts</guilabel></term>
-	  <listitem>
-	    <para>
-	      You can choose to override your default theme fonts and
-	      use custom fonts in the mail summary popup. To further
-	      customise the appearance of &app;, see <xref linkend="modifying-appearance"/>.
-	    </para>
-	    <note>
-	      <para>
-		The specified fonts are relative to the text
-		properties hard-coded into &app;, which cannot be
-		modified: the title is printed in bold and uses a
-		larger font size than the contents, and the message
-		headers are printed in bold.
-	      </para>
-	    </note>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term><guibutton>Display a Test Popup</guibutton></term>
-	  <listitem>
-	    <para>
-	      Clicking on this button will display an example popup,
-	      which can be used to ease configuration of the above
-	      options.
-	    </para>
-	    <para>
-	      Click on the example popup to close it.
+	      You can choose to have message popups stay on the screen
+	      until you click them, or have them disappear after some
+	      time has elapsed.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -838,312 +790,549 @@
     <title>Mailbox Properties</title>
     <para>
       The <guilabel>Mailbox Properties</guilabel> dialog is displayed
-      when you add a new mailbox or when you edit an existing one.
-      It contains the following global settings:
+      when you add a new mailbox or when you edit an existing one. It
+      may contain the following tabbed sections:
     </para>
+    <itemizedlist>
+      <listitem>
+	<para><link linkend="mailbox-properties-general">General</link></para>
+      </listitem>
+      <listitem>
+	<para><link linkend="mailbox-properties-connection">Connection</link></para>
+      </listitem>
+    </itemizedlist>
 
-    <variablelist>
-      <varlistentry>
-	<term><guilabel>Mailbox type</guilabel></term>
-	<listitem>
-	  <para>
-	    This is the type of the mailbox. If you select <guilabel>autodetect</guilabel>,
-	    the type will be autodetected using the mailbox &uri; and/or contents.
-	  </para>
-	</listitem>
-      </varlistentry>
-      <varlistentry>
-	<term><guilabel>Mailbox name</guilabel></term>
-	<listitem>
-	  <para>
-	    You can choose to assign a custom name to the mailbox. The
-	    mailbox name has informative purposes only, and is
-	    displayed in various parts of &app;. To reset to the
-	    default name, click on the <guibutton>Use Default</guibutton>
-	    button.
-	  </para>
-	  <note>
+    <sect2 id="mailbox-properties-general">
+      <title>General</title>
+      <variablelist>
+	<varlistentry>
+	  <term><guilabel>General</guilabel></term>
+	  <listitem>
+	    <variablelist>
+	      <varlistentry>
+		<term><guilabel>Mailbox type</guilabel></term>
+		<listitem>
+		  <para>
+		    This is the type of the mailbox. If you select
+		    <guilabel>autodetect</guilabel>, the type will be
+		    autodetected using the mailbox &uri; and/or
+		    contents.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Mailbox name</guilabel></term>
+		<listitem>
+		  <para>
+		    You can choose to assign a custom name to the
+		    mailbox. The mailbox name has informative purposes
+		    only, and is displayed in various parts of
+		    &app;. To reset to the default name, click on the
+		    <guibutton>Use Default</guibutton> button.
+		  </para>
+		  <note>
+		    <para>
+		      The mailbox name will be modified automatically
+		      as you set some of the other options. To avoid
+		      losing your choice, only fill in the mailbox
+		      name after setting the other options.
+		    </para>
+		  </note>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry id="delay-between-mail-checks">
+		<term><guilabel>Delay between mail checks</guilabel></term>
+		<listitem>
+		  <para>
+		    This is the amount of time to wait between mail checks.
+		    <note>
+		      <para>
+			This delay is only used if the mailbox does
+			not support <link
+			linkend="immediate-notification">immediate
+			notification</link> of changes. If this is the
+			case, an <link
+			linkend="poll-emblem">emblem</link> will be
+			displayed in the <link
+			linkend="mailbox-list">mailbox list</link>.
+		      </para>
+		    </note>
+		  </para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>
+	    <guilabel>Location</guilabel>
+	    (<guilabel>Autodetect</guilabel> and <guilabel>System
+	      mailbox</guilabel> only)
+	  </term>
+	  <listitem>
 	    <para>
-	      The mailbox name will be modified automatically as you
-	      set some of the other options. To avoid losing your
-	      choice, only fill in the mailbox name after setting the
-	      other options.
+	      This is the &uri; of the mailbox.
 	    </para>
-	  </note>
-	</listitem>
-      </varlistentry>
-      <varlistentry id="delay-between-mail-checks">
-	<term><guilabel>Delay between mail checks</guilabel></term>
-	<listitem>
-	  <para>
-	    This is the amount of time to wait between mail checks.
 	    <note>
 	      <para>
-		This delay is only used if the mailbox does not support
-		<link linkend="immediate-notification">immediate notification</link>
-		of changes. If this is the case, an <link
-		linkend="poll-emblem">emblem</link> will be displayed
-		in the <link linkend="mailbox-list">mailbox
-		list</link>.
+		&app; abstracts file operations by using &gnomevfs;.
+		All the schemes (http, ftp, sftp, &hellip;) supported by
+		&gnomevfs; are therefore supported by &app;.
 	      </para>
 	    </note>
-	  </para>
-	</listitem>
-      </varlistentry>
-    </variablelist>
+	  </listitem>
+	</varlistentry>
 
+	<varlistentry>
+	  <term>
+	    <guilabel>Account</guilabel> (<guilabel>POP3</guilabel>,
+	    <guilabel>IMAP</guilabel> and <guilabel>Gmail</guilabel>
+	    only)
+	  </term>
+	  <listitem>
+	    <variablelist>
+	      <varlistentry>
+		<term>
+		  <guilabel>Server</guilabel>
+		  (<guilabel>POP3</guilabel> and
+		  <guilabel>IMAP</guilabel> only)
+		</term>
+		<listitem>
+		  <para>
+		    This is the hostname or IP address of the &pop3; or
+		    &imap; server.
+		    <note>
+		      <para>
+			Symbolic names as well as IPv4 and IPv6
+			addresses are supported.
+		      </para>
+		    </note>
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Username</guilabel></term>
+		<listitem>
+		  <para>
+		    This is your username on the &pop3;, &imap; or
+		    &gmail; server.  The username will be stored to disk
+		    unless it is left blank (in such case, a credentials
+		    prompt will appear when needed).
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Password</guilabel></term>
+		<listitem>
+		  <para>
+		    This is your password on the &pop3;, &imap; or
+		    &gmail; server.  The password will be stored to disk
+		    unless it is left blank (in such case, a credentials
+		    prompt will appear when needed).
+		  </para>
+		  <warning>
+		    <title>POP3 and IMAP Security</title>
+		    <para>
+		      To avoid sending your password over the network in
+		      clear text, you must either use a SSL/TLS
+		      connection or select a secure authentication
+		      mechanism. See below for more details.
+		    </para>
+		    <!-- simplified on purpose: actually, a weak SSL/TLS -->
+		    <!-- algorithm could be used, but this is beyond the -->
+		    <!-- scope of this document -->
+		  </warning>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>
+	    <guilabel>IMAP Mailbox</guilabel> (<guilabel>IMAP</guilabel> only)
+	  </term>
+	  <listitem>
+	    <para>
+	      This is the &imap; mailbox to use.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>
+	    <guilabel>Folder</guilabel> (<guilabel>Evolution</guilabel> only)
+	  </term>
+	  <listitem>
+	    <para>
+	      This is the Evolution folder to monitor for changes.
+	    </para>
+	    <note>
+	      <para>
+		For the folder selector to be available and for
+		monitoring an Evolution mailbox, Evolution must be
+		running and the Evolution Mail Notification plugin
+		must be loaded.
+	      </para>
+	    </note>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="mailbox-properties-connection">
+      <title>Connection (<guilabel>POP3</guilabel> and <guilabel>IMAP</guilabel> only)</title>
+      <variablelist>
+	<varlistentry>
+	  <term><guilabel>Connection type</guilabel></term>
+	  <listitem>
+	    <para>
+	      This is the type of connection to use and the port
+	      number to connect to.
+	    </para>
+	    <para>
+	      <guilabel>In-band SSL/TLS</guilabel> refers to a
+	      &ssl;/&tls; connection negotiated inside of the
+	      protocol (using the <literal>STLS</literal> &pop3;
+	      command or the <literal>STARTTLS</literal> &imap;
+	      command).
+	    </para>
+	    <para>
+	      <guilabel>SSL/TLS on separate port</guilabel> refers to
+	      the most widespread method for establishing a
+	      &ssl;/&tls; connection: using a separate port.
+	    </para>
+	    <note>
+	      <para>
+		The security considerations listed below do not
+		apply if you select <guilabel>SSL/TLS</guilabel>
+		(either <guilabel>in-band</guilabel> or
+		<guilabel>on separate port</guilabel>).
+	      </para>
+	      <!-- simplified on purpose: actually, a weak SSL/TLS -->
+	      <!-- algorithm could be used, but this is beyond the -->
+	      <!-- scope of this document -->
+	    </note>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><guilabel>Authentication</guilabel></term>
+	  <listitem>
+	    <variablelist>
+	      <varlistentry>
+		<term><guilabel>Mechanism</guilabel></term>
+		<listitem>
+		  <para>
+		    This is the authentication mechanism to use.
+		    If you select <guilabel>autodetect</guilabel>,
+		    all the authentication mechanisms supported by the &pop3;
+		    or &imap; server will be tried, in descending order of
+		    security. Otherwise, the selected mechanism (and
+		    <emphasis>only</emphasis> the selected mechanism) will
+		    be used.
+		  </para>
+		  <warning>
+		    <title>Security</title>
+		    <para>
+		      If <guilabel>autodetect</guilabel> is selected and
+		      secure authentication fails, your credentials may
+		      be sent over the network in clear text (unless you
+		      use a &ssl;/&tls; connection).
+		    </para>
+		    <para>
+		      If this is a concern, select the appropriate
+		      secure authentication mechanism from the drop-down
+		      list.
+		    </para>
+		  </warning>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>
+	    <guilabel>Use the IDLE extension</guilabel>
+	    (<guilabel>IMAP</guilabel> only)
+	  </term>
+	  <listitem>
+	    <para>
+	      The IDLE extension (as defined by <ulink url="http://www.ietf.org/rfc/rfc2177.txt" type="http">RFC 2177</ulink>)
+	      allows &app; to stay connected to the server and provide
+	      <link linkend="immediate-notification">immediate notification</link> of changes.
+	    </para>
+	    <para>
+	      If <guilabel>never</guilabel> is selected, &app;
+	      will never use the IDLE extension, not even if the
+	      server supports it. Use this option if it appears
+	      that &app; does not detect changes to an &imap;
+	      mailbox while the IDLE extension is in use. If using
+	      this option fixes the issue, please also send the
+	      &imap; session transcript (obtained by running &app;
+	      using the --enable-info option) to Jean-Yves Lefort
+	      <email>jylefort@brutele.be</email>.
+	    </para>
+	    <para>
+	      If <guilabel>autodetect</guilabel> is selected,
+	      &app; will use the IDLE extension if the server
+	      supports it, unless the server software is known to
+	      have a broken IDLE implementation (currently, the
+	      only such software known to &app; is the University
+	      of Washington imapd). This is the recommended
+	      choice.
+	    </para>
+	    <para>
+	      If <guilabel>always</guilabel> is selected, &app;
+	      will use the IDLE extension if the server supports
+	      it, regardless of the server software. Use this
+	      option if you want to force &app; to use the IDLE
+	      extension, even if it has detected a bogus
+	      implementation.
+	    </para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+  </sect1>
+
+  <sect1 id="message-actions">
+    <title>Message Actions</title>
     <para>
-      The rest of the window depends on the selected mailbox type:
+      Message popups support the following actions:
     </para>
+    <itemizedlist>
+      <listitem><para><guilabel>Open</guilabel></para></listitem>
+      <listitem><para><guilabel>Mark as Read</guilabel></para></listitem>
+      <listitem><para><guilabel>Mark as Spam</guilabel></para></listitem>
+    </itemizedlist>
 
-    <variablelist>
-      <varlistentry>
-	<term>When <guilabel>autodetect</guilabel> is selected:</term>
-	<listitem>
-	  <variablelist>
-	    <varlistentry>
-	      <term><guilabel>Location</guilabel></term>
-	      <listitem>
-		<para>
-		  This is the &uri; of the mailbox.
-		  <note>
-		    <para>
-		      &app; abstracts file operations by using
-		      &gnomevfs;.  All the schemes (http, ftp, sftp,
-		      ...) supported by &gnomevfs; are therefore
-		      supported by &app;.
-		    </para>
-		  </note>
-		</para>
-	      </listitem>
-	    </varlistentry>
-	  </variablelist>
-	</listitem>
-      </varlistentry>
+    <sect2 id="built-in-actions">
+      <title>Built-in Actions</title>
+      <para>
+	The following table summarizes the currently implemented
+	built-in actions for each mailbox type.
+      </para>
+      <table>
+	<title>Built-in Actions</title>
+	<tgroup cols="4">
+	  <thead>
+	    <row>
+	      <entry>Mailbox Type</entry>
+	      <entry><guilabel>Open</guilabel></entry>
+	      <entry><guilabel>Mark as Read</guilabel></entry>
+	      <entry><guilabel>Mark as Spam</guilabel></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry>&mbox;</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	    </row>
+	    <row>
+	      <entry>&mh;</entry>
+	      <entry>yes</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	    </row>
+	    <row>
+	      <entry>&maildir;</entry>
+	      <entry>yes</entry>
+	      <entry>yes</entry>
+	      <entry>no</entry>
+	    </row>
+	    <row>
+	      <entry>&pop3;</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	    </row>
+	    <row>
+	      <entry>&imap;</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	    </row>
+	    <row>
+	      <entry>&gmail;</entry>
+	      <entry>yes</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	    </row>
+	    <row>
+	      <entry>Evolution</entry>
+	      <entry>yes</entry>
+	      <entry>yes</entry>
+	      <entry>yes</entry>
+	    </row>
+	    <row>
+	      <entry>&mozilla;</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	    </row>
+	    <row>
+	      <entry>&sylpheed;</entry>
+	      <entry>yes</entry>
+	      <entry>yes</entry>
+	      <entry>no</entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
 
-      <varlistentry>
-	<term>When <guilabel>POP3</guilabel> or <guilabel>IMAP</guilabel> is selected:</term>
-	<listitem>
-	  <variablelist>
-	    <varlistentry>
-	      <term><guilabel>Hostname</guilabel></term>
-	      <listitem>
-		<para>
-		  This is the hostname or IP address of the &pop3; or
-		  &imap; server.
-		  <note>
-		    <para>
-		      Symbolic names as well as IPv4 and IPv6
-		      addresses are supported.
-		    </para>
-		  </note>
-		</para>
-	      </listitem>
-	    </varlistentry>
-	    <varlistentry>
-	      <term><guilabel>Username</guilabel></term>
-	      <listitem>
-		<para>
-		  This is your username on the &pop3; or &imap;
-		  server.  The username will be stored to disk unless
-		  it is left blank (in such case, a credentials prompt
-		  will appear when needed).
-		</para>
-	      </listitem>
-	    </varlistentry>
-	    <varlistentry>
-	      <term><guilabel>Password</guilabel></term>
-	      <listitem>
-		<para>
-		  This is your password on the &pop3; or &imap;
-		  server.  The password will be stored to disk unless
-		  it is left blank (in such case, a credentials prompt
-		  will appear when needed).
-		</para>
-		<warning>
-		  <title>Security</title>
-		  <para>
-		    To avoid sending your password over the network in
-		    clear text, you must either use a SSL/TLS
-		    connection or select a secure authentication
-		    mechanism. See below for more details.
-		  </para>
-		  <!-- simplified on purpose: actually, a weak SSL/TLS -->
-		  <!-- algorithm could be used, but this is beyond the -->
-		  <!-- scope of this document -->
-		</warning>
-	      </listitem>
-	    </varlistentry>
-	    <varlistentry>
-	      <term><guilabel>Connection type</guilabel> and <guilabel>Port</guilabel></term>
-	      <listitem>
-		<para>
-		  This is the type of connection to use and the port
-		  number to connect to.
-		</para>
-		<para>
-		  <guilabel>In-band SSL/TLS</guilabel> refers to a
-		  &ssl;/&tls; connection negotiated inside of the
-		  protocol (using the <literal>STLS</literal> &pop3;
-		  command or the <literal>STARTTLS</literal> &imap;
-		  command).
-		</para>
-		<para>
-		  <guilabel>SSL/TLS on separate port</guilabel> refers to
-		  the most widespread method for establishing a
-		  &ssl;/&tls; connection: using a separate port.
-		</para>
-		<note>
-		  <para>
-		    The security considerations listed below do not
-		    apply if you select <guilabel>SSL/TLS</guilabel>
-		    (either <guilabel>in-band</guilabel> or
-		    <guilabel>on separate port</guilabel>).
-		  </para>
-		  <!-- simplified on purpose: actually, a weak SSL/TLS -->
-		  <!-- algorithm could be used, but this is beyond the -->
-		  <!-- scope of this document -->
-		</note>
-	      </listitem>
-	    </varlistentry>
-	    <varlistentry>
-	      <term><guilabel>Authentication mechanism</guilabel></term>
-	      <listitem>
-		<para>
-		  This is the authentication mechanism to use.
-		  If you select <guilabel>autodetect</guilabel>,
-		  all the authentication mechanisms supported by the &pop3;
-		  or &imap; server will be tried, in descending order of
-		  security. Otherwise, the selected mechanism (and
-		  <emphasis>only</emphasis> the selected mechanism) will
-		  be used.
-		</para>
-		<warning>
-		  <title>Security</title>
-		  <para>
-		    If <guilabel>autodetect</guilabel> is selected and
-		    secure authentication fails, your credentials may
-		    be sent over the network in clear text (unless you
-		    use a &ssl;/&tls; connection).
-		  </para>
-		  <para>
-		    If this is a concern, select the appropriate
-		    secure authentication mechanism from the drop-down
-		    list.
-		  </para>
-		</warning>
-	      </listitem>
-	    </varlistentry>
-	  </variablelist>
-	</listitem>
-      </varlistentry>
-      
-      <varlistentry>
-	<term>When <guilabel>IMAP</guilabel> is selected:</term>
-	<listitem>
-	  <variablelist>
-	    <varlistentry>
-	      <term><guilabel>Mailbox</guilabel></term>
-	      <listitem>
-		<para>
-		  This is the &imap; mailbox to use.
-		</para>
-	      </listitem>
-	    </varlistentry>
-	    <varlistentry>
-	      <term><guilabel>Use the IDLE extension</guilabel></term>
-	      <listitem>
-		<para>
-		  The IDLE extension (as defined by <ulink url="http://www.ietf.org/rfc/rfc2177.txt" type="http">RFC 2177</ulink>)
-		  allows &app; to stay connected to the server and provide
-		  <link linkend="immediate-notification">immediate notification</link> of changes.
-		</para>
-		<para>
-		  If <guilabel>never</guilabel> is selected, &app;
-		  will never use the IDLE extension, not even if the
-		  server supports it. Use this option if it appears
-		  that &app; does not detect changes to an &imap;
-		  mailbox while the IDLE extension is in use. If using
-		  this option fixes the issue, please also send the
-		  &imap; session transcript (obtained by running &app;
-		  using the --enable-info option) to Jean-Yves Lefort
-		  <email>jylefort@brutele.be</email>.
-		</para>
-		<para>
-		  If <guilabel>autodetect</guilabel> is selected,
-		  &app; will use the IDLE extension if the server
-		  supports it, unless the server software is known to
-		  have a broken IDLE implementation (currently, the
-		  only such software known to &app; is the University
-		  of Washington imapd). This is the recommended
-		  choice.
-		</para>
-		<para>
-		  If <guilabel>always</guilabel> is selected, &app;
-		  will use the IDLE extension if the server supports
-		  it, regardless of the server software. Use this
-		  option if you want to force &app; to use the IDLE
-		  extension, even if it has detected a bogus
-		  implementation.
-		</para>
-	      </listitem>
-	    </varlistentry>
-	  </variablelist>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
-	<term>When <guilabel>Gmail</guilabel> is selected:</term>
-	<listitem>
-	  <variablelist>
-	    <varlistentry>
-	      <term><guilabel>Username</guilabel></term>
-	      <listitem>
-		<para>
-		  This is your username on &gmail;. The username will
-		  be stored to disk unless it is left blank (in such
-		  case, a credentials prompt will appear when needed).
-		</para>
-	      </listitem>
-	    </varlistentry>
-	    <varlistentry>
-	      <term><guilabel>Password</guilabel></term>
-	      <listitem>
-		<para>
-		  This is your password on &gmail;. The password will
-		  be stored to disk unless it is left blank (in such
-		  case, a credentials prompt will appear when needed).
-		</para>
-	      </listitem>
-	    </varlistentry>
-	  </variablelist>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
-	<term>When <guilabel>Evolution</guilabel> is selected:</term>
-	<listitem>
-	  <variablelist>
-	    <varlistentry>
-	      <term><guilabel>Folder</guilabel></term>
-	      <listitem>
-		<para>
-		  This is the Evolution folder to monitor for changes.
-		</para>
-		<note>
-		  <para>
-		    For the folder selector to be available and for
-		    monitoring an Evolution mailbox, Evolution must be
-		    running and the Evolution Mail Notification plugin
-		    must be loaded.
-		  </para>
-		</note>
-	      </listitem>
-	    </varlistentry>
-	  </variablelist>
-	</listitem>
-      </varlistentry>
-    </variablelist>
+    <sect2 id="custom-actions">
+      <title>Custom Actions</title>
+      <para>
+	To define a custom action for a particular mailbox, edit the
+	<filename>~/.gnome2/mail-notification/mailboxes.xml</filename>
+	file and specify a command to be executed when the action
+	button is clicked.
+      </para>
+      <note>
+	<para>
+	  If both a built-in action and a custom action exists, the
+	  custom action overrides the built-in action.
+	</para>
+      </note>
+      <para>
+	XML attributes should be added to the
+	<sgmltag>mailbox</sgmltag> element of the mailbox you want the
+	actions to be available for. The following table specifies
+	which XML attribute should be used for a particular action.
+      </para>
+      <table>
+	<title>Action Attributes</title>
+	<tgroup cols="2">
+	  <thead>
+	    <row>
+	      <entry>Action</entry>
+	      <entry>XML Attribute</entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><guilabel>Open</guilabel></entry>
+	      <entry><parameter>open-command</parameter></entry>
+	    </row>
+	    <row>
+	      <entry><guilabel>Mark as Read</guilabel></entry>
+	      <entry><parameter>mark-as-read-command</parameter></entry>
+	    </row>
+	    <row>
+	      <entry><guilabel>Mark as Spam</guilabel></entry>
+	      <entry><parameter>mark-as-spam-command</parameter></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <para>
+	Before executing a command, some strings will be
+	substituted. The following table summarizes the available
+	substitutions.
+      </para>
+      <table>
+	<title>Command String Substitutions</title>
+	<tgroup cols="2">
+	  <thead>
+	    <row>
+	      <entry>String</entry>
+	      <entry>Substitution</entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><literal>%%</literal></entry>
+	      <entry>a single percent character</entry>
+	    </row>
+	    <row>
+	      <entry><literal>%error</literal></entry>
+	      <entry>
+		the error message, if any
+	      </entry>
+	    </row>
+	    <row>
+	      <entry><literal>%sent-time</literal></entry>
+	      <entry>
+		the message timestamp expressed in seconds since the
+		Epoch (00:00:00 UTC, January 1, 1970)
+	      </entry>
+	    </row>
+	    <row>
+	      <entry><literal>%id</literal></entry>
+	      <entry>
+		the message unique identifier
+	      </entry>
+	    </row>
+	    <row>
+	      <entry><literal>%from</literal></entry>
+	      <entry>
+		the message sender
+	      </entry>
+	    </row>
+	    <row>
+	      <entry><literal>%subject</literal></entry>
+	      <entry>
+		the message subject, if any
+	      </entry>
+	    </row>
+	    <row>
+	      <entry><literal>%uri</literal></entry>
+	      <entry>
+		the message &uri;, if any
+	      </entry>
+	    </row>
+	    <row>
+	      <entry><literal>%filename</literal></entry>
+	      <entry>
+		if the message has an &uri; and that &uri; points to a
+		local filename, that filename
+	      </entry>
+	    </row>
+	    <row>
+	      <entry><literal>%uid</literal></entry>
+	      <entry>
+		the Evolution message UID, if any
+	      </entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <note>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      Substitutions will be shell-quoted as appropriate, you
+	      therefore must not quote the percent strings.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      Keywords can be enclosed in braces, as in
+	      <literal>%{from}</literal>.
+	    </para>
+	  </listitem>
+	</itemizedlist>
+      </note>
+      <para>
+	Example:
+      </para>
+      <programlisting>
+&lt;?xml version="1.0"?&gt;
+&lt;mailboxes&gt;
+  &lt;mailbox
+    type="custom-vfs"
+    uri="file:///home/jylefort/Mail/misc"
+    open-command="my-open-script %filename"
+    mark-as-spam-command="my-spam-script %filename"/&gt;
+&lt;/mailboxes&gt;
+</programlisting>
+    </sect2>
   </sect1>
 
   <sect1 id="troubleshooting">
@@ -1182,17 +1371,10 @@
       </para>
       <variablelist>
 	<varlistentry>
-	  <term>&mbox;, &mh;, &maildir; and &sylpheed; mailboxes:</term>
+	  <term>&mbox;, &mh;, &maildir;, &mozilla; and &sylpheed; mailboxes:</term>
 	  <listitem>
 	    <para>
-	      &gnomevfs; must be compiled
-	      with <ulink url="http://oss.sgi.com/projects/fam" type="http">FAM</ulink> support,
-	      and FAM must be configured properly.
-	    </para>
-	    <para>
-	      Refer to the
-	      <citerefentry><refentrytitle>fam</refentrytitle><manvolnum>1</manvolnum></citerefentry>
-	      manual page for more details.
+	      &gnomevfs; must support monitoring (it usually does).
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -1345,24 +1527,16 @@ if (! success) {
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>mail summary popup</entry>
-	      <entry>mn-mail-summary-popup</entry>
-	    </row>
-	    <row>
-	      <entry>mail summary popup title</entry>
-	      <entry>mn-mail-summary-popup-title</entry>
-	    </row>
-	    <row>
-	      <entry>message list</entry>
-	      <entry>mn-message-view</entry>
-	    </row>
-	    <row>
 	      <entry>tooltip section title</entry>
 	      <entry>mn-tooltip-section-title</entry>
 	    </row>
 	    <row>
-	      <entry>tooltip section body (except message list)</entry>
+	      <entry>tooltip section body (except mail summary)</entry>
 	      <entry>mn-tooltip-section-body</entry>
+	    </row>
+	    <row>
+	      <entry>tooltip mail summary</entry>
+	      <entry>mn-message-view</entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -1422,12 +1596,12 @@ if (! success) {
 	      <entry>mn-select-all</entry>
 	    </row>
 	    <row>
-	      <entry>mail summary</entry>
-	      <entry>mn-mail-summary</entry>
-	    </row>
-	    <row>
 	      <entry>mail reader</entry>
 	      <entry>mn-mail-reader</entry>
+	    </row>
+	    <row>
+	      <entry>open message</entry>
+	      <entry>mn-open-message</entry>
 	    </row>
 	    <row>
 	      <entry>connect (in the SSL/TLS confirmation dialog)</entry>
@@ -1448,26 +1622,6 @@ if (! success) {
 	  You can modify the appearance of &app; by editing the
 	  <filename>~/.gtkrc-2.0</filename> file.
 	</para>
-	<para>
-	  To use a large font for the mail summary popup title:
-	</para>
-	<programlisting>style "mn-mail-summary-popup-title"
-{
-  font_name = "Sans 14"
-}
-
-widget "*.mn-mail-summary-popup-title"
-  style "mn-mail-summary-popup-title"</programlisting>
-	<para>
-	  To use a small font for the mail summary popup messages:
-	</para>
-	<programlisting>style "mn-mail-summary-popup-messages"
-{
-  font_name = "Sans 8"
-}
-
-widget "mn-mail-summary-popup.*.mn-message-view"
-  style "mn-mail-summary-popup-messages"</programlisting>
 	<para>
 	  To use a small font for the mail summary tooltip messages:
 	</para>
@@ -1514,7 +1668,7 @@ widget "*" style "mn-icons"</programlisting>
 	  <para>
 	    Choose
 	    <menuchoice>
-	      <guimenu>Desktop</guimenu>
+	      <guimenu>System</guimenu>
 	      <guisubmenu>Preferences</guisubmenu>
 	      <guimenuitem>Mail Notification</guimenuitem>
 	    </menuchoice> (this location may vary across systems) or type
@@ -1590,6 +1744,56 @@ widget "*" style "mn-icons"</programlisting>
 	  </para>
 	</answer>
       </qandaentry>
+      <qandaentry>
+	<question>
+	  <para>
+	    How can I access message data from the new mail command?
+	  </para>
+	</question>
+	<answer>
+	  <para>
+	    Parse the output of <command>mail-notification --print-summary</command>.
+	  </para>
+	</answer>
+      </qandaentry>
+      <qandaentry>
+	<question>
+	  <para>
+	    I do not use &app; but I am presented with the properties
+	    dialog each time I log in. How can I disable it?
+	  </para>
+	</question>
+	<answer>
+	  <orderedlist>
+	    <listitem>
+	      <para>
+		Choose
+		<menuchoice>
+		  <guimenu>System</guimenu>
+		  <guisubmenu>Preferences</guisubmenu>
+		  <guimenuitem>Sessions</guimenuitem>
+		</menuchoice> (this location may vary across systems).
+	      </para>
+	    </listitem>
+	    <listitem>
+	      <para>
+		Select the <guilabel>Startup Programs</guilabel> tab.
+	      </para>
+	    </listitem>
+	    <listitem>
+	      <para>
+		Select the <command>mail-notification --sm-disable</command>
+		command.
+	      </para>
+	    </listitem>
+	    <listitem>
+	      <para>
+		Click on the <guibutton>Disable</guibutton> button.
+	      </para>
+	    </listitem>
+	  </orderedlist>
+	</answer>
+      </qandaentry>
     </qandaset>
   </sect1>
 
@@ -1605,8 +1809,9 @@ widget "*" style "mn-icons"</programlisting>
     <sect2 id="problem-reports">
       <title>Reporting Bugs and Other Feedback</title>
       <para>
-	Bug reports and feedback should be sent to Jean-Yves Lefort
-	<email>jylefort@brutele.be</email>.
+	Bug reports and feedback should be filed in the <ulink
+	url="https://savannah.nongnu.org/bugs/?group=mailnotify"
+	type="http">Mail Notification bug tracker</ulink>.
       </para>
     </sect2>
 
@@ -1630,6 +1835,7 @@ widget "*" style "mn-icons"</programlisting>
 	<listitem><para>Benoît Rouits</para></listitem>
 	<listitem><para>Tomasz Sarota-Raczek</para></listitem>
 	<listitem><para>Edwin Shin</para></listitem>
+	<listitem><para>Topi</para></listitem>
 	<listitem><para>Marcel J. Zwiebel</para></listitem>
       </itemizedlist>
     </sect2>
@@ -1715,6 +1921,21 @@ widget "*" style "mn-icons"</programlisting>
 	    A mailbox format popularised by the
 	    <ulink url="http://www.ics.uci.edu/~mh" type="http">MH</ulink> mail user agent.
 	    Messages are stored as separate files for flexibility and performance.
+	  </para>
+	</glossdef>
+      </glossentry>
+
+      <glossentry id="mozilla">
+	<glossterm>Mozilla</glossterm>
+	<glossdef>
+	  <para>
+	    In this manual, a Mozilla mailbox refers to a mailbox
+	    produced by a Mozilla-based mail reader (Mozilla,
+	    SeaMonkey, Thunderbird, &hellip;). This mailbox format only
+	    differs from the &mbox; format by the fact that message
+	    status information is stored in the
+	    <literal>X-Mozilla-Status</literal> header instead of the
+	    <literal>Status</literal> header.
 	  </para>
 	</glossdef>
       </glossentry>

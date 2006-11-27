@@ -1,0 +1,1624 @@
+# Catalan translations for mail-notification.
+# Copyright (C) 2003-2006 Jean-Yves Lefort.
+#
+# This file is distributed under the same license as the
+# mail-notification package.
+#
+# <topi@phreaker.net>, 2006.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mail-notification 3.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2006-07-12 17:00+0200\n"
+"PO-Revision-Date: 2006-11-21 17:34+0100\n"
+"Last-Translator: topi <topi@phreaker.net>\n"
+"Language-Team: Catalan <ca@dodds.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n!=1;\n"
+
+#: ../data/GNOME_MailNotification.server.in.in.h:1
+msgid "Mail Notification automation"
+msgstr "Automatització de l'avisador de correu"
+
+#: ../data/GNOME_MailNotification.server.in.in.h:2
+msgid "Mail Notification automation factory"
+msgstr "Construcció de l'automatització de l'avisador de correu"
+
+#: ../data/GNOME_MailNotification_Evolution.server.in.h:1
+msgid "Evolution folder tree control"
+msgstr "Control de l'arbre de carpetes de l'Evolution"
+
+#: ../data/GNOME_MailNotification_Evolution.server.in.h:2
+msgid "Evolution folder tree control factory"
+msgstr "Construcció del control de l'arbre de carpetes de l'Evolution"
+
+#: ../data/GNOME_MailNotification_Evolution.server.in.h:3
+msgid "Mail Notification / Evolution glue"
+msgstr "Avisador de correu / Enganxador amb l'Evolution"
+
+#: ../data/GNOME_MailNotification_Evolution.server.in.h:4
+msgid "Mail Notification / Evolution glue factory"
+msgstr "Avisador de correu / Construcció de l'enganxador amb l'Evolution"
+
+#: ../data/mail-notification-properties.desktop.in.h:1
+msgid "Configure Mail Notification"
+msgstr "Configura l'avisador de correu"
+
+#: ../data/mail-notification-properties.desktop.in.h:2
+#: ../data/mail-notification.desktop.in.h:2
+#: ../src/mn-mail-icon.gob:227
+#: ../src/mn-main.c:132
+#: ../src/mn-main.c:302
+#: ../src/mn-main.c:318
+msgid "Mail Notification"
+msgstr "Avisador de correu"
+
+#: ../data/mail-notification.desktop.in.h:1
+msgid "Get notified when new mail arrives"
+msgstr "Avisa'm en arribar correu nou"
+
+#: ../data/mail-notification.schemas.in.h:1
+msgid "Always display an icon"
+msgstr "Mostra sempre una icona"
+
+#: ../data/mail-notification.schemas.in.h:2
+msgid "Automatically close the mail summary popup"
+msgstr "Tanca automàticament el resum emergent de correu"
+
+#: ../data/mail-notification.schemas.in.h:3
+msgid "Blink on errors"
+msgstr "Parpelleja si hi ha errors"
+
+#: ../data/mail-notification.schemas.in.h:4
+msgid "Click action"
+msgstr "Acció en fer clic"
+
+#: ../data/mail-notification.schemas.in.h:5
+msgid "Display seen mail"
+msgstr "Mostra els missatges vistos"
+
+#: ../data/mail-notification.schemas.in.h:6
+msgid "Enable mail summary popup"
+msgstr "Habilita el resum emergent de correu"
+
+#: ../data/mail-notification.schemas.in.h:7
+msgid "Fingerprints of trusted X509 certificates"
+msgstr "Empremtes digitals de certificats X509 confiables"
+
+#: ../data/mail-notification.schemas.in.h:8
+msgid "Height of properties dialog"
+msgstr "Alçada del diàleg de propietats"
+
+#: ../data/mail-notification.schemas.in.h:9
+msgid "Mail read command"
+msgstr "Comanda de correu llegit"
+
+#: ../data/mail-notification.schemas.in.h:10
+msgid "Mail summary popup contents font"
+msgstr "Font del contingut del resum emergent de correu"
+
+#: ../data/mail-notification.schemas.in.h:11
+msgid "Mail summary popup fonts aspect source"
+msgstr "Origen de l'aspecte de la font del resum emergent de correu"
+
+#: ../data/mail-notification.schemas.in.h:12
+msgid "Mail summary popup horizontal offset"
+msgstr "Distància horitzontal del resum emergent de correu"
+
+#: ../data/mail-notification.schemas.in.h:13
+msgid "Mail summary popup position"
+msgstr "Posició del resum emergent de correu"
+
+#: ../data/mail-notification.schemas.in.h:14
+msgid "Mail summary popup title font"
+msgstr "Font del títol del resum emergent de correu"
+
+#: ../data/mail-notification.schemas.in.h:15
+msgid "Mail summary popup vertical offset"
+msgstr "Distància vertical del resum emergent de correu"
+
+#: ../data/mail-notification.schemas.in.h:16
+msgid "Minutes to wait before closing the mail summary popup"
+msgstr "Minuts abans de tancar el resum emergent de correu"
+
+#: ../data/mail-notification.schemas.in.h:17
+msgid "New mail command"
+msgstr "Comanda per a correu nou"
+
+#: ../data/mail-notification.schemas.in.h:18
+msgid "Only display recent mail in mail summary popup"
+msgstr "Mostra només els correus recents en el resum emergent de correu"
+
+#: ../data/mail-notification.schemas.in.h:19
+msgid "Run a command when all mail is read"
+msgstr "Executa una comanda en no haver correu per llegir"
+
+#: ../data/mail-notification.schemas.in.h:20
+msgid "Run a command when new mail arrives"
+msgstr "Executa una comanda en arribar correu nou"
+
+#: ../data/mail-notification.schemas.in.h:21
+msgid "Seconds to wait before closing the mail summary popup"
+msgstr "Segons abans de tancar el resum emergent de correu"
+
+#: ../data/mail-notification.schemas.in.h:22
+msgid "The action to perform when the icon is clicked. Must be \"display-properties-dialog\", \"launch-mail-reader\" or \"update-mail-status\"."
+msgstr "L'acció a portar a terme quan es fa clic a la icona. Ha de ser \"mostra-diàleg-de-propietats\", \"executa-el-client-de-correu\" o \"actualitza-l'estat-del-correu\"."
+
+#: ../data/mail-notification.schemas.in.h:23
+msgid "The amount of time to wait before closing the mail summary popup (minutes part)."
+msgstr "La quantitat de temps abans de tancar el resum emergent de correu (minuts)."
+
+#: ../data/mail-notification.schemas.in.h:24
+msgid "The amount of time to wait before closing the mail summary popup (seconds part)."
+msgstr "La quantitat de temps abans de tancar el resum emergent de correu (segons)."
+
+#: ../data/mail-notification.schemas.in.h:25
+msgid "The aspect source of the mail summary popup fonts. Must be \"theme\" or \"custom\"."
+msgstr "L'origen de les fonts del resum emergent de correu. Ha de ser \"theme\" o \"custom\"."
+
+#: ../data/mail-notification.schemas.in.h:26
+msgid "The command to run when all mail is read."
+msgstr "La comanda a executar en no haver correu per llegir."
+
+#: ../data/mail-notification.schemas.in.h:27
+msgid "The command to run when new mail arrives."
+msgstr "La comanda a executar en arribar correu nou."
+
+#: ../data/mail-notification.schemas.in.h:28
+msgid "The custom font to use for the contents of the mail summary popup."
+msgstr "La font a usar per al contingut del resum emergent de correu."
+
+#: ../data/mail-notification.schemas.in.h:29
+msgid "The custom font to use for the title of the mail summary popup."
+msgstr "La font a usar per al títol del resum emergent de correu."
+
+#: ../data/mail-notification.schemas.in.h:30
+msgid "The height of the properties dialog in pixels."
+msgstr "L'alçada del diàleg de propietats en píxels."
+
+#: ../data/mail-notification.schemas.in.h:31
+msgid "The list of trusted SSL/TLS servers (hostname:port) lacking a X509 certificate."
+msgstr "Llista de servidors confiables SSL/TLS (servidor:port) sense certificat X509."
+
+#: ../data/mail-notification.schemas.in.h:32
+msgid "The list of trusted X509 certificates, represented by their MD5 fingerprint."
+msgstr "Llista de certificats X509 confiables, representats per les empremtes digitals MD5."
+
+#: ../data/mail-notification.schemas.in.h:33
+msgid "The number of pixels to leave between the left or right side of the screen and the mail summary popup."
+msgstr "El nombre de píxels entre els costats esquerre i dret de la pantalla i el resum emergent de correu."
+
+#: ../data/mail-notification.schemas.in.h:34
+msgid "The number of pixels to leave between the top or bottom side of the screen and the mail summary popup."
+msgstr "El nombre de píxels entre els costats superior i inferior de la pantalla i el resum emergent de correu."
+
+#: ../data/mail-notification.schemas.in.h:35
+msgid "The position of the mail summary popup. Must be \"top-left\", \"top-right\", \"bottom-left\" or \"bottom-right\"."
+msgstr "Posició del resum emergent de correu. Ha de ser \"superior-esquerra\", \"superior-dreta\", \"inferior-esquerra\" o \"inferior-dreta\"."
+
+#: ../data/mail-notification.schemas.in.h:36
+msgid "The type of mail summary to display in the icon's tooltip. Must be \"standard\", \"compact\" or \"none\"."
+msgstr "El tipus de resum de correu que es mostrarà com a consell de la icona. Ha de ser \"estàndard\", \"compacte\" o \"cap\"."
+
+#: ../data/mail-notification.schemas.in.h:37
+msgid "The width of the properties dialog in pixels."
+msgstr "L'amplada del diàleg de propietats en píxels."
+
+#: ../data/mail-notification.schemas.in.h:38
+msgid "Tooltip mail summary"
+msgstr "Resum de correu"
+
+#: ../data/mail-notification.schemas.in.h:39
+msgid "Trusted servers list"
+msgstr "Llista de servidors confiables"
+
+#: ../data/mail-notification.schemas.in.h:40
+msgid "Whether the status icon should blink on errors or not."
+msgstr "Si la icona d'estat ha de parpellejar quan hi ha errors."
+
+#: ../data/mail-notification.schemas.in.h:41
+msgid "Whether to automatically close the mail summary popup or not."
+msgstr "Si s'ha de tancar automàticament el resum emergent de correu."
+
+#: ../data/mail-notification.schemas.in.h:42
+msgid "Whether to display an icon when there is no new mail or not."
+msgstr "Si s'ha de mostrar una icona quan no hi ha correu nou."
+
+#: ../data/mail-notification.schemas.in.h:43
+msgid "Whether to display seen mail or not."
+msgstr "Si s'ha de mostrar el correu vist."
+
+#: ../data/mail-notification.schemas.in.h:44
+msgid "Whether to display the mail summary popup when new mail arrives or not."
+msgstr "Si s'ha de mostrar el resum emergent de correu en arribar correu nou."
+
+#: ../data/mail-notification.schemas.in.h:45
+msgid "Whether to hide previously displayed mail in the mail summary popup or not."
+msgstr "Si s'han d'amagar els correus mostrats anteriorment al resum emergent de correu."
+
+#: ../data/mail-notification.schemas.in.h:46
+msgid "Whether to run a command when all mail is read or not."
+msgstr "Si s'ha d'executar una comanda en no haver correu per llegir."
+
+#: ../data/mail-notification.schemas.in.h:47
+msgid "Whether to run a command when new mail arrives or not."
+msgstr "Si s'ha d'executar una comanda en arribar correu nou."
+
+#: ../data/mail-notification.schemas.in.h:48
+msgid "Width of properties dialog"
+msgstr "Amplada del diàleg de propietats"
+
+#: ../src/eggtrayicon.c:132
+msgid "Orientation"
+msgstr "Orientació"
+
+#: ../src/eggtrayicon.c:133
+msgid "The orientation of the tray."
+msgstr "L'orientació de la safata."
+
+#. translators: header capitalization
+#: ../src/mn-about-dialog.gob:49
+msgid "A Mail Notification Icon"
+msgstr "Icona de l'avisador de correu"
+
+#.
+#. * translators: Your Name <your-email>
+#. * optionally followed by one or more: \nOther Contributor's Name <his-email>
+#.
+#: ../src/mn-about-dialog.gob:57
+msgid "translator-credits"
+msgstr "topi <topi@phreaker.net>"
+
+#: ../src/mn-about-dialog.gob:79
+msgid "Unable to open link"
+msgstr "No s'ha pogut obrir l'enllaç"
+
+#: ../src/mn-auth-combo-box.gob:103
+#: ../src/mn-autodetect-mailbox-properties.gob:109
+msgid "<span style=\"italic\">autodetect</span>"
+msgstr "<span style=\"italic\">autodetectar</span>"
+
+#: ../src/mn-authenticated-mailbox-properties.gob:46
+msgid "_Username:"
+msgstr "_Nom d'usuari:"
+
+#: ../src/mn-authenticated-mailbox-properties.gob:50
+msgid "_Password:"
+msgstr "_Contrasenya:"
+
+#: ../src/mn-autodetect-mailbox-properties.gob:110
+msgid "Location"
+msgstr "Ubicació"
+
+#: ../src/mn-autodetect-mailbox-properties.gob:122
+msgid "_Location:"
+msgstr "U_bicació:"
+
+#. translators: header capitalization
+#: ../src/mn-autodetect-mailbox-properties.gob:130
+msgid "_Browse..."
+msgstr "_Navega..."
+
+#. translators: header capitalization
+#: ../src/mn-autodetect-mailbox-properties.gob:172
+msgid "Select a File or Folder"
+msgstr "Selecciona un Fitxer o Directori"
+
+#: ../src/mn-client-session.c:247
+#, c-format
+msgid "resolving %s"
+msgstr "resolent %s"
+
+#: ../src/mn-client-session.c:263
+#, c-format
+msgid "unable to resolve %s: %s"
+msgstr "no s'ha pogut resoldre %s: %s"
+
+#: ../src/mn-client-session.c:304
+#, c-format
+msgid "network address #%i"
+msgstr "adreça de xarxa #%i"
+
+#: ../src/mn-client-session.c:307
+#, c-format
+msgid "unable to convert network address #%i into textual form: %s"
+msgstr "no s'ha pogut convertir l'adreça de xarxa #%i a format textual: %s"
+
+#: ../src/mn-client-session.c:318
+#, c-format
+msgid "%s: unsupported address family"
+msgstr "%s: família d'adreces no suportada"
+
+#: ../src/mn-client-session.c:325
+#, c-format
+msgid "%s: unable to create socket: %s"
+msgstr "%s: no s'ha pogut crear el sòcol: %s"
+
+#: ../src/mn-client-session.c:329
+#, c-format
+msgid "connecting to %s (%s) port %i"
+msgstr "connectant a %s (%s) port %i"
+
+#: ../src/mn-client-session.c:332
+#, c-format
+msgid "unable to connect: %s"
+msgstr "no s'ha pogut connectar: %s"
+
+#: ../src/mn-client-session.c:337
+msgid "connected successfully"
+msgstr "connectat amb èxit"
+
+#. if reached, we couldn't find a working address
+#: ../src/mn-client-session.c:351
+#, c-format
+msgid "unable to connect to %s"
+msgstr "no s'ha pogut connectar a %s"
+
+#: ../src/mn-client-session.c:378
+#, c-format
+msgid "unable to initialize the OpenSSL library: %s"
+msgstr "no s'ha pogut inicialitzar la llibreria OpenSSL: %s"
+
+#: ../src/mn-client-session.c:386
+#, c-format
+msgid "unable to create a SSL/TLS object: %s"
+msgstr "no s'ha pogut crear un objecte SSL/TLS: %s"
+
+#: ../src/mn-client-session.c:392
+#, c-format
+msgid "unable to set the SSL/TLS file descriptor: %s"
+msgstr "no s'ha pogut ajustar el descriptor de fitxer SSL/TLS: %s"
+
+#: ../src/mn-client-session.c:398
+#, c-format
+msgid "unable to perform the SSL/TLS handshake: %s"
+msgstr "no s'ha pogut realitzar la negociació SSL/TLS: %s"
+
+#: ../src/mn-client-session.c:404
+msgid "untrusted server"
+msgstr "servidor no confiable"
+
+#: ../src/mn-client-session.c:408
+#, c-format
+msgid "a SSL/TLS layer is now active (%s, %s %i-bit)"
+msgstr "no hi ha cap capa SSL/TLS activa (%s, %s %i-bit)"
+
+#: ../src/mn-client-session.c:455
+#, c-format
+msgid "%s, fingerprint: %s"
+msgstr "%s, empremta digitals: %s"
+
+#: ../src/mn-client-session.c:484
+msgid "missing certificate"
+msgstr "manca el certificat"
+
+#: ../src/mn-client-session.c:510
+#, c-format
+msgid ""
+"Mail Notification was unable to trust \"%s\" (%s). It is possible that someone is intercepting your communication to obtain your confidential information.\n"
+"\n"
+"You should only connect to the server if you are certain you are connected to \"%s\". If you choose to connect to the server, this message will not be shown again."
+msgstr ""
+"L'avisador de correu no ha pogut establir la confiança per a \"%s\" (%s). És possible que algú estigui interceptant la comunicació per obtenir informació confidencial.\n"
+"\n"
+"Només hauríeu de connectar al servidor si esteu segurs d'estar connectant a \"%s\". Si trieu connectar al servidor, no es tornarà a mostrar-aquest missatge."
+
+#: ../src/mn-client-session.c:525
+msgid "Connect to untrusted server?"
+msgstr "Voleu connectar al servidor no confiable?"
+
+#: ../src/mn-client-session.c:590
+#, c-format
+msgid "response \"%s\" is not valid in current context"
+msgstr "la resposta \"%s\" no és vàlida en el context actual"
+
+#: ../src/mn-client-session.c:619
+#, c-format
+msgid "unable to parse response \"%s\""
+msgstr "no s'ha pogut analitzar la resposta: \"%s\""
+
+#: ../src/mn-client-session.c:669
+#: ../src/mn-client-session.c:676
+#, c-format
+msgid "unable to read from server: %s"
+msgstr "no s'ha pogut llegir des del servidor: %s"
+
+#: ../src/mn-client-session.c:674
+msgid "unable to read from server: EOF"
+msgstr "no s'ha pogut llegir des del servidor: EOF"
+
+#: ../src/mn-client-session.c:686
+#, c-format
+msgid "unable to decode data using SASL: %s"
+msgstr "no s'ha pogut descodificar les dades usant SASL: %s"
+
+#: ../src/mn-client-session.c:831
+#, c-format
+msgid "unable to encode data using SASL: %s"
+msgstr "no s'ha pogut codificar les dades usant SASL: %s"
+
+#: ../src/mn-client-session.c:862
+#: ../src/mn-client-session.c:869
+#, c-format
+msgid "unable to write to server: %s"
+msgstr "no s'ha pogut escriure cap al servidor: %s"
+
+#: ../src/mn-client-session.c:867
+msgid "unable to write to server: EOF"
+msgstr "no s'ha pogut escriure cap al servidor: EOF"
+
+#: ../src/mn-client-session.c:898
+#: ../src/mn-pop3-mailbox.gob:433
+#, c-format
+msgid "unable to encode Base64: %s"
+msgstr "no s'ha pogut descodificar en Base64: %s"
+
+#: ../src/mn-client-session.c:1075
+#, c-format
+msgid "unable to initialize the SASL library: %s"
+msgstr "no s'ha pogut inicialitzar la llibreria SASL: %s"
+
+#: ../src/mn-client-session.c:1087
+#, c-format
+msgid "unable to retrieve local address of socket: %s"
+msgstr "no s'ha pogut recuperar l'adreça local del sòcol: %s"
+
+#: ../src/mn-client-session.c:1093
+#, c-format
+msgid "unable to retrieve remote address of socket: %s"
+msgstr "no s'ha pogut recuperar l'adreça remota del sòcol: %s"
+
+#: ../src/mn-client-session.c:1127
+#, c-format
+msgid "unable to set SASL security properties: %s"
+msgstr "no s'han pogut ajustar les propietats de seguretat SASL: %s"
+
+#: ../src/mn-client-session.c:1151
+msgid "unable to start SASL authentication: SASL asked for something we did not know"
+msgstr "no s'ha pogut iniciar l'autenticació SASL: SASL ha preguntat alguna cosa que no sabem"
+
+#: ../src/mn-client-session.c:1170
+#, c-format
+msgid "unable to start SASL authentication: %s"
+msgstr "no s'ha pogut iniciar l'autenticació SASL: %s"
+
+#: ../src/mn-client-session.c:1174
+#, c-format
+msgid "unable to create a SASL connection: %s"
+msgstr "no s'ha pogut crear una connexió SASL: %s"
+
+#: ../src/mn-client-session.c:1221
+msgid "SASL asked for something we did not know, aborting SASL authentication"
+msgstr "SASL ha preguntat alguna cosa que no sabem, avortant l'autenticació SASL"
+
+#: ../src/mn-client-session.c:1238
+#, c-format
+msgid "%s, aborting SASL authentication"
+msgstr "%s, avortant l'autenticació SASL"
+
+#. compliance error
+#: ../src/mn-client-session.c:1243
+#, c-format
+msgid "unable to decode Base64 input from server: %s"
+msgstr "no s'ha pogut descodificar en Base64 l'entrada del servidor: %s"
+
+#: ../src/mn-client-session.c:1279
+#, c-format
+msgid "a SASL security layer of strength factor %i is now active"
+msgstr "s'ha activat una capa de seguretat SASL de factor de força %i"
+
+#. a security layer is active but we can't retrieve maxoutbuf -> fatal
+#: ../src/mn-client-session.c:1284
+#, c-format
+msgid "unable to get SASL_MAXOUTBUF property: %s"
+msgstr "no s'ha pogut llegir la propietat SASL_MAXOUTBUF: %s"
+
+#: ../src/mn-client-session.c:1290
+#, c-format
+msgid "warning: unable to get SASL_SSF property: %s"
+msgstr "avís: no s'ha pogut llegir la propietat SASL_SSF: %s"
+
+#: ../src/mn-client-session.c:1449
+msgid "unknown server error"
+msgstr "error desconegut del servidor"
+
+#: ../src/mn-compact-message-view.gob:45
+msgid "Mailbox"
+msgstr "Bústia"
+
+#: ../src/mn-compact-message-view.gob:46
+msgid "From"
+msgstr "De"
+
+#: ../src/mn-compact-message-view.gob:47
+msgid "Subject"
+msgstr "Assumpte"
+
+#: ../src/mn-compact-message-view.gob:48
+msgid "Sent"
+msgstr "Enviat"
+
+#: ../src/mn-conf.c:262
+msgid "A directory creation error has occurred"
+msgstr "S'ha produït un error creant un directori"
+
+#: ../src/mn-conf.c:263
+#, c-format
+msgid "Unable to create directory \"%s\": %s."
+msgstr "No s'ha pogut crear el directori \"%s\": %s."
+
+#: ../src/mn-conf.c:402
+#, c-format
+msgid "recursively unsetting %s"
+msgstr "desajustant recursivament %s"
+
+#: ../src/mn-conf.c:406
+msgid "syncing the GConf database"
+msgstr "sincronitzant amb la base de dades de GConf"
+
+#: ../src/mn-conf.c:409
+msgid "completed"
+msgstr "completat"
+
+#: ../src/mn-conf.c:1137
+msgid "A command error has occurred in Mail Notification"
+msgstr "S'ha produït un error en el avisador de correu"
+
+#: ../src/mn-conf.c:1138
+#, c-format
+msgid "Unable to execute \"%s\": %s."
+msgstr "No s'ha pogut executar \"%s\": %s."
+
+#: ../src/mn-custom-vfs-mailbox.gob:76
+msgid "invalid location"
+msgstr "ubicació no vàlida"
+
+#: ../src/mn-evolution-folder-tree-control.c:91
+msgid "The currently selected URI"
+msgstr "L'URI seleccionat actualment"
+
+#. translators: header capitalization
+#: ../src/mn-evolution-mailbox-properties.gob:68
+msgid "Folder"
+msgstr "Carpeta"
+
+#: ../src/mn-evolution-mailbox-properties.gob:159
+msgid "Mail Notification can not contact Evolution. Make sure that Evolution is running and that the Evolution Mail Notification plugin is loaded."
+msgstr "L'avisador de correu no pot contactar amb l'Evolution. Comproveu que l'Evolution s'està executant i que està carregat el connector de l'avisador de correu."
+
+#: ../src/mn-evolution-mailbox.gob:75
+msgid "folder not found"
+msgstr "no s'ha trobat la carpeta"
+
+#: ../src/mn-evolution-mailbox.gob:212
+msgid "unable to contact Evolution"
+msgstr "no s'ha pogut contactar amb l'Evolution"
+
+#: ../src/mn-evolution-plugin.c:136
+#: ../src/mn-evolution-plugin.c:140
+msgid "Unable to activate the Mail Notification plugin"
+msgstr "No s'ha pogut activar el connector de l'avisador de correu"
+
+#: ../src/mn-evolution-plugin.c:136
+#, c-format
+msgid "Bonobo could not locate the %s server. Please check your Mail Notification installation."
+msgstr "Bonobo no ha pogut trobar el servidor %s. Comproveu la instal·lació de l'avisador de correu."
+
+#: ../src/mn-evolution-plugin.c:140
+#: ../src/mn-main.c:460
+#, c-format
+msgid "Bonobo was unable to register the %s server. Please check your Mail Notification installation."
+msgstr "Bonobo no ha pogut registrar el servidor %s. Comproveu la instal·lació de l'avisador de correu."
+
+#: ../src/mn-gmail-mailbox.gob:103
+msgid "invalid feed location"
+msgstr "la ubicació de l'alimentació no és vàlida"
+
+#: ../src/mn-gmail-mailbox.gob:117
+#, c-format
+msgid "retrieving feed from %s"
+msgstr "recuperant l'alimentació des de %s"
+
+#: ../src/mn-gmail-mailbox.gob:124
+#, c-format
+msgid "unable to retrieve feed: %s"
+msgstr "no s'ha pogut recuperar l'alimentació: %s"
+
+#: ../src/mn-gmail-mailbox.gob:139
+#: ../src/mn-gmail-mailbox.gob:187
+msgid "unable to parse feed"
+msgstr "no s'ha pogut analitzar l'alimentació"
+
+#: ../src/mn-gmime-stream-vfs.gob:50
+#: ../src/mn-sylpheed-mailbox-backend.gob:205
+#, c-format
+msgid "unable to read %s: %s"
+msgstr "no s'ha pogut llegir %s: %s"
+
+#: ../src/mn-gmime-stream-vfs.gob:52
+#, c-format
+msgid "unable to write to %s: %s"
+msgstr "no s'ha pogut escriure en %s: %s"
+
+#: ../src/mn-gmime-stream-vfs.gob:54
+#, c-format
+msgid "unable to seek in %s: %s"
+msgstr "no s'ha pogut cercar en %s: %s"
+
+#: ../src/mn-gmime-stream-vfs.gob:56
+#, c-format
+msgid "unable to tell position of %s: %s"
+msgstr "no s'ha pogut fixar la posició de %s: %s"
+
+#: ../src/mn-gmime-stream-vfs.gob:58
+#: ../src/mn-mh-mailbox-backend.gob:164
+#, c-format
+msgid "unable to close %s: %s"
+msgstr "no s'ha pogut tancar %s: %s"
+
+#: ../src/mn-imap-mailbox-properties.gob:114
+#: ../src/mn-standard-message-view.gob:62
+msgid "Mailbox:"
+msgstr "Bústia:"
+
+#: ../src/mn-imap-mailbox-properties.gob:118
+msgid "in_box"
+msgstr "d'ent_rada"
+
+#: ../src/mn-imap-mailbox-properties.gob:129
+msgid "oth_er:"
+msgstr "_una altra:"
+
+#: ../src/mn-imap-mailbox-properties.gob:140
+msgid "ne_ver"
+msgstr "_mai"
+
+#: ../src/mn-imap-mailbox-properties.gob:141
+msgid "au_todetect"
+msgstr "_autodetecta"
+
+#: ../src/mn-imap-mailbox-properties.gob:142
+msgid "al_ways"
+msgstr "sem_pre"
+
+#: ../src/mn-imap-mailbox-properties.gob:174
+msgid "Use the <span style=\"italic\">IDLE</span> extension:"
+msgstr "Usa l'extensió <span style=\"italic\">IDLE</span>:"
+
+#: ../src/mn-imap-mailbox.gob:384
+msgid "server did not send capabilities"
+msgstr "el servidor no ha enviat les capacitats"
+
+#: ../src/mn-imap-mailbox.gob:551
+msgid "server advertised LOGINDISABLED, not using LOGIN authentication"
+msgstr "el servidor ha avisat LOGINDISABLED, no s'usarà l'autenticació LOGIN"
+
+#: ../src/mn-imap-mailbox.gob:552
+msgid "unable to login"
+msgstr "no s'ha pogut entrar"
+
+#. compliance error
+#: ../src/mn-imap-mailbox.gob:752
+msgid "server did not send all the messages we requested"
+msgstr "el servidor no ha enviat tots els missatges que hem sol·licitat"
+
+#: ../src/mn-imap-mailbox.gob:822
+msgid "unable to fetch message"
+msgstr "no s'ha pogut recuperar el missatge"
+
+#: ../src/mn-imap-mailbox.gob:847
+msgid "\"Use the IDLE extension\" set to \"never\" in the mailbox properties, logging out"
+msgstr "\"Usa l'extensió IDLE\" ha de ser \"mai\" a les propietats de la bústia, sortint"
+
+#: ../src/mn-imap-mailbox.gob:858
+#, c-format
+msgid "the remote server runs %s, not using the IDLE extension"
+msgstr "el servidor remot executa %s, no s'usarà l'extensió IDLE"
+
+#: ../src/mn-imap-mailbox.gob:863
+#, c-format
+msgid "the remote server runs %s, the IDLE extension might not function properly"
+msgstr "el servidor remot executa %s, és possible que l'extensió IDLE no funcioni correctament"
+
+#: ../src/mn-imap-mailbox.gob:872
+msgid "the remote server does not support the IDLE extension, logging out"
+msgstr "el servidor remot no suporta l'extensió IDLE, sortint"
+
+#: ../src/mn-imap-mailbox.gob:1377
+#: ../src/mn-pop3-mailbox.gob:296
+msgid "server does not support in-band SSL/TLS"
+msgstr "el servidor no suporta SSL/TLS en banda"
+
+#: ../src/mn-imap-mailbox.gob:1401
+#: ../src/mn-pop3-mailbox.gob:947
+msgid "a SASL authentication mechanism was selected but SASL support has not been compiled in"
+msgstr "s'ha seleccionat un mecanisme d'autenticació SASL, però el suport de SASL no està disponible"
+
+#: ../src/mn-imap-mailbox.gob:1411
+#: ../src/mn-pop3-mailbox.gob:967
+#, c-format
+msgid "unknown authentication mechanism \"%s\""
+msgstr "mecanisme d'autenticació desconegut \"%s\""
+
+#: ../src/mn-imap-mailbox.gob:1443
+#: ../src/mn-pop3-mailbox.gob:1003
+#, c-format
+msgid "disabling mechanism \"%s\" and retrying SASL authentication"
+msgstr "inhabilitant el mecanisme \"%s\" i tornant a provar amb l'autenticació SASL"
+
+#: ../src/mn-imap-mailbox.gob:1455
+msgid "falling back to IMAP LOGIN authentication"
+msgstr "passant a autenticació amb IMAP LOGIN"
+
+#: ../src/mn-imap-mailbox.gob:1467
+#: ../src/mn-pop3-mailbox.gob:1032
+msgid "authentication failed"
+msgstr "l'autenticació ha fallat"
+
+#. success; caller must switch state itself
+#. compliance error
+#: ../src/mn-imap-mailbox.gob:1528
+msgid "server did not send search results"
+msgstr "el servidor no ha enviat els resultats de la cerca"
+
+#. translators: header capitalization
+#: ../src/mn-mail-icon.gob:89
+msgid "_Mail Reader"
+msgstr "_Client de correu"
+
+#. translators: header capitalization
+#: ../src/mn-mail-icon.gob:91
+#: ../src/mn-mailbox-view.gob:312
+msgid "_Update"
+msgstr "_Actualitzar"
+
+#. translators: header capitalization
+#: ../src/mn-mail-icon.gob:98
+msgid "R_emove From Notification Area"
+msgstr "_Suprimir de l'Àrea de notificació"
+
+#. translators: header capitalization
+#: ../src/mn-mail-summary-popup.gob:270
+msgid "<span size=\"larger\" weight=\"bold\">Mail Summary</span>"
+msgstr "<span size=\"larger\" weight=\"bold\">Resum de Correu</span>"
+
+#. translators: header capitalization
+#: ../src/mn-mail-summary-popup.gob:277
+msgid "<span weight=\"bold\">Mail Summary</span>"
+msgstr "<span weight=\"bold\">Resum de Correu</span>"
+
+#. translators: header capitalization
+#: ../src/mn-mailbox-properties-dialog.gob:89
+#, c-format
+msgid "%s Properties"
+msgstr "Propietats de %s"
+
+#. translators: header capitalization
+#: ../src/mn-mailbox-properties-dialog.gob:232
+msgid "Add a Mailbox"
+msgstr "Afegeix una Bústia"
+
+#: ../src/mn-mailbox-view.gob:248
+msgid "A paste error has occurred"
+msgstr "S'ha produït un error enganxant"
+
+#: ../src/mn-mailbox-view.gob:557
+#, c-format
+msgid "unhandled %s mailbox (%s)"
+msgstr "bústia %s no gestionada (%s)"
+
+#: ../src/mn-mailbox-view.gob:562
+#, c-format
+msgid "%s mailbox"
+msgstr "bústia %s"
+
+#: ../src/mn-mailbox-view.gob:577
+msgid "detecting mailbox type..."
+msgstr "detectant el tipus de bústia..."
+
+#: ../src/mn-mailbox.gob:472
+msgid "\"type\" attribute missing"
+msgstr "manca l'atribut de \"tipus\""
+
+#: ../src/mn-mailbox.gob:479
+#, c-format
+msgid "unknown mailbox type \"%s\""
+msgstr "tipus de bústia \"%s\" desconegut"
+
+#: ../src/mn-mailbox.gob:499
+#, c-format
+msgid "property \"%s\": unable to transform string \"%s\" into a value of type \"%s\""
+msgstr "propietat \"%s\": no es pot transformar la cadena \"%s\" a un valor de tipus \"%s\""
+
+#: ../src/mn-mailbox.gob:948
+#, c-format
+msgid "property \"%s\" has no value"
+msgstr "la propietat \"%s\" no té valor"
+
+#: ../src/mn-mailboxes.gob:239
+msgid "An error has occurred while importing old mailboxes"
+msgstr "S'ha produït un error important bústies antigues"
+
+#: ../src/mn-mailboxes.gob:265
+msgid "Unable to load the mailboxes configuration"
+msgstr "No es pot carregar la configuració de les bústies"
+
+#: ../src/mn-mailboxes.gob:311
+msgid "Unable to parse the XML document."
+msgstr "No es pot analitzar el document XML."
+
+#: ../src/mn-mailboxes.gob:318
+msgid "The root element is missing."
+msgstr "Manca l'element arrel."
+
+#: ../src/mn-mailboxes.gob:324
+#, c-format
+msgid "The root element \"%s\" is invalid."
+msgstr "L'element arrel \"%s\" no és vàlid."
+
+#: ../src/mn-mailboxes.gob:347
+#, c-format
+msgid "On line %i: %s."
+msgstr "En línia %i: %s."
+
+#: ../src/mn-mailboxes.gob:352
+#, c-format
+msgid "On line %i: unknown element \"%s\"."
+msgstr "En línia %i: element \"%s\" desconegut."
+
+#: ../src/mn-mailboxes.gob:361
+msgid "An error has occurred while loading the mailboxes configuration"
+msgid_plural "Errors have occurred while loading the mailboxes configuration"
+msgstr[0] "S'ha produït un error carregant la configuració de les bústies"
+msgstr[1] "S'han produït errors carregant la configuració de les bústies"
+
+#: ../src/mn-mailboxes.gob:386
+msgid "Unable to save the mailboxes configuration"
+msgstr "No es pot desar la configuració de les bústies"
+
+#: ../src/mn-mailboxes.gob:428
+#, c-format
+msgid "Unable to remove %s: %s."
+msgstr "No es pot suprimir %s: %s."
+
+#: ../src/mn-mailboxes.gob:436
+#, c-format
+msgid "Unable to create %s: %s."
+msgstr "No es pot crear %s: %s."
+
+#: ../src/mn-mailboxes.gob:443
+#, c-format
+msgid "Unable to open %s for writing: %s."
+msgstr "No es pot obrir %s per escriptura: %s."
+
+#: ../src/mn-mailboxes.gob:450
+msgid "Unable to write the XML document."
+msgstr "No es pot escriure el document XML."
+
+#: ../src/mn-mailboxes.gob:456
+#, c-format
+msgid "Unable to close %s: %s."
+msgstr "No es pot tancar %s: %s."
+
+#: ../src/mn-mailboxes.gob:466
+#: ../src/mn-mailboxes.gob:473
+#, c-format
+msgid "Unable to rename %s to %s: %s."
+msgstr "No es pot canviar el nom de %s a %s: %s."
+
+#. non fatal
+#: ../src/mn-mailboxes.gob:479
+#, c-format
+msgid "unable to delete %s: %s"
+msgstr "no es pot suprimir %s: %s"
+
+#: ../src/mn-mailboxes.gob:509
+#, c-format
+msgid "%s has %i new message"
+msgid_plural "%s has %i new messages"
+msgstr[0] "%s té %i missatge nou"
+msgstr[1] "%s té %i missatges nous"
+
+#: ../src/mn-mailboxes.gob:535
+#, c-format
+msgid "%s reported an error: %s"
+msgstr "%s ha generat un error: %s"
+
+#: ../src/mn-maildir-mailbox-backend.gob:125
+#, c-format
+msgid "unable to open folder \"%s\": %s"
+msgstr "no es pot obrir la carpeta \"%s\": %s"
+
+#: ../src/mn-maildir-mailbox-backend.gob:173
+#, c-format
+msgid "unable to close folder \"%s\": %s"
+msgstr "no es pot tancar la carpeta \"%s\": %s"
+
+#: ../src/mn-maildir-mailbox-backend.gob:176
+#, c-format
+msgid "error while reading folder \"%s\": %s"
+msgstr "s'ha produït un error en llegir la carpeta \"%s\": %s"
+
+#: ../src/mn-main.c:100
+msgid "yes"
+msgstr "sí"
+
+#: ../src/mn-main.c:100
+msgid "no"
+msgstr "no"
+
+#: ../src/mn-main.c:132
+#, c-format
+msgid "%s version %s\n"
+msgstr "%s versió %s\n"
+
+#: ../src/mn-main.c:137
+msgid "Mailbox backends:\n"
+msgstr "Rerefons de la bústia:\n"
+
+#: ../src/mn-main.c:142
+msgid "POP3 and IMAP features:\n"
+msgstr "Característiques de POP3 i IMAP:\n"
+
+#: ../src/mn-main.c:147
+msgid "Sylpheed features:\n"
+msgstr "Característiques de Sylpheed:\n"
+
+#: ../src/mn-main.c:198
+#, c-format
+msgid "A Bonobo exception (%s) has occurred in %s()."
+msgstr "S'ha produït una excepció de Bonobo (%s) en %s()."
+
+#: ../src/mn-main.c:220
+msgid "Show version information"
+msgstr "Mostra la informació de la versió"
+
+#: ../src/mn-main.c:229
+msgid "Enable informational output"
+msgstr "Habilita la sortida d'informació"
+
+#: ../src/mn-main.c:238
+msgid "Display the properties dialog"
+msgstr "Mostra el diàleg de propietats"
+
+#: ../src/mn-main.c:247
+msgid "Display the about dialog"
+msgstr "Mostra el diàleg Quant a"
+
+#: ../src/mn-main.c:256
+msgid "Close the mail summary popup"
+msgstr "Tanca el resum emergent de correu"
+
+#: ../src/mn-main.c:265
+msgid "Update the mail status"
+msgstr "Actualitza l'estat del correu"
+
+#: ../src/mn-main.c:274
+msgid "Unset obsolete GConf configuration"
+msgstr "Desajusta la configuració obsoleta de GConf"
+
+#: ../src/mn-main.c:283
+msgid "Quit Mail Notification"
+msgstr "Sortir de l'avisador de correu"
+
+#.
+#. * We cannot use mn_fatal_error_dialog() because gtk_init() has
+#. * not been called yet.
+#.
+#: ../src/mn-main.c:310
+msgid "multi-threading is not available"
+msgstr "no està disponible el muti-threading"
+
+#: ../src/mn-main.c:365
+msgid "Bonobo could not locate the automation object. Please check your Mail Notification installation."
+msgstr "Bonobo no pot trobar l'objecte d'automatització. Comproveu la instal·lació de l'avisador de correu."
+
+#: ../src/mn-main.c:371
+msgid "quitting Mail Notification"
+msgstr "sortint de l'avisador de correu"
+
+#: ../src/mn-main.c:375
+msgid "Mail Notification is not running"
+msgstr "L'avisador de correu no s'està executant"
+
+#: ../src/mn-main.c:390
+msgid "Unable to initialize the GnomeVFS library."
+msgstr "No s'ha pogut inicialitzar la llibreria GnomeVFS."
+
+#: ../src/mn-main.c:438
+msgid "updating the mail status"
+msgstr "actualitzant l'estat del correu"
+
+#: ../src/mn-main.c:446
+msgid "Mail Notification is already running"
+msgstr "L'avisador de correu ja s'està executant"
+
+#: ../src/mn-main.c:456
+#, c-format
+msgid "Bonobo could not locate the %s file. Please check your Mail Notification installation."
+msgstr "Bonobo no ha pogut trobar el fitxer %s. Comproveu la instal·lació de l'avisador de correu."
+
+#: ../src/mn-mbox-mailbox-backend.gob:281
+#, c-format
+msgid "unable to close file: %s"
+msgstr "no s'ha pogut tancar el fitxer: %s"
+
+#: ../src/mn-mbox-mailbox-backend.gob:298
+#, c-format
+msgid "unable to open mailbox: %s"
+msgstr "no s'ha pogut obrir la bústia: %s"
+
+#: ../src/mn-message-mime.c:121
+msgid "unable to parse MIME message"
+msgstr "no s'ha pogut analitzar el missatge MIME"
+
+#: ../src/mn-message.gob:111
+msgid "Unknown"
+msgstr "Desconegut"
+
+#. translators: "none" is used like "Mailbox: none"
+#: ../src/mn-message.gob:130
+msgid "none"
+msgstr "cap"
+
+#: ../src/mn-mh-mailbox-backend.gob:167
+#, c-format
+msgid "error while reading %s: %s"
+msgstr "s'ha produït un error en llegir %s: %s"
+
+#: ../src/mn-mh-mailbox-backend.gob:180
+#, c-format
+msgid "unable to open %s: %s"
+msgstr "no s'ha pogut obrir %s: %s"
+
+#: ../src/mn-pi-mailbox-properties.gob:67
+msgid "sta_ndard"
+msgstr "_estàndard"
+
+#: ../src/mn-pi-mailbox-properties.gob:68
+msgid "in-band SS_L/TLS"
+msgstr "SS_L/TLS en banda"
+
+#: ../src/mn-pi-mailbox-properties.gob:69
+msgid "SSL/TLS on sepa_rate port"
+msgstr "SSL/TLS en un port _diferent"
+
+#: ../src/mn-pi-mailbox-properties.gob:73
+msgid "Ho_stname:"
+msgstr "_Servidor:"
+
+#. translators: header capitalization
+#: ../src/mn-pi-mailbox-properties.gob:94
+msgid "_Details"
+msgstr "_Detalls"
+
+#: ../src/mn-pi-mailbox-properties.gob:149
+msgid "Connection type:"
+msgstr "Tipus de connexió:"
+
+#: ../src/mn-pi-mailbox-properties.gob:156
+msgid "Port:"
+msgstr "Port:"
+
+#: ../src/mn-pi-mailbox-properties.gob:179
+msgid "Authent_ication mechanism:"
+msgstr "Mecanisme d'_autenticació:"
+
+#: ../src/mn-pi-mailbox.gob:151
+msgid "SSL/TLS support has not been compiled in"
+msgstr "El suport de SSL/TLS no està disponible"
+
+#: ../src/mn-pi-mailbox.gob:317
+#, c-format
+msgid ""
+"Mail Notification was unable to log into %s mailbox %s, possibly because the credentials you have entered are invalid.\n"
+"\n"
+"Please re-enter your credentials."
+msgstr ""
+"L'avisador de correu no ha estat capaç d'entrar a la bústia %s %s, possiblement perquè les credencials entrades no són vàlides.\n"
+"\n"
+"Torneu a introduir les credencials."
+
+#: ../src/mn-pi-mailbox.gob:318
+#, c-format
+msgid "Enter your credentials for %s mailbox %s."
+msgstr "Introduïu les credencials per a la bústia %s %s."
+
+#. keep the title in sync with gnome-authentication-manager
+#. translators: header capitalization
+#: ../src/mn-pi-mailbox.gob:361
+msgid "Authentication Required"
+msgstr "Autenticació Obligatòria"
+
+#: ../src/mn-pop3-mailbox.gob:344
+msgid "invalid arguments for the LOGIN-DELAY capability"
+msgstr "argument no vàlids per a la capacitat LOGIN-DELAY"
+
+#.
+#. * Some servers violate RFC 2449 by not supporting a
+#. * second argument to the AUTH command. Support these
+#. * servers nevertheless, by retrying without the SASL
+#. * initial client response.
+#.
+#: ../src/mn-pop3-mailbox.gob:485
+msgid "SASL authentication with initial client response failed, retrying without initial client response"
+msgstr "Als servidors amb autenticació SASL que fallen la resposta inicial del client, reprova sense resposta inicial del client"
+
+#: ../src/mn-pop3-mailbox.gob:696
+msgid "unknown error"
+msgstr "error desconegut"
+
+#: ../src/mn-pop3-mailbox.gob:791
+#, c-format
+msgid "honouring LOGIN-DELAY, sleeping for %i second"
+msgstr "seguint LOGIN-DELAY, s'esperarà durant %i segon"
+
+#: ../src/mn-pop3-mailbox.gob:959
+msgid "server does not support APOP authentication"
+msgstr "el servidor no suporta autenticació APOP"
+
+#: ../src/mn-pop3-mailbox.gob:1015
+msgid "falling back to APOP authentication"
+msgstr "passant a autenticació amb APOP"
+
+#: ../src/mn-pop3-mailbox.gob:1020
+msgid "falling back to USER/PASS authentication"
+msgstr "passant a autenticació amb USER/PASS"
+
+#. translators: header capitalization
+#: ../src/mn-properties-dialog.gob:173
+#: ../ui/properties-dialog.glade.h:23
+msgid "Mail Notification Properties"
+msgstr "Propietats de l'avisador de correu"
+
+#: ../src/mn-properties-dialog.gob:207
+msgid "top left"
+msgstr "superior esquerra"
+
+#: ../src/mn-properties-dialog.gob:208
+msgid "top right"
+msgstr "superior dreta"
+
+#: ../src/mn-properties-dialog.gob:209
+msgid "bottom left"
+msgstr "inferior esquerra"
+
+#: ../src/mn-properties-dialog.gob:210
+msgid "bottom right"
+msgstr "inferior dreta"
+
+#: ../src/mn-properties-dialog.gob:332
+msgid "No mailbox selected."
+msgstr "Cap bústia seleccionada."
+
+#: ../src/mn-properties-dialog.gob:337
+#, c-format
+msgid "%i mailbox selected."
+msgstr "%i bústies seleccionades."
+
+#: ../src/mn-properties-dialog.gob:456
+#, c-format
+msgid "Test message #%i"
+msgstr "Correu de prova #%i"
+
+#. translators: header capitalization
+#: ../src/mn-properties-dialog.gob:462
+msgid "Mail Notification Properties Dialog"
+msgstr "Diàleg de Propietats de l'avisador de correu"
+
+#. translators: header capitalization
+#: ../src/mn-shell.gob:381
+msgid "Mailboxes Having New Mail"
+msgstr "Bústies amb Correu Nou"
+
+#. translators: header capitalization
+#: ../src/mn-shell.gob:400
+msgid "Errors"
+msgstr "Errors"
+
+#. translators: header capitalization
+#: ../src/mn-shell.gob:416
+msgid "Mail Summary"
+msgstr "Resum de Correu"
+
+#: ../src/mn-shell.gob:445
+msgid "You have no new mail."
+msgstr "No hi ha correu nou."
+
+#: ../src/mn-ssl.c:76
+msgid "unknown SSL/TLS error"
+msgstr "s'ha produït un error SSL/TSL desconegut"
+
+#: ../src/mn-standard-message-view.gob:64
+msgid "Unreadable message:"
+msgstr "Correu il·legible:"
+
+#: ../src/mn-standard-message-view.gob:67
+msgid "From:"
+msgstr "De:"
+
+#: ../src/mn-standard-message-view.gob:68
+msgid "Subject:"
+msgstr "Assumpte:"
+
+#: ../src/mn-standard-message-view.gob:72
+msgid "Sent:"
+msgstr "Enviat:"
+
+#. translators: header capitalization
+#: ../src/mn-stock.c:29
+msgid "Select _All"
+msgstr "Selecciona _Tots"
+
+#. translators: header capitalization
+#. translators: header capitalization
+#: ../src/mn-stock.c:32
+msgid "Co_nnect"
+msgstr "Co_nnecta"
+
+#: ../src/mn-sylpheed-mailbox-backend.gob:223
+#, c-format
+msgid "unable to open folder: %s"
+msgstr "no s'ha pogut obrir la carpeta: %s"
+
+#: ../src/mn-sylpheed-mailbox-backend.gob:276
+#, c-format
+msgid "unable to close folder: %s"
+msgstr "no s'ha pogut tancar la carpeta: %s"
+
+#: ../src/mn-sylpheed-mailbox-backend.gob:279
+#, c-format
+msgid "error while reading folder: %s"
+msgstr "s'ha produït un error en llegir la carpeta: %s"
+
+#: ../src/mn-sylpheed-mailbox-backend.gob:420
+msgid "unexpected end of file"
+msgstr "final de fitxer inesperat"
+
+#: ../src/mn-sylpheed-mailbox-backend.gob:438
+#, c-format
+msgid "incompatible file version \"%i\""
+msgstr "versió del fitxer \"%i\" incompatible"
+
+#: ../src/mn-sylpheed-mailbox-backend.gob:441
+msgid "file version missing"
+msgstr "manca la versió del fitxer"
+
+#: ../src/mn-system-vfs-mailbox-properties.gob:40
+#: ../src/mn-system-vfs-mailbox-properties.gob:48
+#: ../src/mn-system-vfs-mailbox.gob:45
+msgid "System mailbox"
+msgstr "Bústia de sistema"
+
+#: ../src/mn-system-vfs-mailbox-properties.gob:70
+#, c-format
+msgid "Your system mailbox is <span weight=\"bold\">%s</span>."
+msgstr "La bústia del sistema és <span weight=\"bold\">%s</span>."
+
+#: ../src/mn-system-vfs-mailbox-properties.gob:77
+msgid "The location of your system mailbox could not be detected. Check the MAIL environment variable."
+msgstr "No s'ha pogut detectar la ubicació de la bústia del sistema. Comproveu la variable d'entorn MAIL."
+
+#: ../src/mn-system-vfs-mailbox.gob:72
+msgid "system mailbox not found"
+msgstr "no s'ha trobat la bústia del sistema"
+
+#: ../src/mn-util.c:349
+#, c-format
+msgid "error loading image: %s"
+msgstr "s'ha produït un error carregant la imatge: %s"
+
+#: ../src/mn-util.c:365
+#, c-format
+msgid "Unable to load interface \"%s\". Please check your Mail Notification installation."
+msgstr "No s'ha pogut carregat la interfície \"%s\". Comproveu la instal·lació de l'avisador de correu."
+
+#: ../src/mn-util.c:380
+#, c-format
+msgid "Widget \"%s\" not found in interface \"%s\". Please check your Mail Notification installation."
+msgstr "No s'ha torbat el giny \"%s\" a la interfície \"%s\". Comproveu la instal·lació de l'avisador de correu."
+
+#: ../src/mn-util.c:449
+#, c-format
+msgid "Unable to open self as a module (%s)."
+msgstr "No s'ha pogut obrir com a mòdul (%s)."
+
+#: ../src/mn-util.c:454
+#, c-format
+msgid "Signal handler \"%s\" not found. Please check your Mail Notification installation."
+msgstr "No s'ha trobat el gestor de senyals \"%s\". Comproveu la instal·lació de l'avisador de correu."
+
+#: ../src/mn-util.c:605
+#: ../src/mn-util.c:628
+#: ../src/mn-util.c:648
+#: ../src/mn-util.c:670
+msgid "A drag and drop error has occurred"
+msgstr "S'ha produït un error en arrossegar i deixar anar"
+
+#: ../src/mn-util.c:606
+msgid "An invalid location list has been received."
+msgstr "S'ha rebut una llista d'ubicacions no vàlida."
+
+#: ../src/mn-util.c:649
+msgid "An invalid Mozilla location has been received."
+msgstr "S'ha rebut una ubicació de Mozilla no vàlida."
+
+#: ../src/mn-util.c:725
+msgid "Unable to display help"
+msgstr "No es pot mostrar l'ajuda"
+
+#: ../src/mn-util.c:739
+#, c-format
+msgid "Unable to create a thread: %s."
+msgstr "No es pot crear el fil: %s"
+
+#: ../src/mn-util.c:899
+#, c-format
+msgid ""
+"The following location is invalid:\n"
+"\n"
+"%sThe following locations are invalid:\n"
+"\n"
+"%s"
+msgstr ""
+"La ubicació següent no és vàlida:\n"
+"\n"
+"%sLes ubicacions següents no són vàlides:\n"
+"\n"
+"%s"
+
+#: ../src/mn-util.c:919
+msgid "A fatal error has occurred in Mail Notification"
+msgstr "S'ha produït un error fatal a l'avisador de correu"
+
+#: ../src/mn-util.c:958
+#, c-format
+msgid "unable to get current time: %s"
+msgstr "no es pot recuperar l'hora actual: %s"
+
+#: ../src/mn-util.c:1250
+#, c-format
+msgid "%i second ago"
+msgid_plural "%i seconds ago"
+msgstr[0] "fa %i segon"
+msgstr[1] "fa %i segons"
+
+#: ../src/mn-util.c:1254
+#, c-format
+msgid "about %i minute ago"
+msgid_plural "about %i minutes ago"
+msgstr[0] "fa %i minut"
+msgstr[1] "fa %i minuts"
+
+#: ../src/mn-util.c:1259
+#, c-format
+msgid "about %i hour ago"
+msgid_plural "about %i hours ago"
+msgstr[0] "fa %i hora"
+msgstr[1] "fa %i hores"
+
+#: ../src/mn-util.c:1264
+#, c-format
+msgid "about %i day ago"
+msgid_plural "about %i days ago"
+msgstr[0] "fa %i dia"
+msgstr[1] "fa %i dies"
+
+#: ../src/mn-util.c:1269
+#, c-format
+msgid "about %i week ago"
+msgid_plural "about %i weeks ago"
+msgstr[0] "fa %i setmana"
+msgstr[1] "fa %i setmanes"
+
+#: ../src/mn-util.c:1282
+msgid "unknown date"
+msgstr "data desconeguda"
+
+#: ../src/mn-vfs-mailbox.gob:221
+#, c-format
+msgid "unable to monitor %s (%s), poll mode activated"
+msgstr "no es pot monitoritzar %s (%s), s'ha activat el mode de sondeig"
+
+#: ../src/mn-vfs-mailbox.gob:385
+msgid "unknown mailbox format"
+msgstr "format de bústia desconegut"
+
+#: ../src/mn-vfs-mailbox.gob:385
+msgid "does not exist"
+msgstr "no existeix"
+
+#. translators: header capitalization
+#: ../ui/mailbox-properties-dialog.glade.h:2
+#: ../ui/properties-dialog.glade.h:8
+msgid "<span weight=\"bold\">General</span>"
+msgstr "<span weight=\"bold\">General</span>"
+
+#: ../ui/mailbox-properties-dialog.glade.h:3
+msgid "Delay between mail chec_ks:"
+msgstr "Inter_val entre comprovacions:"
+
+#: ../ui/mailbox-properties-dialog.glade.h:4
+msgid "Mailbox _name:"
+msgstr "Nom de la _bústia:"
+
+#. translators: header capitalization
+#: ../ui/mailbox-properties-dialog.glade.h:6
+msgid "Use De_fault"
+msgstr "Usa el _Predeterminat"
+
+#: ../ui/mailbox-properties-dialog.glade.h:7
+msgid "_Mailbox type:"
+msgstr "T_ipus de bústia:"
+
+#. translators: header capitalization
+#: ../ui/mailbox-properties-dialog.glade.h:9
+msgid "_Use Default"
+msgstr "_Usa el Predeterminat"
+
+#: ../ui/mailbox-properties-dialog.glade.h:10
+#: ../ui/properties-dialog.glade.h:48
+msgid "minutes"
+msgstr "minuts"
+
+#: ../ui/mailbox-properties-dialog.glade.h:11
+#: ../ui/properties-dialog.glade.h:52
+msgid "seconds"
+msgstr "segons"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:2
+msgid "<span weight=\"bold\">Click Action</span>"
+msgstr "<span weight=\"bold\">Acció en Fer Clic</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:4
+msgid "<span weight=\"bold\">Commands</span>"
+msgstr "<span weight=\"bold\">Comandes</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:6
+msgid "<span weight=\"bold\">Fonts</span>"
+msgstr "<span weight=\"bold\">Fonts</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:10
+msgid "<span weight=\"bold\">Layout</span>"
+msgstr "<span weight=\"bold\">Disposició</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:12
+msgid "<span weight=\"bold\">Mailbox List</span>"
+msgstr "<span weight=\"bold\">Llista de Bústies</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:14
+msgid "<span weight=\"bold\">Position</span>"
+msgstr "<span weight=\"bold\">Posició</span>"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:16
+msgid "<span weight=\"bold\">Tooltip Mail Summary</span>"
+msgstr "<span weight=\"bold\">Resum de correu</span>"
+
+#: ../ui/properties-dialog.glade.h:17
+msgid "Co_ntents:"
+msgstr "Co_ntinguts:"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:19
+msgid "General"
+msgstr "General"
+
+#: ../ui/properties-dialog.glade.h:20
+msgid "Hide p_reviously displayed mail"
+msgstr "_Amaga el correus mostrats anteriorment"
+
+#: ../ui/properties-dialog.glade.h:21
+msgid "Hori_zontal offset:"
+msgstr "Distància _horitzontal:"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:25
+msgid "Mail Summary Popup"
+msgstr "Resum Emergent de Correu"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:27
+msgid "Status Icon"
+msgstr "Icona d'Estat"
+
+#: ../ui/properties-dialog.glade.h:28
+msgid "Use these _fonts:"
+msgstr "Usa les _fonts:"
+
+#: ../ui/properties-dialog.glade.h:29
+msgid "When _new mail arrives:"
+msgstr "En arribar correu _nou:"
+
+#: ../ui/properties-dialog.glade.h:30
+msgid "When all mail has _been read:"
+msgstr "En no haver correu per _llegir:"
+
+#: ../ui/properties-dialog.glade.h:31
+msgid "_Always display"
+msgstr "Mostra _sempre"
+
+#: ../ui/properties-dialog.glade.h:32
+msgid "_Automatically close after:"
+msgstr "Ta_nca automàticament després de:"
+
+#: ../ui/properties-dialog.glade.h:33
+msgid "_Blink on errors"
+msgstr "_Parpelleja si hi ha errors"
+
+#. translators: header capitalization
+#: ../ui/properties-dialog.glade.h:35
+msgid "_Display a Test Popup"
+msgstr "_Mostra un Resum Emergent de Prova"
+
+#: ../ui/properties-dialog.glade.h:36
+msgid "_Display seen mail"
+msgstr "_Mostra el correu vist"
+
+#: ../ui/properties-dialog.glade.h:37
+msgid "_Display this dialog"
+msgstr "_Mostra aquest diàleg"
+
+#: ../ui/properties-dialog.glade.h:38
+msgid "_Enable mail summary popup"
+msgstr "Habilita el _resum emergent de correu"
+
+#: ../ui/properties-dialog.glade.h:39
+msgid "_Launch the mail reader"
+msgstr "E_xecuta el client de correu"
+
+#: ../ui/properties-dialog.glade.h:40
+msgid "_None"
+msgstr "C_ap"
+
+#: ../ui/properties-dialog.glade.h:41
+msgid "_Position:"
+msgstr "_Posició:"
+
+#: ../ui/properties-dialog.glade.h:42
+msgid "_Title:"
+msgstr "Tít_ol:"
+
+#: ../ui/properties-dialog.glade.h:43
+msgid "_Update the mail status"
+msgstr "Act_ualitza l'estat del correu"
+
+#: ../ui/properties-dialog.glade.h:44
+msgid "_Use fonts from theme"
+msgstr "_Usa les fonts del tema"
+
+#: ../ui/properties-dialog.glade.h:45
+msgid "_Vertical offset:"
+msgstr "Distància _vertical:"
+
+#: ../ui/properties-dialog.glade.h:46
+msgid "icon tooltip's mail summary layout|Co_mpact"
+msgstr "_Compacte"
+
+#: ../ui/properties-dialog.glade.h:47
+msgid "icon tooltip's mail summary layout|_Standard"
+msgstr "_Estàndard"
+
+#: ../ui/properties-dialog.glade.h:49
+msgid "pixels"
+msgstr "píxels"
+
+#: ../ui/properties-dialog.glade.h:50
+msgid "popup's mail summary layout|Co_mpact"
+msgstr "_Compacte"
+
+#: ../ui/properties-dialog.glade.h:51
+msgid "popup's mail summary layout|_Standard"
+msgstr "_Estàndard"
+
+

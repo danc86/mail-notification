@@ -73,7 +73,7 @@ struct _MNIMAPMailboxClass {
  */
 GType	mn_imap_mailbox_get_type	(void);
 char * 	mn_imap_mailbox_build_name	(const char * username,
-					const char * hostname,
+					const char * server,
 					const char * mailbox);
 
 /*

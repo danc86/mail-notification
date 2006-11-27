@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 25 "mn-standard-message-view.gob"
+#line 26 "mn-standard-message-view.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
@@ -117,7 +117,7 @@ mn_standard_message_view_class_init (MNStandardMessageViewClass * c G_GNUC_UNUSE
 
 	parent_class = g_type_class_ref (MN_TYPE_MESSAGE_VIEW);
 
-#line 36 "mn-standard-message-view.gob"
+#line 37 "mn-standard-message-view.gob"
 	mn_message_view_class->update = ___1_mn_standard_message_view_update;
 #line 123 "mn-standard-message-view.c"
 }
@@ -125,7 +125,7 @@ mn_standard_message_view_class_init (MNStandardMessageViewClass * c G_GNUC_UNUSE
 
 
 
-#line 36 "mn-standard-message-view.gob"
+#line 37 "mn-standard-message-view.gob"
 static void 
 ___1_mn_standard_message_view_update (MNMessageView * view G_GNUC_UNUSED, GSList * messages)
 #line 132 "mn-standard-message-view.c"
@@ -135,7 +135,7 @@ ___1_mn_standard_message_view_update (MNMessageView * view G_GNUC_UNUSED, GSList
 {
 #define __GOB_FUNCTION__ "MN:Standard:Message:View::update"
 {
-#line 38 "mn-standard-message-view.gob"
+#line 39 "mn-standard-message-view.gob"
 	
     Self *self = SELF(view);
     time_t now;
@@ -160,25 +160,25 @@ ___1_mn_standard_message_view_update (MNMessageView * view G_GNUC_UNUSED, GSList
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 59 "mn-standard-message-view.gob"
+#line 60 "mn-standard-message-view.gob"
 static void 
 mn_standard_message_view_append_message (MNStandardMessageView * self, time_t now, MNMessage * message)
 #line 167 "mn-standard-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Standard:Message:View::append_message"
-#line 59 "mn-standard-message-view.gob"
+#line 60 "mn-standard-message-view.gob"
 	g_return_if_fail (self != NULL);
-#line 59 "mn-standard-message-view.gob"
+#line 60 "mn-standard-message-view.gob"
 	g_return_if_fail (MN_IS_STANDARD_MESSAGE_VIEW (self));
-#line 59 "mn-standard-message-view.gob"
+#line 60 "mn-standard-message-view.gob"
 	g_return_if_fail (message != NULL);
-#line 59 "mn-standard-message-view.gob"
+#line 60 "mn-standard-message-view.gob"
 	g_return_if_fail (MN_IS_MESSAGE (message));
 #line 178 "mn-standard-message-view.c"
 {
-#line 61 "mn-standard-message-view.gob"
+#line 62 "mn-standard-message-view.gob"
 	
-    self_append_row(self, _("Mailbox:"), message->mailbox_name);
+    self_append_row(self, _("Mailbox:"), message->mailbox->runtime_name);
     if (message->error)
       self_append_row(self, _("Unreadable message:"), message->error);
     else
@@ -197,23 +197,23 @@ mn_standard_message_view_append_message (MNStandardMessageView * self, time_t no
 #line 198 "mn-standard-message-view.c"
 #undef __GOB_FUNCTION__
 
-#line 79 "mn-standard-message-view.gob"
+#line 80 "mn-standard-message-view.gob"
 static void 
 mn_standard_message_view_append_row (MNStandardMessageView * self, const char * name, const char * value)
 #line 204 "mn-standard-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Standard:Message:View::append_row"
-#line 79 "mn-standard-message-view.gob"
+#line 80 "mn-standard-message-view.gob"
 	g_return_if_fail (self != NULL);
-#line 79 "mn-standard-message-view.gob"
+#line 80 "mn-standard-message-view.gob"
 	g_return_if_fail (MN_IS_STANDARD_MESSAGE_VIEW (self));
-#line 79 "mn-standard-message-view.gob"
+#line 80 "mn-standard-message-view.gob"
 	g_return_if_fail (name != NULL);
-#line 79 "mn-standard-message-view.gob"
+#line 80 "mn-standard-message-view.gob"
 	g_return_if_fail (value != NULL);
 #line 215 "mn-standard-message-view.c"
 {
-#line 83 "mn-standard-message-view.gob"
+#line 84 "mn-standard-message-view.gob"
 	
     self_append_header(self, name);
     mn_text_table_append_text_cell(MN_TEXT_TABLE(self), value);
@@ -222,21 +222,21 @@ mn_standard_message_view_append_row (MNStandardMessageView * self, const char * 
 #line 223 "mn-standard-message-view.c"
 #undef __GOB_FUNCTION__
 
-#line 89 "mn-standard-message-view.gob"
+#line 90 "mn-standard-message-view.gob"
 static void 
 mn_standard_message_view_append_header (MNStandardMessageView * self, const char * name)
 #line 229 "mn-standard-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Standard:Message:View::append_header"
-#line 89 "mn-standard-message-view.gob"
+#line 90 "mn-standard-message-view.gob"
 	g_return_if_fail (self != NULL);
-#line 89 "mn-standard-message-view.gob"
+#line 90 "mn-standard-message-view.gob"
 	g_return_if_fail (MN_IS_STANDARD_MESSAGE_VIEW (self));
-#line 89 "mn-standard-message-view.gob"
+#line 90 "mn-standard-message-view.gob"
 	g_return_if_fail (name != NULL);
 #line 238 "mn-standard-message-view.c"
 {
-#line 91 "mn-standard-message-view.gob"
+#line 92 "mn-standard-message-view.gob"
 	
     char *markup;
 
@@ -247,14 +247,14 @@ mn_standard_message_view_append_header (MNStandardMessageView * self, const char
 #line 248 "mn-standard-message-view.c"
 #undef __GOB_FUNCTION__
 
-#line 99 "mn-standard-message-view.gob"
+#line 100 "mn-standard-message-view.gob"
 GtkWidget * 
 mn_standard_message_view_new (void)
 #line 254 "mn-standard-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Standard:Message:View::new"
 {
-#line 101 "mn-standard-message-view.gob"
+#line 102 "mn-standard-message-view.gob"
 	
     return GTK_WIDGET(GET_NEW);
   }}

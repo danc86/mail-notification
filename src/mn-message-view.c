@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 29 "mn-message-view.gob"
+#line 30 "mn-message-view.gob"
 
 #include "mn-locked-callback.h"
 #include "mn-util.h"
@@ -128,7 +128,7 @@ ___finalize(GObject *obj_self)
 #define __GOB_FUNCTION__ "MN:Message:View::finalize"
 	MNMessageView *self G_GNUC_UNUSED = MN_MESSAGE_VIEW (obj_self);
 	gpointer priv G_GNUC_UNUSED = self->_priv;
-#line 60 "mn-message-view.gob"
+#line 61 "mn-message-view.gob"
 	___3_mn_message_view_finalize(obj_self);
 #line 134 "mn-message-view.c"
 }
@@ -141,7 +141,7 @@ mn_message_view_init (MNMessageView * o G_GNUC_UNUSED)
 	o->_priv = G_TYPE_INSTANCE_GET_PRIVATE(o,MN_TYPE_MESSAGE_VIEW,MNMessageViewPrivate);
 }
 #undef __GOB_FUNCTION__
-#line 55 "mn-message-view.gob"
+#line 56 "mn-message-view.gob"
 static void 
 mn_message_view_class_init (MNMessageViewClass * class G_GNUC_UNUSED)
 #line 148 "mn-message-view.c"
@@ -155,13 +155,13 @@ mn_message_view_class_init (MNMessageViewClass * class G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (MN_TYPE_TEXT_TABLE);
 
-#line 60 "mn-message-view.gob"
+#line 61 "mn-message-view.gob"
 	g_object_class->finalize = ___finalize;
-#line 70 "mn-message-view.gob"
+#line 71 "mn-message-view.gob"
 	gtk_widget_class->realize = ___4_mn_message_view_realize;
 #line 163 "mn-message-view.c"
 	class->update = NULL;
-#line 91 "mn-message-view.gob"
+#line 92 "mn-message-view.gob"
 	mn_text_table_class->clear = ___6_mn_message_view_clear;
 #line 167 "mn-message-view.c"
 	g_object_class->set_property = ___object_set_property;
@@ -178,7 +178,7 @@ mn_message_view_class_init (MNMessageViewClass * class G_GNUC_UNUSED)
 		param_spec);
     }
  {
-#line 56 "mn-message-view.gob"
+#line 57 "mn-message-view.gob"
 
     past_time_cells = g_queue_new();
   
@@ -201,7 +201,7 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_MESSAGES:
 		{
-#line 51 "mn-message-view.gob"
+#line 52 "mn-message-view.gob"
 
       self_update(self, g_value_get_pointer(VAL));
     
@@ -221,21 +221,21 @@ ___object_set_property (GObject *object,
 #undef __GOB_FUNCTION__
 
 
-#line 51 "mn-message-view.gob"
+#line 52 "mn-message-view.gob"
 void 
 mn_message_view_set_messages (MNMessageView * self, gpointer val)
 #line 228 "mn-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Message:View::set_messages"
 {
-#line 49 "mn-message-view.gob"
+#line 50 "mn-message-view.gob"
 		g_object_set (G_OBJECT (self), "messages", val, NULL);
 }}
 #line 235 "mn-message-view.c"
 #undef __GOB_FUNCTION__
 
 
-#line 60 "mn-message-view.gob"
+#line 61 "mn-message-view.gob"
 static void 
 ___3_mn_message_view_finalize (GObject * object G_GNUC_UNUSED)
 #line 242 "mn-message-view.c"
@@ -245,7 +245,7 @@ ___3_mn_message_view_finalize (GObject * object G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:Message:View::finalize"
 {
-#line 62 "mn-message-view.gob"
+#line 63 "mn-message-view.gob"
 	
     Self *self = SELF(object);
 
@@ -257,7 +257,7 @@ ___3_mn_message_view_finalize (GObject * object G_GNUC_UNUSED)
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 70 "mn-message-view.gob"
+#line 71 "mn-message-view.gob"
 static void 
 ___4_mn_message_view_realize (GtkWidget * widget G_GNUC_UNUSED)
 #line 264 "mn-message-view.c"
@@ -267,7 +267,7 @@ ___4_mn_message_view_realize (GtkWidget * widget G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:Message:View::realize"
 {
-#line 72 "mn-message-view.gob"
+#line 73 "mn-message-view.gob"
 	
     GtkWidget *toplevel;
     GtkStateType state;
@@ -287,15 +287,15 @@ ___4_mn_message_view_realize (GtkWidget * widget G_GNUC_UNUSED)
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 88 "mn-message-view.gob"
+#line 89 "mn-message-view.gob"
 static void 
 mn_message_view_update (MNMessageView * self, GSList * messages)
 #line 294 "mn-message-view.c"
 {
 	MNMessageViewClass *klass;
-#line 88 "mn-message-view.gob"
+#line 89 "mn-message-view.gob"
 	g_return_if_fail (self != NULL);
-#line 88 "mn-message-view.gob"
+#line 89 "mn-message-view.gob"
 	g_return_if_fail (MN_IS_MESSAGE_VIEW (self));
 #line 301 "mn-message-view.c"
 	klass = MN_MESSAGE_VIEW_GET_CLASS(self);
@@ -304,7 +304,7 @@ mn_message_view_update (MNMessageView * self, GSList * messages)
 		(*klass->update)(self,messages);
 }
 
-#line 91 "mn-message-view.gob"
+#line 92 "mn-message-view.gob"
 static void 
 ___6_mn_message_view_clear (MNTextTable * table G_GNUC_UNUSED)
 #line 311 "mn-message-view.c"
@@ -314,7 +314,7 @@ ___6_mn_message_view_clear (MNTextTable * table G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:Message:View::clear"
 {
-#line 93 "mn-message-view.gob"
+#line 94 "mn-message-view.gob"
 	
     self_clear_past_time_cells(SELF(table));
 
@@ -324,19 +324,19 @@ ___6_mn_message_view_clear (MNTextTable * table G_GNUC_UNUSED)
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 99 "mn-message-view.gob"
+#line 100 "mn-message-view.gob"
 void 
 mn_message_view_append_past_time_cell (MNMessageView * self, time_t past_time, time_t now)
 #line 331 "mn-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Message:View::append_past_time_cell"
-#line 99 "mn-message-view.gob"
+#line 100 "mn-message-view.gob"
 	g_return_if_fail (self != NULL);
-#line 99 "mn-message-view.gob"
+#line 100 "mn-message-view.gob"
 	g_return_if_fail (MN_IS_MESSAGE_VIEW (self));
 #line 338 "mn-message-view.c"
 {
-#line 101 "mn-message-view.gob"
+#line 102 "mn-message-view.gob"
 	
     PastTimeCell *pcell;
 
@@ -358,19 +358,19 @@ mn_message_view_append_past_time_cell (MNMessageView * self, time_t past_time, t
 #line 359 "mn-message-view.c"
 #undef __GOB_FUNCTION__
 
-#line 120 "mn-message-view.gob"
+#line 121 "mn-message-view.gob"
 static void 
 mn_message_view_clear_past_time_cells (MNMessageView * self)
 #line 365 "mn-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Message:View::clear_past_time_cells"
-#line 120 "mn-message-view.gob"
+#line 121 "mn-message-view.gob"
 	g_return_if_fail (self != NULL);
-#line 120 "mn-message-view.gob"
+#line 121 "mn-message-view.gob"
 	g_return_if_fail (MN_IS_MESSAGE_VIEW (self));
 #line 372 "mn-message-view.c"
 {
-#line 122 "mn-message-view.gob"
+#line 123 "mn-message-view.gob"
 	
     GSList *l;
 
@@ -393,14 +393,14 @@ mn_message_view_clear_past_time_cells (MNMessageView * self)
 #line 394 "mn-message-view.c"
 #undef __GOB_FUNCTION__
 
-#line 142 "mn-message-view.gob"
+#line 143 "mn-message-view.gob"
 static gboolean 
 mn_message_view_update_past_time_cells_cb (gpointer data)
 #line 400 "mn-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Message:View::update_past_time_cells_cb"
 {
-#line 144 "mn-message-view.gob"
+#line 145 "mn-message-view.gob"
 	
     time_t now;
     GList *l;
@@ -414,17 +414,17 @@ mn_message_view_update_past_time_cells_cb (gpointer data)
 #line 415 "mn-message-view.c"
 #undef __GOB_FUNCTION__
 
-#line 155 "mn-message-view.gob"
+#line 156 "mn-message-view.gob"
 static void 
 mn_message_view_update_past_time_cell (PastTimeCell * pcell, time_t now)
 #line 421 "mn-message-view.c"
 {
 #define __GOB_FUNCTION__ "MN:Message:View::update_past_time_cell"
-#line 155 "mn-message-view.gob"
+#line 156 "mn-message-view.gob"
 	g_return_if_fail (pcell != NULL);
 #line 426 "mn-message-view.c"
 {
-#line 157 "mn-message-view.gob"
+#line 158 "mn-message-view.gob"
 	
     char *formatted;
 

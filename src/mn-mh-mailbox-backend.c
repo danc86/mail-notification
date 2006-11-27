@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 25 "mn-mh-mailbox-backend.gob"
+#line 26 "mn-mh-mailbox-backend.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
@@ -54,7 +54,7 @@ typedef MNMHMailboxBackendClass SelfClass;
 static void mn_mh_mailbox_backend_init (MNMHMailboxBackend * o) G_GNUC_UNUSED;
 static void mn_mh_mailbox_backend_class_init (MNMHMailboxBackendClass * class) G_GNUC_UNUSED;
 static void ___2_mn_mh_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend, const char * info_uri, GnomeVFSMonitorEventType event_type) G_GNUC_UNUSED;
-static gboolean ___3_mn_mh_mailbox_backend_is (MNVFSMailboxBackend * dummy, MNVFSMailbox * mailbox) G_GNUC_UNUSED;
+static gboolean ___3_mn_mh_mailbox_backend_is (MNVFSMailboxBackend * dummy, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox) G_GNUC_UNUSED;
 static void ___4_mn_mh_mailbox_backend_check (MNVFSMailboxBackend * backend, unsigned long check_id) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
@@ -108,7 +108,7 @@ mn_mh_mailbox_backend_init (MNMHMailboxBackend * o G_GNUC_UNUSED)
 #define __GOB_FUNCTION__ "MN:MH:Mailbox:Backend::init"
 }
 #undef __GOB_FUNCTION__
-#line 41 "mn-mh-mailbox-backend.gob"
+#line 42 "mn-mh-mailbox-backend.gob"
 static void 
 mn_mh_mailbox_backend_class_init (MNMHMailboxBackendClass * class G_GNUC_UNUSED)
 #line 115 "mn-mh-mailbox-backend.c"
@@ -118,15 +118,15 @@ mn_mh_mailbox_backend_class_init (MNMHMailboxBackendClass * class G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (MN_TYPE_VFS_MAILBOX_BACKEND);
 
-#line 46 "mn-mh-mailbox-backend.gob"
+#line 47 "mn-mh-mailbox-backend.gob"
 	mn_vfs_mailbox_backend_class->monitor_cb = ___2_mn_mh_mailbox_backend_monitor_cb;
-#line 68 "mn-mh-mailbox-backend.gob"
+#line 69 "mn-mh-mailbox-backend.gob"
 	mn_vfs_mailbox_backend_class->is = ___3_mn_mh_mailbox_backend_is;
-#line 81 "mn-mh-mailbox-backend.gob"
+#line 84 "mn-mh-mailbox-backend.gob"
 	mn_vfs_mailbox_backend_class->check = ___4_mn_mh_mailbox_backend_check;
 #line 128 "mn-mh-mailbox-backend.c"
  {
-#line 42 "mn-mh-mailbox-backend.gob"
+#line 43 "mn-mh-mailbox-backend.gob"
 
     MN_VFS_MAILBOX_BACKEND_CLASS(class)->format = "MH";
   
@@ -137,7 +137,7 @@ mn_mh_mailbox_backend_class_init (MNMHMailboxBackendClass * class G_GNUC_UNUSED)
 
 
 
-#line 46 "mn-mh-mailbox-backend.gob"
+#line 47 "mn-mh-mailbox-backend.gob"
 static void 
 ___2_mn_mh_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend G_GNUC_UNUSED, const char * info_uri, GnomeVFSMonitorEventType event_type)
 #line 144 "mn-mh-mailbox-backend.c"
@@ -147,7 +147,7 @@ ___2_mn_mh_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend G_GNUC_UNUS
 {
 #define __GOB_FUNCTION__ "MN:MH:Mailbox:Backend::monitor_cb"
 {
-#line 50 "mn-mh-mailbox-backend.gob"
+#line 51 "mn-mh-mailbox-backend.gob"
 	
     if (event_type == GNOME_VFS_MONITOR_EVENT_CHANGED
 	|| event_type == GNOME_VFS_MONITOR_EVENT_DELETED
@@ -169,18 +169,18 @@ ___2_mn_mh_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend G_GNUC_UNUS
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 68 "mn-mh-mailbox-backend.gob"
+#line 69 "mn-mh-mailbox-backend.gob"
 static gboolean 
-___3_mn_mh_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSMailbox * mailbox)
+___3_mn_mh_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox)
 #line 176 "mn-mh-mailbox-backend.c"
-#define PARENT_HANDLER(___dummy,___mailbox) \
+#define PARENT_HANDLER(___dummy,___class,___mailbox) \
 	((MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->is)? \
-		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->is)(___dummy,___mailbox): \
+		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->is)(___dummy,___class,___mailbox): \
 		((gboolean )0))
 {
 #define __GOB_FUNCTION__ "MN:MH:Mailbox:Backend::is"
 {
-#line 70 "mn-mh-mailbox-backend.gob"
+#line 73 "mn-mh-mailbox-backend.gob"
 	
     GnomeVFSURI *sequences_uri;
     gboolean is;
@@ -195,7 +195,7 @@ ___3_mn_mh_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSM
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 81 "mn-mh-mailbox-backend.gob"
+#line 84 "mn-mh-mailbox-backend.gob"
 static void 
 ___4_mn_mh_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, unsigned long check_id)
 #line 202 "mn-mh-mailbox-backend.c"
@@ -205,7 +205,7 @@ ___4_mn_mh_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, u
 {
 #define __GOB_FUNCTION__ "MN:MH:Mailbox:Backend::check"
 {
-#line 83 "mn-mh-mailbox-backend.gob"
+#line 86 "mn-mh-mailbox-backend.gob"
 	
     GnomeVFSURI *sequences_uri;
     GnomeVFSResult result;

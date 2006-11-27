@@ -1,4 +1,5 @@
 /* 
+ * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #include "config.h"
@@ -55,6 +56,7 @@ typedef struct
 {
   GMainLoop	*loop;
   int		response;
+  gboolean	destroyed;
 } RunNonmodalInfo;
 
 /*** functions ***************************************************************/
@@ -99,13 +101,16 @@ static void mn_drag_data_received_h (GtkWidget *widget,
 static GtkWidget *mn_menu_item_new (const char *stock_id, const char *mnemonic);
 
 static void mn_error_dialog_real (GtkWindow *parent,
-				  gboolean blocking,
+				  MNDialogFlags flags,
 				  const char *primary,
-				  const char *secondary);
+				  const char *format,
+				  va_list args);
 
 static void mn_g_object_connect_weak_notify_cb (gpointer data,
 						GObject *former_object);
 
+static void mn_dialog_run_nonmodal_destroy_h (GtkObject *object,
+					      gpointer user_data);
 static void mn_dialog_run_nonmodal_unmap_h (GtkWidget *widget,
 					    gpointer user_data);
 static void mn_dialog_run_nonmodal_response_h (GtkDialog *dialog,
@@ -115,6 +120,8 @@ static gboolean mn_dialog_run_nonmodal_delete_event_h (GtkWidget *widget,
 						       GdkEvent *event,
 						       gpointer user_data);
 static void mn_dialog_run_nonmodal_shutdown_loop (RunNonmodalInfo *info);
+
+static void mn_handle_execute_result (int status, const char *command);
 
 /*** implementation **********************************************************/
 
@@ -250,22 +257,6 @@ mn_g_object_slist_clear (GSList **list)
   *list = NULL;
 }
 
-/**
- * mn_g_object_slist_delete_link:
- * @list: a #GSList of #GObject instances
- * @link_: an element in the #GSList
- *
- * Equivalent of g_slist_delete_link() for a list of GObject
- * instances.
- *
- * Return value: new head of @list.
- **/
-GSList *
-mn_g_object_slist_delete_link (GSList *list, GSList *link_)
-{
-  return mn_g_slist_delete_link_deep_custom(list, link_, (GFunc) g_object_unref, NULL);
-}
-
 void
 mn_g_queue_free_deep_custom (GQueue *queue,
 			     GFunc element_free_func,
@@ -298,16 +289,26 @@ mn_str_isnumeric (const char *str)
 
   g_return_val_if_fail(str != NULL, FALSE);
 
-  if (! *str)
-    return FALSE;
-
   for (i = 0; str[i]; i++)
     if (! g_ascii_isdigit(str[i]))
       return FALSE;
 
-  return TRUE;
+  return i > 0;
 }
 
+gboolean
+mn_str_ishex (const char *str)
+{
+  int i;
+
+  g_return_val_if_fail(str != NULL, FALSE);
+
+  for (i = 0; str[i]; i++)
+    if (! g_ascii_isxdigit(str[i]))
+      return FALSE;
+
+  return i > 0;
+}
 
 /**
  * mn_strstr_span:
@@ -539,7 +540,7 @@ mn_file_chooser_dialog_response_h (GtkDialog *dialog,
 void
 mn_setup_dnd (GtkWidget *widget)
 {
-  const GtkTargetEntry targets[] = {
+  static const GtkTargetEntry targets[] = {
     { "text/uri-list",	0, TARGET_URI_LIST },
     { "text/x-moz-url",	0, TARGET_MOZ_URL }
   };
@@ -728,6 +729,18 @@ mn_display_help (GtkWindow *parent, const char *link_id)
 }
 
 void
+mn_open_link (GtkWindow *parent, const char *url)
+{
+  GError *err = NULL;
+
+  if (! gnome_url_show(url, &err))
+    {
+      mn_error_dialog(parent, _("Unable to open link"), "%s", err->message);
+      g_error_free(err);
+    }
+}
+
+void
 mn_thread_create (GThreadFunc func, gpointer data)
 {
   GError *err = NULL;
@@ -807,22 +820,26 @@ mn_menu_item_new (const char *stock_id, const char *mnemonic)
 
 static void
 mn_error_dialog_real (GtkWindow *parent,
-		      gboolean blocking,
+		      MNDialogFlags flags,
 		      const char *primary,
-		      const char *secondary)
+		      const char *format,
+		      va_list args)
 {
+  char *secondary;
   GtkWidget *dialog;
 
   g_return_if_fail(primary != NULL);
-  g_return_if_fail(secondary != NULL);
+  g_return_if_fail(format != NULL);
 
-  dialog = mn_alert_dialog_new(parent, GTK_MESSAGE_ERROR, primary, secondary);
+  secondary = g_strdup_vprintf(format, args);
+  dialog = mn_alert_dialog_new(parent, GTK_MESSAGE_ERROR, flags, primary, secondary);
+  g_free(secondary);
 
   gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_OK, GTK_RESPONSE_OK);
 
   gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
 
-  if (blocking)
+  if ((flags & MN_DIALOG_BLOCKING) != 0)
     {
       gtk_dialog_run(GTK_DIALOG(dialog));
       gtk_widget_destroy(dialog);
@@ -844,17 +861,30 @@ mn_error_dialog (GtkWindow *parent,
 		 ...)
 {
   va_list args;
-  char *secondary;
 
   g_return_if_fail(primary != NULL);
   g_return_if_fail(format != NULL);
 
   va_start(args, format);
-  secondary = g_strdup_vprintf(format, args);
+  mn_error_dialog_real(parent, 0, primary, format, args);
   va_end(args);
+}
 
-  mn_error_dialog_real(parent, FALSE, primary, secondary);
-  g_free(secondary);
+/* only the secondary text can have markup */
+void
+mn_error_dialog_with_markup (GtkWindow *parent,
+			     const char *primary,
+			     const char *format,
+			     ...)
+{
+  va_list args;
+
+  g_return_if_fail(primary != NULL);
+  g_return_if_fail(format != NULL);
+
+  va_start(args, format);
+  mn_error_dialog_real(parent, MN_DIALOG_MARKUP, primary, format, args);
+  va_end(args);
 }
 
 void
@@ -908,16 +938,12 @@ void
 mn_fatal_error_dialog (GtkWindow *parent, const char *format, ...)
 {
   va_list args;
-  char *secondary;
 
   g_assert(format != NULL);
 
   va_start(args, format);
-  secondary = g_strdup_vprintf(format, args);
+  mn_error_dialog_real(parent, MN_DIALOG_BLOCKING, _("A fatal error has occurred in Mail Notification"), format, args);
   va_end(args);
-
-  mn_error_dialog_real(parent, TRUE, _("A fatal error has occurred in Mail Notification"), secondary);
-  g_free(secondary);
 
   exit(1);
 }
@@ -925,6 +951,7 @@ mn_fatal_error_dialog (GtkWindow *parent, const char *format, ...)
 GtkWidget *
 mn_alert_dialog_new (GtkWindow *parent,
 		     GtkMessageType type,
+		     MNDialogFlags flags,
 		     const char *primary,
 		     const char *secondary)
 {
@@ -940,7 +967,11 @@ mn_alert_dialog_new (GtkWindow *parent,
 				  "%s",
 				  primary);
 
-  gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog), "%s", secondary);
+  if ((flags & MN_DIALOG_MARKUP) != 0)
+    gtk_message_dialog_format_secondary_markup(GTK_MESSAGE_DIALOG(dialog), "%s", secondary);
+  else
+    gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog), "%s", secondary);
+
   gtk_window_set_title(GTK_WINDOW(dialog), ""); /* HIG */
 
   return dialog;
@@ -959,6 +990,13 @@ mn_time (void)
     }
 
   return t;
+}
+
+void
+mn_g_object_null_unref (gpointer object)
+{
+  if (object)
+    g_object_unref(object);
 }
 
 /**
@@ -1131,7 +1169,7 @@ mn_utf8_escape (const char *str)
 int
 mn_dialog_run_nonmodal (GtkDialog *dialog)
 {
-  RunNonmodalInfo info = { NULL, GTK_RESPONSE_NONE };
+  RunNonmodalInfo info = { NULL, GTK_RESPONSE_NONE, FALSE };
 
   g_return_val_if_fail(GTK_IS_DIALOG(dialog), -1);
 
@@ -1141,6 +1179,7 @@ mn_dialog_run_nonmodal (GtkDialog *dialog)
     gtk_widget_show(GTK_WIDGET(dialog));
 
   g_object_connect(dialog,
+		   "signal::destroy", mn_dialog_run_nonmodal_destroy_h, &info,
 		   "signal::unmap", mn_dialog_run_nonmodal_unmap_h, &info,
 		   "signal::response", mn_dialog_run_nonmodal_response_h, &info,
 		   "signal::delete-event", mn_dialog_run_nonmodal_delete_event_h, &info,
@@ -1154,15 +1193,30 @@ mn_dialog_run_nonmodal (GtkDialog *dialog)
 
   g_main_loop_unref(info.loop);
 
-  g_object_disconnect(dialog,
-		      "any-signal", mn_dialog_run_nonmodal_unmap_h, &info,
-		      "any-signal", mn_dialog_run_nonmodal_response_h, &info,
-		      "any-signal", mn_dialog_run_nonmodal_delete_event_h, &info,
-		      NULL);
+  if (! info.destroyed)
+    g_object_disconnect(dialog,
+			"any-signal", mn_dialog_run_nonmodal_destroy_h, &info,
+			"any-signal", mn_dialog_run_nonmodal_unmap_h, &info,
+			"any-signal", mn_dialog_run_nonmodal_response_h, &info,
+			"any-signal", mn_dialog_run_nonmodal_delete_event_h, &info,
+			NULL);
 
   g_object_unref(dialog);
 
   return info.response;
+}
+
+static void
+mn_dialog_run_nonmodal_destroy_h (GtkObject *object, gpointer user_data)
+{
+  RunNonmodalInfo *info = user_data;
+
+  info->destroyed = TRUE;
+
+  /*
+   * mn_dialog_run_nonmodal_shutdown_loop() will be called by
+   * mn_dialog_run_nonmodal_unmap_h()
+   */
 }
 
 static void
@@ -1307,4 +1361,213 @@ void
 mn_g_static_mutex_unlock (GStaticMutex *mutex)
 {
   g_static_mutex_unlock(mutex);
+}
+
+static void
+mn_handle_execute_result (int status, const char *command)
+{
+  if (status < 0)
+    mn_error_dialog(NULL,
+		    _("A command error has occurred in Mail Notification"),
+		    _("Unable to execute \"%s\": %s."),
+		    command,
+		    g_strerror(errno));
+}
+
+void
+mn_execute_command (const char *command)
+{
+  g_return_if_fail(command != NULL);
+
+  mn_handle_execute_result(gnome_execute_shell(NULL, command), command);
+}
+
+void
+mn_execute_command_in_terminal (const char *command)
+{
+  g_return_if_fail(command != NULL);
+
+  mn_handle_execute_result(gnome_execute_terminal_shell(NULL, command), command);
+}
+
+/**
+ * mn_shell_quote_safe:
+ * @unquoted_string: a literal string
+ *
+ * Like g_shell_quote(), but guarantees that the string will be quoted
+ * using single quotes, therefore making sure that backticks will not
+ * be processed.
+ *
+ * Return value: the quoted string
+ **/
+char *
+mn_shell_quote_safe (const char *unquoted_string)
+{
+  GString *result;
+  int i;
+
+  g_return_val_if_fail(unquoted_string != NULL, NULL);
+
+  result = g_string_new("'");
+
+  for (i = 0; unquoted_string[i]; i++)
+    if (unquoted_string[i] == '\'')
+      g_string_append(result, "'\\''");
+    else
+      g_string_append_c(result, unquoted_string[i]);
+
+  g_string_append_c(result, '\'');
+
+  return g_string_free(result, FALSE);
+}
+
+GtkWidget *
+mn_hig_section_new (const char *title,
+		    GtkWidget **label,
+		    GtkWidget **alignment)
+{
+  GtkWidget *section;
+  char *markup;
+  GtkWidget *_label;
+  GtkWidget *_alignment;
+
+  g_return_val_if_fail(title != NULL, NULL);
+
+  section = gtk_vbox_new(FALSE, 6);
+
+  markup = g_markup_printf_escaped("<span weight=\"bold\">%s</span>", title);
+  _label = gtk_label_new(markup);
+  g_free(markup);
+
+  gtk_misc_set_alignment(GTK_MISC(_label), 0.0, 0.5);
+  gtk_label_set_use_markup(GTK_LABEL(_label), TRUE);
+
+  gtk_box_pack_start(GTK_BOX(section), _label, FALSE, FALSE, 0);
+
+  _alignment = gtk_alignment_new(0.5, 0.5, 1.0, 1.0);
+  gtk_alignment_set_padding(GTK_ALIGNMENT(_alignment), 0, 0, 12, 0);
+
+  gtk_box_pack_start(GTK_BOX(section), _alignment, TRUE, TRUE, 0);
+
+  gtk_widget_show(_label);
+  gtk_widget_show(_alignment);
+
+  if (label)
+    *label = _label;
+  if (alignment)
+    *alignment = _alignment;
+
+  return section;
+}
+
+GtkWidget *
+mn_hig_section_new_with_box (const char *title,
+			     GtkWidget **label,
+			     GtkWidget **vbox)
+{
+  GtkWidget *section;
+  GtkWidget *alignment;
+  GtkWidget *_vbox;
+
+  g_return_val_if_fail(title != NULL, NULL);
+
+  section = mn_hig_section_new(title, label, &alignment);
+
+  _vbox = gtk_vbox_new(FALSE, 6);
+  gtk_container_add(GTK_CONTAINER(alignment), _vbox);
+  gtk_widget_show(_vbox);
+
+  if (vbox)
+    *vbox = _vbox;
+
+  return section;
+}
+
+char *
+mn_g_value_to_string (const GValue *value)
+{
+  char *str;
+
+  g_return_val_if_fail(G_IS_VALUE(value), NULL);
+
+  if (G_VALUE_HOLDS_BOOLEAN(value))
+    str = g_strdup(g_value_get_boolean(value) ? "true" : "false");
+  else if (G_VALUE_HOLDS_INT(value))
+    str = g_strdup_printf("%i", g_value_get_int(value));
+  else if (G_VALUE_HOLDS_ULONG(value))
+    str = g_strdup_printf("%lu", g_value_get_ulong(value));
+  else if (G_VALUE_HOLDS_STRING(value))
+    str = g_value_dup_string(value);
+  else if (G_VALUE_HOLDS_ENUM(value))
+    {
+      GEnumClass *enum_class;
+      GEnumValue *enum_value;
+
+      enum_class = g_type_class_ref(G_VALUE_TYPE(value));
+      enum_value = g_enum_get_value(enum_class, g_value_get_enum(value));
+      g_assert(enum_value != NULL);
+
+      str = g_strdup(enum_value->value_nick);
+      g_type_class_unref(enum_class);
+    }
+  else
+    g_return_val_if_reached(NULL);
+
+  return str;
+}
+
+gboolean
+mn_g_value_from_string (GValue *value, const char *str)
+{
+  g_return_val_if_fail(G_IS_VALUE(value), FALSE);
+  g_return_val_if_fail(str != NULL, FALSE);
+
+  if (G_VALUE_HOLDS_BOOLEAN(value))
+    {
+      if (! strcmp(str, "false"))
+	g_value_set_boolean(value, FALSE);
+      else if (! strcmp(str, "true"))
+	g_value_set_boolean(value, TRUE);
+      else
+	return FALSE;
+    }
+  else if (G_VALUE_HOLDS_INT(value))
+    {
+      int n;
+      char *endptr;
+
+      n = strtol(str, &endptr, 10);
+      if (*endptr == '\0')	/* successful conversion */
+	g_value_set_int(value, n);
+      else
+	return FALSE;
+    }
+  else if (G_VALUE_HOLDS_STRING(value))
+    g_value_set_string(value, str);
+  else if (G_VALUE_HOLDS_ENUM(value))
+    {
+      GEnumClass *enum_class;
+      GEnumValue *enum_value;
+      gboolean found;
+
+      enum_class = g_type_class_ref(G_VALUE_TYPE(value));
+      enum_value = g_enum_get_value_by_nick(enum_class, str);
+
+      if (enum_value)
+	{
+	  g_value_set_enum(value, enum_value->value);
+	  found = TRUE;
+	}
+      else
+	found = FALSE;
+
+      g_type_class_unref(enum_class);
+
+      if (! found)
+	return FALSE;
+    }
+  else
+    g_return_val_if_reached(FALSE);
+
+  return TRUE;
 }

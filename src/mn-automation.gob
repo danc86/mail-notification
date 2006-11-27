@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -36,6 +37,21 @@ class MN:Automation from Bonobo:Object (BonoboObject GNOME_MailNotification_Auto
     return mn_shell->mailboxes->list != NULL ? CORBA_TRUE : CORBA_FALSE;
   }
 
+  BonoboObject private CORBA_string
+    getSummary (PortableServer_Servant servant, CORBA_Environment *env)
+  {
+    char *summary;
+    CORBA_string csummary;
+
+    g_assert(mn_shell != NULL);
+
+    summary = mn_shell_get_summary(mn_shell);
+    csummary = CORBA_string_dup(summary);
+    g_free(summary);
+
+    return csummary;
+  }
+
   BonoboObject private void
     update (PortableServer_Servant servant, CORBA_Environment *env)
   {
@@ -55,13 +71,6 @@ class MN:Automation from Bonobo:Object (BonoboObject GNOME_MailNotification_Auto
   {
     g_assert(mn_shell != NULL);
     mn_shell_display_about_dialog(mn_shell);
-  }
-
-  BonoboObject private void
-    closePopup (PortableServer_Servant servant, CORBA_Environment *env)
-  {
-    g_assert(mn_shell != NULL);
-    mn_shell_close_mail_summary_popup(mn_shell);
   }
 
   BonoboObject private void

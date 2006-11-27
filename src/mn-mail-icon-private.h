@@ -10,17 +10,17 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 27 "mn-mail-icon.gob"
+#line 28 "mn-mail-icon.gob"
 
 #include "mn-tooltips.h"
 
 #line 18 "mn-mail-icon-private.h"
 struct _MNMailIconPrivate {
-#line 41 "mn-mail-icon.gob"
-	MNTooltips * tooltips;
 #line 42 "mn-mail-icon.gob"
+	MNTooltips * tooltips;
+#line 43 "mn-mail-icon.gob"
 	GtkWidget * event_box;
-#line 45 "mn-mail-icon.gob"
+#line 46 "mn-mail-icon.gob"
 	GtkWidget * menu;
 #line 26 "mn-mail-icon-private.h"
 };

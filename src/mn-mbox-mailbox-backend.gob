@@ -1,4 +1,5 @@
 /* 
+ * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -11,327 +12,33 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
 
 %headertop{
-#include "mn-vfs-mailbox-backend.h"
+#include "mn-base-mbox-mailbox-backend.h"
 %}
 
 %{
 #include "config.h"
-#include <string.h>
-#include <glib/gi18n.h>
-#include <gtk/gtk.h>
-#include "mn-mailbox-private.h"
-#include "mn-reentrant-mailbox-private.h"
-#include "mn-vfs-mailbox-backend-private.h"
+#include "mn-base-mbox-mailbox-backend-private.h"
 #include "mn-message-mime.h"
-#include "mn-gmime-stream-vfs.h"
-#include "mn-util.h"
 %}
 
-class MN:mbox:Mailbox:Backend from MN:VFS:Mailbox:Backend
+class MN:Mbox:Mailbox:Backend from MN:Base:Mbox:Mailbox:Backend
 {
-  private GnomeVFSURI *uri unrefwith gnome_vfs_uri_unref;
-  private GnomeVFSFileSize last_size;
-  private time_t last_mtime;
-  private time_t last_ctime;
-
-  private GMutex *mutex = {g_mutex_new()} destroywith g_mutex_free;
-
   class_init (class)
   {
     MN_VFS_MAILBOX_BACKEND_CLASS(class)->format = "mbox";
   }
 
-  override (MN:VFS:Mailbox:Backend) gboolean
-    is (MNVFSMailboxBackend *dummy, MNVFSMailbox *mailbox)
+  override (MN:Base:Mbox:Mailbox:Backend) MNMessage *
+    get_new_message (MNBaseMboxMailboxBackend *backend, GMimeMessage *mime_message)
   {
-    gboolean is = FALSE;
-    GnomeVFSURI *uri;
-    GnomeVFSFileInfo *file_info;
-
-    uri = gnome_vfs_uri_ref(mailbox->vfs_uri);
-    file_info = gnome_vfs_file_info_new();
-
-    if (gnome_vfs_get_file_info_uri(uri, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS | GNOME_VFS_FILE_INFO_GET_MIME_TYPE) == GNOME_VFS_OK)
-      {
-	GnomeVFSURI *uncompressed_uri;
-
-	/* handle a compressed mailbox */
-	uncompressed_uri = self_get_uncompressed_uri(uri, file_info);
-	if (uncompressed_uri)
-	  {
-	    GnomeVFSFileInfo *uncompressed_file_info;
-
-	    uncompressed_file_info = gnome_vfs_file_info_new();
-	    if (gnome_vfs_get_file_info_uri(uncompressed_uri, uncompressed_file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS) == GNOME_VFS_OK)
-	      {
-		gnome_vfs_file_info_unref(file_info);
-		file_info = uncompressed_file_info;
-
-		gnome_vfs_uri_unref(uri);
-		uri = uncompressed_uri;
-	      }
-	    else
-	      {
-		gnome_vfs_file_info_unref(uncompressed_file_info);
-		gnome_vfs_uri_unref(uncompressed_uri);
-	      }
-	  }
-
-	if ((file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_TYPE) != 0
-	    && file_info->type == GNOME_VFS_FILE_TYPE_REGULAR)
-	  {
-	    GnomeVFSHandle *handle;
-
-	    if (gnome_vfs_open_uri(&handle, uri, GNOME_VFS_OPEN_READ) == GNOME_VFS_OK)
-	      {
-		char buf[5];
-		GnomeVFSResult result;
-		GnomeVFSFileSize bytes_read;
-
-		result = gnome_vfs_read(handle, buf, sizeof(buf), &bytes_read);
-		if ((result == GNOME_VFS_OK || result == GNOME_VFS_ERROR_EOF)
-		    && (bytes_read == 0
-			|| (bytes_read == sizeof(buf)
-			    && ! strncmp(buf, "From ", sizeof(buf)))))
-		  is = TRUE;
-
-		gnome_vfs_close(handle);
-	      }
-	  }
-      }
-
-    gnome_vfs_uri_unref(uri);
-    gnome_vfs_file_info_unref(file_info);
-
-    return is;
-  }
-
-  override (MN:VFS:Mailbox:Backend) void
-    check (MNVFSMailboxBackend *backend, unsigned long check_id)
-  {
-    Self *self = SELF(backend);
-    gboolean aborted;
-    gboolean polled;
-    GnomeVFSResult result;
-    GnomeVFSHandle *handle;
-    gboolean uri_set;
-
-    mn_vfs_mailbox_backend_monitor(backend, check_id, backend->mailbox->uri, GNOME_VFS_MONITOR_FILE);
-
-    GDK_THREADS_ENTER();
-
-    if (mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-      aborted = TRUE;
-    else
-      {
-	aborted = FALSE;
-	polled = mn_mailbox_get_poll(MN_MAILBOX(backend->mailbox));
-      }
-
-    gdk_flush();
-    GDK_THREADS_LEAVE();
-
-    if (aborted)
-      return;
-
-    if (polled)
-      {
-	GnomeVFSFileInfo *file_info;
-	GnomeVFSResult result;
-	gboolean check;
-
-	/*
-	 * We are here because the mailbox has to be polled; only
-	 * check it if necessary.
-	 */
-
-	file_info = gnome_vfs_file_info_new();
-	result = gnome_vfs_get_file_info_uri(backend->mailbox->vfs_uri, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS);
-
-	g_mutex_lock(selfp->mutex);
-
-	if (result == GNOME_VFS_OK
-	    && (file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_SIZE) != 0
-	    && (file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_MTIME) != 0
-	    && file_info->size == selfp->last_size
-	    && file_info->mtime == selfp->last_mtime)
-	  {
-	    if ((file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_CTIME) != 0)
-	      check = file_info->ctime != selfp->last_ctime;
-	    else
-	      /*
-	       * The ctime is often missing for remote mailboxes;
-	       * since anyway the size and mtime do not have changed,
-	       * we do not check the mailbox.
-	       */
-	      check = FALSE;
-	  }
-	else
-	  check = TRUE;
-
-	if (check)
-	  {
-	    selfp->last_size = file_info->size;
-	    selfp->last_mtime = file_info->mtime;
-	    selfp->last_ctime = file_info->ctime;
-
-	    if (mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	      check = FALSE;
-	  }
-
-	g_mutex_unlock(selfp->mutex);
-
-	gnome_vfs_file_info_unref(file_info);
-
-	if (! check)
-	  return;
-      }
-
-    g_mutex_lock(selfp->mutex);
-    uri_set = selfp->uri != NULL;
-    g_mutex_unlock(selfp->mutex);
-
-    if (! uri_set)
-      {
-	GnomeVFSFileInfo *file_info;
-	GnomeVFSURI *uri;
-
-	file_info = gnome_vfs_file_info_new();
-	if (gnome_vfs_get_file_info_uri(backend->mailbox->vfs_uri, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS | GNOME_VFS_FILE_INFO_GET_MIME_TYPE) == GNOME_VFS_OK)
-	  uri = self_get_uncompressed_uri(backend->mailbox->vfs_uri, file_info);
-	gnome_vfs_file_info_unref(file_info);
-
-	if (! uri)
-	  uri = gnome_vfs_uri_ref(backend->mailbox->vfs_uri);
-
-	g_mutex_lock(selfp->mutex);
-
-	if (! selfp->uri)
-	  {
-	    selfp->uri = uri;
-	    uri = NULL;
-	  }
-	if (mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	  aborted = TRUE;
-
-	g_mutex_unlock(selfp->mutex);
-
-	if (uri)
-	  gnome_vfs_uri_unref(uri);
-
-	if (aborted)
-	  return;
-      }
-
-    result = gnome_vfs_open_uri(&handle, selfp->uri, GNOME_VFS_OPEN_READ);
-    if (result == GNOME_VFS_OK)
-      {
-	GMimeStream *stream;
-
-	stream = mn_gmime_stream_vfs_new(handle, selfp->uri, &result);
-	if (stream)
-	  {
-	    GMimeParser *parser;
-	    GSList *messages = NULL;
-	    GnomeVFSResult close_result;
-
-	    parser = g_mime_parser_new_with_stream(stream);
-	    g_object_unref(stream);
-
-	    g_mime_parser_set_scan_from(parser, TRUE);
-
-	    while (! g_mime_parser_eos(parser))
-	      {
-		GMimeMessage *mime_message;
-
-		if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-		  break;
-
-		mime_message = g_mime_parser_construct_message(parser);
-		if (mime_message)
-		  {
-		    const char *status;
-
-		    status = g_mime_message_get_header(mime_message, "Status");
-		    if (! status || ! strchr(status, 'R'))
-		      messages = g_slist_prepend(messages, mn_message_new_from_mime_message(MN_MAILBOX(backend->mailbox), mime_message, 0, TRUE));
-
-		    g_object_unref(mime_message);
-		  }
-	      }
-
-	    g_object_unref(parser);
-	    close_result = gnome_vfs_close(handle);
-
-	    GDK_THREADS_ENTER();
-
-	    if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	      {
-		if (close_result == GNOME_VFS_OK)
-		  mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
-		else
-		  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to close file: %s"), gnome_vfs_result_to_string(close_result));
-	      }
-
-	    mn_g_object_slist_free(messages);
-
-	    gdk_flush();
-	    GDK_THREADS_LEAVE();
-
-	    return;
-	  }
-	else
-	  gnome_vfs_close(handle);
-      }
-
-    GDK_THREADS_ENTER();
-
-    if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-      mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open mailbox: %s"), gnome_vfs_result_to_string(result));
-
-    gdk_flush();
-    GDK_THREADS_LEAVE();
-  }
-
-  private GnomeVFSURI *
-    get_uncompressed_uri (GnomeVFSURI *uri (check null),
-			  GnomeVFSFileInfo *file_info (check null))
-  {
-    if ((file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_MIME_TYPE) != 0 && file_info->mime_type)
-      {
-	/* compression methods supported by GnomeVFS */
-	const struct
-	{
-	  const char *mime_type;
-	  const char *method;
-	} compressions[] = {
-	  { "application/x-gzip", "gzip" },
-	  { "application/x-bzip", "bzip2" }
-	};
-	int i;
-
-	for (i = 0; i < G_N_ELEMENTS(compressions); i++)
-	  if (! strcmp(file_info->mime_type, compressions[i].mime_type))
-	    {
-	      char *str;
-	      GnomeVFSURI *uncompressed_uri;
-
-	      str = g_strdup_printf("%s%s:/", GNOME_VFS_URI_MAGIC_STR, compressions[i].method);
-	      uncompressed_uri = gnome_vfs_uri_append_string(uri, str);
-	      g_free(str);
-
-	      return uncompressed_uri;
-	    }
-      }
-
-    return NULL;
+    return mn_message_new_from_mime_message(MN_MAILBOX(MN_VFS_MAILBOX_BACKEND(backend)->mailbox), mime_message, NULL, 0, TRUE);
   }
 }

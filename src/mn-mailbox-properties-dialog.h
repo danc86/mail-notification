@@ -39,6 +39,8 @@ typedef struct _MNMailboxPropertiesDialog MNMailboxPropertiesDialog;
 struct _MNMailboxPropertiesDialog {
 	MNDialog __parent__;
 	/*< private >*/
+	GtkWidget * notebook; /* protected */
+	GtkWidget * general_vbox; /* protected */
 	MNMailboxPropertiesDialogPrivate *_priv;
 };
 

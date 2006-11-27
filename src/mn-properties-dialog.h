@@ -54,7 +54,6 @@ struct _MNPropertiesDialogClass {
  * Public methods
  */
 GType	mn_properties_dialog_get_type	(void);
-gboolean 	mn_properties_dialog_test_popup_displayed	(MNPropertiesDialog * self);
 
 #ifdef __cplusplus
 }

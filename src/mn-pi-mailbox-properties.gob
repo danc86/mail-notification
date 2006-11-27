@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -27,6 +28,8 @@ requires 2.0.14
 %{
 #include "config.h"
 #include <glib/gi18n.h>
+#include "mn-mailbox-properties-dialog.h"
+#include "mn-mailbox-properties-dialog-private.h"
 #include "mn-mailbox-properties-private.h"
 #include "mn-authenticated-mailbox-properties-private.h"
 #include "mn-auth-combo-box.h"
@@ -36,9 +39,9 @@ requires 2.0.14
 
 class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstract)
 {
-  protected GtkWidget *hostname_entry;
-  protected GtkWidget *details_vbox;
-  protected GtkSizeGroup *details_size_group;
+  protected GtkWidget *server_entry;
+  protected GtkWidget *connection_page unrefwith g_object_unref;
+  protected GtkSizeGroup *connection_size_group = {gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL)} unrefwith g_object_unref;
   protected GtkWidget *conn_radio[MN_PI_MAILBOX_N_CONNECTION_TYPES];
   protected GtkWidget *port_spin[MN_PI_MAILBOX_N_CONNECTION_TYPES];
   protected GtkWidget *auth_combo;
@@ -56,65 +59,49 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
     MNAuthenticatedMailboxProperties *auth = MN_AUTHENTICATED_MAILBOX_PROPERTIES(self);
     GtkWidget *hbox;
     GtkWidget *label;
-    GtkWidget *expander;
-    GtkSizeGroup *radio_size_group;
+    GtkWidget *type_section;
+    GtkWidget *type_vbox;
     int i;
-    const struct
+    static const struct
     {
       MNPIMailboxConnectionType	type;
       const char		*mnemonic;
     } connection_types[] = {
-      { MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL,		N_("sta_ndard")			},
-      { MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL,	N_("in-band SS_L/TLS")		},
-      { MN_PI_MAILBOX_CONNECTION_TYPE_SSL,		N_("SSL/TLS on sepa_rate port")	}
+      { MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL,		N_("_Standard")			},
+      { MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL,	N_("In-_band SSL/TLS")		},
+      { MN_PI_MAILBOX_CONNECTION_TYPE_SSL,		N_("SSL/TLS on s_eparate port")	}
     };
 
     hbox = mn_authenticated_mailbox_properties_field_new(auth,
-							 _("Ho_stname:"),
+							 _("_Server:"),
 							 &label,
-							 &self->hostname_entry);
+							 &self->server_entry);
 
-    gtk_box_pack_start(GTK_BOX(self), hbox, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(self), auth->username_vbox, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(self), auth->password_vbox, FALSE, FALSE, 0);
-
-    self->details_size_group = gtk_size_group_new(GTK_SIZE_GROUP_NONE);
-
-    gtk_size_group_add_widget(self->details_size_group, auth->username_label);
-    gtk_size_group_add_widget(self->details_size_group, auth->password_label);
-    gtk_size_group_add_widget(self->details_size_group, label);
+    gtk_box_pack_start(GTK_BOX(auth->account_vbox), hbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(auth->account_vbox), auth->username_vbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(auth->account_vbox), auth->password_vbox, FALSE, FALSE, 0);
 
     properties->entries = mn_g_slist_append_elements(properties->entries,
-						     self->hostname_entry,
+						     self->server_entry,
 						     auth->username_entry,
 						     auth->password_entry,
 						     NULL);
 
+    self->connection_page = gtk_vbox_new(FALSE, 18);
+    gtk_container_set_border_width(GTK_CONTAINER(self->connection_page), 12);
+    mn_mailbox_properties_dialog_set_help_section(self->connection_page, "mailbox-properties-connection");
+    mn_gtk_object_ref_and_sink(GTK_OBJECT(self->connection_page));
+
     /* translators: header capitalization */
-    expander = gtk_expander_new_with_mnemonic(_("_Details"));
-    gtk_expander_set_spacing(GTK_EXPANDER(expander), 6);
-
-    self->details_vbox = gtk_vbox_new(FALSE, 6);
-    gtk_container_add(GTK_CONTAINER(expander), self->details_vbox);
-
-    gtk_box_pack_start(GTK_BOX(self), expander, FALSE, FALSE, 0);
-    gtk_widget_show_all(expander);
-
-    radio_size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+    type_section = mn_hig_section_new_with_box(_("Connection Type"), NULL, &type_vbox);
+    gtk_box_pack_start(GTK_BOX(self->connection_page), type_section, FALSE, FALSE, 0);
+    gtk_widget_show(type_section);
 
     for (i = 0; i < MN_PI_MAILBOX_N_CONNECTION_TYPES; i++)
-      {
-	self_add_connection_type(self,
-				 connection_types[i].type,
-				 _(connection_types[i].mnemonic));
-
-	gtk_size_group_add_widget(radio_size_group, self->conn_radio[i]);
-
-	properties->entries = g_slist_append(properties->entries, self->port_spin[i]);
-	g_signal_connect(self->conn_radio[i], "toggled", G_CALLBACK(self_radio_toggled_h), self);
-      }
-
-    g_object_unref(radio_size_group);
+      self_add_connection_type(self,
+			       GTK_BOX(type_vbox),
+			       connection_types[i].type,
+			       _(connection_types[i].mnemonic));
 
 #ifndef WITH_SSL
     gtk_widget_set_sensitive(self->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL], FALSE);
@@ -127,27 +114,24 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
 
     self_add_authentication(self);
 
-    g_object_connect(self->hostname_entry,
+    gtk_widget_show_all(self->connection_page);
+
+    g_object_connect(self->server_entry,
 		     "swapped-signal::changed", mn_mailbox_properties_notify_complete, self,
 		     "swapped-signal::changed", mn_mailbox_properties_notify_default_name, self,
 		     NULL);
 
     g_signal_connect_swapped(auth->username_entry, "changed", G_CALLBACK(mn_mailbox_properties_notify_default_name), self);
-
-    g_signal_connect(expander, "notify::expanded", G_CALLBACK(self_notify_expanded_h), self);
   }
 
   private void
     add_connection_type (self,
+			 Gtk:Box *type_vbox (check null),
 			 MNPIMailboxConnectionType type,
 			 const char *mnemonic (check null))
   {
-    GtkWidget *label;
     GtkWidget *hbox;
     GtkWidget *port_label;
-
-    label = gtk_label_new(type == 0 ? _("Connection type:") : NULL);
-    gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 
     self->conn_radio[type] = type == 0
       ? gtk_radio_button_new_with_mnemonic(NULL, mnemonic)
@@ -156,27 +140,35 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
     port_label = gtk_label_new(_("Port:"));
 
     self->port_spin[type] = gtk_spin_button_new_with_range(0, 0xFFFF, 1);
+    gtk_entry_set_activates_default(GTK_ENTRY(self->port_spin[type]), TRUE);
     gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(self->port_spin[type]), TRUE);
 
     hbox = gtk_hbox_new(FALSE, 12);
-    gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(hbox), self->conn_radio[type], TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), self->conn_radio[type], FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), port_label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), self->port_spin[type], FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(self->details_vbox), hbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(type_vbox, hbox, FALSE, FALSE, 0);
     gtk_widget_show_all(hbox);
 
-    gtk_size_group_add_widget(self->details_size_group, label);
+    gtk_size_group_add_widget(self->connection_size_group, self->conn_radio[type]);
+
+    g_signal_connect(self->conn_radio[type], "toggled", G_CALLBACK(self_radio_toggled_h), self);
   }
 
   private void
     add_authentication (self)
   {
+    GtkWidget *section;
+    GtkWidget *vbox;
     GtkWidget *hbox;
     GtkWidget *label;
 
+    /* translators: header capitalization */
+    section = mn_hig_section_new_with_box(_("Authentication"), NULL, &vbox);
+    gtk_box_pack_start(GTK_BOX(self->connection_page), section, FALSE, FALSE, 0);
+
     hbox = gtk_hbox_new(FALSE, 12);
-    label = gtk_label_new_with_mnemonic(_("Authent_ication mechanism:"));
+    label = gtk_label_new_with_mnemonic(_("_Mechanism:"));
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 
     self->auth_combo = mn_auth_combo_box_new();
@@ -184,21 +176,9 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
 
     gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), self->auth_combo, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(self->details_vbox), hbox, FALSE, FALSE, 0);
-    gtk_widget_show_all(hbox);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
-    gtk_size_group_add_widget(self->details_size_group, label);
-  }
-
-  private void
-    notify_expanded_h (GObject *object, GParamSpec *pspec, gpointer user_data)
-  {
-    Self *self = user_data;
-
-    gtk_size_group_set_mode(self->details_size_group,
-			    gtk_expander_get_expanded(GTK_EXPANDER(object))
-			    ? GTK_SIZE_GROUP_HORIZONTAL
-			    : GTK_SIZE_GROUP_NONE);
+    gtk_size_group_add_widget(self->connection_size_group, label);
   }
 
   private void
@@ -215,8 +195,26 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
   }
 
   override (MN:Mailbox:Properties) void
-    set_mailbox (MN:Mailbox:Properties *properties (check null type),
-		 MN:Mailbox *mailbox (check null type))
+    activate (MNMailboxProperties *properties)
+  {
+    Self *self = SELF(properties);
+
+    PARENT_HANDLER(properties);
+
+    gtk_notebook_insert_page(GTK_NOTEBOOK(MN_MAILBOX_PROPERTIES_DIALOG(properties->dialog)->notebook), self->connection_page, NULL, 1);
+    gtk_notebook_set_tab_label_text(GTK_NOTEBOOK(MN_MAILBOX_PROPERTIES_DIALOG(properties->dialog)->notebook), self->connection_page, _("Connection"));
+  }
+
+  override (MN:Mailbox:Properties) void
+    deactivate (MNMailboxProperties *properties)
+  {
+    PARENT_HANDLER(properties);
+
+    gtk_notebook_remove_page(GTK_NOTEBOOK(MN_MAILBOX_PROPERTIES_DIALOG(properties->dialog)->notebook), 1);
+  }
+
+  override (MN:Mailbox:Properties) void
+    set_mailbox (MNMailboxProperties *properties, MNMailbox *mailbox)
   {
     Self *self = SELF(properties);
     MNPIMailbox *pi_mailbox = MN_PI_MAILBOX(mailbox);
@@ -225,7 +223,7 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
 
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->conn_radio[pi_mailbox->connection_type]), TRUE);
     mn_auth_combo_box_set_active_mechanism(MN_AUTH_COMBO_BOX(self->auth_combo), pi_mailbox->authmech);
-    gtk_entry_set_text(GTK_ENTRY(self->hostname_entry), pi_mailbox->hostname);
+    gtk_entry_set_text(GTK_ENTRY(self->server_entry), pi_mailbox->hostname);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(self->port_spin[pi_mailbox->connection_type]), pi_mailbox->runtime_port);
   }
 
@@ -235,7 +233,7 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
     MNMailbox *mailbox;
     MNPIMailboxConnectionType connection_type;
     char *authmech;
-    const char *hostname;
+    const char *server;
     int port;
 
     mailbox = PARENT_HANDLER(properties);
@@ -243,13 +241,13 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
     self_get_contents(SELF(properties),
 		      &connection_type,
 		      &authmech,
-		      &hostname,
+		      &server,
 		      &port);
 
     g_object_set(mailbox,
 		 MN_PI_MAILBOX_PROP_CONNECTION_TYPE(connection_type),
 		 MN_PI_MAILBOX_PROP_AUTHMECH(authmech),
-		 MN_PI_MAILBOX_PROP_HOSTNAME((char *) hostname),
+		 MN_PI_MAILBOX_PROP_HOSTNAME((char *) server),
 		 MN_PI_MAILBOX_PROP_PORT(port),
 		 NULL);
 
@@ -262,7 +260,7 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
     get_contents (self,
 		  MNPIMailboxConnectionType *connection_type,
 		  char **authmech,
-		  const char **hostname,
+		  const char **server,
 		  int *port)
   {
     MNPIMailboxConnectionType _connection_type;
@@ -287,8 +285,8 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
       *connection_type = _connection_type;
     if (authmech)
       *authmech = mn_auth_combo_box_get_active_mechanism(MN_AUTH_COMBO_BOX(self->auth_combo));
-    if (hostname)
-      *hostname = gtk_entry_get_text(GTK_ENTRY(self->hostname_entry));
+    if (server)
+      *server = gtk_entry_get_text(GTK_ENTRY(self->server_entry));
     if (port)
       *port = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(self->port_spin[_connection_type]));
   }

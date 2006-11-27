@@ -40,7 +40,7 @@ target_triplet = @target@
 @WITH_GMAIL_TRUE@am__append_1 = gmail.png
 subdir = art
 DIST_COMMON = $(am__dist_app_pixmaps_DATA_DIST) \
-	$(dist_gnome_pixmaps_DATA) $(srcdir)/Makefile.am \
+	$(nobase_dist_icons_DATA) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/evolution-plugin.m4 \
@@ -64,12 +64,13 @@ am__vpath_adj = case $$p in \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(app_pixmapsdir)" \
-	"$(DESTDIR)$(gnome_pixmapsdir)"
+	"$(DESTDIR)$(iconsdir)"
 dist_app_pixmapsDATA_INSTALL = $(INSTALL_DATA)
-dist_gnome_pixmapsDATA_INSTALL = $(INSTALL_DATA)
-DATA = $(dist_app_pixmaps_DATA) $(dist_gnome_pixmaps_DATA)
+nobase_dist_iconsDATA_INSTALL = $(install_sh_DATA)
+DATA = $(dist_app_pixmaps_DATA) $(nobase_dist_icons_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
+ALL_LINGUAS = @ALL_LINGUAS@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AML = @AML@
@@ -199,15 +200,19 @@ WITH_IMAP_TRUE = @WITH_IMAP_TRUE@
 WITH_MAILDIR_FALSE = @WITH_MAILDIR_FALSE@
 WITH_MAILDIR_TRUE = @WITH_MAILDIR_TRUE@
 WITH_MBOX_FALSE = @WITH_MBOX_FALSE@
-WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_FALSE = @WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_FALSE@
-WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_FALSE = @WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_FALSE@
-WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE = @WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@
-WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE = @WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@
+WITH_MBOX_OR_MOZILLA_FALSE = @WITH_MBOX_OR_MOZILLA_FALSE@
+WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_FALSE = @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_FALSE@
+WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_FALSE = @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_FALSE@
+WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE = @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@
+WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE = @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@
+WITH_MBOX_OR_MOZILLA_TRUE = @WITH_MBOX_OR_MOZILLA_TRUE@
 WITH_MBOX_TRUE = @WITH_MBOX_TRUE@
 WITH_MH_FALSE = @WITH_MH_FALSE@
 WITH_MH_TRUE = @WITH_MH_TRUE@
 WITH_MIME_FALSE = @WITH_MIME_FALSE@
 WITH_MIME_TRUE = @WITH_MIME_TRUE@
+WITH_MOZILLA_FALSE = @WITH_MOZILLA_FALSE@
+WITH_MOZILLA_TRUE = @WITH_MOZILLA_TRUE@
 WITH_POP3_FALSE = @WITH_POP3_FALSE@
 WITH_POP3_OR_IMAP_FALSE = @WITH_POP3_OR_IMAP_FALSE@
 WITH_POP3_OR_IMAP_OR_GMAIL_FALSE = @WITH_POP3_OR_IMAP_OR_GMAIL_FALSE@
@@ -248,7 +253,6 @@ build_os = @build_os@
 build_vendor = @build_vendor@
 datadir = @datadir@
 evolution_plugindir = @evolution_plugindir@
-evolution_source_dir = @evolution_source_dir@
 exec_prefix = @exec_prefix@
 gnome_cappletdir = @gnome_cappletdir@
 gnome_prefix = @gnome_prefix@
@@ -276,8 +280,15 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-gnome_pixmapsdir = $(datadir)/pixmaps
-dist_gnome_pixmaps_DATA = mail-notification.png
+iconsdir = $(datadir)/icons/hicolor
+nobase_dist_icons_DATA = \
+	16x16/apps/mail-notification.png \
+	22x22/apps/mail-notification.png \
+	24x24/apps/mail-notification.png \
+	32x32/apps/mail-notification.png \
+	48x48/apps/mail-notification.png \
+	scalable/apps/mail-notification.svg
+
 app_pixmapsdir = $(pkgdatadir)/ui
 dist_app_pixmaps_DATA = logo.png $(am__append_1)
 all: all-am
@@ -339,22 +350,24 @@ uninstall-dist_app_pixmapsDATA:
 	  echo " rm -f '$(DESTDIR)$(app_pixmapsdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(app_pixmapsdir)/$$f"; \
 	done
-install-dist_gnome_pixmapsDATA: $(dist_gnome_pixmaps_DATA)
+install-nobase_dist_iconsDATA: $(nobase_dist_icons_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(gnome_pixmapsdir)" || $(mkdir_p) "$(DESTDIR)$(gnome_pixmapsdir)"
-	@list='$(dist_gnome_pixmaps_DATA)'; for p in $$list; do \
+	test -z "$(iconsdir)" || $(mkdir_p) "$(DESTDIR)$(iconsdir)"
+	@$(am__vpath_adj_setup) \
+	list='$(nobase_dist_icons_DATA)'; for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(dist_gnome_pixmapsDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(gnome_pixmapsdir)/$$f'"; \
-	  $(dist_gnome_pixmapsDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(gnome_pixmapsdir)/$$f"; \
+	  $(am__vpath_adj) \
+	  echo " $(nobase_dist_iconsDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(iconsdir)/$$f'"; \
+	  $(nobase_dist_iconsDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(iconsdir)/$$f"; \
 	done
 
-uninstall-dist_gnome_pixmapsDATA:
+uninstall-nobase_dist_iconsDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dist_gnome_pixmaps_DATA)'; for p in $$list; do \
-	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(gnome_pixmapsdir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(gnome_pixmapsdir)/$$f"; \
+	@$(am__vpath_adj_setup) \
+	list='$(nobase_dist_icons_DATA)'; for p in $$list; do \
+	  $(am__vpath_adj) \
+	  echo " rm -f '$(DESTDIR)$(iconsdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(iconsdir)/$$f"; \
 	done
 tags: TAGS
 TAGS:
@@ -364,6 +377,7 @@ CTAGS:
 
 
 distdir: $(DISTFILES)
+	$(mkdir_p) $(distdir)/16x16/apps $(distdir)/22x22/apps $(distdir)/24x24/apps $(distdir)/32x32/apps $(distdir)/48x48/apps $(distdir)/scalable/apps
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -394,7 +408,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(app_pixmapsdir)" "$(DESTDIR)$(gnome_pixmapsdir)"; do \
+	for dir in "$(DESTDIR)$(app_pixmapsdir)" "$(DESTDIR)$(iconsdir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-am
@@ -440,7 +454,9 @@ info: info-am
 info-am:
 
 install-data-am: install-dist_app_pixmapsDATA \
-	install-dist_gnome_pixmapsDATA
+	install-nobase_dist_iconsDATA
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 
 install-exec-am:
 
@@ -466,21 +482,25 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dist_app_pixmapsDATA \
-	uninstall-dist_gnome_pixmapsDATA uninstall-info-am
+uninstall-am: uninstall-dist_app_pixmapsDATA uninstall-info-am \
+	uninstall-nobase_dist_iconsDATA
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dist_app_pixmapsDATA \
-	install-dist_gnome_pixmapsDATA install-exec install-exec-am \
-	install-info install-info-am install-man install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
+	install-data install-data-am install-data-hook \
+	install-dist_app_pixmapsDATA install-exec install-exec-am \
+	install-info install-info-am install-man \
+	install-nobase_dist_iconsDATA install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-dist_app_pixmapsDATA \
-	uninstall-dist_gnome_pixmapsDATA uninstall-info-am
+	uninstall-dist_app_pixmapsDATA uninstall-info-am \
+	uninstall-nobase_dist_iconsDATA
 
+
+install-data-hook:
+	-gtk-update-icon-cache -f -t $(iconsdir)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

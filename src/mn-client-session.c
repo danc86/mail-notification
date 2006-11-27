@@ -15,7 +15,8 @@
  *
  *
  *
- * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +28,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #include "config.h"
@@ -70,25 +71,25 @@
 
 struct _MNClientSession
 {
-  MNClientSessionState		*states;
-  MNClientSessionCallbacks	*callbacks;
-  const char			*hostname;
-  int				port;
-  int				s;
-  MNClientSessionState		*state;
-  GError			*error;
-  MNClientSessionPrivate	*private;
-  GByteArray			*input_buffer;
-  unsigned int			bytes_to_remove;
+  const MNClientSessionState		*states;
+  const MNClientSessionCallbacks	*callbacks;
+  const char				*server;
+  int					port;
+  int					s;
+  const MNClientSessionState		*state;
+  GError				*error;
+  MNClientSessionPrivate		*private;
+  GByteArray				*input_buffer;
+  unsigned int				bytes_to_remove;
 
 #if WITH_SSL
-  SSL				*ssl;
+  SSL					*ssl;
 #endif
 
 #if WITH_SASL
-  sasl_conn_t			*sasl_conn;
-  sasl_ssf_t			sasl_ssf;
-  unsigned int			sasl_maxoutbuf;
+  sasl_conn_t				*sasl_conn;
+  sasl_ssf_t				sasl_ssf;
+  unsigned int				sasl_maxoutbuf;
 #endif /* WITH_SASL */
 };
 
@@ -115,7 +116,7 @@ static int mn_client_session_connect (MNClientSession *session, struct addrinfo 
 
 #if WITH_SSL
 static gboolean mn_client_session_ssl_verify (MNClientSession *session);
-static gboolean mn_client_session_run_untrusted_dialog (const char *hostname,
+static gboolean mn_client_session_run_untrusted_dialog (const char *server,
 							const char *reason);
 #endif
 
@@ -143,7 +144,7 @@ static char *mn_client_session_sasl_get_ip_port (const struct sockaddr *addr);
  *          have the %MN_CLIENT_SESSION_INITIAL_STATE id.
  * @callbacks: a pointer to a %MNClientSessionCallbacks structure
  * @use_ssl: whether to establish a SSL/TLS connection or not
- * @hostname: the hostname, IPv4 address or IPv6 address to connect to
+ * @server: the hostname, IPv4 address or IPv6 address to connect to
  * @port: the port to connect to
  * @private: an opaque pointer which will be passed to callbacks, or %NULL
  * @err: a location to report errors, or %NULL
@@ -155,12 +156,12 @@ static char *mn_client_session_sasl_get_ip_port (const struct sockaddr *addr);
  * @err is set)
  **/
 gboolean
-mn_client_session_run (MNClientSessionState *states,
-		       MNClientSessionCallbacks *callbacks,
+mn_client_session_run (const MNClientSessionState *states,
+		       const MNClientSessionCallbacks *callbacks,
 #if WITH_SSL
 		       gboolean use_ssl,
 #endif
-		       const char *hostname,
+		       const char *server,
 		       int port,
 		       MNClientSessionPrivate *private,
 		       GError **err)
@@ -172,12 +173,12 @@ mn_client_session_run (MNClientSessionState *states,
   g_return_val_if_fail(states != NULL, FALSE);
   g_return_val_if_fail(callbacks != NULL, FALSE);
   g_return_val_if_fail(callbacks->response_new != NULL, FALSE);
-  g_return_val_if_fail(hostname != NULL, FALSE);
+  g_return_val_if_fail(server != NULL, FALSE);
 
   memset(&session, 0, sizeof(session));
   session.states = states;
   session.callbacks = callbacks;
-  session.hostname = hostname;
+  session.server = server;
   session.port = port;
   session.private = private;
 
@@ -244,13 +245,13 @@ mn_client_session_resolve (MNClientSession *session)
 #endif /* WITH_IPV6 */
   hints.ai_socktype = SOCK_STREAM;
 
-  mn_client_session_notice(session, _("resolving %s"), session->hostname);
+  mn_client_session_notice(session, _("resolving %s"), session->server);
 
   servname = g_strdup_printf("%i", session->port);
 #ifndef HAVE_REENTRANT_RESOLVER
   G_LOCK(resolver);
 #endif
-  status = getaddrinfo(session->hostname, servname, &hints, &addrinfo);
+  status = getaddrinfo(session->server, servname, &hints, &addrinfo);
 #ifndef HAVE_REENTRANT_RESOLVER
   G_UNLOCK(resolver);
 #endif
@@ -260,7 +261,7 @@ mn_client_session_resolve (MNClientSession *session)
     return addrinfo;
   else
     {
-      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to resolve %s: %s"), session->hostname, gai_strerror(status));
+      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to resolve %s: %s"), session->server, gai_strerror(status));
       return NULL;
     }
 }
@@ -326,7 +327,7 @@ mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo)
 	  goto failure;
 	}
 
-      mn_client_session_notice(session, _("connecting to %s (%s) port %i"), session->hostname, ip, session->port);
+      mn_client_session_notice(session, _("connecting to %s (%s) port %i"), session->server, ip, session->port);
       if (connect(s, a->ai_addr, a->ai_addrlen) < 0)
 	{
 	  mn_client_session_notice(session, _("unable to connect: %s"), g_strerror(errno));
@@ -348,7 +349,7 @@ mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo)
     }
 
   /* if reached, we couldn't find a working address */
-  mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to connect to %s"), session->hostname);
+  mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to connect to %s"), session->server);
   return -1;
 }
 
@@ -456,7 +457,7 @@ mn_client_session_ssl_verify (MNClientSession *session)
 				       X509_verify_cert_error_string(verify_result),
 				       fingerprint);
 
-	      if (mn_client_session_run_untrusted_dialog(session->hostname, reason))
+	      if (mn_client_session_run_untrusted_dialog(session->server, reason))
 		{
 		  status = TRUE;
 		  gconf_fingerprints = g_slist_append(gconf_fingerprints, g_strdup(fingerprint));
@@ -474,14 +475,14 @@ mn_client_session_ssl_verify (MNClientSession *session)
       char *server;
       GSList *gconf_servers = NULL;
 
-      server = g_strdup_printf("%s:%i", session->hostname, session->port);
+      server = g_strdup_printf("%s:%i", session->server, session->port);
       gconf_servers = eel_gconf_get_string_list(MN_CONF_TRUSTED_SERVERS);
 
       if (mn_g_str_slist_find(gconf_servers, server) != NULL)
 	status = TRUE;
       else
 	{
-	  if (mn_client_session_run_untrusted_dialog(session->hostname, _("missing certificate")))
+	  if (mn_client_session_run_untrusted_dialog(session->server, _("missing certificate")))
 	    {
 	      status = TRUE;
 	      gconf_servers = g_slist_append(gconf_servers, g_strdup(server));
@@ -497,14 +498,14 @@ mn_client_session_ssl_verify (MNClientSession *session)
 }
 
 static gboolean
-mn_client_session_run_untrusted_dialog (const char *hostname,
+mn_client_session_run_untrusted_dialog (const char *server,
 					const char *reason)
 {
   GtkWidget *dialog;
   char *secondary;
   gboolean status;
 
-  g_return_val_if_fail(hostname != NULL, FALSE);
+  g_return_val_if_fail(server != NULL, FALSE);
   g_return_val_if_fail(reason != NULL, FALSE);
 
   secondary = g_strdup_printf(_("Mail Notification was unable to trust \"%s\" "
@@ -516,12 +517,12 @@ mn_client_session_run_untrusted_dialog (const char *hostname,
 				"are certain you are connected to \"%s\". "
 				"If you choose to connect to the server, this "
 				"message will not be shown again."),
-			      hostname, reason, hostname);
+			      server, reason, server);
 
   GDK_THREADS_ENTER();
 
   dialog = mn_alert_dialog_new(NULL,
-			       GTK_MESSAGE_WARNING,
+			       GTK_MESSAGE_WARNING, 0,
 			       _("Connect to untrusted server?"),
 			       secondary);
   g_free(secondary);
@@ -1093,7 +1094,7 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
     mn_client_session_warning(session, _("unable to retrieve remote address of socket: %s"), g_strerror(errno));
 
   result = sasl_client_new(service,
-			   session->hostname,
+			   session->server,
 			   local_ip_port,
 			   remote_ip_port,
 			   sasl_callbacks,

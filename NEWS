@@ -1,3 +1,54 @@
+4.0 Release Candidate 1			November 27, 2006
+
+	* Core changes:
+		* The mail summary popup has been replaced by
+		  libnotify message popups. These new message popups
+		  also provide actions such as "Open" and "Mark as Spam"
+		* Mozilla products (Mozilla, SeaMonkey, Thunderbird, ...)
+		  mailboxes are now supported
+		* The mailbox properties dialog has been redesigned
+		* A new click action has been added: open the latest
+		  message
+		* A MN icon set has been designed by Josef Vybíral
+		  (#18198)
+		* A --print-summary command line argument has been
+		  added, allowing to access message data from an
+		  external program
+		* A mail-changed GConf command setting has been added
+		  (it is executed when new mail is received or when a
+		  message is read)
+		* Handling of the GNOME mail reader command: instead
+		  of stripping %s, the first word of the command is
+		  now used; moreover, mozilla and evolution are now
+		  handled specially (#18257)
+		* The /desktop/gnome/url-handlers/mailto/needs_terminal
+		  GConf key is now respected
+		* Could no longer close the about dialog with recent
+		  GTK+ versions: fixed (#18252)
+
+	* POP3 changes:
+		* Messages kept on the server but marked as read are
+		  now discarded. Note that this only works with
+		  servers which send Status headers; most don't
+		  (#18164).
+
+	* Evolution changes:
+		* All mailboxes now share the same CORBA connection to
+		  Evolution (reduces resource usage)
+		* A mailbox properties dialog crash has been fixed
+		  (#18228)
+		* Some memory leaks have been fixed
+		* Support for the Evolution 2.9/2.10 branch has been
+		  added
+		* The Evolution 2.2 branch is no longer supported
+
+	* Updated translations:
+		* French
+		* Serbian (Filip Miletic)
+
+	* New translations:
+		* Catalan (Topi)
+
 3.0					June 14, 2006
 
 	* Updated translations:

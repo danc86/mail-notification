@@ -26,7 +26,7 @@
  * edited for clarity and style only.
  */
 
-#include <sys/types.h>
+#include <stdint.h>
 #include <string.h>
 #include <glib.h>
 #include "mn-md5.h"
@@ -38,11 +38,11 @@
 #define mn_md5_decode memcpy
 #else /* i386 || __i386 || __i386__ */
 /*
- * Encodes input (u_int32_t) into output (unsigned char). Assumes len
+ * Encodes input (uint32_t) into output (unsigned char). Assumes len
  * is a multiple of 4.
  */
 static void
-mn_md5_encode (unsigned char *output, u_int32_t *input, unsigned int len)
+mn_md5_encode (unsigned char *output, uint32_t *input, unsigned int len)
 {
   unsigned int i, j;
 
@@ -56,17 +56,17 @@ mn_md5_encode (unsigned char *output, u_int32_t *input, unsigned int len)
 }
 
 /*
- * Decodes input (unsigned char) into output (u_int32_t). Assumes len
+ * Decodes input (unsigned char) into output (uint32_t). Assumes len
  * is a multiple of 4.
  */
 static void
-mn_md5_decode (u_int32_t *output, const unsigned char *input, unsigned int len)
+mn_md5_decode (uint32_t *output, const unsigned char *input, unsigned int len)
 {
   unsigned int i, j;
 
   for (i = 0, j = 0; j < len; i++, j += 4)
-    output[i] = ((u_int32_t) input[j]) | (((u_int32_t) input[j + 1]) << 8) |
-      (((u_int32_t) input[j + 2]) << 16) | (((u_int32_t) input[j + 3]) << 24);
+    output[i] = ((uint32_t) input[j]) | (((uint32_t) input[j + 1]) << 8) |
+      (((uint32_t) input[j + 2]) << 16) | (((uint32_t) input[j + 3]) << 24);
 }
 #endif /* i386 || __i386 || __i386__ */
 
@@ -84,22 +84,22 @@ mn_md5_decode (u_int32_t *output, const unsigned char *input, unsigned int len)
  * Rotation is separate from addition to prevent recomputation.
  */
 #define FF(a, b, c, d, x, s, ac) { \
-    (a) += F((b), (c), (d)) + (x) + (u_int32_t) (ac);	\
+    (a) += F((b), (c), (d)) + (x) + (uint32_t) (ac);	\
     (a) = ROTATE_LEFT((a), (s));			\
     (a) += (b);						\
   }
 #define GG(a, b, c, d, x, s, ac) { \
-    (a) += G((b), (c), (d)) + (x) + (u_int32_t) (ac);	\
+    (a) += G((b), (c), (d)) + (x) + (uint32_t) (ac);	\
     (a) = ROTATE_LEFT((a), (s));			\
     (a) += (b);						\
   }
 #define HH(a, b, c, d, x, s, ac) { \
-    (a) += H((b), (c), (d)) + (x) + (u_int32_t) (ac);	\
+    (a) += H((b), (c), (d)) + (x) + (uint32_t) (ac);	\
     (a) = ROTATE_LEFT((a), (s));			\
     (a) += (b);						\
   }
 #define II(a, b, c, d, x, s, ac) { \
-    (a) += I((b), (c), (d)) + (x) + (u_int32_t) (ac);	\
+    (a) += I((b), (c), (d)) + (x) + (uint32_t) (ac);	\
     (a) = ROTATE_LEFT((a), (s));			\
     (a) += (b);						\
   }
@@ -116,7 +116,7 @@ static unsigned char PADDING[64] = {
 
 /*** functions ***************************************************************/
 
-static void mn_md5_transform (u_int32_t state[4], const unsigned char block[64]);
+static void mn_md5_transform (uint32_t state[4], const unsigned char block[64]);
 
 /*** implementation **********************************************************/
 
@@ -158,9 +158,9 @@ mn_md5_update (MNMD5Context *context,
   index = (unsigned int) ((context->count[0] >> 3) & 0x3F);
 
   /* update number of bits */
-  if ((context->count[0] += ((u_int32_t) len << 3)) < ((u_int32_t) len << 3))
+  if ((context->count[0] += ((uint32_t) len << 3)) < ((uint32_t) len << 3))
     context->count[1]++;
-  context->count[1] += ((u_int32_t) len >> 29);
+  context->count[1] += ((uint32_t) len >> 29);
 
   part_len = 64 - index;
 
@@ -247,9 +247,9 @@ mn_md5_end (MNMD5Context *context, char *buf)
 }
 
 static void
-mn_md5_transform (u_int32_t state[4], const unsigned char block[64])
+mn_md5_transform (uint32_t state[4], const unsigned char block[64])
 {
-  u_int32_t a = state[0], b = state[1], c = state[2], d = state[3], x[16];
+  uint32_t a = state[0], b = state[1], c = state[2], d = state[3], x[16];
 
   mn_md5_decode(x, block, 64);
 

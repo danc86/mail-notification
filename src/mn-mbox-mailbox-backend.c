@@ -8,6 +8,8 @@
 
 #define selfp (self->_priv)
 
+#include <string.h> /* memset() */
+
 #include "mn-mbox-mailbox-backend.h"
 
 #include "mn-mbox-mailbox-backend-private.h"
@@ -20,20 +22,13 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 25 "mn-mbox-mailbox-backend.gob"
+#line 26 "mn-mbox-mailbox-backend.gob"
 
 #include "config.h"
-#include <string.h>
-#include <glib/gi18n.h>
-#include <gtk/gtk.h>
-#include "mn-mailbox-private.h"
-#include "mn-reentrant-mailbox-private.h"
-#include "mn-vfs-mailbox-backend-private.h"
+#include "mn-base-mbox-mailbox-backend-private.h"
 #include "mn-message-mime.h"
-#include "mn-gmime-stream-vfs.h"
-#include "mn-util.h"
 
-#line 37 "mn-mbox-mailbox-backend.c"
+#line 32 "mn-mbox-mailbox-backend.c"
 /* self casting macros */
 #define SELF(x) MN_MBOX_MAILBOX_BACKEND(x)
 #define SELF_CONST(x) MN_MBOX_MAILBOX_BACKEND_CONST(x)
@@ -44,21 +39,17 @@
 #define SELF_GET_CLASS(x) MN_MBOX_MAILBOX_BACKEND_GET_CLASS(x)
 
 /* self typedefs */
-typedef MNmboxMailboxBackend Self;
-typedef MNmboxMailboxBackendClass SelfClass;
+typedef MNMboxMailboxBackend Self;
+typedef MNMboxMailboxBackendClass SelfClass;
 
 /* here are local prototypes */
-static void mn_mbox_mailbox_backend_init (MNmboxMailboxBackend * o) G_GNUC_UNUSED;
-static void mn_mbox_mailbox_backend_class_init (MNmboxMailboxBackendClass * class) G_GNUC_UNUSED;
-static gboolean ___2_mn_mbox_mailbox_backend_is (MNVFSMailboxBackend * dummy, MNVFSMailbox * mailbox) G_GNUC_UNUSED;
-static void ___3_mn_mbox_mailbox_backend_check (MNVFSMailboxBackend * backend, unsigned long check_id) G_GNUC_UNUSED;
-static GnomeVFSURI * mn_mbox_mailbox_backend_get_uncompressed_uri (GnomeVFSURI * uri, GnomeVFSFileInfo * file_info) G_GNUC_UNUSED;
+static void mn_mbox_mailbox_backend_init (MNMboxMailboxBackend * o) G_GNUC_UNUSED;
+static void mn_mbox_mailbox_backend_class_init (MNMboxMailboxBackendClass * class) G_GNUC_UNUSED;
+static MNMessage * ___2_mn_mbox_mailbox_backend_get_new_message (MNBaseMboxMailboxBackend * backend, GMimeMessage * mime_message) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
-static MNVFSMailboxBackendClass *parent_class = NULL;
+static MNBaseMboxMailboxBackendClass *parent_class = NULL;
 
-/* Short form macros */
-#define self_get_uncompressed_uri mn_mbox_mailbox_backend_get_uncompressed_uri
 GType
 mn_mbox_mailbox_backend_get_type (void)
 {
@@ -66,431 +57,87 @@ mn_mbox_mailbox_backend_get_type (void)
 
 	if ___GOB_UNLIKELY(type == 0) {
 		static const GTypeInfo info = {
-			sizeof (MNmboxMailboxBackendClass),
+			sizeof (MNMboxMailboxBackendClass),
 			(GBaseInitFunc) NULL,
 			(GBaseFinalizeFunc) NULL,
 			(GClassInitFunc) mn_mbox_mailbox_backend_class_init,
 			(GClassFinalizeFunc) NULL,
 			NULL /* class_data */,
-			sizeof (MNmboxMailboxBackend),
+			sizeof (MNMboxMailboxBackend),
 			0 /* n_preallocs */,
 			(GInstanceInitFunc) mn_mbox_mailbox_backend_init,
 			NULL
 		};
 
-		type = g_type_register_static (MN_TYPE_VFS_MAILBOX_BACKEND, "MNmboxMailboxBackend", &info, (GTypeFlags)0);
+		type = g_type_register_static (MN_TYPE_BASE_MBOX_MAILBOX_BACKEND, "MNMboxMailboxBackend", &info, (GTypeFlags)0);
 	}
 
 	return type;
 }
 
 /* a macro for creating a new object of our type */
-#define GET_NEW ((MNmboxMailboxBackend *)g_object_new(mn_mbox_mailbox_backend_get_type(), NULL))
+#define GET_NEW ((MNMboxMailboxBackend *)g_object_new(mn_mbox_mailbox_backend_get_type(), NULL))
 
 /* a function for creating a new object of our type */
 #include <stdarg.h>
-static MNmboxMailboxBackend * GET_NEW_VARG (const char *first, ...) G_GNUC_UNUSED;
-static MNmboxMailboxBackend *
+static MNMboxMailboxBackend * GET_NEW_VARG (const char *first, ...) G_GNUC_UNUSED;
+static MNMboxMailboxBackend *
 GET_NEW_VARG (const char *first, ...)
 {
-	MNmboxMailboxBackend *ret;
+	MNMboxMailboxBackend *ret;
 	va_list ap;
 	va_start (ap, first);
-	ret = (MNmboxMailboxBackend *)g_object_new_valist (mn_mbox_mailbox_backend_get_type (), first, ap);
+	ret = (MNMboxMailboxBackend *)g_object_new_valist (mn_mbox_mailbox_backend_get_type (), first, ap);
 	va_end (ap);
 	return ret;
 }
 
-
-static void
-___dispose (GObject *obj_self)
-{
-#define __GOB_FUNCTION__ "MN:mbox:Mailbox:Backend::dispose"
-	MNmboxMailboxBackend *self G_GNUC_UNUSED = MN_MBOX_MAILBOX_BACKEND (obj_self);
-	if (G_OBJECT_CLASS (parent_class)->dispose) \
-		(* G_OBJECT_CLASS (parent_class)->dispose) (obj_self);
-#line 40 "mn-mbox-mailbox-backend.gob"
-	if(self->_priv->uri) { gnome_vfs_uri_unref ((gpointer) self->_priv->uri); self->_priv->uri = NULL; }
-#line 115 "mn-mbox-mailbox-backend.c"
-}
-#undef __GOB_FUNCTION__
-
-
-static void
-___finalize(GObject *obj_self)
-{
-#define __GOB_FUNCTION__ "MN:mbox:Mailbox:Backend::finalize"
-	MNmboxMailboxBackend *self G_GNUC_UNUSED = MN_MBOX_MAILBOX_BACKEND (obj_self);
-	gpointer priv G_GNUC_UNUSED = self->_priv;
-	if(G_OBJECT_CLASS(parent_class)->finalize) \
-		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 45 "mn-mbox-mailbox-backend.gob"
-	if(self->_priv->mutex) { g_mutex_free ((gpointer) self->_priv->mutex); self->_priv->mutex = NULL; }
-#line 130 "mn-mbox-mailbox-backend.c"
-}
-#undef __GOB_FUNCTION__
-
 static void 
-mn_mbox_mailbox_backend_init (MNmboxMailboxBackend * o G_GNUC_UNUSED)
+mn_mbox_mailbox_backend_init (MNMboxMailboxBackend * o G_GNUC_UNUSED)
 {
-#define __GOB_FUNCTION__ "MN:mbox:Mailbox:Backend::init"
-	o->_priv = G_TYPE_INSTANCE_GET_PRIVATE(o,MN_TYPE_MBOX_MAILBOX_BACKEND,MNmboxMailboxBackendPrivate);
-#line 45 "mn-mbox-mailbox-backend.gob"
-	o->_priv->mutex = g_mutex_new();
-#line 141 "mn-mbox-mailbox-backend.c"
+#define __GOB_FUNCTION__ "MN:Mbox:Mailbox:Backend::init"
 }
 #undef __GOB_FUNCTION__
-#line 47 "mn-mbox-mailbox-backend.gob"
+#line 34 "mn-mbox-mailbox-backend.gob"
 static void 
-mn_mbox_mailbox_backend_class_init (MNmboxMailboxBackendClass * class G_GNUC_UNUSED)
-#line 147 "mn-mbox-mailbox-backend.c"
+mn_mbox_mailbox_backend_class_init (MNMboxMailboxBackendClass * class G_GNUC_UNUSED)
+#line 105 "mn-mbox-mailbox-backend.c"
 {
-#define __GOB_FUNCTION__ "MN:mbox:Mailbox:Backend::class_init"
-	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
-	MNVFSMailboxBackendClass *mn_vfs_mailbox_backend_class = (MNVFSMailboxBackendClass *)class;
+#define __GOB_FUNCTION__ "MN:Mbox:Mailbox:Backend::class_init"
+	MNBaseMboxMailboxBackendClass *mn_base_mbox_mailbox_backend_class = (MNBaseMboxMailboxBackendClass *)class;
 
-	g_type_class_add_private(class,sizeof(MNmboxMailboxBackendPrivate));
+	parent_class = g_type_class_ref (MN_TYPE_BASE_MBOX_MAILBOX_BACKEND);
 
-	parent_class = g_type_class_ref (MN_TYPE_VFS_MAILBOX_BACKEND);
-
-#line 52 "mn-mbox-mailbox-backend.gob"
-	mn_vfs_mailbox_backend_class->is = ___2_mn_mbox_mailbox_backend_is;
-#line 117 "mn-mbox-mailbox-backend.gob"
-	mn_vfs_mailbox_backend_class->check = ___3_mn_mbox_mailbox_backend_check;
-#line 161 "mn-mbox-mailbox-backend.c"
-	g_object_class->dispose = ___dispose;
-	g_object_class->finalize = ___finalize;
+#line 39 "mn-mbox-mailbox-backend.gob"
+	mn_base_mbox_mailbox_backend_class->get_new_message = ___2_mn_mbox_mailbox_backend_get_new_message;
+#line 114 "mn-mbox-mailbox-backend.c"
  {
-#line 48 "mn-mbox-mailbox-backend.gob"
+#line 35 "mn-mbox-mailbox-backend.gob"
 
     MN_VFS_MAILBOX_BACKEND_CLASS(class)->format = "mbox";
   
-#line 169 "mn-mbox-mailbox-backend.c"
+#line 120 "mn-mbox-mailbox-backend.c"
  }
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 52 "mn-mbox-mailbox-backend.gob"
-static gboolean 
-___2_mn_mbox_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSMailbox * mailbox)
-#line 179 "mn-mbox-mailbox-backend.c"
-#define PARENT_HANDLER(___dummy,___mailbox) \
-	((MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->is)? \
-		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->is)(___dummy,___mailbox): \
-		((gboolean )0))
+#line 39 "mn-mbox-mailbox-backend.gob"
+static MNMessage * 
+___2_mn_mbox_mailbox_backend_get_new_message (MNBaseMboxMailboxBackend * backend G_GNUC_UNUSED, GMimeMessage * mime_message)
+#line 130 "mn-mbox-mailbox-backend.c"
+#define PARENT_HANDLER(___backend,___mime_message) \
+	((MN_BASE_MBOX_MAILBOX_BACKEND_CLASS(parent_class)->get_new_message)? \
+		(* MN_BASE_MBOX_MAILBOX_BACKEND_CLASS(parent_class)->get_new_message)(___backend,___mime_message): \
+		((MNMessage * )0))
 {
-#define __GOB_FUNCTION__ "MN:mbox:Mailbox:Backend::is"
+#define __GOB_FUNCTION__ "MN:Mbox:Mailbox:Backend::get_new_message"
 {
-#line 54 "mn-mbox-mailbox-backend.gob"
+#line 41 "mn-mbox-mailbox-backend.gob"
 	
-    gboolean is = FALSE;
-    GnomeVFSURI *uri;
-    GnomeVFSFileInfo *file_info;
-
-    uri = gnome_vfs_uri_ref(mailbox->vfs_uri);
-    file_info = gnome_vfs_file_info_new();
-
-    if (gnome_vfs_get_file_info_uri(uri, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS | GNOME_VFS_FILE_INFO_GET_MIME_TYPE) == GNOME_VFS_OK)
-      {
-	GnomeVFSURI *uncompressed_uri;
-
-	/* handle a compressed mailbox */
-	uncompressed_uri = self_get_uncompressed_uri(uri, file_info);
-	if (uncompressed_uri)
-	  {
-	    GnomeVFSFileInfo *uncompressed_file_info;
-
-	    uncompressed_file_info = gnome_vfs_file_info_new();
-	    if (gnome_vfs_get_file_info_uri(uncompressed_uri, uncompressed_file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS) == GNOME_VFS_OK)
-	      {
-		gnome_vfs_file_info_unref(file_info);
-		file_info = uncompressed_file_info;
-
-		gnome_vfs_uri_unref(uri);
-		uri = uncompressed_uri;
-	      }
-	    else
-	      {
-		gnome_vfs_file_info_unref(uncompressed_file_info);
-		gnome_vfs_uri_unref(uncompressed_uri);
-	      }
-	  }
-
-	if ((file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_TYPE) != 0
-	    && file_info->type == GNOME_VFS_FILE_TYPE_REGULAR)
-	  {
-	    GnomeVFSHandle *handle;
-
-	    if (gnome_vfs_open_uri(&handle, uri, GNOME_VFS_OPEN_READ) == GNOME_VFS_OK)
-	      {
-		char buf[5];
-		GnomeVFSResult result;
-		GnomeVFSFileSize bytes_read;
-
-		result = gnome_vfs_read(handle, buf, sizeof(buf), &bytes_read);
-		if ((result == GNOME_VFS_OK || result == GNOME_VFS_ERROR_EOF)
-		    && (bytes_read == 0
-			|| (bytes_read == sizeof(buf)
-			    && ! strncmp(buf, "From ", sizeof(buf)))))
-		  is = TRUE;
-
-		gnome_vfs_close(handle);
-	      }
-	  }
-      }
-
-    gnome_vfs_uri_unref(uri);
-    gnome_vfs_file_info_unref(file_info);
-
-    return is;
+    return mn_message_new_from_mime_message(MN_MAILBOX(MN_VFS_MAILBOX_BACKEND(backend)->mailbox), mime_message, NULL, 0, TRUE);
   }}
-#line 250 "mn-mbox-mailbox-backend.c"
+#line 142 "mn-mbox-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
-
-#line 117 "mn-mbox-mailbox-backend.gob"
-static void 
-___3_mn_mbox_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, unsigned long check_id)
-#line 257 "mn-mbox-mailbox-backend.c"
-#define PARENT_HANDLER(___backend,___check_id) \
-	{ if(MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->check) \
-		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->check)(___backend,___check_id); }
-{
-#define __GOB_FUNCTION__ "MN:mbox:Mailbox:Backend::check"
-{
-#line 119 "mn-mbox-mailbox-backend.gob"
-	
-    Self *self = SELF(backend);
-    gboolean aborted;
-    gboolean polled;
-    GnomeVFSResult result;
-    GnomeVFSHandle *handle;
-    gboolean uri_set;
-
-    mn_vfs_mailbox_backend_monitor(backend, check_id, backend->mailbox->uri, GNOME_VFS_MONITOR_FILE);
-
-    GDK_THREADS_ENTER();
-
-    if (mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-      aborted = TRUE;
-    else
-      {
-	aborted = FALSE;
-	polled = mn_mailbox_get_poll(MN_MAILBOX(backend->mailbox));
-      }
-
-    gdk_flush();
-    GDK_THREADS_LEAVE();
-
-    if (aborted)
-      return;
-
-    if (polled)
-      {
-	GnomeVFSFileInfo *file_info;
-	GnomeVFSResult result;
-	gboolean check;
-
-	/*
-	 * We are here because the mailbox has to be polled; only
-	 * check it if necessary.
-	 */
-
-	file_info = gnome_vfs_file_info_new();
-	result = gnome_vfs_get_file_info_uri(backend->mailbox->vfs_uri, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS);
-
-	g_mutex_lock(selfp->mutex);
-
-	if (result == GNOME_VFS_OK
-	    && (file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_SIZE) != 0
-	    && (file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_MTIME) != 0
-	    && file_info->size == selfp->last_size
-	    && file_info->mtime == selfp->last_mtime)
-	  {
-	    if ((file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_CTIME) != 0)
-	      check = file_info->ctime != selfp->last_ctime;
-	    else
-	      /*
-	       * The ctime is often missing for remote mailboxes;
-	       * since anyway the size and mtime do not have changed,
-	       * we do not check the mailbox.
-	       */
-	      check = FALSE;
-	  }
-	else
-	  check = TRUE;
-
-	if (check)
-	  {
-	    selfp->last_size = file_info->size;
-	    selfp->last_mtime = file_info->mtime;
-	    selfp->last_ctime = file_info->ctime;
-
-	    if (mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	      check = FALSE;
-	  }
-
-	g_mutex_unlock(selfp->mutex);
-
-	gnome_vfs_file_info_unref(file_info);
-
-	if (! check)
-	  return;
-      }
-
-    g_mutex_lock(selfp->mutex);
-    uri_set = selfp->uri != NULL;
-    g_mutex_unlock(selfp->mutex);
-
-    if (! uri_set)
-      {
-	GnomeVFSFileInfo *file_info;
-	GnomeVFSURI *uri;
-
-	file_info = gnome_vfs_file_info_new();
-	if (gnome_vfs_get_file_info_uri(backend->mailbox->vfs_uri, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS | GNOME_VFS_FILE_INFO_GET_MIME_TYPE) == GNOME_VFS_OK)
-	  uri = self_get_uncompressed_uri(backend->mailbox->vfs_uri, file_info);
-	gnome_vfs_file_info_unref(file_info);
-
-	if (! uri)
-	  uri = gnome_vfs_uri_ref(backend->mailbox->vfs_uri);
-
-	g_mutex_lock(selfp->mutex);
-
-	if (! selfp->uri)
-	  {
-	    selfp->uri = uri;
-	    uri = NULL;
-	  }
-	if (mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	  aborted = TRUE;
-
-	g_mutex_unlock(selfp->mutex);
-
-	if (uri)
-	  gnome_vfs_uri_unref(uri);
-
-	if (aborted)
-	  return;
-      }
-
-    result = gnome_vfs_open_uri(&handle, selfp->uri, GNOME_VFS_OPEN_READ);
-    if (result == GNOME_VFS_OK)
-      {
-	GMimeStream *stream;
-
-	stream = mn_gmime_stream_vfs_new(handle, selfp->uri, &result);
-	if (stream)
-	  {
-	    GMimeParser *parser;
-	    GSList *messages = NULL;
-	    GnomeVFSResult close_result;
-
-	    parser = g_mime_parser_new_with_stream(stream);
-	    g_object_unref(stream);
-
-	    g_mime_parser_set_scan_from(parser, TRUE);
-
-	    while (! g_mime_parser_eos(parser))
-	      {
-		GMimeMessage *mime_message;
-
-		if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-		  break;
-
-		mime_message = g_mime_parser_construct_message(parser);
-		if (mime_message)
-		  {
-		    const char *status;
-
-		    status = g_mime_message_get_header(mime_message, "Status");
-		    if (! status || ! strchr(status, 'R'))
-		      messages = g_slist_prepend(messages, mn_message_new_from_mime_message(MN_MAILBOX(backend->mailbox), mime_message, 0, TRUE));
-
-		    g_object_unref(mime_message);
-		  }
-	      }
-
-	    g_object_unref(parser);
-	    close_result = gnome_vfs_close(handle);
-
-	    GDK_THREADS_ENTER();
-
-	    if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	      {
-		if (close_result == GNOME_VFS_OK)
-		  mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
-		else
-		  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to close file: %s"), gnome_vfs_result_to_string(close_result));
-	      }
-
-	    mn_g_object_slist_free(messages);
-
-	    gdk_flush();
-	    GDK_THREADS_LEAVE();
-
-	    return;
-	  }
-	else
-	  gnome_vfs_close(handle);
-      }
-
-    GDK_THREADS_ENTER();
-
-    if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-      mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open mailbox: %s"), gnome_vfs_result_to_string(result));
-
-    gdk_flush();
-    GDK_THREADS_LEAVE();
-  }}
-#line 449 "mn-mbox-mailbox-backend.c"
-#undef __GOB_FUNCTION__
-#undef PARENT_HANDLER
-
-#line 304 "mn-mbox-mailbox-backend.gob"
-static GnomeVFSURI * 
-mn_mbox_mailbox_backend_get_uncompressed_uri (GnomeVFSURI * uri, GnomeVFSFileInfo * file_info)
-#line 456 "mn-mbox-mailbox-backend.c"
-{
-#define __GOB_FUNCTION__ "MN:mbox:Mailbox:Backend::get_uncompressed_uri"
-#line 304 "mn-mbox-mailbox-backend.gob"
-	g_return_val_if_fail (uri != NULL, (GnomeVFSURI * )0);
-#line 304 "mn-mbox-mailbox-backend.gob"
-	g_return_val_if_fail (file_info != NULL, (GnomeVFSURI * )0);
-#line 463 "mn-mbox-mailbox-backend.c"
-{
-#line 307 "mn-mbox-mailbox-backend.gob"
-	
-    if ((file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_MIME_TYPE) != 0 && file_info->mime_type)
-      {
-	/* compression methods supported by GnomeVFS */
-	const struct
-	{
-	  const char *mime_type;
-	  const char *method;
-	} compressions[] = {
-	  { "application/x-gzip", "gzip" },
-	  { "application/x-bzip", "bzip2" }
-	};
-	int i;
-
-	for (i = 0; i < G_N_ELEMENTS(compressions); i++)
-	  if (! strcmp(file_info->mime_type, compressions[i].mime_type))
-	    {
-	      char *str;
-	      GnomeVFSURI *uncompressed_uri;
-
-	      str = g_strdup_printf("%s%s:/", GNOME_VFS_URI_MAGIC_STR, compressions[i].method);
-	      uncompressed_uri = gnome_vfs_uri_append_string(uri, str);
-	      g_free(str);
-
-	      return uncompressed_uri;
-	    }
-      }
-
-    return NULL;
-  }}
-#line 496 "mn-mbox-mailbox-backend.c"
-#undef __GOB_FUNCTION__

@@ -1,0 +1,242 @@
+/* 
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include <libnotify/notify.h>
+#include "mn-message.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include "mn-conf.h"
+#include "mn-shell.h"
+%}
+
+class MN:Popup from Notify:Notification
+{
+  private MNMessage *message unrefwith g_object_unref;
+  property OBJECT message (flags = CONSTRUCT_ONLY, link, object_type = MN:Message, type = MNMessage *);
+
+  public gboolean visible;
+
+  override (G:Object) GObject *
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    Self *self;
+    GString *body;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    self = SELF(object);
+
+    body = g_string_new(NULL);
+    self_append_row(body, _("Mailbox:"), selfp->message->mailbox->runtime_name);
+    if (selfp->message->error)
+      self_append_row(body, _("Unreadable message:"), selfp->message->error);
+    else
+      {
+	self_append_row(body, _("From:"), selfp->message->from);
+	self_append_row(body, _("Subject:"), selfp->message->subject);
+      }
+
+    g_object_set(self,
+		 "body", body->str,
+		 "icon-name", "stock_mail",
+		 NULL);
+
+    if (mn_conf_get_enum_value(MN_TYPE_POPUP_POSITION, MN_CONF_POPUPS_POSITION) == MN_POPUP_POSITION_ATTACHED)
+      g_object_set(self, "attach-widget", mn_shell->icon, NULL);
+
+    g_string_free(body, TRUE);
+
+    /*
+     * Note that notification-daemon currently assigns icons to
+     * actions by prepending "stock_" to the action ID.
+     */
+    if (mn_message_can_open(selfp->message))
+      notify_notification_add_action(NOTIFY_NOTIFICATION(self),
+				     "mail-open",
+				     /* translators: header capitalization */
+				     _("Open"),
+				     self_open_cb,
+				     NULL,
+				     NULL);
+    if (mn_message_can_mark_as_read(selfp->message))
+      notify_notification_add_action(NOTIFY_NOTIFICATION(self),
+				     "mark",
+				     /* translators: header capitalization */
+				     _("Mark as Read"),
+				     self_mark_as_read_cb,
+				     NULL,
+				     NULL);
+    if (mn_message_can_mark_as_spam(selfp->message))
+      notify_notification_add_action(NOTIFY_NOTIFICATION(self),
+				     "spam",
+				     /* translators: header capitalization */
+				     _("Mark as Spam"),
+				     self_mark_as_spam_cb,
+				     NULL,
+				     NULL);
+
+    notify_notification_set_timeout(NOTIFY_NOTIFICATION(self), self_get_conf_timeout());
+
+    g_signal_connect(self, "closed", G_CALLBACK(self_closed_h), NULL);
+
+    return object;
+  }
+
+  private void
+    open_cb (NotifyNotification *notification, char *id, gpointer user_data)
+  {
+    Self *self = SELF(notification);
+    GError *err = NULL;
+
+    GDK_THREADS_ENTER();
+
+    if (! mn_message_open(selfp->message, &err))
+      {
+	mn_error_dialog(NULL, _("Unable to open message"), "%s", err->message);
+	g_error_free(err);
+      }
+
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    mark_as_read_cb (NotifyNotification *notification, char *id, gpointer user_data)
+  {
+    Self *self = SELF(notification);
+    GError *err = NULL;
+
+    GDK_THREADS_ENTER();
+
+    if (! mn_message_mark_as_read(selfp->message, &err))
+      {
+	mn_error_dialog(NULL, _("Unable to mark message as read"), "%s", err->message);
+	g_error_free(err);
+      }
+
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    mark_as_spam_cb (NotifyNotification *notification, char *id, gpointer user_data)
+  {
+    Self *self = SELF(notification);
+    GError *err = NULL;
+
+    GDK_THREADS_ENTER();
+
+    if (! mn_message_mark_as_spam(selfp->message, &err))
+      {
+	mn_error_dialog(NULL, _("Unable to mark message as spam"), "%s", err->message);
+	g_error_free(err);
+      }
+
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    closed_h (NotifyNotification *notification, gpointer user_data)
+  {
+    Self *self = SELF(notification);
+    self->visible = FALSE;
+  }
+
+  private void
+    append_row (GString *body (check null),
+		const char *name (check null),
+		const char *value (check null))
+    {
+      char *escaped;
+
+      if (*body->str)
+	g_string_append_c(body, '\n');
+
+      g_string_append_printf(body, "<span weight=\"bold\">%s</span>", name);
+
+      escaped = g_markup_escape_text(value, -1);
+      g_string_append_printf(body, " %s", escaped);
+      g_free(escaped);
+    }
+
+  private int
+    get_conf_timeout (void)
+  {
+    switch (mn_conf_get_enum_value(MN_TYPE_EXPIRATION_ENABLED, MN_CONF_POPUPS_EXPIRATION_ENABLED))
+      {
+      case MN_EXPIRATION_ENABLED_DEFAULT:
+	return NOTIFY_EXPIRES_DEFAULT;
+
+      case MN_EXPIRATION_ENABLED_FALSE:
+	return NOTIFY_EXPIRES_NEVER;
+
+      case MN_EXPIRATION_ENABLED_TRUE:
+	return mn_conf_get_milliseconds(MN_CONF_POPUPS_EXPIRATION_DELAY_MINUTES,
+					MN_CONF_POPUPS_EXPIRATION_DELAY_SECONDS);
+
+      default:
+	g_assert_not_reached();
+	return 0;
+      }
+  }
+
+  public void
+    show (self)
+  {
+    GError *err = NULL;
+
+    if (! notify_notification_show(NOTIFY_NOTIFICATION(self), &err))
+      {
+	g_warning(_("unable to show popup: %s"), err->message);
+	g_error_free(err);
+      }
+
+    self->visible = TRUE;
+  }
+
+  public void
+    close (self)
+  {
+    GError *err = NULL;
+
+    if (! self->visible)
+      return;
+
+    if (! notify_notification_close(NOTIFY_NOTIFICATION(self), &err))
+      {
+	g_warning(_("unable to close popup: %s"), err->message);
+	g_error_free(err);
+      }
+  }
+
+  public MNPopup *
+    new (MN:Message *message (check null type))
+  {
+    /* we set the summary here because libnotify requires it */
+
+    /* translators: header capitalization */
+    return GET_NEW_VARG("summary", _("New Message"),
+			MN_POPUP_PROP_MESSAGE(message),
+			NULL);
+  }
+}

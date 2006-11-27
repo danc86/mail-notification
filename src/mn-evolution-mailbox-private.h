@@ -10,22 +10,21 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 25 "mn-evolution-mailbox.gob"
+#line 27 "mn-evolution-mailbox.gob"
 
 #include <time.h>
 #include "GNOME_MailNotification_Evolution.h"
-#include "mn-corba-object.h"
 #include "mn-locked-callback.h"
 
-#line 21 "mn-evolution-mailbox-private.h"
+#line 20 "mn-evolution-mailbox-private.h"
 struct _MNEvolutionMailboxPrivate {
-#line 58 "mn-evolution-mailbox.gob"
-	MNCORBAObject * glue;
-#line 59 "mn-evolution-mailbox.gob"
-	MNLockedBonoboListener * listener;
 #line 61 "mn-evolution-mailbox.gob"
+	MNBonoboUnknown * glue;
+#line 62 "mn-evolution-mailbox.gob"
+	MNLockedBonoboListener * listener;
+#line 64 "mn-evolution-mailbox.gob"
 	time_t last_browsed;
-#line 29 "mn-evolution-mailbox-private.h"
+#line 28 "mn-evolution-mailbox-private.h"
 };
 
 #ifdef __cplusplus

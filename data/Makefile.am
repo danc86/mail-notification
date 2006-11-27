@@ -35,7 +35,7 @@ EXTRA_DIST = \
 	GNOME_MailNotification_Evolution.server.in	\
 	mail-notification-properties.desktop.in		\
 	mail-notification.desktop.in			\
-	mail-notification.schemas.in
+	mail-notification.schemas.in.in
 
 CLEANFILES = \
 	$(evolution_server)			\
@@ -43,7 +43,11 @@ CLEANFILES = \
 	GNOME_MailNotification.server.in	\
 	mail-notification-properties.desktop	\
 	mail-notification.desktop		\
-	mail-notification.schemas
+	mail-notification.schemas		\
+	mail-notification.schemas.in
 
 GNOME_MailNotification.server.in: GNOME_MailNotification.server.in.in
 	sed -e 's|\@bindir\@|$(bindir)|' GNOME_MailNotification.server.in.in > GNOME_MailNotification.server.in
+
+mail-notification.schemas.in: mail-notification.schemas.in.in
+	sed -e 's|\@gnome_prefix\@|$(gnome_prefix)|' mail-notification.schemas.in.in > mail-notification.schemas.in

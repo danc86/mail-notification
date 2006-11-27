@@ -1,4 +1,5 @@
 /* 
+ * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -44,12 +45,15 @@ class MN:Mail:Icon from Egg:Tray:Icon
 
   private GtkWidget *menu = {gtk_menu_new()} destroywith gtk_widget_destroy;
   public GtkWidget *mail_reader_item;
+  public GtkWidget *open_latest_message_item;
   public GtkWidget *update_item;
 
   signal (ACTION) private NONE (NONE)
     void activate (self);
   signal (ACTION) private NONE (NONE)
     void activate_mail_reader (self);
+  signal (ACTION) private NONE (NONE)
+    void activate_open_latest_message (self);
   signal (ACTION) private NONE (NONE)
     void activate_update (self);
   signal (ACTION) private NONE (NONE)
@@ -88,6 +92,8 @@ class MN:Mail:Icon from Egg:Tray:Icon
     /* translators: header capitalization */
     self->mail_reader_item = mn_menu_shell_append(shell, MN_STOCK_MAIL_READER, _("_Mail Reader"));
     /* translators: header capitalization */
+    self->open_latest_message_item = mn_menu_shell_append(shell, MN_STOCK_OPEN_MESSAGE, _("_Open Latest Message"));
+    /* translators: header capitalization */
     self->update_item = mn_menu_shell_append(shell, GTK_STOCK_REFRESH, _("_Update"));
     mn_menu_shell_append(shell, NULL, NULL);
     properties_item = mn_menu_shell_append(shell, GTK_STOCK_PROPERTIES, NULL);
@@ -98,6 +104,7 @@ class MN:Mail:Icon from Egg:Tray:Icon
     remove_item = mn_menu_shell_append(shell, GTK_STOCK_REMOVE, _("R_emove From Notification Area"));
 
     g_signal_connect_swapped(self->mail_reader_item, "activate", G_CALLBACK(self_activate_mail_reader), self);
+    g_signal_connect_swapped(self->open_latest_message_item, "activate", G_CALLBACK(self_activate_open_latest_message), self);
     g_signal_connect_swapped(self->update_item, "activate", G_CALLBACK(self_activate_update), self);
     g_signal_connect_swapped(properties_item, "activate", G_CALLBACK(self_activate_properties), self);
     g_signal_connect_swapped(help_item, "activate", G_CALLBACK(self_activate_help), self);

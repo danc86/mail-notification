@@ -91,16 +91,17 @@ fi
 
 AC_SUBST(WARN_CFLAGS)])
 
-dnl MN_ARG_DEBUG
+dnl MN_ARG_DEBUG([DEFAULT])
 dnl
 AC_DEFUN([MN_ARG_DEBUG],
 [AC_ARG_ENABLE(debug,
-AS_HELP_STRING([--enable-debug],
-[enable assertions and cast checks]),
+ifelse([$1], yes,
+[AS_HELP_STRING([--disable-debug], [disable assertions and cast checks])],
+[AS_HELP_STRING([--enable-debug], [enable assertions and cast checks])]),
 [case "$enableval" in
 	yes|no) enable_debug=$enableval ;;
 	*) AC_MSG_ERROR([bad value $enableval for --enable-debug]) ;;
-esac], [enable_debug=no])
+esac], [enable_debug=ifelse([$1],, no, [$1])])
 
 if test $enable_debug = no; then
 	DEBUG_CFLAGS="-DG_DISABLE_ASSERT -DG_DISABLE_CHECKS -DG_DISABLE_CAST_CHECKS"

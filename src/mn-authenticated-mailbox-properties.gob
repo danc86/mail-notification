@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -27,10 +28,12 @@ requires 2.0.14
 #include "config.h"
 #include <glib/gi18n.h>
 #include "mn-authenticated-mailbox.h"
+#include "mn-mailbox-properties-private.h"
 %}
 
 class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties (abstract)
 {
+  protected GtkWidget *account_vbox;
   protected GtkWidget *username_vbox;
   protected GtkWidget *username_label;
   protected GtkWidget *username_entry;
@@ -40,7 +43,11 @@ class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties (abstract)
 
   init (self)
   {
+    MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
     const char *username;
+
+    /* translators: header capitalization */
+    self->account_vbox = mn_mailbox_properties_add_general_section(properties, _("Account"));
 
     self->username_vbox = self_field_new(self,
 					 _("_Username:"),

@@ -11,7 +11,7 @@ Index
 
 0. About this document
 
-	$Id: INSTALL,v 1.19 2006/05/15 04:31:14 jylefort Exp $
+	$Id: INSTALL,v 1.20 2006/11/22 17:53:22 jylefort Exp $
 
 	Copyright (C) 2003-2006 Jean-Yves Lefort.
 
@@ -22,15 +22,20 @@ Index
 
 	Mandatory:
 
-		* GTK+ (version 2.6.0 or superior)
-		  http://www.gtk.org/
+		* GNOME
 
-		* GNOME (version 2.6.0 or superior)
+		  required:	version 2.8.0 or superior
+		  recommended:	version 2.14.0 or superior
+
 		  http://www.gnome.org/
+
+		* libnotify (version 0.3.0 or superior)
+		  http://www.galago-project.org/
 
 	Optional:
 
-		* for mbox, MH, Maildir, POP3, IMAP and Sylpheed support:
+		* for mbox, MH, Maildir, POP3, IMAP, Mozilla and
+		  Sylpheed support:
 
 		  GMime (version 2.1.0 or superior)
 		  http://spruce.sourceforge.net/gmime/
@@ -47,7 +52,7 @@ Index
 
 		* for Evolution support:
 
-		  Evolution (version 2.2 or superior)
+		  Evolution (version 2.4 or superior)
 		  http://www.gnome.org/projects/evolution/
 
 2. Instructions
@@ -66,15 +71,6 @@ Index
 		  (http://bugzilla.gnome.org/show_bug.cgi?id=151082),
 		  your session must be restarted after installing Mail
 		  Notification.
-
-		* Evolution 2.2.x only: for building Evolution
-		  support, you must specify the path to the Evolution
-		  source directory, for instance:
-
-			$ ./configure \
-			    --with-evolution-source-dir=$HOME/evolution-2.2.3
-
-		  This is not necessary with Evolution >= 2.3.
 
 	The configure script options which are specific to Mail
 	Notification are documented below.
@@ -139,25 +135,14 @@ Index
 
 		Enable Evolution mailbox support.
 
-		Requirements: Evolution version 2.2 or superior.
+		Requirements: Evolution version 2.4 or superior.
 
-		With Evolution 2.2.x, you must also specify the path
-		to the Evolution source directory, for instance:
+	--enable-mozilla (default: yes)
 
-			$ ./configure \
-			    --with-evolution-source-dir=$HOME/evolution-2.2.3
+		Enable Mozilla products (Mozilla, SeaMonkey,
+		Thunderbird, ...) mailbox support.
 
-	--with-evolution-source-dir=DIR (default: no)
-
-		Specify the path to the Evolution source directory,
-		which is required for building Evolution mailbox
-		support (Evolution 2.2.x only, not necessary with
-		Evolution >= 2.3).
-
-		Requirements: the source directory corresponding to
-			      the version of Evolution 2.2.x installed
-			      on your system.
-		Applies to: Evolution.
+		Requirements: GMime version 2.1.0 or superior.
 
 	--enable-sylpheed (default: yes)
 

@@ -1,4 +1,5 @@
 /* 
+ * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #include "config.h"
@@ -21,15 +22,18 @@
 #include <signal.h>
 #include <gnome.h>
 #include <libgnomevfs/gnome-vfs.h>
+#include <libnotify/notify.h>
 #if WITH_MIME
 #include <gmime/gmime.h>
 #include "mn-gmime-stream-vfs.h"
 #endif
-#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
+#if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
 #include "mn-vfs-mailbox.h"
+#include "mn-vfs-message.h"
 #endif
 #if WITH_EVOLUTION
-#include "mn-corba-object.h"
+#include "mn-bonobo-unknown.h"
+#include "mn-evolution-message.h"
 #endif
 #include "mn-locked-callback.h"
 #include "mn-conf.h"
@@ -77,6 +81,11 @@ static void	mn_main_init_classes	(void);
 static void	mn_main_handle_bonobo_exception (CORBA_Environment *env,
 						 const char        *method);
 
+static gboolean	mn_main_has_icon_path		(const char *path);
+static void	mn_main_ensure_icon_path	(void);
+
+static void	mn_main_report_option_ignored	(const char *option_name);
+
 /*** implementation **********************************************************/
 
 static BonoboObject *
@@ -108,7 +117,7 @@ mn_main_print_version (void)
    * order of (believed) popularity.
    */
 
-  Component mailbox_backends[] = {
+  static const Component mailbox_backends[] = {
     { "mbox",			WITH_MBOX		},
     { "mh",			WITH_MH			},
     { "Maildir",		WITH_MAILDIR		},
@@ -116,16 +125,17 @@ mn_main_print_version (void)
     { "IMAP",			WITH_IMAP		},
     { "Gmail",			WITH_GMAIL		},
     { "Evolution",		WITH_EVOLUTION		},
+    { "Mozilla products",	WITH_MOZILLA		},
     { "Sylpheed",		WITH_SYLPHEED		}
   };
 
-  Component pi_features[] = {
+  static const Component pi_features[] = {
     { "SSL/TLS",		WITH_SSL		},
     { "SASL",			WITH_SASL		},
     { "IPv6",			WITH_IPV6		}
   };
 
-  Component sylpheed_features[] = {
+  static const Component sylpheed_features[] = {
     { ".sylpheed_mark locking",	WITH_SYLPHEED_LOCKING	}
   };
 
@@ -163,25 +173,22 @@ mn_main_init_classes (void)
 {
   int i;
 
-  g_type_class_ref(MN_TYPE_AUTOMATION);
 #if WITH_MIME
   g_type_class_ref(MN_TYPE_GMIME_STREAM_VFS);
   g_type_class_ref(GMIME_TYPE_PARSER);
   g_type_class_ref(GMIME_TYPE_STREAM_MEM);
   g_type_class_ref(GMIME_TYPE_MESSAGE);
 #endif /* WITH_MIME */
-  for (i = 0; mn_mailbox_types[i]; i++)
-    g_type_class_ref(mn_mailbox_types[i]);
-#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
+#if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
   for (i = 0; mn_vfs_mailbox_backend_types[i]; i++)
     g_type_class_ref(mn_vfs_mailbox_backend_types[i]);
+  g_type_class_ref(MN_TYPE_VFS_MESSAGE);
 #endif
 #if WITH_EVOLUTION
-  g_type_class_ref(MN_TYPE_CORBA_OBJECT);
+  g_type_class_ref(MN_TYPE_BONOBO_UNKNOWN);
+  g_type_class_ref(MN_TYPE_EVOLUTION_MESSAGE);
 #endif
-  g_type_class_ref(MN_TYPE_MAILBOXES);
   g_type_class_ref(MN_TYPE_MESSAGE);
-  g_type_class_ref(MN_TYPE_SHELL);
 }
 
 static void
@@ -200,14 +207,54 @@ mn_main_handle_bonobo_exception (CORBA_Environment *env, const char *method)
     }
 }
 
+static gboolean
+mn_main_has_icon_path (const char *path)
+{
+  char **paths;
+  int i;
+  gboolean has = FALSE;
+
+  gtk_icon_theme_get_search_path(gtk_icon_theme_get_default(), &paths, NULL);
+  for (i = 0; paths[i]; i++)
+    if (! strcmp(paths[i], path))
+      {
+	has = TRUE;
+	break;
+      }
+  g_strfreev(paths);
+
+  return has;
+}
+
+/*
+ * This is needed when MN is not installed in the standard prefix (as
+ * is the case for my test builds).
+ */
+static void
+mn_main_ensure_icon_path (void)
+{
+#define icon_path DATADIR G_DIR_SEPARATOR_S "icons"
+  if (! mn_main_has_icon_path(icon_path))
+    gtk_icon_theme_prepend_search_path(gtk_icon_theme_get_default(), icon_path);
+#undef icon_path
+}
+
+static void
+mn_main_report_option_ignored (const char *option_name)
+{
+  g_return_if_fail(option_name != NULL);
+
+  g_message(_("%s option ignored since Mail Notification is not already running"), option_name);
+}
+
 int
 main (int argc, char **argv)
 {
   gboolean arg_version = FALSE;
   gboolean arg_display_properties = FALSE;
   gboolean arg_display_about = FALSE;
-  gboolean arg_close_popup = FALSE;
   gboolean arg_update = FALSE;
+  gboolean arg_print_summary = FALSE;
   gboolean arg_unset_obsolete_configuration = FALSE;
   gboolean arg_quit = FALSE;
   const struct poptOption popt_options[] = {
@@ -248,21 +295,21 @@ main (int argc, char **argv)
       NULL
     },
     {
-      "close-popup",
-      'c',
-      POPT_ARG_NONE,
-      &arg_close_popup,
-      0,
-      N_("Close the mail summary popup"),
-      NULL
-    },
-    {
       "update",
       'u',
       POPT_ARG_NONE,
       &arg_update,
       0,
       N_("Update the mail status"),
+      NULL
+    },
+    {
+      "print-summary",
+      's',
+      POPT_ARG_NONE,
+      &arg_print_summary,
+      0,
+      N_("Print a XML mail summary"),
       NULL
     },
     {
@@ -285,7 +332,6 @@ main (int argc, char **argv)
     },
     POPT_TABLEEND
   };
-  GdkPixbuf *icon;
   BonoboGenericFactory *automation_factory;
   GClosure *automation_factory_closure;
   Bonobo_RegistrationResult result;
@@ -334,12 +380,8 @@ main (int argc, char **argv)
 
   GDK_THREADS_ENTER();
 
-  icon = mn_pixbuf_new(GNOMEPIXMAPSDIR G_DIR_SEPARATOR_S "mail-notification.png");
-  if (icon)
-    {
-      gtk_window_set_default_icon(icon);
-      g_object_unref(icon);
-    }
+  mn_main_ensure_icon_path();
+  gtk_window_set_default_icon_name("mail-notification");
 
   mn_stock_init();
   bonobo_activate();
@@ -379,7 +421,7 @@ main (int argc, char **argv)
 	    if (result != Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
 	      {
 		mn_mailbox_init_types();
-#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
+#if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
 		mn_vfs_mailbox_init_types();
 #endif
 
@@ -395,14 +437,19 @@ main (int argc, char **argv)
 		g_mime_init(0);
 #endif
 
+		if (! notify_init(_("Mail Notification")))
+		  mn_error_dialog(NULL,
+				  _("An initialization error has occurred in Mail Notification"),
+				  _("Unable to initialize the notification library. Message popups will not be displayed."));
+
 		mn_locked_callback_init();
 		mn_conf_init();
 
 		/*
 		 * Work around
 		 * http://bugzilla.gnome.org/show_bug.cgi?id=64764:
-		 * initialize our non GTK-based classes before any
-		 * thread is created.
+		 * initialize the classes we will be using
+		 * concurrently before any thread is created.
 		 */
 		mn_main_init_classes();
 
@@ -426,10 +473,6 @@ main (int argc, char **argv)
 	      {
 		AUTOMATION_METHOD(displayAbout);
 	      }
-	    if (arg_close_popup)
-	      {
-		AUTOMATION_METHOD(closePopup);
-	      }
 
 	    if (result == Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
 	      {
@@ -438,12 +481,27 @@ main (int argc, char **argv)
 		    g_message(_("updating the mail status"));
 		    AUTOMATION_METHOD(update);
 		  }
+		if (arg_print_summary)
+		  {
+		    CORBA_string summary;
+
+		    summary = AUTOMATION_METHOD(getSummary);
+		    g_print("%s", summary);
+		    CORBA_free(summary);
+		  }
 
 		if (! (display_properties
 		       || arg_display_about
-		       || arg_close_popup
-		       || arg_update))
+		       || arg_update
+		       || arg_print_summary))
 		  g_message(_("Mail Notification is already running"));
+	      }
+	    else
+	      {
+		if (arg_update)
+		  mn_main_report_option_ignored("--update");
+		if (arg_print_summary)
+		  mn_main_report_option_ignored("--print-summary");
 	      }
 	  }
 

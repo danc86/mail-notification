@@ -10,30 +10,34 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 25 "mn-evolution-mailbox-properties.gob"
+#line 26 "mn-evolution-mailbox-properties.gob"
 
 #include "GNOME_MailNotification_Evolution.h"
-#include "mn-corba-object.h"
+#include "mn-bonobo-unknown.h"
 
 #line 19 "mn-evolution-mailbox-properties-private.h"
 struct _MNEvolutionMailboxPropertiesPrivate {
-#line 41 "mn-evolution-mailbox-properties.gob"
-	GtkWidget * child;
-#line 42 "mn-evolution-mailbox-properties.gob"
-	GtkWidget * tree;
 #line 44 "mn-evolution-mailbox-properties.gob"
-	char * uri;
+	GtkWidget * folder_vbox;
 #line 45 "mn-evolution-mailbox-properties.gob"
-	char * name;
-#line 47 "mn-evolution-mailbox-properties.gob"
-	MNCORBAObject * glue;
+	GtkWidget * child;
+#line 46 "mn-evolution-mailbox-properties.gob"
+	GtkWidget * tree;
 #line 48 "mn-evolution-mailbox-properties.gob"
-	MNCORBAObject * control;
-#line 50 "mn-evolution-mailbox-properties.gob"
-	Bonobo_PropertyBag pbag;
+	char * uri;
+#line 49 "mn-evolution-mailbox-properties.gob"
+	char * name;
+#line 51 "mn-evolution-mailbox-properties.gob"
+	MNBonoboUnknown * glue;
 #line 52 "mn-evolution-mailbox-properties.gob"
-	Bonobo_Listener listener;
-#line 37 "mn-evolution-mailbox-properties-private.h"
+	MNBonoboUnknown * control;
+#line 54 "mn-evolution-mailbox-properties.gob"
+	Bonobo_PropertyBag pbag;
+#line 56 "mn-evolution-mailbox-properties.gob"
+	Bonobo_Listener selected_uri_listener;
+#line 57 "mn-evolution-mailbox-properties.gob"
+	Bonobo_Listener activated_listener;
+#line 41 "mn-evolution-mailbox-properties-private.h"
 };
 
 #ifdef __cplusplus

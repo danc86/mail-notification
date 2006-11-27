@@ -16,7 +16,7 @@ extern "C" {
 
 
 
-#define MN_VFS_MAILBOX_MAX_BACKEND_TYPES	4
+#define MN_VFS_MAILBOX_MAX_BACKEND_TYPES	5
 extern GType mn_vfs_mailbox_backend_types[MN_VFS_MAILBOX_MAX_BACKEND_TYPES + 1];
 
 

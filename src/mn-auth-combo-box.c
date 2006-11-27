@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 25 "mn-auth-combo-box.gob"
+#line 26 "mn-auth-combo-box.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
@@ -141,14 +141,14 @@ mn_auth_combo_box_class_init (MNAuthComboBoxClass * c G_GNUC_UNUSED)
     }
 }
 #undef __GOB_FUNCTION__
-#line 88 "mn-auth-combo-box.gob"
+#line 89 "mn-auth-combo-box.gob"
 static void 
 mn_auth_combo_box_init (MNAuthComboBox * self G_GNUC_UNUSED)
 #line 148 "mn-auth-combo-box.c"
 {
 #define __GOB_FUNCTION__ "MN:Auth:Combo:Box::init"
  {
-#line 89 "mn-auth-combo-box.gob"
+#line 90 "mn-auth-combo-box.gob"
 
     GtkListStore *store;
     GtkCellRenderer *renderer;
@@ -160,10 +160,10 @@ mn_auth_combo_box_init (MNAuthComboBox * self G_GNUC_UNUSED)
     renderer = gtk_cell_renderer_text_new();
     gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(self), renderer, TRUE);
     gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(self), renderer,
-				   "markup", COLUMN_LABEL,
+				   "text", COLUMN_LABEL,
 				   NULL);
 
-    self_append(self, NULL, _("<span style=\"italic\">autodetect</span>"));
+    self_append(self, NULL, _("Autodetect"));
 #if WITH_SASL
     if (mn_sasl_init(NULL))
       {
@@ -173,13 +173,8 @@ mn_auth_combo_box_init (MNAuthComboBox * self G_GNUC_UNUSED)
 	if (mechanisms)
 	  {
 	    int i;
-
 	    for (i = 0; mechanisms[i]; i++)
-	      {
-		char *escaped = g_markup_escape_text(mechanisms[i], -1);
-		self_append(self, mechanisms[i], escaped);
-		g_free(escaped);
-	      }
+	      self_append(self, mechanisms[i], mechanisms[i]);
 	  }
       }
 #endif /* WITH_SASL */
@@ -189,7 +184,7 @@ mn_auth_combo_box_init (MNAuthComboBox * self G_GNUC_UNUSED)
 
     self_set_active_mechanism(self, NULL);
   
-#line 193 "mn-auth-combo-box.c"
+#line 188 "mn-auth-combo-box.c"
  }
 }
 #undef __GOB_FUNCTION__
@@ -208,7 +203,7 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_ACTIVE_MECHANISM:
 		{
-#line 46 "mn-auth-combo-box.gob"
+#line 47 "mn-auth-combo-box.gob"
 
       const char *mechanism = g_value_get_string(VAL);
       GtkTreeModel *model;
@@ -237,7 +232,7 @@ ___object_set_property (GObject *object,
 	  valid = gtk_tree_model_iter_next(model, &iter);
 	}
     
-#line 241 "mn-auth-combo-box.c"
+#line 236 "mn-auth-combo-box.c"
 		}
 		break;
 	default:
@@ -266,7 +261,7 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_ACTIVE_MECHANISM:
 		{
-#line 75 "mn-auth-combo-box.gob"
+#line 76 "mn-auth-combo-box.gob"
 
       char *mechanism = NULL;
       GtkTreeIter iter;
@@ -279,7 +274,7 @@ ___object_get_property (GObject *object,
 
       g_value_take_string(VAL, mechanism);
     
-#line 283 "mn-auth-combo-box.c"
+#line 278 "mn-auth-combo-box.c"
 		}
 		break;
 	default:
@@ -295,41 +290,41 @@ ___object_get_property (GObject *object,
 #undef __GOB_FUNCTION__
 
 
-#line 75 "mn-auth-combo-box.gob"
+#line 76 "mn-auth-combo-box.gob"
 gchar * 
 mn_auth_combo_box_get_active_mechanism (MNAuthComboBox * self)
-#line 302 "mn-auth-combo-box.c"
+#line 297 "mn-auth-combo-box.c"
 {
 #define __GOB_FUNCTION__ "MN:Auth:Combo:Box::get_active_mechanism"
 {
-#line 44 "mn-auth-combo-box.gob"
+#line 45 "mn-auth-combo-box.gob"
 		gchar* val; g_object_get (G_OBJECT (self), "active_mechanism", &val, NULL); return val;
 }}
-#line 309 "mn-auth-combo-box.c"
+#line 304 "mn-auth-combo-box.c"
 #undef __GOB_FUNCTION__
 
-#line 46 "mn-auth-combo-box.gob"
+#line 47 "mn-auth-combo-box.gob"
 void 
 mn_auth_combo_box_set_active_mechanism (MNAuthComboBox * self, gchar * val)
-#line 315 "mn-auth-combo-box.c"
+#line 310 "mn-auth-combo-box.c"
 {
 #define __GOB_FUNCTION__ "MN:Auth:Combo:Box::set_active_mechanism"
 {
-#line 44 "mn-auth-combo-box.gob"
+#line 45 "mn-auth-combo-box.gob"
 		g_object_set (G_OBJECT (self), "active_mechanism", val, NULL);
 }}
-#line 322 "mn-auth-combo-box.c"
+#line 317 "mn-auth-combo-box.c"
 #undef __GOB_FUNCTION__
 
 
-#line 130 "mn-auth-combo-box.gob"
+#line 126 "mn-auth-combo-box.gob"
 static int 
 mn_auth_combo_box_sort_cb (GtkTreeModel * model, GtkTreeIter * a, GtkTreeIter * b, gpointer user_data)
-#line 329 "mn-auth-combo-box.c"
+#line 324 "mn-auth-combo-box.c"
 {
 #define __GOB_FUNCTION__ "MN:Auth:Combo:Box::sort_cb"
 {
-#line 135 "mn-auth-combo-box.gob"
+#line 131 "mn-auth-combo-box.gob"
 	
     char *mechanism_a;
     char *label_a;
@@ -359,24 +354,24 @@ mn_auth_combo_box_sort_cb (GtkTreeModel * model, GtkTreeIter * a, GtkTreeIter * 
 
     return coll;
   }}
-#line 363 "mn-auth-combo-box.c"
+#line 358 "mn-auth-combo-box.c"
 #undef __GOB_FUNCTION__
 
-#line 165 "mn-auth-combo-box.gob"
+#line 161 "mn-auth-combo-box.gob"
 void 
 mn_auth_combo_box_append (MNAuthComboBox * self, const char * mechanism, const char * label)
-#line 369 "mn-auth-combo-box.c"
+#line 364 "mn-auth-combo-box.c"
 {
 #define __GOB_FUNCTION__ "MN:Auth:Combo:Box::append"
-#line 165 "mn-auth-combo-box.gob"
+#line 161 "mn-auth-combo-box.gob"
 	g_return_if_fail (self != NULL);
-#line 165 "mn-auth-combo-box.gob"
+#line 161 "mn-auth-combo-box.gob"
 	g_return_if_fail (MN_IS_AUTH_COMBO_BOX (self));
-#line 165 "mn-auth-combo-box.gob"
+#line 161 "mn-auth-combo-box.gob"
 	g_return_if_fail (label != NULL);
-#line 378 "mn-auth-combo-box.c"
+#line 373 "mn-auth-combo-box.c"
 {
-#line 167 "mn-auth-combo-box.gob"
+#line 163 "mn-auth-combo-box.gob"
 	
     GtkTreeModel *model;
     GtkTreeIter iter;
@@ -389,19 +384,19 @@ mn_auth_combo_box_append (MNAuthComboBox * self, const char * mechanism, const c
 		       COLUMN_LABEL, label,
 		       -1);
   }}
-#line 393 "mn-auth-combo-box.c"
+#line 388 "mn-auth-combo-box.c"
 #undef __GOB_FUNCTION__
 
-#line 180 "mn-auth-combo-box.gob"
+#line 176 "mn-auth-combo-box.gob"
 GtkWidget * 
 mn_auth_combo_box_new (void)
-#line 399 "mn-auth-combo-box.c"
+#line 394 "mn-auth-combo-box.c"
 {
 #define __GOB_FUNCTION__ "MN:Auth:Combo:Box::new"
 {
-#line 182 "mn-auth-combo-box.gob"
+#line 178 "mn-auth-combo-box.gob"
 	
     return GTK_WIDGET(GET_NEW);
   }}
-#line 407 "mn-auth-combo-box.c"
+#line 402 "mn-auth-combo-box.c"
 #undef __GOB_FUNCTION__

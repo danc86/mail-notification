@@ -1,4 +1,5 @@
 /* 
+ * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #include "config.h"
@@ -27,6 +28,7 @@
 #include "mn-util.h"
 #include "mn-conf.h"
 #include "mn-shell.h"
+#include "mn-locked-callback.h"
 
 /*** cpp *********************************************************************/
 
@@ -69,10 +71,6 @@
   MN_CONF_UI_NAMESPACE "/preferences-dialog"
 #define MN_CONF_OBSOLETE_SUMMARY_DIALOG \
   MN_CONF_UI_NAMESPACE "/summary-dialog"
-#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED \
-  MN_CONF_MAIL_SUMMARY_POPUP_FONTS_TITLE_NAMESPACE "/enabled"
-#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED \
-  MN_CONF_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_NAMESPACE "/enabled"
 #define MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION \
   MN_CONF_NAMESPACE "/double-click-action"
 #define MN_CONF_OBSOLETE_ALREADY_RUN \
@@ -103,6 +101,44 @@
   MN_CONF_OBSOLETE_MAIN_WINDOW_NAMESPACE "/toolbars-style"
 #define MN_CONF_OBSOLETE_MAIN_WINDOW_EDIT_TOOLBARS_DIALOG \
   MN_CONF_OBSOLETE_MAIN_WINDOW_NAMESPACE "/edit-toolbars-dialog"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_NAMESPACE \
+  MN_CONF_NAMESPACE "/mail-summary-popup"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_ENABLE \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_NAMESPACE "/enable"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_AUTOCLOSE \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_NAMESPACE "/autoclose"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_NAMESPACE \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_NAMESPACE "/autoclose-delay"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_MINUTES \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_NAMESPACE "/minutes"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_SECONDS \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_AUTOCLOSE_DELAY_NAMESPACE "/seconds"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_LAYOUT \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_NAMESPACE "/layout"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_POSITION \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_NAMESPACE "/position"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_NAMESPACE "/offset"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_HORIZONTAL_OFFSET \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE "/horizontal"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_VERTICAL_OFFSET \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_OFFSET_NAMESPACE "/vertical"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_ONLY_RECENT \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_NAMESPACE "/only-recent"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_NAMESPACE \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_NAMESPACE "/fonts"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_NAMESPACE "/aspect-source"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_NAMESPACE \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_NAMESPACE "/title"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_FONT \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_NAMESPACE "/font"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_NAMESPACE \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_NAMESPACE "/contents"
+#define MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_FONT \
+  MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_NAMESPACE "/font"
+#define MN_CONF_OBSOLETE_CLICK_ACTION \
+  MN_CONF_NAMESPACE "/click-action"
 
 #define BLOCK(info) \
   g_signal_handler_block((info)->object, (info)->handler_id)
@@ -123,12 +159,6 @@ typedef struct
   unsigned long		handler_id;
   GDestroyNotify	finalize;
 } LinkInfo;
-
-typedef struct
-{
-  LinkInfo		parent;
-  int			string_column;
-} LinkComboBoxToStringInfo;
 
 typedef struct
 {
@@ -174,17 +204,6 @@ static void mn_conf_import_obsolete_string (const char *obsolete,
 					    ...);
 
 static void mn_conf_link_weak_notify_cb (gpointer data, GObject *former_object);
-
-static void mn_conf_link_combo_box_to_string_set (LinkComboBoxToStringInfo *info,
-						  const GConfValue *value);
-static gboolean mn_conf_link_combo_box_to_string_set_real (LinkComboBoxToStringInfo *info,
-							   const char *value);
-static void mn_conf_link_combo_box_to_string_h (GtkComboBox *combo,
-						gpointer user_data);
-static void mn_conf_link_combo_box_to_string_notify_cb (GConfClient *client,
-							unsigned int cnxn_id,
-							GConfEntry *entry,
-							gpointer user_data);
 
 static void mn_conf_link_radio_button_to_string (GtkRadioButton *radio,
 						 const char *key,
@@ -275,23 +294,8 @@ mn_conf_init (void)
 			      MN_CONF_PROPERTIES_DIALOG "/height");
   mn_conf_import_obsolete_key(MN_CONF_OBSOLETE_PREFERENCES_DIALOG "/width",
 			      MN_CONF_PROPERTIES_DIALOG "/width");
-
-  if (! mn_conf_is_set(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE)
-      && mn_conf_is_set(MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED)
-      && mn_conf_is_set(MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED)
-      && eel_gconf_get_boolean(MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED)
-      && eel_gconf_get_boolean(MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED))
-    {
-      GEnumClass *enum_class;
-      GEnumValue *enum_value;
-
-      enum_class = g_type_class_ref(MN_TYPE_ASPECT_SOURCE);
-      enum_value = g_enum_get_value(enum_class, MN_ASPECT_SOURCE_CUSTOM);
-      g_assert(enum_value != NULL);
-
-      eel_gconf_set_string(MN_CONF_MAIL_SUMMARY_POPUP_FONTS_ASPECT_SOURCE, enum_value->value_nick);
-      g_type_class_unref(enum_class);
-    }
+  mn_conf_import_obsolete_key(MN_CONF_OBSOLETE_CLICK_ACTION,
+			      MN_CONF_CLICK_ACTION);
 
   mn_conf_import_obsolete_string(MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION_2,
 				 MN_CONF_CLICK_ACTION,
@@ -376,15 +380,13 @@ mn_conf_import_obsolete_string (const char *obsolete,
 void
 mn_conf_unset_obsolete (void)
 {
-  const char *obsolete[] = {
+  static const char *obsolete[] = {
     MN_CONF_OBSOLETE_LOCAL_NAMESPACE,
     MN_CONF_OBSOLETE_REMOTE_NAMESPACE,
     MN_CONF_OBSOLETE_COMMANDS_CLICKED_NAMESPACE,
     MN_CONF_OBSOLETE_COMMANDS_DOUBLE_CLICKED_NAMESPACE,
     MN_CONF_OBSOLETE_COMMANDS_MAIL_READER_NAMESPACE,
     MN_CONF_OBSOLETE_PREFERENCES_DIALOG,
-    MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_TITLE_ENABLED,
-    MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_ENABLED,
     MN_CONF_OBSOLETE_SUMMARY_DIALOG,
     MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION,
     MN_CONF_OBSOLETE_MAILBOXES,
@@ -393,7 +395,9 @@ mn_conf_unset_obsolete (void)
     MN_CONF_OBSOLETE_DELAY_NAMESPACE,
     MN_CONF_OBSOLETE_IMMEDIATE_NOTIFICATION_ERROR_DIALOG_NAMESPACE,
     MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION_2,
-    MN_CONF_OBSOLETE_MAIN_WINDOW_NAMESPACE
+    MN_CONF_OBSOLETE_MAIN_WINDOW_NAMESPACE,
+    MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_NAMESPACE,
+    MN_CONF_OBSOLETE_CLICK_ACTION
   };
   int i;
 
@@ -595,122 +599,6 @@ mn_conf_link_weak_notify_cb (gpointer data, GObject *former_object)
   if (info->finalize)
     info->finalize(info);
   g_free(info);
-}
-
-void
-mn_conf_link_combo_box_to_string (GtkComboBox *combo,
-				  int string_column,
-				  const char *key)
-{
-  LinkComboBoxToStringInfo *info;
-  GConfValue *value;
-
-  g_return_if_fail(GTK_IS_COMBO_BOX(combo));
-  g_return_if_fail(key != NULL);
-
-  info = g_new0(LinkComboBoxToStringInfo, 1);
-  info->string_column = string_column;
-  LINK_INFO(info)->object = combo;
-  LINK_INFO(info)->key = g_strdup(key);
-
-  value = eel_gconf_get_value(key);
-  mn_conf_link_combo_box_to_string_set(info, value);
-  if (value)
-    eel_gconf_value_free(value);
-
-  LINK_INFO(info)->handler_id = g_signal_connect(combo, "changed", G_CALLBACK(mn_conf_link_combo_box_to_string_h), info);
-  mn_g_object_gconf_notification_add_gdk_locked(combo, key, mn_conf_link_combo_box_to_string_notify_cb, info);
-  g_object_weak_ref(G_OBJECT(combo), mn_conf_link_weak_notify_cb, info);
-}
-
-static void
-mn_conf_link_combo_box_to_string_set (LinkComboBoxToStringInfo *info,
-				      const GConfValue *value)
-{
-  g_return_if_fail(info != NULL);
-
-  if (! mn_conf_link_combo_box_to_string_set_real(info, value ? gconf_value_get_string(value) : NULL))
-    {
-      GtkTreeModel *model;
-      GtkTreeIter iter;
-      gboolean valid;
-
-      /* value not found, select the first iter */
-
-      model = gtk_combo_box_get_model(LINK_INFO(info)->object);
-      valid = gtk_tree_model_get_iter_first(model, &iter);
-      g_assert(valid == TRUE);
-
-      gtk_combo_box_set_active_iter(LINK_INFO(info)->object, &iter);
-    }
-}
-
-static gboolean
-mn_conf_link_combo_box_to_string_set_real (LinkComboBoxToStringInfo *info,
-					   const char *value)
-{
-  GtkTreeModel *model;
-  GtkTreeIter iter;
-  gboolean valid;
-
-  g_return_val_if_fail(info != NULL, FALSE);
-
-  if (! value)
-    return FALSE;
-
-  model = gtk_combo_box_get_model(LINK_INFO(info)->object);
-  valid = gtk_tree_model_get_iter_first(model, &iter);
-
-  while (valid)
-    {
-      char *this_value;
-      gboolean found;
-
-      gtk_tree_model_get(model, &iter, info->string_column, &this_value, -1);
-      found = this_value && ! strcmp(this_value, value);
-      g_free(this_value);
-
-      if (found)
-	{
-	  gtk_combo_box_set_active_iter(LINK_INFO(info)->object, &iter);
-	  return TRUE;
-	}
-
-      valid = gtk_tree_model_iter_next(model, &iter);
-    }
-
-  return FALSE;
-}
-
-static void
-mn_conf_link_combo_box_to_string_h (GtkComboBox *combo, gpointer user_data)
-{
-  GtkTreeModel *model;
-  GtkTreeIter iter;
-
-  model = gtk_combo_box_get_model(combo);
-  if (gtk_combo_box_get_active_iter(combo, &iter))
-    {
-      LinkComboBoxToStringInfo *info = user_data;
-      char *value;
-
-      gtk_tree_model_get(model, &iter, info->string_column, &value, -1);
-      eel_gconf_set_string(LINK_INFO(info)->key, value);
-      g_free(value);
-    }
-}
-
-static void
-mn_conf_link_combo_box_to_string_notify_cb (GConfClient *client,
-					    unsigned int cnxn_id,
-					    GConfEntry *entry,
-					    gpointer user_data)
-{
-  LinkComboBoxToStringInfo *info = user_data;
-
-  BLOCK(LINK_INFO(info));
-  mn_conf_link_combo_box_to_string_set(info, gconf_entry_get_value(entry));
-  UNBLOCK(LINK_INFO(info));
 }
 
 void
@@ -1107,7 +995,7 @@ mn_conf_has_command (const char *namespace)
 }
 
 void
-mn_conf_execute_command (const char *conf_key, gboolean strip_format)
+mn_conf_execute_command (const char *conf_key)
 {
   char *command;
 
@@ -1116,36 +1004,43 @@ mn_conf_execute_command (const char *conf_key, gboolean strip_format)
   command = eel_gconf_get_string(conf_key);
   g_return_if_fail(command != NULL && *command != 0);
 
-  if (strip_format)
-    {
-      GString *stripped;
-      char *start;
-      char *p;
-
-      stripped = g_string_new(NULL);
-
-      for (start = command; (p = strstr(start, "%s")); start = p + 2)
-	g_string_append_len(stripped, start, p - start);
-      g_string_append(stripped, start);
-
-      g_free(command);
-      command = g_string_free(stripped, FALSE);
-    }
-
-  if (gnome_execute_shell(NULL, command) < 0)
-    mn_error_dialog(NULL,
-		    _("A command error has occurred in Mail Notification"),
-		    _("Unable to execute \"%s\": %s."),
-		    command,
-		    g_strerror(errno));
+  mn_execute_command(command);
   g_free(command);
 }
 
-MNLockedGSource *
-mn_conf_timeout_add_gdk_locked (const char *minutes_key,
-				const char *seconds_key,
-				GSourceFunc function,
-				gpointer data)
+void
+mn_conf_execute_mail_reader (void)
+{
+  char *command;
+  char *separator;
+  char *program;
+
+  command = eel_gconf_get_string(MN_CONF_GNOME_MAIL_READER_COMMAND);
+  g_return_if_fail(command != NULL && *command != 0);
+
+  separator = strpbrk(command, " \t\n\r");
+  program = separator
+    ? g_strndup(command, separator - command)
+    : g_strdup(command);
+  g_free(command);
+
+  if (! strcmp(program, "mozilla"))
+    command = g_strdup_printf("%s -mail", program);
+  else if (! strcmp(program, "evolution"))
+    command = g_strdup_printf("%s --component=mail", program);
+  else
+    command = g_strdup(program);
+  g_free(program);
+
+  if (eel_gconf_get_boolean(MN_CONF_GNOME_MAIL_READER_NEEDS_TERMINAL))
+    mn_execute_command_in_terminal(command);
+  else
+    mn_execute_command(command);
+  g_free(command);
+}
+
+int
+mn_conf_get_milliseconds (const char *minutes_key, const char *seconds_key)
 {
   int minutes;
   int seconds;
@@ -1156,7 +1051,5 @@ mn_conf_timeout_add_gdk_locked (const char *minutes_key,
   minutes = eel_gconf_get_integer(minutes_key);
   seconds = eel_gconf_get_integer(seconds_key);
 
-  return minutes != 0 || seconds != 0
-    ? mn_g_timeout_add_gdk_locked(((minutes * 60) + seconds) * 1000, function, data)
-    : NULL;
+  return ((minutes * 60) + seconds) * 1000;
 }

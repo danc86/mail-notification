@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -50,20 +51,20 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties
     {
       MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
       gboolean complete;
-      const char *hostname;
+      const char *server;
       gboolean other_active;
       const char *mailbox;
 
       mn_pi_mailbox_properties_get_contents(pi,
 					    NULL,
 					    NULL,
-					    &hostname,
+					    &server,
 					    NULL);
 
       other_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->other_radio));
       mailbox = gtk_entry_get_text(GTK_ENTRY(selfp->mailbox_entry));
 
-      complete = *hostname && (! other_active || *mailbox);
+      complete = *server && (! other_active || *mailbox);
 #ifndef WITH_SSL
       if (complete)
 	complete = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL]));
@@ -76,7 +77,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties
     get
     {
       const char *username;
-      const char *hostname;
+      const char *server;
       gboolean other_active;
       const char *mailbox;
 
@@ -86,13 +87,13 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties
       mn_pi_mailbox_properties_get_contents(MN_PI_MAILBOX_PROPERTIES(self),
 					    NULL,
 					    NULL,
-					    &hostname,
+					    &server,
 					    NULL);
 
       other_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->other_radio));
       mailbox = gtk_entry_get_text(GTK_ENTRY(selfp->mailbox_entry));
 
-      g_value_take_string(VAL, mn_imap_mailbox_build_name(username, hostname, other_active ? mailbox : NULL));
+      g_value_take_string(VAL, mn_imap_mailbox_build_name(username, server, other_active ? mailbox : NULL));
     };
 
   class_init (class)
@@ -108,38 +109,39 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties
     MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
     MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
     GtkWidget *hbox;
-    GtkWidget *label;
+    GtkWidget *folder_vbox;
+    GtkWidget *idle_section;
+    GtkWidget *idle_vbox;
     int i;
 
-    label = gtk_label_new(_("Mailbox:"));
-    gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-    gtk_size_group_add_widget(pi->details_size_group, label);
+    /* translators: header capitalization */
+    folder_vbox = mn_mailbox_properties_add_general_section(properties, _("IMAP Mailbox"));
 
-    selfp->inbox_radio = gtk_radio_button_new_with_mnemonic(NULL, _("in_box"));
+    selfp->inbox_radio = gtk_radio_button_new_with_mnemonic(NULL, _("In_box"));
+    gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->label_size_group, selfp->inbox_radio);
 
-    hbox = gtk_hbox_new(FALSE, 12);
-    gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(hbox), selfp->inbox_radio, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(pi->details_vbox), hbox, FALSE, FALSE, 0);
-    gtk_widget_show_all(hbox);
+    gtk_box_pack_start(GTK_BOX(folder_vbox), selfp->inbox_radio, FALSE, FALSE, 0);
 
-    label = gtk_label_new(NULL);
-    gtk_size_group_add_widget(pi->details_size_group, label);
+    selfp->other_radio = gtk_radio_button_new_with_mnemonic_from_widget(GTK_RADIO_BUTTON(selfp->inbox_radio), _("_Other:"));
+    gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->label_size_group, selfp->other_radio);
 
-    selfp->other_radio = gtk_radio_button_new_with_mnemonic_from_widget(GTK_RADIO_BUTTON(selfp->inbox_radio), _("oth_er:"));
     selfp->mailbox_entry = gtk_entry_new();
     gtk_widget_set_sensitive(selfp->mailbox_entry, FALSE);
 
     hbox = gtk_hbox_new(FALSE, 12);
-    gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), selfp->other_radio, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), selfp->mailbox_entry, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(pi->details_vbox), hbox, FALSE, FALSE, 0);
-    gtk_widget_show_all(hbox);
+    gtk_box_pack_start(GTK_BOX(folder_vbox), hbox, FALSE, FALSE, 0);
+    gtk_widget_show_all(folder_vbox);
 
-    self_add_idle_usage(self, MN_IMAP_MAILBOX_USE_IDLE_NEVER, _("ne_ver"));
-    self_add_idle_usage(self, MN_IMAP_MAILBOX_USE_IDLE_AUTODETECT, _("au_todetect"));
-    self_add_idle_usage(self, MN_IMAP_MAILBOX_USE_IDLE_ALWAYS, _("al_ways"));
+    /* translators: header capitalization */
+    idle_section = mn_hig_section_new_with_box(_("Use the IDLE Extension"), NULL, &idle_vbox);
+    gtk_box_pack_start(GTK_BOX(pi->connection_page), idle_section, FALSE, FALSE, 0);
+    gtk_widget_show(idle_section);
+
+    self_add_idle_usage(self, GTK_BOX(idle_vbox), MN_IMAP_MAILBOX_USE_IDLE_NEVER, _("_Never"));
+    self_add_idle_usage(self, GTK_BOX(idle_vbox), MN_IMAP_MAILBOX_USE_IDLE_AUTODETECT, _("A_utodetect"));
+    self_add_idle_usage(self, GTK_BOX(idle_vbox), MN_IMAP_MAILBOX_USE_IDLE_ALWAYS, _("Al_ways"));
 
     /* by default, autodetect is enabled */
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->use_idle_radio[MN_IMAP_MAILBOX_USE_IDLE_AUTODETECT]), TRUE);
@@ -162,34 +164,16 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties
 
   private void
     add_idle_usage (self,
+		    Gtk:Box *idle_vbox (check null),
 		    MNIMAPMailboxUseIDLE usage,
 		    const char *mnemonic (check null))
   {
-    MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
-    GtkWidget *label;
-    GtkWidget *hbox;
-
-    if (usage == 0)
-      {
-	label = gtk_label_new(_("Use the <span style=\"italic\">IDLE</span> extension:"));
-	gtk_label_set_use_markup(GTK_LABEL(label), TRUE);
-      }
-    else
-      label = gtk_label_new(NULL);
-
-    gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-
     selfp->use_idle_radio[usage] = usage == 0
       ? gtk_radio_button_new_with_mnemonic(NULL, mnemonic)
       : gtk_radio_button_new_with_mnemonic_from_widget(GTK_RADIO_BUTTON(selfp->use_idle_radio[0]), mnemonic);
 
-    hbox = gtk_hbox_new(FALSE, 12);
-    gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(hbox), selfp->use_idle_radio[usage], TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(pi->details_vbox), hbox, FALSE, FALSE, 0);
-    gtk_widget_show_all(hbox);
-
-    gtk_size_group_add_widget(pi->details_size_group, label);
+    gtk_box_pack_start(idle_vbox, selfp->use_idle_radio[usage], TRUE, TRUE, 0);
+    gtk_widget_show(selfp->use_idle_radio[usage]);
   }
 
   private void
@@ -204,7 +188,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties
   }
 
   override (MN:Mailbox:Properties) void
-    set_mailbox (MNMailboxProperties *properties, MN:Mailbox *mailbox)
+    set_mailbox (MNMailboxProperties *properties, MNMailbox *mailbox)
   {
     Self *self = SELF(properties);
     MNIMAPMailbox *imap_mailbox = MN_IMAP_MAILBOX(mailbox);

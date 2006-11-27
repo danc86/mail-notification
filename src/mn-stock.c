@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #include "config.h"
@@ -37,7 +38,7 @@ static const GtkStockItem items[] = {
 void
 mn_stock_init (void)
 {
-  const struct
+  static const struct
   {
     const char	*stock_id;
     const char	*filename;
@@ -54,15 +55,15 @@ mn_stock_init (void)
 #if WITH_GMAIL
     { MN_STOCK_GMAIL,			UIDIR G_DIR_SEPARATOR_S "gmail.png" },
 #endif
-#if WITH_MBOX || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
-    { MN_STOCK_SYSTEM_MAILBOX,		NULL, "gnome-system" },
+#if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
+    { MN_STOCK_SYSTEM_MAILBOX,		NULL, "system" },
 #endif
 #if WITH_EVOLUTION
     { MN_STOCK_EVOLUTION_MAILBOX,	NULL, "evolution" },
 #endif
     { MN_STOCK_SELECT_ALL,		NULL, "stock_select-all" },
-    { MN_STOCK_MAIL_SUMMARY,		GNOMEPIXMAPSDIR G_DIR_SEPARATOR_S "mail-notification.png" },
     { MN_STOCK_MAIL_READER,		NULL, "stock_mail-handling" },
+    { MN_STOCK_OPEN_MESSAGE,		NULL, "stock_mail-open" },
     { MN_STOCK_CONNECT,			NULL, NULL, GTK_STOCK_CONNECT }
   };
   GtkIconFactory *factory;

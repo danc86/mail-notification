@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -30,40 +31,70 @@ typedef enum
 } MNMessageFlags;
 %}
 
+%privateheader{
+#include "mn-xml.h"
+
+typedef enum
+{
+  /* include in the XML summary and allow as a command format */
+  MN_MESSAGE_PARAM_EXPORT	= MN_XML_PARAM_IMPORT_EXPORT,
+} MNMessageParamFlags;
+%}
+
 %{
 #include "config.h"
-#include <glib/gi18n.h>
+#include <errno.h>
+#include <gnome.h>
+#include <libgnomevfs/gnome-vfs.h>
 #include "mn-util.h"
 %}
 
 class MN:Message from G:Object
 {
-  /* always set */
-  public char *mailbox_name destroywith g_free;
-  property STRING mailbox_name (flags = CONSTRUCT_ONLY, link);
+  /*
+   * May be NULL.
+   *
+   * In order to not create reference cycles, we do not hold a
+   * reference to the mailbox. The code is arranged so that a message
+   * cannot survive its containing mailbox (whenever the mailbox is
+   * removed, subsystems handle the messages-changed signal and
+   * dereference the mailbox messages).
+   */
+  public MNMailbox *mailbox;
+  property POINTER mailbox (flags = CONSTRUCT_ONLY, link, type = MNMailbox *);
 
   /* may be NULL */
   public char *error destroywith g_free;
-  property STRING error (flags = CONSTRUCT_ONLY, link);
+  property STRING error (link, flags = CONSTRUCT_ONLY | MN_MESSAGE_PARAM_EXPORT);
 
   /* sent time, may be 0 */
   public time_t sent_time;
-  property ULONG sent_time (flags = CONSTRUCT_ONLY, link, type = time_t);
+  property ULONG sent_time (link, flags = CONSTRUCT_ONLY | MN_MESSAGE_PARAM_EXPORT, link, type = time_t);
 
   /* always set */
   public char *id destroywith g_free;
-  property STRING id (flags = CONSTRUCT_ONLY, link);
+  property STRING id (link, flags = CONSTRUCT_ONLY | MN_MESSAGE_PARAM_EXPORT);
 
   /* always set */
   public char *from destroywith g_free;
-  property STRING from (flags = CONSTRUCT_ONLY, link);
+  property STRING from (link, flags = CONSTRUCT_ONLY | MN_MESSAGE_PARAM_EXPORT);
 
   /* always set */
   public char *subject destroywith g_free;
-  property STRING subject (flags = CONSTRUCT_ONLY, link);
+  property STRING subject (link, flags = CONSTRUCT_ONLY | MN_MESSAGE_PARAM_EXPORT);
+
+  /* may be NULL */
+  public char *uri destroywith g_free;
+  property STRING uri (link, flags = CONSTRUCT_ONLY | MN_MESSAGE_PARAM_EXPORT);
+
+  /* may be NULL */
+  property STRING filename (flags = MN_MESSAGE_PARAM_EXPORT)
+    get {
+      g_value_take_string(VAL, self->uri ? gnome_vfs_get_local_path_from_uri(self->uri) : NULL);
+    };
 
   public MNMessageFlags flags;
-  property UINT flags (flags = CONSTRUCT_ONLY, link, type = MNMessageFlags);
+  property UINT flags (link, flags = CONSTRUCT_ONLY);
 
   override (G:Object) GObject *
     constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
@@ -73,6 +104,8 @@ class MN:Message from G:Object
 
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);
     self = SELF(object);
+
+    g_assert(MN_IS_MAILBOX(self->mailbox));
 
     if (! self->id)
       {
@@ -115,35 +148,326 @@ class MN:Message from G:Object
     return object;
   }
 
+  private gboolean
+    get_subst (self,
+	       const char *prop_name (check null),
+	       char **result (check null))
+  {
+    GParamSpec **properties;
+    unsigned int n_properties;
+    gboolean status = FALSE;
+    int i;
+
+    properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(self), &n_properties);
+    for (i = 0; i < n_properties; i++)
+      if ((properties[i]->flags & MN_MESSAGE_PARAM_EXPORT) != 0
+	  && ! strcmp(g_param_spec_get_name(properties[i]), prop_name))
+	{
+	  GValue value = { 0, };
+
+	  g_value_init(&value, G_PARAM_SPEC_VALUE_TYPE(properties[i]));
+	  g_object_get_property(G_OBJECT(self), prop_name, &value);
+
+	  *result = mn_g_value_to_string(&value);
+	  g_value_unset(&value);
+
+	  status = TRUE;
+	  break;
+	}
+    g_free(properties);
+
+    return status;
+  }
+
+  private char *
+    subst_command (self, const char *command (check null), GError **err)
+  {
+    GString *result;
+    const char *p;
+
+    result = g_string_new(NULL);
+
+    for (p = command; *p;)
+      if (*p == '%')
+	{
+	  char *prop_name = NULL;
+
+	  if (p[1] == '%')
+	    {
+	      g_string_append_c(result, '%');
+	      p += 2;
+	    }
+	  else if (p[1] == '{')
+	    {
+	      char *end;
+
+	      end = strchr(p + 2, '}');
+	      if (! end)
+		{
+		  g_set_error(err, 0, 0, _("unterminated substitution"));
+		  goto error;
+		}
+
+	      prop_name = g_strndup(p + 2, end - p - 2);
+	      p = end + 1;
+	    }
+	  else
+	    {
+	      const char *end = p + 1;
+
+	      while (g_ascii_isalnum(*end) || *end == '-' || *end == '_')
+		end++;
+
+	      prop_name = g_strndup(p + 1, end - p - 1);
+	      p = end;
+	    }
+
+	  if (prop_name)
+	    {
+	      gboolean ok = FALSE;
+
+	      if (*prop_name)
+		{
+		  char *value;
+
+		  if (self_get_subst(self, prop_name, &value))
+		    {
+		      char *quoted;
+
+		      quoted = mn_shell_quote_safe(value ? value : "");
+		      g_free(value);
+
+		      g_string_append(result, quoted);
+		      g_free(quoted);
+
+		      ok = TRUE;
+		    }
+		  else
+		    g_set_error(err, 0, 0, _("unknown substitution \"%s\""), prop_name);
+		}
+	      else
+		g_set_error(err, 0, 0, _("empty substitution"));
+
+	      g_free(prop_name);
+	      if (! ok)
+		goto error;
+	    }
+	}
+      else
+	{
+	  g_string_append_c(result, *p);
+	  p++;
+	}
+
+    goto end;			/* success */
+
+  error:
+    g_string_free(result, TRUE);
+    result = NULL;
+
+  end:
+    return result ? g_string_free(result, FALSE) : NULL;
+  }
+
+  private gboolean
+    execute_command_real (self,
+			  const char *command (check null),
+			  GError **err)
+  {
+    char *subst;
+    int status;
+
+    subst = self_subst_command(self, command, err);
+    if (! subst)
+      return FALSE;
+
+    status = gnome_execute_shell(NULL, subst);
+    g_free(subst);
+
+    if (status < 0)
+      {
+	g_set_error(err, 0, 0, "%s", g_strerror(errno));
+	return FALSE;
+      }
+
+    return TRUE;
+  }
+
+  private gboolean
+    execute_command (self,
+		     const char *id (check null),
+		     gboolean *status (check null),
+		     GError **err)
+  {
+    char *command;
+    GError *tmp_err = NULL;
+
+    command = mn_mailbox_get_command(self->mailbox, id);
+    if (! command)
+      return FALSE;
+
+    *status = self_execute_command_real(self, command, &tmp_err);
+    if (! *status)
+      {
+	g_set_error(err, 0, 0, _("Unable to execute \"%s\": %s."), command, tmp_err->message);
+	g_error_free(tmp_err);
+      }
+
+    g_free(command);
+    return TRUE;
+  }
+
+  public gboolean
+    can_open (self)
+  {
+    return mn_mailbox_has_command(self->mailbox, "open") || self_can_open_impl(self);
+  }
+
+  virtual private gboolean
+    can_open_impl (self)
+  {
+    return self->uri != NULL;
+  }
+
+  public gboolean
+    open (self, GError **err)
+  {
+    gboolean status;
+
+    if (self_execute_command(self, "open", &status, err))
+      {
+	mn_mailbox_mark_as_read(self);
+	return status;
+      }
+    else
+      return self_open_impl(self, err);
+  }
+
+  virtual private gboolean
+    open_impl (self, GError **err)
+  {
+    return gnome_url_show(self->uri, err);
+  }
+
+  public gboolean
+    can_mark_as_read (self)
+  {
+    return mn_mailbox_has_command(self->mailbox, "mark-as-read") || self_can_mark_as_read_impl(self);
+  }
+
+  virtual private gboolean
+    can_mark_as_read_impl (self)
+  {
+    return SELF_GET_CLASS(self)->mark_as_read_impl != NULL;
+  }
+
+  private gboolean
+    mark_as_read_real (self, GError **err)
+  {
+    gboolean status;
+
+    if (self_execute_command(self, "mark-as-read", &status, err))
+      return status;
+    else
+      return self_mark_as_read_impl(self, err);
+  }
+
+  public gboolean
+    mark_as_read (self, GError **err)
+  {
+    if (self_mark_as_read_real(self, err))
+      {
+	mn_mailbox_mark_as_read(self);
+	return TRUE;
+      }
+    else
+      return FALSE;
+  }
+
+  virtual private gboolean
+    mark_as_read_impl (self, GError **err);
+
+  virtual public gboolean
+    can_mark_as_spam (self)
+  {
+    return mn_mailbox_has_command(self->mailbox, "mark-as-spam") || self_can_mark_as_spam_impl(self);
+  }
+
+  virtual private gboolean
+    can_mark_as_spam_impl (self)
+  {
+    return SELF_GET_CLASS(self)->mark_as_spam_impl != NULL;
+  }
+
+  private gboolean
+    mark_as_spam_real (self, GError **err)
+  {
+    gboolean status;
+
+    if (self_execute_command(self, "mark-as-spam", &status, err))
+      return status;
+    else
+      return self_mark_as_spam_impl(self, err);
+  }
+
+  public gboolean
+    mark_as_spam (self, GError **err)
+  {
+    if (self_mark_as_spam_real(self, err))
+      {
+	mn_mailbox_mark_as_read(self);
+	return TRUE;
+      }
+    else
+      return FALSE;
+  }
+
+  virtual private gboolean
+    mark_as_spam_impl (self, GError **err);
+
   public MNMessage *
-    new (MNMailbox *mailbox,
+    new (MN:Mailbox *mailbox (check null type),
 	 const char *error,
 	 time_t sent_time,
 	 const char *id,
 	 const char *from,
 	 const char *subject,
+	 const char *uri,
 	 MNMessageFlags flags)
   {
-    g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
-
-    /* translators: "none" is used like "Mailbox: none" */
-    return GET_NEW_VARG(MN_MESSAGE_PROP_MAILBOX_NAME(mailbox ? mailbox->runtime_name : _("none")),
+    return GET_NEW_VARG(MN_MESSAGE_PROP_MAILBOX(mailbox),
 			MN_MESSAGE_PROP_ERROR((char *) error),
 			MN_MESSAGE_PROP_SENT_TIME(sent_time),
 			MN_MESSAGE_PROP_ID((char *) id),
 			MN_MESSAGE_PROP_FROM((char *) from),
 			MN_MESSAGE_PROP_SUBJECT((char *) subject),
+			MN_MESSAGE_PROP_URI((char *) uri),
 			MN_MESSAGE_PROP_FLAGS(flags),
 			NULL);
   }
 
   public MNMessage *
-    new_from_error (MNMailbox *mailbox,
+    new_from_error (MN:Mailbox *mailbox (check null type),
 		    const char *error (check null),
 		    MNMessageFlags flags)
   {
-    g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
+    return self_new(mailbox, error, 0, NULL, NULL, NULL, NULL, flags);
+  }
 
-    return self_new(mailbox, error, 0, NULL, NULL, NULL, flags);
+  public xmlNode *
+    xml_node_new (self)
+  {
+    xmlNode *node;
+
+    node = xmlNewNode(NULL, "message");
+
+    xmlSetProp(node, "mailbox", self->mailbox->runtime_name);
+
+    if ((self->flags & MN_MESSAGE_NEW) != 0)
+      xmlSetProp(node, "new", "true");
+
+    mn_xml_export_properties(G_OBJECT(self), node);
+
+    return node;
   }
 }

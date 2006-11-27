@@ -1,5 +1,6 @@
 /* 
- * Copyright (C) 2004-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Mail Notification
+ * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 requires 2.0.14
@@ -39,8 +40,8 @@ class MN:About:Dialog from Gtk:About:Dialog
   init (self)
   {
     GtkAboutDialog *about = GTK_ABOUT_DIALOG(self);
-    const char *authors[] = { "Jean-Yves Lefort <jylefort@brutele.be>", NULL };
-    const char *documenters[] = { "Jean-Yves Lefort <jylefort@brutele.be>", NULL };
+    static const char *authors[] = { "Jean-Yves Lefort <jylefort@brutele.be>", NULL };
+    static const char *documenters[] = { "Jean-Yves Lefort <jylefort@brutele.be>", NULL };
     GdkPixbuf *logo;
 
     gtk_about_dialog_set_version(about, VERSION);
@@ -62,6 +63,8 @@ class MN:About:Dialog from Gtk:About:Dialog
 	gtk_about_dialog_set_logo(about, logo);
 	g_object_unref(logo);
       }
+
+    g_signal_connect(self, "response", G_CALLBACK(gtk_widget_destroy), NULL);
   }
 
   private void
@@ -69,16 +72,11 @@ class MN:About:Dialog from Gtk:About:Dialog
 		      const char *link,
 		      gpointer data)
   {
-    GError *err = NULL;
     const char *prefix = data;
     char *url;
 
     url = prefix ? g_strconcat(prefix, link, NULL) : g_strdup(link);
-    if (! gnome_url_show(url, &err))
-      {
-        mn_error_dialog(GTK_WINDOW(about), _("Unable to open link"), "%s", err->message);
-	g_error_free(err);
-      }
+    mn_open_link(GTK_WINDOW(about), url);
     g_free(url);
   }
 }

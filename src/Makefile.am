@@ -29,6 +29,8 @@ mail_notification_SOURCES += mn-util.c
 mail_notification_SOURCES += mn-util.h
 mail_notification_SOURCES += mn-vfs.c
 mail_notification_SOURCES += mn-vfs.h
+mail_notification_SOURCES += mn-xml.c
+mail_notification_SOURCES += mn-xml.h
 mail_notification_SOURCES += nautilus-cell-renderer-pixbuf-emblem.c
 mail_notification_SOURCES += nautilus-cell-renderer-pixbuf-emblem.h
 mail_notification_SOURCES += mn-about-dialog.gob mn-about-dialog.gob.stamp
@@ -66,11 +68,6 @@ mail_notification_SOURCES += mn-mail-icon-private.h mn-mail-icon.c mn-mail-icon.
 BUILT_SOURCES += mn-mail-icon.gob.stamp
 MAINTAINERCLEANFILES += mn-mail-icon.gob.stamp
 MAINTAINERCLEANFILES += mn-mail-icon-private.h mn-mail-icon.c mn-mail-icon.h
-mail_notification_SOURCES += mn-mail-summary-popup.gob mn-mail-summary-popup.gob.stamp
-mail_notification_SOURCES += mn-mail-summary-popup-private.h mn-mail-summary-popup.c mn-mail-summary-popup.h
-BUILT_SOURCES += mn-mail-summary-popup.gob.stamp
-MAINTAINERCLEANFILES += mn-mail-summary-popup.gob.stamp
-MAINTAINERCLEANFILES += mn-mail-summary-popup-private.h mn-mail-summary-popup.c mn-mail-summary-popup.h
 mail_notification_SOURCES += mn-mailbox.gob mn-mailbox.gob.stamp
 mail_notification_SOURCES += mn-mailbox-private.h mn-mailbox.c mn-mailbox.h
 BUILT_SOURCES += mn-mailbox.gob.stamp
@@ -106,6 +103,16 @@ mail_notification_SOURCES += mn-message-view-private.h mn-message-view.c mn-mess
 BUILT_SOURCES += mn-message-view.gob.stamp
 MAINTAINERCLEANFILES += mn-message-view.gob.stamp
 MAINTAINERCLEANFILES += mn-message-view-private.h mn-message-view.c mn-message-view.h
+mail_notification_SOURCES += mn-popup.gob mn-popup.gob.stamp
+mail_notification_SOURCES += mn-popup-private.h mn-popup.c mn-popup.h
+BUILT_SOURCES += mn-popup.gob.stamp
+MAINTAINERCLEANFILES += mn-popup.gob.stamp
+MAINTAINERCLEANFILES += mn-popup-private.h mn-popup.c mn-popup.h
+mail_notification_SOURCES += mn-popups.gob mn-popups.gob.stamp
+mail_notification_SOURCES += mn-popups-private.h mn-popups.c mn-popups.h
+BUILT_SOURCES += mn-popups.gob.stamp
+MAINTAINERCLEANFILES += mn-popups.gob.stamp
+MAINTAINERCLEANFILES += mn-popups-private.h mn-popups.c mn-popups.h
 mail_notification_SOURCES += mn-properties-dialog.gob mn-properties-dialog.gob.stamp
 mail_notification_SOURCES += mn-properties-dialog-private.h mn-properties-dialog.c mn-properties-dialog.h
 BUILT_SOURCES += mn-properties-dialog.gob.stamp
@@ -121,6 +128,11 @@ mail_notification_SOURCES += mn-standard-message-view-private.h mn-standard-mess
 BUILT_SOURCES += mn-standard-message-view.gob.stamp
 MAINTAINERCLEANFILES += mn-standard-message-view.gob.stamp
 MAINTAINERCLEANFILES += mn-standard-message-view-private.h mn-standard-message-view.c mn-standard-message-view.h
+mail_notification_SOURCES += mn-test-mailbox.gob mn-test-mailbox.gob.stamp
+mail_notification_SOURCES += mn-test-mailbox-private.h mn-test-mailbox.c mn-test-mailbox.h
+BUILT_SOURCES += mn-test-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-test-mailbox.gob.stamp
+MAINTAINERCLEANFILES += mn-test-mailbox-private.h mn-test-mailbox.c mn-test-mailbox.h
 mail_notification_SOURCES += mn-text-table.gob mn-text-table.gob.stamp
 mail_notification_SOURCES += mn-text-table-private.h mn-text-table.c mn-text-table.h
 BUILT_SOURCES += mn-text-table.gob.stamp
@@ -141,6 +153,20 @@ mail_notification_SOURCES += mn-mbox-mailbox-backend-private.h mn-mbox-mailbox-b
 BUILT_SOURCES += mn-mbox-mailbox-backend.gob.stamp
 MAINTAINERCLEANFILES += mn-mbox-mailbox-backend.gob.stamp
 MAINTAINERCLEANFILES += mn-mbox-mailbox-backend-private.h mn-mbox-mailbox-backend.c mn-mbox-mailbox-backend.h
+endif
+if WITH_MOZILLA
+mail_notification_SOURCES += mn-mozilla-mailbox-backend.gob mn-mozilla-mailbox-backend.gob.stamp
+mail_notification_SOURCES += mn-mozilla-mailbox-backend-private.h mn-mozilla-mailbox-backend.c mn-mozilla-mailbox-backend.h
+BUILT_SOURCES += mn-mozilla-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-mozilla-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-mozilla-mailbox-backend-private.h mn-mozilla-mailbox-backend.c mn-mozilla-mailbox-backend.h
+endif
+if WITH_MBOX_OR_MOZILLA
+mail_notification_SOURCES += mn-base-mbox-mailbox-backend.gob mn-base-mbox-mailbox-backend.gob.stamp
+mail_notification_SOURCES += mn-base-mbox-mailbox-backend-private.h mn-base-mbox-mailbox-backend.c mn-base-mbox-mailbox-backend.h
+BUILT_SOURCES += mn-base-mbox-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-base-mbox-mailbox-backend.gob.stamp
+MAINTAINERCLEANFILES += mn-base-mbox-mailbox-backend-private.h mn-base-mbox-mailbox-backend.c mn-base-mbox-mailbox-backend.h
 endif
 if WITH_MH
 mail_notification_SOURCES += mn-mh-mailbox-backend.gob mn-mh-mailbox-backend.gob.stamp
@@ -232,7 +258,7 @@ BUILT_SOURCES += mn-gmail-mailbox-properties.gob.stamp
 MAINTAINERCLEANFILES += mn-gmail-mailbox-properties.gob.stamp
 MAINTAINERCLEANFILES += mn-gmail-mailbox-properties-private.h mn-gmail-mailbox-properties.c mn-gmail-mailbox-properties.h
 endif
-if WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED
+if WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED
 mail_notification_SOURCES += mn-custom-vfs-mailbox.gob mn-custom-vfs-mailbox.gob.stamp
 mail_notification_SOURCES += mn-custom-vfs-mailbox-private.h mn-custom-vfs-mailbox.c mn-custom-vfs-mailbox.h
 BUILT_SOURCES += mn-custom-vfs-mailbox.gob.stamp
@@ -258,8 +284,13 @@ mail_notification_SOURCES += mn-vfs-mailbox-backend-private.h mn-vfs-mailbox-bac
 BUILT_SOURCES += mn-vfs-mailbox-backend.gob.stamp
 MAINTAINERCLEANFILES += mn-vfs-mailbox-backend.gob.stamp
 MAINTAINERCLEANFILES += mn-vfs-mailbox-backend-private.h mn-vfs-mailbox-backend.c mn-vfs-mailbox-backend.h
+mail_notification_SOURCES += mn-vfs-message.gob mn-vfs-message.gob.stamp
+mail_notification_SOURCES += mn-vfs-message-private.h mn-vfs-message.c mn-vfs-message.h
+BUILT_SOURCES += mn-vfs-message.gob.stamp
+MAINTAINERCLEANFILES += mn-vfs-message.gob.stamp
+MAINTAINERCLEANFILES += mn-vfs-message-private.h mn-vfs-message.c mn-vfs-message.h
 endif
-if WITH_MBOX_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION
+if WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION
 mail_notification_SOURCES += mn-reentrant-mailbox.gob mn-reentrant-mailbox.gob.stamp
 mail_notification_SOURCES += mn-reentrant-mailbox-private.h mn-reentrant-mailbox.c mn-reentrant-mailbox.h
 BUILT_SOURCES += mn-reentrant-mailbox.gob.stamp
@@ -290,12 +321,15 @@ mail_notification_SOURCES += mn-sasl.c
 mail_notification_SOURCES += mn-sasl.h
 endif
 if WITH_EVOLUTION
+mail_notification_CPPFLAGS += $(EVOLUTION_PLUGIN_CFLAGS)
 mail_notification_SOURCES += mn-evolution.h
-mail_notification_SOURCES += mn-corba-object.gob mn-corba-object.gob.stamp
-mail_notification_SOURCES += mn-corba-object-private.h mn-corba-object.c mn-corba-object.h
-BUILT_SOURCES += mn-corba-object.gob.stamp
-MAINTAINERCLEANFILES += mn-corba-object.gob.stamp
-MAINTAINERCLEANFILES += mn-corba-object-private.h mn-corba-object.c mn-corba-object.h
+mail_notification_SOURCES += mn-evolution-glue-client.c
+mail_notification_SOURCES += mn-evolution-glue-client.h
+mail_notification_SOURCES += mn-bonobo-unknown.gob mn-bonobo-unknown.gob.stamp
+mail_notification_SOURCES += mn-bonobo-unknown-private.h mn-bonobo-unknown.c mn-bonobo-unknown.h
+BUILT_SOURCES += mn-bonobo-unknown.gob.stamp
+MAINTAINERCLEANFILES += mn-bonobo-unknown.gob.stamp
+MAINTAINERCLEANFILES += mn-bonobo-unknown-private.h mn-bonobo-unknown.c mn-bonobo-unknown.h
 mail_notification_SOURCES += mn-evolution-mailbox.gob mn-evolution-mailbox.gob.stamp
 mail_notification_SOURCES += mn-evolution-mailbox-private.h mn-evolution-mailbox.c mn-evolution-mailbox.h
 BUILT_SOURCES += mn-evolution-mailbox.gob.stamp
@@ -306,6 +340,11 @@ mail_notification_SOURCES += mn-evolution-mailbox-properties-private.h mn-evolut
 BUILT_SOURCES += mn-evolution-mailbox-properties.gob.stamp
 MAINTAINERCLEANFILES += mn-evolution-mailbox-properties.gob.stamp
 MAINTAINERCLEANFILES += mn-evolution-mailbox-properties-private.h mn-evolution-mailbox-properties.c mn-evolution-mailbox-properties.h
+mail_notification_SOURCES += mn-evolution-message.gob mn-evolution-message.gob.stamp
+mail_notification_SOURCES += mn-evolution-message-private.h mn-evolution-message.c mn-evolution-message.h
+BUILT_SOURCES += mn-evolution-message.gob.stamp
+MAINTAINERCLEANFILES += mn-evolution-message.gob.stamp
+MAINTAINERCLEANFILES += mn-evolution-message-private.h mn-evolution-message.c mn-evolution-message.h
 mail_notification_SOURCES += GNOME_MailNotification_Evolution.idl
 nodist_mail_notification_SOURCES += GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
 BUILT_SOURCES += GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
@@ -322,8 +361,11 @@ liborg_gnome_mail_notification_la_CPPFLAGS += $(EVOLUTION_PLUGIN_CFLAGS)
 liborg_gnome_mail_notification_la_LDFLAGS += $(EVOLUTION_PLUGIN_LIBS)
 liborg_gnome_mail_notification_la_SOURCES = mn-evolution-plugin.c
 liborg_gnome_mail_notification_la_SOURCES += mn-evolution.h
-liborg_gnome_mail_notification_la_SOURCES += mn-evolution-folder-tree-control.c
-liborg_gnome_mail_notification_la_SOURCES += mn-evolution-folder-tree-control.h
+liborg_gnome_mail_notification_la_SOURCES += mn-evolution-folder-tree-control.gob mn-evolution-folder-tree-control.gob.stamp
+liborg_gnome_mail_notification_la_SOURCES += mn-evolution-folder-tree-control-private.h mn-evolution-folder-tree-control.c mn-evolution-folder-tree-control.h
+BUILT_SOURCES += mn-evolution-folder-tree-control.gob.stamp
+MAINTAINERCLEANFILES += mn-evolution-folder-tree-control.gob.stamp
+MAINTAINERCLEANFILES += mn-evolution-folder-tree-control-private.h mn-evolution-folder-tree-control.c mn-evolution-folder-tree-control.h
 liborg_gnome_mail_notification_la_SOURCES += mn-evolution-glue.gob mn-evolution-glue.gob.stamp
 liborg_gnome_mail_notification_la_SOURCES += mn-evolution-glue-private.h mn-evolution-glue.c mn-evolution-glue.h
 BUILT_SOURCES += mn-evolution-glue.gob.stamp

@@ -15,6 +15,10 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+
+extern GSList *mn_evolution_glues;
+
+
 /*
  * Type checking and casting macros
  */
@@ -35,6 +39,8 @@ typedef struct _MNEvolutionGlue MNEvolutionGlue;
 #endif
 struct _MNEvolutionGlue {
 	BonoboObject __parent__;
+	/*< public >*/
+	BonoboEventSource * es;
 };
 
 /*
@@ -52,7 +58,9 @@ struct _MNEvolutionGlueClass {
  * Public methods
  */
 GType	mn_evolution_glue_get_type	(void);
-MNEvolutionGlue * 	mn_evolution_glue_new	(void);
+BonoboObject * 	mn_evolution_glue_factory_cb	(BonoboGenericFactory * factory,
+					const char * iid,
+					gpointer closure);
 
 #ifdef __cplusplus
 }

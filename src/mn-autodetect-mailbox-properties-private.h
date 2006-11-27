@@ -10,9 +10,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNAutodetectMailboxPropertiesPrivate {
-#line 44 "mn-autodetect-mailbox-properties.gob"
-	GtkWidget * location_entry;
 #line 45 "mn-autodetect-mailbox-properties.gob"
+	GtkWidget * location_entry;
+#line 46 "mn-autodetect-mailbox-properties.gob"
 	GtkWidget * chooser;
 #line 18 "mn-autodetect-mailbox-properties-private.h"
 };

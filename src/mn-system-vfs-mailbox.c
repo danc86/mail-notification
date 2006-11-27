@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 25 "mn-system-vfs-mailbox.gob"
+#line 26 "mn-system-vfs-mailbox.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
@@ -103,7 +103,7 @@ mn_system_vfs_mailbox_init (MNSystemVFSMailbox * o G_GNUC_UNUSED)
 #define __GOB_FUNCTION__ "MN:System:VFS:Mailbox::init"
 }
 #undef __GOB_FUNCTION__
-#line 34 "mn-system-vfs-mailbox.gob"
+#line 35 "mn-system-vfs-mailbox.gob"
 static void 
 mn_system_vfs_mailbox_class_init (MNSystemVFSMailboxClass * class G_GNUC_UNUSED)
 #line 110 "mn-system-vfs-mailbox.c"
@@ -113,15 +113,15 @@ mn_system_vfs_mailbox_class_init (MNSystemVFSMailboxClass * class G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (MN_TYPE_VFS_MAILBOX);
 
-#line 40 "mn-system-vfs-mailbox.gob"
+#line 41 "mn-system-vfs-mailbox.gob"
 	mn_mailbox_class->seal = ___2_mn_system_vfs_mailbox_seal;
-#line 50 "mn-system-vfs-mailbox.gob"
+#line 51 "mn-system-vfs-mailbox.gob"
 	mn_mailbox_class->parse_uri = ___3_mn_system_vfs_mailbox_parse_uri;
-#line 63 "mn-system-vfs-mailbox.gob"
+#line 64 "mn-system-vfs-mailbox.gob"
 	mn_mailbox_class->check = ___4_mn_system_vfs_mailbox_check;
 #line 123 "mn-system-vfs-mailbox.c"
  {
-#line 35 "mn-system-vfs-mailbox.gob"
+#line 36 "mn-system-vfs-mailbox.gob"
 
     MN_MAILBOX_CLASS(class)->type = "system-vfs";
     MN_VFS_MAILBOX_CLASS(class)->stock_id = MN_STOCK_SYSTEM_MAILBOX;
@@ -133,7 +133,7 @@ mn_system_vfs_mailbox_class_init (MNSystemVFSMailboxClass * class G_GNUC_UNUSED)
 
 
 
-#line 40 "mn-system-vfs-mailbox.gob"
+#line 41 "mn-system-vfs-mailbox.gob"
 static void 
 ___2_mn_system_vfs_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
 #line 140 "mn-system-vfs-mailbox.c"
@@ -143,7 +143,7 @@ ___2_mn_system_vfs_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:System:VFS:Mailbox::seal"
 {
-#line 42 "mn-system-vfs-mailbox.gob"
+#line 43 "mn-system-vfs-mailbox.gob"
 	
     MN_VFS_MAILBOX(mailbox)->uri = g_strdup(self_get_uri());
 
@@ -155,7 +155,7 @@ ___2_mn_system_vfs_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 50 "mn-system-vfs-mailbox.gob"
+#line 51 "mn-system-vfs-mailbox.gob"
 static MNMailbox * 
 ___3_mn_system_vfs_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const char * uri)
 #line 162 "mn-system-vfs-mailbox.c"
@@ -166,7 +166,7 @@ ___3_mn_system_vfs_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const cha
 {
 #define __GOB_FUNCTION__ "MN:System:VFS:Mailbox::parse_uri"
 {
-#line 52 "mn-system-vfs-mailbox.gob"
+#line 53 "mn-system-vfs-mailbox.gob"
 	
     const char *system_uri;
     MNMailbox *mailbox = NULL;
@@ -181,7 +181,7 @@ ___3_mn_system_vfs_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const cha
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 63 "mn-system-vfs-mailbox.gob"
+#line 64 "mn-system-vfs-mailbox.gob"
 static void 
 ___4_mn_system_vfs_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
 #line 188 "mn-system-vfs-mailbox.c"
@@ -191,7 +191,7 @@ ___4_mn_system_vfs_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:System:VFS:Mailbox::check"
 {
-#line 65 "mn-system-vfs-mailbox.gob"
+#line 66 "mn-system-vfs-mailbox.gob"
 	
     if (MN_VFS_MAILBOX(mailbox)->uri)
       {
@@ -207,14 +207,14 @@ ___4_mn_system_vfs_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 77 "mn-system-vfs-mailbox.gob"
+#line 78 "mn-system-vfs-mailbox.gob"
 const char * 
 mn_system_vfs_mailbox_get_uri (void)
 #line 214 "mn-system-vfs-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:System:VFS:Mailbox::get_uri"
 {
-#line 79 "mn-system-vfs-mailbox.gob"
+#line 80 "mn-system-vfs-mailbox.gob"
 	
     static char *global_uri = NULL;
     G_LOCK_DEFINE_STATIC(global_uri);
@@ -231,7 +231,7 @@ mn_system_vfs_mailbox_get_uri (void)
 	if (! global_uri)	/* no MAIL or invalid contents */
 	  {
 	    const char *username = g_get_user_name();
-	    const char *spool_paths[] = { "/var/spool/mail", "/var/mail" };
+	    static const char *spool_paths[] = { "/var/spool/mail", "/var/mail" };
 	    int i;
 
 	    for (i = 0; i < G_N_ELEMENTS(spool_paths); i++)

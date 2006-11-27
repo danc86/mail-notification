@@ -3,7 +3,7 @@ data/GNOME_MailNotification.server.in.in
 data/GNOME_MailNotification_Evolution.server.in
 data/mail-notification-properties.desktop.in
 data/mail-notification.desktop.in
-data/mail-notification.schemas.in
+data/mail-notification.schemas.in.in
 src/eggtrayicon.c
 src/eggtrayicon.h
 src/mn-about-dialog.gob
@@ -12,6 +12,7 @@ src/mn-authenticated-mailbox-properties.gob
 src/mn-authenticated-mailbox.gob
 src/mn-autodetect-mailbox-properties.gob
 src/mn-automation.gob
+src/mn-base-mbox-mailbox-backend.gob
 src/mn-blinking-image.gob
 src/mn-client-session.c
 src/mn-client-session.h
@@ -29,7 +30,6 @@ src/mn-gmime-stream-vfs.gob
 src/mn-imap-mailbox-properties.gob
 src/mn-imap-mailbox.gob
 src/mn-mail-icon.gob
-src/mn-mail-summary-popup.gob
 src/mn-mailbox-properties-dialog.gob
 src/mn-mailbox-view.gob
 src/mn-mailbox.gob
@@ -48,6 +48,7 @@ src/mn-pi-mailbox-properties.gob
 src/mn-pi-mailbox.gob
 src/mn-pop3-mailbox-properties.gob
 src/mn-pop3-mailbox.gob
+src/mn-popup.gob
 src/mn-properties-dialog.gob
 src/mn-sasl.c
 src/mn-sasl.h
@@ -60,6 +61,7 @@ src/mn-stock.h
 src/mn-sylpheed-mailbox-backend.gob
 src/mn-system-vfs-mailbox-properties.gob
 src/mn-system-vfs-mailbox.gob
+src/mn-test-mailbox.gob
 src/mn-tooltips.gob
 src/mn-util.c
 src/mn-util.h
@@ -67,6 +69,6 @@ src/mn-vfs-mailbox-backend.gob
 src/mn-vfs-mailbox.gob
 src/mn-vfs.c
 src/mn-vfs.h
-ui/mail-summary-popup.glade
+src/mn-xml.c
 ui/mailbox-properties-dialog.glade
 ui/properties-dialog.glade

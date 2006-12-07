@@ -10,7 +10,6 @@ mail_notification_CPPFLAGS += -DSYSCONFDIR="\"$(sysconfdir)\""
 mail_notification_CPPFLAGS += -DDATADIR="\"$(datadir)\""
 mail_notification_CPPFLAGS += -DLIBDIR="\"$(libdir)\""
 mail_notification_CPPFLAGS += -DGNOMELOCALEDIR="\"$(datadir)/locale\""
-mail_notification_CPPFLAGS += -DGNOMEPIXMAPSDIR="\"$(datadir)/pixmaps\""
 mail_notification_CPPFLAGS += -DUIDIR="\"$(pkgdatadir)/ui\""
 mail_notification_LDFLAGS = -export-dynamic
 mail_notification_LDFLAGS += $(INTLLIBS)

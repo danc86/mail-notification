@@ -1,4 +1,4 @@
-/* 
+/*
  * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
@@ -71,7 +71,7 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	MNVFSMailboxBackendClass *class,
 	MNVFSMailbox *mailbox)
   {
-    int i; 
+    int i;
     static const char *constitutive_dirs[] = { "cur", "new", "tmp" };
     gboolean is = FALSE;
 

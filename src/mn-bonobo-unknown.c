@@ -348,7 +348,7 @@ ___4_mn_bonobo_unknown_dispose (GObject * object G_GNUC_UNUSED)
 	
     Self *self = SELF(object);
 
-    mn_locked_g_source_remove(selfp->monitor_source);
+    mn_locked_g_source_clear(&selfp->monitor_source);
 
     PARENT_HANDLER(object);
   }}

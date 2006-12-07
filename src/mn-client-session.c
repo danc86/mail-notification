@@ -1,4 +1,4 @@
-/* 
+/*
  * mn-client-session.c - a state machine for handling POP3 and IMAP
  * client sessions.
  *

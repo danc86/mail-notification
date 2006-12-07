@@ -32,7 +32,7 @@
 #endif /* WITH_SASL */
 #include "mn-util.h"
 
-enum 
+enum
 {
   COLUMN_MECHANISM,
   COLUMN_LABEL,

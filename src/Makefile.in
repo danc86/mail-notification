@@ -881,7 +881,6 @@ mail_notification_CPPFLAGS = $(WARN_CFLAGS) $(DEBUG_CFLAGS) \
 	-DPREFIX="\"$(prefix)\"" -DSYSCONFDIR="\"$(sysconfdir)\"" \
 	-DDATADIR="\"$(datadir)\"" -DLIBDIR="\"$(libdir)\"" \
 	-DGNOMELOCALEDIR="\"$(datadir)/locale\"" \
-	-DGNOMEPIXMAPSDIR="\"$(datadir)/pixmaps\"" \
 	-DUIDIR="\"$(pkgdatadir)/ui\"" $(GNOME_CFLAGS) \
 	$(am__append_40) $(am__append_45) $(am__append_48) \
 	$(am__append_51)

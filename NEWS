@@ -1,3 +1,16 @@
+4.0 Release Candidate 2			December 7, 2006
+
+	* Evolution changes:
+		* An infinite loop has been fixed (see
+		  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=208774,
+		  thanks to David Woodhouse for his help)
+
+	* Updated translations:
+		* Serbian (Filip Miletic)
+		* Czech (Pav Lucistnik)
+		* Dutch (Marcel J. Zwiebel)
+		* Brazilian Portuguese (Claudio André)
+
 4.0 Release Candidate 1			November 27, 2006
 
 	* Core changes:

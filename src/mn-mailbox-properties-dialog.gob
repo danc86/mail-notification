@@ -1,4 +1,4 @@
-/* 
+/*
  * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
@@ -138,7 +138,7 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
     GObject *object;
     Self *self;
     GtkWidget *general_page;
-    GtkCellRenderer *renderer; 
+    GtkCellRenderer *renderer;
     MNMailboxProperties *properties;
 
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);

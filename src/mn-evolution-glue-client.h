@@ -1,4 +1,4 @@
-/* 
+/*
  * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *

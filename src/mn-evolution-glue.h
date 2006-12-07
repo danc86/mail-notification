@@ -61,6 +61,7 @@ GType	mn_evolution_glue_get_type	(void);
 BonoboObject * 	mn_evolution_glue_factory_cb	(BonoboGenericFactory * factory,
 					const char * iid,
 					gpointer closure);
+void 	mn_evolution_glue_global_cleanup	(void);
 
 #ifdef __cplusplus
 }

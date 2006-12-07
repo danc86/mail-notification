@@ -389,7 +389,7 @@ ___3_mn_mailbox_properties_dialog_constructor (GType type G_GNUC_UNUSED, unsigne
     GObject *object;
     Self *self;
     GtkWidget *general_page;
-    GtkCellRenderer *renderer; 
+    GtkCellRenderer *renderer;
     MNMailboxProperties *properties;
 
     object = PARENT_HANDLER(type, n_construct_properties, construct_params);

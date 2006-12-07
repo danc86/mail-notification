@@ -1,4 +1,4 @@
-/* 
+/*
  * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
@@ -39,6 +39,15 @@ extern GSList *mn_evolution_glues;
 #include <mail/mail-tools.h>
 
 GSList *mn_evolution_glues = NULL;
+
+/* see https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=208774 */
+static GHashTable *folders = NULL;
+
+typedef struct
+{
+  char		*uri;
+  CamelFolder	*folder;
+} FolderInfo;
 %}
 
 class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_Evolution_Glue)
@@ -84,14 +93,71 @@ class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_
     return CORBA_string_dup(str ? str : "");
   }
 
+  private void
+    cache_folder (const char *uri (check null),
+		  CamelFolder *folder (check null))
+  {
+    FolderInfo *info;
+
+    info = g_new0(FolderInfo, 1);
+    info->uri = g_strdup(uri);
+    info->folder = folder;
+    camel_object_ref(folder);
+
+    /* uncache the folder when it is deleted */
+    camel_object_hook_event(folder, "deleted", self_folder_deleted_cb, info);
+
+    g_hash_table_replace(folders, info->uri, info);
+  }
+
+  private void
+    folder_info_free (FolderInfo *info (check null))
+  {
+    camel_object_unhook_event(info->folder, "deleted", self_folder_deleted_cb, info);
+    camel_object_unref(info->folder);
+    g_free(info->uri);
+    g_free(info);
+  }
+
+  private void
+    folder_deleted_cb (CamelObject *object,
+		       gpointer event_data,
+		       gpointer user_data)
+  {
+    FolderInfo *info = user_data;
+    gboolean status;
+
+    status = g_hash_table_remove(folders, info->uri);
+    g_assert(status == TRUE);
+  }
+
   private CamelFolder *
     lookup_folder (const char *uri (check null), CORBA_Environment *env)
   {
-    CamelFolder *folder;
+    CamelFolder *folder = NULL;
 
-    folder = mail_tool_uri_to_folder(uri, 0, NULL);
+    if (folders)
+      {
+	FolderInfo *info;
+
+	info = g_hash_table_lookup(folders, uri);
+	if (info)
+	  {
+	    folder = info->folder;
+	    camel_object_ref(folder);
+	  }
+      }
+    else
+      folders = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) self_folder_info_free);
+
     if (! folder)
-      bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound);
+      {
+	folder = mail_tool_uri_to_folder(uri, 0, NULL);
+	if (folder)
+	  self_cache_folder(uri, folder);
+	else
+	  bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound);
+      }
 
     return folder;
   }
@@ -232,5 +298,16 @@ class MN:Evolution:Glue from Bonobo:Object (BonoboObject GNOME_MailNotification_
 		gpointer closure)
   {
     return BONOBO_OBJECT(GET_NEW);
+  }
+
+  public void
+    global_cleanup (void)
+  {
+    g_slist_foreach(mn_evolution_glues, (GFunc) bonobo_object_unref, NULL);
+    g_slist_free(mn_evolution_glues);
+    mn_evolution_glues = NULL;
+
+    g_hash_table_destroy(folders);
+    folders = NULL;
   }
 }

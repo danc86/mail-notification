@@ -1,5 +1,6 @@
 data/GNOME_MailNotification.server.in
 data/GNOME_MailNotification_Evolution.server.in
+data/mail-notification.schemas.in
 src/GNOME_MailNotification-common.c
 src/GNOME_MailNotification-skels.c
 src/GNOME_MailNotification-stubs.c
@@ -17,6 +18,7 @@ src/mn-blinking-image.c
 src/mn-compact-message-view.c
 src/mn-custom-vfs-mailbox.c
 src/mn-dialog.c
+src/mn-evolution-folder-tree-control.c
 src/mn-evolution-glue.c
 src/mn-evolution-mailbox-properties.c
 src/mn-evolution-mailbox.c

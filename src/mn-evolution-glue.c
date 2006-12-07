@@ -35,7 +35,16 @@
 
 GSList *mn_evolution_glues = NULL;
 
-#line 39 "mn-evolution-glue.c"
+/* see https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=208774 */
+static GHashTable *folders = NULL;
+
+typedef struct
+{
+  char		*uri;
+  CamelFolder	*folder;
+} FolderInfo;
+
+#line 48 "mn-evolution-glue.c"
 /* self casting macros */
 #define SELF(x) MN_EVOLUTION_GLUE(x)
 #define SELF_CONST(x) MN_EVOLUTION_GLUE_CONST(x)
@@ -55,6 +64,9 @@ static void mn_evolution_glue_class_init (MNEvolutionGlueClass * c) G_GNUC_UNUSE
 static GObject * ___1_mn_evolution_glue_constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam * construct_params) G_GNUC_UNUSED;
 static void ___2_mn_evolution_glue_finalize (GObject * object) G_GNUC_UNUSED;
 static CORBA_char * mn_evolution_glue_CORBA_string_dup_null (const CORBA_char * str) G_GNUC_UNUSED;
+static void mn_evolution_glue_cache_folder (const char * uri, CamelFolder * folder) G_GNUC_UNUSED;
+static void mn_evolution_glue_folder_info_free (FolderInfo * info) G_GNUC_UNUSED;
+static void mn_evolution_glue_folder_deleted_cb (CamelObject * object, gpointer event_data, gpointer user_data) G_GNUC_UNUSED;
 static CamelFolder * mn_evolution_glue_lookup_folder (const char * uri, CORBA_Environment * env) G_GNUC_UNUSED;
 static GNOME_MailNotification_Evolution_MessageSeq * mn_evolution_glue_getUnseenMessages (PortableServer_Servant servant, const CORBA_char * folder_uri, CORBA_Environment * env) G_GNUC_UNUSED;
 static CORBA_string mn_evolution_glue_getFolderName (PortableServer_Servant servant, const CORBA_char * folder_uri, CORBA_Environment * env) G_GNUC_UNUSED;
@@ -66,12 +78,16 @@ static BonoboObjectClass *parent_class = NULL;
 
 /* Short form macros */
 #define self_CORBA_string_dup_null mn_evolution_glue_CORBA_string_dup_null
+#define self_cache_folder mn_evolution_glue_cache_folder
+#define self_folder_info_free mn_evolution_glue_folder_info_free
+#define self_folder_deleted_cb mn_evolution_glue_folder_deleted_cb
 #define self_lookup_folder mn_evolution_glue_lookup_folder
 #define self_getUnseenMessages mn_evolution_glue_getUnseenMessages
 #define self_getFolderName mn_evolution_glue_getFolderName
 #define self_openMessage mn_evolution_glue_openMessage
 #define self_setMessageFlags mn_evolution_glue_setMessageFlags
 #define self_factory_cb mn_evolution_glue_factory_cb
+#define self_global_cleanup mn_evolution_glue_global_cleanup
 GType
 mn_evolution_glue_get_type (void)
 {
@@ -132,29 +148,29 @@ mn_evolution_glue_class_init (MNEvolutionGlueClass * c G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (BONOBO_TYPE_OBJECT);
 
-#line 48 "mn-evolution-glue.gob"
+#line 57 "mn-evolution-glue.gob"
 	g_object_class->constructor = ___1_mn_evolution_glue_constructor;
-#line 69 "mn-evolution-glue.gob"
+#line 78 "mn-evolution-glue.gob"
 	g_object_class->finalize = ___2_mn_evolution_glue_finalize;
-#line 140 "mn-evolution-glue.c"
-#line 99 "mn-evolution-glue.gob"
+#line 156 "mn-evolution-glue.c"
+#line 165 "mn-evolution-glue.gob"
 	c->_epv.getUnseenMessages = self_getUnseenMessages;
-#line 167 "mn-evolution-glue.gob"
+#line 233 "mn-evolution-glue.gob"
 	c->_epv.getFolderName = self_getFolderName;
-#line 185 "mn-evolution-glue.gob"
+#line 251 "mn-evolution-glue.gob"
 	c->_epv.openMessage = self_openMessage;
-#line 210 "mn-evolution-glue.gob"
+#line 276 "mn-evolution-glue.gob"
 	c->_epv.setMessageFlags = self_setMessageFlags;
-#line 149 "mn-evolution-glue.c"
+#line 165 "mn-evolution-glue.c"
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 48 "mn-evolution-glue.gob"
+#line 57 "mn-evolution-glue.gob"
 static GObject * 
 ___1_mn_evolution_glue_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_properties, GObjectConstructParam * construct_params)
-#line 158 "mn-evolution-glue.c"
+#line 174 "mn-evolution-glue.c"
 #define PARENT_HANDLER(___type,___n_construct_properties,___construct_params) \
 	((G_OBJECT_CLASS(parent_class)->constructor)? \
 		(* G_OBJECT_CLASS(parent_class)->constructor)(___type,___n_construct_properties,___construct_params): \
@@ -162,7 +178,7 @@ ___1_mn_evolution_glue_constructor (GType type G_GNUC_UNUSED, unsigned int n_con
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::constructor"
 {
-#line 50 "mn-evolution-glue.gob"
+#line 59 "mn-evolution-glue.gob"
 	
     GObject *object;
     Self *self;
@@ -181,75 +197,161 @@ ___1_mn_evolution_glue_constructor (GType type G_GNUC_UNUSED, unsigned int n_con
 
     return object;
   }}
-#line 185 "mn-evolution-glue.c"
+#line 201 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 69 "mn-evolution-glue.gob"
+#line 78 "mn-evolution-glue.gob"
 static void 
 ___2_mn_evolution_glue_finalize (GObject * object G_GNUC_UNUSED)
-#line 192 "mn-evolution-glue.c"
+#line 208 "mn-evolution-glue.c"
 #define PARENT_HANDLER(___object) \
 	{ if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(___object); }
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::finalize"
 {
-#line 71 "mn-evolution-glue.gob"
+#line 80 "mn-evolution-glue.gob"
 	
     mn_evolution_glues = g_slist_remove(mn_evolution_glues, object);
 
     PARENT_HANDLER(object);
   }}
-#line 205 "mn-evolution-glue.c"
+#line 221 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 81 "mn-evolution-glue.gob"
+#line 90 "mn-evolution-glue.gob"
 static CORBA_char * 
 mn_evolution_glue_CORBA_string_dup_null (const CORBA_char * str)
-#line 212 "mn-evolution-glue.c"
+#line 228 "mn-evolution-glue.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::CORBA_string_dup_null"
 {
-#line 83 "mn-evolution-glue.gob"
+#line 92 "mn-evolution-glue.gob"
 	
     return CORBA_string_dup(str ? str : "");
   }}
-#line 220 "mn-evolution-glue.c"
+#line 236 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__
 
-#line 87 "mn-evolution-glue.gob"
+#line 96 "mn-evolution-glue.gob"
+static void 
+mn_evolution_glue_cache_folder (const char * uri, CamelFolder * folder)
+#line 242 "mn-evolution-glue.c"
+{
+#define __GOB_FUNCTION__ "MN:Evolution:Glue::cache_folder"
+#line 96 "mn-evolution-glue.gob"
+	g_return_if_fail (uri != NULL);
+#line 96 "mn-evolution-glue.gob"
+	g_return_if_fail (folder != NULL);
+#line 249 "mn-evolution-glue.c"
+{
+#line 99 "mn-evolution-glue.gob"
+	
+    FolderInfo *info;
+
+    info = g_new0(FolderInfo, 1);
+    info->uri = g_strdup(uri);
+    info->folder = folder;
+    camel_object_ref(folder);
+
+    /* uncache the folder when it is deleted */
+    camel_object_hook_event(folder, "deleted", self_folder_deleted_cb, info);
+
+    g_hash_table_replace(folders, info->uri, info);
+  }}
+#line 265 "mn-evolution-glue.c"
+#undef __GOB_FUNCTION__
+
+#line 113 "mn-evolution-glue.gob"
+static void 
+mn_evolution_glue_folder_info_free (FolderInfo * info)
+#line 271 "mn-evolution-glue.c"
+{
+#define __GOB_FUNCTION__ "MN:Evolution:Glue::folder_info_free"
+#line 113 "mn-evolution-glue.gob"
+	g_return_if_fail (info != NULL);
+#line 276 "mn-evolution-glue.c"
+{
+#line 115 "mn-evolution-glue.gob"
+	
+    camel_object_unhook_event(info->folder, "deleted", self_folder_deleted_cb, info);
+    camel_object_unref(info->folder);
+    g_free(info->uri);
+    g_free(info);
+  }}
+#line 285 "mn-evolution-glue.c"
+#undef __GOB_FUNCTION__
+
+#line 122 "mn-evolution-glue.gob"
+static void 
+mn_evolution_glue_folder_deleted_cb (CamelObject * object, gpointer event_data, gpointer user_data)
+#line 291 "mn-evolution-glue.c"
+{
+#define __GOB_FUNCTION__ "MN:Evolution:Glue::folder_deleted_cb"
+{
+#line 126 "mn-evolution-glue.gob"
+	
+    FolderInfo *info = user_data;
+    gboolean status;
+
+    status = g_hash_table_remove(folders, info->uri);
+    g_assert(status == TRUE);
+  }}
+#line 303 "mn-evolution-glue.c"
+#undef __GOB_FUNCTION__
+
+#line 134 "mn-evolution-glue.gob"
 static CamelFolder * 
 mn_evolution_glue_lookup_folder (const char * uri, CORBA_Environment * env)
-#line 226 "mn-evolution-glue.c"
+#line 309 "mn-evolution-glue.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::lookup_folder"
-#line 87 "mn-evolution-glue.gob"
+#line 134 "mn-evolution-glue.gob"
 	g_return_val_if_fail (uri != NULL, (CamelFolder * )0);
-#line 231 "mn-evolution-glue.c"
+#line 314 "mn-evolution-glue.c"
 {
-#line 89 "mn-evolution-glue.gob"
+#line 136 "mn-evolution-glue.gob"
 	
-    CamelFolder *folder;
+    CamelFolder *folder = NULL;
 
-    folder = mail_tool_uri_to_folder(uri, 0, NULL);
+    if (folders)
+      {
+	FolderInfo *info;
+
+	info = g_hash_table_lookup(folders, uri);
+	if (info)
+	  {
+	    folder = info->folder;
+	    camel_object_ref(folder);
+	  }
+      }
+    else
+      folders = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) self_folder_info_free);
+
     if (! folder)
-      bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound);
+      {
+	folder = mail_tool_uri_to_folder(uri, 0, NULL);
+	if (folder)
+	  self_cache_folder(uri, folder);
+	else
+	  bonobo_exception_set(env, ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound);
+      }
 
     return folder;
   }}
-#line 243 "mn-evolution-glue.c"
+#line 345 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__
 
-#line 99 "mn-evolution-glue.gob"
+#line 165 "mn-evolution-glue.gob"
 static GNOME_MailNotification_Evolution_MessageSeq * 
 mn_evolution_glue_getUnseenMessages (PortableServer_Servant servant, const CORBA_char * folder_uri, CORBA_Environment * env)
-#line 249 "mn-evolution-glue.c"
+#line 351 "mn-evolution-glue.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::getUnseenMessages"
 {
-#line 103 "mn-evolution-glue.gob"
+#line 169 "mn-evolution-glue.gob"
 	
     CamelFolder *folder;
     GPtrArray *summary;
@@ -313,17 +415,17 @@ mn_evolution_glue_getUnseenMessages (PortableServer_Servant servant, const CORBA
 
     return seq;
   }}
-#line 317 "mn-evolution-glue.c"
+#line 419 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__
 
-#line 167 "mn-evolution-glue.gob"
+#line 233 "mn-evolution-glue.gob"
 static CORBA_string 
 mn_evolution_glue_getFolderName (PortableServer_Servant servant, const CORBA_char * folder_uri, CORBA_Environment * env)
-#line 323 "mn-evolution-glue.c"
+#line 425 "mn-evolution-glue.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::getFolderName"
 {
-#line 171 "mn-evolution-glue.gob"
+#line 237 "mn-evolution-glue.gob"
 	
     CamelFolder *folder;
     CORBA_string name = NULL;
@@ -337,17 +439,17 @@ mn_evolution_glue_getFolderName (PortableServer_Servant servant, const CORBA_cha
 
     return name;
   }}
-#line 341 "mn-evolution-glue.c"
+#line 443 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__
 
-#line 185 "mn-evolution-glue.gob"
+#line 251 "mn-evolution-glue.gob"
 static void 
 mn_evolution_glue_openMessage (PortableServer_Servant servant, const CORBA_char * folder_uri, const CORBA_char * message_uid, CORBA_Environment * env)
-#line 347 "mn-evolution-glue.c"
+#line 449 "mn-evolution-glue.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::openMessage"
 {
-#line 190 "mn-evolution-glue.gob"
+#line 256 "mn-evolution-glue.gob"
 	
     CamelFolder *folder;
     GtkWidget *browser;
@@ -367,17 +469,17 @@ mn_evolution_glue_openMessage (PortableServer_Servant servant, const CORBA_char 
 
     camel_object_unref(folder);
   }}
-#line 371 "mn-evolution-glue.c"
+#line 473 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__
 
-#line 210 "mn-evolution-glue.gob"
+#line 276 "mn-evolution-glue.gob"
 static void 
 mn_evolution_glue_setMessageFlags (PortableServer_Servant servant, const CORBA_char * folder_uri, const CORBA_char * message_uid, CORBA_unsigned_long flags, CORBA_Environment * env)
-#line 377 "mn-evolution-glue.c"
+#line 479 "mn-evolution-glue.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::setMessageFlags"
 {
-#line 216 "mn-evolution-glue.gob"
+#line 282 "mn-evolution-glue.gob"
 	
     CamelFolder *folder;
 
@@ -390,19 +492,38 @@ mn_evolution_glue_setMessageFlags (PortableServer_Servant servant, const CORBA_c
 
     camel_object_unref(folder);
   }}
-#line 394 "mn-evolution-glue.c"
+#line 496 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__
 
-#line 229 "mn-evolution-glue.gob"
+#line 295 "mn-evolution-glue.gob"
 BonoboObject * 
 mn_evolution_glue_factory_cb (BonoboGenericFactory * factory, const char * iid, gpointer closure)
-#line 400 "mn-evolution-glue.c"
+#line 502 "mn-evolution-glue.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Glue::factory_cb"
 {
-#line 233 "mn-evolution-glue.gob"
+#line 299 "mn-evolution-glue.gob"
 	
     return BONOBO_OBJECT(GET_NEW);
   }}
-#line 408 "mn-evolution-glue.c"
+#line 510 "mn-evolution-glue.c"
+#undef __GOB_FUNCTION__
+
+#line 303 "mn-evolution-glue.gob"
+void 
+mn_evolution_glue_global_cleanup (void)
+#line 516 "mn-evolution-glue.c"
+{
+#define __GOB_FUNCTION__ "MN:Evolution:Glue::global_cleanup"
+{
+#line 305 "mn-evolution-glue.gob"
+	
+    g_slist_foreach(mn_evolution_glues, (GFunc) bonobo_object_unref, NULL);
+    g_slist_free(mn_evolution_glues);
+    mn_evolution_glues = NULL;
+
+    g_hash_table_destroy(folders);
+    folders = NULL;
+  }}
+#line 529 "mn-evolution-glue.c"
 #undef __GOB_FUNCTION__

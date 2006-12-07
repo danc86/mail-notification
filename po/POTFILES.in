@@ -20,7 +20,7 @@ src/mn-compact-message-view.gob
 src/mn-conf.c
 src/mn-conf.h
 src/mn-custom-vfs-mailbox.gob
-src/mn-evolution-folder-tree-control.c
+src/mn-evolution-folder-tree-control.gob
 src/mn-evolution-mailbox-properties.gob
 src/mn-evolution-mailbox.gob
 src/mn-evolution-plugin.c

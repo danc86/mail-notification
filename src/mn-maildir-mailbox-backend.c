@@ -190,7 +190,7 @@ ___3_mn_maildir_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, M
 {
 #line 73 "mn-maildir-mailbox-backend.gob"
 	
-    int i; 
+    int i;
     static const char *constitutive_dirs[] = { "cur", "new", "tmp" };
     gboolean is = FALSE;
 

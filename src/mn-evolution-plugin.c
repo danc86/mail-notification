@@ -1,4 +1,4 @@
-/* 
+/*
  * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
@@ -127,10 +127,7 @@ e_plugin_lib_enable (EPluginLib *ep, int enable)
     return 0;			/* success */
   else
     {
-      g_slist_foreach(mn_evolution_glues, (GFunc) bonobo_object_unref, NULL);
-      g_slist_free(mn_evolution_glues);
-      mn_evolution_glues = NULL;
-
+      mn_evolution_glue_global_cleanup();
       return 1;			/* failure */
     }
 }

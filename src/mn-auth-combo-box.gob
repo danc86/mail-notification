@@ -1,4 +1,4 @@
-/* 
+/*
  * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
@@ -32,7 +32,7 @@ requires 2.0.14
 #endif /* WITH_SASL */
 #include "mn-util.h"
 
-enum 
+enum
 {
   COLUMN_MECHANISM,
   COLUMN_LABEL,

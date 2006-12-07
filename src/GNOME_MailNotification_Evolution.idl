@@ -1,4 +1,4 @@
-/* 
+/*
  * Mail Notification
  * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
  *
@@ -55,7 +55,7 @@ module GNOME
 	void setMessageFlags (in string folder_uri,
 			      in string message_uid,
 			      in unsigned long flags)
-	  raises (FolderNotFound);
+	  raises (FolderNotFound, MessageNotFound);
       };
     };
   };

@@ -1,6 +1,6 @@
 /*
  * Mail Notification
- * Copyright (C) 2003-2006 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ class MN:About:Dialog from Gtk:About:Dialog
     GdkPixbuf *logo;
 
     gtk_about_dialog_set_version(about, VERSION);
-    gtk_about_dialog_set_copyright(about, "Copyright \302\251 2003-2006 Jean-Yves Lefort");
+    gtk_about_dialog_set_copyright(about, "Copyright \302\251 2003-2007 Jean-Yves Lefort");
     /* translators: header capitalization */
     gtk_about_dialog_set_comments(about, _("A Mail Notification Icon"));
     gtk_about_dialog_set_website(about, "http://www.nongnu.org/mailnotify");

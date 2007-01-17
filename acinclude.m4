@@ -1,4 +1,4 @@
-# Copyright (C) 2003-2006 Jean-Yves Lefort.
+# Copyright (C) 2003-2007 Jean-Yves Lefort.
 #
 # This file is part of Mail Notification.
 # It may be distributed under the same terms as Mail Notification.

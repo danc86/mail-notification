@@ -630,9 +630,8 @@ class MN:Mailbox:View from Gtk:Tree:View
     gboolean valid;
 
     model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
-    valid = gtk_tree_model_get_iter_first(model, &our_iter);
 
-    while (valid)
+    MN_TREE_MODEL_FOREACH(valid, &our_iter, model)
       {
 	MNMailbox *this_mailbox;
 	gboolean is;
@@ -646,8 +645,6 @@ class MN:Mailbox:View from Gtk:Tree:View
 	    *iter = our_iter;
 	    return TRUE;
 	  }
-
-	valid = gtk_tree_model_iter_next(model, &our_iter);
       }
 
     return FALSE;

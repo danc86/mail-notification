@@ -161,19 +161,19 @@ ___1_mn_vfs_message_mark_as_read_impl (MNMessage * message G_GNUC_UNUSED, GError
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 55 "mn-vfs-message.gob"
+#line 58 "mn-vfs-message.gob"
 MNMessage * 
 mn_vfs_message_new (gpointer backend, GnomeVFSURI * dir_uri, const char * filename, MNMessageFlags flags, gboolean handle_status)
 #line 168 "mn-vfs-message.c"
 {
 #define __GOB_FUNCTION__ "MN:VFS:Message::new"
-#line 55 "mn-vfs-message.gob"
+#line 58 "mn-vfs-message.gob"
 	g_return_val_if_fail (dir_uri != NULL, (MNMessage * )0);
-#line 55 "mn-vfs-message.gob"
+#line 58 "mn-vfs-message.gob"
 	g_return_val_if_fail (filename != NULL, (MNMessage * )0);
 #line 175 "mn-vfs-message.c"
 {
-#line 61 "mn-vfs-message.gob"
+#line 64 "mn-vfs-message.gob"
 	
     GnomeVFSURI *message_uri;
     MNMessage *message;

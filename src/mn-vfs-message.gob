@@ -51,7 +51,10 @@ class MN:VFS:Message from MN:Message
     return class->mark_as_read(NULL, SELF(message), err);
   }
 
-  /* in case of error a MNMessage is returned, not a MNVFSMessage */
+  /*
+   * In case of error a MNMessage is returned, not a MNVFSMessage. A
+   * NULL pointer can also be returned (see mn-message-mime.h).
+   */
   public MNMessage *
     new (gpointer backend, /* cannot include mn-vfs-mailbox-backend.h */
 	 GnomeVFSURI *dir_uri (check null),

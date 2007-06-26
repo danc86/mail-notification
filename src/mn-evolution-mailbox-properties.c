@@ -446,7 +446,7 @@ mn_evolution_mailbox_properties_contact_error (MNEvolutionMailboxProperties * se
     selfp->selected_uri_listener = bonobo_object_release_unref(selfp->selected_uri_listener, NULL);
     selfp->activated_listener = bonobo_object_release_unref(selfp->activated_listener, NULL);
 
-    label = gtk_label_new(_("Mail Notification can not contact Evolution. Make sure that Evolution is running and that the Evolution Mail Notification plugin is loaded."));
+    label = gtk_label_new(_("Mail Notification can not contact Evolution. Make sure that Evolution is running and that the Evolution Jean-Yves Lefort's Mail Notification plugin is loaded."));
 
     gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
     gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);

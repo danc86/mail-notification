@@ -688,20 +688,33 @@ mn_tooltips_draw_tips (MNTooltips * self)
 	gtk_widget_set_size_request(selfp->window, MIN(w, screen_width), -1);
       }
 
+    /*
+     * The following block ensures that the top of the tooltip is
+     * visible, but it corrupts the tip widget (the mail summary is
+     * not properly positioned). A fix is welcome.
+     */
+/*
+    if (y < 0)
+      {
+	gtk_widget_set_size_request(selfp->window, -1, y + h);
+	y = 0;
+      }
+*/
+
     gtk_window_move(GTK_WINDOW(selfp->window), x, y);
     gtk_widget_show(selfp->window);
   }}
-#line 695 "mn-tooltips.c"
+#line 708 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 412 "mn-tooltips.gob"
+#line 425 "mn-tooltips.gob"
 static gboolean 
 mn_tooltips_timeout_cb (gpointer data)
-#line 701 "mn-tooltips.c"
+#line 714 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::timeout_cb"
 {
-#line 414 "mn-tooltips.gob"
+#line 427 "mn-tooltips.gob"
 	
     Self *self = SELF(data);
 
@@ -711,22 +724,22 @@ mn_tooltips_timeout_cb (gpointer data)
     selfp->timeout_source = NULL;
     return FALSE;		/* remove timeout */
   }}
-#line 715 "mn-tooltips.c"
+#line 728 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 424 "mn-tooltips.gob"
+#line 437 "mn-tooltips.gob"
 static void 
 mn_tooltips_set_active_widget (MNTooltips * self, GtkWidget * widget)
-#line 721 "mn-tooltips.c"
+#line 734 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::set_active_widget"
-#line 424 "mn-tooltips.gob"
+#line 437 "mn-tooltips.gob"
 	g_return_if_fail (self != NULL);
-#line 424 "mn-tooltips.gob"
+#line 437 "mn-tooltips.gob"
 	g_return_if_fail (MN_IS_TOOLTIPS (self));
-#line 728 "mn-tooltips.c"
+#line 741 "mn-tooltips.c"
 {
-#line 426 "mn-tooltips.gob"
+#line 439 "mn-tooltips.gob"
 	
     if (selfp->window)
       {
@@ -757,22 +770,22 @@ mn_tooltips_set_active_widget (MNTooltips * self, GtkWidget * widget)
     else
       selfp->use_sticky_delay = FALSE;
   }}
-#line 761 "mn-tooltips.c"
+#line 774 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 457 "mn-tooltips.gob"
+#line 470 "mn-tooltips.gob"
 static void 
 mn_tooltips_show_tip (GtkWidget * widget)
-#line 767 "mn-tooltips.c"
+#line 780 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::show_tip"
-#line 457 "mn-tooltips.gob"
+#line 470 "mn-tooltips.gob"
 	g_return_if_fail (widget != NULL);
-#line 457 "mn-tooltips.gob"
+#line 470 "mn-tooltips.gob"
 	g_return_if_fail (GTK_IS_WIDGET (widget));
-#line 774 "mn-tooltips.c"
+#line 787 "mn-tooltips.c"
 {
-#line 459 "mn-tooltips.gob"
+#line 472 "mn-tooltips.gob"
 	
     TooltipsData *data;
 
@@ -786,22 +799,22 @@ mn_tooltips_show_tip (GtkWidget * widget)
 	self_draw_tips(data->self);
       }
   }}
-#line 790 "mn-tooltips.c"
+#line 803 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 473 "mn-tooltips.gob"
+#line 486 "mn-tooltips.gob"
 static void 
 mn_tooltips_hide_tip (GtkWidget * widget)
-#line 796 "mn-tooltips.c"
+#line 809 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::hide_tip"
-#line 473 "mn-tooltips.gob"
+#line 486 "mn-tooltips.gob"
 	g_return_if_fail (widget != NULL);
-#line 473 "mn-tooltips.gob"
+#line 486 "mn-tooltips.gob"
 	g_return_if_fail (GTK_IS_WIDGET (widget));
-#line 803 "mn-tooltips.c"
+#line 816 "mn-tooltips.c"
 {
-#line 475 "mn-tooltips.gob"
+#line 488 "mn-tooltips.gob"
 	
     TooltipsData *data;
 
@@ -812,22 +825,22 @@ mn_tooltips_hide_tip (GtkWidget * widget)
 	 data->self->_priv->active_data->widget == widget))
       self_set_active_widget(data->self, NULL);
   }}
-#line 816 "mn-tooltips.c"
+#line 829 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 486 "mn-tooltips.gob"
+#line 499 "mn-tooltips.gob"
 static gboolean 
 mn_tooltips_recently_shown (MNTooltips * self)
-#line 822 "mn-tooltips.c"
+#line 835 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::recently_shown"
-#line 486 "mn-tooltips.gob"
+#line 499 "mn-tooltips.gob"
 	g_return_val_if_fail (self != NULL, (gboolean )0);
-#line 486 "mn-tooltips.gob"
+#line 499 "mn-tooltips.gob"
 	g_return_val_if_fail (MN_IS_TOOLTIPS (self), (gboolean )0);
-#line 829 "mn-tooltips.c"
+#line 842 "mn-tooltips.c"
 {
-#line 488 "mn-tooltips.gob"
+#line 501 "mn-tooltips.gob"
 	
     GTimeVal now;
     glong msec;
@@ -837,22 +850,22 @@ mn_tooltips_recently_shown (MNTooltips * self)
       (now.tv_usec - selfp->last_popdown.tv_usec) / 1000;
     return (msec < STICKY_REVERT_DELAY);
   }}
-#line 841 "mn-tooltips.c"
+#line 854 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 498 "mn-tooltips.gob"
+#line 511 "mn-tooltips.gob"
 static gboolean 
 mn_tooltips_get_keyboard_mode (GtkWidget * widget)
-#line 847 "mn-tooltips.c"
+#line 860 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::get_keyboard_mode"
-#line 498 "mn-tooltips.gob"
+#line 511 "mn-tooltips.gob"
 	g_return_val_if_fail (widget != NULL, (gboolean )0);
-#line 498 "mn-tooltips.gob"
+#line 511 "mn-tooltips.gob"
 	g_return_val_if_fail (GTK_IS_WIDGET (widget), (gboolean )0);
-#line 854 "mn-tooltips.c"
+#line 867 "mn-tooltips.c"
 {
-#line 500 "mn-tooltips.gob"
+#line 513 "mn-tooltips.gob"
 	
     GtkWidget *toplevel = gtk_widget_get_toplevel(widget);
 
@@ -861,22 +874,22 @@ mn_tooltips_get_keyboard_mode (GtkWidget * widget)
     else
       return FALSE;
   }}
-#line 865 "mn-tooltips.c"
+#line 878 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 509 "mn-tooltips.gob"
+#line 522 "mn-tooltips.gob"
 static void 
 mn_tooltips_start_keyboard_mode (GtkWidget * widget)
-#line 871 "mn-tooltips.c"
+#line 884 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::start_keyboard_mode"
-#line 509 "mn-tooltips.gob"
+#line 522 "mn-tooltips.gob"
 	g_return_if_fail (widget != NULL);
-#line 509 "mn-tooltips.gob"
+#line 522 "mn-tooltips.gob"
 	g_return_if_fail (GTK_IS_WIDGET (widget));
-#line 878 "mn-tooltips.c"
+#line 891 "mn-tooltips.c"
 {
-#line 511 "mn-tooltips.gob"
+#line 524 "mn-tooltips.gob"
 	
     GtkWidget *toplevel = gtk_widget_get_toplevel(widget);
 
@@ -890,22 +903,22 @@ mn_tooltips_start_keyboard_mode (GtkWidget * widget)
 	  self_show_tip(focus);
       }
   }}
-#line 894 "mn-tooltips.c"
+#line 907 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 525 "mn-tooltips.gob"
+#line 538 "mn-tooltips.gob"
 static void 
 mn_tooltips_stop_keyboard_mode (GtkWidget * widget)
-#line 900 "mn-tooltips.c"
+#line 913 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::stop_keyboard_mode"
-#line 525 "mn-tooltips.gob"
+#line 538 "mn-tooltips.gob"
 	g_return_if_fail (widget != NULL);
-#line 525 "mn-tooltips.gob"
+#line 538 "mn-tooltips.gob"
 	g_return_if_fail (GTK_IS_WIDGET (widget));
-#line 907 "mn-tooltips.c"
+#line 920 "mn-tooltips.c"
 {
-#line 527 "mn-tooltips.gob"
+#line 540 "mn-tooltips.gob"
 	
     GtkWidget *toplevel = gtk_widget_get_toplevel(widget);
 
@@ -919,22 +932,22 @@ mn_tooltips_stop_keyboard_mode (GtkWidget * widget)
 	g_object_set_data(G_OBJECT(toplevel), TOOLTIPS_KEYBOARD_MODE, GINT_TO_POINTER(FALSE));
       }
   }}
-#line 923 "mn-tooltips.c"
+#line 936 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 541 "mn-tooltips.gob"
+#line 554 "mn-tooltips.gob"
 static void 
 mn_tooltips_start_delay (MNTooltips * self, GtkWidget * widget)
-#line 929 "mn-tooltips.c"
+#line 942 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::start_delay"
-#line 541 "mn-tooltips.gob"
+#line 554 "mn-tooltips.gob"
 	g_return_if_fail (self != NULL);
-#line 541 "mn-tooltips.gob"
+#line 554 "mn-tooltips.gob"
 	g_return_if_fail (MN_IS_TOOLTIPS (self));
-#line 936 "mn-tooltips.c"
+#line 949 "mn-tooltips.c"
 {
-#line 543 "mn-tooltips.gob"
+#line 556 "mn-tooltips.gob"
 	
     TooltipsData *old_data;
 
@@ -947,17 +960,17 @@ mn_tooltips_start_delay (MNTooltips * self, GtkWidget * widget)
 							    self);
       }
   }}
-#line 951 "mn-tooltips.c"
+#line 964 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 556 "mn-tooltips.gob"
+#line 569 "mn-tooltips.gob"
 static void 
 mn_tooltips_event_after_h (GtkWidget * widget, GdkEvent * event, gpointer user_data)
-#line 957 "mn-tooltips.c"
+#line 970 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::event_after_h"
 {
-#line 558 "mn-tooltips.gob"
+#line 571 "mn-tooltips.gob"
 	
     Self *self;
     TooltipsData *old_data;
@@ -1040,22 +1053,22 @@ mn_tooltips_event_after_h (GtkWidget * widget, GdkEvent * event, gpointer user_d
 	  }
       }
   }}
-#line 1044 "mn-tooltips.c"
+#line 1057 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 641 "mn-tooltips.gob"
+#line 654 "mn-tooltips.gob"
 static void 
 mn_tooltips_widget_unmap (GtkWidget * widget, gpointer user_data)
-#line 1050 "mn-tooltips.c"
+#line 1063 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::widget_unmap"
-#line 641 "mn-tooltips.gob"
+#line 654 "mn-tooltips.gob"
 	g_return_if_fail (widget != NULL);
-#line 641 "mn-tooltips.gob"
+#line 654 "mn-tooltips.gob"
 	g_return_if_fail (GTK_IS_WIDGET (widget));
-#line 1057 "mn-tooltips.c"
+#line 1070 "mn-tooltips.c"
 {
-#line 643 "mn-tooltips.gob"
+#line 656 "mn-tooltips.gob"
 	
     TooltipsData *data = user_data;
     Self *self = data->self;
@@ -1064,22 +1077,22 @@ mn_tooltips_widget_unmap (GtkWidget * widget, gpointer user_data)
 	(selfp->active_data->widget == widget))
       self_set_active_widget(self, NULL);
   }}
-#line 1068 "mn-tooltips.c"
+#line 1081 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 652 "mn-tooltips.gob"
+#line 665 "mn-tooltips.gob"
 static void 
 mn_tooltips_widget_remove (GtkWidget * widget, gpointer user_data)
-#line 1074 "mn-tooltips.c"
+#line 1087 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::widget_remove"
-#line 652 "mn-tooltips.gob"
+#line 665 "mn-tooltips.gob"
 	g_return_if_fail (widget != NULL);
-#line 652 "mn-tooltips.gob"
+#line 665 "mn-tooltips.gob"
 	g_return_if_fail (GTK_IS_WIDGET (widget));
-#line 1081 "mn-tooltips.c"
+#line 1094 "mn-tooltips.c"
 {
-#line 654 "mn-tooltips.gob"
+#line 667 "mn-tooltips.gob"
 	
     TooltipsData *data = user_data;
     Self *self = data->self;
@@ -1088,41 +1101,41 @@ mn_tooltips_widget_remove (GtkWidget * widget, gpointer user_data)
     selfp->data_list = g_slist_remove(selfp->data_list, data);
     self_destroy_data(data);
   }}
-#line 1092 "mn-tooltips.c"
+#line 1105 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 663 "mn-tooltips.gob"
+#line 676 "mn-tooltips.gob"
 void 
 mn_tooltips_toggle_keyboard_mode (GtkWidget * widget)
-#line 1098 "mn-tooltips.c"
+#line 1111 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::toggle_keyboard_mode"
-#line 663 "mn-tooltips.gob"
+#line 676 "mn-tooltips.gob"
 	g_return_if_fail (widget != NULL);
-#line 663 "mn-tooltips.gob"
+#line 676 "mn-tooltips.gob"
 	g_return_if_fail (GTK_IS_WIDGET (widget));
-#line 1105 "mn-tooltips.c"
+#line 1118 "mn-tooltips.c"
 {
-#line 665 "mn-tooltips.gob"
+#line 678 "mn-tooltips.gob"
 	
     if (self_get_keyboard_mode(widget))
       self_stop_keyboard_mode(widget);
     else
       self_start_keyboard_mode(widget);
   }}
-#line 1114 "mn-tooltips.c"
+#line 1127 "mn-tooltips.c"
 #undef __GOB_FUNCTION__
 
-#line 672 "mn-tooltips.gob"
+#line 685 "mn-tooltips.gob"
 MNTooltips * 
 mn_tooltips_new (void)
-#line 1120 "mn-tooltips.c"
+#line 1133 "mn-tooltips.c"
 {
 #define __GOB_FUNCTION__ "MN:Tooltips::new"
 {
-#line 674 "mn-tooltips.gob"
+#line 687 "mn-tooltips.gob"
 	
     return GET_NEW;
   }}
-#line 1128 "mn-tooltips.c"
+#line 1141 "mn-tooltips.c"
 #undef __GOB_FUNCTION__

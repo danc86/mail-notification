@@ -405,6 +405,19 @@ class MN:Tooltips from G:Object
 	gtk_widget_set_size_request(selfp->window, MIN(w, screen_width), -1);
       }
 
+    /*
+     * The following block ensures that the top of the tooltip is
+     * visible, but it corrupts the tip widget (the mail summary is
+     * not properly positioned). A fix is welcome.
+     */
+/*
+    if (y < 0)
+      {
+	gtk_widget_set_size_request(selfp->window, -1, y + h);
+	y = 0;
+      }
+*/
+
     gtk_window_move(GTK_WINDOW(selfp->window), x, y);
     gtk_widget_show(selfp->window);
   }

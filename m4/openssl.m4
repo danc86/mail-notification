@@ -58,3 +58,39 @@ fi
 
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)])
+
+# can only be called after AM_PATH_OPENSSL succeeded
+dnl AC_OPENSSL_MT([ACTION-IF-YES], [ACTION-IF-NO])
+dnl
+AC_DEFUN([AC_OPENSSL_MT],
+[ac_save_CFLAGS="$CFLAGS"
+ac_save_LIBS="$LIBS"
+CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
+LIBS="$LIBS $OPENSSL_LIBS"
+
+AC_MSG_CHECKING([whether OpenSSL supports multi-threading])
+AC_RUN_IFELSE([
+#define OPENSSL_THREAD_DEFINES
+#include <openssl/opensslconf.h>
+
+int main() {
+#ifdef OPENSSL_THREADS
+  exit(0);	/* ok */
+#else
+  exit(1);	/* no thread support */
+#endif
+}
+], [openssl_mt=yes], [openssl_mt=no], [openssl_mt=yes])
+AC_MSG_RESULT($openssl_mt)
+
+CFLAGS="$ac_save_CFLAGS"
+LIBS="$ac_save_LIBS"
+
+if test $openssl_mt = yes; then
+	ifelse([$1],, :, [$1])
+else
+	ifelse([$2],, :, [$2])
+fi
+
+AC_SUBST(OPENSSL_CFLAGS)
+AC_SUBST(OPENSSL_LIBS)])

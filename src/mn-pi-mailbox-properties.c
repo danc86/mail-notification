@@ -218,7 +218,7 @@ mn_pi_mailbox_properties_init (MNPIMailboxProperties * self G_GNUC_UNUSED)
 			       connection_types[i].type,
 			       _(connection_types[i].mnemonic));
 
-#ifndef WITH_SSL
+#if ! WITH_SSL
     gtk_widget_set_sensitive(self->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL], FALSE);
     gtk_widget_set_sensitive(self->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_SSL], FALSE);
 #endif

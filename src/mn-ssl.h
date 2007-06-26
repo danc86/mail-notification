@@ -23,6 +23,8 @@
 #include <glib.h>
 #include <openssl/ssl.h>
 
+G_LOCK_EXTERN(mn_ssl);
+
 SSL_CTX *mn_ssl_init (GError **err);
 const char *mn_ssl_get_error (void);
 

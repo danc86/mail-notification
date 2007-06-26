@@ -913,13 +913,15 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 
 	    if (after_status)
 	      {
-		if (input[after_status] == 0 || input[after_status] == ' ')
-		  {
-		    response = g_new0(MNClientSessionResponse, 1);
-		    response->type = type;
-		    if (input[after_status] == ' ')
-		      response->arguments = g_strdup(input + after_status + 1);
-		  }
+		char c = input[after_status];
+
+		if (c == ' ' || c == ',') /* skip commonly used separators */
+		  after_status++;
+
+		response = g_new0(MNClientSessionResponse, 1);
+		response->type = type;
+		if (input[after_status] != 0)
+		  response->arguments = g_strdup(input + after_status);
 	      }
 	  }
       }

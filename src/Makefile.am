@@ -350,28 +350,28 @@ BUILT_SOURCES += GNOME_MailNotification_Evolution-common.c GNOME_MailNotificatio
 CLEANFILES += GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
 endif
 if WITH_EVOLUTION
-evolution_plugin_LTLIBRARIES = liborg-gnome-mail-notification.la
-liborg_gnome_mail_notification_la_CPPFLAGS = $(WARN_CFLAGS)
-liborg_gnome_mail_notification_la_CPPFLAGS += $(DEBUG_CFLAGS)
-liborg_gnome_mail_notification_la_CPPFLAGS += -I$(top_srcdir)
-liborg_gnome_mail_notification_la_CPPFLAGS += -DG_LOG_DOMAIN="\"$(PACKAGE)\""
-liborg_gnome_mail_notification_la_LDFLAGS = -avoid-version -module
-liborg_gnome_mail_notification_la_CPPFLAGS += $(EVOLUTION_PLUGIN_CFLAGS)
-liborg_gnome_mail_notification_la_LDFLAGS += $(EVOLUTION_PLUGIN_LIBS)
-liborg_gnome_mail_notification_la_SOURCES = mn-evolution-plugin.c
-liborg_gnome_mail_notification_la_SOURCES += mn-evolution.h
-liborg_gnome_mail_notification_la_SOURCES += mn-evolution-folder-tree-control.gob mn-evolution-folder-tree-control.gob.stamp
-liborg_gnome_mail_notification_la_SOURCES += mn-evolution-folder-tree-control-private.h mn-evolution-folder-tree-control.c mn-evolution-folder-tree-control.h
+evolution_plugin_LTLIBRARIES = liborg-jylefort-mail-notification.la
+liborg_jylefort_mail_notification_la_CPPFLAGS = $(WARN_CFLAGS)
+liborg_jylefort_mail_notification_la_CPPFLAGS += $(DEBUG_CFLAGS)
+liborg_jylefort_mail_notification_la_CPPFLAGS += -I$(top_srcdir)
+liborg_jylefort_mail_notification_la_CPPFLAGS += -DG_LOG_DOMAIN="\"$(PACKAGE)\""
+liborg_jylefort_mail_notification_la_LDFLAGS = -avoid-version -module
+liborg_jylefort_mail_notification_la_CPPFLAGS += $(EVOLUTION_PLUGIN_CFLAGS)
+liborg_jylefort_mail_notification_la_LDFLAGS += $(EVOLUTION_PLUGIN_LIBS)
+liborg_jylefort_mail_notification_la_SOURCES = mn-evolution-plugin.c
+liborg_jylefort_mail_notification_la_SOURCES += mn-evolution.h
+liborg_jylefort_mail_notification_la_SOURCES += mn-evolution-folder-tree-control.gob mn-evolution-folder-tree-control.gob.stamp
+liborg_jylefort_mail_notification_la_SOURCES += mn-evolution-folder-tree-control-private.h mn-evolution-folder-tree-control.c mn-evolution-folder-tree-control.h
 BUILT_SOURCES += mn-evolution-folder-tree-control.gob.stamp
 MAINTAINERCLEANFILES += mn-evolution-folder-tree-control.gob.stamp
 MAINTAINERCLEANFILES += mn-evolution-folder-tree-control-private.h mn-evolution-folder-tree-control.c mn-evolution-folder-tree-control.h
-liborg_gnome_mail_notification_la_SOURCES += mn-evolution-glue.gob mn-evolution-glue.gob.stamp
-liborg_gnome_mail_notification_la_SOURCES += mn-evolution-glue-private.h mn-evolution-glue.c mn-evolution-glue.h
+liborg_jylefort_mail_notification_la_SOURCES += mn-evolution-glue.gob mn-evolution-glue.gob.stamp
+liborg_jylefort_mail_notification_la_SOURCES += mn-evolution-glue-private.h mn-evolution-glue.c mn-evolution-glue.h
 BUILT_SOURCES += mn-evolution-glue.gob.stamp
 MAINTAINERCLEANFILES += mn-evolution-glue.gob.stamp
 MAINTAINERCLEANFILES += mn-evolution-glue-private.h mn-evolution-glue.c mn-evolution-glue.h
-liborg_gnome_mail_notification_la_SOURCES += GNOME_MailNotification_Evolution.idl
-nodist_liborg_gnome_mail_notification_la_SOURCES = GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
+liborg_jylefort_mail_notification_la_SOURCES += GNOME_MailNotification_Evolution.idl
+nodist_liborg_jylefort_mail_notification_la_SOURCES = GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
 BUILT_SOURCES += GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
 CLEANFILES += GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
 endif

@@ -23,10 +23,12 @@
 #include <libgnomevfs/gnome-vfs.h>
 #include "mn-message-mime.h"
 #include "mn-gmime-stream-vfs.h"
+#include "mn-util.h"
 
 /*** functions ***************************************************************/
 
 static char *mn_message_mime_header_decode_text (const char *str);
+static gboolean mn_message_mime_is_spam (GMimeMessage *mime_message);
 
 /*** implementation **********************************************************/
 
@@ -50,6 +52,26 @@ mn_message_mime_header_decode_text (const char *str)
 
       return converted ? converted : g_strdup("");
     }
+}
+
+static gboolean
+mn_message_mime_is_spam (GMimeMessage *mime_message)
+{
+  const char *spam;
+
+  g_return_val_if_fail(GMIME_IS_MESSAGE(mime_message), FALSE);
+
+  /* SpamAssassin */
+  spam = g_mime_message_get_header(mime_message, "X-Spam-Status");
+  if (spam && mn_ascii_str_case_has_prefix(spam, "yes"))
+    return TRUE;
+
+  /* bogofilter */
+  spam = g_mime_message_get_header(mime_message, "X-Bogosity");
+  if (spam && mn_ascii_str_case_has_prefix(spam, "yes"))
+    return TRUE;
+
+  return FALSE;
 }
 
 MNMessage *
@@ -86,6 +108,9 @@ mn_message_new_from_mime_message_full (GType type,
   g_return_val_if_fail(type != 0, NULL);
   g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
   g_return_val_if_fail(GMIME_IS_MESSAGE(mime_message), NULL);
+
+  if (mn_message_mime_is_spam(mime_message))
+    return NULL;
 
   if (handle_status)
     {
@@ -219,7 +244,7 @@ mn_message_new_from_uri_full (GType type,
 	  if (result == GNOME_VFS_OK)
 	    return message;
 	  else
-	    g_object_unref(message);
+	    mn_g_object_null_unref(message); /* message can be null */
 	}
       else
 	gnome_vfs_close(handle);

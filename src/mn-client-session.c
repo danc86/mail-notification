@@ -51,6 +51,7 @@
 #include <eel/eel.h>
 #if WITH_SSL
 #include <openssl/err.h>
+#include <openssl/x509v3.h>
 #include "mn-ssl.h"
 #endif /* WITH_SSL */
 #if WITH_SASL
@@ -115,9 +116,17 @@ static struct addrinfo *mn_client_session_resolve (MNClientSession *session);
 static int mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo);
 
 #if WITH_SSL
+static GSList *mn_client_session_ssl_get_certificate_servers (X509 *cert);
+static gboolean mn_client_session_ssl_check_server_name (const char *user_name,
+							 const char *cert_name);
+static gboolean mn_client_session_ssl_check_server_name_from_list (const char *user_name,
+								   const GSList *cert_names);
+static char *mn_client_session_ssl_get_verify_error (MNClientSession *session,
+						     X509 *cert);
 static gboolean mn_client_session_ssl_verify (MNClientSession *session);
 static gboolean mn_client_session_run_untrusted_dialog (const char *server,
-							const char *reason);
+							const char *reason,
+							const char *cert_fingerprint);
 #endif
 
 static int mn_client_session_enter_state (MNClientSession *session, int id);
@@ -414,21 +423,220 @@ mn_client_session_enable_ssl (MNClientSession *session)
   return TRUE;
 }
 
+/**
+ * mn_client_session_ssl_get_certificate_servers():
+ * @cert: the server certificate
+ *
+ * Returns the list of server names (commonName and subjectAltName)
+ * contained in @cert.
+ *
+ * Return value: a newly-allocated list of UTF-8 server names. When no
+ * longer used, the list must be freed with eel_g_slist_free_deep().
+ **/
+static GSList *
+mn_client_session_ssl_get_certificate_servers (X509 *cert)
+{
+  GSList *servers = NULL;
+  X509_NAME *subject;
+  void *ext;
+
+  g_return_val_if_fail(cert != NULL, NULL);
+
+  /* append the commonName entries */
+
+  subject = X509_get_subject_name(cert);
+  if (subject)
+    {
+      int pos = -1;
+
+      while (TRUE)
+	{
+	  X509_NAME_ENTRY *entry;
+	  ASN1_STRING *data;
+	  int len;
+	  unsigned char *str;
+
+	  pos = X509_NAME_get_index_by_NID(subject, NID_commonName, pos);
+	  if (pos == -1)
+	    break;
+
+	  entry = X509_NAME_get_entry(subject, pos);
+	  if (! entry)
+	    continue;
+
+	  data = X509_NAME_ENTRY_get_data(entry);
+	  if (! data)
+	    continue;
+
+	  len = ASN1_STRING_to_UTF8(&str, data);
+	  if (len < 0)
+	    continue;
+
+	  g_assert(g_utf8_validate(str, len, NULL));
+
+	  servers = g_slist_append(servers, g_strndup(str, len));
+	  OPENSSL_free(str);
+	}
+    }
+
+  /*
+   * RFC 3501 11.1: "If a subjectAltName extension of type dNSName is
+   * present in the certificate, it SHOULD be used as the source of
+   * the server's identity."
+   */
+
+  ext = X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
+  if (ext)
+    {
+      int count;
+      int i;
+
+      count = sk_GENERAL_NAME_num(ext);
+      for (i = 0; i < count; i++)
+	{
+	  GENERAL_NAME *name;
+
+	  name = sk_GENERAL_NAME_value(ext, i);
+	  if (name
+	      && name->type == GEN_DNS
+	      && name->d.ia5->data
+	      && g_utf8_validate(name->d.ia5->data, -1, NULL))
+	    servers = g_slist_append(servers, g_strdup(name->d.ia5->data));
+	}
+    }
+
+  return servers;
+}
+
+static gboolean
+mn_client_session_ssl_check_server_name (const char *user_name,
+					 const char *cert_name)
+{
+  g_return_val_if_fail(user_name != NULL, FALSE);
+  g_return_val_if_fail(cert_name != NULL, FALSE);
+
+  /*
+   * RFC 3501 11.1: "A "*" wildcard character MAY be used as the
+   * left-most name component in the certificate. For example,
+   * *.example.com would match a.example.com, foo.example.com,
+   * etc. but would not match example.com."
+   */
+
+  if (g_str_has_prefix(cert_name, "*."))
+    {
+      const char *domain = cert_name + 1;
+
+      return mn_utf8_str_case_has_suffix(user_name, domain) && strlen(user_name) > strlen(domain);
+    }
+  else
+    return ! mn_utf8_strcasecmp(user_name, cert_name);
+}
+
+static gboolean
+mn_client_session_ssl_check_server_name_from_list (const char *user_name,
+						   const GSList *cert_names)
+{
+  const GSList *l;
+
+  g_return_val_if_fail(user_name != NULL, FALSE);
+
+  MN_LIST_FOREACH(l, cert_names)
+    {
+      const char *cert_name = l->data;
+
+      if (mn_client_session_ssl_check_server_name(user_name, cert_name))
+	return TRUE;
+    }
+
+  return FALSE;
+}
+
+static char *
+mn_client_session_ssl_get_verify_error (MNClientSession *session, X509 *cert)
+{
+  long verify_result;
+  GSList *servers;
+  char *error = NULL;
+
+  g_return_val_if_fail(session != NULL, NULL);
+  g_return_val_if_fail(session->ssl != NULL, NULL);
+  g_return_val_if_fail(cert != NULL, NULL);
+
+  /* check the result of the OpenSSL verification */
+
+  verify_result = SSL_get_verify_result(session->ssl);
+  if (verify_result != X509_V_OK)
+    {
+      /*
+       * X509_verify_cert_error_string() is thread-unsafe (it can
+       * return a pointer to a temporary static buffer).
+       */
+      G_LOCK(mn_ssl);
+      error = g_strdup(X509_verify_cert_error_string(verify_result));
+      G_UNLOCK(mn_ssl);
+
+      return error;
+    }
+
+  /*
+   * Check if the user-provided server name matches one of the
+   * certificate-provided server names. This is required for IMAP (RFC
+   * 3501 11.1) and cannot hurt for POP3.
+   */
+
+  servers = mn_client_session_ssl_get_certificate_servers(cert);
+  if (! servers)
+    return g_strdup(_("server name not found in certificate"));
+
+  if (! mn_client_session_ssl_check_server_name_from_list(session->server, servers))
+    {
+      if (g_slist_length(servers) == 1)
+	error = g_strdup_printf(_("user-provided server name \"%s\" does not match certificate-provided server name \"%s\""),
+				session->server, (char *) servers->data);
+      else
+	{
+	  GString *servers_comma_list;
+	  GSList *l;
+
+	  servers_comma_list = g_string_new(NULL);
+
+	  MN_LIST_FOREACH(l, servers)
+	    {
+	      char *server = l->data;
+
+	      g_string_append_printf(servers_comma_list, "\"%s\"", server);
+	      if (l->next)
+		g_string_append(servers_comma_list, ", ");
+	    }
+
+	  error = g_strdup_printf(_("user-provided server name \"%s\" matches none of the certificate-provided server names %s"),
+				  session->server, servers_comma_list->str);
+
+	  g_string_free(servers_comma_list, TRUE);
+	}
+    }
+
+  eel_g_slist_free_deep(servers);
+
+  return error;
+}
+
 static gboolean
 mn_client_session_ssl_verify (MNClientSession *session)
 {
   X509 *cert;
   gboolean status = FALSE;
 
+  g_return_val_if_fail(session != NULL, FALSE);
   g_return_val_if_fail(session->ssl != NULL, FALSE);
 
   cert = SSL_get_peer_certificate(session->ssl);
   if (cert)
     {
-      long verify_result;
+      char *error;
 
-      verify_result = SSL_get_verify_result(session->ssl);
-      if (verify_result == X509_V_OK)
+      error = mn_client_session_ssl_get_verify_error(session, cert);
+      if (! error)
 	status = TRUE;
       else
 	{
@@ -451,13 +659,7 @@ mn_client_session_ssl_verify (MNClientSession *session)
 	    status = TRUE;
 	  else
 	    {
-	      char *reason;
-
-	      reason = g_strdup_printf(_("%s, fingerprint: %s"),
-				       X509_verify_cert_error_string(verify_result),
-				       fingerprint);
-
-	      if (mn_client_session_run_untrusted_dialog(session->server, reason))
+	      if (mn_client_session_run_untrusted_dialog(session->server, error, fingerprint))
 		{
 		  status = TRUE;
 		  gconf_fingerprints = g_slist_append(gconf_fingerprints, g_strdup(fingerprint));
@@ -466,6 +668,7 @@ mn_client_session_ssl_verify (MNClientSession *session)
 	    }
 
 	  eel_g_slist_free_deep(gconf_fingerprints);
+	  g_free(error);
 	}
 
       X509_free(cert);
@@ -482,7 +685,7 @@ mn_client_session_ssl_verify (MNClientSession *session)
 	status = TRUE;
       else
 	{
-	  if (mn_client_session_run_untrusted_dialog(session->server, _("missing certificate")))
+	  if (mn_client_session_run_untrusted_dialog(session->server, _("missing certificate"), NULL))
 	    {
 	      status = TRUE;
 	      gconf_servers = g_slist_append(gconf_servers, g_strdup(server));
@@ -499,33 +702,42 @@ mn_client_session_ssl_verify (MNClientSession *session)
 
 static gboolean
 mn_client_session_run_untrusted_dialog (const char *server,
-					const char *reason)
+					const char *reason,
+					const char *cert_fingerprint)
 {
   GtkWidget *dialog;
-  char *secondary;
+  GString *secondary;
   gboolean status;
 
   g_return_val_if_fail(server != NULL, FALSE);
   g_return_val_if_fail(reason != NULL, FALSE);
 
-  secondary = g_strdup_printf(_("Mail Notification was unable to trust \"%s\" "
-				"(%s). It is possible that someone is "
-				"intercepting your communication to obtain "
-				"your confidential information.\n"
-				"\n"
-				"You should only connect to the server if you "
-				"are certain you are connected to \"%s\". "
-				"If you choose to connect to the server, this "
-				"message will not be shown again."),
-			      server, reason, server);
+  secondary = g_string_new(NULL);
+  g_string_printf(secondary,
+		  _("Mail Notification was unable to trust \"%s\" "
+		    "(%s). It is possible that someone is "
+		    "intercepting your communication to obtain "
+		    "your confidential information.\n"
+		    "\n"
+		    "You should only connect to the server if you "
+		    "are certain you are connected to \"%s\". "
+		    "If you choose to connect to the server, this "
+		    "message will not be shown again."),
+		  server, reason, server);
+
+  if (cert_fingerprint)
+    {
+      g_string_append(secondary, "\n\n");
+      g_string_append_printf(secondary, _("Certificate fingerprint: %s."), cert_fingerprint);
+    }
 
   GDK_THREADS_ENTER();
 
   dialog = mn_alert_dialog_new(NULL,
 			       GTK_MESSAGE_WARNING, 0,
 			       _("Connect to untrusted server?"),
-			       secondary);
-  g_free(secondary);
+			       secondary->str);
+  g_string_free(secondary, TRUE);
 
   gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
   gtk_dialog_add_button(GTK_DIALOG(dialog), MN_STOCK_CONNECT, GTK_RESPONSE_OK);

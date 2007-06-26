@@ -24,7 +24,7 @@
 
 #line 27 "mn-about-dialog.gob"
 
-#include <gnome.h>
+#include <glib/gi18n.h>
 #include "mn-util.h"
 
 #line 31 "mn-about-dialog.c"

@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <glib/gi18n.h>
 #include <gnome.h>
 #include <eel/eel.h>
 #include "mn-util.h"

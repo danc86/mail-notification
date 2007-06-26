@@ -68,24 +68,6 @@ class MN:Message:View from MN:Text:Table (abstract)
     PARENT_HANDLER(object);
   }
 
-  override (Gtk:Widget) void
-    realize (GtkWidget *widget)
-  {
-    GtkWidget *toplevel;
-    GtkStateType state;
-
-    PARENT_HANDLER(widget);
-
-    /* set a transparent background */
-
-    toplevel = gtk_widget_get_toplevel(widget);
-    g_assert(toplevel != NULL);
-    g_assert(toplevel->style != NULL);
-
-    for (state = GTK_STATE_NORMAL; state <= GTK_STATE_INSENSITIVE; state++)
-      gtk_widget_modify_bg(widget, state, &toplevel->style->bg[state]);
-  }
-
   virtual private void
     update (self, GSList *messages);
 

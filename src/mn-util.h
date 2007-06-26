@@ -26,14 +26,19 @@
 #include <gtk/gtk.h>
 
 #define MN_LIST_FOREACH(var, head)		\
-for ((var) = (head);				\
-     (var);					\
-     (var) = (var)->next)
+  for ((var) = (head);				\
+       (var);					\
+       (var) = (var)->next)
 
 #define MN_QUEUE_FOREACH(var, queue)		\
-for ((var) = (queue)->head;			\
-     (var);					\
-     (var) = (var)->next)
+  for ((var) = (queue)->head;			\
+       (var);					\
+       (var) = (var)->next)
+
+#define MN_TREE_MODEL_FOREACH(valid, iter, model)			\
+  for ((valid) = gtk_tree_model_get_iter_first((model), (iter));	\
+       (valid);								\
+       (valid) = gtk_tree_model_iter_next((model), (iter)))
 
 void		mn_info				(const char	*format,
 						 ...) G_GNUC_PRINTF(1, 2);
@@ -152,6 +157,8 @@ int		mn_utf8_strcmp			(const char	*s1,
 						 const char	*s2);
 int		mn_utf8_strcasecmp		(const char	*s1,
 						 const char	*s2);
+gboolean	mn_utf8_str_case_has_suffix	(const char	*str,
+						 const char	*suffix);
 char		*mn_utf8_escape			(const char	*str);
 
 int		mn_dialog_run_nonmodal		(GtkDialog	*dialog);
@@ -160,6 +167,8 @@ void		mn_source_clear			(unsigned int	*tag);
 
 gboolean	mn_ascii_str_case_has_prefix	(const char	*str,
 						 const char	*prefix);
+char		*mn_ascii_strcasestr		(const char	*big,
+						 const char	*little);
 
 char		*mn_format_past_time		(time_t		past_time,
 						 time_t		now);

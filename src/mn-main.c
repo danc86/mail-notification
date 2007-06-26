@@ -20,6 +20,7 @@
 #include "config.h"
 #include <stdlib.h>
 #include <signal.h>
+#include <glib/gi18n.h>
 #include <gnome.h>
 #include <libgnomevfs/gnome-vfs.h>
 #include <libnotify/notify.h>
@@ -257,81 +258,82 @@ main (int argc, char **argv)
   gboolean arg_print_summary = FALSE;
   gboolean arg_unset_obsolete_configuration = FALSE;
   gboolean arg_quit = FALSE;
-  const struct poptOption popt_options[] = {
+  const GOptionEntry options[] = {
     {
       "version",
       'v',
-      POPT_ARG_NONE,
-      &arg_version,
       0,
+      G_OPTION_ARG_NONE,
+      &arg_version,
       N_("Show version information"),
       NULL
     },
     {
       "enable-info",
       'i',
-      POPT_ARG_NONE,
-      &arg_enable_info,
       0,
+      G_OPTION_ARG_NONE,
+      &arg_enable_info,
       N_("Enable informational output"),
       NULL
     },
     {
       "display-properties",
       'p',
-      POPT_ARG_NONE,
-      &arg_display_properties,
       0,
+      G_OPTION_ARG_NONE,
+      &arg_display_properties,
       N_("Display the properties dialog"),
       NULL
     },
     {
       "display-about",
       'a',
-      POPT_ARG_NONE,
-      &arg_display_about,
       0,
+      G_OPTION_ARG_NONE,
+      &arg_display_about,
       N_("Display the about dialog"),
       NULL
     },
     {
       "update",
       'u',
-      POPT_ARG_NONE,
-      &arg_update,
       0,
+      G_OPTION_ARG_NONE,
+      &arg_update,
       N_("Update the mail status"),
       NULL
     },
     {
       "print-summary",
       's',
-      POPT_ARG_NONE,
-      &arg_print_summary,
       0,
+      G_OPTION_ARG_NONE,
+      &arg_print_summary,
       N_("Print a XML mail summary"),
       NULL
     },
     {
       "unset-obsolete-configuration",
       '\0',
-      POPT_ARG_NONE,
-      &arg_unset_obsolete_configuration,
       0,
+      G_OPTION_ARG_NONE,
+      &arg_unset_obsolete_configuration,
       N_("Unset obsolete GConf configuration"),
       NULL
     },
     {
       "quit",
       'q',
-      POPT_ARG_NONE,
-      &arg_quit,
       0,
+      G_OPTION_ARG_NONE,
+      &arg_quit,
       N_("Quit Mail Notification"),
       NULL
     },
-    POPT_TABLEEND
+    { NULL }
   };
+  GOptionContext *option_context;
   BonoboGenericFactory *automation_factory;
   GClosure *automation_factory_closure;
   Bonobo_RegistrationResult result;
@@ -356,6 +358,11 @@ main (int argc, char **argv)
     g_critical(_("multi-threading is not available"));
   gdk_threads_init();
 
+  GDK_THREADS_ENTER();
+
+  option_context = g_option_context_new(NULL);
+  g_option_context_add_main_entries(option_context, options, GETTEXT_PACKAGE);
+
   gnome_program_init(PACKAGE,
 		     VERSION,
 		     LIBGNOMEUI_MODULE,
@@ -363,22 +370,20 @@ main (int argc, char **argv)
 		     argv,
 		     GNOME_PARAM_HUMAN_READABLE_NAME, _("Mail Notification"),
 		     GNOME_PROGRAM_STANDARD_PROPERTIES,
-		     GNOME_PARAM_POPT_TABLE, popt_options,
+		     GNOME_PARAM_GOPTION_CONTEXT, option_context,
 		     NULL);
 
   if (arg_version)
     {
       mn_main_print_version();
-      exit(0);
+      goto end;
     }
 
   if (arg_unset_obsolete_configuration)
     {
       mn_conf_unset_obsolete();
-      exit(0);
+      goto end;
     }
-
-  GDK_THREADS_ENTER();
 
   mn_main_ensure_icon_path();
   gtk_window_set_default_icon_name("mail-notification");
@@ -528,6 +533,7 @@ main (int argc, char **argv)
   if (result != Bonobo_ACTIVATION_REG_ALREADY_ACTIVE && ! arg_quit)
     gtk_main();
 
+ end:
   GDK_THREADS_LEAVE();
 
   return 0;

@@ -133,8 +133,8 @@ e_plugin_lib_enable (EPluginLib *ep, int enable)
 }
 
 void
-org_gnome_mail_notification_folder_changed (EPlugin *plugin,
-					    EMEventTargetFolder *folder)
+org_jylefort_mail_notification_folder_changed (EPlugin *plugin,
+					       EMEventTargetFolder *folder)
 {
   if (mn_evolution_glues)
     {
@@ -160,8 +160,8 @@ org_gnome_mail_notification_folder_changed (EPlugin *plugin,
 }
 
 void
-org_gnome_mail_notification_message_reading (EPlugin *plugin,
-					     EMEventTargetMessage *message)
+org_jylefort_mail_notification_message_reading (EPlugin *plugin,
+						EMEventTargetMessage *message)
 {
   if (mn_evolution_glues)
     {

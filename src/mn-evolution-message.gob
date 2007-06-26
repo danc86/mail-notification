@@ -123,4 +123,10 @@ class MN:Evolution:Message from MN:Message
   {
     return self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN | CAMEL_MESSAGE_JUNK | CAMEL_MESSAGE_JUNK_LEARN, err);
   }
+
+  override (MN:Message) gboolean
+    delete_impl (MNMessage *message, GError **err)
+  {
+    return self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN | CAMEL_MESSAGE_DELETED, err);
+  }
 }

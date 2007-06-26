@@ -29,6 +29,14 @@ requires 2.0.14
 #include <glib/gi18n.h>
 #include "mn-conf.h"
 #include "mn-shell.h"
+
+typedef void (*ActionAddFunction) (MNPopup *self);
+
+typedef struct
+{
+  const char		*id;
+  ActionAddFunction	add;
+} ActionDefinition;
 %}
 
 class MN:Popup from Notify:Notification
@@ -68,10 +76,64 @@ class MN:Popup from Notify:Notification
 
     g_string_free(body, TRUE);
 
+    self_add_actions(self);
+
+    notify_notification_set_timeout(NOTIFY_NOTIFICATION(self), self_get_conf_timeout());
+
+    g_signal_connect(self, "closed", G_CALLBACK(self_closed_h), NULL);
+
+    return object;
+  }
+
+  private ActionDefinition *
+    find_action (const char *id (check null))
+  {
+    static ActionDefinition action_definitions[] = {
+      { "open",		mn_popup_add_open_cb },
+      { "mark-as-read",	mn_popup_add_mark_as_read_cb },
+      { "mark-as-spam",	mn_popup_add_mark_as_spam_cb },
+      { "delete",	mn_popup_add_delete_cb }
+    };
+    int i;
+
+    for (i = 0; i < G_N_ELEMENTS(action_definitions); i++)
+      if (! strcmp(action_definitions[i].id, id))
+	return &action_definitions[i];
+
+    return NULL;
+  }
+
+  private void
+    add_actions (self)
+  {
+    GSList *actions;
+    GSList *l;
+
     /*
      * Note that notification-daemon currently assigns icons to
      * actions by prepending "stock_" to the action ID.
      */
+
+    actions = eel_gconf_get_string_list(MN_CONF_POPUPS_ACTIONS);
+
+    MN_LIST_FOREACH(l, actions)
+      {
+	char *id = l->data;
+	ActionDefinition *def;
+
+	def = self_find_action(id);
+	if (def)
+	  def->add(self);
+	else
+	  g_warning(_("configuration key %s: there is no action named `%s'"), MN_CONF_POPUPS_ACTIONS, id);
+      }
+
+    eel_g_slist_free_deep(actions);
+  }
+
+  private void
+    add_open_cb (self)
+  {
     if (mn_message_can_open(selfp->message))
       notify_notification_add_action(NOTIFY_NOTIFICATION(self),
 				     "mail-open",
@@ -80,6 +142,11 @@ class MN:Popup from Notify:Notification
 				     self_open_cb,
 				     NULL,
 				     NULL);
+  }
+
+  private void
+    add_mark_as_read_cb (self)
+  {
     if (mn_message_can_mark_as_read(selfp->message))
       notify_notification_add_action(NOTIFY_NOTIFICATION(self),
 				     "mark",
@@ -88,6 +155,11 @@ class MN:Popup from Notify:Notification
 				     self_mark_as_read_cb,
 				     NULL,
 				     NULL);
+  }
+
+  private void
+    add_mark_as_spam_cb (self)
+  {
     if (mn_message_can_mark_as_spam(selfp->message))
       notify_notification_add_action(NOTIFY_NOTIFICATION(self),
 				     "spam",
@@ -96,12 +168,19 @@ class MN:Popup from Notify:Notification
 				     self_mark_as_spam_cb,
 				     NULL,
 				     NULL);
+  }
 
-    notify_notification_set_timeout(NOTIFY_NOTIFICATION(self), self_get_conf_timeout());
-
-    g_signal_connect(self, "closed", G_CALLBACK(self_closed_h), NULL);
-
-    return object;
+  private void
+    add_delete_cb (self)
+  {
+    if (mn_message_can_delete(selfp->message))
+      notify_notification_add_action(NOTIFY_NOTIFICATION(self),
+				     "delete",
+				     /* translators: header capitalization */
+				     _("Delete"),
+				     self_delete_cb,
+				     NULL,
+				     NULL);
   }
 
   private void
@@ -149,6 +228,23 @@ class MN:Popup from Notify:Notification
     if (! mn_message_mark_as_spam(selfp->message, &err))
       {
 	mn_error_dialog(NULL, _("Unable to mark message as spam"), "%s", err->message);
+	g_error_free(err);
+      }
+
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    delete_cb (NotifyNotification *notification, char *id, gpointer user_data)
+  {
+    Self *self = SELF(notification);
+    GError *err = NULL;
+
+    GDK_THREADS_ENTER();
+
+    if (! mn_message_delete(selfp->message, &err))
+      {
+	mn_error_dialog(NULL, _("Unable to delete message"), "%s", err->message);
 	g_error_free(err);
       }
 

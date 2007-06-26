@@ -3,7 +3,7 @@ evolution_server_in = GNOME_MailNotification_Evolution.server.in
 evolution_server = GNOME_MailNotification_Evolution.server
 endif
 
-# gnome_cappletdir is defined by configure
+gnome_cappletdir = $(datadir)/applications
 gnome_capplet_in_files = mail-notification-properties.desktop.in
 gnome_capplet_DATA = mail-notification-properties.desktop
 

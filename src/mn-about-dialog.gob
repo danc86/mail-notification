@@ -25,7 +25,7 @@ requires 2.0.14
 %}
 
 %{
-#include <gnome.h>
+#include <glib/gi18n.h>
 #include "mn-util.h"
 %}
 

@@ -175,6 +175,18 @@
       </locale>
     </schema> 
     <schema>
+      <key>/schemas/apps/mail-notification/popups/actions</key>
+      <applyto>/apps/mail-notification/popups/actions</applyto>
+      <owner>mail-notification</owner>
+      <type>list</type>
+      <list_type>string</list_type>
+      <default>[open,mark-as-read,mark-as-spam]</default>
+      <locale name="C">
+        <short>Message popups actions</short>
+	<long>The ordered list of actions to include in the message popups. Each element must be "open", "mark-as-read", "mark-as-spam" or "delete".</long>
+      </locale>
+    </schema>
+    <schema>
       <key>/schemas/apps/mail-notification/popups/position</key>
       <applyto>/apps/mail-notification/popups/position</applyto>
       <owner>mail-notification</owner>

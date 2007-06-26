@@ -1,42 +1,76 @@
-<legalnotice id="documentation-license">
-  <para>
-    Redistribution and use in source (SGML DocBook) and 'compiled'
-    forms (SGML, HTML, PDF, PostScript, RTF and so forth) with or
-    without modification, are permitted provided that the following
-    conditions are met:
-
-    <orderedlist>
-      <listitem>
-	<para>Redistributions of source code (SGML DocBook) must
-	  retain the above copyright notice, this list of conditions and
-	  the following disclaimer as the first lines of this file
-	  unmodified.
-	</para>
-      </listitem>
-      <listitem>
-	<para>Redistributions in compiled form (transformed to other
-	  DTDs, converted to PDF, PostScript, RTF and other formats)
-	  must reproduce the above copyright notice, this list of
-	  conditions and the following disclaimer in the documentation
-	  and/or other materials provided with the distribution.
-	</para>
-      </listitem>
-    </orderedlist>
-  </para>
-
-  <para>
-    THIS DOCUMENTATION IS PROVIDED BY THE COPYRIGHT HOLDERS AND
-    CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-    INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-    MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
-    BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-    EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-    TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-    ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-    TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-    THE USE OF THIS DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY
-    OF SUCH DAMAGE.
-  </para>
-</legalnotice>
+   <legalnotice id="legalnotice">
+         <para>
+           Permission is granted to copy, distribute and/or modify this
+           document under the terms of the GNU Free Documentation
+           License (GFDL), Version 1.1 or any later version published
+           by the Free Software Foundation with no Invariant Sections,
+           no Front-Cover Texts, and no Back-Cover Texts.  You can find
+           a copy of the GFDL at this <ulink type="help"
+           url="ghelp:fdl">link</ulink> or in the file COPYING-DOCS
+           distributed with this manual.
+          </para>
+          <para> This manual is part of a collection of GNOME manuals
+           distributed under the GFDL.  If you want to distribute this
+           manual separately from the collection, you can do so by
+           adding a copy of the license to the manual, as described in
+           section 6 of the license.
+         </para>
+ 
+         <para>
+           Many of the names used by companies to distinguish their
+           products and services are claimed as trademarks. Where those
+           names appear in any GNOME documentation, and the members of
+           the GNOME Documentation Project are made aware of those
+           trademarks, then the names are in capital letters or initial
+           capital letters.
+         </para>
+ 
+         <para>
+           DOCUMENT AND MODIFIED VERSIONS OF THE DOCUMENT ARE PROVIDED
+           UNDER  THE TERMS OF THE GNU FREE DOCUMENTATION LICENSE
+           WITH THE FURTHER UNDERSTANDING THAT:
+ 
+           <orderedlist>
+                 <listitem>
+                   <para>DOCUMENT IS PROVIDED ON AN "AS IS" BASIS,
+                     WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR
+                     IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
+                     THAT THE DOCUMENT OR MODIFIED VERSION OF THE
+                     DOCUMENT IS FREE OF DEFECTS MERCHANTABLE, FIT FOR
+                     A PARTICULAR PURPOSE OR NON-INFRINGING. THE ENTIRE
+                     RISK AS TO THE QUALITY, ACCURACY, AND PERFORMANCE
+                     OF THE DOCUMENT OR MODIFIED VERSION OF THE
+                     DOCUMENT IS WITH YOU. SHOULD ANY DOCUMENT OR
+                     MODIFIED VERSION PROVE DEFECTIVE IN ANY RESPECT,
+                     YOU (NOT THE INITIAL WRITER, AUTHOR OR ANY
+                     CONTRIBUTOR) ASSUME THE COST OF ANY NECESSARY
+                     SERVICING, REPAIR OR CORRECTION. THIS DISCLAIMER
+                     OF WARRANTY CONSTITUTES AN ESSENTIAL PART OF THIS
+                     LICENSE. NO USE OF ANY DOCUMENT OR MODIFIED
+                     VERSION OF THE DOCUMENT IS AUTHORIZED HEREUNDER
+                     EXCEPT UNDER THIS DISCLAIMER; AND
+                   </para>
+                 </listitem>
+                 <listitem>
+                   <para>UNDER NO CIRCUMSTANCES AND UNDER NO LEGAL
+                        THEORY, WHETHER IN TORT (INCLUDING NEGLIGENCE),
+                        CONTRACT, OR OTHERWISE, SHALL THE AUTHOR,
+                        INITIAL WRITER, ANY CONTRIBUTOR, OR ANY
+                        DISTRIBUTOR OF THE DOCUMENT OR MODIFIED VERSION
+                        OF THE DOCUMENT, OR ANY SUPPLIER OF ANY OF SUCH
+                        PARTIES, BE LIABLE TO ANY PERSON FOR ANY
+                        DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR
+                        CONSEQUENTIAL DAMAGES OF ANY CHARACTER
+                        INCLUDING, WITHOUT LIMITATION, DAMAGES FOR LOSS
+                        OF GOODWILL, WORK STOPPAGE, COMPUTER FAILURE OR
+                        MALFUNCTION, OR ANY AND ALL OTHER DAMAGES OR
+                        LOSSES ARISING OUT OF OR RELATING TO USE OF THE
+                        DOCUMENT AND MODIFIED VERSIONS OF THE DOCUMENT,
+                        EVEN IF SUCH PARTY SHALL HAVE BEEN INFORMED OF
+                        THE POSSIBILITY OF SUCH DAMAGES.
+                   </para>
+                 </listitem>
+           </orderedlist>
+         </para>
+   </legalnotice>
+ 

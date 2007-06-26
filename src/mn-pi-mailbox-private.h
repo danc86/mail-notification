@@ -22,9 +22,9 @@ extern "C" {
 
 #line 24 "mn-pi-mailbox-private.h"
 struct _MNPIMailboxPrivate {
-#line 92 "mn-pi-mailbox.gob"
+#line 93 "mn-pi-mailbox.gob"
 	GtkWidget * auth_dialog;
-#line 95 "mn-pi-mailbox.gob"
+#line 96 "mn-pi-mailbox.gob"
 	gboolean auth_failed;
 #line 30 "mn-pi-mailbox-private.h"
 };

@@ -128,9 +128,9 @@ mn_maildir_mailbox_backend_class_init (MNMaildirMailboxBackendClass * class G_GN
 	mn_vfs_mailbox_backend_class->monitor_cb = ___2_mn_maildir_mailbox_backend_monitor_cb;
 #line 69 "mn-maildir-mailbox-backend.gob"
 	mn_vfs_mailbox_backend_class->is = ___3_mn_maildir_mailbox_backend_is;
-#line 187 "mn-maildir-mailbox-backend.gob"
+#line 190 "mn-maildir-mailbox-backend.gob"
 	mn_vfs_mailbox_backend_class->check = ___6_mn_maildir_mailbox_backend_check;
-#line 231 "mn-maildir-mailbox-backend.gob"
+#line 234 "mn-maildir-mailbox-backend.gob"
 	mn_vfs_mailbox_backend_class->mark_as_read = ___8_mn_maildir_mailbox_backend_mark_as_read;
 #line 136 "mn-maildir-mailbox-backend.c"
  {
@@ -283,6 +283,7 @@ mn_maildir_mailbox_backend_scan_directory (MNMaildirMailboxBackend * self, unsig
       if (file_info->name[0] != '.')
 	{
 	  MNMessageFlags flags = 0;
+	  MNMessage *message;
 
 	  if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 	    {
@@ -305,11 +306,13 @@ mn_maildir_mailbox_backend_scan_directory (MNMaildirMailboxBackend * self, unsig
 		continue; /* no info, or message seen/trashed: ignore it */
 	    }
 
-	  *messages = g_slist_prepend(*messages, mn_vfs_message_new(backend,
-								    uri,
-								    file_info->name,
-								    flags,
-								    FALSE));
+	  message = mn_vfs_message_new(backend,
+				       uri,
+				       file_info->name,
+				       flags,
+				       FALSE);
+	  if (message)
+	    *messages = g_slist_prepend(*messages, message);
 	}
     gnome_vfs_uri_unref(uri);
     gnome_vfs_file_info_unref(file_info);
@@ -330,20 +333,20 @@ mn_maildir_mailbox_backend_scan_directory (MNMaildirMailboxBackend * self, unsig
 
     return FALSE;
   }}
-#line 334 "mn-maildir-mailbox-backend.c"
+#line 337 "mn-maildir-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 187 "mn-maildir-mailbox-backend.gob"
+#line 190 "mn-maildir-mailbox-backend.gob"
 static void 
 ___6_mn_maildir_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, unsigned long check_id)
-#line 340 "mn-maildir-mailbox-backend.c"
+#line 343 "mn-maildir-mailbox-backend.c"
 #define PARENT_HANDLER(___backend,___check_id) \
 	{ if(MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->check) \
 		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->check)(___backend,___check_id); }
 {
 #define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::check"
 {
-#line 189 "mn-maildir-mailbox-backend.gob"
+#line 192 "mn-maildir-mailbox-backend.gob"
 	
     Self *self = SELF(backend);
     GSList *messages = NULL;
@@ -374,18 +377,18 @@ ___6_mn_maildir_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUS
     if (err)
       g_error_free(err);
   }}
-#line 378 "mn-maildir-mailbox-backend.c"
+#line 381 "mn-maildir-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 220 "mn-maildir-mailbox-backend.gob"
+#line 223 "mn-maildir-mailbox-backend.gob"
 static int 
 mn_maildir_mailbox_backend_flags_sort_cb (const void * a, const void * b)
-#line 385 "mn-maildir-mailbox-backend.c"
+#line 388 "mn-maildir-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::flags_sort_cb"
 {
-#line 222 "mn-maildir-mailbox-backend.gob"
+#line 225 "mn-maildir-mailbox-backend.gob"
 	
     char ca = *((char *) a);
     char cb = *((char *) b);
@@ -394,13 +397,13 @@ mn_maildir_mailbox_backend_flags_sort_cb (const void * a, const void * b)
 
     return ca - cb;
   }}
-#line 398 "mn-maildir-mailbox-backend.c"
+#line 401 "mn-maildir-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 231 "mn-maildir-mailbox-backend.gob"
+#line 234 "mn-maildir-mailbox-backend.gob"
 static gboolean 
 ___8_mn_maildir_mailbox_backend_mark_as_read (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSMessage * message, GError ** err)
-#line 404 "mn-maildir-mailbox-backend.c"
+#line 407 "mn-maildir-mailbox-backend.c"
 #define PARENT_HANDLER(___dummy,___message,___err) \
 	((MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->mark_as_read)? \
 		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->mark_as_read)(___dummy,___message,___err): \
@@ -408,7 +411,7 @@ ___8_mn_maildir_mailbox_backend_mark_as_read (MNVFSMailboxBackend * dummy G_GNUC
 {
 #define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::mark_as_read"
 {
-#line 235 "mn-maildir-mailbox-backend.gob"
+#line 238 "mn-maildir-mailbox-backend.gob"
 	
     char *old_flags;
     char *old_filename;
@@ -465,6 +468,6 @@ ___8_mn_maildir_mailbox_backend_mark_as_read (MNVFSMailboxBackend * dummy G_GNUC
 
     return status;
   }}
-#line 469 "mn-maildir-mailbox-backend.c"
+#line 472 "mn-maildir-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER

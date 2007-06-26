@@ -29,7 +29,6 @@ static const GtkStockItem items[] = {
   /* translators: header capitalization */
   { MN_STOCK_SELECT_ALL, N_("Select _All"), 0, 0, NULL },
   /* translators: header capitalization */
-  /* translators: header capitalization */
   { MN_STOCK_CONNECT, N_("Co_nnect"), 0, 0, NULL }
 };
 

@@ -39,6 +39,7 @@ requires 2.0.14
 
 %{
 #include "config.h"
+#include <glib/gi18n.h>
 #include <gnome.h>
 #include <eel/eel.h>
 #include "mn-mailbox-private.h"
@@ -144,7 +145,7 @@ class MN:PI:Mailbox from MN:Authenticated:Mailbox (abstract)
 
     PARENT_HANDLER(mailbox);
 
-#ifndef WITH_SSL
+#if ! WITH_SSL
     if (self->connection_type == MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL
 	|| self->connection_type == MN_PI_MAILBOX_CONNECTION_TYPE_SSL)
       {

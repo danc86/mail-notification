@@ -114,6 +114,15 @@ class MN:Text:Table from Gtk:Drawing:Area
     g_free(cell);
   }
 
+  override (Gtk:Widget) void
+    realize (GtkWidget *widget)
+  {
+    PARENT_HANDLER(widget);
+
+    /* set a transparent background */
+    gdk_window_set_back_pixmap(widget->window, NULL, TRUE);
+  }
+
   override (Gtk:Widget) gboolean
     expose_event (GtkWidget *widget, GdkEventExpose *event)
   {

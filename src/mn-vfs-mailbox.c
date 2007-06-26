@@ -54,11 +54,15 @@ typedef struct
 {
   char				*uri;
   MNVFSMailboxBackend		*owner;
+  GnomeVFSMonitorType		type;
+  GnomeVFSMonitorCallback	callback;
+  gpointer			user_data;
+
   GnomeVFSResult		result;
   GnomeVFSMonitorHandle		*handle;
 } Monitor;
 
-#line 62 "mn-vfs-mailbox.c"
+#line 66 "mn-vfs-mailbox.c"
 /* self casting macros */
 #define SELF(x) MN_VFS_MAILBOX(x)
 #define SELF_CONST(x) MN_VFS_MAILBOX_CONST(x)
@@ -78,17 +82,19 @@ static void mn_vfs_mailbox_class_init (MNVFSMailboxClass * class) G_GNUC_UNUSED;
 static GObject * ___3_mn_vfs_mailbox_constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam * construct_params) G_GNUC_UNUSED;
 static void ___4_mn_vfs_mailbox_dispose (GObject * object) G_GNUC_UNUSED;
 static void ___5_mn_vfs_mailbox_seal (MNMailbox * mailbox) G_GNUC_UNUSED;
+static Monitor * mn_vfs_mailbox_find_monitor (MNVFSMailbox * self, const char * uri, MNVFSMailboxBackend * owner, GnomeVFSMonitorType type, GnomeVFSMonitorCallback callback, gpointer user_data) G_GNUC_UNUSED;
 static void mn_vfs_mailbox_monitor_free (Monitor * monitor) G_GNUC_UNUSED;
 static void mn_vfs_mailbox_monitor_cb (GnomeVFSMonitorHandle * handle, const char * monitor_uri, const char * info_uri, GnomeVFSMonitorEventType event_type, gpointer user_data) G_GNUC_UNUSED;
 static void mn_vfs_mailbox_queue_update_poll (MNVFSMailbox * self) G_GNUC_UNUSED;
 static gboolean mn_vfs_mailbox_update_poll_cb (gpointer data) G_GNUC_UNUSED;
-static void ___c_mn_vfs_mailbox_reentrant_check (MNReentrantMailbox * mailbox, unsigned long check_id) G_GNUC_UNUSED;
+static void ___d_mn_vfs_mailbox_reentrant_check (MNReentrantMailbox * mailbox, unsigned long check_id) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
 static MNReentrantMailboxClass *parent_class = NULL;
 
 /* Short form macros */
 #define self_init_types mn_vfs_mailbox_init_types
+#define self_find_monitor mn_vfs_mailbox_find_monitor
 #define self_monitor mn_vfs_mailbox_monitor
 #define self_monitor_free mn_vfs_mailbox_monitor_free
 #define self_monitor_cb mn_vfs_mailbox_monitor_cb
@@ -143,15 +149,15 @@ ___dispose (GObject *obj_self)
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox::dispose"
 	MNVFSMailbox *self G_GNUC_UNUSED = MN_VFS_MAILBOX (obj_self);
-#line 141 "mn-vfs-mailbox.gob"
+#line 145 "mn-vfs-mailbox.gob"
 	___4_mn_vfs_mailbox_dispose(obj_self);
-#line 149 "mn-vfs-mailbox.c"
-#line 78 "mn-vfs-mailbox.gob"
-	if(self->vfs_uri) { gnome_vfs_uri_unref ((gpointer) self->vfs_uri); self->vfs_uri = NULL; }
-#line 152 "mn-vfs-mailbox.c"
-#line 81 "mn-vfs-mailbox.gob"
-	if(self->_priv->backend) { g_object_unref ((gpointer) self->_priv->backend); self->_priv->backend = NULL; }
 #line 155 "mn-vfs-mailbox.c"
+#line 82 "mn-vfs-mailbox.gob"
+	if(self->vfs_uri) { gnome_vfs_uri_unref ((gpointer) self->vfs_uri); self->vfs_uri = NULL; }
+#line 158 "mn-vfs-mailbox.c"
+#line 85 "mn-vfs-mailbox.gob"
+	if(self->_priv->backend) { g_object_unref ((gpointer) self->_priv->backend); self->_priv->backend = NULL; }
+#line 161 "mn-vfs-mailbox.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -164,9 +170,9 @@ ___finalize(GObject *obj_self)
 	gpointer priv G_GNUC_UNUSED = self->_priv;
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 77 "mn-vfs-mailbox.gob"
+#line 81 "mn-vfs-mailbox.gob"
 	if(self->uri) { g_free ((gpointer) self->uri); self->uri = NULL; }
-#line 170 "mn-vfs-mailbox.c"
+#line 176 "mn-vfs-mailbox.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -177,10 +183,10 @@ mn_vfs_mailbox_init (MNVFSMailbox * o G_GNUC_UNUSED)
 	o->_priv = G_TYPE_INSTANCE_GET_PRIVATE(o,MN_TYPE_VFS_MAILBOX,MNVFSMailboxPrivate);
 }
 #undef __GOB_FUNCTION__
-#line 107 "mn-vfs-mailbox.gob"
+#line 111 "mn-vfs-mailbox.gob"
 static void 
 mn_vfs_mailbox_class_init (MNVFSMailboxClass * class G_GNUC_UNUSED)
-#line 184 "mn-vfs-mailbox.c"
+#line 190 "mn-vfs-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox::class_init"
 	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
@@ -191,18 +197,18 @@ mn_vfs_mailbox_class_init (MNVFSMailboxClass * class G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (MN_TYPE_REENTRANT_MAILBOX);
 
-#line 117 "mn-vfs-mailbox.gob"
+#line 121 "mn-vfs-mailbox.gob"
 	g_object_class->constructor = ___3_mn_vfs_mailbox_constructor;
-#line 141 "mn-vfs-mailbox.gob"
+#line 145 "mn-vfs-mailbox.gob"
 	g_object_class->dispose = ___dispose;
-#line 156 "mn-vfs-mailbox.gob"
+#line 160 "mn-vfs-mailbox.gob"
 	mn_mailbox_class->seal = ___5_mn_vfs_mailbox_seal;
-#line 322 "mn-vfs-mailbox.gob"
-	mn_reentrant_mailbox_class->reentrant_check = ___c_mn_vfs_mailbox_reentrant_check;
-#line 203 "mn-vfs-mailbox.c"
+#line 343 "mn-vfs-mailbox.gob"
+	mn_reentrant_mailbox_class->reentrant_check = ___d_mn_vfs_mailbox_reentrant_check;
+#line 209 "mn-vfs-mailbox.c"
 	g_object_class->finalize = ___finalize;
  {
-#line 108 "mn-vfs-mailbox.gob"
+#line 112 "mn-vfs-mailbox.gob"
 
     /*
      * Most VFS mailboxes will probably be local files, or remote
@@ -211,20 +217,20 @@ mn_vfs_mailbox_class_init (MNVFSMailboxClass * class G_GNUC_UNUSED)
      */
     MN_MAILBOX_CLASS(class)->default_check_delay = 60 * 1;
   
-#line 215 "mn-vfs-mailbox.c"
+#line 221 "mn-vfs-mailbox.c"
  }
 }
 #undef __GOB_FUNCTION__
 
 
-#line 84 "mn-vfs-mailbox.gob"
+#line 88 "mn-vfs-mailbox.gob"
 void 
 mn_vfs_mailbox_init_types (void)
-#line 224 "mn-vfs-mailbox.c"
+#line 230 "mn-vfs-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox::init_types"
 {
-#line 86 "mn-vfs-mailbox.gob"
+#line 90 "mn-vfs-mailbox.gob"
 	
     int i = 0;
 
@@ -245,14 +251,14 @@ mn_vfs_mailbox_init_types (void)
 #endif
     mn_vfs_mailbox_backend_types[i] = 0;
   }}
-#line 249 "mn-vfs-mailbox.c"
+#line 255 "mn-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 
 
-#line 117 "mn-vfs-mailbox.gob"
+#line 121 "mn-vfs-mailbox.gob"
 static GObject * 
 ___3_mn_vfs_mailbox_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_properties, GObjectConstructParam * construct_params)
-#line 256 "mn-vfs-mailbox.c"
+#line 262 "mn-vfs-mailbox.c"
 #define PARENT_HANDLER(___type,___n_construct_properties,___construct_params) \
 	((G_OBJECT_CLASS(parent_class)->constructor)? \
 		(* G_OBJECT_CLASS(parent_class)->constructor)(___type,___n_construct_properties,___construct_params): \
@@ -260,7 +266,7 @@ ___3_mn_vfs_mailbox_constructor (GType type G_GNUC_UNUSED, unsigned int n_constr
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox::constructor"
 {
-#line 119 "mn-vfs-mailbox.gob"
+#line 123 "mn-vfs-mailbox.gob"
 	
     GObject *object;
     Self *self;
@@ -282,21 +288,21 @@ ___3_mn_vfs_mailbox_constructor (GType type G_GNUC_UNUSED, unsigned int n_constr
 
     return object;
   }}
-#line 286 "mn-vfs-mailbox.c"
+#line 292 "mn-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 141 "mn-vfs-mailbox.gob"
+#line 145 "mn-vfs-mailbox.gob"
 static void 
 ___4_mn_vfs_mailbox_dispose (GObject * object G_GNUC_UNUSED)
-#line 293 "mn-vfs-mailbox.c"
+#line 299 "mn-vfs-mailbox.c"
 #define PARENT_HANDLER(___object) \
 	{ if(G_OBJECT_CLASS(parent_class)->dispose) \
 		(* G_OBJECT_CLASS(parent_class)->dispose)(___object); }
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox::dispose"
 {
-#line 143 "mn-vfs-mailbox.gob"
+#line 147 "mn-vfs-mailbox.gob"
 	
     Self *self = SELF(object);
 
@@ -309,21 +315,21 @@ ___4_mn_vfs_mailbox_dispose (GObject * object G_GNUC_UNUSED)
 
     PARENT_HANDLER(object);
   }}
-#line 313 "mn-vfs-mailbox.c"
+#line 319 "mn-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 156 "mn-vfs-mailbox.gob"
+#line 160 "mn-vfs-mailbox.gob"
 static void 
 ___5_mn_vfs_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
-#line 320 "mn-vfs-mailbox.c"
+#line 326 "mn-vfs-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_MAILBOX_CLASS(parent_class)->seal) \
 		(* MN_MAILBOX_CLASS(parent_class)->seal)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox::seal"
 {
-#line 158 "mn-vfs-mailbox.gob"
+#line 162 "mn-vfs-mailbox.gob"
 	
     Self *self = SELF(mailbox);
 
@@ -350,47 +356,74 @@ ___5_mn_vfs_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
 	  }
       }
   }}
-#line 354 "mn-vfs-mailbox.c"
+#line 360 "mn-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 185 "mn-vfs-mailbox.gob"
-void 
-mn_vfs_mailbox_monitor (MNVFSMailbox * self, const char * uri, MNVFSMailboxBackend * owner, GnomeVFSMonitorType type, GnomeVFSMonitorCallback callback, gpointer user_data)
-#line 361 "mn-vfs-mailbox.c"
+#line 189 "mn-vfs-mailbox.gob"
+static Monitor * 
+mn_vfs_mailbox_find_monitor (MNVFSMailbox * self, const char * uri, MNVFSMailboxBackend * owner, GnomeVFSMonitorType type, GnomeVFSMonitorCallback callback, gpointer user_data)
+#line 367 "mn-vfs-mailbox.c"
 {
-#define __GOB_FUNCTION__ "MN:VFS:Mailbox::monitor"
-#line 185 "mn-vfs-mailbox.gob"
-	g_return_if_fail (self != NULL);
-#line 185 "mn-vfs-mailbox.gob"
-	g_return_if_fail (MN_IS_VFS_MAILBOX (self));
-#line 185 "mn-vfs-mailbox.gob"
-	g_return_if_fail (uri != NULL);
-#line 370 "mn-vfs-mailbox.c"
+#define __GOB_FUNCTION__ "MN:VFS:Mailbox::find_monitor"
+#line 189 "mn-vfs-mailbox.gob"
+	g_return_val_if_fail (self != NULL, (Monitor * )0);
+#line 189 "mn-vfs-mailbox.gob"
+	g_return_val_if_fail (MN_IS_VFS_MAILBOX (self), (Monitor * )0);
+#line 189 "mn-vfs-mailbox.gob"
+	g_return_val_if_fail (uri != NULL, (Monitor * )0);
+#line 376 "mn-vfs-mailbox.c"
 {
-#line 192 "mn-vfs-mailbox.gob"
+#line 196 "mn-vfs-mailbox.gob"
 	
-    Monitor *monitor = NULL;
     GSList *l;
-
-    g_return_if_fail(owner == NULL || MN_IS_VFS_MAILBOX_BACKEND(owner));
 
     MN_LIST_FOREACH(l, selfp->monitors)
       {
-	Monitor *this_monitor = l->data;
+	Monitor *monitor = l->data;
 
-	if (this_monitor->owner == owner && ! strcmp(this_monitor->uri, uri))
-	  {
-	    monitor = this_monitor;
-	    break;
-	  }
+	if (monitor->owner == owner
+	    && monitor->type == type
+	    && monitor->callback == callback
+	    && monitor->user_data == user_data
+	    && ! strcmp(monitor->uri, uri))
+	  return monitor;
       }
 
+    return NULL;
+  }}
+#line 396 "mn-vfs-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 214 "mn-vfs-mailbox.gob"
+void 
+mn_vfs_mailbox_monitor (MNVFSMailbox * self, const char * uri, MNVFSMailboxBackend * owner, GnomeVFSMonitorType type, GnomeVFSMonitorCallback callback, gpointer user_data)
+#line 402 "mn-vfs-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:VFS:Mailbox::monitor"
+#line 214 "mn-vfs-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 214 "mn-vfs-mailbox.gob"
+	g_return_if_fail (MN_IS_VFS_MAILBOX (self));
+#line 214 "mn-vfs-mailbox.gob"
+	g_return_if_fail (uri != NULL);
+#line 411 "mn-vfs-mailbox.c"
+{
+#line 221 "mn-vfs-mailbox.gob"
+	
+    Monitor *monitor;
+
+    g_return_if_fail(owner == NULL || MN_IS_VFS_MAILBOX_BACKEND(owner));
+
+    monitor = self_find_monitor(self, uri, owner, type, callback, user_data);
     if (! monitor)
       {
 	monitor = g_new0(Monitor, 1);
 	monitor->uri = g_strdup(uri);
 	monitor->owner = owner;
+	monitor->type = type;
+	monitor->callback = callback;
+	monitor->user_data = user_data;
 	monitor->result = -1;
 
 	selfp->monitors = g_slist_append(selfp->monitors, monitor);
@@ -411,20 +444,20 @@ mn_vfs_mailbox_monitor (MNVFSMailbox * self, const char * uri, MNVFSMailboxBacke
 	  }
       }
   }}
-#line 415 "mn-vfs-mailbox.c"
+#line 448 "mn-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 235 "mn-vfs-mailbox.gob"
+#line 256 "mn-vfs-mailbox.gob"
 static void 
 mn_vfs_mailbox_monitor_free (Monitor * monitor)
-#line 421 "mn-vfs-mailbox.c"
+#line 454 "mn-vfs-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox::monitor_free"
-#line 235 "mn-vfs-mailbox.gob"
+#line 256 "mn-vfs-mailbox.gob"
 	g_return_if_fail (monitor != NULL);
-#line 426 "mn-vfs-mailbox.c"
+#line 459 "mn-vfs-mailbox.c"
 {
-#line 237 "mn-vfs-mailbox.gob"
+#line 258 "mn-vfs-mailbox.gob"
 	
     g_free(monitor->uri);
 
@@ -433,17 +466,17 @@ mn_vfs_mailbox_monitor_free (Monitor * monitor)
 
     g_free(monitor);
   }}
-#line 437 "mn-vfs-mailbox.c"
+#line 470 "mn-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 246 "mn-vfs-mailbox.gob"
+#line 267 "mn-vfs-mailbox.gob"
 static void 
 mn_vfs_mailbox_monitor_cb (GnomeVFSMonitorHandle * handle, const char * monitor_uri, const char * info_uri, GnomeVFSMonitorEventType event_type, gpointer user_data)
-#line 443 "mn-vfs-mailbox.c"
+#line 476 "mn-vfs-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox::monitor_cb"
 {
-#line 252 "mn-vfs-mailbox.gob"
+#line 273 "mn-vfs-mailbox.gob"
 	
     if (event_type == GNOME_VFS_MONITOR_EVENT_CHANGED
 	|| event_type == GNOME_VFS_MONITOR_EVENT_DELETED
@@ -453,22 +486,22 @@ mn_vfs_mailbox_monitor_cb (GnomeVFSMonitorHandle * handle, const char * monitor_
 	mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self));
       }
   }}
-#line 457 "mn-vfs-mailbox.c"
+#line 490 "mn-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 262 "mn-vfs-mailbox.gob"
+#line 283 "mn-vfs-mailbox.gob"
 void 
 mn_vfs_mailbox_remove_monitors_by_owner (MNVFSMailbox * self, MNVFSMailboxBackend * owner)
-#line 463 "mn-vfs-mailbox.c"
+#line 496 "mn-vfs-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox::remove_monitors_by_owner"
-#line 262 "mn-vfs-mailbox.gob"
+#line 283 "mn-vfs-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 262 "mn-vfs-mailbox.gob"
+#line 283 "mn-vfs-mailbox.gob"
 	g_return_if_fail (MN_IS_VFS_MAILBOX (self));
-#line 470 "mn-vfs-mailbox.c"
+#line 503 "mn-vfs-mailbox.c"
 {
-#line 264 "mn-vfs-mailbox.gob"
+#line 285 "mn-vfs-mailbox.gob"
 	
     GSList *l;
 
@@ -487,39 +520,39 @@ mn_vfs_mailbox_remove_monitors_by_owner (MNVFSMailbox * self, MNVFSMailboxBacken
 	  }
       }
   }}
-#line 491 "mn-vfs-mailbox.c"
+#line 524 "mn-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 283 "mn-vfs-mailbox.gob"
+#line 304 "mn-vfs-mailbox.gob"
 static void 
 mn_vfs_mailbox_queue_update_poll (MNVFSMailbox * self)
-#line 497 "mn-vfs-mailbox.c"
+#line 530 "mn-vfs-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox::queue_update_poll"
-#line 283 "mn-vfs-mailbox.gob"
+#line 304 "mn-vfs-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 283 "mn-vfs-mailbox.gob"
+#line 304 "mn-vfs-mailbox.gob"
 	g_return_if_fail (MN_IS_VFS_MAILBOX (self));
-#line 504 "mn-vfs-mailbox.c"
+#line 537 "mn-vfs-mailbox.c"
 {
-#line 285 "mn-vfs-mailbox.gob"
+#line 306 "mn-vfs-mailbox.gob"
 	
     if (selfp->update_poll_source)
       mn_locked_g_source_remove(selfp->update_poll_source);
 
     selfp->update_poll_source = mn_g_idle_add_gdk_locked(self_update_poll_cb, self);
   }}
-#line 513 "mn-vfs-mailbox.c"
+#line 546 "mn-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 292 "mn-vfs-mailbox.gob"
+#line 313 "mn-vfs-mailbox.gob"
 static gboolean 
 mn_vfs_mailbox_update_poll_cb (gpointer data)
-#line 519 "mn-vfs-mailbox.c"
+#line 552 "mn-vfs-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox::update_poll_cb"
 {
-#line 294 "mn-vfs-mailbox.gob"
+#line 315 "mn-vfs-mailbox.gob"
 	
     Self *self = data;
     gboolean polled = FALSE;
@@ -547,20 +580,20 @@ mn_vfs_mailbox_update_poll_cb (gpointer data)
 
     return FALSE;		/* remove source */
   }}
-#line 551 "mn-vfs-mailbox.c"
+#line 584 "mn-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 322 "mn-vfs-mailbox.gob"
+#line 343 "mn-vfs-mailbox.gob"
 static void 
-___c_mn_vfs_mailbox_reentrant_check (MNReentrantMailbox * mailbox G_GNUC_UNUSED, unsigned long check_id)
-#line 557 "mn-vfs-mailbox.c"
+___d_mn_vfs_mailbox_reentrant_check (MNReentrantMailbox * mailbox G_GNUC_UNUSED, unsigned long check_id)
+#line 590 "mn-vfs-mailbox.c"
 #define PARENT_HANDLER(___mailbox,___check_id) \
 	{ if(MN_REENTRANT_MAILBOX_CLASS(parent_class)->reentrant_check) \
 		(* MN_REENTRANT_MAILBOX_CLASS(parent_class)->reentrant_check)(___mailbox,___check_id); }
 {
 #define __GOB_FUNCTION__ "MN:VFS:Mailbox::reentrant_check"
 {
-#line 324 "mn-vfs-mailbox.gob"
+#line 345 "mn-vfs-mailbox.gob"
 	
     Self *self = SELF(mailbox);
     MNVFSMailboxBackend *backend;
@@ -570,7 +603,15 @@ ___c_mn_vfs_mailbox_reentrant_check (MNReentrantMailbox * mailbox G_GNUC_UNUSED,
 
     mn_reentrant_mailbox_lock(mailbox);
 
+    /*
+     * For properly detecting the new mailbox type when the file or
+     * directory changes we need install both a file and a directory
+     * monitor, since depending on the underlying implementation we
+     * might not get file events if the URI is a directory, etc.
+     */
+
     self_monitor(self, self->uri, NULL, GNOME_VFS_MONITOR_FILE, self_monitor_cb, self);
+    self_monitor(self, self->uri, NULL, GNOME_VFS_MONITOR_DIRECTORY, self_monitor_cb, self);
 
     backend = selfp->backend;
     if (backend)
@@ -678,6 +719,6 @@ ___c_mn_vfs_mailbox_reentrant_check (MNReentrantMailbox * mailbox G_GNUC_UNUSED,
 	mn_reentrant_mailbox_unlock(mailbox);
       }
   }}
-#line 682 "mn-vfs-mailbox.c"
+#line 723 "mn-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER

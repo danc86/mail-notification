@@ -85,7 +85,8 @@ else
 -Wpacked \
 -Wredundant-decls \
 -Wnested-externs \
--Winline"
+-Winline \
+-Wno-pointer-sign"
 	test $enable_compile_warnings = error && WARN_CFLAGS="$WARN_CFLAGS -Werror"
 fi
 

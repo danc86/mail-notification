@@ -126,6 +126,7 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
 			{
 			  char *filename;
 			  GnomeVFSURI *message_uri;
+			  MNMessage *message;
 
 			  if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 			    {
@@ -143,8 +144,14 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
 			   * definition unseen (that is, new).
 			   */
 
-			  messages = g_slist_prepend(messages, mn_message_new_from_uri(MN_MAILBOX(backend->mailbox), message_uri, MN_MESSAGE_NEW, FALSE));
+			  message = mn_message_new_from_uri(MN_MAILBOX(backend->mailbox),
+							    message_uri,
+							    MN_MESSAGE_NEW,
+							    FALSE);
 			  gnome_vfs_uri_unref(message_uri);
+
+			  if (message)
+			    messages = g_slist_prepend(messages, message);
 			}
 		    }
 		}

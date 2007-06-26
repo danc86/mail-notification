@@ -339,8 +339,7 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
     gboolean valid;
     GtkTreeIter iter;
 
-    valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(selfp->store), &iter);
-    while (valid)
+    MN_TREE_MODEL_FOREACH(valid, &iter, GTK_TREE_MODEL(selfp->store))
       {
 	MNMailboxProperties *these_properties;
 
@@ -352,8 +351,6 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
 	    gtk_combo_box_set_active_iter(GTK_COMBO_BOX(selfp->mailbox_type_combo), &iter);
 	    break;
 	  }
-
-	valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(selfp->store), &iter);
       }
   }
 
@@ -375,8 +372,7 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
     gboolean valid;
     GtkTreeIter iter;
 
-    valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(selfp->store), &iter);
-    while (valid)
+    MN_TREE_MODEL_FOREACH(valid, &iter, GTK_TREE_MODEL(selfp->store))
       {
 	MNMailboxProperties *properties;
 	MNMailboxPropertiesClass *class;
@@ -389,8 +385,6 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
 	  return properties;
 
 	g_object_unref(properties);
-
-	valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(selfp->store), &iter);
       }
 
     return NULL;
@@ -402,8 +396,7 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
     gboolean valid;
     GtkTreeIter iter;
 
-    valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(selfp->store), &iter);
-    while (valid)
+    MN_TREE_MODEL_FOREACH(valid, &iter, GTK_TREE_MODEL(selfp->store))
       {
 	MNMailboxProperties *properties;
 
@@ -413,8 +406,6 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
 	  return properties;
 
 	g_object_unref(properties);
-
-	valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(selfp->store), &iter);
       }
 
     return NULL;

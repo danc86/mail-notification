@@ -141,6 +141,9 @@ class MN:Mailbox from G:Object (abstract)
   public char *mark_as_spam_command destroywith g_free;
   property STRING mark_as_spam_command (link, flags = MN_MAILBOX_PARAM_PERMANENT);
 
+  public char *delete_command destroywith g_free;
+  property STRING delete_command (link, flags = MN_MAILBOX_PARAM_PERMANENT);
+
   public char *stock_id destroywith g_free;
   property STRING stock_id (link, export);
 

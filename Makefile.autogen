@@ -2,7 +2,7 @@
 
 # change this to the path to mkinstalldirs on your system
 # po/Makefile.in.in requires mkinstalldirs, but intltoolize does not provide it
-MKINSTALLDIRS = /usr/local/gnu-autotools/share/automake-1.9/mkinstalldirs
+MKINSTALLDIRS = /usr/share/automake-1.10/mkinstalldirs
 
 # aml: http://lefort.be.eu.org/aml-1.0.tar.gz
 all:

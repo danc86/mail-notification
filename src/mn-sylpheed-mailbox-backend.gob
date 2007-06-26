@@ -242,6 +242,7 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	  if (! entry || (entry->flags & (SYLPHEED_MSG_NEW | SYLPHEED_MSG_UNREAD)) != 0)
 	    {
 	      MNMessageFlags flags = 0;
+	      MNMessage *message;
 
 	      if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 		break;
@@ -254,11 +255,13 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	       * own way (mark file) of differencing seen/unseen
 	       * messages.
 	       */
-	      messages = g_slist_prepend(messages, mn_vfs_message_new(backend,
-								      backend->mailbox->vfs_uri,
-								      file_info->name,
-								      flags,
-								      FALSE));
+	      message = mn_vfs_message_new(backend,
+					   backend->mailbox->vfs_uri,
+					   file_info->name,
+					   flags,
+					   FALSE);
+	      if (message)
+		messages = g_slist_prepend(messages, message);
 	    }
 	}
     gnome_vfs_file_info_unref(file_info);

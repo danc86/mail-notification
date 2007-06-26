@@ -1,16 +1,16 @@
---- libsylph/procmsg.c.orig	Fri Mar 10 03:26:28 2006
-+++ libsylph/procmsg.c	Tue May  9 04:16:46 2006
-@@ -23,6 +23,9 @@
- #include <glib/gi18n.h>
+--- libsylph/procmsg.c.orig	2007-01-16 07:00:10.000000000 +0100
++++ libsylph/procmsg.c	2007-06-17 08:44:53.000000000 +0200
+@@ -24,6 +24,9 @@
  #include <stdio.h>
  #include <stdlib.h>
+ #include <errno.h>
 +#include <string.h>
 +#include <fcntl.h>
 +#include <unistd.h>
  
  #include "utils.h"
  #include "procmsg.h"
-@@ -759,6 +762,20 @@
+@@ -796,6 +799,20 @@
  	fclose(fp);
  }
  
@@ -31,39 +31,61 @@
  FILE *procmsg_open_data_file(const gchar *file, guint version,
  			     DataOpenMode mode, gchar *buf, size_t buf_size)
  {
-@@ -768,8 +785,21 @@
+@@ -805,21 +822,38 @@
  	g_return_val_if_fail(file != NULL, NULL);
  
  	if (mode == DATA_WRITE) {
 -		if ((fp = g_fopen(file, "wb")) == NULL) {
--			FILE_OP_ERROR(file, "fopen");
 +		int fd;
 +
 +		if ((fd = g_open(file, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR)) < 0) {
-+			FILE_OP_ERROR(file, "open");
-+			return NULL;
-+		}
+ 			if (errno == EACCES) {
+ 				change_file_mode_rw(NULL, file);
+-				if ((fp = g_fopen(file, "wb")) == NULL) {
+-					FILE_OP_ERROR(file, "fopen");
++				if ((fd = g_open(file, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR)) < 0) {
++					FILE_OP_ERROR(file, "open");
+ 					return NULL;
+ 				}
+ 			} else {
+-				FILE_OP_ERROR(file, "fopen");
++				FILE_OP_ERROR(file, "open");
+ 				return NULL;
+ 			}
+ 		}
++
 +		procmsg_lock_data_file(fd);
++
++		if ((fp = fdopen(fd, "wb")) == NULL) {
++			close(fd);
++			FILE_OP_ERROR(file, "fdopen");
++ 			return NULL;
++ 		}
++
+ 		if (change_file_mode_rw(fp, file) < 0)
+ 			FILE_OP_ERROR(file, "chmod");
+ 
 +		if (ftruncate(fd, 0) < 0) {
 +			close(fd);
 +			FILE_OP_ERROR(file, "ftruncate");
 +			return NULL;
 +		}
-+		if ((fp = fdopen(fd, "wb")) == NULL) {
-+			close(fd);
-+			FILE_OP_ERROR(file, "fdopen");
- 			return NULL;
++
+ 		WRITE_CACHE_DATA_INT(version, fp);
+ 		return fp;
+ 	}
+@@ -859,11 +893,14 @@
+ 				change_file_mode_rw(NULL, file);
+ 				if ((fp = g_fopen(file, "ab")) == NULL) {
+ 					FILE_OP_ERROR(file, "fopen");
++					return NULL;
+ 				}
+ 			} else {
+ 				FILE_OP_ERROR(file, "fopen");
++				return NULL;
+ 			}
  		}
- 		if (change_file_mode_rw(fp, file) < 0)
-@@ -800,8 +830,10 @@
- 	if (fp) {
- 		/* reopen with append mode */
- 		fclose(fp);
--		if ((fp = g_fopen(file, "ab")) == NULL)
-+		if ((fp = g_fopen(file, "ab")) == NULL) {
- 			FILE_OP_ERROR(file, "fopen");
-+		} else
-+			procmsg_lock_data_file(fileno(fp));
++		procmsg_lock_data_file(fileno(fp));
  	} else {
  		/* open with overwrite mode if mark file doesn't exist or
  		   version is different */

@@ -59,8 +59,9 @@ static void mn_text_table_class_init (MNTextTableClass * c) G_GNUC_UNUSED;
 static void mn_text_table_init (MNTextTable * self) G_GNUC_UNUSED;
 static void mn_text_table_row_free (Row * row) G_GNUC_UNUSED;
 static void mn_text_table_cell_free (MNTextTableCell * cell) G_GNUC_UNUSED;
-static gboolean ___4_mn_text_table_expose_event (GtkWidget * widget, GdkEventExpose * event) G_GNUC_UNUSED;
-static void ___5_mn_text_table_size_request (GtkWidget * widget, GtkRequisition * requisition) G_GNUC_UNUSED;
+static void ___4_mn_text_table_realize (GtkWidget * widget) G_GNUC_UNUSED;
+static gboolean ___5_mn_text_table_expose_event (GtkWidget * widget, GdkEventExpose * event) G_GNUC_UNUSED;
+static void ___6_mn_text_table_size_request (GtkWidget * widget, GtkRequisition * requisition) G_GNUC_UNUSED;
 static void mn_text_table_set_dirty (MNTextTable * self) G_GNUC_UNUSED;
 static void mn_text_table_context_changed (MNTextTable * self) G_GNUC_UNUSED;
 static void mn_text_table_relayout (MNTextTable * self) G_GNUC_UNUSED;
@@ -142,7 +143,7 @@ ___finalize(GObject *obj_self)
 	{
 #line 80 "mn-text-table.gob"
 	 mn_g_queue_free_deep_custom(VAR, (GFunc) self_row_free, NULL); }
-#line 146 "mn-text-table.c"
+#line 147 "mn-text-table.c"
 	memset(&rows, 0, sizeof(rows));
 #undef VAR
 #undef rows
@@ -151,7 +152,7 @@ ___finalize(GObject *obj_self)
 	{
 #line 83 "mn-text-table.gob"
 	 g_array_free(VAR, TRUE); }
-#line 155 "mn-text-table.c"
+#line 156 "mn-text-table.c"
 	memset(&column_sizes, 0, sizeof(column_sizes));
 #undef VAR
 #undef column_sizes
@@ -170,31 +171,33 @@ mn_text_table_class_init (MNTextTableClass * c G_GNUC_UNUSED)
 	parent_class = g_type_class_ref (GTK_TYPE_DRAWING_AREA);
 
 #line 117 "mn-text-table.gob"
-	gtk_widget_class->expose_event = ___4_mn_text_table_expose_event;
-#line 128 "mn-text-table.gob"
-	gtk_widget_class->size_request = ___5_mn_text_table_size_request;
-#line 271 "mn-text-table.gob"
+	gtk_widget_class->realize = ___4_mn_text_table_realize;
+#line 126 "mn-text-table.gob"
+	gtk_widget_class->expose_event = ___5_mn_text_table_expose_event;
+#line 137 "mn-text-table.gob"
+	gtk_widget_class->size_request = ___6_mn_text_table_size_request;
+#line 280 "mn-text-table.gob"
 	c->clear = ___real_mn_text_table_clear;
-#line 179 "mn-text-table.c"
+#line 182 "mn-text-table.c"
 	g_object_class->finalize = ___finalize;
 }
 #undef __GOB_FUNCTION__
 #line 91 "mn-text-table.gob"
 static void 
 mn_text_table_init (MNTextTable * self G_GNUC_UNUSED)
-#line 186 "mn-text-table.c"
+#line 189 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_TEXT_TABLE,MNTextTablePrivate);
 #line 79 "mn-text-table.gob"
 	self->_priv->rows = g_queue_new();
-#line 192 "mn-text-table.c"
+#line 195 "mn-text-table.c"
 #line 82 "mn-text-table.gob"
 	self->_priv->column_sizes = g_array_new(FALSE, TRUE, sizeof(int));
-#line 195 "mn-text-table.c"
+#line 198 "mn-text-table.c"
 #line 83 "mn-text-table.gob"
 	self->_priv->dirty = TRUE;
-#line 198 "mn-text-table.c"
+#line 201 "mn-text-table.c"
  {
 #line 92 "mn-text-table.gob"
 
@@ -206,7 +209,7 @@ mn_text_table_init (MNTextTable * self G_GNUC_UNUSED)
 		     "swapped-signal::direction-changed", self_context_changed, self,
 		     NULL);
   
-#line 210 "mn-text-table.c"
+#line 213 "mn-text-table.c"
  }
 }
 #undef __GOB_FUNCTION__
@@ -216,30 +219,30 @@ mn_text_table_init (MNTextTable * self G_GNUC_UNUSED)
 #line 102 "mn-text-table.gob"
 static void 
 mn_text_table_row_free (Row * row)
-#line 220 "mn-text-table.c"
+#line 223 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::row_free"
 #line 102 "mn-text-table.gob"
 	g_return_if_fail (row != NULL);
-#line 225 "mn-text-table.c"
+#line 228 "mn-text-table.c"
 {
 #line 104 "mn-text-table.gob"
 	
     mn_g_queue_free_deep_custom(row->cells, (GFunc) self_cell_free, NULL);
     g_free(row);
   }}
-#line 232 "mn-text-table.c"
+#line 235 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
 #line 109 "mn-text-table.gob"
 static void 
 mn_text_table_cell_free (MNTextTableCell * cell)
-#line 238 "mn-text-table.c"
+#line 241 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::cell_free"
 #line 109 "mn-text-table.gob"
 	g_return_if_fail (cell != NULL);
-#line 243 "mn-text-table.c"
+#line 246 "mn-text-table.c"
 {
 #line 111 "mn-text-table.gob"
 	
@@ -247,13 +250,34 @@ mn_text_table_cell_free (MNTextTableCell * cell)
       g_object_unref(cell->layout);
     g_free(cell);
   }}
-#line 251 "mn-text-table.c"
+#line 254 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
 #line 117 "mn-text-table.gob"
+static void 
+___4_mn_text_table_realize (GtkWidget * widget G_GNUC_UNUSED)
+#line 260 "mn-text-table.c"
+#define PARENT_HANDLER(___widget) \
+	{ if(GTK_WIDGET_CLASS(parent_class)->realize) \
+		(* GTK_WIDGET_CLASS(parent_class)->realize)(___widget); }
+{
+#define __GOB_FUNCTION__ "MN:Text:Table::realize"
+{
+#line 119 "mn-text-table.gob"
+	
+    PARENT_HANDLER(widget);
+
+    /* set a transparent background */
+    gdk_window_set_back_pixmap(widget->window, NULL, TRUE);
+  }}
+#line 274 "mn-text-table.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 126 "mn-text-table.gob"
 static gboolean 
-___4_mn_text_table_expose_event (GtkWidget * widget G_GNUC_UNUSED, GdkEventExpose * event)
-#line 257 "mn-text-table.c"
+___5_mn_text_table_expose_event (GtkWidget * widget G_GNUC_UNUSED, GdkEventExpose * event)
+#line 281 "mn-text-table.c"
 #define PARENT_HANDLER(___widget,___event) \
 	((GTK_WIDGET_CLASS(parent_class)->expose_event)? \
 		(* GTK_WIDGET_CLASS(parent_class)->expose_event)(___widget,___event): \
@@ -261,7 +285,7 @@ ___4_mn_text_table_expose_event (GtkWidget * widget G_GNUC_UNUSED, GdkEventExpos
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::expose_event"
 {
-#line 119 "mn-text-table.gob"
+#line 128 "mn-text-table.gob"
 	
     Self *self = SELF(widget);
 
@@ -270,21 +294,21 @@ ___4_mn_text_table_expose_event (GtkWidget * widget G_GNUC_UNUSED, GdkEventExpos
 
     return FALSE;		/* propagate event */
   }}
-#line 274 "mn-text-table.c"
+#line 298 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 128 "mn-text-table.gob"
+#line 137 "mn-text-table.gob"
 static void 
-___5_mn_text_table_size_request (GtkWidget * widget G_GNUC_UNUSED, GtkRequisition * requisition)
-#line 281 "mn-text-table.c"
+___6_mn_text_table_size_request (GtkWidget * widget G_GNUC_UNUSED, GtkRequisition * requisition)
+#line 305 "mn-text-table.c"
 #define PARENT_HANDLER(___widget,___requisition) \
 	{ if(GTK_WIDGET_CLASS(parent_class)->size_request) \
 		(* GTK_WIDGET_CLASS(parent_class)->size_request)(___widget,___requisition); }
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::size_request"
 {
-#line 130 "mn-text-table.gob"
+#line 139 "mn-text-table.gob"
 	
     Self *self = SELF(widget);
 
@@ -293,23 +317,23 @@ ___5_mn_text_table_size_request (GtkWidget * widget G_GNUC_UNUSED, GtkRequisitio
     requisition->width = selfp->width;
     requisition->height = selfp->height;
   }}
-#line 297 "mn-text-table.c"
+#line 321 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 139 "mn-text-table.gob"
+#line 148 "mn-text-table.gob"
 static void 
 mn_text_table_set_dirty (MNTextTable * self)
-#line 304 "mn-text-table.c"
+#line 328 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::set_dirty"
-#line 139 "mn-text-table.gob"
+#line 148 "mn-text-table.gob"
 	g_return_if_fail (self != NULL);
-#line 139 "mn-text-table.gob"
+#line 148 "mn-text-table.gob"
 	g_return_if_fail (MN_IS_TEXT_TABLE (self));
-#line 311 "mn-text-table.c"
+#line 335 "mn-text-table.c"
 {
-#line 141 "mn-text-table.gob"
+#line 150 "mn-text-table.gob"
 	
     if (! selfp->dirty)
       {
@@ -317,22 +341,22 @@ mn_text_table_set_dirty (MNTextTable * self)
 	gtk_widget_queue_resize(GTK_WIDGET(self));
       }
   }}
-#line 321 "mn-text-table.c"
+#line 345 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
-#line 149 "mn-text-table.gob"
+#line 158 "mn-text-table.gob"
 static void 
 mn_text_table_context_changed (MNTextTable * self)
-#line 327 "mn-text-table.c"
+#line 351 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::context_changed"
-#line 149 "mn-text-table.gob"
+#line 158 "mn-text-table.gob"
 	g_return_if_fail (self != NULL);
-#line 149 "mn-text-table.gob"
+#line 158 "mn-text-table.gob"
 	g_return_if_fail (MN_IS_TEXT_TABLE (self));
-#line 334 "mn-text-table.c"
+#line 358 "mn-text-table.c"
 {
-#line 151 "mn-text-table.gob"
+#line 160 "mn-text-table.gob"
 	
     GList *la;
 
@@ -355,22 +379,22 @@ mn_text_table_context_changed (MNTextTable * self)
 
     self_set_dirty(self);
   }}
-#line 359 "mn-text-table.c"
+#line 383 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
-#line 174 "mn-text-table.gob"
+#line 183 "mn-text-table.gob"
 static void 
 mn_text_table_relayout (MNTextTable * self)
-#line 365 "mn-text-table.c"
+#line 389 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::relayout"
-#line 174 "mn-text-table.gob"
+#line 183 "mn-text-table.gob"
 	g_return_if_fail (self != NULL);
-#line 174 "mn-text-table.gob"
+#line 183 "mn-text-table.gob"
 	g_return_if_fail (MN_IS_TEXT_TABLE (self));
-#line 372 "mn-text-table.c"
+#line 396 "mn-text-table.c"
 {
-#line 176 "mn-text-table.gob"
+#line 185 "mn-text-table.gob"
 	
     int i;
     GList *la;
@@ -429,22 +453,22 @@ mn_text_table_relayout (MNTextTable * self)
 
     selfp->dirty = FALSE;
   }}
-#line 433 "mn-text-table.c"
+#line 457 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
-#line 235 "mn-text-table.gob"
+#line 244 "mn-text-table.gob"
 static void 
 mn_text_table_redraw (MNTextTable * self)
-#line 439 "mn-text-table.c"
+#line 463 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::redraw"
-#line 235 "mn-text-table.gob"
+#line 244 "mn-text-table.gob"
 	g_return_if_fail (self != NULL);
-#line 235 "mn-text-table.gob"
+#line 244 "mn-text-table.gob"
 	g_return_if_fail (MN_IS_TEXT_TABLE (self));
-#line 446 "mn-text-table.c"
+#line 470 "mn-text-table.c"
 {
-#line 237 "mn-text-table.gob"
+#line 246 "mn-text-table.gob"
 	
     GtkWidget *widget = GTK_WIDGET(self);
     GList *la;
@@ -478,33 +502,33 @@ mn_text_table_redraw (MNTextTable * self)
 	  y += VERTICAL_SPACING;
       }
   }}
-#line 482 "mn-text-table.c"
+#line 506 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
-#line 271 "mn-text-table.gob"
+#line 280 "mn-text-table.gob"
 void 
 mn_text_table_clear (MNTextTable * self)
-#line 488 "mn-text-table.c"
+#line 512 "mn-text-table.c"
 {
 	MNTextTableClass *klass;
-#line 271 "mn-text-table.gob"
+#line 280 "mn-text-table.gob"
 	g_return_if_fail (self != NULL);
-#line 271 "mn-text-table.gob"
+#line 280 "mn-text-table.gob"
 	g_return_if_fail (MN_IS_TEXT_TABLE (self));
-#line 495 "mn-text-table.c"
+#line 519 "mn-text-table.c"
 	klass = MN_TEXT_TABLE_GET_CLASS(self);
 
 	if(klass->clear)
 		(*klass->clear)(self);
 }
-#line 271 "mn-text-table.gob"
+#line 280 "mn-text-table.gob"
 static void 
 ___real_mn_text_table_clear (MNTextTable * self G_GNUC_UNUSED)
-#line 504 "mn-text-table.c"
+#line 528 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::clear"
 {
-#line 273 "mn-text-table.gob"
+#line 282 "mn-text-table.gob"
 	
     Row *row;
 
@@ -517,43 +541,43 @@ ___real_mn_text_table_clear (MNTextTable * self G_GNUC_UNUSED)
 
     self_set_dirty(self);
   }}
-#line 521 "mn-text-table.c"
+#line 545 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
-#line 286 "mn-text-table.gob"
+#line 295 "mn-text-table.gob"
 MNTextTableCell * 
 mn_text_table_append_text_cell (MNTextTable * self, const char * text)
-#line 527 "mn-text-table.c"
+#line 551 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::append_text_cell"
-#line 286 "mn-text-table.gob"
+#line 295 "mn-text-table.gob"
 	g_return_val_if_fail (self != NULL, (MNTextTableCell * )0);
-#line 286 "mn-text-table.gob"
+#line 295 "mn-text-table.gob"
 	g_return_val_if_fail (MN_IS_TEXT_TABLE (self), (MNTextTableCell * )0);
-#line 534 "mn-text-table.c"
+#line 558 "mn-text-table.c"
 {
-#line 288 "mn-text-table.gob"
+#line 297 "mn-text-table.gob"
 	
     return self_append_text_cell_from_layout(self, gtk_widget_create_pango_layout(GTK_WIDGET(self), text));
   }}
-#line 540 "mn-text-table.c"
+#line 564 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
-#line 292 "mn-text-table.gob"
+#line 301 "mn-text-table.gob"
 MNTextTableCell * 
 mn_text_table_append_text_cell_from_markup (MNTextTable * self, const char * markup)
-#line 546 "mn-text-table.c"
+#line 570 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::append_text_cell_from_markup"
-#line 292 "mn-text-table.gob"
+#line 301 "mn-text-table.gob"
 	g_return_val_if_fail (self != NULL, (MNTextTableCell * )0);
-#line 292 "mn-text-table.gob"
+#line 301 "mn-text-table.gob"
 	g_return_val_if_fail (MN_IS_TEXT_TABLE (self), (MNTextTableCell * )0);
-#line 292 "mn-text-table.gob"
+#line 301 "mn-text-table.gob"
 	g_return_val_if_fail (markup != NULL, (MNTextTableCell * )0);
-#line 555 "mn-text-table.c"
+#line 579 "mn-text-table.c"
 {
-#line 294 "mn-text-table.gob"
+#line 303 "mn-text-table.gob"
 	
     PangoLayout *layout;
 
@@ -562,24 +586,24 @@ mn_text_table_append_text_cell_from_markup (MNTextTable * self, const char * mar
 
     return self_append_text_cell_from_layout(self, layout);
   }}
-#line 566 "mn-text-table.c"
+#line 590 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
-#line 303 "mn-text-table.gob"
+#line 312 "mn-text-table.gob"
 MNTextTableCell * 
 mn_text_table_append_text_cell_from_layout (MNTextTable * self, PangoLayout * layout)
-#line 572 "mn-text-table.c"
+#line 596 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::append_text_cell_from_layout"
-#line 303 "mn-text-table.gob"
+#line 312 "mn-text-table.gob"
 	g_return_val_if_fail (self != NULL, (MNTextTableCell * )0);
-#line 303 "mn-text-table.gob"
+#line 312 "mn-text-table.gob"
 	g_return_val_if_fail (MN_IS_TEXT_TABLE (self), (MNTextTableCell * )0);
-#line 303 "mn-text-table.gob"
+#line 312 "mn-text-table.gob"
 	g_return_val_if_fail (layout != NULL, (MNTextTableCell * )0);
-#line 581 "mn-text-table.c"
+#line 605 "mn-text-table.c"
 {
-#line 305 "mn-text-table.gob"
+#line 314 "mn-text-table.gob"
 	
     MNTextTableCell *cell;
 
@@ -591,22 +615,22 @@ mn_text_table_append_text_cell_from_layout (MNTextTable * self, PangoLayout * la
 
     return cell;
   }}
-#line 595 "mn-text-table.c"
+#line 619 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
-#line 317 "mn-text-table.gob"
+#line 326 "mn-text-table.gob"
 MNTextTableCell * 
 mn_text_table_append_blank_cell (MNTextTable * self, int width, int height)
-#line 601 "mn-text-table.c"
+#line 625 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::append_blank_cell"
-#line 317 "mn-text-table.gob"
+#line 326 "mn-text-table.gob"
 	g_return_val_if_fail (self != NULL, (MNTextTableCell * )0);
-#line 317 "mn-text-table.gob"
+#line 326 "mn-text-table.gob"
 	g_return_val_if_fail (MN_IS_TEXT_TABLE (self), (MNTextTableCell * )0);
-#line 608 "mn-text-table.c"
+#line 632 "mn-text-table.c"
 {
-#line 319 "mn-text-table.gob"
+#line 328 "mn-text-table.gob"
 	
     MNTextTableCell *cell;
 
@@ -620,22 +644,22 @@ mn_text_table_append_blank_cell (MNTextTable * self, int width, int height)
 
     return cell;
   }}
-#line 624 "mn-text-table.c"
+#line 648 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
-#line 333 "mn-text-table.gob"
+#line 342 "mn-text-table.gob"
 static void 
 mn_text_table_append_cell_real (MNTextTable * self, MNTextTableCell * cell)
-#line 630 "mn-text-table.c"
+#line 654 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::append_cell_real"
-#line 333 "mn-text-table.gob"
+#line 342 "mn-text-table.gob"
 	g_return_if_fail (self != NULL);
-#line 333 "mn-text-table.gob"
+#line 342 "mn-text-table.gob"
 	g_return_if_fail (MN_IS_TEXT_TABLE (self));
-#line 637 "mn-text-table.c"
+#line 661 "mn-text-table.c"
 {
-#line 335 "mn-text-table.gob"
+#line 344 "mn-text-table.gob"
 	
     if (! selfp->row)
       {
@@ -649,26 +673,26 @@ mn_text_table_append_cell_real (MNTextTable * self, MNTextTableCell * cell)
 
     self_set_dirty(self);
   }}
-#line 653 "mn-text-table.c"
+#line 677 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
-#line 349 "mn-text-table.gob"
+#line 358 "mn-text-table.gob"
 void 
 mn_text_table_cell_set_text (MNTextTable * self, MNTextTableCell * cell, const char * text)
-#line 659 "mn-text-table.c"
+#line 683 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::cell_set_text"
-#line 349 "mn-text-table.gob"
+#line 358 "mn-text-table.gob"
 	g_return_if_fail (self != NULL);
-#line 349 "mn-text-table.gob"
+#line 358 "mn-text-table.gob"
 	g_return_if_fail (MN_IS_TEXT_TABLE (self));
-#line 349 "mn-text-table.gob"
+#line 358 "mn-text-table.gob"
 	g_return_if_fail (cell != NULL);
-#line 349 "mn-text-table.gob"
+#line 358 "mn-text-table.gob"
 	g_return_if_fail (text != NULL);
-#line 670 "mn-text-table.c"
+#line 694 "mn-text-table.c"
 {
-#line 353 "mn-text-table.gob"
+#line 362 "mn-text-table.gob"
 	
     const char *current_text;
 
@@ -682,24 +706,24 @@ mn_text_table_cell_set_text (MNTextTable * self, MNTextTableCell * cell, const c
 	self_set_dirty(self);
       }
   }}
-#line 686 "mn-text-table.c"
+#line 710 "mn-text-table.c"
 #undef __GOB_FUNCTION__
 
-#line 367 "mn-text-table.gob"
+#line 376 "mn-text-table.gob"
 void 
 mn_text_table_line_break (MNTextTable * self)
-#line 692 "mn-text-table.c"
+#line 716 "mn-text-table.c"
 {
 #define __GOB_FUNCTION__ "MN:Text:Table::line_break"
-#line 367 "mn-text-table.gob"
+#line 376 "mn-text-table.gob"
 	g_return_if_fail (self != NULL);
-#line 367 "mn-text-table.gob"
+#line 376 "mn-text-table.gob"
 	g_return_if_fail (MN_IS_TEXT_TABLE (self));
-#line 699 "mn-text-table.c"
+#line 723 "mn-text-table.c"
 {
-#line 369 "mn-text-table.gob"
+#line 378 "mn-text-table.gob"
 	
     selfp->row = NULL;
   }}
-#line 705 "mn-text-table.c"
+#line 729 "mn-text-table.c"
 #undef __GOB_FUNCTION__

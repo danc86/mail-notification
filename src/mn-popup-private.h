@@ -10,7 +10,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNPopupPrivate {
-#line 36 "mn-popup.gob"
+#line 44 "mn-popup.gob"
 	MNMessage * message;
 #line 16 "mn-popup-private.h"
 };

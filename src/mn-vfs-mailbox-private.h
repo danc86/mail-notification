@@ -17,11 +17,11 @@ extern "C" {
 
 #line 19 "mn-vfs-mailbox-private.h"
 struct _MNVFSMailboxPrivate {
-#line 80 "mn-vfs-mailbox.gob"
+#line 84 "mn-vfs-mailbox.gob"
 	GSList * monitors;
-#line 81 "mn-vfs-mailbox.gob"
+#line 85 "mn-vfs-mailbox.gob"
 	MNVFSMailboxBackend * backend;
-#line 82 "mn-vfs-mailbox.gob"
+#line 86 "mn-vfs-mailbox.gob"
 	MNLockedGSource * update_poll_source;
 #line 27 "mn-vfs-mailbox-private.h"
 };

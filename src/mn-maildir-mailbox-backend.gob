@@ -136,6 +136,7 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
       if (file_info->name[0] != '.')
 	{
 	  MNMessageFlags flags = 0;
+	  MNMessage *message;
 
 	  if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 	    {
@@ -158,11 +159,13 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
 		continue; /* no info, or message seen/trashed: ignore it */
 	    }
 
-	  *messages = g_slist_prepend(*messages, mn_vfs_message_new(backend,
-								    uri,
-								    file_info->name,
-								    flags,
-								    FALSE));
+	  message = mn_vfs_message_new(backend,
+				       uri,
+				       file_info->name,
+				       flags,
+				       FALSE);
+	  if (message)
+	    *messages = g_slist_prepend(*messages, message);
 	}
     gnome_vfs_uri_unref(uri);
     gnome_vfs_file_info_unref(file_info);

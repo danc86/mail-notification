@@ -185,7 +185,7 @@ ___object_get_property (GObject *object,
 					    NULL);
 
       complete = *server != 0;
-#ifndef WITH_SSL
+#if ! WITH_SSL
       if (complete)
 	complete = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL]));
 #endif /* WITH_SSL */

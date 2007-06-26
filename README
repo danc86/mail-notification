@@ -11,7 +11,7 @@ Index
 
 0. About this document
 
-	$Id: README,v 1.35 2007/01/17 14:58:46 jylefort Exp $
+	$Id: README,v 1.36 2007-06-26 11:34:17 jylefort Exp $
 
 	Copyright (C) 2003-2007 Jean-Yves Lefort.
 
@@ -60,6 +60,7 @@ Index
 	  fixed:
 		- FreeBSD port x11-toolkits/libgnomeui >= 2.10.1_1
 		- libgnomeui CVS >= 20060208
+		- libgnomeui >= 2.15.90
 
 	* An infinite loop in GnomeVFS may affect mailboxes which use
 	  HTTP authentication (for instance, Gmail mailboxes).

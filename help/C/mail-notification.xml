@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "4.0">
-  <!ENTITY manrevision "2.18">
-  <!ENTITY date "Wednesday, January 17, 2007">
+  <!ENTITY appversion "4.1">
+  <!ENTITY manrevision "2.19">
+  <!ENTITY date "Tuesday, June 26, 2007">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -27,39 +27,13 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.150 2007/01/17 14:54:22 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.152 2007-06-26 11:29:10 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (C) 2003-2007 Jean-Yves Lefort -->
 <!-- All rights reserved. -->
 
-<!-- Redistribution and use in source (SGML DocBook) and 'compiled' -->
-<!-- forms (SGML, HTML, PDF, PostScript, RTF and so forth) with or -->
-<!-- without modification, are permitted provided that the following -->
-<!-- conditions are met: -->
-<!-- 1. Redistributions of source code (SGML DocBook) must -->
-<!--    retain the above copyright notice, this list of conditions and -->
-<!--    the following disclaimer as the first lines of this file -->
-<!--    unmodified. -->
-<!-- 2. Redistributions in compiled form (transformed to other -->
-<!--    DTDs, converted to PDF, PostScript, RTF and other formats) -->
-<!--    must reproduce the above copyright notice, this list of -->
-<!--    conditions and the following disclaimer in the documentation -->
-<!--    and/or other materials provided with the distribution. -->
-
-<!-- THIS DOCUMENTATION IS PROVIDED BY THE COPYRIGHT HOLDERS AND -->
-<!-- CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, -->
-<!-- INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF -->
-<!-- MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE -->
-<!-- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS -->
-<!-- BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, -->
-<!-- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED -->
-<!-- TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, -->
-<!-- DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON -->
-<!-- ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR -->
-<!-- TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF -->
-<!-- THE USE OF THIS DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY -->
-<!-- OF SUCH DAMAGE. -->
+<!-- See documentation-license.xml for licensing information. -->
 
 <!-- This document does its best to adhere to the -->
 <!-- GNOME Documentation Style Guide V1.3 -->
@@ -129,6 +103,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.18</revnumber>
+	<date>Wednesday, January 17, 2007</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -459,7 +444,7 @@
 
 	      <varlistentry>
 		<term>--unset-obsolete-configuration</term>
-		<listitem><para>Unset obsolete GConf configuration</para></listitem>
+		<listitem><para>Unset obsolete <application>GConf</application> configuration</para></listitem>
 	      </varlistentry>
 
 	      <varlistentry>
@@ -995,8 +980,8 @@
 	      <para>
 		For the folder selector to be available and for
 		monitoring an Evolution mailbox, Evolution must be
-		running and the Evolution Mail Notification plugin
-		must be loaded.
+		running and the Evolution <guilabel>Jean-Yves Lefort's
+		Mail Notification</guilabel> plugin must be loaded.
 	      </para>
 	    </note>
 	  </listitem>
@@ -1130,7 +1115,14 @@
       <listitem><para><guilabel>Open</guilabel></para></listitem>
       <listitem><para><guilabel>Mark as Read</guilabel></para></listitem>
       <listitem><para><guilabel>Mark as Spam</guilabel></para></listitem>
+      <listitem><para><guilabel>Delete</guilabel></para></listitem>
     </itemizedlist>
+    <para>
+      Note that the <guilabel>Delete</guilabel> action is disabled by
+      default. It can be enabled by modifying the <database
+      class="field">/apps/mail-notification/popups/actions</database>
+      <application>GConf</application> key.
+    </para>
 
     <sect2 id="built-in-actions">
       <title>Built-in Actions</title>
@@ -1147,11 +1139,13 @@
 	      <entry><guilabel>Open</guilabel></entry>
 	      <entry><guilabel>Mark as Read</guilabel></entry>
 	      <entry><guilabel>Mark as Spam</guilabel></entry>
+	      <entry><guilabel>Delete</guilabel></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
 	      <entry>&mbox;</entry>
+	      <entry>no</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
@@ -1161,15 +1155,18 @@
 	      <entry>yes</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
+	      <entry>no</entry>
 	    </row>
 	    <row>
 	      <entry>&maildir;</entry>
 	      <entry>yes</entry>
 	      <entry>yes</entry>
 	      <entry>no</entry>
+	      <entry>no</entry>
 	    </row>
 	    <row>
 	      <entry>&pop3;</entry>
+	      <entry>no</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
@@ -1179,15 +1176,18 @@
 	      <entry>no</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
+	      <entry>no</entry>
 	    </row>
 	    <row>
 	      <entry>&gmail;</entry>
 	      <entry>yes</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
+	      <entry>no</entry>
 	    </row>
 	    <row>
 	      <entry>Evolution</entry>
+	      <entry>yes</entry>
 	      <entry>yes</entry>
 	      <entry>yes</entry>
 	      <entry>yes</entry>
@@ -1197,11 +1197,13 @@
 	      <entry>no</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
+	      <entry>no</entry>
 	    </row>
 	    <row>
 	      <entry>&sylpheed;</entry>
 	      <entry>yes</entry>
 	      <entry>yes</entry>
+	      <entry>no</entry>
 	      <entry>no</entry>
 	    </row>
 	  </tbody>
@@ -1250,6 +1252,10 @@
 	    <row>
 	      <entry><guilabel>Mark as Spam</guilabel></entry>
 	      <entry><parameter>mark-as-spam-command</parameter></entry>
+	    </row>
+	    <row>
+	      <entry><guilabel>Delete</guilabel></entry>
+	      <entry><parameter>delete-command</parameter></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -1805,13 +1811,7 @@ widget "*" style "mn-icons"</programlisting>
 	    </listitem>
 	    <listitem>
 	      <para>
-		Select the <command>mail-notification --sm-disable</command>
-		command.
-	      </para>
-	    </listitem>
-	    <listitem>
-	      <para>
-		Click on the <guibutton>Disable</guibutton> button.
+		Uncheck the <guilabel>Mail Notification</guilabel> entry.
 	      </para>
 	    </listitem>
 	  </orderedlist>

@@ -1,4 +1,4 @@
-AC_INIT([Mail Notification], 4.0, jylefort@brutele.be)
+AC_INIT([Mail Notification], 4.1, jylefort@brutele.be)
 AC_CONFIG_SRCDIR(src/mn-main.c)
 
 AC_PREREQ(2.59)
@@ -31,7 +31,7 @@ MN_ARG_ENABLE(regression-tests, [build and run regression tests], no)
 # needed by AC_REENTRANT_RESOLVER
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE(foreign)
+AM_INIT_AUTOMAKE([foreign dist-bzip2])
 AM_MAINTAINER_MODE
 AM_CONFIG_HEADER(config.h)
 AC_PROG_LIBTOOL
@@ -70,11 +70,10 @@ AC_STRUCT_TM
 
 AM_PATH_GTK_2_0(2.6.0,, [AC_MSG_ERROR([unable to find the GTK+ library])])
 
-PKG_CHECK_MODULES(GNOME, [gthread-2.0 gconf-2.0 >= 2.4.0 libgnomeui-2.0 >= 2.8.0 gnome-vfs-2.0 libglade-2.0 eel-2.0 >= 2.6.0 bonobo-activation-2.0 libxml-2.0 libnotify],, [AC_MSG_ERROR([unable to find the GNOME libraries])])
+PKG_CHECK_MODULES(GNOME, [gthread-2.0 gconf-2.0 >= 2.4.0 libgnomeui-2.0 >= 2.14.0 gnome-vfs-2.0 libglade-2.0 eel-2.0 >= 2.6.0 bonobo-activation-2.0 libxml-2.0 libnotify],, [AC_MSG_ERROR([unable to find the GNOME libraries])])
 AM_GCONF_SOURCE_2
 
 AM_PATH_GNOME_PREFIX
-AM_PATH_GNOME_CAPPLETDIR
 
 AC_PATH_PROG(GCONFTOOL, gconftool-2)
 if test -z "$GCONFTOOL"; then
@@ -142,7 +141,10 @@ if MN_FEATURE_DISABLED(pop3) && MN_FEATURE_DISABLED(imap); then
 fi
 
 if MN_FEATURE_ENABLED(ssl); then
-	AM_PATH_OPENSSL(,, [MN_FEATURE_DISABLE(ssl, [OpenSSL not found])])
+	AM_PATH_OPENSSL(0.9.6,, [MN_FEATURE_DISABLE(ssl, [OpenSSL not found])])
+	if MN_FEATURE_ENABLED(ssl); then
+		AC_OPENSSL_MT(, [MN_FEATURE_DISABLE(ssl, [OpenSSL does not support multi-threading])])
+	fi
 fi
 if MN_FEATURE_ENABLED(sasl); then
 	AM_PATH_SASL2(,, [MN_FEATURE_DISABLE(sasl, [Cyrus SASL not found])])
@@ -150,7 +152,10 @@ fi
 
 if MN_FEATURE_ENABLED(evolution); then
 	evolution=no
-	AM_PATH_EVOLUTION_PLUGIN(2.10,, [evolution=yes])
+	AM_PATH_EVOLUTION_PLUGIN(2.12,, [evolution=yes])
+	if test $evolution = no; then
+		AM_PATH_EVOLUTION_PLUGIN(2.10,, [evolution=yes])
+	fi
 	if test $evolution = no; then
 		AM_PATH_EVOLUTION_PLUGIN(2.8,, [evolution=yes])
 	fi

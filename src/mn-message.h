@@ -66,6 +66,9 @@ struct _MNMessageClass {
 	gboolean (* can_mark_as_spam) (MNMessage * self);
 	gboolean (* can_mark_as_spam_impl) (MNMessage * self);
 	gboolean (* mark_as_spam_impl) (MNMessage * self, GError ** err);
+	gboolean (* can_delete) (MNMessage * self);
+	gboolean (* can_delete_impl) (MNMessage * self);
+	gboolean (* delete_impl) (MNMessage * self, GError ** err);
 };
 
 
@@ -81,6 +84,9 @@ gboolean 	mn_message_mark_as_read	(MNMessage * self,
 					GError ** err);
 gboolean 	mn_message_can_mark_as_spam	(MNMessage * self);
 gboolean 	mn_message_mark_as_spam	(MNMessage * self,
+					GError ** err);
+gboolean 	mn_message_can_delete	(MNMessage * self);
+gboolean 	mn_message_delete	(MNMessage * self,
 					GError ** err);
 MNMessage * 	mn_message_new	(MNMailbox * mailbox,
 					const char * error,

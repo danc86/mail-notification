@@ -249,6 +249,7 @@ ___4_mn_mh_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, u
 			{
 			  char *filename;
 			  GnomeVFSURI *message_uri;
+			  MNMessage *message;
 
 			  if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 			    {
@@ -266,8 +267,14 @@ ___4_mn_mh_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, u
 			   * definition unseen (that is, new).
 			   */
 
-			  messages = g_slist_prepend(messages, mn_message_new_from_uri(MN_MAILBOX(backend->mailbox), message_uri, MN_MESSAGE_NEW, FALSE));
+			  message = mn_message_new_from_uri(MN_MAILBOX(backend->mailbox),
+							    message_uri,
+							    MN_MESSAGE_NEW,
+							    FALSE);
 			  gnome_vfs_uri_unref(message_uri);
+
+			  if (message)
+			    messages = g_slist_prepend(messages, message);
 			}
 		    }
 		}
@@ -309,6 +316,6 @@ ___4_mn_mh_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, u
 	GDK_THREADS_LEAVE();
       }
   }}
-#line 313 "mn-mh-mailbox-backend.c"
+#line 320 "mn-mh-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER

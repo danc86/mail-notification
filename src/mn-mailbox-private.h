@@ -31,15 +31,15 @@ typedef enum
 struct _MNMailboxPrivate {
 #line 99 "mn-mailbox.gob"
 	gboolean added;
-#line 150 "mn-mailbox.gob"
+#line 153 "mn-mailbox.gob"
 	MNLockedGSource * check_timeout_source;
-#line 159 "mn-mailbox.gob"
+#line 162 "mn-mailbox.gob"
 	gboolean poll;
-#line 192 "mn-mailbox.gob"
+#line 195 "mn-mailbox.gob"
 	GSList * unfiltered_messages;
-#line 194 "mn-mailbox.gob"
+#line 197 "mn-mailbox.gob"
 	GHashTable * messages_marked_as_read;
-#line 216 "mn-mailbox.gob"
+#line 219 "mn-mailbox.gob"
 	GHashTable * messages_hash_table;
 #line 45 "mn-mailbox-private.h"
 };

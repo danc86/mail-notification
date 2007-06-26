@@ -51,9 +51,8 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
       gboolean valid;
 
       model = gtk_combo_box_get_model(GTK_COMBO_BOX(self));
-      valid = gtk_tree_model_get_iter_first(model, &iter);
 
-      while (valid)
+      MN_TREE_MODEL_FOREACH(valid, &iter, model)
 	{
 	  char *this_mech;
 	  gboolean found;
@@ -68,8 +67,6 @@ class MN:Auth:Combo:Box from Gtk:Combo:Box
 	      gtk_combo_box_set_active_iter(GTK_COMBO_BOX(self), &iter);
 	      break;
 	    }
-
-	  valid = gtk_tree_model_iter_next(model, &iter);
 	}
     }
     get

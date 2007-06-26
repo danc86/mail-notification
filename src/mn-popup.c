@@ -29,7 +29,15 @@
 #include "mn-conf.h"
 #include "mn-shell.h"
 
-#line 33 "mn-popup.c"
+typedef void (*ActionAddFunction) (MNPopup *self);
+
+typedef struct
+{
+  const char		*id;
+  ActionAddFunction	add;
+} ActionDefinition;
+
+#line 41 "mn-popup.c"
 /* self casting macros */
 #define SELF(x) MN_POPUP(x)
 #define SELF_CONST(x) MN_POPUP_CONST(x)
@@ -49,9 +57,16 @@ static void ___object_get_property (GObject *object, guint property_id, GValue *
 static void mn_popup_init (MNPopup * o) G_GNUC_UNUSED;
 static void mn_popup_class_init (MNPopupClass * c) G_GNUC_UNUSED;
 static GObject * ___1_mn_popup_constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam * construct_params) G_GNUC_UNUSED;
+static ActionDefinition * mn_popup_find_action (const char * id) G_GNUC_UNUSED;
+static void mn_popup_add_actions (MNPopup * self) G_GNUC_UNUSED;
+static void mn_popup_add_open_cb (MNPopup * self) G_GNUC_UNUSED;
+static void mn_popup_add_mark_as_read_cb (MNPopup * self) G_GNUC_UNUSED;
+static void mn_popup_add_mark_as_spam_cb (MNPopup * self) G_GNUC_UNUSED;
+static void mn_popup_add_delete_cb (MNPopup * self) G_GNUC_UNUSED;
 static void mn_popup_open_cb (NotifyNotification * notification, char * id, gpointer user_data) G_GNUC_UNUSED;
 static void mn_popup_mark_as_read_cb (NotifyNotification * notification, char * id, gpointer user_data) G_GNUC_UNUSED;
 static void mn_popup_mark_as_spam_cb (NotifyNotification * notification, char * id, gpointer user_data) G_GNUC_UNUSED;
+static void mn_popup_delete_cb (NotifyNotification * notification, char * id, gpointer user_data) G_GNUC_UNUSED;
 static void mn_popup_closed_h (NotifyNotification * notification, gpointer user_data) G_GNUC_UNUSED;
 static void mn_popup_append_row (GString * body, const char * name, const char * value) G_GNUC_UNUSED;
 static int mn_popup_get_conf_timeout (void) G_GNUC_UNUSED;
@@ -65,9 +80,16 @@ enum {
 static NotifyNotificationClass *parent_class = NULL;
 
 /* Short form macros */
+#define self_find_action mn_popup_find_action
+#define self_add_actions mn_popup_add_actions
+#define self_add_open_cb mn_popup_add_open_cb
+#define self_add_mark_as_read_cb mn_popup_add_mark_as_read_cb
+#define self_add_mark_as_spam_cb mn_popup_add_mark_as_spam_cb
+#define self_add_delete_cb mn_popup_add_delete_cb
 #define self_open_cb mn_popup_open_cb
 #define self_mark_as_read_cb mn_popup_mark_as_read_cb
 #define self_mark_as_spam_cb mn_popup_mark_as_spam_cb
+#define self_delete_cb mn_popup_delete_cb
 #define self_closed_h mn_popup_closed_h
 #define self_append_row mn_popup_append_row
 #define self_get_conf_timeout mn_popup_get_conf_timeout
@@ -124,9 +146,9 @@ ___dispose (GObject *obj_self)
 	MNPopup *self G_GNUC_UNUSED = MN_POPUP (obj_self);
 	if (G_OBJECT_CLASS (parent_class)->dispose) \
 		(* G_OBJECT_CLASS (parent_class)->dispose) (obj_self);
-#line 36 "mn-popup.gob"
+#line 44 "mn-popup.gob"
 	if(self->_priv->message) { g_object_unref ((gpointer) self->_priv->message); self->_priv->message = NULL; }
-#line 130 "mn-popup.c"
+#line 152 "mn-popup.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -159,9 +181,9 @@ mn_popup_class_init (MNPopupClass * c G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (NOTIFY_TYPE_NOTIFICATION);
 
-#line 41 "mn-popup.gob"
+#line 49 "mn-popup.gob"
 	g_object_class->constructor = ___1_mn_popup_constructor;
-#line 165 "mn-popup.c"
+#line 187 "mn-popup.c"
 	g_object_class->dispose = ___dispose;
 	g_object_class->finalize = ___finalize;
 	g_object_class->get_property = ___object_get_property;
@@ -196,9 +218,9 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_MESSAGE:
 		{
-#line 37 "mn-popup.gob"
+#line 45 "mn-popup.gob"
 { GObject *___old = (GObject *)self->_priv->message; self->_priv->message = (MNMessage *)g_value_dup_object (VAL); if (___old != NULL) { g_object_unref (G_OBJECT (___old)); } }
-#line 202 "mn-popup.c"
+#line 224 "mn-popup.c"
 		}
 		break;
 	default:
@@ -227,9 +249,9 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_MESSAGE:
 		{
-#line 37 "mn-popup.gob"
+#line 45 "mn-popup.gob"
 g_value_set_object (VAL, (gpointer)self->_priv->message);
-#line 233 "mn-popup.c"
+#line 255 "mn-popup.c"
 		}
 		break;
 	default:
@@ -246,10 +268,10 @@ g_value_set_object (VAL, (gpointer)self->_priv->message);
 
 
 
-#line 41 "mn-popup.gob"
+#line 49 "mn-popup.gob"
 static GObject * 
 ___1_mn_popup_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_properties, GObjectConstructParam * construct_params)
-#line 253 "mn-popup.c"
+#line 275 "mn-popup.c"
 #define PARENT_HANDLER(___type,___n_construct_properties,___construct_params) \
 	((G_OBJECT_CLASS(parent_class)->constructor)? \
 		(* G_OBJECT_CLASS(parent_class)->constructor)(___type,___n_construct_properties,___construct_params): \
@@ -257,7 +279,7 @@ ___1_mn_popup_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_pr
 {
 #define __GOB_FUNCTION__ "MN:Popup::constructor"
 {
-#line 43 "mn-popup.gob"
+#line 51 "mn-popup.gob"
 	
     GObject *object;
     Self *self;
@@ -286,10 +308,102 @@ ___1_mn_popup_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_pr
 
     g_string_free(body, TRUE);
 
+    self_add_actions(self);
+
+    notify_notification_set_timeout(NOTIFY_NOTIFICATION(self), self_get_conf_timeout());
+
+    g_signal_connect(self, "closed", G_CALLBACK(self_closed_h), NULL);
+
+    return object;
+  }}
+#line 320 "mn-popup.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 88 "mn-popup.gob"
+static ActionDefinition * 
+mn_popup_find_action (const char * id)
+#line 327 "mn-popup.c"
+{
+#define __GOB_FUNCTION__ "MN:Popup::find_action"
+#line 88 "mn-popup.gob"
+	g_return_val_if_fail (id != NULL, (ActionDefinition * )0);
+#line 332 "mn-popup.c"
+{
+#line 90 "mn-popup.gob"
+	
+    static ActionDefinition action_definitions[] = {
+      { "open",		mn_popup_add_open_cb },
+      { "mark-as-read",	mn_popup_add_mark_as_read_cb },
+      { "mark-as-spam",	mn_popup_add_mark_as_spam_cb },
+      { "delete",	mn_popup_add_delete_cb }
+    };
+    int i;
+
+    for (i = 0; i < G_N_ELEMENTS(action_definitions); i++)
+      if (! strcmp(action_definitions[i].id, id))
+	return &action_definitions[i];
+
+    return NULL;
+  }}
+#line 350 "mn-popup.c"
+#undef __GOB_FUNCTION__
+
+#line 106 "mn-popup.gob"
+static void 
+mn_popup_add_actions (MNPopup * self)
+#line 356 "mn-popup.c"
+{
+#define __GOB_FUNCTION__ "MN:Popup::add_actions"
+#line 106 "mn-popup.gob"
+	g_return_if_fail (self != NULL);
+#line 106 "mn-popup.gob"
+	g_return_if_fail (MN_IS_POPUP (self));
+#line 363 "mn-popup.c"
+{
+#line 108 "mn-popup.gob"
+	
+    GSList *actions;
+    GSList *l;
+
     /*
      * Note that notification-daemon currently assigns icons to
      * actions by prepending "stock_" to the action ID.
      */
+
+    actions = eel_gconf_get_string_list(MN_CONF_POPUPS_ACTIONS);
+
+    MN_LIST_FOREACH(l, actions)
+      {
+	char *id = l->data;
+	ActionDefinition *def;
+
+	def = self_find_action(id);
+	if (def)
+	  def->add(self);
+	else
+	  g_warning(_("configuration key %s: there is no action named `%s'"), MN_CONF_POPUPS_ACTIONS, id);
+      }
+
+    eel_g_slist_free_deep(actions);
+  }}
+#line 391 "mn-popup.c"
+#undef __GOB_FUNCTION__
+
+#line 134 "mn-popup.gob"
+static void 
+mn_popup_add_open_cb (MNPopup * self)
+#line 397 "mn-popup.c"
+{
+#define __GOB_FUNCTION__ "MN:Popup::add_open_cb"
+#line 134 "mn-popup.gob"
+	g_return_if_fail (self != NULL);
+#line 134 "mn-popup.gob"
+	g_return_if_fail (MN_IS_POPUP (self));
+#line 404 "mn-popup.c"
+{
+#line 136 "mn-popup.gob"
+	
     if (mn_message_can_open(selfp->message))
       notify_notification_add_action(NOTIFY_NOTIFICATION(self),
 				     "mail-open",
@@ -298,6 +412,24 @@ ___1_mn_popup_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_pr
 				     self_open_cb,
 				     NULL,
 				     NULL);
+  }}
+#line 417 "mn-popup.c"
+#undef __GOB_FUNCTION__
+
+#line 147 "mn-popup.gob"
+static void 
+mn_popup_add_mark_as_read_cb (MNPopup * self)
+#line 423 "mn-popup.c"
+{
+#define __GOB_FUNCTION__ "MN:Popup::add_mark_as_read_cb"
+#line 147 "mn-popup.gob"
+	g_return_if_fail (self != NULL);
+#line 147 "mn-popup.gob"
+	g_return_if_fail (MN_IS_POPUP (self));
+#line 430 "mn-popup.c"
+{
+#line 149 "mn-popup.gob"
+	
     if (mn_message_can_mark_as_read(selfp->message))
       notify_notification_add_action(NOTIFY_NOTIFICATION(self),
 				     "mark",
@@ -306,6 +438,24 @@ ___1_mn_popup_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_pr
 				     self_mark_as_read_cb,
 				     NULL,
 				     NULL);
+  }}
+#line 443 "mn-popup.c"
+#undef __GOB_FUNCTION__
+
+#line 160 "mn-popup.gob"
+static void 
+mn_popup_add_mark_as_spam_cb (MNPopup * self)
+#line 449 "mn-popup.c"
+{
+#define __GOB_FUNCTION__ "MN:Popup::add_mark_as_spam_cb"
+#line 160 "mn-popup.gob"
+	g_return_if_fail (self != NULL);
+#line 160 "mn-popup.gob"
+	g_return_if_fail (MN_IS_POPUP (self));
+#line 456 "mn-popup.c"
+{
+#line 162 "mn-popup.gob"
+	
     if (mn_message_can_mark_as_spam(selfp->message))
       notify_notification_add_action(NOTIFY_NOTIFICATION(self),
 				     "spam",
@@ -314,25 +464,44 @@ ___1_mn_popup_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_pr
 				     self_mark_as_spam_cb,
 				     NULL,
 				     NULL);
-
-    notify_notification_set_timeout(NOTIFY_NOTIFICATION(self), self_get_conf_timeout());
-
-    g_signal_connect(self, "closed", G_CALLBACK(self_closed_h), NULL);
-
-    return object;
   }}
-#line 325 "mn-popup.c"
+#line 469 "mn-popup.c"
 #undef __GOB_FUNCTION__
-#undef PARENT_HANDLER
 
-#line 107 "mn-popup.gob"
+#line 173 "mn-popup.gob"
+static void 
+mn_popup_add_delete_cb (MNPopup * self)
+#line 475 "mn-popup.c"
+{
+#define __GOB_FUNCTION__ "MN:Popup::add_delete_cb"
+#line 173 "mn-popup.gob"
+	g_return_if_fail (self != NULL);
+#line 173 "mn-popup.gob"
+	g_return_if_fail (MN_IS_POPUP (self));
+#line 482 "mn-popup.c"
+{
+#line 175 "mn-popup.gob"
+	
+    if (mn_message_can_delete(selfp->message))
+      notify_notification_add_action(NOTIFY_NOTIFICATION(self),
+				     "delete",
+				     /* translators: header capitalization */
+				     _("Delete"),
+				     self_delete_cb,
+				     NULL,
+				     NULL);
+  }}
+#line 495 "mn-popup.c"
+#undef __GOB_FUNCTION__
+
+#line 186 "mn-popup.gob"
 static void 
 mn_popup_open_cb (NotifyNotification * notification, char * id, gpointer user_data)
-#line 332 "mn-popup.c"
+#line 501 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::open_cb"
 {
-#line 109 "mn-popup.gob"
+#line 188 "mn-popup.gob"
 	
     Self *self = SELF(notification);
     GError *err = NULL;
@@ -347,17 +516,17 @@ mn_popup_open_cb (NotifyNotification * notification, char * id, gpointer user_da
 
     GDK_THREADS_LEAVE();
   }}
-#line 351 "mn-popup.c"
+#line 520 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 124 "mn-popup.gob"
+#line 203 "mn-popup.gob"
 static void 
 mn_popup_mark_as_read_cb (NotifyNotification * notification, char * id, gpointer user_data)
-#line 357 "mn-popup.c"
+#line 526 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::mark_as_read_cb"
 {
-#line 126 "mn-popup.gob"
+#line 205 "mn-popup.gob"
 	
     Self *self = SELF(notification);
     GError *err = NULL;
@@ -372,17 +541,17 @@ mn_popup_mark_as_read_cb (NotifyNotification * notification, char * id, gpointer
 
     GDK_THREADS_LEAVE();
   }}
-#line 376 "mn-popup.c"
+#line 545 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 141 "mn-popup.gob"
+#line 220 "mn-popup.gob"
 static void 
 mn_popup_mark_as_spam_cb (NotifyNotification * notification, char * id, gpointer user_data)
-#line 382 "mn-popup.c"
+#line 551 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::mark_as_spam_cb"
 {
-#line 143 "mn-popup.gob"
+#line 222 "mn-popup.gob"
 	
     Self *self = SELF(notification);
     GError *err = NULL;
@@ -397,39 +566,64 @@ mn_popup_mark_as_spam_cb (NotifyNotification * notification, char * id, gpointer
 
     GDK_THREADS_LEAVE();
   }}
-#line 401 "mn-popup.c"
+#line 570 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 158 "mn-popup.gob"
+#line 237 "mn-popup.gob"
+static void 
+mn_popup_delete_cb (NotifyNotification * notification, char * id, gpointer user_data)
+#line 576 "mn-popup.c"
+{
+#define __GOB_FUNCTION__ "MN:Popup::delete_cb"
+{
+#line 239 "mn-popup.gob"
+	
+    Self *self = SELF(notification);
+    GError *err = NULL;
+
+    GDK_THREADS_ENTER();
+
+    if (! mn_message_delete(selfp->message, &err))
+      {
+	mn_error_dialog(NULL, _("Unable to delete message"), "%s", err->message);
+	g_error_free(err);
+      }
+
+    GDK_THREADS_LEAVE();
+  }}
+#line 595 "mn-popup.c"
+#undef __GOB_FUNCTION__
+
+#line 254 "mn-popup.gob"
 static void 
 mn_popup_closed_h (NotifyNotification * notification, gpointer user_data)
-#line 407 "mn-popup.c"
+#line 601 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::closed_h"
 {
-#line 160 "mn-popup.gob"
+#line 256 "mn-popup.gob"
 	
     Self *self = SELF(notification);
     self->visible = FALSE;
   }}
-#line 416 "mn-popup.c"
+#line 610 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 165 "mn-popup.gob"
+#line 261 "mn-popup.gob"
 static void 
 mn_popup_append_row (GString * body, const char * name, const char * value)
-#line 422 "mn-popup.c"
+#line 616 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::append_row"
-#line 165 "mn-popup.gob"
+#line 261 "mn-popup.gob"
 	g_return_if_fail (body != NULL);
-#line 165 "mn-popup.gob"
+#line 261 "mn-popup.gob"
 	g_return_if_fail (name != NULL);
-#line 165 "mn-popup.gob"
+#line 261 "mn-popup.gob"
 	g_return_if_fail (value != NULL);
-#line 431 "mn-popup.c"
+#line 625 "mn-popup.c"
 {
-#line 169 "mn-popup.gob"
+#line 265 "mn-popup.gob"
 	
       char *escaped;
 
@@ -442,17 +636,17 @@ mn_popup_append_row (GString * body, const char * name, const char * value)
       g_string_append_printf(body, " %s", escaped);
       g_free(escaped);
     }}
-#line 446 "mn-popup.c"
+#line 640 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 182 "mn-popup.gob"
+#line 278 "mn-popup.gob"
 static int 
 mn_popup_get_conf_timeout (void)
-#line 452 "mn-popup.c"
+#line 646 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::get_conf_timeout"
 {
-#line 184 "mn-popup.gob"
+#line 280 "mn-popup.gob"
 	
     switch (mn_conf_get_enum_value(MN_TYPE_EXPIRATION_ENABLED, MN_CONF_POPUPS_EXPIRATION_ENABLED))
       {
@@ -471,22 +665,22 @@ mn_popup_get_conf_timeout (void)
 	return 0;
       }
   }}
-#line 475 "mn-popup.c"
+#line 669 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 203 "mn-popup.gob"
+#line 299 "mn-popup.gob"
 void 
 mn_popup_show (MNPopup * self)
-#line 481 "mn-popup.c"
+#line 675 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::show"
-#line 203 "mn-popup.gob"
+#line 299 "mn-popup.gob"
 	g_return_if_fail (self != NULL);
-#line 203 "mn-popup.gob"
+#line 299 "mn-popup.gob"
 	g_return_if_fail (MN_IS_POPUP (self));
-#line 488 "mn-popup.c"
+#line 682 "mn-popup.c"
 {
-#line 205 "mn-popup.gob"
+#line 301 "mn-popup.gob"
 	
     GError *err = NULL;
 
@@ -498,22 +692,22 @@ mn_popup_show (MNPopup * self)
 
     self->visible = TRUE;
   }}
-#line 502 "mn-popup.c"
+#line 696 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 217 "mn-popup.gob"
+#line 313 "mn-popup.gob"
 void 
 mn_popup_close (MNPopup * self)
-#line 508 "mn-popup.c"
+#line 702 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::close"
-#line 217 "mn-popup.gob"
+#line 313 "mn-popup.gob"
 	g_return_if_fail (self != NULL);
-#line 217 "mn-popup.gob"
+#line 313 "mn-popup.gob"
 	g_return_if_fail (MN_IS_POPUP (self));
-#line 515 "mn-popup.c"
+#line 709 "mn-popup.c"
 {
-#line 219 "mn-popup.gob"
+#line 315 "mn-popup.gob"
 	
     GError *err = NULL;
 
@@ -526,22 +720,22 @@ mn_popup_close (MNPopup * self)
 	g_error_free(err);
       }
   }}
-#line 530 "mn-popup.c"
+#line 724 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 232 "mn-popup.gob"
+#line 328 "mn-popup.gob"
 MNPopup * 
 mn_popup_new (MNMessage * message)
-#line 536 "mn-popup.c"
+#line 730 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::new"
-#line 232 "mn-popup.gob"
+#line 328 "mn-popup.gob"
 	g_return_val_if_fail (message != NULL, (MNPopup * )0);
-#line 232 "mn-popup.gob"
+#line 328 "mn-popup.gob"
 	g_return_val_if_fail (MN_IS_MESSAGE (message), (MNPopup * )0);
-#line 543 "mn-popup.c"
+#line 737 "mn-popup.c"
 {
-#line 234 "mn-popup.gob"
+#line 330 "mn-popup.gob"
 	
     /* we set the summary here because libnotify requires it */
 
@@ -550,5 +744,5 @@ mn_popup_new (MNMessage * message)
 			MN_POPUP_PROP_MESSAGE(message),
 			NULL);
   }}
-#line 554 "mn-popup.c"
+#line 748 "mn-popup.c"
 #undef __GOB_FUNCTION__

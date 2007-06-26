@@ -23,6 +23,14 @@
 #include <gmime/gmime.h>
 #include "mn-message.h"
 
+/*
+ * The following functions return a NULL message if one of the
+ * following conditions is true:
+ *
+ *   - handle_status is TRUE and the message is marked as read
+ *   - the message is marked as spam
+ */
+
 MNMessage *mn_message_new_from_mime_message (MNMailbox *mailbox,
 					     GMimeMessage *mime_message,
 					     const char *uri,

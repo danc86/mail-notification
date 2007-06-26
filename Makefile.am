@@ -5,6 +5,7 @@ SUBDIRS += tests
 endif
 
 EXTRA_DIST = \
+	COPYING-DOCS		\
 	Makefile.autogen	\
 	TRANSLATING		\
 	aml.make		\

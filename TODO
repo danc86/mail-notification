@@ -1,6 +1,3 @@
-* Check the SSL certificate's hostname against the hostname we used
-  (RFC 3501, section 11.1)
-
 * List the available IMAP folders in the mailbox properties dialog
 
 * Allow to set a different mail reader for each mailbox. Invoking the
@@ -8,3 +5,7 @@
   message's mailbox, or fallback to the global mail reader.
 
 * Limit the tooltip height to the screen height
+
+* The "delete" message action could also be implemented with little
+  effort for Maildir and Sylpheed mailboxes (other mailbox types would
+  require more work).

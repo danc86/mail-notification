@@ -25,6 +25,7 @@
 #include <time.h>
 #include <errno.h>
 #include <gmodule.h>
+#include <glib/gi18n.h>
 #include <gnome.h>
 #include <glade/glade.h>
 #include <eel/eel.h>
@@ -1137,6 +1138,39 @@ mn_utf8_strcasecmp (const char *s1, const char *s2)
   return cmp;
 }
 
+gboolean
+mn_utf8_str_case_has_suffix (const char *str, const char *suffix)
+{
+  char *normalized_str;
+  char *normalized_suffix;
+  char *folded_str;
+  char *folded_suffix;
+  int str_len;
+  int suffix_len;
+  gboolean has;
+
+  g_return_val_if_fail(str != NULL, FALSE);
+  g_return_val_if_fail(suffix != NULL, FALSE);
+
+  normalized_str = g_utf8_normalize(str, -1, G_NORMALIZE_ALL);
+  normalized_suffix = g_utf8_normalize(suffix, -1, G_NORMALIZE_ALL);
+  folded_str = g_utf8_casefold(normalized_str, -1);
+  folded_suffix = g_utf8_casefold(normalized_suffix, -1);
+
+  str_len = strlen(folded_str);
+  suffix_len = strlen(folded_suffix);
+
+  has = str_len >= suffix_len
+    && ! strcmp(folded_str + str_len - suffix_len, folded_suffix);
+
+  g_free(normalized_str);
+  g_free(normalized_suffix);
+  g_free(folded_str);
+  g_free(folded_suffix);
+
+  return has;
+}
+
 char *
 mn_utf8_escape (const char *str)
 {
@@ -1291,6 +1325,27 @@ mn_ascii_str_case_has_prefix (const char *str, const char *prefix)
 }
 
 char *
+mn_ascii_strcasestr (const char *big, const char *little)
+{
+  char *lower_big;
+  char *lower_little;
+  char *s;
+
+  g_return_val_if_fail(big != NULL, NULL);
+  g_return_val_if_fail(little != NULL, NULL);
+
+  lower_big = g_ascii_strdown(big, -1);
+  lower_little = g_ascii_strdown(little, -1);
+
+  s = strstr(lower_big, lower_little);
+
+  g_free(lower_big);
+  g_free(lower_little);
+
+  return s ? (char *) big + (s - lower_big) : NULL;
+}
+
+char *
 mn_format_past_time (time_t past_time, time_t now)
 {
   time_t diff;
@@ -1301,7 +1356,7 @@ mn_format_past_time (time_t past_time, time_t now)
   if (diff >= 0)
     {
       if (diff < 60)
-	return g_strdup_printf(ngettext("%i second ago", "%i seconds ago", diff), diff);
+	return g_strdup_printf(ngettext("%i second ago", "%i seconds ago", (int) diff), (int) diff);
       else if (diff < 60 * 60)
 	{
 	  int minutes = diff / 60;

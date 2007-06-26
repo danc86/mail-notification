@@ -53,6 +53,7 @@ struct _MNMailbox {
 	char * open_command;
 	char * mark_as_read_command;
 	char * mark_as_spam_command;
+	char * delete_command;
 	char * stock_id;
 	char * format;
 	int runtime_check_delay;
@@ -159,6 +160,8 @@ gboolean 	mn_mailbox_has_command	(MNMailbox * self,
 #define MN_MAILBOX_GET_PROP_MARK_AS_READ_COMMAND(arg)	"mark_as_read_command", __extension__ ({gchar **z = (arg); z;})
 #define MN_MAILBOX_PROP_MARK_AS_SPAM_COMMAND(arg)    	"mark_as_spam_command", __extension__ ({gchar *z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_MARK_AS_SPAM_COMMAND(arg)	"mark_as_spam_command", __extension__ ({gchar **z = (arg); z;})
+#define MN_MAILBOX_PROP_DELETE_COMMAND(arg)    	"delete_command", __extension__ ({gchar *z = (arg); z;})
+#define MN_MAILBOX_GET_PROP_DELETE_COMMAND(arg)	"delete_command", __extension__ ({gchar **z = (arg); z;})
 #define MN_MAILBOX_PROP_STOCK_ID(arg)    	"stock_id", __extension__ ({gchar *z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_STOCK_ID(arg)	"stock_id", __extension__ ({gchar **z = (arg); z;})
 #define MN_MAILBOX_PROP_FORMAT(arg)    	"format", __extension__ ({gchar *z = (arg); z;})
@@ -180,6 +183,8 @@ gboolean 	mn_mailbox_has_command	(MNMailbox * self,
 #define MN_MAILBOX_GET_PROP_MARK_AS_READ_COMMAND(arg)	"mark_as_read_command",(gchar **)(arg)
 #define MN_MAILBOX_PROP_MARK_AS_SPAM_COMMAND(arg)    	"mark_as_spam_command",(gchar *)(arg)
 #define MN_MAILBOX_GET_PROP_MARK_AS_SPAM_COMMAND(arg)	"mark_as_spam_command",(gchar **)(arg)
+#define MN_MAILBOX_PROP_DELETE_COMMAND(arg)    	"delete_command",(gchar *)(arg)
+#define MN_MAILBOX_GET_PROP_DELETE_COMMAND(arg)	"delete_command",(gchar **)(arg)
 #define MN_MAILBOX_PROP_STOCK_ID(arg)    	"stock_id",(gchar *)(arg)
 #define MN_MAILBOX_GET_PROP_STOCK_ID(arg)	"stock_id",(gchar **)(arg)
 #define MN_MAILBOX_PROP_FORMAT(arg)    	"format",(gchar *)(arg)

@@ -91,6 +91,7 @@ static gboolean ___3_mn_evolution_message_open_impl (MNMessage * message, GError
 static gboolean mn_evolution_message_set_flags (MNEvolutionMessage * self, guint32 flags, GError ** err) G_GNUC_UNUSED;
 static gboolean ___5_mn_evolution_message_mark_as_read_impl (MNMessage * message, GError ** err) G_GNUC_UNUSED;
 static gboolean ___6_mn_evolution_message_mark_as_spam_impl (MNMessage * message, GError ** err) G_GNUC_UNUSED;
+static gboolean ___7_mn_evolution_message_delete_impl (MNMessage * message, GError ** err) G_GNUC_UNUSED;
 
 enum {
 	PROP_0,
@@ -156,7 +157,7 @@ ___finalize(GObject *obj_self)
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
 #line 73 "mn-evolution-message.gob"
 	if(self->_priv->uid) { g_free ((gpointer) self->_priv->uid); self->_priv->uid = NULL; }
-#line 160 "mn-evolution-message.c"
+#line 161 "mn-evolution-message.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -186,7 +187,9 @@ mn_evolution_message_class_init (MNEvolutionMessageClass * c G_GNUC_UNUSED)
 	mn_message_class->mark_as_read_impl = ___5_mn_evolution_message_mark_as_read_impl;
 #line 121 "mn-evolution-message.gob"
 	mn_message_class->mark_as_spam_impl = ___6_mn_evolution_message_mark_as_spam_impl;
-#line 190 "mn-evolution-message.c"
+#line 127 "mn-evolution-message.gob"
+	mn_message_class->delete_impl = ___7_mn_evolution_message_delete_impl;
+#line 193 "mn-evolution-message.c"
 	g_object_class->finalize = ___finalize;
 	g_object_class->get_property = ___object_get_property;
 	g_object_class->set_property = ___object_set_property;
@@ -222,7 +225,7 @@ ___object_set_property (GObject *object,
 		{
 #line 74 "mn-evolution-message.gob"
 { char *old = self->_priv->uid; self->_priv->uid = g_value_dup_string (VAL); g_free (old); }
-#line 226 "mn-evolution-message.c"
+#line 229 "mn-evolution-message.c"
 		}
 		break;
 	default:
@@ -253,7 +256,7 @@ ___object_get_property (GObject *object,
 		{
 #line 74 "mn-evolution-message.gob"
 g_value_set_string (VAL, self->_priv->uid);
-#line 257 "mn-evolution-message.c"
+#line 260 "mn-evolution-message.c"
 		}
 		break;
 	default:
@@ -273,12 +276,12 @@ g_value_set_string (VAL, self->_priv->uid);
 #line 76 "mn-evolution-message.gob"
 MNMessage * 
 mn_evolution_message_new (MNMailbox * mailbox, time_t sent_time, const char * id, const char * from, const char * subject, MNMessageFlags flags, const char * uid)
-#line 277 "mn-evolution-message.c"
+#line 280 "mn-evolution-message.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Message::new"
 #line 76 "mn-evolution-message.gob"
 	g_return_val_if_fail (uid != NULL, (MNMessage * )0);
-#line 282 "mn-evolution-message.c"
+#line 285 "mn-evolution-message.c"
 {
 #line 84 "mn-evolution-message.gob"
 	
@@ -291,13 +294,13 @@ mn_evolution_message_new (MNMailbox * mailbox, time_t sent_time, const char * id
 				   MN_EVOLUTION_MESSAGE_PROP_UID((char *) uid),
 				   NULL));
   }}
-#line 295 "mn-evolution-message.c"
+#line 298 "mn-evolution-message.c"
 #undef __GOB_FUNCTION__
 
 #line 95 "mn-evolution-message.gob"
 static gboolean 
 ___2_mn_evolution_message_can_open_impl (MNMessage * message G_GNUC_UNUSED)
-#line 301 "mn-evolution-message.c"
+#line 304 "mn-evolution-message.c"
 #define PARENT_HANDLER(___message) \
 	((MN_MESSAGE_CLASS(parent_class)->can_open_impl)? \
 		(* MN_MESSAGE_CLASS(parent_class)->can_open_impl)(___message): \
@@ -309,14 +312,14 @@ ___2_mn_evolution_message_can_open_impl (MNMessage * message G_GNUC_UNUSED)
 	
     return TRUE;
   }}
-#line 313 "mn-evolution-message.c"
+#line 316 "mn-evolution-message.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
 #line 101 "mn-evolution-message.gob"
 static gboolean 
 ___3_mn_evolution_message_open_impl (MNMessage * message G_GNUC_UNUSED, GError ** err)
-#line 320 "mn-evolution-message.c"
+#line 323 "mn-evolution-message.c"
 #define PARENT_HANDLER(___message,___err) \
 	((MN_MESSAGE_CLASS(parent_class)->open_impl)? \
 		(* MN_MESSAGE_CLASS(parent_class)->open_impl)(___message,___err): \
@@ -329,34 +332,34 @@ ___3_mn_evolution_message_open_impl (MNMessage * message G_GNUC_UNUSED, GError *
     Self *self = SELF(message);
     GLUE_METHOD(GNOME_MailNotification_Evolution_Glue_openMessage(glue, mailbox->uri, selfp->uid, &env));
   }}
-#line 333 "mn-evolution-message.c"
+#line 336 "mn-evolution-message.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
 #line 108 "mn-evolution-message.gob"
 static gboolean 
 mn_evolution_message_set_flags (MNEvolutionMessage * self, guint32 flags, GError ** err)
-#line 340 "mn-evolution-message.c"
+#line 343 "mn-evolution-message.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Message::set_flags"
 #line 108 "mn-evolution-message.gob"
 	g_return_val_if_fail (self != NULL, (gboolean )0);
 #line 108 "mn-evolution-message.gob"
 	g_return_val_if_fail (MN_IS_EVOLUTION_MESSAGE (self), (gboolean )0);
-#line 347 "mn-evolution-message.c"
+#line 350 "mn-evolution-message.c"
 {
 #line 110 "mn-evolution-message.gob"
 	
     MNMessage *message = MN_MESSAGE(self);
     GLUE_METHOD(GNOME_MailNotification_Evolution_Glue_setMessageFlags(glue, mailbox->uri, selfp->uid, flags, &env));
   }}
-#line 354 "mn-evolution-message.c"
+#line 357 "mn-evolution-message.c"
 #undef __GOB_FUNCTION__
 
 #line 115 "mn-evolution-message.gob"
 static gboolean 
 ___5_mn_evolution_message_mark_as_read_impl (MNMessage * message G_GNUC_UNUSED, GError ** err)
-#line 360 "mn-evolution-message.c"
+#line 363 "mn-evolution-message.c"
 #define PARENT_HANDLER(___message,___err) \
 	((MN_MESSAGE_CLASS(parent_class)->mark_as_read_impl)? \
 		(* MN_MESSAGE_CLASS(parent_class)->mark_as_read_impl)(___message,___err): \
@@ -368,14 +371,14 @@ ___5_mn_evolution_message_mark_as_read_impl (MNMessage * message G_GNUC_UNUSED, 
 	
     return self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN, err);
   }}
-#line 372 "mn-evolution-message.c"
+#line 375 "mn-evolution-message.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
 #line 121 "mn-evolution-message.gob"
 static gboolean 
 ___6_mn_evolution_message_mark_as_spam_impl (MNMessage * message G_GNUC_UNUSED, GError ** err)
-#line 379 "mn-evolution-message.c"
+#line 382 "mn-evolution-message.c"
 #define PARENT_HANDLER(___message,___err) \
 	((MN_MESSAGE_CLASS(parent_class)->mark_as_spam_impl)? \
 		(* MN_MESSAGE_CLASS(parent_class)->mark_as_spam_impl)(___message,___err): \
@@ -387,6 +390,25 @@ ___6_mn_evolution_message_mark_as_spam_impl (MNMessage * message G_GNUC_UNUSED, 
 	
     return self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN | CAMEL_MESSAGE_JUNK | CAMEL_MESSAGE_JUNK_LEARN, err);
   }}
-#line 391 "mn-evolution-message.c"
+#line 394 "mn-evolution-message.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 127 "mn-evolution-message.gob"
+static gboolean 
+___7_mn_evolution_message_delete_impl (MNMessage * message G_GNUC_UNUSED, GError ** err)
+#line 401 "mn-evolution-message.c"
+#define PARENT_HANDLER(___message,___err) \
+	((MN_MESSAGE_CLASS(parent_class)->delete_impl)? \
+		(* MN_MESSAGE_CLASS(parent_class)->delete_impl)(___message,___err): \
+		((gboolean )0))
+{
+#define __GOB_FUNCTION__ "MN:Evolution:Message::delete_impl"
+{
+#line 129 "mn-evolution-message.gob"
+	
+    return self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN | CAMEL_MESSAGE_DELETED, err);
+  }}
+#line 413 "mn-evolution-message.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER

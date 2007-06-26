@@ -44,6 +44,7 @@ typedef enum
 %{
 #include "config.h"
 #include <errno.h>
+#include <glib/gi18n.h>
 #include <gnome.h>
 #include <libgnomevfs/gnome-vfs.h>
 #include "mn-util.h"
@@ -123,7 +124,7 @@ class MN:Message from G:Object
 	id = g_string_new(NULL);
 
 	if (self->sent_time > 0)
-	  g_string_append_printf(id, ":sent-time:%u:", self->sent_time);
+	  g_string_append_printf(id, ":sent-time:%i:", (int) self->sent_time);
 	if (self->from)
 	  g_string_append_printf(id, ":from:%s:", self->from);
 	if (self->subject)
@@ -424,6 +425,44 @@ class MN:Message from G:Object
 
   virtual private gboolean
     mark_as_spam_impl (self, GError **err);
+
+  virtual public gboolean
+    can_delete (self)
+  {
+    return mn_mailbox_has_command(self->mailbox, "delete") || self_can_delete_impl(self);
+  }
+
+  virtual private gboolean
+    can_delete_impl (self)
+  {
+    return SELF_GET_CLASS(self)->delete_impl != NULL;
+  }
+
+  private gboolean
+    delete_real (self, GError **err)
+  {
+    gboolean status;
+
+    if (self_execute_command(self, "delete", &status, err))
+      return status;
+    else
+      return self_delete_impl(self, err);
+  }
+
+  public gboolean
+    delete (self, GError **err)
+  {
+    if (self_delete_real(self, err))
+      {
+	mn_mailbox_mark_as_read(self);
+	return TRUE;
+      }
+    else
+      return FALSE;
+  }
+
+  virtual private gboolean
+    delete_impl (self, GError **err);
 
   public MNMessage *
     new (MN:Mailbox *mailbox (check null type),

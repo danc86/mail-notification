@@ -65,6 +65,10 @@ typedef struct
 {
   char				*uri;
   MNVFSMailboxBackend		*owner;
+  GnomeVFSMonitorType		type;
+  GnomeVFSMonitorCallback	callback;
+  gpointer			user_data;
+
   GnomeVFSResult		result;
   GnomeVFSMonitorHandle		*handle;
 } Monitor;
@@ -182,6 +186,31 @@ class MN:VFS:Mailbox from MN:Reentrant:Mailbox (abstract)
       }
   }
 
+  private Monitor *
+    find_monitor (self,
+		  const char *uri (check null),
+		  MNVFSMailboxBackend *owner,
+		  GnomeVFSMonitorType type,
+		  GnomeVFSMonitorCallback callback,
+		  gpointer user_data)
+  {
+    GSList *l;
+
+    MN_LIST_FOREACH(l, selfp->monitors)
+      {
+	Monitor *monitor = l->data;
+
+	if (monitor->owner == owner
+	    && monitor->type == type
+	    && monitor->callback == callback
+	    && monitor->user_data == user_data
+	    && ! strcmp(monitor->uri, uri))
+	  return monitor;
+      }
+
+    return NULL;
+  }
+
   protected void
     monitor (self,
 	     const char *uri (check null),
@@ -190,27 +219,19 @@ class MN:VFS:Mailbox from MN:Reentrant:Mailbox (abstract)
 	     GnomeVFSMonitorCallback callback,
 	     gpointer user_data)
   {
-    Monitor *monitor = NULL;
-    GSList *l;
+    Monitor *monitor;
 
     g_return_if_fail(owner == NULL || MN_IS_VFS_MAILBOX_BACKEND(owner));
 
-    MN_LIST_FOREACH(l, selfp->monitors)
-      {
-	Monitor *this_monitor = l->data;
-
-	if (this_monitor->owner == owner && ! strcmp(this_monitor->uri, uri))
-	  {
-	    monitor = this_monitor;
-	    break;
-	  }
-      }
-
+    monitor = self_find_monitor(self, uri, owner, type, callback, user_data);
     if (! monitor)
       {
 	monitor = g_new0(Monitor, 1);
 	monitor->uri = g_strdup(uri);
 	monitor->owner = owner;
+	monitor->type = type;
+	monitor->callback = callback;
+	monitor->user_data = user_data;
 	monitor->result = -1;
 
 	selfp->monitors = g_slist_append(selfp->monitors, monitor);
@@ -330,7 +351,15 @@ class MN:VFS:Mailbox from MN:Reentrant:Mailbox (abstract)
 
     mn_reentrant_mailbox_lock(mailbox);
 
+    /*
+     * For properly detecting the new mailbox type when the file or
+     * directory changes we need install both a file and a directory
+     * monitor, since depending on the underlying implementation we
+     * might not get file events if the URI is a directory, etc.
+     */
+
     self_monitor(self, self->uri, NULL, GNOME_VFS_MONITOR_FILE, self_monitor_cb, self);
+    self_monitor(self, self->uri, NULL, GNOME_VFS_MONITOR_DIRECTORY, self_monitor_cb, self);
 
     backend = selfp->backend;
     if (backend)

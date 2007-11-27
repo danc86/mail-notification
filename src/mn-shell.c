@@ -22,9 +22,10 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 30 "mn-shell.gob"
+#line 34 "mn-shell.gob"
 
 #include "config.h"
+#include <signal.h>
 #include <glib/gi18n.h>
 #include <eel/eel.h>
 #include <libxml/tree.h>
@@ -41,7 +42,23 @@
 
 MNShell *mn_shell = NULL;
 
-#line 45 "mn-shell.c"
+typedef struct
+{
+  int		num;
+  const char	*name;
+} UnixSignalInfo;
+
+#define SIGNAL_INFO(name) { name, #name }
+
+static const UnixSignalInfo unix_quit_signals[] = {
+  SIGNAL_INFO(SIGHUP),
+  SIGNAL_INFO(SIGINT),
+  SIGNAL_INFO(SIGTERM),
+  SIGNAL_INFO(SIGUSR1),
+  SIGNAL_INFO(SIGUSR2)
+};
+
+#line 62 "mn-shell.c"
 static const GEnumValue _mn_shell_tooltip_mail_summary_values[] = {
 	{ MN_SHELL_TOOLTIP_MAIL_SUMMARY_STANDARD, (char *)"MN_SHELL_TOOLTIP_MAIL_SUMMARY_STANDARD", (char *)"standard" },
 	{ MN_SHELL_TOOLTIP_MAIL_SUMMARY_COMPACT, (char *)"MN_SHELL_TOOLTIP_MAIL_SUMMARY_COMPACT", (char *)"compact" },
@@ -74,22 +91,23 @@ typedef MNShellClass SelfClass;
 /* here are local prototypes */
 static void mn_shell_class_init (MNShellClass * c) G_GNUC_UNUSED;
 static void mn_shell_init (MNShell * self) G_GNUC_UNUSED;
-static void ___2_mn_shell_finalize (GObject * object) G_GNUC_UNUSED;
+static void ___2_mn_shell_dispose (GObject * object) G_GNUC_UNUSED;
+static const UnixSignalInfo * mn_shell_lookup_unix_quit_signal (int signum) G_GNUC_UNUSED;
+static void mn_shell_unix_quit_signal_handler (int signum) G_GNUC_UNUSED;
+static void mn_shell_weak_notify_cb (gpointer data, GObject * former_object) G_GNUC_UNUSED;
 static void mn_shell_messages_changed_h (MNMailboxes * mailboxes, gboolean has_new, gpointer user_data) G_GNUC_UNUSED;
+static void mn_shell_play_new_mail_sound (MNShell * self) G_GNUC_UNUSED;
 static void mn_shell_mailbox_removed_h (MNMailboxes * mailboxes, MNMailbox * mailbox, gpointer user_data) G_GNUC_UNUSED;
 static void mn_shell_init_icon (MNShell * self) G_GNUC_UNUSED;
-static void mn_shell_notify_blink_on_errors_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data) G_GNUC_UNUSED;
-static void mn_shell_notify_always_display_icon_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data) G_GNUC_UNUSED;
+static void mn_shell_notify_icon_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data) G_GNUC_UNUSED;
 static void mn_shell_notify_mail_reader_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data) G_GNUC_UNUSED;
 static void mn_shell_notify_tooltip_mail_summary_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data) G_GNUC_UNUSED;
 static void mn_shell_icon_activate_h (MNMailIcon * icon, gpointer user_data) G_GNUC_UNUSED;
 static void mn_shell_icon_activate_mail_reader_h (MNMailIcon * icon, gpointer user_data) G_GNUC_UNUSED;
 static void mn_shell_icon_activate_open_latest_message_h (MNMailIcon * icon, gpointer user_data) G_GNUC_UNUSED;
-static void mn_shell_icon_activate_update_h (MNMailIcon * icon, gpointer user_data) G_GNUC_UNUSED;
 static void mn_shell_icon_activate_properties_h (MNMailIcon * icon, gpointer user_data) G_GNUC_UNUSED;
 static void mn_shell_icon_activate_help_h (MNMailIcon * icon, gpointer user_data) G_GNUC_UNUSED;
 static void mn_shell_icon_activate_about_h (MNMailIcon * icon, gpointer user_data) G_GNUC_UNUSED;
-static void mn_shell_icon_activate_remove_h (MNMailIcon * icon, gpointer user_data) G_GNUC_UNUSED;
 static void mn_shell_icon_destroy_h (GtkObject * object, gpointer user_data) G_GNUC_UNUSED;
 static void mn_shell_update_sensitivity (MNShell * self) G_GNUC_UNUSED;
 static void mn_shell_update_icon (MNShell * self) G_GNUC_UNUSED;
@@ -98,28 +116,29 @@ static int mn_shell_new_mailboxes_compare_cb (MNMailbox * a, MNMailbox * b) G_GN
 static GtkWidget * mn_shell_tooltip_section_new (GtkVBox ** vbox, const char * title) G_GNUC_UNUSED;
 static void mn_shell_tooltip_text_section_new (GtkVBox ** vbox, const char * title, const char * text) G_GNUC_UNUSED;
 static void mn_shell_open_latest_message (MNShell * self) G_GNUC_UNUSED;
-static void mn_shell_display_window (MNShell * self, GType type, GtkWidget ** ptr) G_GNUC_UNUSED;
+static void mn_shell_display_window (MNShell * self, GType type, GtkWidget ** ptr, guint32 timestamp) G_GNUC_UNUSED;
 static void mn_shell_mailbox_properties_dialog_weak_notify_cb (gpointer data, GObject * former_object) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
 static GObjectClass *parent_class = NULL;
 
 /* Short form macros */
+#define self_lookup_unix_quit_signal mn_shell_lookup_unix_quit_signal
+#define self_unix_quit_signal_handler mn_shell_unix_quit_signal_handler
+#define self_weak_notify_cb mn_shell_weak_notify_cb
 #define self_messages_changed_h mn_shell_messages_changed_h
+#define self_play_new_mail_sound mn_shell_play_new_mail_sound
 #define self_mailbox_removed_h mn_shell_mailbox_removed_h
 #define self_init_icon mn_shell_init_icon
-#define self_notify_blink_on_errors_cb mn_shell_notify_blink_on_errors_cb
-#define self_notify_always_display_icon_cb mn_shell_notify_always_display_icon_cb
+#define self_notify_icon_cb mn_shell_notify_icon_cb
 #define self_notify_mail_reader_cb mn_shell_notify_mail_reader_cb
 #define self_notify_tooltip_mail_summary_cb mn_shell_notify_tooltip_mail_summary_cb
 #define self_icon_activate_h mn_shell_icon_activate_h
 #define self_icon_activate_mail_reader_h mn_shell_icon_activate_mail_reader_h
 #define self_icon_activate_open_latest_message_h mn_shell_icon_activate_open_latest_message_h
-#define self_icon_activate_update_h mn_shell_icon_activate_update_h
 #define self_icon_activate_properties_h mn_shell_icon_activate_properties_h
 #define self_icon_activate_help_h mn_shell_icon_activate_help_h
 #define self_icon_activate_about_h mn_shell_icon_activate_about_h
-#define self_icon_activate_remove_h mn_shell_icon_activate_remove_h
 #define self_icon_destroy_h mn_shell_icon_destroy_h
 #define self_update_sensitivity mn_shell_update_sensitivity
 #define self_update_icon mn_shell_update_icon
@@ -129,6 +148,9 @@ static GObjectClass *parent_class = NULL;
 #define self_tooltip_text_section_new mn_shell_tooltip_text_section_new
 #define self_open_latest_message mn_shell_open_latest_message
 #define self_new mn_shell_new
+#define self_consider_new_mail_as_read mn_shell_consider_new_mail_as_read
+#define self_update mn_shell_update
+#define self_quit mn_shell_quit
 #define self_display_properties_dialog mn_shell_display_properties_dialog
 #define self_display_about_dialog mn_shell_display_about_dialog
 #define self_display_window mn_shell_display_window
@@ -180,28 +202,13 @@ GET_NEW_VARG (const char *first, ...)
 
 
 static void
-___dispose (GObject *obj_self)
-{
-#define __GOB_FUNCTION__ "MN:Shell::dispose"
-	MNShell *self G_GNUC_UNUSED = MN_SHELL (obj_self);
-	if (G_OBJECT_CLASS (parent_class)->dispose) \
-		(* G_OBJECT_CLASS (parent_class)->dispose) (obj_self);
-#line 58 "mn-shell.gob"
-	if(self->mailboxes) { g_object_unref ((gpointer) self->mailboxes); self->mailboxes = NULL; }
-#line 192 "mn-shell.c"
-}
-#undef __GOB_FUNCTION__
-
-
-static void
 ___finalize(GObject *obj_self)
 {
 #define __GOB_FUNCTION__ "MN:Shell::finalize"
 	MNShell *self G_GNUC_UNUSED = MN_SHELL (obj_self);
 	gpointer priv G_GNUC_UNUSED = self->_priv;
-#line 97 "mn-shell.gob"
-	___2_mn_shell_finalize(obj_self);
-#line 205 "mn-shell.c"
+	if(G_OBJECT_CLASS(parent_class)->finalize) \
+		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
 }
 #undef __GOB_FUNCTION__
 
@@ -215,35 +222,46 @@ mn_shell_class_init (MNShellClass * c G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (G_TYPE_OBJECT);
 
-#line 97 "mn-shell.gob"
+#line 143 "mn-shell.gob"
+	g_object_class->dispose = ___2_mn_shell_dispose;
+#line 228 "mn-shell.c"
 	g_object_class->finalize = ___finalize;
-#line 221 "mn-shell.c"
-	g_object_class->dispose = ___dispose;
 }
 #undef __GOB_FUNCTION__
-#line 68 "mn-shell.gob"
+#line 92 "mn-shell.gob"
 static void 
 mn_shell_init (MNShell * self G_GNUC_UNUSED)
-#line 228 "mn-shell.c"
+#line 235 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_SHELL,MNShellPrivate);
-#line 58 "mn-shell.gob"
-	self->mailboxes = mn_mailboxes_new();
-#line 234 "mn-shell.c"
  {
-#line 69 "mn-shell.gob"
+#line 93 "mn-shell.gob"
+
+    int i;
 
     g_assert(mn_shell == NULL);
 
     mn_shell = self;
-    eel_add_weak_pointer(&mn_shell);
+    g_object_weak_ref(G_OBJECT(self), self_weak_notify_cb, NULL);
+
+    selfp->sound_player = mn_sound_player_new();
+    eel_add_weak_pointer(&selfp->sound_player);
+
+    /*
+     * self->mailboxes is assigned in MNMailboxes itself, so that
+     * mailboxes can access it even during construction of
+     * MNMailboxes.
+     */
+    mn_mailboxes_new();
+    eel_add_weak_pointer(&self->mailboxes);
 
     self_init_icon(self);
 
     mn_g_object_gconf_notifications_add_gdk_locked(self,
-						   MN_CONF_BLINK_ON_ERRORS, self_notify_blink_on_errors_cb, self,
-						   MN_CONF_ALWAYS_DISPLAY_ICON, self_notify_always_display_icon_cb, self,
+						   MN_CONF_BLINK_ON_ERRORS, self_notify_icon_cb, self,
+						   MN_CONF_ALWAYS_DISPLAY_ICON, self_notify_icon_cb, self,
+						   MN_CONF_DISPLAY_MESSAGE_COUNT, self_notify_icon_cb, self,
 						   MN_CONF_GNOME_MAIL_READER_NAMESPACE, self_notify_mail_reader_cb, self,
 						   MN_CONF_TOOLTIP_MAIL_SUMMARY, self_notify_tooltip_mail_summary_cb, self,
 						   NULL);
@@ -251,7 +269,7 @@ mn_shell_init (MNShell * self G_GNUC_UNUSED)
     g_object_connect(self->mailboxes,
 		     "signal::messages-changed", self_messages_changed_h, self,
 		     "signal::mailbox-removed", self_mailbox_removed_h, self,
-		     "swapped-signal::notify::poll", self_update_sensitivity, self,
+		     "swapped-signal::notify::manually-checkable", self_update_sensitivity, self,
 		     "swapped-signal::list-changed", self_update_tooltip, self,
 		     "swapped-signal::list-changed", self_update_icon, self,
 		     "swapped-signal::error-changed", self_update_tooltip, self,
@@ -259,41 +277,152 @@ mn_shell_init (MNShell * self G_GNUC_UNUSED)
 		     NULL);
 
     self->popups = mn_popups_new();
+    eel_add_weak_pointer(&self->popups);
+
+    /*
+     * Exit cleanly (by unreferencing our components) when receiving a
+     * UNIX signal.
+     */
+    for (i = 0; i < G_N_ELEMENTS(unix_quit_signals); i++)
+      signal(unix_quit_signals[i].num, self_unix_quit_signal_handler);
   
-#line 264 "mn-shell.c"
+#line 290 "mn-shell.c"
  }
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 97 "mn-shell.gob"
+#line 143 "mn-shell.gob"
 static void 
-___2_mn_shell_finalize (GObject * object G_GNUC_UNUSED)
-#line 274 "mn-shell.c"
+___2_mn_shell_dispose (GObject * object G_GNUC_UNUSED)
+#line 300 "mn-shell.c"
 #define PARENT_HANDLER(___object) \
-	{ if(G_OBJECT_CLASS(parent_class)->finalize) \
-		(* G_OBJECT_CLASS(parent_class)->finalize)(___object); }
+	{ if(G_OBJECT_CLASS(parent_class)->dispose) \
+		(* G_OBJECT_CLASS(parent_class)->dispose)(___object); }
 {
-#define __GOB_FUNCTION__ "MN:Shell::finalize"
+#define __GOB_FUNCTION__ "MN:Shell::dispose"
 {
-#line 99 "mn-shell.gob"
+#line 145 "mn-shell.gob"
 	
-    gtk_main_quit();
+    Self *self = SELF(object);
+
+    /*
+     * We explicitly unreference or destroy each component, even
+     * though MN will exit after the shell is finalized. This is done
+     * for the sake of respecting encapsulation: we should not know
+     * whether a particular component has something to do on exit or
+     * not (for instance, MNSoundPlayer must kill the play process).
+     *
+     * Of course, the order in which we get rid of the components
+     * matters: for instance, when destroyed, MNPropertiesDialog might
+     * remove the test mailbox and thus requires a valid MNMailboxes
+     * object. We destroy the components in the inverse order of their
+     * creation.
+     *
+     * Also note that we do not need to nullify the pointers after
+     * destruction since we use eel_add_weak_pointer() at creation
+     * time.
+     */
+
+    g_slist_foreach(selfp->mailbox_properties_dialogs, (GFunc) gtk_widget_destroy, NULL);
+    /* the list is freed in mailbox_properties_dialog_weak_notify_cb() */
+
+    if (selfp->properties_dialog)
+      gtk_widget_destroy(selfp->properties_dialog);
+
+    if (selfp->about_dialog)
+      gtk_widget_destroy(selfp->about_dialog);
+
+    mn_g_object_null_unref(self->popups);
+
+    if (self->icon)
+      {
+	/* do not recreate the icon after we destroy it */
+	g_signal_handlers_disconnect_by_func(self->icon, self_icon_destroy_h, self);
+	gtk_widget_destroy(GTK_WIDGET(self->icon));
+      }
+
+    mn_g_object_null_unref(self->mailboxes);
+
+    mn_g_object_null_unref(selfp->sound_player);
+
     PARENT_HANDLER(object);
   }}
-#line 286 "mn-shell.c"
+#line 353 "mn-shell.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 104 "mn-shell.gob"
+#line 191 "mn-shell.gob"
+static const UnixSignalInfo * 
+mn_shell_lookup_unix_quit_signal (int signum)
+#line 360 "mn-shell.c"
+{
+#define __GOB_FUNCTION__ "MN:Shell::lookup_unix_quit_signal"
+{
+#line 193 "mn-shell.gob"
+	
+    int i;
+
+    for (i = 0; i < G_N_ELEMENTS(unix_quit_signals); i++)
+      if (unix_quit_signals[i].num == signum)
+	return &unix_quit_signals[i];
+
+    g_assert_not_reached();
+    return NULL;
+  }}
+#line 375 "mn-shell.c"
+#undef __GOB_FUNCTION__
+
+#line 204 "mn-shell.gob"
+static void 
+mn_shell_unix_quit_signal_handler (int signum)
+#line 381 "mn-shell.c"
+{
+#define __GOB_FUNCTION__ "MN:Shell::unix_quit_signal_handler"
+{
+#line 206 "mn-shell.gob"
+	
+    int i;
+    const UnixSignalInfo *info;
+
+    /*
+     * Uninstall signal handlers, in case another signal is received
+     * while we are quitting.
+     */
+    for (i = 0; i < G_N_ELEMENTS(unix_quit_signals); i++)
+      signal(unix_quit_signals[i].num, SIG_DFL);
+
+    info = self_lookup_unix_quit_signal(signum);
+
+    g_message(_("received %s signal, exiting"), info->name);
+    self_quit(mn_shell);
+  }}
+#line 402 "mn-shell.c"
+#undef __GOB_FUNCTION__
+
+#line 223 "mn-shell.gob"
+static void 
+mn_shell_weak_notify_cb (gpointer data, GObject * former_object)
+#line 408 "mn-shell.c"
+{
+#define __GOB_FUNCTION__ "MN:Shell::weak_notify_cb"
+{
+#line 225 "mn-shell.gob"
+	
+    gtk_main_quit();
+  }}
+#line 416 "mn-shell.c"
+#undef __GOB_FUNCTION__
+
+#line 229 "mn-shell.gob"
 static void 
 mn_shell_messages_changed_h (MNMailboxes * mailboxes, gboolean has_new, gpointer user_data)
-#line 293 "mn-shell.c"
+#line 422 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::messages_changed_h"
 {
-#line 108 "mn-shell.gob"
+#line 233 "mn-shell.gob"
 	
     Self *self = user_data;
 
@@ -302,6 +431,8 @@ mn_shell_messages_changed_h (MNMailboxes * mailboxes, gboolean has_new, gpointer
 
     if (has_new)
       {
+	self_play_new_mail_sound(self);
+
 	if (mn_conf_has_command(MN_CONF_COMMANDS_NEW_MAIL_NAMESPACE))
 	  mn_conf_execute_command(MN_CONF_COMMANDS_NEW_MAIL_COMMAND);
       }
@@ -310,17 +441,46 @@ mn_shell_messages_changed_h (MNMailboxes * mailboxes, gboolean has_new, gpointer
     self_update_tooltip(self);
     self_update_icon(self);
   }}
-#line 314 "mn-shell.c"
+#line 445 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 125 "mn-shell.gob"
+#line 252 "mn-shell.gob"
+static void 
+mn_shell_play_new_mail_sound (MNShell * self)
+#line 451 "mn-shell.c"
+{
+#define __GOB_FUNCTION__ "MN:Shell::play_new_mail_sound"
+#line 252 "mn-shell.gob"
+	g_return_if_fail (self != NULL);
+#line 252 "mn-shell.gob"
+	g_return_if_fail (MN_IS_SHELL (self));
+#line 458 "mn-shell.c"
+{
+#line 254 "mn-shell.gob"
+	
+    char *file;
+
+    if (! eel_gconf_get_boolean(MN_CONF_SOUNDS_NEW_MAIL_ENABLED))
+      return;
+
+    file = eel_gconf_get_string(MN_CONF_SOUNDS_NEW_MAIL_FILE);
+
+    if (file && *file)
+      mn_sound_player_play(selfp->sound_player, file, NULL);
+
+    g_free(file);
+  }}
+#line 474 "mn-shell.c"
+#undef __GOB_FUNCTION__
+
+#line 268 "mn-shell.gob"
 static void 
 mn_shell_mailbox_removed_h (MNMailboxes * mailboxes, MNMailbox * mailbox, gpointer user_data)
-#line 320 "mn-shell.c"
+#line 480 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::mailbox_removed_h"
 {
-#line 129 "mn-shell.gob"
+#line 272 "mn-shell.gob"
 	
     Self *self = user_data;
     MNMailboxPropertiesDialog *dialog;
@@ -330,34 +490,36 @@ mn_shell_mailbox_removed_h (MNMailboxes * mailboxes, MNMailbox * mailbox, gpoint
     if (dialog)
       gtk_widget_destroy(GTK_WIDGET(dialog));
   }}
-#line 334 "mn-shell.c"
+#line 494 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 139 "mn-shell.gob"
+#line 282 "mn-shell.gob"
 static void 
 mn_shell_init_icon (MNShell * self)
-#line 340 "mn-shell.c"
+#line 500 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::init_icon"
-#line 139 "mn-shell.gob"
+#line 282 "mn-shell.gob"
 	g_return_if_fail (self != NULL);
-#line 139 "mn-shell.gob"
+#line 282 "mn-shell.gob"
 	g_return_if_fail (MN_IS_SHELL (self));
-#line 347 "mn-shell.c"
+#line 507 "mn-shell.c"
 {
-#line 141 "mn-shell.gob"
+#line 284 "mn-shell.gob"
 	
     self->icon = MN_MAIL_ICON(mn_mail_icon_new());
+    eel_add_weak_pointer(&self->icon);
 
     g_object_connect(self->icon,
 		     "signal::activate", self_icon_activate_h, self,
 		     "signal::activate-mail-reader", self_icon_activate_mail_reader_h, self,
 		     "signal::activate-open-latest-message", self_icon_activate_open_latest_message_h, self,
-		     "signal::activate-update", self_icon_activate_update_h, self,
+		     "swapped-signal::activate-consider-new-mail-as-read", self_consider_new_mail_as_read, self,
+		     "swapped-signal::activate-update", self_update, self,
 		     "signal::activate-properties", self_icon_activate_properties_h, self,
 		     "signal::activate-help", self_icon_activate_help_h, self,
 		     "signal::activate-about", self_icon_activate_about_h, self,
-		     "signal::activate-remove", self_icon_activate_remove_h, self,
+		     "swapped-signal::activate-remove", self_quit, self,
 		     "signal::destroy", self_icon_destroy_h, self,
 		     NULL);
 
@@ -365,81 +527,65 @@ mn_shell_init_icon (MNShell * self)
     self_update_tooltip(self);
     self_update_icon(self);
   }}
-#line 369 "mn-shell.c"
+#line 531 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 161 "mn-shell.gob"
+#line 306 "mn-shell.gob"
 static void 
-mn_shell_notify_blink_on_errors_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data)
-#line 375 "mn-shell.c"
+mn_shell_notify_icon_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data)
+#line 537 "mn-shell.c"
 {
-#define __GOB_FUNCTION__ "MN:Shell::notify_blink_on_errors_cb"
+#define __GOB_FUNCTION__ "MN:Shell::notify_icon_cb"
 {
-#line 166 "mn-shell.gob"
+#line 311 "mn-shell.gob"
 	
     Self *self = user_data;
 
     self_update_icon(self);
   }}
-#line 385 "mn-shell.c"
+#line 547 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 172 "mn-shell.gob"
-static void 
-mn_shell_notify_always_display_icon_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data)
-#line 391 "mn-shell.c"
-{
-#define __GOB_FUNCTION__ "MN:Shell::notify_always_display_icon_cb"
-{
-#line 177 "mn-shell.gob"
-	
-    Self *self = user_data;
-
-    self_update_icon(self);
-  }}
-#line 401 "mn-shell.c"
-#undef __GOB_FUNCTION__
-
-#line 183 "mn-shell.gob"
+#line 317 "mn-shell.gob"
 static void 
 mn_shell_notify_mail_reader_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data)
-#line 407 "mn-shell.c"
+#line 553 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::notify_mail_reader_cb"
 {
-#line 188 "mn-shell.gob"
+#line 322 "mn-shell.gob"
 	
     Self *self = user_data;
 
     self_update_sensitivity(self);
   }}
-#line 417 "mn-shell.c"
+#line 563 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 194 "mn-shell.gob"
+#line 328 "mn-shell.gob"
 static void 
 mn_shell_notify_tooltip_mail_summary_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data)
-#line 423 "mn-shell.c"
+#line 569 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::notify_tooltip_mail_summary_cb"
 {
-#line 199 "mn-shell.gob"
+#line 333 "mn-shell.gob"
 	
     Self *self = user_data;
 
     self_update_tooltip(self);
   }}
-#line 433 "mn-shell.c"
+#line 579 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 205 "mn-shell.gob"
+#line 339 "mn-shell.gob"
 static void 
 mn_shell_icon_activate_h (MNMailIcon * icon, gpointer user_data)
-#line 439 "mn-shell.c"
+#line 585 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::icon_activate_h"
 {
-#line 207 "mn-shell.gob"
+#line 341 "mn-shell.gob"
 	
     MNShell *self = user_data;
     MNAction action;
@@ -448,10 +594,6 @@ mn_shell_icon_activate_h (MNMailIcon * icon, gpointer user_data)
 
     switch (action)
       {
-      case MN_ACTION_DISPLAY_PROPERTIES_DIALOG:
-	self_display_properties_dialog(self);
-	break;
-
       case MN_ACTION_LAUNCH_MAIL_READER:
 	if (mn_conf_has_command(MN_CONF_GNOME_MAIL_READER_NAMESPACE))
 	  mn_conf_execute_mail_reader();
@@ -479,6 +621,10 @@ mn_shell_icon_activate_h (MNMailIcon * icon, gpointer user_data)
 			  _("You have no new mail."));
 	break;
 
+      case MN_ACTION_CONSIDER_NEW_MAIL_AS_READ:
+	self_consider_new_mail_as_read(self);
+	break;
+
       case MN_ACTION_UPDATE_MAIL_STATUS:
 	mn_mailboxes_check(self->mailboxes);
 	break;
@@ -487,163 +633,134 @@ mn_shell_icon_activate_h (MNMailIcon * icon, gpointer user_data)
 	g_assert_not_reached();
       }
   }}
-#line 491 "mn-shell.c"
+#line 637 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 255 "mn-shell.gob"
+#line 389 "mn-shell.gob"
 static void 
 mn_shell_icon_activate_mail_reader_h (MNMailIcon * icon, gpointer user_data)
-#line 497 "mn-shell.c"
+#line 643 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::icon_activate_mail_reader_h"
 {
-#line 257 "mn-shell.gob"
+#line 391 "mn-shell.gob"
 	
     mn_conf_execute_mail_reader();
   }}
-#line 505 "mn-shell.c"
+#line 651 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 261 "mn-shell.gob"
+#line 395 "mn-shell.gob"
 static void 
 mn_shell_icon_activate_open_latest_message_h (MNMailIcon * icon, gpointer user_data)
-#line 511 "mn-shell.c"
+#line 657 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::icon_activate_open_latest_message_h"
 {
-#line 263 "mn-shell.gob"
+#line 397 "mn-shell.gob"
 	
     Self *self = user_data;
     self_open_latest_message(self);
   }}
-#line 520 "mn-shell.c"
+#line 666 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 268 "mn-shell.gob"
-static void 
-mn_shell_icon_activate_update_h (MNMailIcon * icon, gpointer user_data)
-#line 526 "mn-shell.c"
-{
-#define __GOB_FUNCTION__ "MN:Shell::icon_activate_update_h"
-{
-#line 270 "mn-shell.gob"
-	
-    Self *self = user_data;
-    mn_mailboxes_check(self->mailboxes);
-  }}
-#line 535 "mn-shell.c"
-#undef __GOB_FUNCTION__
-
-#line 275 "mn-shell.gob"
+#line 402 "mn-shell.gob"
 static void 
 mn_shell_icon_activate_properties_h (MNMailIcon * icon, gpointer user_data)
-#line 541 "mn-shell.c"
+#line 672 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::icon_activate_properties_h"
 {
-#line 277 "mn-shell.gob"
+#line 404 "mn-shell.gob"
 	
     Self *self = user_data;
-    self_display_properties_dialog(self);
+    self_display_properties_dialog(self, gtk_get_current_event_time());
   }}
-#line 550 "mn-shell.c"
+#line 681 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 282 "mn-shell.gob"
+#line 409 "mn-shell.gob"
 static void 
 mn_shell_icon_activate_help_h (MNMailIcon * icon, gpointer user_data)
-#line 556 "mn-shell.c"
+#line 687 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::icon_activate_help_h"
 {
-#line 284 "mn-shell.gob"
+#line 411 "mn-shell.gob"
 	
     mn_display_help(NULL, NULL);
   }}
-#line 564 "mn-shell.c"
+#line 695 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 288 "mn-shell.gob"
+#line 415 "mn-shell.gob"
 static void 
 mn_shell_icon_activate_about_h (MNMailIcon * icon, gpointer user_data)
-#line 570 "mn-shell.c"
+#line 701 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::icon_activate_about_h"
 {
-#line 290 "mn-shell.gob"
+#line 417 "mn-shell.gob"
 	
     Self *self = user_data;
-    self_display_about_dialog(self);
+    self_display_about_dialog(self, gtk_get_current_event_time());
   }}
-#line 579 "mn-shell.c"
+#line 710 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 295 "mn-shell.gob"
-static void 
-mn_shell_icon_activate_remove_h (MNMailIcon * icon, gpointer user_data)
-#line 585 "mn-shell.c"
-{
-#define __GOB_FUNCTION__ "MN:Shell::icon_activate_remove_h"
-{
-#line 297 "mn-shell.gob"
-	
-    Self *self = user_data;
-    g_object_unref(self);
-  }}
-#line 594 "mn-shell.c"
-#undef __GOB_FUNCTION__
-
-#line 302 "mn-shell.gob"
+#line 422 "mn-shell.gob"
 static void 
 mn_shell_icon_destroy_h (GtkObject * object, gpointer user_data)
-#line 600 "mn-shell.c"
+#line 716 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::icon_destroy_h"
 {
-#line 304 "mn-shell.gob"
+#line 424 "mn-shell.gob"
 	
     Self *self = user_data;
 
     /* The Notification Area applet has been terminated. Recreate the icon. */
     self_init_icon(self);
   }}
-#line 611 "mn-shell.c"
+#line 727 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 311 "mn-shell.gob"
+#line 431 "mn-shell.gob"
 static void 
 mn_shell_update_sensitivity (MNShell * self)
-#line 617 "mn-shell.c"
+#line 733 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::update_sensitivity"
-#line 311 "mn-shell.gob"
+#line 431 "mn-shell.gob"
 	g_return_if_fail (self != NULL);
-#line 311 "mn-shell.gob"
+#line 431 "mn-shell.gob"
 	g_return_if_fail (MN_IS_SHELL (self));
-#line 624 "mn-shell.c"
+#line 740 "mn-shell.c"
 {
-#line 313 "mn-shell.gob"
+#line 433 "mn-shell.gob"
 	
     gtk_widget_set_sensitive(self->icon->mail_reader_item, mn_conf_has_command(MN_CONF_GNOME_MAIL_READER_NAMESPACE));
     gtk_widget_set_sensitive(self->icon->open_latest_message_item, self->mailboxes->messages && mn_message_can_open(self->mailboxes->messages->data));
-    gtk_widget_set_sensitive(self->icon->update_item, mn_mailboxes_get_poll(self->mailboxes));
+    gtk_widget_set_sensitive(self->icon->consider_new_mail_as_read_item, self->mailboxes->messages != NULL);
+    gtk_widget_set_sensitive(self->icon->update_item, mn_mailboxes_get_manually_checkable(self->mailboxes));
   }}
-#line 632 "mn-shell.c"
+#line 749 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 319 "mn-shell.gob"
+#line 440 "mn-shell.gob"
 static void 
 mn_shell_update_icon (MNShell * self)
-#line 638 "mn-shell.c"
+#line 755 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::update_icon"
-#line 319 "mn-shell.gob"
+#line 440 "mn-shell.gob"
 	g_return_if_fail (self != NULL);
-#line 319 "mn-shell.gob"
+#line 440 "mn-shell.gob"
 	g_return_if_fail (MN_IS_SHELL (self));
-#line 645 "mn-shell.c"
+#line 762 "mn-shell.c"
 {
-#line 321 "mn-shell.gob"
+#line 442 "mn-shell.gob"
 	
     GList *l;
     gboolean has_new = FALSE;
@@ -669,32 +786,40 @@ mn_shell_update_icon (MNShell * self)
 
     if (has_new || blink || always)
       {
-	mn_blinking_image_set_from_stock(MN_BLINKING_IMAGE(self->icon->image),
-					 has_new ? MN_STOCK_MAIL : MN_STOCK_NO_MAIL,
-					 GTK_ICON_SIZE_LARGE_TOOLBAR);
-	mn_blinking_image_set_blinking(MN_BLINKING_IMAGE(self->icon->image),
-				       blink);
+	int count;
+
+	if (eel_gconf_get_boolean(MN_CONF_DISPLAY_MESSAGE_COUNT))
+	  count = g_slist_length(self->mailboxes->messages);
+	else
+	  count = 0;
+
+	mn_mail_icon_set_from_stock(self->icon, has_new ? MN_STOCK_MAIL : MN_STOCK_NO_MAIL);
+	mn_mail_icon_set_blinking(self->icon, blink);
+	mn_mail_icon_set_count(self->icon, count);
 	gtk_widget_show(GTK_WIDGET(self->icon));
       }
     else
-      gtk_widget_hide(GTK_WIDGET(self->icon));
+      {
+	gtk_widget_hide(GTK_WIDGET(self->icon));
+	mn_mail_icon_set_blinking(self->icon, FALSE);
+      }
   }}
-#line 683 "mn-shell.c"
+#line 808 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 357 "mn-shell.gob"
+#line 486 "mn-shell.gob"
 static void 
 mn_shell_update_tooltip (MNShell * self)
-#line 689 "mn-shell.c"
+#line 814 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::update_tooltip"
-#line 357 "mn-shell.gob"
+#line 486 "mn-shell.gob"
 	g_return_if_fail (self != NULL);
-#line 357 "mn-shell.gob"
+#line 486 "mn-shell.gob"
 	g_return_if_fail (MN_IS_SHELL (self));
-#line 696 "mn-shell.c"
+#line 821 "mn-shell.c"
 {
-#line 359 "mn-shell.gob"
+#line 488 "mn-shell.gob"
 	
     GtkVBox *vbox = NULL;
 
@@ -724,12 +849,12 @@ mn_shell_update_tooltip (MNShell * self)
 	      {
 		MNMailbox *mailbox = lb->data;
 
+		g_assert(mailbox->n_messages > 0);
+
 		if (*string->str)
 		  g_string_append_c(string, '\n');
-		g_string_append(string, mailbox->runtime_name);
 
-		if (mailbox->n_messages > 0)
-		  g_string_append_printf(string, " (%i)", mailbox->n_messages);
+		g_string_append_printf(string, _("%s (%i)"), mailbox->runtime_name, mailbox->n_messages);
 	      }
 	    g_slist_free(new_mailboxes);
 
@@ -748,7 +873,7 @@ mn_shell_update_tooltip (MNShell * self)
 
 		if (*string->str)
 		  g_string_append_c(string, '\n');
-		g_string_append_printf(string, "%s: %s", mailbox->runtime_name, mailbox->error);
+		g_string_append_printf(string, _("%s: %s"), mailbox->runtime_name, mailbox->error);
 	      }
 	    g_slist_free(error_mailboxes);
 
@@ -800,17 +925,17 @@ mn_shell_update_tooltip (MNShell * self)
     else
       mn_mail_icon_set_tip(self->icon, _("You have no new mail."));
   }}
-#line 804 "mn-shell.c"
+#line 929 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 465 "mn-shell.gob"
+#line 594 "mn-shell.gob"
 static int 
 mn_shell_new_mailboxes_compare_cb (MNMailbox * a, MNMailbox * b)
-#line 810 "mn-shell.c"
+#line 935 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::new_mailboxes_compare_cb"
 {
-#line 467 "mn-shell.gob"
+#line 596 "mn-shell.gob"
 	
     int cmp;
 
@@ -827,22 +952,22 @@ mn_shell_new_mailboxes_compare_cb (MNMailbox * a, MNMailbox * b)
 
     return cmp;
   }}
-#line 831 "mn-shell.c"
+#line 956 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 484 "mn-shell.gob"
+#line 613 "mn-shell.gob"
 static GtkWidget * 
 mn_shell_tooltip_section_new (GtkVBox ** vbox, const char * title)
-#line 837 "mn-shell.c"
+#line 962 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::tooltip_section_new"
-#line 484 "mn-shell.gob"
+#line 613 "mn-shell.gob"
 	g_return_val_if_fail (vbox != NULL, (GtkWidget * )0);
-#line 484 "mn-shell.gob"
+#line 613 "mn-shell.gob"
 	g_return_val_if_fail (title != NULL, (GtkWidget * )0);
-#line 844 "mn-shell.c"
+#line 969 "mn-shell.c"
 {
-#line 487 "mn-shell.gob"
+#line 616 "mn-shell.gob"
 	
     GtkWidget *section;
     GtkWidget *label;
@@ -859,24 +984,24 @@ mn_shell_tooltip_section_new (GtkVBox ** vbox, const char * title)
 
     return alignment;
   }}
-#line 863 "mn-shell.c"
+#line 988 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 504 "mn-shell.gob"
+#line 633 "mn-shell.gob"
 static void 
 mn_shell_tooltip_text_section_new (GtkVBox ** vbox, const char * title, const char * text)
-#line 869 "mn-shell.c"
+#line 994 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::tooltip_text_section_new"
-#line 504 "mn-shell.gob"
+#line 633 "mn-shell.gob"
 	g_return_if_fail (vbox != NULL);
-#line 504 "mn-shell.gob"
+#line 633 "mn-shell.gob"
 	g_return_if_fail (title != NULL);
-#line 504 "mn-shell.gob"
+#line 633 "mn-shell.gob"
 	g_return_if_fail (text != NULL);
-#line 878 "mn-shell.c"
+#line 1003 "mn-shell.c"
 {
-#line 508 "mn-shell.gob"
+#line 637 "mn-shell.gob"
 	
     GtkWidget *alignment;
     GtkWidget *label;
@@ -889,22 +1014,22 @@ mn_shell_tooltip_text_section_new (GtkVBox ** vbox, const char * title, const ch
 
     gtk_container_add(GTK_CONTAINER(alignment), label);
   }}
-#line 893 "mn-shell.c"
+#line 1018 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 521 "mn-shell.gob"
+#line 650 "mn-shell.gob"
 static void 
 mn_shell_open_latest_message (MNShell * self)
-#line 899 "mn-shell.c"
+#line 1024 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::open_latest_message"
-#line 521 "mn-shell.gob"
+#line 650 "mn-shell.gob"
 	g_return_if_fail (self != NULL);
-#line 521 "mn-shell.gob"
+#line 650 "mn-shell.gob"
 	g_return_if_fail (MN_IS_SHELL (self));
-#line 906 "mn-shell.c"
+#line 1031 "mn-shell.c"
 {
-#line 523 "mn-shell.gob"
+#line 652 "mn-shell.gob"
 	
     MNMessage *message;
     GError *err = NULL;
@@ -920,82 +1045,148 @@ mn_shell_open_latest_message (MNShell * self)
 	g_error_free(err);
       }
   }}
-#line 924 "mn-shell.c"
+#line 1049 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 539 "mn-shell.gob"
+#line 668 "mn-shell.gob"
 MNShell * 
 mn_shell_new (void)
-#line 930 "mn-shell.c"
+#line 1055 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::new"
 {
-#line 541 "mn-shell.gob"
+#line 670 "mn-shell.gob"
 	
     return GET_NEW;
   }}
-#line 938 "mn-shell.c"
+#line 1063 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 545 "mn-shell.gob"
+#line 674 "mn-shell.gob"
 void 
-mn_shell_display_properties_dialog (MNShell * self)
-#line 944 "mn-shell.c"
+mn_shell_consider_new_mail_as_read (MNShell * self)
+#line 1069 "mn-shell.c"
+{
+#define __GOB_FUNCTION__ "MN:Shell::consider_new_mail_as_read"
+#line 674 "mn-shell.gob"
+	g_return_if_fail (self != NULL);
+#line 674 "mn-shell.gob"
+	g_return_if_fail (MN_IS_SHELL (self));
+#line 1076 "mn-shell.c"
+{
+#line 676 "mn-shell.gob"
+	
+    GList *l;
+
+    MN_LIST_FOREACH(l, self->mailboxes->list)
+      {
+	MNMailbox *mailbox = l->data;
+	mn_mailbox_consider_as_read_list(mailbox->messages);
+      }
+  }}
+#line 1088 "mn-shell.c"
+#undef __GOB_FUNCTION__
+
+#line 686 "mn-shell.gob"
+void 
+mn_shell_update (MNShell * self)
+#line 1094 "mn-shell.c"
+{
+#define __GOB_FUNCTION__ "MN:Shell::update"
+#line 686 "mn-shell.gob"
+	g_return_if_fail (self != NULL);
+#line 686 "mn-shell.gob"
+	g_return_if_fail (MN_IS_SHELL (self));
+#line 1101 "mn-shell.c"
+{
+#line 688 "mn-shell.gob"
+	
+    mn_mailboxes_check(self->mailboxes);
+  }}
+#line 1107 "mn-shell.c"
+#undef __GOB_FUNCTION__
+
+#line 692 "mn-shell.gob"
+void 
+mn_shell_quit (MNShell * self)
+#line 1113 "mn-shell.c"
+{
+#define __GOB_FUNCTION__ "MN:Shell::quit"
+#line 692 "mn-shell.gob"
+	g_return_if_fail (self != NULL);
+#line 692 "mn-shell.gob"
+	g_return_if_fail (MN_IS_SHELL (self));
+#line 1120 "mn-shell.c"
+{
+#line 694 "mn-shell.gob"
+	
+    g_object_unref(self);
+  }}
+#line 1126 "mn-shell.c"
+#undef __GOB_FUNCTION__
+
+#line 698 "mn-shell.gob"
+void 
+mn_shell_display_properties_dialog (MNShell * self, guint32 timestamp)
+#line 1132 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::display_properties_dialog"
-#line 545 "mn-shell.gob"
+#line 698 "mn-shell.gob"
 	g_return_if_fail (self != NULL);
-#line 545 "mn-shell.gob"
+#line 698 "mn-shell.gob"
 	g_return_if_fail (MN_IS_SHELL (self));
-#line 951 "mn-shell.c"
+#line 1139 "mn-shell.c"
 {
-#line 547 "mn-shell.gob"
+#line 700 "mn-shell.gob"
 	
-    self_display_window(self, MN_TYPE_PROPERTIES_DIALOG, &selfp->properties_dialog);
+    self_display_window(self, MN_TYPE_PROPERTIES_DIALOG, &selfp->properties_dialog, timestamp);
   }}
-#line 957 "mn-shell.c"
+#line 1145 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 551 "mn-shell.gob"
+#line 704 "mn-shell.gob"
 void 
-mn_shell_display_about_dialog (MNShell * self)
-#line 963 "mn-shell.c"
+mn_shell_display_about_dialog (MNShell * self, guint32 timestamp)
+#line 1151 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::display_about_dialog"
-#line 551 "mn-shell.gob"
+#line 704 "mn-shell.gob"
 	g_return_if_fail (self != NULL);
-#line 551 "mn-shell.gob"
+#line 704 "mn-shell.gob"
 	g_return_if_fail (MN_IS_SHELL (self));
-#line 970 "mn-shell.c"
+#line 1158 "mn-shell.c"
 {
-#line 553 "mn-shell.gob"
+#line 706 "mn-shell.gob"
 	
-    self_display_window(self, MN_TYPE_ABOUT_DIALOG, &selfp->about_dialog);
+    self_display_window(self, MN_TYPE_ABOUT_DIALOG, &selfp->about_dialog, timestamp);
   }}
-#line 976 "mn-shell.c"
+#line 1164 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 557 "mn-shell.gob"
+#line 710 "mn-shell.gob"
 static void 
-mn_shell_display_window (MNShell * self, GType type, GtkWidget ** ptr)
-#line 982 "mn-shell.c"
+mn_shell_display_window (MNShell * self, GType type, GtkWidget ** ptr, guint32 timestamp)
+#line 1170 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::display_window"
-#line 557 "mn-shell.gob"
+#line 710 "mn-shell.gob"
 	g_return_if_fail (self != NULL);
-#line 557 "mn-shell.gob"
+#line 710 "mn-shell.gob"
 	g_return_if_fail (MN_IS_SHELL (self));
-#line 557 "mn-shell.gob"
+#line 710 "mn-shell.gob"
 	g_return_if_fail (type != 0);
-#line 557 "mn-shell.gob"
+#line 710 "mn-shell.gob"
 	g_return_if_fail (ptr != NULL);
-#line 993 "mn-shell.c"
+#line 1181 "mn-shell.c"
 {
-#line 561 "mn-shell.gob"
+#line 715 "mn-shell.gob"
 	
     if (*ptr)
       {
-	gtk_window_present(GTK_WINDOW(*ptr));
+	if (timestamp)
+	  gtk_window_present_with_time(GTK_WINDOW(*ptr), timestamp);
+	else
+	  gtk_window_present(GTK_WINDOW(*ptr));
 	return;
       }
 
@@ -1004,66 +1195,66 @@ mn_shell_display_window (MNShell * self, GType type, GtkWidget ** ptr)
 
     gtk_widget_show(*ptr);
   }}
-#line 1008 "mn-shell.c"
+#line 1199 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 574 "mn-shell.gob"
+#line 731 "mn-shell.gob"
 void 
 mn_shell_add_mailbox_properties_dialog (MNShell * self, MNMailboxPropertiesDialog * dialog)
-#line 1014 "mn-shell.c"
+#line 1205 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::add_mailbox_properties_dialog"
-#line 574 "mn-shell.gob"
+#line 731 "mn-shell.gob"
 	g_return_if_fail (self != NULL);
-#line 574 "mn-shell.gob"
+#line 731 "mn-shell.gob"
 	g_return_if_fail (MN_IS_SHELL (self));
-#line 574 "mn-shell.gob"
+#line 731 "mn-shell.gob"
 	g_return_if_fail (dialog != NULL);
-#line 574 "mn-shell.gob"
+#line 731 "mn-shell.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (dialog));
-#line 1025 "mn-shell.c"
+#line 1216 "mn-shell.c"
 {
-#line 576 "mn-shell.gob"
+#line 733 "mn-shell.gob"
 	
     selfp->mailbox_properties_dialogs = g_slist_append(selfp->mailbox_properties_dialogs, dialog);
     g_object_weak_ref(G_OBJECT(dialog), self_mailbox_properties_dialog_weak_notify_cb, self);
   }}
-#line 1032 "mn-shell.c"
+#line 1223 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 581 "mn-shell.gob"
+#line 738 "mn-shell.gob"
 static void 
 mn_shell_mailbox_properties_dialog_weak_notify_cb (gpointer data, GObject * former_object)
-#line 1038 "mn-shell.c"
+#line 1229 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::mailbox_properties_dialog_weak_notify_cb"
 {
-#line 584 "mn-shell.gob"
+#line 741 "mn-shell.gob"
 	
     Self *self = data;
 
     selfp->mailbox_properties_dialogs = g_slist_remove(selfp->mailbox_properties_dialogs, former_object);
   }}
-#line 1048 "mn-shell.c"
+#line 1239 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 590 "mn-shell.gob"
+#line 747 "mn-shell.gob"
 MNMailboxPropertiesDialog * 
 mn_shell_get_mailbox_properties_dialog (MNShell * self, MNMailbox * mailbox)
-#line 1054 "mn-shell.c"
+#line 1245 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::get_mailbox_properties_dialog"
-#line 590 "mn-shell.gob"
+#line 747 "mn-shell.gob"
 	g_return_val_if_fail (self != NULL, (MNMailboxPropertiesDialog * )0);
-#line 590 "mn-shell.gob"
+#line 747 "mn-shell.gob"
 	g_return_val_if_fail (MN_IS_SHELL (self), (MNMailboxPropertiesDialog * )0);
-#line 590 "mn-shell.gob"
+#line 747 "mn-shell.gob"
 	g_return_val_if_fail (mailbox != NULL, (MNMailboxPropertiesDialog * )0);
-#line 590 "mn-shell.gob"
+#line 747 "mn-shell.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX (mailbox), (MNMailboxPropertiesDialog * )0);
-#line 1065 "mn-shell.c"
+#line 1256 "mn-shell.c"
 {
-#line 592 "mn-shell.gob"
+#line 749 "mn-shell.gob"
 	
     GSList *l;
 
@@ -1083,22 +1274,22 @@ mn_shell_get_mailbox_properties_dialog (MNShell * self, MNMailbox * mailbox)
 
     return NULL;
   }}
-#line 1087 "mn-shell.c"
+#line 1278 "mn-shell.c"
 #undef __GOB_FUNCTION__
 
-#line 612 "mn-shell.gob"
+#line 769 "mn-shell.gob"
 char * 
 mn_shell_get_summary (MNShell * self)
-#line 1093 "mn-shell.c"
+#line 1284 "mn-shell.c"
 {
 #define __GOB_FUNCTION__ "MN:Shell::get_summary"
-#line 612 "mn-shell.gob"
+#line 769 "mn-shell.gob"
 	g_return_val_if_fail (self != NULL, (char * )0);
-#line 612 "mn-shell.gob"
+#line 769 "mn-shell.gob"
 	g_return_val_if_fail (MN_IS_SHELL (self), (char * )0);
-#line 1100 "mn-shell.c"
+#line 1291 "mn-shell.c"
 {
-#line 614 "mn-shell.gob"
+#line 771 "mn-shell.gob"
 	
     int indent;
     xmlDoc *doc;
@@ -1129,12 +1320,12 @@ mn_shell_get_summary (MNShell * self)
 
     return summary;
   }}
-#line 1133 "mn-shell.c"
+#line 1324 "mn-shell.c"
 #undef __GOB_FUNCTION__
 static const GEnumValue _mn_action_values[] = {
-	{ MN_ACTION_DISPLAY_PROPERTIES_DIALOG, (char *)"MN_ACTION_DISPLAY_PROPERTIES_DIALOG", (char *)"display-properties-dialog" },
 	{ MN_ACTION_LAUNCH_MAIL_READER, (char *)"MN_ACTION_LAUNCH_MAIL_READER", (char *)"launch-mail-reader" },
 	{ MN_ACTION_OPEN_LATEST_MESSAGE, (char *)"MN_ACTION_OPEN_LATEST_MESSAGE", (char *)"open-latest-message" },
+	{ MN_ACTION_CONSIDER_NEW_MAIL_AS_READ, (char *)"MN_ACTION_CONSIDER_NEW_MAIL_AS_READ", (char *)"consider-new-mail-as-read" },
 	{ MN_ACTION_UPDATE_MAIL_STATUS, (char *)"MN_ACTION_UPDATE_MAIL_STATUS", (char *)"update-mail-status" },
 	{ 0, NULL, NULL }
 };

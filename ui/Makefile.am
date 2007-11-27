@@ -1,6 +1,4 @@
-uidir = $(pkgdatadir)/ui
-
-dist_ui_DATA = \
+dist_pkgdata_DATA = \
 	mailbox-properties-dialog.glade		\
 	properties-dialog.glade
 

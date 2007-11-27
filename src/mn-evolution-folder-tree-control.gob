@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -26,6 +26,7 @@ requires 2.0.14
 %{
 #include "config.h"
 #include <string.h>
+#include <glib/gi18n.h>
 #include <mail/mail-component.h>
 #include <mail/em-folder-tree.h>
 #include "mn-evolution.h"
@@ -66,7 +67,7 @@ class MN:Evolution:Folder:Tree:Control from Bonobo:Control
 			    PROP_SELECTED_URI,
 			    BONOBO_ARG_STRING,
 			    NULL,
-			    dgettext(GETTEXT_PACKAGE, "The currently selected URI"),
+			    _("The currently selected URI"),
 			    0);
     bonobo_control_set_properties(control, BONOBO_OBJREF(selfp->pb), NULL);
 
@@ -126,7 +127,7 @@ class MN:Evolution:Folder:Tree:Control from Bonobo:Control
     switch (arg_id)
       {
       case PROP_SELECTED_URI:
-	em_folder_tree_set_selected(tree, BONOBO_ARG_GET_STRING(arg));
+	em_folder_tree_set_selected(tree, BONOBO_ARG_GET_STRING(arg), FALSE);
 	break;
 
       default:

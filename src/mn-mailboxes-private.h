@@ -16,11 +16,11 @@ extern "C" {
 
 #line 18 "mn-mailboxes-private.h"
 struct _MNMailboxesPrivate {
-#line 53 "mn-mailboxes.gob"
+#line 56 "mn-mailboxes.gob"
 	GSList * add_queue;
-#line 54 "mn-mailboxes.gob"
+#line 57 "mn-mailboxes.gob"
 	GSList * remove_queue;
-#line 55 "mn-mailboxes.gob"
+#line 58 "mn-mailboxes.gob"
 	MNLockedGSource * queue_idle_source;
 #line 26 "mn-mailboxes-private.h"
 };

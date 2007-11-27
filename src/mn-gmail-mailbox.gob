@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -52,9 +52,12 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 {
   public char *location destroywith g_free;
   property STRING location (link, flags = CONSTRUCT
-			    | MN_MAILBOX_PARAM_PERMANENT
+			    | MN_MAILBOX_PARAM_LOAD_SAVE
 			    | MN_MAILBOX_PARAM_REQUIRED,
 			    default_value = "https://mail.google.com/mail/feed/atom");
+
+  public char *label destroywith g_free;
+  property STRING label (link, flags = MN_MAILBOX_PARAM_LOAD_SAVE);
 
   private GnomeVFSURI *uri unrefwith gnome_vfs_uri_unref;
 
@@ -62,10 +65,7 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
   {
     MN_MAILBOX_CLASS(class)->type = "gmail";
 
-    /*
-     * 5 minutes is a good default check delay for remote Gmail
-     * mailboxes.
-     */
+    /* 5 minutes is a good default */
     MN_MAILBOX_CLASS(class)->default_check_delay = 60 * 5;
   }
 
@@ -78,10 +78,66 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
   override (MN:Mailbox) void
     seal (MNMailbox *mailbox)
   {
+    MNAuthenticatedMailbox *auth_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
+    Self *self = SELF(mailbox);
+    GnomeVFSURI *uri;
+
     PARENT_HANDLER(mailbox);
 
     if (! mailbox->runtime_name)
-      mailbox->runtime_name = self_build_name(MN_AUTHENTICATED_MAILBOX(mailbox)->username);
+      mailbox->runtime_name = self_build_name(auth_mailbox->username, self->label);
+
+    uri = self_build_uri(self);
+    if (uri)
+      {
+	/*
+	 * Use keyring attributes that are compatible with what
+	 * GnomeVFS uses. This allows the password entered by the user
+	 * at the GnomeVFS password prompt to be recognized by Mail
+	 * Notification and displayed in the mailbox properties
+	 * dialog.
+	 */
+	auth_mailbox->keyring_server = g_strdup(gnome_vfs_uri_get_host_name(uri));
+	auth_mailbox->keyring_protocol = g_strdup("http");
+	auth_mailbox->keyring_authtype = g_strdup("basic");
+	auth_mailbox->keyring_port = gnome_vfs_uri_get_host_port(uri);
+	if (auth_mailbox->keyring_port == 0)
+	  {
+	    const char *scheme;
+
+	    scheme = gnome_vfs_uri_get_scheme(uri);
+	    if (! strcmp(scheme, "http"))
+	      auth_mailbox->keyring_port = 80;
+	    else if (! strcmp(scheme, "https"))
+	      auth_mailbox->keyring_port = 443;
+	  }
+
+	gnome_vfs_uri_unref(uri);
+      }
+    else
+      /* fallback */
+      auth_mailbox->keyring_domain = g_strdup("gmail.com");
+  }
+
+  private GnomeVFSURI *
+    build_uri (self)
+  {
+    GnomeVFSURI *uri;
+
+    uri = gnome_vfs_uri_new(self->location);
+    if (uri)
+      {
+	GnomeVFSURI *new_uri;
+
+	if (self->label)
+	  {
+	    new_uri = gnome_vfs_uri_append_file_name(uri, self->label);
+	    gnome_vfs_uri_unref(uri);
+	    uri = new_uri;
+	  }
+      }
+
+    return uri;
   }
 
   override (MN:Authenticated:Mailbox) void
@@ -94,9 +150,11 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
     xmlDoc *doc;
     xmlNode *node;
 
+    PARENT_HANDLER(mailbox);
+
     if (! selfp->uri)
       {
-	selfp->uri = gnome_vfs_uri_new(self->location);
+	selfp->uri = self_build_uri(self);
 	if (! selfp->uri)
 	  {
 	    GDK_THREADS_ENTER();
@@ -111,8 +169,15 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 	    return;
 	  }
 
+	/*
+	 * Obtain the password from the keyring but do not prompt
+	 * (GnomeVFS will prompt on our behalf if the password is
+	 * missing).
+	 */
+	mn_authenticated_mailbox_fill_password(mailbox, FALSE);
+
 	gnome_vfs_uri_set_user_name(selfp->uri, mailbox->username);
-	gnome_vfs_uri_set_password(selfp->uri, mailbox->password);
+	gnome_vfs_uri_set_password(selfp->uri, mailbox->runtime_password);
       }
 
     mn_mailbox_notice(MN_MAILBOX(self), _("retrieving feed from %s"), self->location);
@@ -129,6 +194,12 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 
 	return;
       }
+
+    mn_mailbox_notice(MN_MAILBOX(self),
+		      ngettext("feed retrieved successfully (%i byte)",
+			       "feed retrieved successfully (%i bytes)",
+			       atom_size),
+		      atom_size);
 
     doc = xmlParseMemory(atom, atom_size);
     g_free(atom);
@@ -324,13 +395,20 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
   }
 
   public char *
-    build_name (const char *username)
+    build_name (const char *username (check null), const char *label)
   {
-    if (username)
-      return g_str_has_suffix(username, "@gmail.com")
-	? g_strdup(username)
-	: g_strdup_printf("%s@gmail.com", username);
+    GString *name;
+
+    name = g_string_new(NULL);
+
+    if (g_str_has_suffix(username, "@gmail.com"))
+      g_string_append(name, username);
     else
-      return g_strdup("gmail.com");
+      g_string_append_printf(name, "%s@gmail.com", username);
+
+    if (label)
+      g_string_append_printf(name, "/%s", label);
+
+    return g_string_free(name, FALSE);
   }
 }

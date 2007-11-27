@@ -113,52 +113,53 @@ mn_system_vfs_mailbox_class_init (MNSystemVFSMailboxClass * class G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (MN_TYPE_VFS_MAILBOX);
 
-#line 41 "mn-system-vfs-mailbox.gob"
+#line 40 "mn-system-vfs-mailbox.gob"
 	mn_mailbox_class->seal = ___2_mn_system_vfs_mailbox_seal;
-#line 51 "mn-system-vfs-mailbox.gob"
+#line 52 "mn-system-vfs-mailbox.gob"
 	mn_mailbox_class->parse_uri = ___3_mn_system_vfs_mailbox_parse_uri;
-#line 64 "mn-system-vfs-mailbox.gob"
+#line 65 "mn-system-vfs-mailbox.gob"
 	mn_mailbox_class->check = ___4_mn_system_vfs_mailbox_check;
 #line 123 "mn-system-vfs-mailbox.c"
  {
 #line 36 "mn-system-vfs-mailbox.gob"
 
     MN_MAILBOX_CLASS(class)->type = "system-vfs";
-    MN_VFS_MAILBOX_CLASS(class)->stock_id = MN_STOCK_SYSTEM_MAILBOX;
   
-#line 130 "mn-system-vfs-mailbox.c"
+#line 129 "mn-system-vfs-mailbox.c"
  }
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 41 "mn-system-vfs-mailbox.gob"
+#line 40 "mn-system-vfs-mailbox.gob"
 static void 
 ___2_mn_system_vfs_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
-#line 140 "mn-system-vfs-mailbox.c"
+#line 139 "mn-system-vfs-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_MAILBOX_CLASS(parent_class)->seal) \
 		(* MN_MAILBOX_CLASS(parent_class)->seal)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:System:VFS:Mailbox::seal"
 {
-#line 43 "mn-system-vfs-mailbox.gob"
+#line 42 "mn-system-vfs-mailbox.gob"
 	
+    mn_mailbox_set_stock_id(mailbox, MN_STOCK_SYSTEM_MAILBOX);
+
     MN_VFS_MAILBOX(mailbox)->uri = g_strdup(self_get_uri());
 
     mailbox->runtime_name = g_strdup(_("System mailbox"));
 
     PARENT_HANDLER(mailbox);
   }}
-#line 155 "mn-system-vfs-mailbox.c"
+#line 156 "mn-system-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 51 "mn-system-vfs-mailbox.gob"
+#line 52 "mn-system-vfs-mailbox.gob"
 static MNMailbox * 
 ___3_mn_system_vfs_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const char * uri)
-#line 162 "mn-system-vfs-mailbox.c"
+#line 163 "mn-system-vfs-mailbox.c"
 #define PARENT_HANDLER(___dummy,___uri) \
 	((MN_MAILBOX_CLASS(parent_class)->parse_uri)? \
 		(* MN_MAILBOX_CLASS(parent_class)->parse_uri)(___dummy,___uri): \
@@ -166,7 +167,7 @@ ___3_mn_system_vfs_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const cha
 {
 #define __GOB_FUNCTION__ "MN:System:VFS:Mailbox::parse_uri"
 {
-#line 53 "mn-system-vfs-mailbox.gob"
+#line 54 "mn-system-vfs-mailbox.gob"
 	
     const char *system_uri;
     MNMailbox *mailbox = NULL;
@@ -177,21 +178,21 @@ ___3_mn_system_vfs_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const cha
 
     return mailbox;
   }}
-#line 181 "mn-system-vfs-mailbox.c"
+#line 182 "mn-system-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 64 "mn-system-vfs-mailbox.gob"
+#line 65 "mn-system-vfs-mailbox.gob"
 static void 
 ___4_mn_system_vfs_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
-#line 188 "mn-system-vfs-mailbox.c"
+#line 189 "mn-system-vfs-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_MAILBOX_CLASS(parent_class)->check) \
 		(* MN_MAILBOX_CLASS(parent_class)->check)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:System:VFS:Mailbox::check"
 {
-#line 66 "mn-system-vfs-mailbox.gob"
+#line 67 "mn-system-vfs-mailbox.gob"
 	
     if (MN_VFS_MAILBOX(mailbox)->uri)
       {
@@ -203,18 +204,18 @@ ___4_mn_system_vfs_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
 	mn_mailbox_set_poll(mailbox, FALSE); /* disable the mailbox */
       }
   }}
-#line 207 "mn-system-vfs-mailbox.c"
+#line 208 "mn-system-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 78 "mn-system-vfs-mailbox.gob"
+#line 79 "mn-system-vfs-mailbox.gob"
 const char * 
 mn_system_vfs_mailbox_get_uri (void)
-#line 214 "mn-system-vfs-mailbox.c"
+#line 215 "mn-system-vfs-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:System:VFS:Mailbox::get_uri"
 {
-#line 80 "mn-system-vfs-mailbox.gob"
+#line 81 "mn-system-vfs-mailbox.gob"
 	
     static char *global_uri = NULL;
     G_LOCK_DEFINE_STATIC(global_uri);
@@ -253,5 +254,5 @@ mn_system_vfs_mailbox_get_uri (void)
 
     return uri;
   }}
-#line 257 "mn-system-vfs-mailbox.c"
+#line 258 "mn-system-vfs-mailbox.c"
 #undef __GOB_FUNCTION__

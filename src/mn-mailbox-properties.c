@@ -181,11 +181,11 @@ mn_mailbox_properties_class_init (MNMailboxPropertiesClass * c G_GNUC_UNUSED)
 	c->activate = NULL;
 	c->deactivate = NULL;
 	c->set_mailbox = NULL;
-#line 80 "mn-mailbox-properties.gob"
+#line 76 "mn-mailbox-properties.gob"
 	c->get_mailbox = ___real_mn_mailbox_properties_get_mailbox;
-#line 100 "mn-mailbox-properties.gob"
+#line 96 "mn-mailbox-properties.gob"
 	mn_mailbox_properties_class->activate = ___6_mn_mailbox_properties_activate;
-#line 110 "mn-mailbox-properties.gob"
+#line 106 "mn-mailbox-properties.gob"
 	mn_mailbox_properties_class->deactivate = ___7_mn_mailbox_properties_deactivate;
 #line 191 "mn-mailbox-properties.c"
 	g_object_class->dispose = ___dispose;
@@ -304,17 +304,13 @@ g_value_set_pointer (VAL, self->dialog);
 		{
 #line 59 "mn-mailbox-properties.gob"
 
-      GType mailbox_type;
       MNMailboxClass *class;
 
-      mailbox_type = mn_mailbox_get_type_from_name(SELF_GET_CLASS(self)->type);
-      g_assert(mailbox_type != 0);
-
-      class = g_type_class_ref(mailbox_type);
+      class = mn_mailbox_get_class_from_name(SELF_GET_CLASS(self)->type);
       g_value_set_int(VAL, class->default_check_delay);
       g_type_class_unref(class);
     
-#line 318 "mn-mailbox-properties.c"
+#line 314 "mn-mailbox-properties.c"
 		}
 		break;
 	default:
@@ -331,68 +327,68 @@ g_value_set_pointer (VAL, self->dialog);
 
 
 
-#line 71 "mn-mailbox-properties.gob"
+#line 67 "mn-mailbox-properties.gob"
 void 
 mn_mailbox_properties_activate (MNMailboxProperties * self)
-#line 338 "mn-mailbox-properties.c"
+#line 334 "mn-mailbox-properties.c"
 {
 	MNMailboxPropertiesClass *klass;
-#line 71 "mn-mailbox-properties.gob"
+#line 67 "mn-mailbox-properties.gob"
 	g_return_if_fail (self != NULL);
-#line 71 "mn-mailbox-properties.gob"
+#line 67 "mn-mailbox-properties.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES (self));
-#line 345 "mn-mailbox-properties.c"
+#line 341 "mn-mailbox-properties.c"
 	klass = MN_MAILBOX_PROPERTIES_GET_CLASS(self);
 
 	if(klass->activate)
 		(*klass->activate)(self);
 }
 
-#line 74 "mn-mailbox-properties.gob"
+#line 70 "mn-mailbox-properties.gob"
 void 
 mn_mailbox_properties_deactivate (MNMailboxProperties * self)
-#line 355 "mn-mailbox-properties.c"
+#line 351 "mn-mailbox-properties.c"
 {
 	MNMailboxPropertiesClass *klass;
-#line 74 "mn-mailbox-properties.gob"
+#line 70 "mn-mailbox-properties.gob"
 	g_return_if_fail (self != NULL);
-#line 74 "mn-mailbox-properties.gob"
+#line 70 "mn-mailbox-properties.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES (self));
-#line 362 "mn-mailbox-properties.c"
+#line 358 "mn-mailbox-properties.c"
 	klass = MN_MAILBOX_PROPERTIES_GET_CLASS(self);
 
 	if(klass->deactivate)
 		(*klass->deactivate)(self);
 }
 
-#line 77 "mn-mailbox-properties.gob"
+#line 73 "mn-mailbox-properties.gob"
 void 
 mn_mailbox_properties_set_mailbox (MNMailboxProperties * self, MNMailbox * mailbox)
-#line 372 "mn-mailbox-properties.c"
+#line 368 "mn-mailbox-properties.c"
 {
 	MNMailboxPropertiesClass *klass;
-#line 77 "mn-mailbox-properties.gob"
+#line 73 "mn-mailbox-properties.gob"
 	g_return_if_fail (self != NULL);
-#line 77 "mn-mailbox-properties.gob"
+#line 73 "mn-mailbox-properties.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES (self));
-#line 379 "mn-mailbox-properties.c"
+#line 375 "mn-mailbox-properties.c"
 	klass = MN_MAILBOX_PROPERTIES_GET_CLASS(self);
 
 	if(klass->set_mailbox)
 		(*klass->set_mailbox)(self,mailbox);
 }
 
-#line 80 "mn-mailbox-properties.gob"
+#line 76 "mn-mailbox-properties.gob"
 MNMailbox * 
 mn_mailbox_properties_get_mailbox (MNMailboxProperties * self)
-#line 389 "mn-mailbox-properties.c"
+#line 385 "mn-mailbox-properties.c"
 {
 	MNMailboxPropertiesClass *klass;
-#line 80 "mn-mailbox-properties.gob"
+#line 76 "mn-mailbox-properties.gob"
 	g_return_val_if_fail (self != NULL, (MNMailbox * )0);
-#line 80 "mn-mailbox-properties.gob"
+#line 76 "mn-mailbox-properties.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX_PROPERTIES (self), (MNMailbox * )0);
-#line 396 "mn-mailbox-properties.c"
+#line 392 "mn-mailbox-properties.c"
 	klass = MN_MAILBOX_PROPERTIES_GET_CLASS(self);
 
 	if(klass->get_mailbox)
@@ -400,35 +396,35 @@ mn_mailbox_properties_get_mailbox (MNMailboxProperties * self)
 	else
 		return (MNMailbox * )(0);
 }
-#line 80 "mn-mailbox-properties.gob"
+#line 76 "mn-mailbox-properties.gob"
 static MNMailbox * 
 ___real_mn_mailbox_properties_get_mailbox (MNMailboxProperties * self G_GNUC_UNUSED)
-#line 407 "mn-mailbox-properties.c"
+#line 403 "mn-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties::get_mailbox"
 {
-#line 82 "mn-mailbox-properties.gob"
+#line 78 "mn-mailbox-properties.gob"
 	
     return mn_mailbox_new(SELF_GET_CLASS(self)->type, NULL);
   }}
-#line 415 "mn-mailbox-properties.c"
+#line 411 "mn-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 86 "mn-mailbox-properties.gob"
+#line 82 "mn-mailbox-properties.gob"
 GtkWidget * 
 mn_mailbox_properties_add_general_section (MNMailboxProperties * self, const char * title)
-#line 421 "mn-mailbox-properties.c"
+#line 417 "mn-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties::add_general_section"
-#line 86 "mn-mailbox-properties.gob"
+#line 82 "mn-mailbox-properties.gob"
 	g_return_val_if_fail (self != NULL, (GtkWidget * )0);
-#line 86 "mn-mailbox-properties.gob"
+#line 82 "mn-mailbox-properties.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX_PROPERTIES (self), (GtkWidget * )0);
-#line 86 "mn-mailbox-properties.gob"
+#line 82 "mn-mailbox-properties.gob"
 	g_return_val_if_fail (title != NULL, (GtkWidget * )0);
-#line 430 "mn-mailbox-properties.c"
+#line 426 "mn-mailbox-properties.c"
 {
-#line 88 "mn-mailbox-properties.gob"
+#line 84 "mn-mailbox-properties.gob"
 	
     GtkWidget *section;
     GtkWidget *vbox;
@@ -440,20 +436,20 @@ mn_mailbox_properties_add_general_section (MNMailboxProperties * self, const cha
     selfp->general_sections = g_slist_append(selfp->general_sections, section);
     return vbox;
   }}
-#line 444 "mn-mailbox-properties.c"
+#line 440 "mn-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 100 "mn-mailbox-properties.gob"
+#line 96 "mn-mailbox-properties.gob"
 static void 
 ___6_mn_mailbox_properties_activate (MNMailboxProperties * properties G_GNUC_UNUSED)
-#line 450 "mn-mailbox-properties.c"
+#line 446 "mn-mailbox-properties.c"
 #define PARENT_HANDLER(___properties) \
 	{ if(MN_MAILBOX_PROPERTIES_CLASS(parent_class)->activate) \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->activate)(___properties); }
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties::activate"
 {
-#line 102 "mn-mailbox-properties.gob"
+#line 98 "mn-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     GSList *l;
@@ -461,21 +457,21 @@ ___6_mn_mailbox_properties_activate (MNMailboxProperties * properties G_GNUC_UNU
     MN_LIST_FOREACH(l, selfp->general_sections)
       gtk_box_pack_start(GTK_BOX(MN_MAILBOX_PROPERTIES_DIALOG(properties->dialog)->general_vbox), l->data, FALSE, FALSE, 0);
   }}
-#line 465 "mn-mailbox-properties.c"
+#line 461 "mn-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 110 "mn-mailbox-properties.gob"
+#line 106 "mn-mailbox-properties.gob"
 static void 
 ___7_mn_mailbox_properties_deactivate (MNMailboxProperties * properties G_GNUC_UNUSED)
-#line 472 "mn-mailbox-properties.c"
+#line 468 "mn-mailbox-properties.c"
 #define PARENT_HANDLER(___properties) \
 	{ if(MN_MAILBOX_PROPERTIES_CLASS(parent_class)->deactivate) \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->deactivate)(___properties); }
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties::deactivate"
 {
-#line 112 "mn-mailbox-properties.gob"
+#line 108 "mn-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     GSList *l;
@@ -483,63 +479,63 @@ ___7_mn_mailbox_properties_deactivate (MNMailboxProperties * properties G_GNUC_U
     MN_LIST_FOREACH(l, selfp->general_sections)
       gtk_container_remove(GTK_CONTAINER(MN_MAILBOX_PROPERTIES_DIALOG(properties->dialog)->general_vbox), l->data);
   }}
-#line 487 "mn-mailbox-properties.c"
+#line 483 "mn-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 120 "mn-mailbox-properties.gob"
+#line 116 "mn-mailbox-properties.gob"
 void 
 mn_mailbox_properties_notify_complete (MNMailboxProperties * self)
-#line 494 "mn-mailbox-properties.c"
+#line 490 "mn-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties::notify_complete"
-#line 120 "mn-mailbox-properties.gob"
+#line 116 "mn-mailbox-properties.gob"
 	g_return_if_fail (self != NULL);
-#line 120 "mn-mailbox-properties.gob"
+#line 116 "mn-mailbox-properties.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES (self));
-#line 501 "mn-mailbox-properties.c"
+#line 497 "mn-mailbox-properties.c"
 {
-#line 122 "mn-mailbox-properties.gob"
+#line 118 "mn-mailbox-properties.gob"
 	
     g_object_notify(G_OBJECT(self), "complete");
   }}
-#line 507 "mn-mailbox-properties.c"
+#line 503 "mn-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 126 "mn-mailbox-properties.gob"
+#line 122 "mn-mailbox-properties.gob"
 void 
 mn_mailbox_properties_notify_default_name (MNMailboxProperties * self)
-#line 513 "mn-mailbox-properties.c"
+#line 509 "mn-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties::notify_default_name"
-#line 126 "mn-mailbox-properties.gob"
+#line 122 "mn-mailbox-properties.gob"
 	g_return_if_fail (self != NULL);
-#line 126 "mn-mailbox-properties.gob"
+#line 122 "mn-mailbox-properties.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES (self));
-#line 520 "mn-mailbox-properties.c"
+#line 516 "mn-mailbox-properties.c"
 {
-#line 128 "mn-mailbox-properties.gob"
+#line 124 "mn-mailbox-properties.gob"
 	
     g_object_notify(G_OBJECT(self), "default-name");
   }}
-#line 526 "mn-mailbox-properties.c"
+#line 522 "mn-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 132 "mn-mailbox-properties.gob"
+#line 128 "mn-mailbox-properties.gob"
 void 
 mn_mailbox_properties_notify_default_check_delay (MNMailboxProperties * self)
-#line 532 "mn-mailbox-properties.c"
+#line 528 "mn-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties::notify_default_check_delay"
-#line 132 "mn-mailbox-properties.gob"
+#line 128 "mn-mailbox-properties.gob"
 	g_return_if_fail (self != NULL);
-#line 132 "mn-mailbox-properties.gob"
+#line 128 "mn-mailbox-properties.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES (self));
-#line 539 "mn-mailbox-properties.c"
+#line 535 "mn-mailbox-properties.c"
 {
-#line 134 "mn-mailbox-properties.gob"
+#line 130 "mn-mailbox-properties.gob"
 	
     g_object_notify(G_OBJECT(self), "default-check-delay");
   }}
-#line 545 "mn-mailbox-properties.c"
+#line 541 "mn-mailbox-properties.c"
 #undef __GOB_FUNCTION__

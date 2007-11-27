@@ -47,7 +47,7 @@ struct _MNReentrantMailbox {
 typedef struct _MNReentrantMailboxClass MNReentrantMailboxClass;
 struct _MNReentrantMailboxClass {
 	MNMailboxClass __parent__;
-	void (* reentrant_check) (MNReentrantMailbox * self, unsigned long check_id);
+	void (* reentrant_check) (MNReentrantMailbox * self, int check_id);
 };
 
 

@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -35,12 +35,13 @@ class MN:System:VFS:Mailbox from MN:VFS:Mailbox
   class_init (class)
   {
     MN_MAILBOX_CLASS(class)->type = "system-vfs";
-    MN_VFS_MAILBOX_CLASS(class)->stock_id = MN_STOCK_SYSTEM_MAILBOX;
   }
 
   override (MN:Mailbox) void
     seal (MNMailbox *mailbox)
   {
+    mn_mailbox_set_stock_id(mailbox, MN_STOCK_SYSTEM_MAILBOX);
+
     MN_VFS_MAILBOX(mailbox)->uri = g_strdup(self_get_uri());
 
     mailbox->runtime_name = g_strdup(_("System mailbox"));

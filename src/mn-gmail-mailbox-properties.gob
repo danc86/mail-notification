@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -29,6 +29,7 @@ requires 2.0.14
 #include <glib/gi18n.h>
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-private.h"
+#include "mn-authenticated-mailbox-properties-private.h"
 #include "mn-util.h"
 #include "mn-properties-dialog.h"
 #include "mn-authenticated-mailbox.h"
@@ -38,20 +39,50 @@ requires 2.0.14
 
 class MN:Gmail:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
 {
+  private GtkWidget *label_check;
+  private GtkWidget *label_entry;
+
   /*
    * We do not provide a control for the atom feed location, because
    * modifying it is probably unnecessary.
    */
   private char *location destroywith g_free;
 
+  property BOOLEAN complete (override)
+    get
+    {
+      gboolean complete;
+
+      complete = mn_authenticated_mailbox_properties_is_complete(MN_AUTHENTICATED_MAILBOX_PROPERTIES(self));
+      if (complete)
+	{
+	  gboolean label_enabled;
+	  const char *label;
+
+	  label_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->label_check));
+	  label = gtk_entry_get_text(GTK_ENTRY(selfp->label_entry));
+
+	  if (label_enabled && ! *label)
+	    complete = FALSE;
+	}
+
+      g_value_set_boolean(VAL, complete);
+    };
+
   property STRING default_name (override)
     get
     {
       const char *username;
+      gboolean label_enabled;
+      const char *label;
 
       username = gtk_entry_get_text(GTK_ENTRY(MN_AUTHENTICATED_MAILBOX_PROPERTIES(self)->username_entry));
+      g_assert(*username != 0);
 
-      g_value_take_string(VAL, mn_gmail_mailbox_build_name(*username ? username : NULL));
+      label_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->label_check));
+      label = gtk_entry_get_text(GTK_ENTRY(selfp->label_entry));
+
+      g_value_take_string(VAL, mn_gmail_mailbox_build_name(username, label_enabled ? label : NULL));
     };
 
   class_init (class)
@@ -67,16 +98,55 @@ class MN:Gmail:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
   {
     MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
     MNAuthenticatedMailboxProperties *auth = MN_AUTHENTICATED_MAILBOX_PROPERTIES(self);
+    GtkWidget *label_vbox;
+    GtkWidget *hbox;
 
     gtk_box_pack_start(GTK_BOX(auth->account_vbox), auth->username_vbox, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(auth->account_vbox), auth->password_vbox, FALSE, FALSE, 0);
 
+    /* translators: header capitalization */
+    label_vbox = mn_mailbox_properties_add_general_section(properties, _("Gmail Label"));
+
+    selfp->label_check = gtk_check_button_new_with_mnemonic(_("_Restrict to this label:"));
+    gtk_size_group_add_widget(properties->label_size_group, selfp->label_check);
+
+    selfp->label_entry = gtk_entry_new();
+    gtk_widget_set_sensitive(selfp->label_entry, FALSE);
+
+    hbox = gtk_hbox_new(FALSE, 12);
+    gtk_box_pack_start(GTK_BOX(hbox), selfp->label_check, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), selfp->label_entry, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(label_vbox), hbox, FALSE, FALSE, 0);
+    gtk_widget_show_all(label_vbox);
+
     properties->entries = mn_g_slist_append_elements(properties->entries,
 						     auth->username_entry,
 						     auth->password_entry,
+						     selfp->label_entry,
 						     NULL);
 
-    g_signal_connect_swapped(auth->username_entry, "changed", G_CALLBACK(mn_mailbox_properties_notify_default_name), self);
+    g_signal_connect(selfp->label_check, "toggled", G_CALLBACK(self_check_toggled_h), self);
+
+    g_object_connect(auth->username_entry,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_complete, self,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_default_name, self,
+		     NULL);
+
+    g_object_connect(selfp->label_entry,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_complete, self,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_default_name, self,
+		     NULL);
+  }
+
+  private void
+    check_toggled_h (GtkToggleButton *togglebutton, gpointer user_data)
+  {
+    Self *self = user_data;
+
+    gtk_widget_set_sensitive(selfp->label_entry, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->label_check)));
+
+    g_object_notify(G_OBJECT(self), "complete");
+    g_object_notify(G_OBJECT(self), "default-name");
   }
 
   override (MN:Mailbox:Properties) void
@@ -88,6 +158,12 @@ class MN:Gmail:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
     PARENT_HANDLER(properties, mailbox);
 
     selfp->location = g_strdup(gmail_mailbox->location);
+
+    if (gmail_mailbox->label)
+      {
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->label_check), TRUE);
+	gtk_entry_set_text(GTK_ENTRY(selfp->label_entry), gmail_mailbox->label);
+      }
   }
 
   override (MN:Mailbox:Properties) MNMailbox *
@@ -100,6 +176,9 @@ class MN:Gmail:Mailbox:Properties from MN:Authenticated:Mailbox:Properties
 
     if (selfp->location)
       g_object_set(mailbox, MN_GMAIL_MAILBOX_PROP_LOCATION(selfp->location), NULL);
+
+    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->label_check)))
+      g_object_set(mailbox, MN_GMAIL_MAILBOX_PROP_LABEL((char *) gtk_entry_get_text(GTK_ENTRY(selfp->label_entry))), NULL);
 
     return mailbox;
   }

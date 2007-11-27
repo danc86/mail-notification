@@ -14,14 +14,30 @@ extern "C" {
 
 #include "mn-locked-callback.h"
 
-#line 18 "mn-sylpheed-mailbox-backend-private.h"
-struct _MNSylpheedMailboxBackendPrivate {
-#line 72 "mn-sylpheed-mailbox-backend.gob"
-	MNLockedGSource * monitor_timeout_source;
-#line 73 "mn-sylpheed-mailbox-backend.gob"
-	gboolean can_lock_mark_file;
-#line 24 "mn-sylpheed-mailbox-backend-private.h"
-};
+/* taken from procmsg.h in the Sylpheed sources */
+#define SYLPHEED_MSG_NEW	(1U << 0)
+#define SYLPHEED_MSG_UNREAD	(1U << 1)
+
+/* taken from defs.h in the Sylpheed sources */
+#define SYLPHEED_MARK_FILE	".sylpheed_mark"
+
+typedef struct
+{
+  int		num;
+  guint32	flags;
+} MarkEntry;
+
+typedef struct
+{
+  char		*data;
+  gsize		data_size;
+  GHashTable	*table;
+} Marks;
+
+#line 38 "mn-sylpheed-mailbox-backend-private.h"
+Marks * 	mn_sylpheed_mailbox_backend_marks_new	(GnomeVFSURI * mailbox_uri, GError ** err);
+gboolean 	mn_sylpheed_mailbox_backend_marks_write	(GnomeVFSURI * mailbox_uri, Marks * marks, GError ** err);
+void 	mn_sylpheed_mailbox_backend_marks_free	(Marks * marks);
 
 #ifdef __cplusplus
 }

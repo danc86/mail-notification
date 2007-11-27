@@ -11,12 +11,17 @@ Index
 
 0. About this document
 
-	$Id: INSTALL,v 1.22 2007-06-26 10:16:21 jylefort Exp $
+	$Id: INSTALL,v 1.26 2007-11-26 03:29:25 jylefort Exp $
 
 	Copyright (C) 2003-2007 Jean-Yves Lefort.
 
-	This document is part of Mail Notification.
-	It may be distributed under the same terms as Mail Notification.
+	Permission is granted to copy, distribute and/or modify this
+	document under the terms of the GNU Free Documentation License
+	(GFDL), Version 1.2 or any later version published by the Free
+	Software Foundation with no Invariant Sections, no Front-Cover
+	Texts, and no Back-Cover Texts. You can find a copy of the
+	GFDL at http://www.gnu.org/licenses/fdl.html or in the file
+	COPYING-DOCS distributed with this manual.
 
 1. Dependencies
 
@@ -25,16 +30,27 @@ Index
 		* GNOME (version 2.14.0 or superior)
 		  http://www.gnome.org/
 
-		* libnotify (version 0.3.0 or superior)
+		* libnotify (version 0.4.1 or superior)
 		  http://www.galago-project.org/
 
 	Optional:
 
-		* for mbox, MH, Maildir, POP3, IMAP, Mozilla and
-		  Sylpheed support:
+		* for IMAP, Maildir, mbox, MH, Mozilla, POP3,
+		  Sylpheed, Windows Live Hotmail and Yahoo! Mail
+		  support:
 
 		  GMime (version 2.1.0 or superior)
 		  http://spruce.sourceforge.net/gmime/
+
+		* for Windows Live Hotmail support:
+
+		  GetLive
+		  http://sourceforge.net/projects/getlive/
+
+		* for Yahoo! Mail support:
+
+		  FetchYahoo
+		  http://fetchyahoo.twizzler.org/
 
 		* for SSL/TLS support:
 
@@ -48,7 +64,7 @@ Index
 
 		* for Evolution support:
 
-		  Evolution (version 2.4 or superior)
+		  Evolution (version 2.12 or superior)
 		  http://www.gnome.org/projects/evolution/
 
 2. Instructions
@@ -58,8 +74,7 @@ Index
 
 		$ ./configure
 		$ make
-		<get root privileges, if needed>
-		$ make install
+		$ sudo make install
 
 	IMPORTANT:
 
@@ -73,6 +88,32 @@ Index
 
 3. Configure options
 
+	--enable-evolution (default: yes)
+
+		Enable Evolution mailbox support.
+
+		Requirements: Evolution version 2.12 or superior.
+
+	--enable-gmail (default: yes)
+
+		Enable Gmail mailbox support.
+
+	--enable-hotmail (default: yes)
+
+		Enable Windows Live Hotmail mailbox support.
+
+	--enable-imap (default: yes)
+
+		Enable IMAP mailbox support.
+
+		Requirements: GMime version 2.1.0 or superior.
+
+	--enable-maildir (default: yes)
+
+		Enable Maildir mailbox support.
+
+		Requirements: GMime version 2.1.0 or superior.
+
 	--enable-mbox (default: yes)
 
 		Enable mbox mailbox support.
@@ -85,9 +126,10 @@ Index
 
 		Requirements: GMime version 2.1.0 or superior.
 
-	--enable-maildir (default: yes)
+	--enable-mozilla (default: yes)
 
-		Enable Maildir mailbox support.
+		Enable Mozilla products (Mozilla, SeaMonkey,
+		Thunderbird, ...) mailbox support.
 
 		Requirements: GMime version 2.1.0 or superior.
 
@@ -97,61 +139,38 @@ Index
 
 		Requirements: GMime version 2.1.0 or superior.
 
-	--enable-imap (default: yes)
-
-		Enable IMAP mailbox support.
-
-		Requirements: GMime version 2.1.0 or superior.
-
-	--enable-ssl (default: yes)
-
-		Enable SSL/TLS support.
-
-		Requirements: OpenSSL version 0.9.6 or superior.
-		Applies to: POP3, IMAP.
-
-	--enable-sasl (default: yes)
-
-		Enable SASL authentication support.
-
-		Requirements: Cyrus SASL version 2.0 or superior.
-		Applies to: POP3, IMAP.
-
-	--enable-ipv6 (default: yes)
-
-		Enable IPv6 support.
-
-		Applies to: POP3, IMAP.
-
-	--enable-gmail (default: yes)
-
-		Enable Gmail mailbox support.
-
-	--enable-evolution (default: yes)
-
-		Enable Evolution mailbox support.
-
-		Requirements: Evolution version 2.4 or superior.
-
-	--enable-mozilla (default: yes)
-
-		Enable Mozilla products (Mozilla, SeaMonkey,
-		Thunderbird, ...) mailbox support.
-
-		Requirements: GMime version 2.1.0 or superior.
-
 	--enable-sylpheed (default: yes)
 
 		Enable Sylpheed mailbox support.
 
 		Requirements: GMime version 2.1.0 or superior.
 
-	--enable-sylpheed-locking (default: no)
+		Note: if you want more responsive notifications, apply
+		the patch sylpheed-locking.diff (provided in this
+		archive) to Sylpheed and recompile it.
 
-		Enable .sylpheed_mark locking. This option allows Mail
-		Notification to reliably avoid race conditions which
-		can occur when Sylpheed is running, but it requires a
-		patched version of Sylpheed (the Sylpheed patch,
-		sylpheed-locking.diff, is included in this archive).
+	--enable-yahoo (default: yes)
 
-		Requirements: Sylpheed patched with sylpheed-locking.diff
+		Enable Yahoo! Mail mailbox support.
+
+		Requirements: GMime version 2.1.0 or superior.
+
+	--enable-ipv6 (default: yes)
+
+		Enable IPv6 support.
+
+		Applies to: IMAP, POP3.
+
+	--enable-sasl (default: yes)
+
+		Enable SASL authentication support.
+
+		Requirements: Cyrus SASL version 2.0 or superior.
+		Applies to: IMAP, POP3.
+
+	--enable-ssl (default: yes)
+
+		Enable SSL/TLS support.
+
+		Requirements: OpenSSL version 0.9.6 or superior.
+		Applies to: IMAP, POP3.

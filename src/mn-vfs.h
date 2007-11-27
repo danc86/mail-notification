@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -51,5 +51,7 @@ GnomeVFSURI *mn_vfs_uri_append_file_suffix (GnomeVFSURI *uri,
 					    const char *suffix);
 
 char *mn_vfs_get_local_path (GnomeVFSURI *uri);
+
+gboolean mn_vfs_result_to_g_error (GnomeVFSResult result, GError **err);
 
 #endif /* _MN_VFS_H */

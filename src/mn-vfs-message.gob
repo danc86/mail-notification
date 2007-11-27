@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -30,33 +30,17 @@ requires 2.0.14
 #include "mn-message-mime.h"
 %}
 
-class MN:VFS:Message from MN:Message
+class MN:VFS:Message from MN:Message (abstract)
 {
-  public GType backend_type;
   public GnomeVFSURI *vfs_uri unrefwith gnome_vfs_uri_unref;
-
-  override (MN:Message) gboolean
-    mark_as_read_impl (MNMessage *message, GError **err)
-  {
-    Self *self = SELF(message);
-    MNVFSMailboxBackendClass *class;
-
-    g_assert(self->backend_type != 0);
-    g_assert(self->vfs_uri != NULL);
-
-    class = g_type_class_peek(self->backend_type);
-    g_assert(class != NULL);
-    g_assert(class->mark_as_read != NULL);
-
-    return class->mark_as_read(NULL, SELF(message), err);
-  }
 
   /*
    * In case of error a MNMessage is returned, not a MNVFSMessage. A
    * NULL pointer can also be returned (see mn-message-mime.h).
    */
   public MNMessage *
-    new (gpointer backend, /* cannot include mn-vfs-mailbox-backend.h */
+    new (GType type,
+	 gpointer backend, /* cannot include mn-vfs-mailbox-backend.h */
 	 GnomeVFSURI *dir_uri (check null),
 	 const char *filename (check null),
 	 MNMessageFlags flags,
@@ -69,14 +53,11 @@ class MN:VFS:Message from MN:Message
     g_return_val_if_fail(MN_IS_VFS_MAILBOX_BACKEND(backend), NULL);
 
     message_uri = gnome_vfs_uri_append_file_name(dir_uri, filename);
-    message = mn_message_new_from_uri_full(MN_TYPE_VFS_MESSAGE, MN_MAILBOX(MN_VFS_MAILBOX_BACKEND(backend)->mailbox), message_uri, flags, handle_status);
+    message = mn_message_new_from_uri_full(type, MN_MAILBOX(MN_VFS_MAILBOX_BACKEND(backend)->mailbox), message_uri, flags, handle_status);
 
     vmessage = MN_VFS_MESSAGE(message);
     if (vmessage)
-      {
-	vmessage->backend_type = G_OBJECT_TYPE(backend);
-	vmessage->vfs_uri = gnome_vfs_uri_ref(message_uri);
-      }
+      vmessage->vfs_uri = gnome_vfs_uri_ref(message_uri);
 
     gnome_vfs_uri_unref(message_uri);
 

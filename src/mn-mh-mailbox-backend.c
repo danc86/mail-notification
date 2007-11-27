@@ -53,9 +53,10 @@ typedef MNMHMailboxBackendClass SelfClass;
 /* here are local prototypes */
 static void mn_mh_mailbox_backend_init (MNMHMailboxBackend * o) G_GNUC_UNUSED;
 static void mn_mh_mailbox_backend_class_init (MNMHMailboxBackendClass * class) G_GNUC_UNUSED;
-static void ___2_mn_mh_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend, const char * info_uri, GnomeVFSMonitorEventType event_type) G_GNUC_UNUSED;
-static gboolean ___3_mn_mh_mailbox_backend_is (MNVFSMailboxBackend * dummy, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox) G_GNUC_UNUSED;
-static void ___4_mn_mh_mailbox_backend_check (MNVFSMailboxBackend * backend, unsigned long check_id) G_GNUC_UNUSED;
+static GObject * ___2_mn_mh_mailbox_backend_constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam * construct_params) G_GNUC_UNUSED;
+static void ___3_mn_mh_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend, const char * info_uri, GnomeVFSMonitorEventType event_type) G_GNUC_UNUSED;
+static gboolean ___4_mn_mh_mailbox_backend_is (MNVFSMailboxBackend * dummy, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox) G_GNUC_UNUSED;
+static void ___5_mn_mh_mailbox_backend_check (MNVFSMailboxBackend * backend, int check_id) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
 static MNVFSMailboxBackendClass *parent_class = NULL;
@@ -111,26 +112,29 @@ mn_mh_mailbox_backend_init (MNMHMailboxBackend * o G_GNUC_UNUSED)
 #line 42 "mn-mh-mailbox-backend.gob"
 static void 
 mn_mh_mailbox_backend_class_init (MNMHMailboxBackendClass * class G_GNUC_UNUSED)
-#line 115 "mn-mh-mailbox-backend.c"
+#line 116 "mn-mh-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:MH:Mailbox:Backend::class_init"
+	GObjectClass *g_object_class = (GObjectClass *)class;
 	MNVFSMailboxBackendClass *mn_vfs_mailbox_backend_class = (MNVFSMailboxBackendClass *)class;
 
 	parent_class = g_type_class_ref (MN_TYPE_VFS_MAILBOX_BACKEND);
 
 #line 47 "mn-mh-mailbox-backend.gob"
-	mn_vfs_mailbox_backend_class->monitor_cb = ___2_mn_mh_mailbox_backend_monitor_cb;
-#line 69 "mn-mh-mailbox-backend.gob"
-	mn_vfs_mailbox_backend_class->is = ___3_mn_mh_mailbox_backend_is;
-#line 84 "mn-mh-mailbox-backend.gob"
-	mn_vfs_mailbox_backend_class->check = ___4_mn_mh_mailbox_backend_check;
-#line 128 "mn-mh-mailbox-backend.c"
+	g_object_class->constructor = ___2_mn_mh_mailbox_backend_constructor;
+#line 66 "mn-mh-mailbox-backend.gob"
+	mn_vfs_mailbox_backend_class->monitor_cb = ___3_mn_mh_mailbox_backend_monitor_cb;
+#line 88 "mn-mh-mailbox-backend.gob"
+	mn_vfs_mailbox_backend_class->is = ___4_mn_mh_mailbox_backend_is;
+#line 103 "mn-mh-mailbox-backend.gob"
+	mn_vfs_mailbox_backend_class->check = ___5_mn_mh_mailbox_backend_check;
+#line 132 "mn-mh-mailbox-backend.c"
  {
 #line 43 "mn-mh-mailbox-backend.gob"
 
     MN_VFS_MAILBOX_BACKEND_CLASS(class)->format = "MH";
   
-#line 134 "mn-mh-mailbox-backend.c"
+#line 138 "mn-mh-mailbox-backend.c"
  }
 }
 #undef __GOB_FUNCTION__
@@ -138,16 +142,48 @@ mn_mh_mailbox_backend_class_init (MNMHMailboxBackendClass * class G_GNUC_UNUSED)
 
 
 #line 47 "mn-mh-mailbox-backend.gob"
+static GObject * 
+___2_mn_mh_mailbox_backend_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_properties, GObjectConstructParam * construct_params)
+#line 148 "mn-mh-mailbox-backend.c"
+#define PARENT_HANDLER(___type,___n_construct_properties,___construct_params) \
+	((G_OBJECT_CLASS(parent_class)->constructor)? \
+		(* G_OBJECT_CLASS(parent_class)->constructor)(___type,___n_construct_properties,___construct_params): \
+		((GObject * )0))
+{
+#define __GOB_FUNCTION__ "MN:MH:Mailbox:Backend::constructor"
+{
+#line 49 "mn-mh-mailbox-backend.gob"
+	
+    GObject *object;
+    MNVFSMailboxBackend *backend;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    backend = MN_VFS_MAILBOX_BACKEND(object);
+
+    /*
+     * There is no standard way of locking a MH mailbox, so avoid race
+     * conditions by setting a check latency of 3 seconds.
+     */
+
+    backend->check_latency = 3000;
+
+    return object;
+  }}
+#line 173 "mn-mh-mailbox-backend.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 66 "mn-mh-mailbox-backend.gob"
 static void 
-___2_mn_mh_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend G_GNUC_UNUSED, const char * info_uri, GnomeVFSMonitorEventType event_type)
-#line 144 "mn-mh-mailbox-backend.c"
+___3_mn_mh_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend G_GNUC_UNUSED, const char * info_uri, GnomeVFSMonitorEventType event_type)
+#line 180 "mn-mh-mailbox-backend.c"
 #define PARENT_HANDLER(___backend,___info_uri,___event_type) \
 	{ if(MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->monitor_cb) \
 		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->monitor_cb)(___backend,___info_uri,___event_type); }
 {
 #define __GOB_FUNCTION__ "MN:MH:Mailbox:Backend::monitor_cb"
 {
-#line 51 "mn-mh-mailbox-backend.gob"
+#line 70 "mn-mh-mailbox-backend.gob"
 	
     if (event_type == GNOME_VFS_MONITOR_EVENT_CHANGED
 	|| event_type == GNOME_VFS_MONITOR_EVENT_DELETED
@@ -159,20 +195,20 @@ ___2_mn_mh_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend G_GNUC_UNUS
 	if (filename)
 	  {
 	    if (! strcmp(filename, SEQUENCES_FILE) || mn_str_isnumeric(filename))
-	      mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(backend->mailbox));
+	      mn_vfs_mailbox_backend_queue_check(backend);
 
 	    g_free(filename);
 	  }
       }
   }}
-#line 169 "mn-mh-mailbox-backend.c"
+#line 205 "mn-mh-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 69 "mn-mh-mailbox-backend.gob"
+#line 88 "mn-mh-mailbox-backend.gob"
 static gboolean 
-___3_mn_mh_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox)
-#line 176 "mn-mh-mailbox-backend.c"
+___4_mn_mh_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox)
+#line 212 "mn-mh-mailbox-backend.c"
 #define PARENT_HANDLER(___dummy,___class,___mailbox) \
 	((MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->is)? \
 		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->is)(___dummy,___class,___mailbox): \
@@ -180,7 +216,7 @@ ___3_mn_mh_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSM
 {
 #define __GOB_FUNCTION__ "MN:MH:Mailbox:Backend::is"
 {
-#line 73 "mn-mh-mailbox-backend.gob"
+#line 92 "mn-mh-mailbox-backend.gob"
 	
     GnomeVFSURI *sequences_uri;
     gboolean is;
@@ -191,21 +227,21 @@ ___3_mn_mh_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSM
 
     return is;
   }}
-#line 195 "mn-mh-mailbox-backend.c"
+#line 231 "mn-mh-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 84 "mn-mh-mailbox-backend.gob"
+#line 103 "mn-mh-mailbox-backend.gob"
 static void 
-___4_mn_mh_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, unsigned long check_id)
-#line 202 "mn-mh-mailbox-backend.c"
+___5_mn_mh_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, int check_id)
+#line 238 "mn-mh-mailbox-backend.c"
 #define PARENT_HANDLER(___backend,___check_id) \
 	{ if(MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->check) \
 		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->check)(___backend,___check_id); }
 {
 #define __GOB_FUNCTION__ "MN:MH:Mailbox:Backend::check"
 {
-#line 86 "mn-mh-mailbox-backend.gob"
+#line 105 "mn-mh-mailbox-backend.gob"
 	
     GnomeVFSURI *sequences_uri;
     GnomeVFSResult result;
@@ -287,7 +323,7 @@ ___4_mn_mh_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, u
 
 	GDK_THREADS_ENTER();
 
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+	if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 	  {
 	    if (result == GNOME_VFS_ERROR_EOF || result == GNOME_VFS_OK)
 	      {
@@ -307,15 +343,17 @@ ___4_mn_mh_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, u
       }
     else
       {
-	GDK_THREADS_ENTER();
+	if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+	  {
+	    GDK_THREADS_ENTER();
 
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open %s: %s"), SEQUENCES_FILE, gnome_vfs_result_to_string(result));
+	    mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open %s: %s"), SEQUENCES_FILE, gnome_vfs_result_to_string(result));
 
-	gdk_flush();
-	GDK_THREADS_LEAVE();
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	  }
       }
   }}
-#line 320 "mn-mh-mailbox-backend.c"
+#line 358 "mn-mh-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER

@@ -1,0 +1,186 @@
+/*
+ * Mail Notification
+ * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include "mn-webmail-mailbox.h"
+%}
+
+%{
+#include "config.h"
+#include <unistd.h>
+#include <glib/gi18n.h>
+#include "mn-conf.h"
+#include "mn-webmail-mailbox-private.h"
+#include "mn-stock.h"
+%}
+
+class MN:Hotmail:Mailbox from MN:Webmail:Mailbox
+{
+  class_init (class)
+  {
+    MN_MAILBOX_CLASS(class)->type = "hotmail";
+
+    /* 5 minutes is a good default */
+    MN_MAILBOX_CLASS(class)->default_check_delay = 60 * 5;
+
+    MN_WEBMAIL_MAILBOX_CLASS(class)->default_domain = "hotmail.com";
+  }
+
+  init (self)
+  {
+    mn_mailbox_set_format(MN_MAILBOX(self), "Windows Live Hotmail");
+    mn_mailbox_set_stock_id(MN_MAILBOX(self), MN_STOCK_HOTMAIL);
+  }
+
+  private char *
+    create_config_file (self,
+			const char *spool_file (check null),
+			GError **err)
+  {
+    char *username;
+    char *domain;
+    GString *contents;
+    char *filename;
+
+    mn_webmail_mailbox_parse_username(MN_WEBMAIL_MAILBOX(self), &username, &domain);
+
+    contents = g_string_new(NULL);
+
+    g_string_append_printf(contents,
+			   "UserName = %s\n"
+			   "Domain = %s\n"
+			   "Password = %s\n"
+			   "FetchOnlyUnread = Yes\n"
+			   "Folder = %s\n"
+			   "Processor = cat >> '%s'\n"
+			   "MarkRead = No\n",
+			   username,
+			   domain,
+			   MN_AUTHENTICATED_MAILBOX(self)->runtime_password,
+			   MN_WEBMAIL_MAILBOX(self)->folder,
+			   spool_file);
+
+    g_free(username);
+    g_free(domain);
+
+    if (eel_gconf_get_boolean(MN_CONF_SYSTEM_HTTP_PROXY_USE_HTTP_PROXY))
+      {
+	char *host;
+
+	host = eel_gconf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_HOST);
+	if (host && *host)
+	  {
+	    g_string_append_printf(contents, "Proxy = %s:%i\n", host, eel_gconf_get_integer(MN_CONF_SYSTEM_HTTP_PROXY_PORT));
+
+	    if (eel_gconf_get_boolean(MN_CONF_SYSTEM_HTTP_PROXY_USE_AUTHENTICATION))
+	      {
+		char *user;
+		char *password;
+
+		user = eel_gconf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_AUTHENTICATION_USER);
+		password = eel_gconf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_AUTHENTICATION_PASSWORD);
+
+		if (user && *user && password && *password)
+		  g_string_append_printf(contents, "ProxyAuth = %s:%s\n", user, password);
+
+		g_free(user);
+		g_free(password);
+	      }
+	  }
+	g_free(host);
+      }
+
+    mn_webmail_mailbox_display_config(MN_WEBMAIL_MAILBOX(self), contents->str);
+    filename = mn_webmail_mailbox_write_temporary_file(contents->str, err);
+
+    g_string_free(contents, TRUE);
+
+    return filename;
+  }
+
+  override (MN:Webmail:Mailbox) char *
+    get_error_message (MNWebmailMailbox *mailbox,
+		       const char *helper_stdout,
+		       const char *helper_stderr,
+		       gboolean *is_auth_failure)
+  {
+    if (helper_stderr && mn_ascii_strcasestr(helper_stderr, "error logging in"))
+      {
+	*is_auth_failure = TRUE;
+	return g_strdup(_("authentication failed"));
+      }
+    return NULL;
+  }
+
+  private gboolean
+    run_getlive (self, const char *config_file (check null), GError **err)
+  {
+    char *command;
+    gboolean status;
+
+    command = g_strdup_printf("GetLive --config-file %s", config_file);
+    status = mn_webmail_mailbox_run_helper(MN_WEBMAIL_MAILBOX(self), "GetLive", command, err);
+    g_free(command);
+
+    return status;
+  }
+
+  override (MN:Webmail:Mailbox) gboolean
+    webmail_check (MNWebmailMailbox *mailbox, GError **err)
+  {
+    Self *self = SELF(mailbox);
+    char *spool_file;
+    char *config_file = NULL;
+    gboolean status = FALSE;
+
+    /*
+     * We create an empty spool file beforehand to make sure it is not
+     * world-readable.
+     */
+    spool_file = mn_webmail_mailbox_create_spool_file(err);
+    if (! spool_file)
+      return FALSE;
+
+    config_file = self_create_config_file(self, spool_file, err);
+    if (! config_file)
+      goto end;
+
+    if (! self_run_getlive(self, config_file, err))
+      goto end;
+
+    if (! mn_webmail_mailbox_read_spool_file(mailbox, spool_file, err))
+      goto end;
+
+    status = TRUE;
+
+  end:
+    unlink(spool_file);
+    g_free(spool_file);
+
+    if (config_file)
+      {
+	unlink(config_file);
+	g_free(config_file);
+      }
+
+    return status;
+  }
+}

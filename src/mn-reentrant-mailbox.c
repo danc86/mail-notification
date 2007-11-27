@@ -32,7 +32,7 @@
 typedef struct
 {
   MNReentrantMailbox	*self;
-  unsigned long		check_id;
+  int			check_id;
 } CheckInfo;
 
 #line 39 "mn-reentrant-mailbox.c"
@@ -57,7 +57,7 @@ static void ___2_mn_reentrant_mailbox_finalize (GObject * object) G_GNUC_UNUSED;
 static gboolean mn_reentrant_mailbox_queue_check_cb (gpointer data) G_GNUC_UNUSED;
 static void ___5_mn_reentrant_mailbox_check (MNMailbox * mailbox) G_GNUC_UNUSED;
 static void mn_reentrant_mailbox_check_thread_cb (CheckInfo * info) G_GNUC_UNUSED;
-static void mn_reentrant_mailbox_reentrant_check (MNReentrantMailbox * self, unsigned long check_id) G_GNUC_UNUSED;
+static void mn_reentrant_mailbox_reentrant_check (MNReentrantMailbox * self, int check_id) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
 static MNMailboxClass *parent_class = NULL;
@@ -68,9 +68,6 @@ static MNMailboxClass *parent_class = NULL;
 #define self_check_thread_cb mn_reentrant_mailbox_check_thread_cb
 #define self_reentrant_check mn_reentrant_mailbox_reentrant_check
 #define self_check_aborted mn_reentrant_mailbox_check_aborted
-#define self_check_aborted_unlocked mn_reentrant_mailbox_check_aborted_unlocked
-#define self_lock mn_reentrant_mailbox_lock
-#define self_unlock mn_reentrant_mailbox_unlock
 GType
 mn_reentrant_mailbox_get_type (void)
 {
@@ -120,12 +117,9 @@ ___finalize(GObject *obj_self)
 #define __GOB_FUNCTION__ "MN:Reentrant:Mailbox::finalize"
 	MNReentrantMailbox *self G_GNUC_UNUSED = MN_REENTRANT_MAILBOX (obj_self);
 	gpointer priv G_GNUC_UNUSED = self->_priv;
-#line 64 "mn-reentrant-mailbox.gob"
+#line 61 "mn-reentrant-mailbox.gob"
 	___2_mn_reentrant_mailbox_finalize(obj_self);
-#line 126 "mn-reentrant-mailbox.c"
-#line 45 "mn-reentrant-mailbox.gob"
-	if(self->_priv->mutex) { g_mutex_free ((gpointer) self->_priv->mutex); self->_priv->mutex = NULL; }
-#line 129 "mn-reentrant-mailbox.c"
+#line 123 "mn-reentrant-mailbox.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -134,9 +128,6 @@ mn_reentrant_mailbox_init (MNReentrantMailbox * o G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:Reentrant:Mailbox::init"
 	o->_priv = G_TYPE_INSTANCE_GET_PRIVATE(o,MN_TYPE_REENTRANT_MAILBOX,MNReentrantMailboxPrivate);
-#line 45 "mn-reentrant-mailbox.gob"
-	o->_priv->mutex = g_mutex_new();
-#line 140 "mn-reentrant-mailbox.c"
 }
 #undef __GOB_FUNCTION__
 static void 
@@ -150,54 +141,53 @@ mn_reentrant_mailbox_class_init (MNReentrantMailboxClass * c G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (MN_TYPE_MAILBOX);
 
-#line 52 "mn-reentrant-mailbox.gob"
+#line 50 "mn-reentrant-mailbox.gob"
 	mn_mailbox_class->removed = ___1_mn_reentrant_mailbox_removed;
-#line 64 "mn-reentrant-mailbox.gob"
+#line 61 "mn-reentrant-mailbox.gob"
 	g_object_class->finalize = ___finalize;
-#line 104 "mn-reentrant-mailbox.gob"
+#line 101 "mn-reentrant-mailbox.gob"
 	mn_mailbox_class->check = ___5_mn_reentrant_mailbox_check;
-#line 160 "mn-reentrant-mailbox.c"
+#line 151 "mn-reentrant-mailbox.c"
 	c->reentrant_check = NULL;
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 52 "mn-reentrant-mailbox.gob"
+#line 50 "mn-reentrant-mailbox.gob"
 static void 
 ___1_mn_reentrant_mailbox_removed (MNMailbox * mailbox G_GNUC_UNUSED)
-#line 170 "mn-reentrant-mailbox.c"
+#line 161 "mn-reentrant-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_MAILBOX_CLASS(parent_class)->removed) \
 		(* MN_MAILBOX_CLASS(parent_class)->removed)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:Reentrant:Mailbox::removed"
 {
-#line 54 "mn-reentrant-mailbox.gob"
+#line 52 "mn-reentrant-mailbox.gob"
 	
     Self *self = SELF(mailbox);
 
-    self_lock(self);
-    selfp->check_id = 0;
-    self_unlock(self);
-
     PARENT_HANDLER(mailbox);
+
+    /* abort the current check */
+    g_atomic_int_set(&selfp->check_id, 0);
   }}
-#line 187 "mn-reentrant-mailbox.c"
+#line 177 "mn-reentrant-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 64 "mn-reentrant-mailbox.gob"
+#line 61 "mn-reentrant-mailbox.gob"
 static void 
 ___2_mn_reentrant_mailbox_finalize (GObject * object G_GNUC_UNUSED)
-#line 194 "mn-reentrant-mailbox.c"
+#line 184 "mn-reentrant-mailbox.c"
 #define PARENT_HANDLER(___object) \
 	{ if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(___object); }
 {
 #define __GOB_FUNCTION__ "MN:Reentrant:Mailbox::finalize"
 {
-#line 66 "mn-reentrant-mailbox.gob"
+#line 63 "mn-reentrant-mailbox.gob"
 	
     Self *self = SELF(object);
 
@@ -206,40 +196,40 @@ ___2_mn_reentrant_mailbox_finalize (GObject * object G_GNUC_UNUSED)
 
     PARENT_HANDLER(object);
   }}
-#line 210 "mn-reentrant-mailbox.c"
+#line 200 "mn-reentrant-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 84 "mn-reentrant-mailbox.gob"
+#line 81 "mn-reentrant-mailbox.gob"
 void 
 mn_reentrant_mailbox_queue_check (MNReentrantMailbox * self)
-#line 217 "mn-reentrant-mailbox.c"
+#line 207 "mn-reentrant-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Reentrant:Mailbox::queue_check"
-#line 84 "mn-reentrant-mailbox.gob"
+#line 81 "mn-reentrant-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 84 "mn-reentrant-mailbox.gob"
+#line 81 "mn-reentrant-mailbox.gob"
 	g_return_if_fail (MN_IS_REENTRANT_MAILBOX (self));
-#line 224 "mn-reentrant-mailbox.c"
+#line 214 "mn-reentrant-mailbox.c"
 {
-#line 86 "mn-reentrant-mailbox.gob"
+#line 83 "mn-reentrant-mailbox.gob"
 	
     if (selfp->queue_check_source)
       mn_locked_g_source_remove(selfp->queue_check_source);
 
     selfp->queue_check_source = mn_g_idle_add_gdk_locked(self_queue_check_cb, self);
   }}
-#line 233 "mn-reentrant-mailbox.c"
+#line 223 "mn-reentrant-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 93 "mn-reentrant-mailbox.gob"
+#line 90 "mn-reentrant-mailbox.gob"
 static gboolean 
 mn_reentrant_mailbox_queue_check_cb (gpointer data)
-#line 239 "mn-reentrant-mailbox.c"
+#line 229 "mn-reentrant-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Reentrant:Mailbox::queue_check_cb"
 {
-#line 95 "mn-reentrant-mailbox.gob"
+#line 92 "mn-reentrant-mailbox.gob"
 	
     Self *self = data;
 
@@ -248,20 +238,20 @@ mn_reentrant_mailbox_queue_check_cb (gpointer data)
     selfp->queue_check_source = NULL;
     return FALSE;		/* remove source */
   }}
-#line 252 "mn-reentrant-mailbox.c"
+#line 242 "mn-reentrant-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 104 "mn-reentrant-mailbox.gob"
+#line 101 "mn-reentrant-mailbox.gob"
 static void 
 ___5_mn_reentrant_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
-#line 258 "mn-reentrant-mailbox.c"
+#line 248 "mn-reentrant-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_MAILBOX_CLASS(parent_class)->check) \
 		(* MN_MAILBOX_CLASS(parent_class)->check)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:Reentrant:Mailbox::check"
 {
-#line 106 "mn-reentrant-mailbox.gob"
+#line 103 "mn-reentrant-mailbox.gob"
 	
     Self *self = SELF(mailbox);
     CheckInfo *info;
@@ -277,33 +267,28 @@ ___5_mn_reentrant_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
     info->self = g_object_ref(self);
     info->check_id = selfp->check_unique_id;
 
-    self_lock(self);
-    selfp->check_id = info->check_id;
-    self_unlock(self);
+    g_atomic_int_set(&selfp->check_id, info->check_id);
 
     mn_thread_create((GThreadFunc) self_check_thread_cb, info);
   }}
-#line 287 "mn-reentrant-mailbox.c"
+#line 275 "mn-reentrant-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 128 "mn-reentrant-mailbox.gob"
+#line 123 "mn-reentrant-mailbox.gob"
 static void 
 mn_reentrant_mailbox_check_thread_cb (CheckInfo * info)
-#line 294 "mn-reentrant-mailbox.c"
+#line 282 "mn-reentrant-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Reentrant:Mailbox::check_thread_cb"
 {
-#line 130 "mn-reentrant-mailbox.gob"
+#line 125 "mn-reentrant-mailbox.gob"
 	
     Self *self = info->self;
 
     self_reentrant_check(self, info->check_id);
 
-    self_lock(self);
-    if (selfp->check_id == info->check_id)
-      selfp->check_id = 0;
-    self_unlock(self);
+    g_atomic_int_compare_and_exchange(&selfp->check_id, info->check_id, 0);
 
     GDK_THREADS_ENTER();
 
@@ -314,104 +299,41 @@ mn_reentrant_mailbox_check_thread_cb (CheckInfo * info)
 
     g_free(info);
   }}
-#line 318 "mn-reentrant-mailbox.c"
+#line 303 "mn-reentrant-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 150 "mn-reentrant-mailbox.gob"
+#line 142 "mn-reentrant-mailbox.gob"
 static void 
-mn_reentrant_mailbox_reentrant_check (MNReentrantMailbox * self, unsigned long check_id)
-#line 324 "mn-reentrant-mailbox.c"
+mn_reentrant_mailbox_reentrant_check (MNReentrantMailbox * self, int check_id)
+#line 309 "mn-reentrant-mailbox.c"
 {
 	MNReentrantMailboxClass *klass;
-#line 150 "mn-reentrant-mailbox.gob"
+#line 142 "mn-reentrant-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 150 "mn-reentrant-mailbox.gob"
+#line 142 "mn-reentrant-mailbox.gob"
 	g_return_if_fail (MN_IS_REENTRANT_MAILBOX (self));
-#line 331 "mn-reentrant-mailbox.c"
+#line 316 "mn-reentrant-mailbox.c"
 	klass = MN_REENTRANT_MAILBOX_GET_CLASS(self);
 
 	if(klass->reentrant_check)
 		(*klass->reentrant_check)(self,check_id);
 }
 
-#line 153 "mn-reentrant-mailbox.gob"
+#line 145 "mn-reentrant-mailbox.gob"
 gboolean 
-mn_reentrant_mailbox_check_aborted (MNReentrantMailbox * self, unsigned long check_id)
-#line 341 "mn-reentrant-mailbox.c"
+mn_reentrant_mailbox_check_aborted (MNReentrantMailbox * self, int check_id)
+#line 326 "mn-reentrant-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Reentrant:Mailbox::check_aborted"
-#line 153 "mn-reentrant-mailbox.gob"
+#line 145 "mn-reentrant-mailbox.gob"
 	g_return_val_if_fail (self != NULL, (gboolean )0);
-#line 153 "mn-reentrant-mailbox.gob"
+#line 145 "mn-reentrant-mailbox.gob"
 	g_return_val_if_fail (MN_IS_REENTRANT_MAILBOX (self), (gboolean )0);
-#line 348 "mn-reentrant-mailbox.c"
+#line 333 "mn-reentrant-mailbox.c"
 {
-#line 155 "mn-reentrant-mailbox.gob"
+#line 147 "mn-reentrant-mailbox.gob"
 	
-    gboolean aborted;
-
-    self_lock(self);
-    aborted = selfp->check_id != check_id;
-    self_unlock(self);
-
-    return aborted;
+    return g_atomic_int_get(&selfp->check_id) != check_id;
   }}
-#line 360 "mn-reentrant-mailbox.c"
-#undef __GOB_FUNCTION__
-
-#line 165 "mn-reentrant-mailbox.gob"
-gboolean 
-mn_reentrant_mailbox_check_aborted_unlocked (MNReentrantMailbox * self, unsigned long check_id)
-#line 366 "mn-reentrant-mailbox.c"
-{
-#define __GOB_FUNCTION__ "MN:Reentrant:Mailbox::check_aborted_unlocked"
-#line 165 "mn-reentrant-mailbox.gob"
-	g_return_val_if_fail (self != NULL, (gboolean )0);
-#line 165 "mn-reentrant-mailbox.gob"
-	g_return_val_if_fail (MN_IS_REENTRANT_MAILBOX (self), (gboolean )0);
-#line 373 "mn-reentrant-mailbox.c"
-{
-#line 167 "mn-reentrant-mailbox.gob"
-	
-    return selfp->check_id != check_id;
-  }}
-#line 379 "mn-reentrant-mailbox.c"
-#undef __GOB_FUNCTION__
-
-#line 171 "mn-reentrant-mailbox.gob"
-void 
-mn_reentrant_mailbox_lock (MNReentrantMailbox * self)
-#line 385 "mn-reentrant-mailbox.c"
-{
-#define __GOB_FUNCTION__ "MN:Reentrant:Mailbox::lock"
-#line 171 "mn-reentrant-mailbox.gob"
-	g_return_if_fail (self != NULL);
-#line 171 "mn-reentrant-mailbox.gob"
-	g_return_if_fail (MN_IS_REENTRANT_MAILBOX (self));
-#line 392 "mn-reentrant-mailbox.c"
-{
-#line 173 "mn-reentrant-mailbox.gob"
-	
-    g_mutex_lock(selfp->mutex);
-  }}
-#line 398 "mn-reentrant-mailbox.c"
-#undef __GOB_FUNCTION__
-
-#line 177 "mn-reentrant-mailbox.gob"
-void 
-mn_reentrant_mailbox_unlock (MNReentrantMailbox * self)
-#line 404 "mn-reentrant-mailbox.c"
-{
-#define __GOB_FUNCTION__ "MN:Reentrant:Mailbox::unlock"
-#line 177 "mn-reentrant-mailbox.gob"
-	g_return_if_fail (self != NULL);
-#line 177 "mn-reentrant-mailbox.gob"
-	g_return_if_fail (MN_IS_REENTRANT_MAILBOX (self));
-#line 411 "mn-reentrant-mailbox.c"
-{
-#line 179 "mn-reentrant-mailbox.gob"
-	
-    g_mutex_unlock(selfp->mutex);
-  }}
-#line 417 "mn-reentrant-mailbox.c"
+#line 339 "mn-reentrant-mailbox.c"
 #undef __GOB_FUNCTION__

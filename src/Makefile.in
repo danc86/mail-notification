@@ -82,13 +82,22 @@ bin_PROGRAMS = mail-notification$(EXEEXT)
 @WITH_MAILDIR_TRUE@	mn-maildir-mailbox-backend.gob.stamp \
 @WITH_MAILDIR_TRUE@	mn-maildir-mailbox-backend-private.h \
 @WITH_MAILDIR_TRUE@	mn-maildir-mailbox-backend.c \
-@WITH_MAILDIR_TRUE@	mn-maildir-mailbox-backend.h
-@WITH_MAILDIR_TRUE@am__append_14 = mn-maildir-mailbox-backend.gob.stamp
+@WITH_MAILDIR_TRUE@	mn-maildir-mailbox-backend.h \
+@WITH_MAILDIR_TRUE@	mn-maildir-message.gob \
+@WITH_MAILDIR_TRUE@	mn-maildir-message.gob.stamp \
+@WITH_MAILDIR_TRUE@	mn-maildir-message-private.h \
+@WITH_MAILDIR_TRUE@	mn-maildir-message.c mn-maildir-message.h
+@WITH_MAILDIR_TRUE@am__append_14 =  \
+@WITH_MAILDIR_TRUE@	mn-maildir-mailbox-backend.gob.stamp \
+@WITH_MAILDIR_TRUE@	mn-maildir-message.gob.stamp
 @WITH_MAILDIR_TRUE@am__append_15 =  \
 @WITH_MAILDIR_TRUE@	mn-maildir-mailbox-backend.gob.stamp \
 @WITH_MAILDIR_TRUE@	mn-maildir-mailbox-backend-private.h \
 @WITH_MAILDIR_TRUE@	mn-maildir-mailbox-backend.c \
-@WITH_MAILDIR_TRUE@	mn-maildir-mailbox-backend.h
+@WITH_MAILDIR_TRUE@	mn-maildir-mailbox-backend.h \
+@WITH_MAILDIR_TRUE@	mn-maildir-message.gob.stamp \
+@WITH_MAILDIR_TRUE@	mn-maildir-message-private.h \
+@WITH_MAILDIR_TRUE@	mn-maildir-message.c mn-maildir-message.h
 @WITH_POP3_TRUE@am__append_16 = mn-md5.c mn-md5.h mn-pop3-mailbox.gob \
 @WITH_POP3_TRUE@	mn-pop3-mailbox.gob.stamp \
 @WITH_POP3_TRUE@	mn-pop3-mailbox-private.h mn-pop3-mailbox.c \
@@ -154,39 +163,64 @@ bin_PROGRAMS = mail-notification$(EXEEXT)
 @WITH_POP3_OR_IMAP_TRUE@	mn-pi-mailbox-properties-private.h \
 @WITH_POP3_OR_IMAP_TRUE@	mn-pi-mailbox-properties.c \
 @WITH_POP3_OR_IMAP_TRUE@	mn-pi-mailbox-properties.h
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@am__append_25 =  \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox.gob \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox.gob.stamp \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox-private.h \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox.c \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox.h \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox-properties.gob \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox-properties.gob.stamp \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox-properties-private.h \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox-properties.c \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox-properties.h
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@am__append_26 = mn-authenticated-mailbox.gob.stamp \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox-properties.gob.stamp
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@am__append_27 = mn-authenticated-mailbox.gob.stamp \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox-private.h \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox.c \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox.h \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox-properties.gob.stamp \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox-properties-private.h \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox-properties.c \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mn-authenticated-mailbox-properties.h
-@WITH_SYLPHEED_TRUE@am__append_28 = mn-sylpheed-mailbox-backend.gob \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@am__append_25 = $(GNOME_KEYRING_CFLAGS)
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@am__append_26 = $(GNOME_KEYRING_LIBS)
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@am__append_27 = mn-keyring.c \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-keyring.h \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox.gob \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox.gob.stamp \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox-private.h \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox.c \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox.h \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox-properties.gob \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox-properties.gob.stamp \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox-properties-private.h \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox-properties.c \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox-properties.h
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@am__append_28 = mn-authenticated-mailbox.gob.stamp \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox-properties.gob.stamp
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@am__append_29 = mn-authenticated-mailbox.gob.stamp \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox-private.h \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox.c \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox.h \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox-properties.gob.stamp \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox-properties-private.h \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox-properties.c \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mn-authenticated-mailbox-properties.h
+@WITH_SYLPHEED_TRUE@am__append_30 = mn-sylpheed-mailbox-backend.gob \
 @WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox-backend.gob.stamp \
 @WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox-backend-private.h \
 @WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox-backend.c \
-@WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox-backend.h
-@WITH_SYLPHEED_TRUE@am__append_29 = mn-sylpheed-mailbox-backend.gob.stamp
-@WITH_SYLPHEED_TRUE@am__append_30 =  \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox-backend.h \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-message.gob \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-message.gob.stamp \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-message-private.h \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-message.c \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-message.h
+@WITH_SYLPHEED_TRUE@am__append_31 =  \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox-backend.gob.stamp \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-message.gob.stamp
+@WITH_SYLPHEED_TRUE@am__append_32 =  \
 @WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox-backend.gob.stamp \
 @WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox-backend-private.h \
 @WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox-backend.c \
-@WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox-backend.h
-@WITH_GMAIL_TRUE@am__append_31 = mn-gmail-mailbox.gob \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-mailbox-backend.h \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-message.gob.stamp \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-message-private.h \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-message.c \
+@WITH_SYLPHEED_TRUE@	mn-sylpheed-message.h
+@WITH_MAILDIR_OR_SYLPHEED_TRUE@am__append_33 = mn-vfs-message.gob \
+@WITH_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.gob.stamp \
+@WITH_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message-private.h \
+@WITH_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.c \
+@WITH_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.h
+@WITH_MAILDIR_OR_SYLPHEED_TRUE@am__append_34 = mn-vfs-message.gob.stamp
+@WITH_MAILDIR_OR_SYLPHEED_TRUE@am__append_35 =  \
+@WITH_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.gob.stamp \
+@WITH_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message-private.h \
+@WITH_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.c \
+@WITH_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.h
+@WITH_GMAIL_TRUE@am__append_36 = mn-gmail-mailbox.gob \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox.gob.stamp \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox-private.h mn-gmail-mailbox.c \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox.h \
@@ -195,16 +229,74 @@ bin_PROGRAMS = mail-notification$(EXEEXT)
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties-private.h \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties.c \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties.h
-@WITH_GMAIL_TRUE@am__append_32 = mn-gmail-mailbox.gob.stamp \
+@WITH_GMAIL_TRUE@am__append_37 = mn-gmail-mailbox.gob.stamp \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties.gob.stamp
-@WITH_GMAIL_TRUE@am__append_33 = mn-gmail-mailbox.gob.stamp \
+@WITH_GMAIL_TRUE@am__append_38 = mn-gmail-mailbox.gob.stamp \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox-private.h mn-gmail-mailbox.c \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox.h \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties.gob.stamp \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties-private.h \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties.c \
 @WITH_GMAIL_TRUE@	mn-gmail-mailbox-properties.h
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@am__append_34 = mn-custom-vfs-mailbox.gob \
+@WITH_YAHOO_TRUE@am__append_39 = mn-yahoo-mailbox.gob \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox.gob.stamp \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox-private.h mn-yahoo-mailbox.c \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox.h \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox-properties.gob \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox-properties.gob.stamp \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox-properties-private.h \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox-properties.c \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox-properties.h
+@WITH_YAHOO_TRUE@am__append_40 = mn-yahoo-mailbox.gob.stamp \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox-properties.gob.stamp
+@WITH_YAHOO_TRUE@am__append_41 = mn-yahoo-mailbox.gob.stamp \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox-private.h mn-yahoo-mailbox.c \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox.h \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox-properties.gob.stamp \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox-properties-private.h \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox-properties.c \
+@WITH_YAHOO_TRUE@	mn-yahoo-mailbox-properties.h
+@WITH_HOTMAIL_TRUE@am__append_42 = mn-hotmail-mailbox.gob \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox.gob.stamp \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox-private.h \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox.c mn-hotmail-mailbox.h \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox-properties.gob \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox-properties.gob.stamp \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox-properties-private.h \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox-properties.c \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox-properties.h
+@WITH_HOTMAIL_TRUE@am__append_43 = mn-hotmail-mailbox.gob.stamp \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox-properties.gob.stamp
+@WITH_HOTMAIL_TRUE@am__append_44 = mn-hotmail-mailbox.gob.stamp \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox-private.h \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox.c mn-hotmail-mailbox.h \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox-properties.gob.stamp \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox-properties-private.h \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox-properties.c \
+@WITH_HOTMAIL_TRUE@	mn-hotmail-mailbox-properties.h
+@WITH_YAHOO_OR_HOTMAIL_TRUE@am__append_45 = mn-webmail-mailbox.gob \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox.gob.stamp \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox-private.h \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox.c \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox.h \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox-properties.gob \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox-properties.gob.stamp \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox-properties-private.h \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox-properties.c \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox-properties.h
+@WITH_YAHOO_OR_HOTMAIL_TRUE@am__append_46 =  \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox.gob.stamp \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox-properties.gob.stamp
+@WITH_YAHOO_OR_HOTMAIL_TRUE@am__append_47 =  \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox.gob.stamp \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox-private.h \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox.c \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox.h \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox-properties.gob.stamp \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox-properties-private.h \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox-properties.c \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mn-webmail-mailbox-properties.h
+@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@am__append_48 = mn-custom-vfs-mailbox.gob \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-custom-vfs-mailbox.gob.stamp \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-custom-vfs-mailbox-private.h \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-custom-vfs-mailbox.c \
@@ -228,19 +320,13 @@ bin_PROGRAMS = mail-notification$(EXEEXT)
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox-backend.gob.stamp \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox-backend-private.h \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox-backend.c \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox-backend.h \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.gob \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.gob.stamp \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message-private.h \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.c \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.h
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@am__append_35 = mn-custom-vfs-mailbox.gob.stamp \
+@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox-backend.h
+@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@am__append_49 = mn-custom-vfs-mailbox.gob.stamp \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-system-vfs-mailbox.gob.stamp \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-system-vfs-mailbox-properties.gob.stamp \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox.gob.stamp \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox-backend.gob.stamp \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.gob.stamp
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@am__append_36 = mn-custom-vfs-mailbox.gob.stamp \
+@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox-backend.gob.stamp
+@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@am__append_50 = mn-custom-vfs-mailbox.gob.stamp \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-custom-vfs-mailbox-private.h \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-custom-vfs-mailbox.c \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-custom-vfs-mailbox.h \
@@ -259,40 +345,36 @@ bin_PROGRAMS = mail-notification$(EXEEXT)
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox-backend.gob.stamp \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox-backend-private.h \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox-backend.c \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox-backend.h \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.gob.stamp \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message-private.h \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.c \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-message.h
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@am__append_37 = mn-reentrant-mailbox.gob \
+@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mn-vfs-mailbox-backend.h
+@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@am__append_51 = mn-reentrant-mailbox.gob \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@	mn-reentrant-mailbox.gob.stamp \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@	mn-reentrant-mailbox-private.h \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@	mn-reentrant-mailbox.c \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@	mn-reentrant-mailbox.h
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@am__append_38 = mn-reentrant-mailbox.gob.stamp
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@am__append_39 = mn-reentrant-mailbox.gob.stamp \
+@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@am__append_52 = mn-reentrant-mailbox.gob.stamp
+@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@am__append_53 = mn-reentrant-mailbox.gob.stamp \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@	mn-reentrant-mailbox-private.h \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@	mn-reentrant-mailbox.c \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@	mn-reentrant-mailbox.h
-@WITH_MIME_TRUE@am__append_40 = $(GMIME_CFLAGS)
-@WITH_MIME_TRUE@am__append_41 = $(GMIME_LIBS)
-@WITH_MIME_TRUE@am__append_42 = mn-message-mime.c mn-message-mime.h \
+@WITH_MIME_TRUE@am__append_54 = $(GMIME_CFLAGS)
+@WITH_MIME_TRUE@am__append_55 = $(GMIME_LIBS)
+@WITH_MIME_TRUE@am__append_56 = mn-message-mime.c mn-message-mime.h \
 @WITH_MIME_TRUE@	mn-gmime-stream-vfs.gob \
 @WITH_MIME_TRUE@	mn-gmime-stream-vfs.gob.stamp \
 @WITH_MIME_TRUE@	mn-gmime-stream-vfs-private.h \
 @WITH_MIME_TRUE@	mn-gmime-stream-vfs.c mn-gmime-stream-vfs.h
-@WITH_MIME_TRUE@am__append_43 = mn-gmime-stream-vfs.gob.stamp
-@WITH_MIME_TRUE@am__append_44 = mn-gmime-stream-vfs.gob.stamp \
+@WITH_MIME_TRUE@am__append_57 = mn-gmime-stream-vfs.gob.stamp
+@WITH_MIME_TRUE@am__append_58 = mn-gmime-stream-vfs.gob.stamp \
 @WITH_MIME_TRUE@	mn-gmime-stream-vfs-private.h \
 @WITH_MIME_TRUE@	mn-gmime-stream-vfs.c mn-gmime-stream-vfs.h
-@WITH_SSL_TRUE@am__append_45 = $(OPENSSL_CFLAGS)
-@WITH_SSL_TRUE@am__append_46 = $(OPENSSL_LIBS)
-@WITH_SSL_TRUE@am__append_47 = mn-ssl.c mn-ssl.h
-@WITH_SASL_TRUE@am__append_48 = $(SASL_CFLAGS)
-@WITH_SASL_TRUE@am__append_49 = $(SASL_LIBS)
-@WITH_SASL_TRUE@am__append_50 = mn-sasl.c mn-sasl.h
-@WITH_EVOLUTION_TRUE@am__append_51 = $(EVOLUTION_PLUGIN_CFLAGS)
-@WITH_EVOLUTION_TRUE@am__append_52 = mn-evolution.h \
+@WITH_SSL_TRUE@am__append_59 = $(OPENSSL_CFLAGS)
+@WITH_SSL_TRUE@am__append_60 = $(OPENSSL_LIBS)
+@WITH_SSL_TRUE@am__append_61 = mn-ssl.c mn-ssl.h
+@WITH_SASL_TRUE@am__append_62 = $(SASL_CFLAGS)
+@WITH_SASL_TRUE@am__append_63 = $(SASL_LIBS)
+@WITH_SASL_TRUE@am__append_64 = mn-sasl.c mn-sasl.h
+@WITH_EVOLUTION_TRUE@am__append_65 = $(EVOLUTION_PLUGIN_CFLAGS)
+@WITH_EVOLUTION_TRUE@am__append_66 = mn-evolution.h \
 @WITH_EVOLUTION_TRUE@	mn-evolution-glue-client.c \
 @WITH_EVOLUTION_TRUE@	mn-evolution-glue-client.h \
 @WITH_EVOLUTION_TRUE@	mn-bonobo-unknown.gob \
@@ -315,7 +397,7 @@ bin_PROGRAMS = mail-notification$(EXEEXT)
 @WITH_EVOLUTION_TRUE@	mn-evolution-message.c \
 @WITH_EVOLUTION_TRUE@	mn-evolution-message.h \
 @WITH_EVOLUTION_TRUE@	GNOME_MailNotification_Evolution.idl
-@WITH_EVOLUTION_TRUE@am__append_53 = mn-bonobo-unknown.gob.stamp \
+@WITH_EVOLUTION_TRUE@am__append_67 = mn-bonobo-unknown.gob.stamp \
 @WITH_EVOLUTION_TRUE@	mn-evolution-mailbox.gob.stamp \
 @WITH_EVOLUTION_TRUE@	mn-evolution-mailbox-properties.gob.stamp \
 @WITH_EVOLUTION_TRUE@	mn-evolution-message.gob.stamp \
@@ -329,7 +411,7 @@ bin_PROGRAMS = mail-notification$(EXEEXT)
 @WITH_EVOLUTION_TRUE@	GNOME_MailNotification_Evolution-skels.c \
 @WITH_EVOLUTION_TRUE@	GNOME_MailNotification_Evolution-stubs.c \
 @WITH_EVOLUTION_TRUE@	GNOME_MailNotification_Evolution.h
-@WITH_EVOLUTION_TRUE@am__append_54 = mn-bonobo-unknown.gob.stamp \
+@WITH_EVOLUTION_TRUE@am__append_68 = mn-bonobo-unknown.gob.stamp \
 @WITH_EVOLUTION_TRUE@	mn-bonobo-unknown-private.h \
 @WITH_EVOLUTION_TRUE@	mn-bonobo-unknown.c mn-bonobo-unknown.h \
 @WITH_EVOLUTION_TRUE@	mn-evolution-mailbox.gob.stamp \
@@ -351,8 +433,8 @@ bin_PROGRAMS = mail-notification$(EXEEXT)
 @WITH_EVOLUTION_TRUE@	mn-evolution-glue.gob.stamp \
 @WITH_EVOLUTION_TRUE@	mn-evolution-glue-private.h \
 @WITH_EVOLUTION_TRUE@	mn-evolution-glue.c mn-evolution-glue.h
-@WITH_EVOLUTION_TRUE@am__append_55 = GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
-@WITH_EVOLUTION_TRUE@am__append_56 = GNOME_MailNotification_Evolution-common.c \
+@WITH_EVOLUTION_TRUE@am__append_69 = GNOME_MailNotification_Evolution-common.c GNOME_MailNotification_Evolution-skels.c GNOME_MailNotification_Evolution-stubs.c GNOME_MailNotification_Evolution.h
+@WITH_EVOLUTION_TRUE@am__append_70 = GNOME_MailNotification_Evolution-common.c \
 @WITH_EVOLUTION_TRUE@	GNOME_MailNotification_Evolution-skels.c \
 @WITH_EVOLUTION_TRUE@	GNOME_MailNotification_Evolution-stubs.c \
 @WITH_EVOLUTION_TRUE@	GNOME_MailNotification_Evolution.h \
@@ -366,8 +448,9 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/evolution-plugin.m4 \
 	$(top_srcdir)/m4/gnome.m4 $(top_srcdir)/m4/idl.m4 \
 	$(top_srcdir)/m4/openssl.m4 \
 	$(top_srcdir)/m4/reentrant-resolver.m4 \
-	$(top_srcdir)/m4/sasl2.m4 $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/sasl2.m4 \
+	$(top_srcdir)/m4/string-arch-unaligned.m4 \
+	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -426,17 +509,21 @@ am__mail_notification_SOURCES_DIST = mn-main.c eggtrayicon.c \
 	mn-autodetect-mailbox-properties.c \
 	mn-autodetect-mailbox-properties.h mn-automation.gob \
 	mn-automation.gob.stamp mn-automation-private.h \
-	mn-automation.c mn-automation.h mn-blinking-image.gob \
-	mn-blinking-image.gob.stamp mn-blinking-image-private.h \
-	mn-blinking-image.c mn-blinking-image.h \
-	mn-compact-message-view.gob mn-compact-message-view.gob.stamp \
+	mn-automation.c mn-automation.h mn-compact-message-view.gob \
+	mn-compact-message-view.gob.stamp \
 	mn-compact-message-view-private.h mn-compact-message-view.c \
 	mn-compact-message-view.h mn-dialog.gob mn-dialog.gob.stamp \
-	mn-dialog-private.h mn-dialog.c mn-dialog.h mn-mail-icon.gob \
+	mn-dialog-private.h mn-dialog.c mn-dialog.h \
+	mn-file-chooser-button.gob mn-file-chooser-button.gob.stamp \
+	mn-file-chooser-button-private.h mn-file-chooser-button.c \
+	mn-file-chooser-button.h mn-mail-icon.gob \
 	mn-mail-icon.gob.stamp mn-mail-icon-private.h mn-mail-icon.c \
-	mn-mail-icon.h mn-mailbox.gob mn-mailbox.gob.stamp \
-	mn-mailbox-private.h mn-mailbox.c mn-mailbox.h \
-	mn-mailbox-properties.gob mn-mailbox-properties.gob.stamp \
+	mn-mail-icon.h mn-mail-icon-widget.gob \
+	mn-mail-icon-widget.gob.stamp mn-mail-icon-widget-private.h \
+	mn-mail-icon-widget.c mn-mail-icon-widget.h mn-mailbox.gob \
+	mn-mailbox.gob.stamp mn-mailbox-private.h mn-mailbox.c \
+	mn-mailbox.h mn-mailbox-properties.gob \
+	mn-mailbox-properties.gob.stamp \
 	mn-mailbox-properties-private.h mn-mailbox-properties.c \
 	mn-mailbox-properties.h mn-mailbox-properties-dialog.gob \
 	mn-mailbox-properties-dialog.gob.stamp \
@@ -456,6 +543,12 @@ am__mail_notification_SOURCES_DIST = mn-main.c eggtrayicon.c \
 	mn-properties-dialog-private.h mn-properties-dialog.c \
 	mn-properties-dialog.h mn-shell.gob mn-shell.gob.stamp \
 	mn-shell-private.h mn-shell.c mn-shell.h \
+	mn-sound-file-chooser-dialog.gob \
+	mn-sound-file-chooser-dialog.gob.stamp \
+	mn-sound-file-chooser-dialog-private.h \
+	mn-sound-file-chooser-dialog.c mn-sound-file-chooser-dialog.h \
+	mn-sound-player.gob mn-sound-player.gob.stamp \
+	mn-sound-player-private.h mn-sound-player.c mn-sound-player.h \
 	mn-standard-message-view.gob \
 	mn-standard-message-view.gob.stamp \
 	mn-standard-message-view-private.h mn-standard-message-view.c \
@@ -482,7 +575,9 @@ am__mail_notification_SOURCES_DIST = mn-main.c eggtrayicon.c \
 	mn-maildir-mailbox-backend.gob.stamp \
 	mn-maildir-mailbox-backend-private.h \
 	mn-maildir-mailbox-backend.c mn-maildir-mailbox-backend.h \
-	mn-md5.c mn-md5.h mn-pop3-mailbox.gob \
+	mn-maildir-message.gob mn-maildir-message.gob.stamp \
+	mn-maildir-message-private.h mn-maildir-message.c \
+	mn-maildir-message.h mn-md5.c mn-md5.h mn-pop3-mailbox.gob \
 	mn-pop3-mailbox.gob.stamp mn-pop3-mailbox-private.h \
 	mn-pop3-mailbox.c mn-pop3-mailbox.h \
 	mn-pop3-mailbox-properties.gob \
@@ -502,7 +597,8 @@ am__mail_notification_SOURCES_DIST = mn-main.c eggtrayicon.c \
 	mn-pi-mailbox.c mn-pi-mailbox.h mn-pi-mailbox-properties.gob \
 	mn-pi-mailbox-properties.gob.stamp \
 	mn-pi-mailbox-properties-private.h mn-pi-mailbox-properties.c \
-	mn-pi-mailbox-properties.h mn-authenticated-mailbox.gob \
+	mn-pi-mailbox-properties.h mn-keyring.c mn-keyring.h \
+	mn-authenticated-mailbox.gob \
 	mn-authenticated-mailbox.gob.stamp \
 	mn-authenticated-mailbox-private.h mn-authenticated-mailbox.c \
 	mn-authenticated-mailbox.h \
@@ -515,13 +611,38 @@ am__mail_notification_SOURCES_DIST = mn-main.c eggtrayicon.c \
 	mn-sylpheed-mailbox-backend.gob.stamp \
 	mn-sylpheed-mailbox-backend-private.h \
 	mn-sylpheed-mailbox-backend.c mn-sylpheed-mailbox-backend.h \
-	mn-gmail-mailbox.gob mn-gmail-mailbox.gob.stamp \
-	mn-gmail-mailbox-private.h mn-gmail-mailbox.c \
-	mn-gmail-mailbox.h mn-gmail-mailbox-properties.gob \
+	mn-sylpheed-message.gob mn-sylpheed-message.gob.stamp \
+	mn-sylpheed-message-private.h mn-sylpheed-message.c \
+	mn-sylpheed-message.h mn-vfs-message.gob \
+	mn-vfs-message.gob.stamp mn-vfs-message-private.h \
+	mn-vfs-message.c mn-vfs-message.h mn-gmail-mailbox.gob \
+	mn-gmail-mailbox.gob.stamp mn-gmail-mailbox-private.h \
+	mn-gmail-mailbox.c mn-gmail-mailbox.h \
+	mn-gmail-mailbox-properties.gob \
 	mn-gmail-mailbox-properties.gob.stamp \
 	mn-gmail-mailbox-properties-private.h \
 	mn-gmail-mailbox-properties.c mn-gmail-mailbox-properties.h \
-	mn-custom-vfs-mailbox.gob mn-custom-vfs-mailbox.gob.stamp \
+	mn-yahoo-mailbox.gob mn-yahoo-mailbox.gob.stamp \
+	mn-yahoo-mailbox-private.h mn-yahoo-mailbox.c \
+	mn-yahoo-mailbox.h mn-yahoo-mailbox-properties.gob \
+	mn-yahoo-mailbox-properties.gob.stamp \
+	mn-yahoo-mailbox-properties-private.h \
+	mn-yahoo-mailbox-properties.c mn-yahoo-mailbox-properties.h \
+	mn-hotmail-mailbox.gob mn-hotmail-mailbox.gob.stamp \
+	mn-hotmail-mailbox-private.h mn-hotmail-mailbox.c \
+	mn-hotmail-mailbox.h mn-hotmail-mailbox-properties.gob \
+	mn-hotmail-mailbox-properties.gob.stamp \
+	mn-hotmail-mailbox-properties-private.h \
+	mn-hotmail-mailbox-properties.c \
+	mn-hotmail-mailbox-properties.h mn-webmail-mailbox.gob \
+	mn-webmail-mailbox.gob.stamp mn-webmail-mailbox-private.h \
+	mn-webmail-mailbox.c mn-webmail-mailbox.h \
+	mn-webmail-mailbox-properties.gob \
+	mn-webmail-mailbox-properties.gob.stamp \
+	mn-webmail-mailbox-properties-private.h \
+	mn-webmail-mailbox-properties.c \
+	mn-webmail-mailbox-properties.h mn-custom-vfs-mailbox.gob \
+	mn-custom-vfs-mailbox.gob.stamp \
 	mn-custom-vfs-mailbox-private.h mn-custom-vfs-mailbox.c \
 	mn-custom-vfs-mailbox.h mn-system-vfs-mailbox.gob \
 	mn-system-vfs-mailbox.gob.stamp \
@@ -535,9 +656,7 @@ am__mail_notification_SOURCES_DIST = mn-main.c eggtrayicon.c \
 	mn-vfs-mailbox.c mn-vfs-mailbox.h mn-vfs-mailbox-backend.gob \
 	mn-vfs-mailbox-backend.gob.stamp \
 	mn-vfs-mailbox-backend-private.h mn-vfs-mailbox-backend.c \
-	mn-vfs-mailbox-backend.h mn-vfs-message.gob \
-	mn-vfs-message.gob.stamp mn-vfs-message-private.h \
-	mn-vfs-message.c mn-vfs-message.h mn-reentrant-mailbox.gob \
+	mn-vfs-mailbox-backend.h mn-reentrant-mailbox.gob \
 	mn-reentrant-mailbox.gob.stamp mn-reentrant-mailbox-private.h \
 	mn-reentrant-mailbox.c mn-reentrant-mailbox.h \
 	mn-message-mime.c mn-message-mime.h mn-gmime-stream-vfs.gob \
@@ -561,7 +680,8 @@ am__mail_notification_SOURCES_DIST = mn-main.c eggtrayicon.c \
 @WITH_MOZILLA_TRUE@am__objects_2 = mail_notification-mn-mozilla-mailbox-backend.$(OBJEXT)
 @WITH_MBOX_OR_MOZILLA_TRUE@am__objects_3 = mail_notification-mn-base-mbox-mailbox-backend.$(OBJEXT)
 @WITH_MH_TRUE@am__objects_4 = mail_notification-mn-mh-mailbox-backend.$(OBJEXT)
-@WITH_MAILDIR_TRUE@am__objects_5 = mail_notification-mn-maildir-mailbox-backend.$(OBJEXT)
+@WITH_MAILDIR_TRUE@am__objects_5 = mail_notification-mn-maildir-mailbox-backend.$(OBJEXT) \
+@WITH_MAILDIR_TRUE@	mail_notification-mn-maildir-message.$(OBJEXT)
 @WITH_POP3_TRUE@am__objects_6 = mail_notification-mn-md5.$(OBJEXT) \
 @WITH_POP3_TRUE@	mail_notification-mn-pop3-mailbox.$(OBJEXT) \
 @WITH_POP3_TRUE@	mail_notification-mn-pop3-mailbox-properties.$(OBJEXT)
@@ -572,25 +692,34 @@ am__mail_notification_SOURCES_DIST = mn-main.c eggtrayicon.c \
 @WITH_POP3_OR_IMAP_TRUE@	mail_notification-mn-auth-combo-box.$(OBJEXT) \
 @WITH_POP3_OR_IMAP_TRUE@	mail_notification-mn-pi-mailbox.$(OBJEXT) \
 @WITH_POP3_OR_IMAP_TRUE@	mail_notification-mn-pi-mailbox-properties.$(OBJEXT)
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@am__objects_9 = mail_notification-mn-authenticated-mailbox.$(OBJEXT) \
-@WITH_POP3_OR_IMAP_OR_GMAIL_TRUE@	mail_notification-mn-authenticated-mailbox-properties.$(OBJEXT)
-@WITH_SYLPHEED_TRUE@am__objects_10 = mail_notification-mn-sylpheed-mailbox-backend.$(OBJEXT)
-@WITH_GMAIL_TRUE@am__objects_11 =  \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@am__objects_9 = mail_notification-mn-keyring.$(OBJEXT) \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mail_notification-mn-authenticated-mailbox.$(OBJEXT) \
+@WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL_TRUE@	mail_notification-mn-authenticated-mailbox-properties.$(OBJEXT)
+@WITH_SYLPHEED_TRUE@am__objects_10 = mail_notification-mn-sylpheed-mailbox-backend.$(OBJEXT) \
+@WITH_SYLPHEED_TRUE@	mail_notification-mn-sylpheed-message.$(OBJEXT)
+@WITH_MAILDIR_OR_SYLPHEED_TRUE@am__objects_11 = mail_notification-mn-vfs-message.$(OBJEXT)
+@WITH_GMAIL_TRUE@am__objects_12 =  \
 @WITH_GMAIL_TRUE@	mail_notification-mn-gmail-mailbox.$(OBJEXT) \
 @WITH_GMAIL_TRUE@	mail_notification-mn-gmail-mailbox-properties.$(OBJEXT)
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@am__objects_12 = mail_notification-mn-custom-vfs-mailbox.$(OBJEXT) \
+@WITH_YAHOO_TRUE@am__objects_13 =  \
+@WITH_YAHOO_TRUE@	mail_notification-mn-yahoo-mailbox.$(OBJEXT) \
+@WITH_YAHOO_TRUE@	mail_notification-mn-yahoo-mailbox-properties.$(OBJEXT)
+@WITH_HOTMAIL_TRUE@am__objects_14 = mail_notification-mn-hotmail-mailbox.$(OBJEXT) \
+@WITH_HOTMAIL_TRUE@	mail_notification-mn-hotmail-mailbox-properties.$(OBJEXT)
+@WITH_YAHOO_OR_HOTMAIL_TRUE@am__objects_15 = mail_notification-mn-webmail-mailbox.$(OBJEXT) \
+@WITH_YAHOO_OR_HOTMAIL_TRUE@	mail_notification-mn-webmail-mailbox-properties.$(OBJEXT)
+@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@am__objects_16 = mail_notification-mn-custom-vfs-mailbox.$(OBJEXT) \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mail_notification-mn-system-vfs-mailbox.$(OBJEXT) \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mail_notification-mn-system-vfs-mailbox-properties.$(OBJEXT) \
 @WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mail_notification-mn-vfs-mailbox.$(OBJEXT) \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mail_notification-mn-vfs-mailbox-backend.$(OBJEXT) \
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mail_notification-mn-vfs-message.$(OBJEXT)
-@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@am__objects_13 = mail_notification-mn-reentrant-mailbox.$(OBJEXT)
-@WITH_MIME_TRUE@am__objects_14 =  \
+@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_TRUE@	mail_notification-mn-vfs-mailbox-backend.$(OBJEXT)
+@WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION_TRUE@am__objects_17 = mail_notification-mn-reentrant-mailbox.$(OBJEXT)
+@WITH_MIME_TRUE@am__objects_18 =  \
 @WITH_MIME_TRUE@	mail_notification-mn-message-mime.$(OBJEXT) \
 @WITH_MIME_TRUE@	mail_notification-mn-gmime-stream-vfs.$(OBJEXT)
-@WITH_SSL_TRUE@am__objects_15 = mail_notification-mn-ssl.$(OBJEXT)
-@WITH_SASL_TRUE@am__objects_16 = mail_notification-mn-sasl.$(OBJEXT)
-@WITH_EVOLUTION_TRUE@am__objects_17 = mail_notification-mn-evolution-glue-client.$(OBJEXT) \
+@WITH_SSL_TRUE@am__objects_19 = mail_notification-mn-ssl.$(OBJEXT)
+@WITH_SASL_TRUE@am__objects_20 = mail_notification-mn-sasl.$(OBJEXT)
+@WITH_EVOLUTION_TRUE@am__objects_21 = mail_notification-mn-evolution-glue-client.$(OBJEXT) \
 @WITH_EVOLUTION_TRUE@	mail_notification-mn-bonobo-unknown.$(OBJEXT) \
 @WITH_EVOLUTION_TRUE@	mail_notification-mn-evolution-mailbox.$(OBJEXT) \
 @WITH_EVOLUTION_TRUE@	mail_notification-mn-evolution-mailbox-properties.$(OBJEXT) \
@@ -607,10 +736,11 @@ am_mail_notification_OBJECTS = mail_notification-mn-main.$(OBJEXT) \
 	mail_notification-mn-about-dialog.$(OBJEXT) \
 	mail_notification-mn-autodetect-mailbox-properties.$(OBJEXT) \
 	mail_notification-mn-automation.$(OBJEXT) \
-	mail_notification-mn-blinking-image.$(OBJEXT) \
 	mail_notification-mn-compact-message-view.$(OBJEXT) \
 	mail_notification-mn-dialog.$(OBJEXT) \
+	mail_notification-mn-file-chooser-button.$(OBJEXT) \
 	mail_notification-mn-mail-icon.$(OBJEXT) \
+	mail_notification-mn-mail-icon-widget.$(OBJEXT) \
 	mail_notification-mn-mailbox.$(OBJEXT) \
 	mail_notification-mn-mailbox-properties.$(OBJEXT) \
 	mail_notification-mn-mailbox-properties-dialog.$(OBJEXT) \
@@ -622,6 +752,8 @@ am_mail_notification_OBJECTS = mail_notification-mn-main.$(OBJEXT) \
 	mail_notification-mn-popups.$(OBJEXT) \
 	mail_notification-mn-properties-dialog.$(OBJEXT) \
 	mail_notification-mn-shell.$(OBJEXT) \
+	mail_notification-mn-sound-file-chooser-dialog.$(OBJEXT) \
+	mail_notification-mn-sound-player.$(OBJEXT) \
 	mail_notification-mn-standard-message-view.$(OBJEXT) \
 	mail_notification-mn-test-mailbox.$(OBJEXT) \
 	mail_notification-mn-text-table.$(OBJEXT) \
@@ -631,15 +763,16 @@ am_mail_notification_OBJECTS = mail_notification-mn-main.$(OBJEXT) \
 	$(am__objects_8) $(am__objects_9) $(am__objects_10) \
 	$(am__objects_11) $(am__objects_12) $(am__objects_13) \
 	$(am__objects_14) $(am__objects_15) $(am__objects_16) \
-	$(am__objects_17)
-@WITH_EVOLUTION_TRUE@am__objects_18 = mail_notification-GNOME_MailNotification_Evolution-common.$(OBJEXT) \
+	$(am__objects_17) $(am__objects_18) $(am__objects_19) \
+	$(am__objects_20) $(am__objects_21)
+@WITH_EVOLUTION_TRUE@am__objects_22 = mail_notification-GNOME_MailNotification_Evolution-common.$(OBJEXT) \
 @WITH_EVOLUTION_TRUE@	mail_notification-GNOME_MailNotification_Evolution-skels.$(OBJEXT) \
 @WITH_EVOLUTION_TRUE@	mail_notification-GNOME_MailNotification_Evolution-stubs.$(OBJEXT)
 nodist_mail_notification_OBJECTS =  \
 	mail_notification-GNOME_MailNotification-common.$(OBJEXT) \
 	mail_notification-GNOME_MailNotification-skels.$(OBJEXT) \
 	mail_notification-GNOME_MailNotification-stubs.$(OBJEXT) \
-	$(am__objects_18)
+	$(am__objects_22)
 mail_notification_OBJECTS = $(am_mail_notification_OBJECTS) \
 	$(nodist_mail_notification_OBJECTS)
 mail_notification_LDADD = $(LDADD)
@@ -715,11 +848,11 @@ GMIME_LIBS = @GMIME_LIBS@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GNOME_CFLAGS = @GNOME_CFLAGS@
+GNOME_KEYRING_CFLAGS = @GNOME_KEYRING_CFLAGS@
+GNOME_KEYRING_LIBS = @GNOME_KEYRING_LIBS@
 GNOME_LIBS = @GNOME_LIBS@
 GOB2 = @GOB2@
 GREP = @GREP@
-GTK_CFLAGS = @GTK_CFLAGS@
-GTK_LIBS = @GTK_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -731,14 +864,12 @@ INTLTOOL_CAVES_RULE = @INTLTOOL_CAVES_RULE@
 INTLTOOL_DESKTOP_RULE = @INTLTOOL_DESKTOP_RULE@
 INTLTOOL_DIRECTORY_RULE = @INTLTOOL_DIRECTORY_RULE@
 INTLTOOL_EXTRACT = @INTLTOOL_EXTRACT@
-INTLTOOL_ICONV = @INTLTOOL_ICONV@
 INTLTOOL_KBD_RULE = @INTLTOOL_KBD_RULE@
 INTLTOOL_KEYS_RULE = @INTLTOOL_KEYS_RULE@
 INTLTOOL_MERGE = @INTLTOOL_MERGE@
-INTLTOOL_MSGFMT = @INTLTOOL_MSGFMT@
-INTLTOOL_MSGMERGE = @INTLTOOL_MSGMERGE@
 INTLTOOL_OAF_RULE = @INTLTOOL_OAF_RULE@
 INTLTOOL_PERL = @INTLTOOL_PERL@
+INTLTOOL_POLICY_RULE = @INTLTOOL_POLICY_RULE@
 INTLTOOL_PONG_RULE = @INTLTOOL_PONG_RULE@
 INTLTOOL_PROP_RULE = @INTLTOOL_PROP_RULE@
 INTLTOOL_SCHEMAS_RULE = @INTLTOOL_SCHEMAS_RULE@
@@ -750,7 +881,6 @@ INTLTOOL_THEME_RULE = @INTLTOOL_THEME_RULE@
 INTLTOOL_UI_RULE = @INTLTOOL_UI_RULE@
 INTLTOOL_UPDATE = @INTLTOOL_UPDATE@
 INTLTOOL_XAM_RULE = @INTLTOOL_XAM_RULE@
-INTLTOOL_XGETTEXT = @INTLTOOL_XGETTEXT@
 INTLTOOL_XML_NOMERGE_RULE = @INTLTOOL_XML_NOMERGE_RULE@
 INTLTOOL_XML_RULE = @INTLTOOL_XML_RULE@
 LDFLAGS = @LDFLAGS@
@@ -784,6 +914,7 @@ PO_IN_DATADIR_TRUE = @PO_IN_DATADIR_TRUE@
 RANLIB = @RANLIB@
 SASL_CFLAGS = @SASL_CFLAGS@
 SASL_LIBS = @SASL_LIBS@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -853,13 +984,14 @@ GOBFLAGS = --always-private-header --no-touch --exit-on-warn
 mail_notification_CPPFLAGS = $(WARN_CFLAGS) $(DEBUG_CFLAGS) \
 	-I$(top_srcdir) -DG_LOG_DOMAIN="\"$(PACKAGE)\"" \
 	-DPREFIX="\"$(prefix)\"" -DSYSCONFDIR="\"$(sysconfdir)\"" \
-	-DDATADIR="\"$(datadir)\"" -DLIBDIR="\"$(libdir)\"" \
-	-DGNOMELOCALEDIR="\"$(datadir)/locale\"" \
-	-DUIDIR="\"$(pkgdatadir)/ui\"" $(GNOME_CFLAGS) \
-	$(am__append_40) $(am__append_45) $(am__append_48) \
-	$(am__append_51)
-mail_notification_LDFLAGS = -export-dynamic $(INTLLIBS) $(GNOME_LIBS) \
-	$(am__append_41) $(am__append_46) $(am__append_49)
+	-DDATADIR="\"$(datadir)\"" -DPKGDATADIR="\"$(pkgdatadir)\"" \
+	-DLIBDIR="\"$(libdir)\"" \
+	-DGNOMELOCALEDIR="\"$(datadir)/locale\"" $(GNOME_CFLAGS) \
+	$(am__append_25) $(am__append_54) $(am__append_59) \
+	$(am__append_62) $(am__append_65)
+mail_notification_LDFLAGS = -export-dynamic -lm $(INTLLIBS) \
+	$(GNOME_LIBS) $(am__append_26) $(am__append_55) \
+	$(am__append_60) $(am__append_63)
 mail_notification_SOURCES = mn-main.c eggtrayicon.c eggtrayicon.h \
 	mn-conf.c mn-conf.h mn-locked-callback.c mn-locked-callback.h \
 	mn-stock.c mn-stock.h mn-util.c mn-util.h mn-vfs.c mn-vfs.h \
@@ -873,17 +1005,21 @@ mail_notification_SOURCES = mn-main.c eggtrayicon.c eggtrayicon.h \
 	mn-autodetect-mailbox-properties.c \
 	mn-autodetect-mailbox-properties.h mn-automation.gob \
 	mn-automation.gob.stamp mn-automation-private.h \
-	mn-automation.c mn-automation.h mn-blinking-image.gob \
-	mn-blinking-image.gob.stamp mn-blinking-image-private.h \
-	mn-blinking-image.c mn-blinking-image.h \
-	mn-compact-message-view.gob mn-compact-message-view.gob.stamp \
+	mn-automation.c mn-automation.h mn-compact-message-view.gob \
+	mn-compact-message-view.gob.stamp \
 	mn-compact-message-view-private.h mn-compact-message-view.c \
 	mn-compact-message-view.h mn-dialog.gob mn-dialog.gob.stamp \
-	mn-dialog-private.h mn-dialog.c mn-dialog.h mn-mail-icon.gob \
+	mn-dialog-private.h mn-dialog.c mn-dialog.h \
+	mn-file-chooser-button.gob mn-file-chooser-button.gob.stamp \
+	mn-file-chooser-button-private.h mn-file-chooser-button.c \
+	mn-file-chooser-button.h mn-mail-icon.gob \
 	mn-mail-icon.gob.stamp mn-mail-icon-private.h mn-mail-icon.c \
-	mn-mail-icon.h mn-mailbox.gob mn-mailbox.gob.stamp \
-	mn-mailbox-private.h mn-mailbox.c mn-mailbox.h \
-	mn-mailbox-properties.gob mn-mailbox-properties.gob.stamp \
+	mn-mail-icon.h mn-mail-icon-widget.gob \
+	mn-mail-icon-widget.gob.stamp mn-mail-icon-widget-private.h \
+	mn-mail-icon-widget.c mn-mail-icon-widget.h mn-mailbox.gob \
+	mn-mailbox.gob.stamp mn-mailbox-private.h mn-mailbox.c \
+	mn-mailbox.h mn-mailbox-properties.gob \
+	mn-mailbox-properties.gob.stamp \
 	mn-mailbox-properties-private.h mn-mailbox-properties.c \
 	mn-mailbox-properties.h mn-mailbox-properties-dialog.gob \
 	mn-mailbox-properties-dialog.gob.stamp \
@@ -903,6 +1039,12 @@ mail_notification_SOURCES = mn-main.c eggtrayicon.c eggtrayicon.h \
 	mn-properties-dialog-private.h mn-properties-dialog.c \
 	mn-properties-dialog.h mn-shell.gob mn-shell.gob.stamp \
 	mn-shell-private.h mn-shell.c mn-shell.h \
+	mn-sound-file-chooser-dialog.gob \
+	mn-sound-file-chooser-dialog.gob.stamp \
+	mn-sound-file-chooser-dialog-private.h \
+	mn-sound-file-chooser-dialog.c mn-sound-file-chooser-dialog.h \
+	mn-sound-player.gob mn-sound-player.gob.stamp \
+	mn-sound-player-private.h mn-sound-player.c mn-sound-player.h \
 	mn-standard-message-view.gob \
 	mn-standard-message-view.gob.stamp \
 	mn-standard-message-view-private.h mn-standard-message-view.c \
@@ -915,30 +1057,34 @@ mail_notification_SOURCES = mn-main.c eggtrayicon.c eggtrayicon.h \
 	mn-tooltips.h GNOME_MailNotification.idl $(am__append_1) \
 	$(am__append_4) $(am__append_7) $(am__append_10) \
 	$(am__append_13) $(am__append_16) $(am__append_19) \
-	$(am__append_22) $(am__append_25) $(am__append_28) \
-	$(am__append_31) $(am__append_34) $(am__append_37) \
-	$(am__append_42) $(am__append_47) $(am__append_50) \
-	$(am__append_52)
+	$(am__append_22) $(am__append_27) $(am__append_30) \
+	$(am__append_33) $(am__append_36) $(am__append_39) \
+	$(am__append_42) $(am__append_45) $(am__append_48) \
+	$(am__append_51) $(am__append_56) $(am__append_61) \
+	$(am__append_64) $(am__append_66)
 BUILT_SOURCES = mn-about-dialog.gob.stamp \
 	mn-autodetect-mailbox-properties.gob.stamp \
-	mn-automation.gob.stamp mn-blinking-image.gob.stamp \
-	mn-compact-message-view.gob.stamp mn-dialog.gob.stamp \
-	mn-mail-icon.gob.stamp mn-mailbox.gob.stamp \
-	mn-mailbox-properties.gob.stamp \
+	mn-automation.gob.stamp mn-compact-message-view.gob.stamp \
+	mn-dialog.gob.stamp mn-file-chooser-button.gob.stamp \
+	mn-mail-icon.gob.stamp mn-mail-icon-widget.gob.stamp \
+	mn-mailbox.gob.stamp mn-mailbox-properties.gob.stamp \
 	mn-mailbox-properties-dialog.gob.stamp \
 	mn-mailbox-view.gob.stamp mn-mailboxes.gob.stamp \
 	mn-message.gob.stamp mn-message-view.gob.stamp \
 	mn-popup.gob.stamp mn-popups.gob.stamp \
 	mn-properties-dialog.gob.stamp mn-shell.gob.stamp \
-	mn-standard-message-view.gob.stamp mn-test-mailbox.gob.stamp \
-	mn-text-table.gob.stamp mn-tooltips.gob.stamp \
-	GNOME_MailNotification-common.c GNOME_MailNotification-skels.c \
-	GNOME_MailNotification-stubs.c GNOME_MailNotification.h \
-	$(am__append_2) $(am__append_5) $(am__append_8) \
-	$(am__append_11) $(am__append_14) $(am__append_17) \
-	$(am__append_20) $(am__append_23) $(am__append_26) \
-	$(am__append_29) $(am__append_32) $(am__append_35) \
-	$(am__append_38) $(am__append_43) $(am__append_53)
+	mn-sound-file-chooser-dialog.gob.stamp \
+	mn-sound-player.gob.stamp mn-standard-message-view.gob.stamp \
+	mn-test-mailbox.gob.stamp mn-text-table.gob.stamp \
+	mn-tooltips.gob.stamp GNOME_MailNotification-common.c \
+	GNOME_MailNotification-skels.c GNOME_MailNotification-stubs.c \
+	GNOME_MailNotification.h $(am__append_2) $(am__append_5) \
+	$(am__append_8) $(am__append_11) $(am__append_14) \
+	$(am__append_17) $(am__append_20) $(am__append_23) \
+	$(am__append_28) $(am__append_31) $(am__append_34) \
+	$(am__append_37) $(am__append_40) $(am__append_43) \
+	$(am__append_46) $(am__append_49) $(am__append_52) \
+	$(am__append_57) $(am__append_67)
 MAINTAINERCLEANFILES = mn-about-dialog.gob.stamp \
 	mn-about-dialog-private.h mn-about-dialog.c mn-about-dialog.h \
 	mn-autodetect-mailbox-properties.gob.stamp \
@@ -946,15 +1092,18 @@ MAINTAINERCLEANFILES = mn-about-dialog.gob.stamp \
 	mn-autodetect-mailbox-properties.c \
 	mn-autodetect-mailbox-properties.h mn-automation.gob.stamp \
 	mn-automation-private.h mn-automation.c mn-automation.h \
-	mn-blinking-image.gob.stamp mn-blinking-image-private.h \
-	mn-blinking-image.c mn-blinking-image.h \
 	mn-compact-message-view.gob.stamp \
 	mn-compact-message-view-private.h mn-compact-message-view.c \
 	mn-compact-message-view.h mn-dialog.gob.stamp \
 	mn-dialog-private.h mn-dialog.c mn-dialog.h \
-	mn-mail-icon.gob.stamp mn-mail-icon-private.h mn-mail-icon.c \
-	mn-mail-icon.h mn-mailbox.gob.stamp mn-mailbox-private.h \
-	mn-mailbox.c mn-mailbox.h mn-mailbox-properties.gob.stamp \
+	mn-file-chooser-button.gob.stamp \
+	mn-file-chooser-button-private.h mn-file-chooser-button.c \
+	mn-file-chooser-button.h mn-mail-icon.gob.stamp \
+	mn-mail-icon-private.h mn-mail-icon.c mn-mail-icon.h \
+	mn-mail-icon-widget.gob.stamp mn-mail-icon-widget-private.h \
+	mn-mail-icon-widget.c mn-mail-icon-widget.h \
+	mn-mailbox.gob.stamp mn-mailbox-private.h mn-mailbox.c \
+	mn-mailbox.h mn-mailbox-properties.gob.stamp \
 	mn-mailbox-properties-private.h mn-mailbox-properties.c \
 	mn-mailbox-properties.h mn-mailbox-properties-dialog.gob.stamp \
 	mn-mailbox-properties-dialog-private.h \
@@ -970,7 +1119,12 @@ MAINTAINERCLEANFILES = mn-about-dialog.gob.stamp \
 	mn-popups.h mn-properties-dialog.gob.stamp \
 	mn-properties-dialog-private.h mn-properties-dialog.c \
 	mn-properties-dialog.h mn-shell.gob.stamp mn-shell-private.h \
-	mn-shell.c mn-shell.h mn-standard-message-view.gob.stamp \
+	mn-shell.c mn-shell.h mn-sound-file-chooser-dialog.gob.stamp \
+	mn-sound-file-chooser-dialog-private.h \
+	mn-sound-file-chooser-dialog.c mn-sound-file-chooser-dialog.h \
+	mn-sound-player.gob.stamp mn-sound-player-private.h \
+	mn-sound-player.c mn-sound-player.h \
+	mn-standard-message-view.gob.stamp \
 	mn-standard-message-view-private.h mn-standard-message-view.c \
 	mn-standard-message-view.h mn-test-mailbox.gob.stamp \
 	mn-test-mailbox-private.h mn-test-mailbox.c mn-test-mailbox.h \
@@ -979,15 +1133,17 @@ MAINTAINERCLEANFILES = mn-about-dialog.gob.stamp \
 	mn-tooltips-private.h mn-tooltips.c mn-tooltips.h \
 	$(am__append_3) $(am__append_6) $(am__append_9) \
 	$(am__append_12) $(am__append_15) $(am__append_18) \
-	$(am__append_21) $(am__append_24) $(am__append_27) \
-	$(am__append_30) $(am__append_33) $(am__append_36) \
-	$(am__append_39) $(am__append_44) $(am__append_54)
+	$(am__append_21) $(am__append_24) $(am__append_29) \
+	$(am__append_32) $(am__append_35) $(am__append_38) \
+	$(am__append_41) $(am__append_44) $(am__append_47) \
+	$(am__append_50) $(am__append_53) $(am__append_58) \
+	$(am__append_68)
 nodist_mail_notification_SOURCES = GNOME_MailNotification-common.c \
 	GNOME_MailNotification-skels.c GNOME_MailNotification-stubs.c \
-	GNOME_MailNotification.h $(am__append_55)
+	GNOME_MailNotification.h $(am__append_69)
 CLEANFILES = GNOME_MailNotification-common.c \
 	GNOME_MailNotification-skels.c GNOME_MailNotification-stubs.c \
-	GNOME_MailNotification.h $(am__append_56) $(evolution_eplug)
+	GNOME_MailNotification.h $(am__append_70) $(evolution_eplug)
 @WITH_EVOLUTION_TRUE@evolution_plugin_LTLIBRARIES = liborg-jylefort-mail-notification.la
 @WITH_EVOLUTION_TRUE@liborg_jylefort_mail_notification_la_CPPFLAGS =  \
 @WITH_EVOLUTION_TRUE@	$(WARN_CFLAGS) $(DEBUG_CFLAGS) \
@@ -1135,7 +1291,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-autodetect-mailbox-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-automation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-base-mbox-mailbox-backend.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-blinking-image.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-bonobo-unknown.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-client-session.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-compact-message-view.Po@am__quote@
@@ -1146,12 +1301,17 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-evolution-mailbox-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-evolution-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-evolution-message.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-file-chooser-button.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-gmail-mailbox-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-gmail-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-gmime-stream-vfs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-hotmail-mailbox-properties.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-hotmail-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-imap-mailbox-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-imap-mailbox.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-keyring.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-locked-callback.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-mail-icon-widget.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-mail-icon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-mailbox-properties-dialog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-mailbox-properties.Po@am__quote@
@@ -1159,6 +1319,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-mailboxes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-maildir-mailbox-backend.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-maildir-message.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-mbox-mailbox-backend.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-md5.Po@am__quote@
@@ -1177,10 +1338,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-reentrant-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-sasl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-shell.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-sound-file-chooser-dialog.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-sound-player.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-ssl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-standard-message-view.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-stock.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-sylpheed-mailbox-backend.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-sylpheed-message.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-system-vfs-mailbox-properties.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-system-vfs-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-test-mailbox.Po@am__quote@
@@ -1191,7 +1355,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-vfs-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-vfs-message.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-vfs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-webmail-mailbox-properties.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-webmail-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-xml.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-yahoo-mailbox-properties.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-mn-yahoo-mailbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mail_notification-nautilus-cell-renderer-pixbuf-emblem.Po@am__quote@
 
 .c.o:
@@ -1425,20 +1593,6 @@ mail_notification-mn-automation.obj: mn-automation.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-automation.obj `if test -f 'mn-automation.c'; then $(CYGPATH_W) 'mn-automation.c'; else $(CYGPATH_W) '$(srcdir)/mn-automation.c'; fi`
 
-mail_notification-mn-blinking-image.o: mn-blinking-image.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-blinking-image.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-blinking-image.Tpo -c -o mail_notification-mn-blinking-image.o `test -f 'mn-blinking-image.c' || echo '$(srcdir)/'`mn-blinking-image.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-blinking-image.Tpo $(DEPDIR)/mail_notification-mn-blinking-image.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-blinking-image.c' object='mail_notification-mn-blinking-image.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-blinking-image.o `test -f 'mn-blinking-image.c' || echo '$(srcdir)/'`mn-blinking-image.c
-
-mail_notification-mn-blinking-image.obj: mn-blinking-image.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-blinking-image.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-blinking-image.Tpo -c -o mail_notification-mn-blinking-image.obj `if test -f 'mn-blinking-image.c'; then $(CYGPATH_W) 'mn-blinking-image.c'; else $(CYGPATH_W) '$(srcdir)/mn-blinking-image.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-blinking-image.Tpo $(DEPDIR)/mail_notification-mn-blinking-image.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-blinking-image.c' object='mail_notification-mn-blinking-image.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-blinking-image.obj `if test -f 'mn-blinking-image.c'; then $(CYGPATH_W) 'mn-blinking-image.c'; else $(CYGPATH_W) '$(srcdir)/mn-blinking-image.c'; fi`
-
 mail_notification-mn-compact-message-view.o: mn-compact-message-view.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-compact-message-view.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-compact-message-view.Tpo -c -o mail_notification-mn-compact-message-view.o `test -f 'mn-compact-message-view.c' || echo '$(srcdir)/'`mn-compact-message-view.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-compact-message-view.Tpo $(DEPDIR)/mail_notification-mn-compact-message-view.Po
@@ -1467,6 +1621,20 @@ mail_notification-mn-dialog.obj: mn-dialog.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-dialog.obj `if test -f 'mn-dialog.c'; then $(CYGPATH_W) 'mn-dialog.c'; else $(CYGPATH_W) '$(srcdir)/mn-dialog.c'; fi`
 
+mail_notification-mn-file-chooser-button.o: mn-file-chooser-button.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-file-chooser-button.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-file-chooser-button.Tpo -c -o mail_notification-mn-file-chooser-button.o `test -f 'mn-file-chooser-button.c' || echo '$(srcdir)/'`mn-file-chooser-button.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-file-chooser-button.Tpo $(DEPDIR)/mail_notification-mn-file-chooser-button.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-file-chooser-button.c' object='mail_notification-mn-file-chooser-button.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-file-chooser-button.o `test -f 'mn-file-chooser-button.c' || echo '$(srcdir)/'`mn-file-chooser-button.c
+
+mail_notification-mn-file-chooser-button.obj: mn-file-chooser-button.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-file-chooser-button.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-file-chooser-button.Tpo -c -o mail_notification-mn-file-chooser-button.obj `if test -f 'mn-file-chooser-button.c'; then $(CYGPATH_W) 'mn-file-chooser-button.c'; else $(CYGPATH_W) '$(srcdir)/mn-file-chooser-button.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-file-chooser-button.Tpo $(DEPDIR)/mail_notification-mn-file-chooser-button.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-file-chooser-button.c' object='mail_notification-mn-file-chooser-button.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-file-chooser-button.obj `if test -f 'mn-file-chooser-button.c'; then $(CYGPATH_W) 'mn-file-chooser-button.c'; else $(CYGPATH_W) '$(srcdir)/mn-file-chooser-button.c'; fi`
+
 mail_notification-mn-mail-icon.o: mn-mail-icon.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-mail-icon.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-mail-icon.Tpo -c -o mail_notification-mn-mail-icon.o `test -f 'mn-mail-icon.c' || echo '$(srcdir)/'`mn-mail-icon.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-mail-icon.Tpo $(DEPDIR)/mail_notification-mn-mail-icon.Po
@@ -1480,6 +1648,20 @@ mail_notification-mn-mail-icon.obj: mn-mail-icon.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-mail-icon.c' object='mail_notification-mn-mail-icon.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-mail-icon.obj `if test -f 'mn-mail-icon.c'; then $(CYGPATH_W) 'mn-mail-icon.c'; else $(CYGPATH_W) '$(srcdir)/mn-mail-icon.c'; fi`
+
+mail_notification-mn-mail-icon-widget.o: mn-mail-icon-widget.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-mail-icon-widget.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-mail-icon-widget.Tpo -c -o mail_notification-mn-mail-icon-widget.o `test -f 'mn-mail-icon-widget.c' || echo '$(srcdir)/'`mn-mail-icon-widget.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-mail-icon-widget.Tpo $(DEPDIR)/mail_notification-mn-mail-icon-widget.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-mail-icon-widget.c' object='mail_notification-mn-mail-icon-widget.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-mail-icon-widget.o `test -f 'mn-mail-icon-widget.c' || echo '$(srcdir)/'`mn-mail-icon-widget.c
+
+mail_notification-mn-mail-icon-widget.obj: mn-mail-icon-widget.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-mail-icon-widget.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-mail-icon-widget.Tpo -c -o mail_notification-mn-mail-icon-widget.obj `if test -f 'mn-mail-icon-widget.c'; then $(CYGPATH_W) 'mn-mail-icon-widget.c'; else $(CYGPATH_W) '$(srcdir)/mn-mail-icon-widget.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-mail-icon-widget.Tpo $(DEPDIR)/mail_notification-mn-mail-icon-widget.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-mail-icon-widget.c' object='mail_notification-mn-mail-icon-widget.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-mail-icon-widget.obj `if test -f 'mn-mail-icon-widget.c'; then $(CYGPATH_W) 'mn-mail-icon-widget.c'; else $(CYGPATH_W) '$(srcdir)/mn-mail-icon-widget.c'; fi`
 
 mail_notification-mn-mailbox.o: mn-mailbox.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-mailbox.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-mailbox.Tpo -c -o mail_notification-mn-mailbox.o `test -f 'mn-mailbox.c' || echo '$(srcdir)/'`mn-mailbox.c
@@ -1635,6 +1817,34 @@ mail_notification-mn-shell.obj: mn-shell.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-shell.obj `if test -f 'mn-shell.c'; then $(CYGPATH_W) 'mn-shell.c'; else $(CYGPATH_W) '$(srcdir)/mn-shell.c'; fi`
 
+mail_notification-mn-sound-file-chooser-dialog.o: mn-sound-file-chooser-dialog.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-sound-file-chooser-dialog.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-sound-file-chooser-dialog.Tpo -c -o mail_notification-mn-sound-file-chooser-dialog.o `test -f 'mn-sound-file-chooser-dialog.c' || echo '$(srcdir)/'`mn-sound-file-chooser-dialog.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-sound-file-chooser-dialog.Tpo $(DEPDIR)/mail_notification-mn-sound-file-chooser-dialog.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-sound-file-chooser-dialog.c' object='mail_notification-mn-sound-file-chooser-dialog.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-sound-file-chooser-dialog.o `test -f 'mn-sound-file-chooser-dialog.c' || echo '$(srcdir)/'`mn-sound-file-chooser-dialog.c
+
+mail_notification-mn-sound-file-chooser-dialog.obj: mn-sound-file-chooser-dialog.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-sound-file-chooser-dialog.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-sound-file-chooser-dialog.Tpo -c -o mail_notification-mn-sound-file-chooser-dialog.obj `if test -f 'mn-sound-file-chooser-dialog.c'; then $(CYGPATH_W) 'mn-sound-file-chooser-dialog.c'; else $(CYGPATH_W) '$(srcdir)/mn-sound-file-chooser-dialog.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-sound-file-chooser-dialog.Tpo $(DEPDIR)/mail_notification-mn-sound-file-chooser-dialog.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-sound-file-chooser-dialog.c' object='mail_notification-mn-sound-file-chooser-dialog.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-sound-file-chooser-dialog.obj `if test -f 'mn-sound-file-chooser-dialog.c'; then $(CYGPATH_W) 'mn-sound-file-chooser-dialog.c'; else $(CYGPATH_W) '$(srcdir)/mn-sound-file-chooser-dialog.c'; fi`
+
+mail_notification-mn-sound-player.o: mn-sound-player.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-sound-player.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-sound-player.Tpo -c -o mail_notification-mn-sound-player.o `test -f 'mn-sound-player.c' || echo '$(srcdir)/'`mn-sound-player.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-sound-player.Tpo $(DEPDIR)/mail_notification-mn-sound-player.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-sound-player.c' object='mail_notification-mn-sound-player.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-sound-player.o `test -f 'mn-sound-player.c' || echo '$(srcdir)/'`mn-sound-player.c
+
+mail_notification-mn-sound-player.obj: mn-sound-player.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-sound-player.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-sound-player.Tpo -c -o mail_notification-mn-sound-player.obj `if test -f 'mn-sound-player.c'; then $(CYGPATH_W) 'mn-sound-player.c'; else $(CYGPATH_W) '$(srcdir)/mn-sound-player.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-sound-player.Tpo $(DEPDIR)/mail_notification-mn-sound-player.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-sound-player.c' object='mail_notification-mn-sound-player.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-sound-player.obj `if test -f 'mn-sound-player.c'; then $(CYGPATH_W) 'mn-sound-player.c'; else $(CYGPATH_W) '$(srcdir)/mn-sound-player.c'; fi`
+
 mail_notification-mn-standard-message-view.o: mn-standard-message-view.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-standard-message-view.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-standard-message-view.Tpo -c -o mail_notification-mn-standard-message-view.o `test -f 'mn-standard-message-view.c' || echo '$(srcdir)/'`mn-standard-message-view.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-standard-message-view.Tpo $(DEPDIR)/mail_notification-mn-standard-message-view.Po
@@ -1760,6 +1970,20 @@ mail_notification-mn-maildir-mailbox-backend.obj: mn-maildir-mailbox-backend.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-maildir-mailbox-backend.c' object='mail_notification-mn-maildir-mailbox-backend.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-maildir-mailbox-backend.obj `if test -f 'mn-maildir-mailbox-backend.c'; then $(CYGPATH_W) 'mn-maildir-mailbox-backend.c'; else $(CYGPATH_W) '$(srcdir)/mn-maildir-mailbox-backend.c'; fi`
+
+mail_notification-mn-maildir-message.o: mn-maildir-message.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-maildir-message.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-maildir-message.Tpo -c -o mail_notification-mn-maildir-message.o `test -f 'mn-maildir-message.c' || echo '$(srcdir)/'`mn-maildir-message.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-maildir-message.Tpo $(DEPDIR)/mail_notification-mn-maildir-message.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-maildir-message.c' object='mail_notification-mn-maildir-message.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-maildir-message.o `test -f 'mn-maildir-message.c' || echo '$(srcdir)/'`mn-maildir-message.c
+
+mail_notification-mn-maildir-message.obj: mn-maildir-message.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-maildir-message.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-maildir-message.Tpo -c -o mail_notification-mn-maildir-message.obj `if test -f 'mn-maildir-message.c'; then $(CYGPATH_W) 'mn-maildir-message.c'; else $(CYGPATH_W) '$(srcdir)/mn-maildir-message.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-maildir-message.Tpo $(DEPDIR)/mail_notification-mn-maildir-message.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-maildir-message.c' object='mail_notification-mn-maildir-message.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-maildir-message.obj `if test -f 'mn-maildir-message.c'; then $(CYGPATH_W) 'mn-maildir-message.c'; else $(CYGPATH_W) '$(srcdir)/mn-maildir-message.c'; fi`
 
 mail_notification-mn-md5.o: mn-md5.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-md5.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-md5.Tpo -c -o mail_notification-mn-md5.o `test -f 'mn-md5.c' || echo '$(srcdir)/'`mn-md5.c
@@ -1887,6 +2111,20 @@ mail_notification-mn-pi-mailbox-properties.obj: mn-pi-mailbox-properties.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-pi-mailbox-properties.obj `if test -f 'mn-pi-mailbox-properties.c'; then $(CYGPATH_W) 'mn-pi-mailbox-properties.c'; else $(CYGPATH_W) '$(srcdir)/mn-pi-mailbox-properties.c'; fi`
 
+mail_notification-mn-keyring.o: mn-keyring.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-keyring.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-keyring.Tpo -c -o mail_notification-mn-keyring.o `test -f 'mn-keyring.c' || echo '$(srcdir)/'`mn-keyring.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-keyring.Tpo $(DEPDIR)/mail_notification-mn-keyring.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-keyring.c' object='mail_notification-mn-keyring.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-keyring.o `test -f 'mn-keyring.c' || echo '$(srcdir)/'`mn-keyring.c
+
+mail_notification-mn-keyring.obj: mn-keyring.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-keyring.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-keyring.Tpo -c -o mail_notification-mn-keyring.obj `if test -f 'mn-keyring.c'; then $(CYGPATH_W) 'mn-keyring.c'; else $(CYGPATH_W) '$(srcdir)/mn-keyring.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-keyring.Tpo $(DEPDIR)/mail_notification-mn-keyring.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-keyring.c' object='mail_notification-mn-keyring.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-keyring.obj `if test -f 'mn-keyring.c'; then $(CYGPATH_W) 'mn-keyring.c'; else $(CYGPATH_W) '$(srcdir)/mn-keyring.c'; fi`
+
 mail_notification-mn-authenticated-mailbox.o: mn-authenticated-mailbox.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-authenticated-mailbox.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-authenticated-mailbox.Tpo -c -o mail_notification-mn-authenticated-mailbox.o `test -f 'mn-authenticated-mailbox.c' || echo '$(srcdir)/'`mn-authenticated-mailbox.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-authenticated-mailbox.Tpo $(DEPDIR)/mail_notification-mn-authenticated-mailbox.Po
@@ -1929,6 +2167,34 @@ mail_notification-mn-sylpheed-mailbox-backend.obj: mn-sylpheed-mailbox-backend.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-sylpheed-mailbox-backend.obj `if test -f 'mn-sylpheed-mailbox-backend.c'; then $(CYGPATH_W) 'mn-sylpheed-mailbox-backend.c'; else $(CYGPATH_W) '$(srcdir)/mn-sylpheed-mailbox-backend.c'; fi`
 
+mail_notification-mn-sylpheed-message.o: mn-sylpheed-message.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-sylpheed-message.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-sylpheed-message.Tpo -c -o mail_notification-mn-sylpheed-message.o `test -f 'mn-sylpheed-message.c' || echo '$(srcdir)/'`mn-sylpheed-message.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-sylpheed-message.Tpo $(DEPDIR)/mail_notification-mn-sylpheed-message.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-sylpheed-message.c' object='mail_notification-mn-sylpheed-message.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-sylpheed-message.o `test -f 'mn-sylpheed-message.c' || echo '$(srcdir)/'`mn-sylpheed-message.c
+
+mail_notification-mn-sylpheed-message.obj: mn-sylpheed-message.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-sylpheed-message.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-sylpheed-message.Tpo -c -o mail_notification-mn-sylpheed-message.obj `if test -f 'mn-sylpheed-message.c'; then $(CYGPATH_W) 'mn-sylpheed-message.c'; else $(CYGPATH_W) '$(srcdir)/mn-sylpheed-message.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-sylpheed-message.Tpo $(DEPDIR)/mail_notification-mn-sylpheed-message.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-sylpheed-message.c' object='mail_notification-mn-sylpheed-message.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-sylpheed-message.obj `if test -f 'mn-sylpheed-message.c'; then $(CYGPATH_W) 'mn-sylpheed-message.c'; else $(CYGPATH_W) '$(srcdir)/mn-sylpheed-message.c'; fi`
+
+mail_notification-mn-vfs-message.o: mn-vfs-message.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-vfs-message.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-vfs-message.Tpo -c -o mail_notification-mn-vfs-message.o `test -f 'mn-vfs-message.c' || echo '$(srcdir)/'`mn-vfs-message.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-vfs-message.Tpo $(DEPDIR)/mail_notification-mn-vfs-message.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-vfs-message.c' object='mail_notification-mn-vfs-message.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-vfs-message.o `test -f 'mn-vfs-message.c' || echo '$(srcdir)/'`mn-vfs-message.c
+
+mail_notification-mn-vfs-message.obj: mn-vfs-message.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-vfs-message.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-vfs-message.Tpo -c -o mail_notification-mn-vfs-message.obj `if test -f 'mn-vfs-message.c'; then $(CYGPATH_W) 'mn-vfs-message.c'; else $(CYGPATH_W) '$(srcdir)/mn-vfs-message.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-vfs-message.Tpo $(DEPDIR)/mail_notification-mn-vfs-message.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-vfs-message.c' object='mail_notification-mn-vfs-message.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-vfs-message.obj `if test -f 'mn-vfs-message.c'; then $(CYGPATH_W) 'mn-vfs-message.c'; else $(CYGPATH_W) '$(srcdir)/mn-vfs-message.c'; fi`
+
 mail_notification-mn-gmail-mailbox.o: mn-gmail-mailbox.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-gmail-mailbox.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-gmail-mailbox.Tpo -c -o mail_notification-mn-gmail-mailbox.o `test -f 'mn-gmail-mailbox.c' || echo '$(srcdir)/'`mn-gmail-mailbox.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-gmail-mailbox.Tpo $(DEPDIR)/mail_notification-mn-gmail-mailbox.Po
@@ -1956,6 +2222,90 @@ mail_notification-mn-gmail-mailbox-properties.obj: mn-gmail-mailbox-properties.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-gmail-mailbox-properties.c' object='mail_notification-mn-gmail-mailbox-properties.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-gmail-mailbox-properties.obj `if test -f 'mn-gmail-mailbox-properties.c'; then $(CYGPATH_W) 'mn-gmail-mailbox-properties.c'; else $(CYGPATH_W) '$(srcdir)/mn-gmail-mailbox-properties.c'; fi`
+
+mail_notification-mn-yahoo-mailbox.o: mn-yahoo-mailbox.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-yahoo-mailbox.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-yahoo-mailbox.Tpo -c -o mail_notification-mn-yahoo-mailbox.o `test -f 'mn-yahoo-mailbox.c' || echo '$(srcdir)/'`mn-yahoo-mailbox.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-yahoo-mailbox.Tpo $(DEPDIR)/mail_notification-mn-yahoo-mailbox.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-yahoo-mailbox.c' object='mail_notification-mn-yahoo-mailbox.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-yahoo-mailbox.o `test -f 'mn-yahoo-mailbox.c' || echo '$(srcdir)/'`mn-yahoo-mailbox.c
+
+mail_notification-mn-yahoo-mailbox.obj: mn-yahoo-mailbox.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-yahoo-mailbox.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-yahoo-mailbox.Tpo -c -o mail_notification-mn-yahoo-mailbox.obj `if test -f 'mn-yahoo-mailbox.c'; then $(CYGPATH_W) 'mn-yahoo-mailbox.c'; else $(CYGPATH_W) '$(srcdir)/mn-yahoo-mailbox.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-yahoo-mailbox.Tpo $(DEPDIR)/mail_notification-mn-yahoo-mailbox.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-yahoo-mailbox.c' object='mail_notification-mn-yahoo-mailbox.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-yahoo-mailbox.obj `if test -f 'mn-yahoo-mailbox.c'; then $(CYGPATH_W) 'mn-yahoo-mailbox.c'; else $(CYGPATH_W) '$(srcdir)/mn-yahoo-mailbox.c'; fi`
+
+mail_notification-mn-yahoo-mailbox-properties.o: mn-yahoo-mailbox-properties.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-yahoo-mailbox-properties.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-yahoo-mailbox-properties.Tpo -c -o mail_notification-mn-yahoo-mailbox-properties.o `test -f 'mn-yahoo-mailbox-properties.c' || echo '$(srcdir)/'`mn-yahoo-mailbox-properties.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-yahoo-mailbox-properties.Tpo $(DEPDIR)/mail_notification-mn-yahoo-mailbox-properties.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-yahoo-mailbox-properties.c' object='mail_notification-mn-yahoo-mailbox-properties.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-yahoo-mailbox-properties.o `test -f 'mn-yahoo-mailbox-properties.c' || echo '$(srcdir)/'`mn-yahoo-mailbox-properties.c
+
+mail_notification-mn-yahoo-mailbox-properties.obj: mn-yahoo-mailbox-properties.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-yahoo-mailbox-properties.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-yahoo-mailbox-properties.Tpo -c -o mail_notification-mn-yahoo-mailbox-properties.obj `if test -f 'mn-yahoo-mailbox-properties.c'; then $(CYGPATH_W) 'mn-yahoo-mailbox-properties.c'; else $(CYGPATH_W) '$(srcdir)/mn-yahoo-mailbox-properties.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-yahoo-mailbox-properties.Tpo $(DEPDIR)/mail_notification-mn-yahoo-mailbox-properties.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-yahoo-mailbox-properties.c' object='mail_notification-mn-yahoo-mailbox-properties.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-yahoo-mailbox-properties.obj `if test -f 'mn-yahoo-mailbox-properties.c'; then $(CYGPATH_W) 'mn-yahoo-mailbox-properties.c'; else $(CYGPATH_W) '$(srcdir)/mn-yahoo-mailbox-properties.c'; fi`
+
+mail_notification-mn-hotmail-mailbox.o: mn-hotmail-mailbox.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-hotmail-mailbox.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-hotmail-mailbox.Tpo -c -o mail_notification-mn-hotmail-mailbox.o `test -f 'mn-hotmail-mailbox.c' || echo '$(srcdir)/'`mn-hotmail-mailbox.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-hotmail-mailbox.Tpo $(DEPDIR)/mail_notification-mn-hotmail-mailbox.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-hotmail-mailbox.c' object='mail_notification-mn-hotmail-mailbox.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-hotmail-mailbox.o `test -f 'mn-hotmail-mailbox.c' || echo '$(srcdir)/'`mn-hotmail-mailbox.c
+
+mail_notification-mn-hotmail-mailbox.obj: mn-hotmail-mailbox.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-hotmail-mailbox.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-hotmail-mailbox.Tpo -c -o mail_notification-mn-hotmail-mailbox.obj `if test -f 'mn-hotmail-mailbox.c'; then $(CYGPATH_W) 'mn-hotmail-mailbox.c'; else $(CYGPATH_W) '$(srcdir)/mn-hotmail-mailbox.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-hotmail-mailbox.Tpo $(DEPDIR)/mail_notification-mn-hotmail-mailbox.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-hotmail-mailbox.c' object='mail_notification-mn-hotmail-mailbox.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-hotmail-mailbox.obj `if test -f 'mn-hotmail-mailbox.c'; then $(CYGPATH_W) 'mn-hotmail-mailbox.c'; else $(CYGPATH_W) '$(srcdir)/mn-hotmail-mailbox.c'; fi`
+
+mail_notification-mn-hotmail-mailbox-properties.o: mn-hotmail-mailbox-properties.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-hotmail-mailbox-properties.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-hotmail-mailbox-properties.Tpo -c -o mail_notification-mn-hotmail-mailbox-properties.o `test -f 'mn-hotmail-mailbox-properties.c' || echo '$(srcdir)/'`mn-hotmail-mailbox-properties.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-hotmail-mailbox-properties.Tpo $(DEPDIR)/mail_notification-mn-hotmail-mailbox-properties.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-hotmail-mailbox-properties.c' object='mail_notification-mn-hotmail-mailbox-properties.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-hotmail-mailbox-properties.o `test -f 'mn-hotmail-mailbox-properties.c' || echo '$(srcdir)/'`mn-hotmail-mailbox-properties.c
+
+mail_notification-mn-hotmail-mailbox-properties.obj: mn-hotmail-mailbox-properties.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-hotmail-mailbox-properties.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-hotmail-mailbox-properties.Tpo -c -o mail_notification-mn-hotmail-mailbox-properties.obj `if test -f 'mn-hotmail-mailbox-properties.c'; then $(CYGPATH_W) 'mn-hotmail-mailbox-properties.c'; else $(CYGPATH_W) '$(srcdir)/mn-hotmail-mailbox-properties.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-hotmail-mailbox-properties.Tpo $(DEPDIR)/mail_notification-mn-hotmail-mailbox-properties.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-hotmail-mailbox-properties.c' object='mail_notification-mn-hotmail-mailbox-properties.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-hotmail-mailbox-properties.obj `if test -f 'mn-hotmail-mailbox-properties.c'; then $(CYGPATH_W) 'mn-hotmail-mailbox-properties.c'; else $(CYGPATH_W) '$(srcdir)/mn-hotmail-mailbox-properties.c'; fi`
+
+mail_notification-mn-webmail-mailbox.o: mn-webmail-mailbox.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-webmail-mailbox.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-webmail-mailbox.Tpo -c -o mail_notification-mn-webmail-mailbox.o `test -f 'mn-webmail-mailbox.c' || echo '$(srcdir)/'`mn-webmail-mailbox.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-webmail-mailbox.Tpo $(DEPDIR)/mail_notification-mn-webmail-mailbox.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-webmail-mailbox.c' object='mail_notification-mn-webmail-mailbox.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-webmail-mailbox.o `test -f 'mn-webmail-mailbox.c' || echo '$(srcdir)/'`mn-webmail-mailbox.c
+
+mail_notification-mn-webmail-mailbox.obj: mn-webmail-mailbox.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-webmail-mailbox.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-webmail-mailbox.Tpo -c -o mail_notification-mn-webmail-mailbox.obj `if test -f 'mn-webmail-mailbox.c'; then $(CYGPATH_W) 'mn-webmail-mailbox.c'; else $(CYGPATH_W) '$(srcdir)/mn-webmail-mailbox.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-webmail-mailbox.Tpo $(DEPDIR)/mail_notification-mn-webmail-mailbox.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-webmail-mailbox.c' object='mail_notification-mn-webmail-mailbox.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-webmail-mailbox.obj `if test -f 'mn-webmail-mailbox.c'; then $(CYGPATH_W) 'mn-webmail-mailbox.c'; else $(CYGPATH_W) '$(srcdir)/mn-webmail-mailbox.c'; fi`
+
+mail_notification-mn-webmail-mailbox-properties.o: mn-webmail-mailbox-properties.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-webmail-mailbox-properties.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-webmail-mailbox-properties.Tpo -c -o mail_notification-mn-webmail-mailbox-properties.o `test -f 'mn-webmail-mailbox-properties.c' || echo '$(srcdir)/'`mn-webmail-mailbox-properties.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-webmail-mailbox-properties.Tpo $(DEPDIR)/mail_notification-mn-webmail-mailbox-properties.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-webmail-mailbox-properties.c' object='mail_notification-mn-webmail-mailbox-properties.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-webmail-mailbox-properties.o `test -f 'mn-webmail-mailbox-properties.c' || echo '$(srcdir)/'`mn-webmail-mailbox-properties.c
+
+mail_notification-mn-webmail-mailbox-properties.obj: mn-webmail-mailbox-properties.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-webmail-mailbox-properties.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-webmail-mailbox-properties.Tpo -c -o mail_notification-mn-webmail-mailbox-properties.obj `if test -f 'mn-webmail-mailbox-properties.c'; then $(CYGPATH_W) 'mn-webmail-mailbox-properties.c'; else $(CYGPATH_W) '$(srcdir)/mn-webmail-mailbox-properties.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-webmail-mailbox-properties.Tpo $(DEPDIR)/mail_notification-mn-webmail-mailbox-properties.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-webmail-mailbox-properties.c' object='mail_notification-mn-webmail-mailbox-properties.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-webmail-mailbox-properties.obj `if test -f 'mn-webmail-mailbox-properties.c'; then $(CYGPATH_W) 'mn-webmail-mailbox-properties.c'; else $(CYGPATH_W) '$(srcdir)/mn-webmail-mailbox-properties.c'; fi`
 
 mail_notification-mn-custom-vfs-mailbox.o: mn-custom-vfs-mailbox.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-custom-vfs-mailbox.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-custom-vfs-mailbox.Tpo -c -o mail_notification-mn-custom-vfs-mailbox.o `test -f 'mn-custom-vfs-mailbox.c' || echo '$(srcdir)/'`mn-custom-vfs-mailbox.c
@@ -2026,20 +2376,6 @@ mail_notification-mn-vfs-mailbox-backend.obj: mn-vfs-mailbox-backend.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-vfs-mailbox-backend.c' object='mail_notification-mn-vfs-mailbox-backend.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-vfs-mailbox-backend.obj `if test -f 'mn-vfs-mailbox-backend.c'; then $(CYGPATH_W) 'mn-vfs-mailbox-backend.c'; else $(CYGPATH_W) '$(srcdir)/mn-vfs-mailbox-backend.c'; fi`
-
-mail_notification-mn-vfs-message.o: mn-vfs-message.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-vfs-message.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-vfs-message.Tpo -c -o mail_notification-mn-vfs-message.o `test -f 'mn-vfs-message.c' || echo '$(srcdir)/'`mn-vfs-message.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-vfs-message.Tpo $(DEPDIR)/mail_notification-mn-vfs-message.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-vfs-message.c' object='mail_notification-mn-vfs-message.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-vfs-message.o `test -f 'mn-vfs-message.c' || echo '$(srcdir)/'`mn-vfs-message.c
-
-mail_notification-mn-vfs-message.obj: mn-vfs-message.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-vfs-message.obj -MD -MP -MF $(DEPDIR)/mail_notification-mn-vfs-message.Tpo -c -o mail_notification-mn-vfs-message.obj `if test -f 'mn-vfs-message.c'; then $(CYGPATH_W) 'mn-vfs-message.c'; else $(CYGPATH_W) '$(srcdir)/mn-vfs-message.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/mail_notification-mn-vfs-message.Tpo $(DEPDIR)/mail_notification-mn-vfs-message.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='mn-vfs-message.c' object='mail_notification-mn-vfs-message.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mail_notification-mn-vfs-message.obj `if test -f 'mn-vfs-message.c'; then $(CYGPATH_W) 'mn-vfs-message.c'; else $(CYGPATH_W) '$(srcdir)/mn-vfs-message.c'; fi`
 
 mail_notification-mn-reentrant-mailbox.o: mn-reentrant-mailbox.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mail_notification_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mail_notification-mn-reentrant-mailbox.o -MD -MP -MF $(DEPDIR)/mail_notification-mn-reentrant-mailbox.Tpo -c -o mail_notification-mn-reentrant-mailbox.o `test -f 'mn-reentrant-mailbox.c' || echo '$(srcdir)/'`mn-reentrant-mailbox.c

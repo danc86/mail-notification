@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -27,7 +27,7 @@ requires 2.0.14
 %}
 
 %h{
-#define MN_MAILBOX_MAX_TYPES	6
+#define MN_MAILBOX_MAX_TYPES	8
 extern GType mn_mailbox_types[MN_MAILBOX_MAX_TYPES + 1];
 
 typedef struct _MNMailboxConfiguration MNMailboxConfiguration;
@@ -39,8 +39,14 @@ typedef struct _MNMailboxConfiguration MNMailboxConfiguration;
 
 typedef enum
 {
+  /* load from mailboxes.xml */
+  MN_MAILBOX_PARAM_LOAD		= MN_XML_PARAM_IMPORT,
+
   /* save to mailboxes.xml */
-  MN_MAILBOX_PARAM_PERMANENT	= MN_XML_PARAM_IMPORT_EXPORT,
+  MN_MAILBOX_PARAM_SAVE		= MN_XML_PARAM_EXPORT,
+
+  /* load from and save to mailboxes.xml */
+  MN_MAILBOX_PARAM_LOAD_SAVE	= MN_MAILBOX_PARAM_LOAD | MN_MAILBOX_PARAM_SAVE,
 
   /* ignore the case of a string property when checking if it has the default value */
   MN_MAILBOX_PARAM_IGNORE_CASE	= MN_XML_PARAM_IGNORE_CASE,
@@ -67,6 +73,12 @@ typedef enum
 #endif
 #if WITH_GMAIL
 #include "mn-gmail-mailbox.h"
+#endif
+#if WITH_YAHOO
+#include "mn-yahoo-mailbox.h"
+#endif
+#if WITH_HOTMAIL
+#include "mn-hotmail-mailbox.h"
 #endif
 #if WITH_EVOLUTION
 #include "mn-evolution-mailbox.h"
@@ -96,22 +108,49 @@ class MN:Mailbox from G:Object (abstract)
   classwide const char *type;
   classwide int default_check_delay = -1;
 
-  private gboolean added;
+  /*
+   * If enabled, the base MNMailbox implementation of added() will
+   * call mn_mailbox_enable_checking().
+   */
+  classwide gboolean enable_checking_when_added = TRUE;
+
+  /*
+   * Whether the mailbox is in the mailboxes list (a mailbox can be
+   * removed from the mailboxes list without being finalized
+   * immediately if a threaded check is in progress).
+   *
+   * Used for performance (testing it is faster than searching the
+   * list) and for thread safety. Do not access directly, use the
+   * accessors.
+   */
+  private gboolean _active;
+
+  public gboolean
+    get_active (self)
+  {
+    return g_atomic_int_get(&selfp->_active);
+  }
+
+  private void
+    set_active (self, gboolean value)
+  {
+    g_atomic_int_set(&selfp->_active, value);
+  }
 
   /**
    * added:
    * @self: the object which received the signal
    *
-   * This signal gets emitted after the mailbox is removed from the
+   * This signal gets emitted after the mailbox is added to the
    * mailboxes list.
    **/
   signal NONE (NONE)
     void added (self)
   {
-    selfp->added = TRUE;
+    self_set_active(self, TRUE);
 
-    self_update_check_timeout(self);
-    self_check(self);
+    if (SELF_GET_CLASS(self)->enable_checking_when_added)
+      self_enable_checking(self);
   }
 
   /**
@@ -124,25 +163,27 @@ class MN:Mailbox from G:Object (abstract)
   signal NONE (NONE)
     void removed (self)
   {
+    self_set_active(self, FALSE);
+
     mn_locked_g_source_clear(&selfp->check_timeout_source);
   }
 
   public char *runtime_name destroywith g_free;
 
   public char *name destroywith g_free;
-  property STRING name (link, flags = MN_MAILBOX_PARAM_PERMANENT);
+  property STRING name (link, flags = MN_MAILBOX_PARAM_LOAD_SAVE);
 
   public char *open_command destroywith g_free;
-  property STRING open_command (link, flags = MN_MAILBOX_PARAM_PERMANENT);
+  property STRING open_command (link, flags = MN_MAILBOX_PARAM_LOAD_SAVE);
 
   public char *mark_as_read_command destroywith g_free;
-  property STRING mark_as_read_command (link, flags = MN_MAILBOX_PARAM_PERMANENT);
+  property STRING mark_as_read_command (link, flags = MN_MAILBOX_PARAM_LOAD_SAVE);
 
   public char *mark_as_spam_command destroywith g_free;
-  property STRING mark_as_spam_command (link, flags = MN_MAILBOX_PARAM_PERMANENT);
+  property STRING mark_as_spam_command (link, flags = MN_MAILBOX_PARAM_LOAD_SAVE);
 
   public char *delete_command destroywith g_free;
-  property STRING delete_command (link, flags = MN_MAILBOX_PARAM_PERMANENT);
+  property STRING delete_command (link, flags = MN_MAILBOX_PARAM_LOAD_SAVE);
 
   public char *stock_id destroywith g_free;
   property STRING stock_id (link, export);
@@ -156,7 +197,7 @@ class MN:Mailbox from G:Object (abstract)
 
   public int check_delay;
   property INT check_delay (link,
-			    flags = CONSTRUCT | MN_MAILBOX_PARAM_PERMANENT,
+			    flags = CONSTRUCT | MN_MAILBOX_PARAM_LOAD_SAVE,
 			    default_value = -1);
 
   private gboolean poll = TRUE;
@@ -172,8 +213,10 @@ class MN:Mailbox from G:Object (abstract)
       if (new_poll != selfp->poll)
 	{
 	  selfp->poll = new_poll;
-	  if (selfp->added)
+	  if (self_get_active(self) && selfp->checking_enabled)
 	    self_update_check_timeout(self);
+
+	  g_object_notify(G_OBJECT(self), "manually-checkable");
 	}
     }
     get
@@ -181,10 +224,22 @@ class MN:Mailbox from G:Object (abstract)
       g_value_set_boolean(VAL, selfp->poll);
     };
 
+  /*
+   * Whether the user can initiate a check manually (for instance by
+   * clicking on an Update menu item or by running mail-notification
+   * --update).
+   */
+  property BOOLEAN manually_checkable (export)
+    get
+    {
+      g_value_set_boolean(VAL, selfp->checking_enabled && selfp->poll);
+    };
+
   private void
     update_check_timeout (self)
   {
-    g_assert(selfp->added == TRUE);
+    g_assert(self_get_active(self) == TRUE);
+    g_assert(selfp->checking_enabled == TRUE);
 
     mn_locked_g_source_clear(&selfp->check_timeout_source);
     if (selfp->poll && self->runtime_check_delay > 0)
@@ -194,7 +249,7 @@ class MN:Mailbox from G:Object (abstract)
   /* all unread (unseen and seen) messages */
   private GSList *unfiltered_messages destroywith mn_g_object_slist_free;
 
-  private GHashTable *messages_marked_as_read = {g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref)} destroywith g_hash_table_destroy;
+  private GHashTable *messages_considered_as_read = {g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref)} destroywith g_hash_table_destroy;
 
   /* unfiltered_messages after applying the "seen messages" filter */
   public GSList *messages destroywith mn_g_object_slist_free;
@@ -222,10 +277,10 @@ class MN:Mailbox from G:Object (abstract)
    * filter_messages:
    * @self: the mailbox to act upon
    *
-   * Filter @self->unfiltered_messages with the "seen mail" filter and
-   * @selfp->messages_marked_as_read, and store the resulting list in
-   * @self->messages. Additionally, if @self->messages has changed,
-   * emit the "messages-changed" signal.
+   * Filters @self->unfiltered_messages with the "seen mail" filter
+   * and @selfp->messages_considered_as_read, and stores the resulting
+   * list in @self->messages. Additionally, if @self->messages has
+   * changed, emits the "messages-changed" signal.
    **/
   private void
     filter_messages (self)
@@ -256,7 +311,7 @@ class MN:Mailbox from G:Object (abstract)
 	if ((display_seen_mail
 	     || message->error
 	     || (message->flags & MN_MESSAGE_NEW) != 0)
-	    && ! g_hash_table_lookup(selfp->messages_marked_as_read, message->id))
+	    && ! g_hash_table_lookup(selfp->messages_considered_as_read, message->id))
 	  {
 	    self->n_messages++;
 	    if (message->sent_time > self->timestamp)
@@ -267,8 +322,8 @@ class MN:Mailbox from G:Object (abstract)
 	  }
       }
 
-    /* remove stale messages from messages_marked_as_read */
-    g_hash_table_foreach_remove(selfp->messages_marked_as_read, (GHRFunc) self_clean_messages_marked_as_read_cb, all_messages_hash_table);
+    /* remove stale messages from messages_considered_as_read */
+    g_hash_table_foreach_remove(selfp->messages_considered_as_read, (GHRFunc) self_clean_messages_considered_as_read_cb, all_messages_hash_table);
     g_hash_table_destroy(all_messages_hash_table);
 
     if (! messages)
@@ -298,9 +353,9 @@ class MN:Mailbox from G:Object (abstract)
   }
 
   private gboolean
-    clean_messages_marked_as_read_cb (const char *id,
-				      MNMessage *message,
-				      GHashTable *messages)
+    clean_messages_considered_as_read_cb (const char *id,
+					  MNMessage *message,
+					  GHashTable *messages)
   {
     return g_hash_table_lookup(messages, id) == NULL;
   }
@@ -363,20 +418,7 @@ class MN:Mailbox from G:Object (abstract)
     void messages_changed (self, gboolean has_new);
 
   public char *error destroywith g_free;
-  property STRING error
-    set
-    {
-      g_free(self->error);
-      self->error = g_value_dup_string(VAL);
-
-      /* if an error is set, we unset messages */
-      if (self->error)
-	self_set_messages(self, NULL);
-    }
-    get
-    {
-      g_value_set_string(VAL, self->error);
-    };
+  property STRING error (link);
 
   protected void
     set_error (self, const char *format, ...)
@@ -418,28 +460,52 @@ class MN:Mailbox from G:Object (abstract)
 #if WITH_GMAIL
     mn_mailbox_types[i++] = MN_TYPE_GMAIL_MAILBOX;
 #endif
+#if WITH_YAHOO
+    mn_mailbox_types[i++] = MN_TYPE_YAHOO_MAILBOX;
+#endif
+#if WITH_HOTMAIL
+    mn_mailbox_types[i++] = MN_TYPE_HOTMAIL_MAILBOX;
+#endif
 #if WITH_EVOLUTION
     mn_mailbox_types[i++] = MN_TYPE_EVOLUTION_MAILBOX;
 #endif
     mn_mailbox_types[i] = 0;
   }
 
-  public GType
-    get_type_from_name (const char *type)
+  /* references the returned class */
+  public MNMailboxClass *
+    get_class_from_name (const char *type)
   {
     int i;
 
     for (i = 0; mn_mailbox_types[i]; i++)
       {
 	SelfClass *class;
-	gboolean found;
 
 	class = g_type_class_ref(mn_mailbox_types[i]);
-	found = ! strcmp(class->type, type);
+	if (! strcmp(class->type, type))
+	  return class;
+
+	g_type_class_unref(class);
+      }
+
+    return NULL;
+  }
+
+  public GType
+    get_type_from_name (const char *type)
+  {
+    SelfClass *class;
+
+    class = self_get_class_from_name(type);
+    if (class)
+      {
+	GType type;
+
+	type = G_OBJECT_CLASS_TYPE(class);
 	g_type_class_unref(class);
 
-	if (found)
-	  return mn_mailbox_types[i];
+	return type;
       }
 
     return 0;
@@ -581,7 +647,7 @@ class MN:Mailbox from G:Object (abstract)
 
     properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(self), &n_properties);
     for (i = 0; i < n_properties; i++)
-      if ((properties[i]->flags & MN_MAILBOX_PARAM_PERMANENT) != 0)
+      if ((properties[i]->flags & MN_MAILBOX_PARAM_SAVE) != 0)
 	{
 	  GParameter parameter = { NULL, { 0, } };
 
@@ -842,8 +908,10 @@ class MN:Mailbox from G:Object (abstract)
 			"authmech", authmech,
 			"hostname", hostname,
 			"port", port,
-			"mailbox", path,
 			NULL);
+
+	if (path)
+	  g_object_set(self, MN_IMAP_MAILBOX_PROP_MAILBOX(path), NULL);
 
 	if (queries && eel_g_strv_find(queries, "noidle") != -1)
 	  g_object_set(G_OBJECT(self), MN_IMAP_MAILBOX_PROP_USE_IDLE_EXTENSION(MN_IMAP_MAILBOX_USE_IDLE_NEVER), NULL);
@@ -886,6 +954,7 @@ class MN:Mailbox from G:Object (abstract)
     GParamSpec **properties;
     unsigned int n_properties;
     int i;
+    gboolean status = TRUE;
 
     properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(self), &n_properties);
     for (i = 0; i < n_properties; i++)
@@ -908,14 +977,26 @@ class MN:Mailbox from G:Object (abstract)
 	  if (is_empty)
 	    {
 	      g_set_error(err, 0, 0, _("property \"%s\" has no value"), g_param_spec_get_name(properties[i]));
-	      return FALSE;
+	      status = FALSE;
+	      break;
 	    }
 	}
     g_free(properties);
 
-    return TRUE;
+    return status;
   }
 
+  /**
+   * seal:
+   * @self: a mailbox
+   *
+   * Seals the mailbox before it is made operational by being added to
+   * the mailboxes list. The point of this function is to allow
+   * subclasses to perform initialization which needs to consult the
+   * value of properties loaded from mailboxes.xml or set by the
+   * properties dialog. That would not be possible from init(), since
+   * these properties are only set after the mailbox is constructed.
+   **/
   virtual public void
     seal (self)
   {
@@ -936,7 +1017,27 @@ class MN:Mailbox from G:Object (abstract)
   virtual public void
     check (self)
   {
-    g_assert(selfp->added == TRUE);
+    g_assert(self_get_active(self) == TRUE);
+    g_assert(selfp->checking_enabled == TRUE);
+  }
+
+  /*
+   * Mailboxes start with this property disabled. As long as this
+   * property is disabled, the Update menu items are insensitive, the
+   * periodic poll timeout is not installed, and mn_mailbox_check() is
+   * not called. This allows subclasses to prevent checks while they
+   * are saving the password, etc.
+   */
+  private gboolean checking_enabled;
+
+  protected void
+    enable_checking (self)
+  {
+    selfp->checking_enabled = TRUE;
+    g_object_notify(G_OBJECT(self), "manually-checkable");
+
+    self_update_check_timeout(self);
+    self_check(self);
   }
 
   protected void
@@ -945,11 +1046,18 @@ class MN:Mailbox from G:Object (abstract)
     va_list args;
     char *message;
 
+    /*
+     * Disregard messages sent by a threaded check still in progress
+     * after the mailbox has been removed.
+     */
+    if (! self_get_active(self))
+      return;
+
     va_start(args, format);
     message = g_strdup_vprintf(format, args);
     va_end(args);
 
-    mn_info("%s: %s", self->runtime_name, message);
+    mn_info(_("%s: %s"), self->runtime_name, message);
     g_free(message);
   }
 
@@ -959,35 +1067,79 @@ class MN:Mailbox from G:Object (abstract)
     va_list args;
     char *message;
 
+    /*
+     * Disregard messages sent by a threaded check still in progress
+     * after the mailbox has been removed.
+     */
+    if (! self_get_active(self))
+      return;
+
     va_start(args, format);
     message = g_strdup_vprintf(format, args);
     va_end(args);
 
-    g_warning("%s: %s", self->runtime_name, message);
+    g_warning(_("%s: %s"), self->runtime_name, message);
     g_free(message);
   }
 
+  private void
+    consider_as_read_real (self, MN:Message *message (check null type))
+  {
+    g_hash_table_replace(selfp->messages_considered_as_read, message->id, g_object_ref(message));
+  }
+
   /*
-   * There can be a slight (or large if polling is in effect) delay
-   * between marking a message as read and having the next mail check
-   * catch the change. This function is used to conceal the delay from
-   * the user.
+   * This function serves two purposes:
+   *
+   *   - there can be a slight (or large if polling is in effect)
+   *     delay between marking a message as read and having the next
+   *     mail check catch the change. This function is used to conceal
+   *     the delay from the user.
+   *   - this function is called on each new message when the user
+   *     chooses the "Consider new mail as read" action
    */
   public void
-    mark_as_read (gpointer _message) /* cannot include mn-message.h */
+    consider_as_read (gpointer _message) /* cannot include mn-message.h */
   {
-    MNMessage *message;
+    MNMessage *message = MN_MESSAGE(_message);
     Self *self;
-
-    message = MN_MESSAGE(_message);
-    g_return_if_fail(message != NULL);
 
     self = message->mailbox;
     g_assert(self != NULL);
 
-    g_hash_table_replace(selfp->messages_marked_as_read, message->id, g_object_ref(message));
+    self_consider_as_read_real(self, message);
 
     self_filter_messages(self);
+  }
+
+  /*
+   * Atomically considers a list of messages as read (updates the
+   * mailbox message list only once rather than for each message).
+   * Each message in the list must belong to the same mailbox.
+   */
+  public void
+    consider_as_read_list (const GSList *messages)
+  {
+    Self *self = NULL;
+    const GSList *l;
+
+    MN_LIST_FOREACH(l, messages)
+      {
+	MNMessage *message = l->data;
+
+	if (self)
+	  g_assert(self == message->mailbox);
+	else
+	  {
+	    self = message->mailbox;
+	    g_assert(self != NULL);
+	  }
+
+	self_consider_as_read_real(self, message);
+      }
+
+    if (self)			/* non empty list */
+      self_filter_messages(self);
   }
 
   public char *

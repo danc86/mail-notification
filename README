@@ -11,12 +11,17 @@ Index
 
 0. About this document
 
-	$Id: README,v 1.36 2007-06-26 11:34:17 jylefort Exp $
+	$Id: README,v 1.39 2007-11-26 03:23:41 jylefort Exp $
 
 	Copyright (C) 2003-2007 Jean-Yves Lefort.
 
-	This document is part of Mail Notification.
-	It may be distributed under the same terms as Mail Notification.
+	Permission is granted to copy, distribute and/or modify this
+	document under the terms of the GNU Free Documentation License
+	(GFDL), Version 1.2 or any later version published by the Free
+	Software Foundation with no Invariant Sections, no Front-Cover
+	Texts, and no Back-Cover Texts. You can find a copy of the
+	GFDL at http://www.gnu.org/licenses/fdl.html or in the file
+	COPYING-DOCS distributed with this manual.
 
 1. About Mail Notification
 
@@ -31,9 +36,10 @@ Index
 	Mail Notification features include:
 
 		* multiple mailbox support
-		* mbox, MH, Maildir, POP3, IMAP, Gmail, Evolution,
-		  Mozilla products (Mozilla, SeaMonkey, Thunderbird,
-		  ...) and Sylpheed support
+		* Evolution, Gmail, IMAP, Maildir, mbox, MH, Mozilla
+		  products (Mozilla, SeaMonkey, Thunderbird, ...),
+		  POP3, Sylpheed, Windows Live Hotmail and Yahoo! Mail
+		  support
 		* SASL authentication support
 		* APOP authentication support
 		* SSL/TLS support
@@ -119,6 +125,11 @@ Index
 	  fixed:
 		- FreeBSD port devel/gnomevfs2 >= 2.14.1_2
 		- GnomeVFS >= 2.15.90
+
+	* A bug in GnomeVFS causes intermittent Gmail errors when the
+	  delay between mail checks is set to a small value.
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=455972
 
 3. Installation instructions
 

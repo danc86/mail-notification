@@ -51,18 +51,31 @@ typedef MNPopupsClass SelfClass;
 /* here are local prototypes */
 static void mn_popups_class_init (MNPopupsClass * c) G_GNUC_UNUSED;
 static void mn_popups_init (MNPopups * self) G_GNUC_UNUSED;
+static void mn_popups_close_cb (const char * id, MNPopup * popup, gpointer user_data) G_GNUC_UNUSED;
+static void mn_popups_close_popups (MNPopups * self) G_GNUC_UNUSED;
+static void ___4_mn_popups_finalize (GObject * object) G_GNUC_UNUSED;
 static void mn_popups_messages_changed_h (MNMailboxes * mailboxes, gboolean has_new, gpointer user_data) G_GNUC_UNUSED;
 static void mn_popups_notify_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data) G_GNUC_UNUSED;
-static gboolean mn_popups_clean_cb (const char * id, MNPopup * popup, gpointer user_data) G_GNUC_UNUSED;
+static int mn_popups_popups_show_timestamp_compare_cb (MNPopup * a, MNPopup * b) G_GNUC_UNUSED;
+static void mn_popups_get_visible_popups_cb (const char * id, MNPopup * popup, GSList ** list) G_GNUC_UNUSED;
+static GSList * mn_popups_get_visible_popups (MNPopups * self) G_GNUC_UNUSED;
+static gboolean mn_popups_close_and_remove_cb (const char * id, MNPopup * popup, gpointer user_data) G_GNUC_UNUSED;
+static gboolean mn_popups_close_and_remove_stale_cb (const char * id, MNPopup * popup, GHashTable * messages) G_GNUC_UNUSED;
 static void mn_popups_update (MNPopups * self, gboolean reshow_current_popups) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
 static GObjectClass *parent_class = NULL;
 
 /* Short form macros */
+#define self_close_cb mn_popups_close_cb
+#define self_close_popups mn_popups_close_popups
 #define self_messages_changed_h mn_popups_messages_changed_h
 #define self_notify_cb mn_popups_notify_cb
-#define self_clean_cb mn_popups_clean_cb
+#define self_popups_show_timestamp_compare_cb mn_popups_popups_show_timestamp_compare_cb
+#define self_get_visible_popups_cb mn_popups_get_visible_popups_cb
+#define self_get_visible_popups mn_popups_get_visible_popups
+#define self_close_and_remove_cb mn_popups_close_and_remove_cb
+#define self_close_and_remove_stale_cb mn_popups_close_and_remove_stale_cb
 #define self_update mn_popups_update
 #define self_new mn_popups_new
 GType
@@ -114,11 +127,12 @@ ___finalize(GObject *obj_self)
 #define __GOB_FUNCTION__ "MN:Popups::finalize"
 	MNPopups *self G_GNUC_UNUSED = MN_POPUPS (obj_self);
 	gpointer priv G_GNUC_UNUSED = self->_priv;
-	if(G_OBJECT_CLASS(parent_class)->finalize) \
-		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 36 "mn-popups.gob"
+#line 68 "mn-popups.gob"
+	___4_mn_popups_finalize(obj_self);
+#line 133 "mn-popups.c"
+#line 41 "mn-popups.gob"
 	if(self->_priv->popups) { g_hash_table_destroy ((gpointer) self->_priv->popups); self->_priv->popups = NULL; }
-#line 122 "mn-popups.c"
+#line 136 "mn-popups.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -132,21 +146,23 @@ mn_popups_class_init (MNPopupsClass * c G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (G_TYPE_OBJECT);
 
+#line 68 "mn-popups.gob"
 	g_object_class->finalize = ___finalize;
+#line 152 "mn-popups.c"
 }
 #undef __GOB_FUNCTION__
-#line 38 "mn-popups.gob"
+#line 43 "mn-popups.gob"
 static void 
 mn_popups_init (MNPopups * self G_GNUC_UNUSED)
-#line 142 "mn-popups.c"
+#line 158 "mn-popups.c"
 {
 #define __GOB_FUNCTION__ "MN:Popups::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_POPUPS,MNPopupsPrivate);
-#line 36 "mn-popups.gob"
+#line 41 "mn-popups.gob"
 	self->_priv->popups = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify) mn_g_object_null_unref);
-#line 148 "mn-popups.c"
+#line 164 "mn-popups.c"
  {
-#line 39 "mn-popups.gob"
+#line 44 "mn-popups.gob"
 
     if (! notify_is_initted())
       return;			/* libnotify init failed */
@@ -157,137 +173,349 @@ mn_popups_init (MNPopups * self G_GNUC_UNUSED)
 
     g_signal_connect(mn_shell->mailboxes, "messages-changed", G_CALLBACK(self_messages_changed_h), self);
   
-#line 161 "mn-popups.c"
+#line 177 "mn-popups.c"
  }
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 50 "mn-popups.gob"
+#line 55 "mn-popups.gob"
+static void 
+mn_popups_close_cb (const char * id, MNPopup * popup, gpointer user_data)
+#line 187 "mn-popups.c"
+{
+#define __GOB_FUNCTION__ "MN:Popups::close_cb"
+{
+#line 57 "mn-popups.gob"
+	
+    if (popup)
+      mn_popup_close(popup);
+  }}
+#line 196 "mn-popups.c"
+#undef __GOB_FUNCTION__
+
+#line 62 "mn-popups.gob"
+static void 
+mn_popups_close_popups (MNPopups * self)
+#line 202 "mn-popups.c"
+{
+#define __GOB_FUNCTION__ "MN:Popups::close_popups"
+#line 62 "mn-popups.gob"
+	g_return_if_fail (self != NULL);
+#line 62 "mn-popups.gob"
+	g_return_if_fail (MN_IS_POPUPS (self));
+#line 209 "mn-popups.c"
+{
+#line 64 "mn-popups.gob"
+	
+    g_hash_table_foreach(selfp->popups, (GHFunc) self_close_cb, NULL);
+  }}
+#line 215 "mn-popups.c"
+#undef __GOB_FUNCTION__
+
+#line 68 "mn-popups.gob"
+static void 
+___4_mn_popups_finalize (GObject * object G_GNUC_UNUSED)
+#line 221 "mn-popups.c"
+#define PARENT_HANDLER(___object) \
+	{ if(G_OBJECT_CLASS(parent_class)->finalize) \
+		(* G_OBJECT_CLASS(parent_class)->finalize)(___object); }
+{
+#define __GOB_FUNCTION__ "MN:Popups::finalize"
+{
+#line 70 "mn-popups.gob"
+	
+    Self *self = SELF(object);
+
+    /* close popups on exit */
+    self_close_popups(self);
+
+    PARENT_HANDLER(object);
+  }}
+#line 237 "mn-popups.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 79 "mn-popups.gob"
 static void 
 mn_popups_messages_changed_h (MNMailboxes * mailboxes, gboolean has_new, gpointer user_data)
-#line 171 "mn-popups.c"
+#line 244 "mn-popups.c"
 {
 #define __GOB_FUNCTION__ "MN:Popups::messages_changed_h"
 {
-#line 54 "mn-popups.gob"
+#line 83 "mn-popups.gob"
 	
     Self *self = user_data;
 
     self_update(self, FALSE);
   }}
-#line 181 "mn-popups.c"
+#line 254 "mn-popups.c"
 #undef __GOB_FUNCTION__
 
-#line 60 "mn-popups.gob"
+#line 89 "mn-popups.gob"
 static void 
 mn_popups_notify_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data)
-#line 187 "mn-popups.c"
+#line 260 "mn-popups.c"
 {
 #define __GOB_FUNCTION__ "MN:Popups::notify_cb"
 {
-#line 65 "mn-popups.gob"
+#line 94 "mn-popups.gob"
 	
     Self *self = user_data;
 
     self_update(self, TRUE);
   }}
-#line 197 "mn-popups.c"
+#line 270 "mn-popups.c"
 #undef __GOB_FUNCTION__
 
-#line 71 "mn-popups.gob"
-static gboolean 
-mn_popups_clean_cb (const char * id, MNPopup * popup, gpointer user_data)
-#line 203 "mn-popups.c"
+#line 100 "mn-popups.gob"
+static int 
+mn_popups_popups_show_timestamp_compare_cb (MNPopup * a, MNPopup * b)
+#line 276 "mn-popups.c"
 {
-#define __GOB_FUNCTION__ "MN:Popups::clean_cb"
+#define __GOB_FUNCTION__ "MN:Popups::popups_show_timestamp_compare_cb"
 {
-#line 75 "mn-popups.gob"
+#line 102 "mn-popups.gob"
 	
-    GHashTable *messages = user_data;
+    int cmp;
 
+    cmp = a->show_timestamp.tv_sec - b->show_timestamp.tv_sec;
+    if (cmp != 0)
+      return cmp;
+
+    return a->show_timestamp.tv_usec - b->show_timestamp.tv_usec;
+  }}
+#line 290 "mn-popups.c"
+#undef __GOB_FUNCTION__
+
+#line 112 "mn-popups.gob"
+static void 
+mn_popups_get_visible_popups_cb (const char * id, MNPopup * popup, GSList ** list)
+#line 296 "mn-popups.c"
+{
+#define __GOB_FUNCTION__ "MN:Popups::get_visible_popups_cb"
+{
+#line 114 "mn-popups.gob"
+	
+    if (popup && popup->visible)
+      *list = g_slist_insert_sorted(*list, popup, (GCompareFunc) self_popups_show_timestamp_compare_cb);
+  }}
+#line 305 "mn-popups.c"
+#undef __GOB_FUNCTION__
+
+#line 120 "mn-popups.gob"
+static GSList * 
+mn_popups_get_visible_popups (MNPopups * self)
+#line 311 "mn-popups.c"
+{
+#define __GOB_FUNCTION__ "MN:Popups::get_visible_popups"
+#line 120 "mn-popups.gob"
+	g_return_val_if_fail (self != NULL, (GSList * )0);
+#line 120 "mn-popups.gob"
+	g_return_val_if_fail (MN_IS_POPUPS (self), (GSList * )0);
+#line 318 "mn-popups.c"
+{
+#line 122 "mn-popups.gob"
+	
+    GSList *popups = NULL;
+
+    g_hash_table_foreach(selfp->popups, (GHFunc) self_get_visible_popups_cb, &popups);
+
+    return popups;
+  }}
+#line 328 "mn-popups.c"
+#undef __GOB_FUNCTION__
+
+#line 130 "mn-popups.gob"
+static gboolean 
+mn_popups_close_and_remove_cb (const char * id, MNPopup * popup, gpointer user_data)
+#line 334 "mn-popups.c"
+{
+#define __GOB_FUNCTION__ "MN:Popups::close_and_remove_cb"
+{
+#line 132 "mn-popups.gob"
+	
+    if (popup != NULL)
+      mn_popup_close(popup);
+
+    return TRUE;		/* remove */
+  }}
+#line 345 "mn-popups.c"
+#undef __GOB_FUNCTION__
+
+#line 139 "mn-popups.gob"
+static gboolean 
+mn_popups_close_and_remove_stale_cb (const char * id, MNPopup * popup, GHashTable * messages)
+#line 351 "mn-popups.c"
+{
+#define __GOB_FUNCTION__ "MN:Popups::close_and_remove_stale_cb"
+{
+#line 141 "mn-popups.gob"
+	
     if (! g_hash_table_lookup(messages, id))
       {
 	if (popup != NULL)
 	  mn_popup_close(popup);
+
 	return TRUE;		/* remove */
       }
     else
       return FALSE;		/* keep */
   }}
-#line 220 "mn-popups.c"
+#line 367 "mn-popups.c"
 #undef __GOB_FUNCTION__
 
-#line 88 "mn-popups.gob"
+#line 153 "mn-popups.gob"
 static void 
 mn_popups_update (MNPopups * self, gboolean reshow_current_popups)
-#line 226 "mn-popups.c"
+#line 373 "mn-popups.c"
 {
 #define __GOB_FUNCTION__ "MN:Popups::update"
-#line 88 "mn-popups.gob"
+#line 153 "mn-popups.gob"
 	g_return_if_fail (self != NULL);
-#line 88 "mn-popups.gob"
+#line 153 "mn-popups.gob"
 	g_return_if_fail (MN_IS_POPUPS (self));
-#line 233 "mn-popups.c"
+#line 380 "mn-popups.c"
 {
-#line 90 "mn-popups.gob"
+#line 155 "mn-popups.gob"
 	
-    GHashTable *messages;
     GSList *l;
 
-    /* remove notifications whose message no longer exists */
-
-    messages = g_hash_table_new(g_str_hash, g_str_equal);
-    MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
+    if (reshow_current_popups)
+      /* we have to reshow the popups, so close them */
+      g_hash_table_foreach_remove(selfp->popups, (GHRFunc) self_close_and_remove_cb, NULL);
+    else
       {
-	MNMessage *message = l->data;
-	g_hash_table_insert(messages, message->id, message);
-      }
+	GHashTable *messages_hash;
 
-    g_hash_table_foreach_remove(selfp->popups, (GHRFunc) self_clean_cb, messages);
-    g_hash_table_destroy(messages);
+	/* close and remove stale popups */
 
-    /* send notifications for new messages */
-
-    MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
-      {
-	MNMessage *message = l->data;
-	MNPopup *popup = NULL;
-	gpointer ptr;
-
-	if (g_hash_table_lookup_extended(selfp->popups, message->id, NULL, &ptr))
+	messages_hash = g_hash_table_new(g_str_hash, g_str_equal);
+	MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
 	  {
-	    MNPopup *cur_popup = ptr;
-
-	    if (reshow_current_popups && cur_popup && cur_popup->visible)
-	      mn_popup_close(cur_popup);
-	    else
-	      continue;
+	    MNMessage *message = l->data;
+	    g_hash_table_insert(messages_hash, message->id, message);
 	  }
 
-	if (eel_gconf_get_boolean(MN_CONF_POPUPS_ENABLED))
+	g_hash_table_foreach_remove(selfp->popups, (GHRFunc) self_close_and_remove_stale_cb, messages_hash);
+	g_hash_table_destroy(messages_hash);
+      }
+
+    if (eel_gconf_get_boolean(MN_CONF_POPUPS_ENABLED))
+      {
+	GPtrArray *messages;	/* for O(1) length retrieval and indexing */
+	GSList *visible_popups;
+	int num_visible_popups;
+	int popup_limit;
+	int new_popup_count;
+	int messages_to_popup;	/* the number of messages to popup */
+	int i;
+
+	if (mn_conf_get_enum_value(MN_TYPE_POPUP_POSITION, MN_CONF_POPUPS_POSITION) == MN_POPUP_POSITION_ATTACHED)
+	  /* the popup is attached to the icon: allow at most one popup */
+	  popup_limit = 1;
+	else
+	  popup_limit = eel_gconf_get_integer(MN_CONF_POPUPS_LIMIT);
+
+	/* build a list of messages which are not already known */
+
+	messages = g_ptr_array_new();
+
+	MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
 	  {
+	    MNMessage *message = l->data;
+	    gpointer ptr;
+
+	    if (! g_hash_table_lookup_extended(selfp->popups, message->id, NULL, &ptr))
+	      g_ptr_array_add(messages, message);
+	  }
+
+	visible_popups = self_get_visible_popups(self);
+	num_visible_popups = g_slist_length(visible_popups);
+
+	new_popup_count = num_visible_popups + messages->len;
+	if (new_popup_count > popup_limit)
+	  {
+	    int to_remove;
+
+	    /* make room for n new popups by closing the n oldest popups */
+
+	    to_remove = new_popup_count - popup_limit;
+	    to_remove = MIN(num_visible_popups, to_remove);
+
+	    while (to_remove > 0)
+	      {
+		MNPopup *oldest;
+
+		g_assert(visible_popups != NULL);
+
+		oldest = visible_popups->data;
+		mn_popup_close(oldest);
+
+		visible_popups = g_slist_delete_link(visible_popups, visible_popups);
+		to_remove--;
+	      }
+	  }
+
+	g_slist_free(visible_popups);
+
+	messages_to_popup = MIN(messages->len, popup_limit);
+
+	/*
+	 * Below we iterate over the messages array backwards because
+	 * it is sorted by sent time most recent first, while we want
+	 * to popup the oldest messages first.
+	 */
+
+	/* register the messages which we will not popup */
+
+	for (i = messages->len - 1; i >= messages_to_popup; i--)
+	  {
+	    MNMessage *message = g_ptr_array_index(messages, i);
+
+	    g_hash_table_replace(selfp->popups, g_strdup(message->id), NULL);
+	  }
+
+	/* popup the first messages_to_popup messages */
+
+	for (i = messages_to_popup - 1; i >= 0; i--)
+	  {
+	    MNMessage *message = g_ptr_array_index(messages, i);
+	    MNPopup *popup;
+
 	    popup = mn_popup_new(message);
 	    mn_popup_show(popup);
+
+	    g_hash_table_replace(selfp->popups, g_strdup(message->id), popup);
 	  }
 
-	g_hash_table_replace(selfp->popups, g_strdup(message->id), popup);
+	g_ptr_array_free(messages, TRUE);
+      }
+    else
+      {
+	/* register the new messages */
+
+	MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
+	  {
+	    MNMessage *message = l->data;
+	    g_hash_table_replace(selfp->popups, g_strdup(message->id), NULL);
+	  }
       }
   }}
-#line 279 "mn-popups.c"
+#line 507 "mn-popups.c"
 #undef __GOB_FUNCTION__
 
-#line 134 "mn-popups.gob"
+#line 280 "mn-popups.gob"
 MNPopups * 
 mn_popups_new (void)
-#line 285 "mn-popups.c"
+#line 513 "mn-popups.c"
 {
 #define __GOB_FUNCTION__ "MN:Popups::new"
 {
-#line 136 "mn-popups.gob"
+#line 282 "mn-popups.gob"
 	
     return GET_NEW;
   }}
-#line 293 "mn-popups.c"
+#line 521 "mn-popups.c"
 #undef __GOB_FUNCTION__

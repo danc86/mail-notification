@@ -16,75 +16,61 @@ extern "C" {
 
 #line 18 "mn-properties-dialog-private.h"
 struct _MNPropertiesDialogPrivate {
-#line 44 "mn-properties-dialog.gob"
+#line 46 "mn-properties-dialog.gob"
 	GtkWidget * notebook;
-#line 47 "mn-properties-dialog.gob"
-	GtkWidget * display_seen_mail_check;
-#line 48 "mn-properties-dialog.gob"
-	GtkWidget * scrolled;
 #line 49 "mn-properties-dialog.gob"
-	GtkWidget * list;
+	GtkWidget * play_sound_hbox;
 #line 50 "mn-properties-dialog.gob"
-	GtkWidget * selected_label;
+	GtkWidget * play_sound_check;
 #line 51 "mn-properties-dialog.gob"
-	GtkWidget * add;
+	GtkWidget * play_sound_file_chooser_button;
 #line 52 "mn-properties-dialog.gob"
-	GtkWidget * remove;
+	GtkWidget * scrolled;
 #line 53 "mn-properties-dialog.gob"
-	GtkWidget * properties;
+	GtkWidget * list;
 #line 54 "mn-properties-dialog.gob"
-	GtkWidget * command_new_mail_check;
+	GtkWidget * selected_label;
 #line 55 "mn-properties-dialog.gob"
-	GtkWidget * command_new_mail_entry;
+	GtkWidget * add;
 #line 56 "mn-properties-dialog.gob"
-	GtkWidget * command_mail_read_check;
+	GtkWidget * remove;
 #line 57 "mn-properties-dialog.gob"
-	GtkWidget * command_mail_read_entry;
+	GtkWidget * properties;
 #line 60 "mn-properties-dialog.gob"
-	GtkWidget * icon_blink_check;
-#line 61 "mn-properties-dialog.gob"
-	GtkWidget * icon_always_display_check;
-#line 62 "mn-properties-dialog.gob"
-	GtkWidget * icon_tooltip_mail_summary_standard_radio;
-#line 63 "mn-properties-dialog.gob"
-	GtkWidget * icon_tooltip_mail_summary_compact_radio;
-#line 64 "mn-properties-dialog.gob"
-	GtkWidget * icon_tooltip_mail_summary_none_radio;
-#line 65 "mn-properties-dialog.gob"
-	GtkWidget * icon_action_properties_dialog_radio;
-#line 66 "mn-properties-dialog.gob"
 	GtkWidget * icon_action_mail_reader_radio;
-#line 67 "mn-properties-dialog.gob"
+#line 61 "mn-properties-dialog.gob"
 	GtkWidget * icon_action_open_latest_message_radio;
-#line 68 "mn-properties-dialog.gob"
+#line 62 "mn-properties-dialog.gob"
+	GtkWidget * icon_action_consider_new_mail_as_read_radio;
+#line 63 "mn-properties-dialog.gob"
 	GtkWidget * icon_action_update_radio;
-#line 71 "mn-properties-dialog.gob"
+#line 66 "mn-properties-dialog.gob"
 	GtkWidget * popups_enable_check;
-#line 72 "mn-properties-dialog.gob"
+#line 67 "mn-properties-dialog.gob"
 	GtkWidget * popups_position_section_label;
-#line 73 "mn-properties-dialog.gob"
+#line 68 "mn-properties-dialog.gob"
 	GtkWidget * popups_position_attached_radio;
-#line 74 "mn-properties-dialog.gob"
+#line 69 "mn-properties-dialog.gob"
 	GtkWidget * popups_position_free_radio;
-#line 75 "mn-properties-dialog.gob"
+#line 70 "mn-properties-dialog.gob"
 	GtkWidget * popups_expiration_section_label;
-#line 76 "mn-properties-dialog.gob"
+#line 71 "mn-properties-dialog.gob"
 	GtkWidget * popups_expiration_default_radio;
-#line 77 "mn-properties-dialog.gob"
+#line 72 "mn-properties-dialog.gob"
 	GtkWidget * popups_expiration_never_radio;
-#line 78 "mn-properties-dialog.gob"
+#line 73 "mn-properties-dialog.gob"
 	GtkWidget * popups_expiration_after_radio;
-#line 79 "mn-properties-dialog.gob"
+#line 74 "mn-properties-dialog.gob"
 	GtkWidget * popups_expiration_minutes_spin;
-#line 80 "mn-properties-dialog.gob"
+#line 75 "mn-properties-dialog.gob"
 	GtkWidget * popups_expiration_minutes_label;
-#line 81 "mn-properties-dialog.gob"
+#line 76 "mn-properties-dialog.gob"
 	GtkWidget * popups_expiration_seconds_spin;
-#line 82 "mn-properties-dialog.gob"
+#line 77 "mn-properties-dialog.gob"
 	GtkWidget * popups_expiration_seconds_label;
-#line 84 "mn-properties-dialog.gob"
+#line 79 "mn-properties-dialog.gob"
 	MNMailbox * test_mailbox;
-#line 88 "mn-properties-dialog-private.h"
+#line 74 "mn-properties-dialog-private.h"
 };
 void 	mn_properties_dialog_toggled_h	(MNPropertiesDialog * self, GtkToggleButton * button);
 void 	mn_properties_dialog_add_clicked_h	(MNPropertiesDialog * self, GtkButton * button);

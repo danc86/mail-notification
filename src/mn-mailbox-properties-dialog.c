@@ -39,6 +39,12 @@
 #if WITH_GMAIL
 #include "mn-gmail-mailbox-properties.h"
 #endif
+#if WITH_YAHOO
+#include "mn-yahoo-mailbox-properties.h"
+#endif
+#if WITH_HOTMAIL
+#include "mn-hotmail-mailbox-properties.h"
+#endif
 #if WITH_EVOLUTION
 #include "mn-evolution-mailbox-properties.h"
 #endif
@@ -57,7 +63,7 @@ enum {
 
 static GType selected_type = 0;
 
-#line 61 "mn-mailbox-properties-dialog.c"
+#line 67 "mn-mailbox-properties-dialog.c"
 /* self casting macros */
 #define SELF(x) MN_MAILBOX_PROPERTIES_DIALOG(x)
 #define SELF_CONST(x) MN_MAILBOX_PROPERTIES_DIALOG_CONST(x)
@@ -168,15 +174,15 @@ ___dispose (GObject *obj_self)
 	MNMailboxPropertiesDialog *self G_GNUC_UNUSED = MN_MAILBOX_PROPERTIES_DIALOG (obj_self);
 	if (G_OBJECT_CLASS (parent_class)->dispose) \
 		(* G_OBJECT_CLASS (parent_class)->dispose) (obj_self);
-#line 72 "mn-mailbox-properties-dialog.gob"
+#line 78 "mn-mailbox-properties-dialog.gob"
 	if(self->_priv->mailbox) { g_object_unref ((gpointer) self->_priv->mailbox); self->_priv->mailbox = NULL; }
-#line 174 "mn-mailbox-properties-dialog.c"
-#line 123 "mn-mailbox-properties-dialog.gob"
-	if(self->_priv->store) { g_object_unref ((gpointer) self->_priv->store); self->_priv->store = NULL; }
-#line 177 "mn-mailbox-properties-dialog.c"
-#line 133 "mn-mailbox-properties-dialog.gob"
-	if(self->_priv->active_properties) { g_object_unref ((gpointer) self->_priv->active_properties); self->_priv->active_properties = NULL; }
 #line 180 "mn-mailbox-properties-dialog.c"
+#line 129 "mn-mailbox-properties-dialog.gob"
+	if(self->_priv->store) { g_object_unref ((gpointer) self->_priv->store); self->_priv->store = NULL; }
+#line 183 "mn-mailbox-properties-dialog.c"
+#line 139 "mn-mailbox-properties-dialog.gob"
+	if(self->_priv->active_properties) { g_object_unref ((gpointer) self->_priv->active_properties); self->_priv->active_properties = NULL; }
+#line 186 "mn-mailbox-properties-dialog.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -189,12 +195,12 @@ ___finalize(GObject *obj_self)
 	gpointer priv G_GNUC_UNUSED = self->_priv;
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 125 "mn-mailbox-properties-dialog.gob"
-	if(self->_priv->default_name) { g_free ((gpointer) self->_priv->default_name); self->_priv->default_name = NULL; }
-#line 195 "mn-mailbox-properties-dialog.c"
 #line 131 "mn-mailbox-properties-dialog.gob"
+	if(self->_priv->default_name) { g_free ((gpointer) self->_priv->default_name); self->_priv->default_name = NULL; }
+#line 201 "mn-mailbox-properties-dialog.c"
+#line 137 "mn-mailbox-properties-dialog.gob"
 	if(self->_priv->entries) { g_slist_free ((gpointer) self->_priv->entries); self->_priv->entries = NULL; }
-#line 198 "mn-mailbox-properties-dialog.c"
+#line 204 "mn-mailbox-properties-dialog.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -215,9 +221,9 @@ mn_mailbox_properties_dialog_class_init (MNMailboxPropertiesDialogClass * c G_GN
 
 	parent_class = g_type_class_ref (MN_TYPE_DIALOG);
 
-#line 135 "mn-mailbox-properties-dialog.gob"
+#line 141 "mn-mailbox-properties-dialog.gob"
 	g_object_class->constructor = ___3_mn_mailbox_properties_dialog_constructor;
-#line 221 "mn-mailbox-properties-dialog.c"
+#line 227 "mn-mailbox-properties-dialog.c"
 	g_object_class->dispose = ___dispose;
 	g_object_class->finalize = ___finalize;
 	g_object_class->get_property = ___object_get_property;
@@ -260,14 +266,14 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_DIALOG_PARENT:
 		{
-#line 70 "mn-mailbox-properties-dialog.gob"
+#line 76 "mn-mailbox-properties-dialog.gob"
 self->_priv->dialog_parent = g_value_get_pointer (VAL);
-#line 266 "mn-mailbox-properties-dialog.c"
+#line 272 "mn-mailbox-properties-dialog.c"
 		}
 		break;
 	case PROP_MAILBOX:
 		{
-#line 78 "mn-mailbox-properties-dialog.gob"
+#line 84 "mn-mailbox-properties-dialog.gob"
 
       GObject *object;
 
@@ -290,7 +296,7 @@ self->_priv->dialog_parent = g_value_get_pointer (VAL);
 	  g_free(title);
 	}
     
-#line 294 "mn-mailbox-properties-dialog.c"
+#line 300 "mn-mailbox-properties-dialog.c"
 		}
 		break;
 	default:
@@ -319,18 +325,18 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_DIALOG_PARENT:
 		{
-#line 70 "mn-mailbox-properties-dialog.gob"
+#line 76 "mn-mailbox-properties-dialog.gob"
 g_value_set_pointer (VAL, self->_priv->dialog_parent);
-#line 325 "mn-mailbox-properties-dialog.c"
+#line 331 "mn-mailbox-properties-dialog.c"
 		}
 		break;
 	case PROP_MAILBOX:
 		{
-#line 101 "mn-mailbox-properties-dialog.gob"
+#line 107 "mn-mailbox-properties-dialog.gob"
 
       g_value_set_object(VAL, selfp->mailbox);
     
-#line 334 "mn-mailbox-properties-dialog.c"
+#line 340 "mn-mailbox-properties-dialog.c"
 		}
 		break;
 	default:
@@ -347,36 +353,36 @@ g_value_set_pointer (VAL, self->_priv->dialog_parent);
 
 
 
-#line 101 "mn-mailbox-properties-dialog.gob"
+#line 107 "mn-mailbox-properties-dialog.gob"
 MNMailbox * 
 mn_mailbox_properties_dialog_get_mailbox (MNMailboxPropertiesDialog * self)
-#line 354 "mn-mailbox-properties-dialog.c"
+#line 360 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::get_mailbox"
 {
-#line 73 "mn-mailbox-properties-dialog.gob"
+#line 79 "mn-mailbox-properties-dialog.gob"
 		MNMailbox* val; g_object_get (G_OBJECT (self), "mailbox", &val, NULL); return val;
 }}
-#line 361 "mn-mailbox-properties-dialog.c"
+#line 367 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 78 "mn-mailbox-properties-dialog.gob"
+#line 84 "mn-mailbox-properties-dialog.gob"
 void 
 mn_mailbox_properties_dialog_set_mailbox (MNMailboxPropertiesDialog * self, MNMailbox * val)
-#line 367 "mn-mailbox-properties-dialog.c"
+#line 373 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::set_mailbox"
 {
-#line 73 "mn-mailbox-properties-dialog.gob"
+#line 79 "mn-mailbox-properties-dialog.gob"
 		g_object_set (G_OBJECT (self), "mailbox", val, NULL);
 }}
-#line 374 "mn-mailbox-properties-dialog.c"
+#line 380 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 135 "mn-mailbox-properties-dialog.gob"
+#line 141 "mn-mailbox-properties-dialog.gob"
 static GObject * 
 ___3_mn_mailbox_properties_dialog_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_properties, GObjectConstructParam * construct_params)
-#line 380 "mn-mailbox-properties-dialog.c"
+#line 386 "mn-mailbox-properties-dialog.c"
 #define PARENT_HANDLER(___type,___n_construct_properties,___construct_params) \
 	((G_OBJECT_CLASS(parent_class)->constructor)? \
 		(* G_OBJECT_CLASS(parent_class)->constructor)(___type,___n_construct_properties,___construct_params): \
@@ -384,7 +390,7 @@ ___3_mn_mailbox_properties_dialog_constructor (GType type G_GNUC_UNUSED, unsigne
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::constructor"
 {
-#line 137 "mn-mailbox-properties-dialog.gob"
+#line 143 "mn-mailbox-properties-dialog.gob"
 	
     GObject *object;
     Self *self;
@@ -396,7 +402,7 @@ ___3_mn_mailbox_properties_dialog_constructor (GType type G_GNUC_UNUSED, unsigne
     self = SELF(object);
 
     mn_container_create_interface(GTK_CONTAINER(self),
-				  UIDIR G_DIR_SEPARATOR_S "mailbox-properties-dialog.glade",
+				  PKGDATADIR G_DIR_SEPARATOR_S "mailbox-properties-dialog.glade",
 				  "notebook",
 				  "mn_mailbox_properties_dialog_",
 				  "notebook", &self->notebook,
@@ -450,9 +456,17 @@ ___3_mn_mailbox_properties_dialog_constructor (GType type G_GNUC_UNUSED, unsigne
 #if WITH_GMAIL
     self_add_type(self, MN_TYPE_GMAIL_MAILBOX_PROPERTIES);
 #endif
+#if WITH_YAHOO
+    self_add_type(self, MN_TYPE_YAHOO_MAILBOX_PROPERTIES);
+#endif
+#if WITH_HOTMAIL
+    self_add_type(self, MN_TYPE_HOTMAIL_MAILBOX_PROPERTIES);
+#endif
 #if WITH_EVOLUTION
     self_add_type(self, MN_TYPE_EVOLUTION_MAILBOX_PROPERTIES);
 #endif
+
+    gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(selfp->store), COLUMN_LABEL, GTK_SORT_ASCENDING);
 
     renderer = gtk_cell_renderer_pixbuf_new();
     g_object_set(renderer, "stock-size", GTK_ICON_SIZE_MENU, NULL);
@@ -526,18 +540,18 @@ ___3_mn_mailbox_properties_dialog_constructor (GType type G_GNUC_UNUSED, unsigne
 
     return object;
   }}
-#line 530 "mn-mailbox-properties-dialog.c"
+#line 544 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 279 "mn-mailbox-properties-dialog.gob"
+#line 293 "mn-mailbox-properties-dialog.gob"
 static void 
 mn_mailbox_properties_dialog_response_h (GtkDialog * dialog, int response, gpointer user_data)
-#line 537 "mn-mailbox-properties-dialog.c"
+#line 551 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::response_h"
 {
-#line 281 "mn-mailbox-properties-dialog.gob"
+#line 295 "mn-mailbox-properties-dialog.gob"
 	
     Self *self = SELF(dialog);
 
@@ -560,24 +574,24 @@ mn_mailbox_properties_dialog_response_h (GtkDialog * dialog, int response, gpoin
 
     /* other responses are handled by the client */
   }}
-#line 564 "mn-mailbox-properties-dialog.c"
+#line 578 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 304 "mn-mailbox-properties-dialog.gob"
+#line 318 "mn-mailbox-properties-dialog.gob"
 static void 
 mn_mailbox_properties_dialog_add_type (MNMailboxPropertiesDialog * self, GType type)
-#line 570 "mn-mailbox-properties-dialog.c"
+#line 584 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::add_type"
-#line 304 "mn-mailbox-properties-dialog.gob"
+#line 318 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 304 "mn-mailbox-properties-dialog.gob"
+#line 318 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self));
-#line 304 "mn-mailbox-properties-dialog.gob"
+#line 318 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (type != 0);
-#line 579 "mn-mailbox-properties-dialog.c"
+#line 593 "mn-mailbox-properties-dialog.c"
 {
-#line 306 "mn-mailbox-properties-dialog.gob"
+#line 320 "mn-mailbox-properties-dialog.gob"
 	
     MNMailboxProperties *properties;
     MNMailboxPropertiesClass *p_class;
@@ -606,26 +620,26 @@ mn_mailbox_properties_dialog_add_type (MNMailboxPropertiesDialog * self, GType t
 
     g_object_unref(properties);	/* now it belongs to the store */
   }}
-#line 610 "mn-mailbox-properties-dialog.c"
+#line 624 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 335 "mn-mailbox-properties-dialog.gob"
+#line 349 "mn-mailbox-properties-dialog.gob"
 static void 
 mn_mailbox_properties_dialog_set_active_properties (MNMailboxPropertiesDialog * self, MNMailboxProperties * properties)
-#line 616 "mn-mailbox-properties-dialog.c"
+#line 630 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::set_active_properties"
-#line 335 "mn-mailbox-properties-dialog.gob"
+#line 349 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 335 "mn-mailbox-properties-dialog.gob"
+#line 349 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self));
-#line 335 "mn-mailbox-properties-dialog.gob"
+#line 349 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (properties != NULL);
-#line 335 "mn-mailbox-properties-dialog.gob"
+#line 349 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES (properties));
-#line 627 "mn-mailbox-properties-dialog.c"
+#line 641 "mn-mailbox-properties-dialog.c"
 {
-#line 338 "mn-mailbox-properties-dialog.gob"
+#line 352 "mn-mailbox-properties-dialog.gob"
 	
     gboolean valid;
     GtkTreeIter iter;
@@ -644,22 +658,22 @@ mn_mailbox_properties_dialog_set_active_properties (MNMailboxPropertiesDialog * 
 	  }
       }
   }}
-#line 648 "mn-mailbox-properties-dialog.c"
+#line 662 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 357 "mn-mailbox-properties-dialog.gob"
+#line 371 "mn-mailbox-properties-dialog.gob"
 static MNMailboxProperties * 
 mn_mailbox_properties_dialog_get_active_properties (MNMailboxPropertiesDialog * self)
-#line 654 "mn-mailbox-properties-dialog.c"
+#line 668 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::get_active_properties"
-#line 357 "mn-mailbox-properties-dialog.gob"
+#line 371 "mn-mailbox-properties-dialog.gob"
 	g_return_val_if_fail (self != NULL, (MNMailboxProperties * )0);
-#line 357 "mn-mailbox-properties-dialog.gob"
+#line 371 "mn-mailbox-properties-dialog.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self), (MNMailboxProperties * )0);
-#line 661 "mn-mailbox-properties-dialog.c"
+#line 675 "mn-mailbox-properties-dialog.c"
 {
-#line 359 "mn-mailbox-properties-dialog.gob"
+#line 373 "mn-mailbox-properties-dialog.gob"
 	
     GtkTreeIter iter;
     MNMailboxProperties *properties = NULL;
@@ -669,24 +683,24 @@ mn_mailbox_properties_dialog_get_active_properties (MNMailboxPropertiesDialog * 
 
     return properties;
   }}
-#line 673 "mn-mailbox-properties-dialog.c"
+#line 687 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 369 "mn-mailbox-properties-dialog.gob"
+#line 383 "mn-mailbox-properties-dialog.gob"
 static MNMailboxProperties * 
 mn_mailbox_properties_dialog_get_properties_by_type (MNMailboxPropertiesDialog * self, const char * type)
-#line 679 "mn-mailbox-properties-dialog.c"
+#line 693 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::get_properties_by_type"
-#line 369 "mn-mailbox-properties-dialog.gob"
+#line 383 "mn-mailbox-properties-dialog.gob"
 	g_return_val_if_fail (self != NULL, (MNMailboxProperties * )0);
-#line 369 "mn-mailbox-properties-dialog.gob"
+#line 383 "mn-mailbox-properties-dialog.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self), (MNMailboxProperties * )0);
-#line 369 "mn-mailbox-properties-dialog.gob"
+#line 383 "mn-mailbox-properties-dialog.gob"
 	g_return_val_if_fail (type != NULL, (MNMailboxProperties * )0);
-#line 688 "mn-mailbox-properties-dialog.c"
+#line 702 "mn-mailbox-properties-dialog.c"
 {
-#line 371 "mn-mailbox-properties-dialog.gob"
+#line 385 "mn-mailbox-properties-dialog.gob"
 	
     gboolean valid;
     GtkTreeIter iter;
@@ -708,24 +722,24 @@ mn_mailbox_properties_dialog_get_properties_by_type (MNMailboxPropertiesDialog *
 
     return NULL;
   }}
-#line 712 "mn-mailbox-properties-dialog.c"
+#line 726 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 393 "mn-mailbox-properties-dialog.gob"
+#line 407 "mn-mailbox-properties-dialog.gob"
 static MNMailboxProperties * 
 mn_mailbox_properties_dialog_get_properties_by_g_type (MNMailboxPropertiesDialog * self, GType type)
-#line 718 "mn-mailbox-properties-dialog.c"
+#line 732 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::get_properties_by_g_type"
-#line 393 "mn-mailbox-properties-dialog.gob"
+#line 407 "mn-mailbox-properties-dialog.gob"
 	g_return_val_if_fail (self != NULL, (MNMailboxProperties * )0);
-#line 393 "mn-mailbox-properties-dialog.gob"
+#line 407 "mn-mailbox-properties-dialog.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self), (MNMailboxProperties * )0);
-#line 393 "mn-mailbox-properties-dialog.gob"
+#line 407 "mn-mailbox-properties-dialog.gob"
 	g_return_val_if_fail (type != 0, (MNMailboxProperties * )0);
-#line 727 "mn-mailbox-properties-dialog.c"
+#line 741 "mn-mailbox-properties-dialog.c"
 {
-#line 395 "mn-mailbox-properties-dialog.gob"
+#line 409 "mn-mailbox-properties-dialog.gob"
 	
     gboolean valid;
     GtkTreeIter iter;
@@ -744,22 +758,22 @@ mn_mailbox_properties_dialog_get_properties_by_g_type (MNMailboxPropertiesDialog
 
     return NULL;
   }}
-#line 748 "mn-mailbox-properties-dialog.c"
+#line 762 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 414 "mn-mailbox-properties-dialog.gob"
+#line 428 "mn-mailbox-properties-dialog.gob"
 MNMailbox * 
 mn_mailbox_properties_dialog_get_current_mailbox (MNMailboxPropertiesDialog * self)
-#line 754 "mn-mailbox-properties-dialog.c"
+#line 768 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::get_current_mailbox"
-#line 414 "mn-mailbox-properties-dialog.gob"
+#line 428 "mn-mailbox-properties-dialog.gob"
 	g_return_val_if_fail (self != NULL, (MNMailbox * )0);
-#line 414 "mn-mailbox-properties-dialog.gob"
+#line 428 "mn-mailbox-properties-dialog.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self), (MNMailbox * )0);
-#line 761 "mn-mailbox-properties-dialog.c"
+#line 775 "mn-mailbox-properties-dialog.c"
 {
-#line 416 "mn-mailbox-properties-dialog.gob"
+#line 430 "mn-mailbox-properties-dialog.gob"
 	
     MNMailboxProperties *properties;
     MNMailbox *mailbox;
@@ -783,22 +797,22 @@ mn_mailbox_properties_dialog_get_current_mailbox (MNMailboxPropertiesDialog * se
 
     return mailbox;
   }}
-#line 787 "mn-mailbox-properties-dialog.c"
+#line 801 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 440 "mn-mailbox-properties-dialog.gob"
+#line 454 "mn-mailbox-properties-dialog.gob"
 void 
 mn_mailbox_properties_dialog_apply (MNMailboxPropertiesDialog * self)
-#line 793 "mn-mailbox-properties-dialog.c"
+#line 807 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::apply"
-#line 440 "mn-mailbox-properties-dialog.gob"
+#line 454 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 440 "mn-mailbox-properties-dialog.gob"
+#line 454 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self));
-#line 800 "mn-mailbox-properties-dialog.c"
+#line 814 "mn-mailbox-properties-dialog.c"
 {
-#line 442 "mn-mailbox-properties-dialog.gob"
+#line 456 "mn-mailbox-properties-dialog.gob"
 	
     MNMailbox *new_mailbox;
 
@@ -813,22 +827,22 @@ mn_mailbox_properties_dialog_apply (MNMailboxPropertiesDialog * self)
     self_set_mailbox(self, new_mailbox);
     g_object_unref(new_mailbox);
   }}
-#line 817 "mn-mailbox-properties-dialog.c"
+#line 831 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 457 "mn-mailbox-properties-dialog.gob"
+#line 471 "mn-mailbox-properties-dialog.gob"
 static void 
 mn_mailbox_properties_dialog_update_complete (MNMailboxPropertiesDialog * self)
-#line 823 "mn-mailbox-properties-dialog.c"
+#line 837 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::update_complete"
-#line 457 "mn-mailbox-properties-dialog.gob"
+#line 471 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 457 "mn-mailbox-properties-dialog.gob"
+#line 471 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self));
-#line 830 "mn-mailbox-properties-dialog.c"
+#line 844 "mn-mailbox-properties-dialog.c"
 {
-#line 459 "mn-mailbox-properties-dialog.gob"
+#line 473 "mn-mailbox-properties-dialog.gob"
 	
     MNMailboxProperties *properties;
 
@@ -854,22 +868,22 @@ mn_mailbox_properties_dialog_update_complete (MNMailboxPropertiesDialog * self)
 	gtk_widget_set_sensitive(selfp->accept_button, complete);
       }
   }}
-#line 858 "mn-mailbox-properties-dialog.c"
+#line 872 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 485 "mn-mailbox-properties-dialog.gob"
+#line 499 "mn-mailbox-properties-dialog.gob"
 static void 
 mn_mailbox_properties_dialog_update_default_name (MNMailboxPropertiesDialog * self)
-#line 864 "mn-mailbox-properties-dialog.c"
+#line 878 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::update_default_name"
-#line 485 "mn-mailbox-properties-dialog.gob"
+#line 499 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 485 "mn-mailbox-properties-dialog.gob"
+#line 499 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self));
-#line 871 "mn-mailbox-properties-dialog.c"
+#line 885 "mn-mailbox-properties-dialog.c"
 {
-#line 487 "mn-mailbox-properties-dialog.gob"
+#line 501 "mn-mailbox-properties-dialog.gob"
 	
     MNMailboxProperties *properties;
 
@@ -877,40 +891,41 @@ mn_mailbox_properties_dialog_update_default_name (MNMailboxPropertiesDialog * se
     if (properties)
       {
 	gboolean complete;
-	const char *default_name;
-
-	g_free(selfp->default_name);
 
 	g_object_get(G_OBJECT(properties),
 		     MN_MAILBOX_PROPERTIES_GET_PROP_COMPLETE(&complete),
-		     MN_MAILBOX_PROPERTIES_GET_PROP_DEFAULT_NAME(&selfp->default_name),
 		     NULL);
+
+	g_free(selfp->default_name);
+	if (complete)
+	  g_object_get(G_OBJECT(properties),
+		       MN_MAILBOX_PROPERTIES_GET_PROP_DEFAULT_NAME(&selfp->default_name),
+		       NULL);
+	else
+	  selfp->default_name = NULL;
+
 	g_object_unref(properties);
 
-	default_name = complete ? selfp->default_name : NULL;
-	if (! default_name)
-	  default_name = "";
-
-	gtk_entry_set_text(GTK_ENTRY(selfp->mailbox_name_entry), default_name);
+	gtk_entry_set_text(GTK_ENTRY(selfp->mailbox_name_entry), selfp->default_name ? selfp->default_name : "");
 	gtk_widget_set_sensitive(selfp->mailbox_name_default_button, selfp->has_custom_name = FALSE);
       }
   }}
-#line 899 "mn-mailbox-properties-dialog.c"
+#line 914 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 513 "mn-mailbox-properties-dialog.gob"
+#line 528 "mn-mailbox-properties-dialog.gob"
 static void 
 mn_mailbox_properties_dialog_update_default_check_delay (MNMailboxPropertiesDialog * self)
-#line 905 "mn-mailbox-properties-dialog.c"
+#line 920 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::update_default_check_delay"
-#line 513 "mn-mailbox-properties-dialog.gob"
+#line 528 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 513 "mn-mailbox-properties-dialog.gob"
+#line 528 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self));
-#line 912 "mn-mailbox-properties-dialog.c"
+#line 927 "mn-mailbox-properties-dialog.c"
 {
-#line 515 "mn-mailbox-properties-dialog.gob"
+#line 530 "mn-mailbox-properties-dialog.gob"
 	
     MNMailboxProperties *properties;
 
@@ -937,59 +952,59 @@ mn_mailbox_properties_dialog_update_default_check_delay (MNMailboxPropertiesDial
 	gtk_widget_set_sensitive(selfp->delay_default_button, selfp->has_custom_check_delay = FALSE);
       }
   }}
-#line 941 "mn-mailbox-properties-dialog.c"
+#line 956 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 542 "mn-mailbox-properties-dialog.gob"
+#line 557 "mn-mailbox-properties-dialog.gob"
 void 
 mn_mailbox_properties_dialog_set_help_section (GtkWidget * page, const char * section)
-#line 947 "mn-mailbox-properties-dialog.c"
+#line 962 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::set_help_section"
-#line 542 "mn-mailbox-properties-dialog.gob"
+#line 557 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (page != NULL);
-#line 542 "mn-mailbox-properties-dialog.gob"
+#line 557 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (GTK_IS_WIDGET (page));
-#line 542 "mn-mailbox-properties-dialog.gob"
+#line 557 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (section != NULL);
-#line 956 "mn-mailbox-properties-dialog.c"
+#line 971 "mn-mailbox-properties-dialog.c"
 {
-#line 545 "mn-mailbox-properties-dialog.gob"
+#line 560 "mn-mailbox-properties-dialog.gob"
 	
     g_object_set_data_full(G_OBJECT(page), HELP_SECTION, g_strdup(section), g_free);
   }}
-#line 962 "mn-mailbox-properties-dialog.c"
+#line 977 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 549 "mn-mailbox-properties-dialog.gob"
+#line 564 "mn-mailbox-properties-dialog.gob"
 GtkWidget * 
 mn_mailbox_properties_dialog_new (GtkWindow * parent, MNMailbox * mailbox)
-#line 968 "mn-mailbox-properties-dialog.c"
+#line 983 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::new"
 {
-#line 551 "mn-mailbox-properties-dialog.gob"
+#line 566 "mn-mailbox-properties-dialog.gob"
 	
     return GTK_WIDGET(GET_NEW_VARG(MN_MAILBOX_PROPERTIES_DIALOG_PROP_DIALOG_PARENT(parent),
 				   MN_MAILBOX_PROPERTIES_DIALOG_PROP_MAILBOX(mailbox),
 				   NULL));
   }}
-#line 978 "mn-mailbox-properties-dialog.c"
+#line 993 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 559 "mn-mailbox-properties-dialog.gob"
+#line 574 "mn-mailbox-properties-dialog.gob"
 void 
 mn_mailbox_properties_dialog_type_changed_h (MNMailboxPropertiesDialog * self, GtkComboBox * combobox)
-#line 984 "mn-mailbox-properties-dialog.c"
+#line 999 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::type_changed_h"
-#line 559 "mn-mailbox-properties-dialog.gob"
+#line 574 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 559 "mn-mailbox-properties-dialog.gob"
+#line 574 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self));
-#line 991 "mn-mailbox-properties-dialog.c"
+#line 1006 "mn-mailbox-properties-dialog.c"
 {
-#line 561 "mn-mailbox-properties-dialog.gob"
+#line 576 "mn-mailbox-properties-dialog.gob"
 	
     if (selfp->active_properties)
       {
@@ -1021,22 +1036,22 @@ mn_mailbox_properties_dialog_type_changed_h (MNMailboxPropertiesDialog * self, G
     self_update_default_name(self);
     self_update_default_check_delay(self);
   }}
-#line 1025 "mn-mailbox-properties-dialog.c"
+#line 1040 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 593 "mn-mailbox-properties-dialog.gob"
+#line 608 "mn-mailbox-properties-dialog.gob"
 void 
 mn_mailbox_properties_dialog_name_changed_h (MNMailboxPropertiesDialog * self, GtkEditable * editable)
-#line 1031 "mn-mailbox-properties-dialog.c"
+#line 1046 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::name_changed_h"
-#line 593 "mn-mailbox-properties-dialog.gob"
+#line 608 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 593 "mn-mailbox-properties-dialog.gob"
+#line 608 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self));
-#line 1038 "mn-mailbox-properties-dialog.c"
+#line 1053 "mn-mailbox-properties-dialog.c"
 {
-#line 595 "mn-mailbox-properties-dialog.gob"
+#line 610 "mn-mailbox-properties-dialog.gob"
 	
     const char *name;
 
@@ -1045,41 +1060,41 @@ mn_mailbox_properties_dialog_name_changed_h (MNMailboxPropertiesDialog * self, G
 
     gtk_widget_set_sensitive(selfp->mailbox_name_default_button, selfp->has_custom_name);
   }}
-#line 1049 "mn-mailbox-properties-dialog.c"
+#line 1064 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 604 "mn-mailbox-properties-dialog.gob"
+#line 619 "mn-mailbox-properties-dialog.gob"
 void 
 mn_mailbox_properties_dialog_name_default_button_clicked_h (MNMailboxPropertiesDialog * self, GtkButton * button)
-#line 1055 "mn-mailbox-properties-dialog.c"
+#line 1070 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::name_default_button_clicked_h"
-#line 604 "mn-mailbox-properties-dialog.gob"
+#line 619 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 604 "mn-mailbox-properties-dialog.gob"
+#line 619 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self));
-#line 1062 "mn-mailbox-properties-dialog.c"
+#line 1077 "mn-mailbox-properties-dialog.c"
 {
-#line 606 "mn-mailbox-properties-dialog.gob"
+#line 621 "mn-mailbox-properties-dialog.gob"
 	
     self_update_default_name(self);
   }}
-#line 1068 "mn-mailbox-properties-dialog.c"
+#line 1083 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 610 "mn-mailbox-properties-dialog.gob"
+#line 625 "mn-mailbox-properties-dialog.gob"
 void 
-mn_mailbox_properties_dialog_delay_changed_h (MNMailboxPropertiesDialog * self, GtkEditable * editable)
-#line 1074 "mn-mailbox-properties-dialog.c"
+mn_mailbox_properties_dialog_delay_changed_h (MNMailboxPropertiesDialog * self, GtkSpinButton * button)
+#line 1089 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::delay_changed_h"
-#line 610 "mn-mailbox-properties-dialog.gob"
+#line 625 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 610 "mn-mailbox-properties-dialog.gob"
+#line 625 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self));
-#line 1081 "mn-mailbox-properties-dialog.c"
+#line 1096 "mn-mailbox-properties-dialog.c"
 {
-#line 612 "mn-mailbox-properties-dialog.gob"
+#line 627 "mn-mailbox-properties-dialog.gob"
 	
     int minutes;
     int seconds;
@@ -1090,41 +1105,41 @@ mn_mailbox_properties_dialog_delay_changed_h (MNMailboxPropertiesDialog * self, 
     selfp->has_custom_check_delay = minutes * 60 + seconds != selfp->default_check_delay;
     gtk_widget_set_sensitive(selfp->delay_default_button, selfp->has_custom_check_delay);
   }}
-#line 1094 "mn-mailbox-properties-dialog.c"
+#line 1109 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 623 "mn-mailbox-properties-dialog.gob"
+#line 638 "mn-mailbox-properties-dialog.gob"
 void 
 mn_mailbox_properties_dialog_delay_default_button_clicked_h (MNMailboxPropertiesDialog * self, GtkButton * button)
-#line 1100 "mn-mailbox-properties-dialog.c"
+#line 1115 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::delay_default_button_clicked_h"
-#line 623 "mn-mailbox-properties-dialog.gob"
+#line 638 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 623 "mn-mailbox-properties-dialog.gob"
+#line 638 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self));
-#line 1107 "mn-mailbox-properties-dialog.c"
+#line 1122 "mn-mailbox-properties-dialog.c"
 {
-#line 625 "mn-mailbox-properties-dialog.gob"
+#line 640 "mn-mailbox-properties-dialog.gob"
 	
     self_update_default_check_delay(self);
   }}
-#line 1113 "mn-mailbox-properties-dialog.c"
+#line 1128 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 629 "mn-mailbox-properties-dialog.gob"
+#line 644 "mn-mailbox-properties-dialog.gob"
 void 
 mn_mailbox_properties_dialog_entry_activate_h (MNMailboxPropertiesDialog * self, GtkEntry * entry)
-#line 1119 "mn-mailbox-properties-dialog.c"
+#line 1134 "mn-mailbox-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox:Properties:Dialog::entry_activate_h"
-#line 629 "mn-mailbox-properties-dialog.gob"
+#line 644 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 629 "mn-mailbox-properties-dialog.gob"
+#line 644 "mn-mailbox-properties-dialog.gob"
 	g_return_if_fail (MN_IS_MAILBOX_PROPERTIES_DIALOG (self));
-#line 1126 "mn-mailbox-properties-dialog.c"
+#line 1141 "mn-mailbox-properties-dialog.c"
 {
-#line 631 "mn-mailbox-properties-dialog.gob"
+#line 646 "mn-mailbox-properties-dialog.gob"
 	
     if (GTK_WIDGET_IS_SENSITIVE(GTK_WINDOW(self)->default_widget))
       gtk_window_activate_default(GTK_WINDOW(self));
@@ -1166,5 +1181,5 @@ mn_mailbox_properties_dialog_entry_activate_h (MNMailboxPropertiesDialog * self,
 	  gtk_widget_grab_focus(next);
       }
   }}
-#line 1170 "mn-mailbox-properties-dialog.c"
+#line 1185 "mn-mailbox-properties-dialog.c"
 #undef __GOB_FUNCTION__

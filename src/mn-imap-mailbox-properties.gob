@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -49,26 +49,20 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties
   property BOOLEAN complete (override)
     get
     {
-      MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
       gboolean complete;
-      const char *server;
-      gboolean other_active;
-      const char *mailbox;
 
-      mn_pi_mailbox_properties_get_contents(pi,
-					    NULL,
-					    NULL,
-					    &server,
-					    NULL);
-
-      other_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->other_radio));
-      mailbox = gtk_entry_get_text(GTK_ENTRY(selfp->mailbox_entry));
-
-      complete = *server && (! other_active || *mailbox);
-#if ! WITH_SSL
+      complete = mn_pi_mailbox_properties_is_complete(MN_PI_MAILBOX_PROPERTIES(self));
       if (complete)
-	complete = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL]));
-#endif /* WITH_SSL */
+	{
+	  gboolean other_active;
+	  const char *mailbox;
+
+	  other_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->other_radio));
+	  mailbox = gtk_entry_get_text(GTK_ENTRY(selfp->mailbox_entry));
+
+	  if (other_active && ! *mailbox)
+	    complete = FALSE;
+	}
 
       g_value_set_boolean(VAL, complete);
     };
@@ -118,12 +112,12 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties
     folder_vbox = mn_mailbox_properties_add_general_section(properties, _("IMAP Mailbox"));
 
     selfp->inbox_radio = gtk_radio_button_new_with_mnemonic(NULL, _("In_box"));
-    gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->label_size_group, selfp->inbox_radio);
+    gtk_size_group_add_widget(properties->label_size_group, selfp->inbox_radio);
 
     gtk_box_pack_start(GTK_BOX(folder_vbox), selfp->inbox_radio, FALSE, FALSE, 0);
 
     selfp->other_radio = gtk_radio_button_new_with_mnemonic_from_widget(GTK_RADIO_BUTTON(selfp->inbox_radio), _("_Other:"));
-    gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->label_size_group, selfp->other_radio);
+    gtk_size_group_add_widget(properties->label_size_group, selfp->other_radio);
 
     selfp->mailbox_entry = gtk_entry_new();
     gtk_widget_set_sensitive(selfp->mailbox_entry, FALSE);
@@ -139,7 +133,7 @@ class MN:IMAP:Mailbox:Properties from MN:PI:Mailbox:Properties
     gtk_box_pack_start(GTK_BOX(pi->connection_page), idle_section, FALSE, FALSE, 0);
     gtk_widget_show(idle_section);
 
-    self_add_idle_usage(self, GTK_BOX(idle_vbox), MN_IMAP_MAILBOX_USE_IDLE_NEVER, _("_Never"));
+    self_add_idle_usage(self, GTK_BOX(idle_vbox), MN_IMAP_MAILBOX_USE_IDLE_NEVER, Q_("IMAP connection tab|_Never"));
     self_add_idle_usage(self, GTK_BOX(idle_vbox), MN_IMAP_MAILBOX_USE_IDLE_AUTODETECT, _("A_utodetect"));
     self_add_idle_usage(self, GTK_BOX(idle_vbox), MN_IMAP_MAILBOX_USE_IDLE_ALWAYS, _("Al_ways"));
 

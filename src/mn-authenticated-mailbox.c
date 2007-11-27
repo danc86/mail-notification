@@ -22,13 +22,18 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 26 "mn-authenticated-mailbox.gob"
+#line 31 "mn-authenticated-mailbox.gob"
 
 #include "config.h"
+#include <glib/gi18n.h>
+#include <gnome.h>
+#include <eel/eel.h>
 #include "mn-mailbox-private.h"
+#include "mn-shell.h"
 #include "mn-util.h"
+#include "mn-keyring.h"
 
-#line 32 "mn-authenticated-mailbox.c"
+#line 37 "mn-authenticated-mailbox.c"
 /* self casting macros */
 #define SELF(x) MN_AUTHENTICATED_MAILBOX(x)
 #define SELF_CONST(x) MN_AUTHENTICATED_MAILBOX_CONST(x)
@@ -46,23 +51,53 @@ typedef MNAuthenticatedMailboxClass SelfClass;
 static void ___object_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void ___object_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void mn_authenticated_mailbox_init (MNAuthenticatedMailbox * o) G_GNUC_UNUSED;
-static void mn_authenticated_mailbox_class_init (MNAuthenticatedMailboxClass * c) G_GNUC_UNUSED;
-static void ___1_mn_authenticated_mailbox_check (MNMailbox * mailbox) G_GNUC_UNUSED;
+static void mn_authenticated_mailbox_class_init (MNAuthenticatedMailboxClass * class) G_GNUC_UNUSED;
+static void ___3_mn_authenticated_mailbox_seal (MNMailbox * mailbox) G_GNUC_UNUSED;
+static void ___4_mn_authenticated_mailbox_added (MNMailbox * mailbox) G_GNUC_UNUSED;
+static void ___5_mn_authenticated_mailbox_removed (MNMailbox * mailbox) G_GNUC_UNUSED;
+static void mn_authenticated_mailbox_set_password (MNAuthenticatedMailbox * self) G_GNUC_UNUSED;
+static void mn_authenticated_mailbox_set_password_cb (GnomeKeyringResult result, guint32 item_id, gpointer data) G_GNUC_UNUSED;
+static void mn_authenticated_mailbox_set_set_password_request (MNAuthenticatedMailbox * self, gpointer request) G_GNUC_UNUSED;
+static void ___9_mn_authenticated_mailbox_check (MNMailbox * mailbox) G_GNUC_UNUSED;
 static void mn_authenticated_mailbox_check_thread_cb (MNAuthenticatedMailbox * self) G_GNUC_UNUSED;
+static void ___real_mn_authenticated_mailbox_authenticated_check (MNAuthenticatedMailbox * self);
 static void mn_authenticated_mailbox_authenticated_check (MNAuthenticatedMailbox * self) G_GNUC_UNUSED;
+static char * mn_authenticated_mailbox_get_password_sync (MNAuthenticatedMailbox * self) G_GNUC_UNUSED;
+static void mn_authenticated_mailbox_get_password_sync_request_cb (gpointer request, gpointer data) G_GNUC_UNUSED;
+static gboolean mn_authenticated_mailbox_prompt_for_password (MNAuthenticatedMailbox * self, char ** password, const char * format, ...) G_GNUC_UNUSED;
+static void mn_authenticated_mailbox_set_prompted_password (MNAuthenticatedMailbox * self, const char * keyring, const char * password) G_GNUC_UNUSED;
+static void mn_authenticated_mailbox_set_prompted_password_request_cb (gpointer request, gpointer data) G_GNUC_UNUSED;
+static void mn_authenticated_mailbox_handle_set_password_result (MNAuthenticatedMailbox * self, GnomeKeyringResult result) G_GNUC_UNUSED;
+static void mn_authenticated_mailbox_delete_password (MNAuthenticatedMailbox * self, const char * keyring, guint32 item_id) G_GNUC_UNUSED;
 
 enum {
 	PROP_0,
 	PROP_USERNAME,
-	PROP_PASSWORD
+	PROP_PASSWORD,
+	PROP_SETTING_PASSWORD
 };
 
 /* pointer to the class of our parent */
 static MNMailboxClass *parent_class = NULL;
 
 /* Short form macros */
+#define self_get_setting_password mn_authenticated_mailbox_get_setting_password
+#define self_set_password mn_authenticated_mailbox_set_password
+#define self_set_password_cb mn_authenticated_mailbox_set_password_cb
+#define self_set_set_password_request mn_authenticated_mailbox_set_set_password_request
 #define self_check_thread_cb mn_authenticated_mailbox_check_thread_cb
 #define self_authenticated_check mn_authenticated_mailbox_authenticated_check
+#define self_parse_username mn_authenticated_mailbox_parse_username
+#define self_fill_password mn_authenticated_mailbox_fill_password
+#define self_get_password_sync mn_authenticated_mailbox_get_password_sync
+#define self_get_password_sync_request_cb mn_authenticated_mailbox_get_password_sync_request_cb
+#define self_auth_failed mn_authenticated_mailbox_auth_failed
+#define self_prompt_for_password mn_authenticated_mailbox_prompt_for_password
+#define self_set_prompted_password mn_authenticated_mailbox_set_prompted_password
+#define self_set_prompted_password_request_cb mn_authenticated_mailbox_set_prompted_password_request_cb
+#define self_handle_set_password_result mn_authenticated_mailbox_handle_set_password_result
+#define self_get_password mn_authenticated_mailbox_get_password
+#define self_delete_password mn_authenticated_mailbox_delete_password
 GType
 mn_authenticated_mailbox_get_type (void)
 {
@@ -114,12 +149,33 @@ ___finalize(GObject *obj_self)
 	gpointer priv G_GNUC_UNUSED = self->_priv;
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 34 "mn-authenticated-mailbox.gob"
+#line 44 "mn-authenticated-mailbox.gob"
 	if(self->username) { g_free ((gpointer) self->username); self->username = NULL; }
-#line 120 "mn-authenticated-mailbox.c"
-#line 37 "mn-authenticated-mailbox.gob"
+#line 155 "mn-authenticated-mailbox.c"
+#line 60 "mn-authenticated-mailbox.gob"
 	if(self->password) { g_free ((gpointer) self->password); self->password = NULL; }
-#line 123 "mn-authenticated-mailbox.c"
+#line 158 "mn-authenticated-mailbox.c"
+#line 64 "mn-authenticated-mailbox.gob"
+	if(self->keyring_username) { g_free ((gpointer) self->keyring_username); self->keyring_username = NULL; }
+#line 161 "mn-authenticated-mailbox.c"
+#line 65 "mn-authenticated-mailbox.gob"
+	if(self->keyring_domain) { g_free ((gpointer) self->keyring_domain); self->keyring_domain = NULL; }
+#line 164 "mn-authenticated-mailbox.c"
+#line 66 "mn-authenticated-mailbox.gob"
+	if(self->keyring_server) { g_free ((gpointer) self->keyring_server); self->keyring_server = NULL; }
+#line 167 "mn-authenticated-mailbox.c"
+#line 67 "mn-authenticated-mailbox.gob"
+	if(self->keyring_protocol) { g_free ((gpointer) self->keyring_protocol); self->keyring_protocol = NULL; }
+#line 170 "mn-authenticated-mailbox.c"
+#line 68 "mn-authenticated-mailbox.gob"
+	if(self->keyring_authtype) { g_free ((gpointer) self->keyring_authtype); self->keyring_authtype = NULL; }
+#line 173 "mn-authenticated-mailbox.c"
+#line 81 "mn-authenticated-mailbox.gob"
+	if(self->runtime_password) { g_free ((gpointer) self->runtime_password); self->runtime_password = NULL; }
+#line 176 "mn-authenticated-mailbox.c"
+#line 88 "mn-authenticated-mailbox.gob"
+	if(self->_priv->prompted_password_keyring) { g_free ((gpointer) self->_priv->prompted_password_keyring); self->_priv->prompted_password_keyring = NULL; }
+#line 179 "mn-authenticated-mailbox.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -130,21 +186,30 @@ mn_authenticated_mailbox_init (MNAuthenticatedMailbox * o G_GNUC_UNUSED)
 	o->_priv = G_TYPE_INSTANCE_GET_PRIVATE(o,MN_TYPE_AUTHENTICATED_MAILBOX,MNAuthenticatedMailboxPrivate);
 }
 #undef __GOB_FUNCTION__
+#line 91 "mn-authenticated-mailbox.gob"
 static void 
-mn_authenticated_mailbox_class_init (MNAuthenticatedMailboxClass * c G_GNUC_UNUSED)
+mn_authenticated_mailbox_class_init (MNAuthenticatedMailboxClass * class G_GNUC_UNUSED)
+#line 193 "mn-authenticated-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::class_init"
-	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) c;
-	MNMailboxClass *mn_mailbox_class = (MNMailboxClass *)c;
+	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
+	MNMailboxClass *mn_mailbox_class = (MNMailboxClass *)class;
 
-	g_type_class_add_private(c,sizeof(MNAuthenticatedMailboxPrivate));
+	g_type_class_add_private(class,sizeof(MNAuthenticatedMailboxPrivate));
 
 	parent_class = g_type_class_ref (MN_TYPE_MAILBOX);
 
-#line 42 "mn-authenticated-mailbox.gob"
-	mn_mailbox_class->check = ___1_mn_authenticated_mailbox_check;
-#line 147 "mn-authenticated-mailbox.c"
-	c->authenticated_check = NULL;
+#line 101 "mn-authenticated-mailbox.gob"
+	mn_mailbox_class->seal = ___3_mn_authenticated_mailbox_seal;
+#line 114 "mn-authenticated-mailbox.gob"
+	mn_mailbox_class->added = ___4_mn_authenticated_mailbox_added;
+#line 134 "mn-authenticated-mailbox.gob"
+	mn_mailbox_class->removed = ___5_mn_authenticated_mailbox_removed;
+#line 211 "mn-authenticated-mailbox.gob"
+	mn_mailbox_class->check = ___9_mn_authenticated_mailbox_check;
+#line 242 "mn-authenticated-mailbox.gob"
+	class->authenticated_check = ___real_mn_authenticated_mailbox_authenticated_check;
+#line 213 "mn-authenticated-mailbox.c"
 	g_object_class->finalize = ___finalize;
 	g_object_class->get_property = ___object_get_property;
 	g_object_class->set_property = ___object_set_property;
@@ -156,7 +221,7 @@ mn_authenticated_mailbox_class_init (MNAuthenticatedMailboxClass * c G_GNUC_UNUS
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_REQUIRED | MN_MAILBOX_PARAM_LOAD_SAVE));
 	g_object_class_install_property (g_object_class,
 		PROP_USERNAME,
 		param_spec);
@@ -165,11 +230,32 @@ mn_authenticated_mailbox_class_init (MNAuthenticatedMailboxClass * c G_GNUC_UNUS
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_LOAD));
 	g_object_class_install_property (g_object_class,
 		PROP_PASSWORD,
 		param_spec);
+	param_spec = g_param_spec_boolean
+		("setting_password" /* name */,
+		 NULL /* nick */,
+		 NULL /* blurb */,
+		 FALSE /* default_value */,
+		 (GParamFlags)(G_PARAM_READABLE));
+	g_object_class_install_property (g_object_class,
+		PROP_SETTING_PASSWORD,
+		param_spec);
     }
+ {
+#line 92 "mn-authenticated-mailbox.gob"
+
+    /*
+     * We might need to save the password to the keyring before the
+     * first check, so we will call mn_mailbox_enable_checking()
+     * ourselves.
+     */
+    MN_MAILBOX_CLASS(class)->enable_checking_when_added = FALSE;
+  
+#line 258 "mn-authenticated-mailbox.c"
+ }
 }
 #undef __GOB_FUNCTION__
 
@@ -187,16 +273,16 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_USERNAME:
 		{
-#line 35 "mn-authenticated-mailbox.gob"
+#line 45 "mn-authenticated-mailbox.gob"
 { char *old = self->username; self->username = g_value_dup_string (VAL); g_free (old); }
-#line 193 "mn-authenticated-mailbox.c"
+#line 279 "mn-authenticated-mailbox.c"
 		}
 		break;
 	case PROP_PASSWORD:
 		{
-#line 38 "mn-authenticated-mailbox.gob"
+#line 61 "mn-authenticated-mailbox.gob"
 { char *old = self->password; self->password = g_value_dup_string (VAL); g_free (old); }
-#line 200 "mn-authenticated-mailbox.c"
+#line 286 "mn-authenticated-mailbox.c"
 		}
 		break;
 	default:
@@ -225,16 +311,25 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_USERNAME:
 		{
-#line 35 "mn-authenticated-mailbox.gob"
+#line 45 "mn-authenticated-mailbox.gob"
 g_value_set_string (VAL, self->username);
-#line 231 "mn-authenticated-mailbox.c"
+#line 317 "mn-authenticated-mailbox.c"
 		}
 		break;
 	case PROP_PASSWORD:
 		{
-#line 38 "mn-authenticated-mailbox.gob"
+#line 61 "mn-authenticated-mailbox.gob"
 g_value_set_string (VAL, self->password);
-#line 238 "mn-authenticated-mailbox.c"
+#line 324 "mn-authenticated-mailbox.c"
+		}
+		break;
+	case PROP_SETTING_PASSWORD:
+		{
+#line 75 "mn-authenticated-mailbox.gob"
+
+      g_value_set_boolean(VAL, selfp->set_password_request != NULL);
+    
+#line 333 "mn-authenticated-mailbox.c"
 		}
 		break;
 	default:
@@ -250,18 +345,209 @@ g_value_set_string (VAL, self->password);
 #undef __GOB_FUNCTION__
 
 
+#line 75 "mn-authenticated-mailbox.gob"
+gboolean 
+mn_authenticated_mailbox_get_setting_password (MNAuthenticatedMailbox * self)
+#line 352 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::get_setting_password"
+{
+#line 74 "mn-authenticated-mailbox.gob"
+		gboolean val; g_object_get (G_OBJECT (self), "setting_password", &val, NULL); return val;
+}}
+#line 359 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
 
-#line 42 "mn-authenticated-mailbox.gob"
+
+#line 101 "mn-authenticated-mailbox.gob"
 static void 
-___1_mn_authenticated_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
-#line 258 "mn-authenticated-mailbox.c"
+___3_mn_authenticated_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
+#line 366 "mn-authenticated-mailbox.c"
+#define PARENT_HANDLER(___mailbox) \
+	{ if(MN_MAILBOX_CLASS(parent_class)->seal) \
+		(* MN_MAILBOX_CLASS(parent_class)->seal)(___mailbox); }
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::seal"
+{
+#line 103 "mn-authenticated-mailbox.gob"
+	
+    Self *self = SELF(mailbox);
+
+    PARENT_HANDLER(mailbox);
+
+    if (self->password)
+      mn_shell->mailboxes->must_save_after_load = TRUE;
+
+    self_parse_username(self, &self->keyring_username, &self->keyring_domain);
+  }}
+#line 384 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 114 "mn-authenticated-mailbox.gob"
+static void 
+___4_mn_authenticated_mailbox_added (MNMailbox * mailbox G_GNUC_UNUSED)
+#line 391 "mn-authenticated-mailbox.c"
+#define PARENT_HANDLER(___mailbox) \
+	{ if(MN_MAILBOX_CLASS(parent_class)->added) \
+		(* MN_MAILBOX_CLASS(parent_class)->added)(___mailbox); }
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::added"
+{
+#line 116 "mn-authenticated-mailbox.gob"
+	
+    Self *self = SELF(mailbox);
+
+    PARENT_HANDLER(mailbox);
+
+    /*
+     * If self->password is set, the password must be saved to the
+     * keyring (either because the user has just added the mailbox or
+     * because a mailboxes.xml produced by an older version of MN was
+     * loaded). Checking will be enabled after the password has been
+     * saved. Otherwise we must enable checking immediately.
+     */
+    if (self->password)
+      self_set_password(self);
+    else
+      mn_mailbox_enable_checking(mailbox);
+  }}
+#line 416 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 134 "mn-authenticated-mailbox.gob"
+static void 
+___5_mn_authenticated_mailbox_removed (MNMailbox * mailbox G_GNUC_UNUSED)
+#line 423 "mn-authenticated-mailbox.c"
+#define PARENT_HANDLER(___mailbox) \
+	{ if(MN_MAILBOX_CLASS(parent_class)->removed) \
+		(* MN_MAILBOX_CLASS(parent_class)->removed)(___mailbox); }
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::removed"
+{
+#line 136 "mn-authenticated-mailbox.gob"
+	
+    Self *self = SELF(mailbox);
+
+    PARENT_HANDLER(mailbox);
+
+    if (selfp->auth_dialog)
+      gtk_dialog_response(GTK_DIALOG(selfp->auth_dialog), GTK_RESPONSE_CANCEL);
+
+    if (selfp->get_password_request)
+      gnome_keyring_cancel_request(selfp->get_password_request);
+
+    if (selfp->set_password_request)
+      gnome_keyring_cancel_request(selfp->set_password_request);
+
+    /*
+     * We do not remove the password from the keyring, since it is
+     * meant to be shared with other applications
+     */
+  }}
+#line 450 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 156 "mn-authenticated-mailbox.gob"
+static void 
+mn_authenticated_mailbox_set_password (MNAuthenticatedMailbox * self)
+#line 457 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::set_password"
+#line 156 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 156 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self));
+#line 464 "mn-authenticated-mailbox.c"
+{
+#line 158 "mn-authenticated-mailbox.gob"
+	
+    g_assert(self->password != NULL);
+    g_assert(selfp->set_password_request == NULL);
+
+    g_object_ref(self);
+    self_set_set_password_request(self,
+				  gnome_keyring_set_network_password(NULL,
+								     self->keyring_username,
+								     self->keyring_domain,
+								     self->keyring_server,
+								     NULL,
+								     self->keyring_protocol,
+								     self->keyring_authtype,
+								     self->keyring_port,
+								     self->password,
+								     self_set_password_cb,
+								     self,
+								     g_object_unref));
+  }}
+#line 486 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 178 "mn-authenticated-mailbox.gob"
+static void 
+mn_authenticated_mailbox_set_password_cb (GnomeKeyringResult result, guint32 item_id, gpointer data)
+#line 492 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::set_password_cb"
+{
+#line 182 "mn-authenticated-mailbox.gob"
+	
+    Self *self = data;
+
+    GDK_THREADS_ENTER();
+
+    self_set_set_password_request(self, NULL);
+
+    /*
+     * If the mailbox has not been removed, display an error dialog if
+     * the password could not be saved and enable checking.
+     */
+    if (mn_mailbox_get_active(MN_MAILBOX(self)))
+      {
+	self_handle_set_password_result(self, result);
+
+	mn_mailbox_enable_checking(MN_MAILBOX(self));
+      }
+
+    /* do not call gdk_flush(), we're normally in the main thread */
+    GDK_THREADS_LEAVE();
+  }}
+#line 518 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 204 "mn-authenticated-mailbox.gob"
+static void 
+mn_authenticated_mailbox_set_set_password_request (MNAuthenticatedMailbox * self, gpointer request)
+#line 524 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::set_set_password_request"
+#line 204 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 204 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self));
+#line 531 "mn-authenticated-mailbox.c"
+{
+#line 206 "mn-authenticated-mailbox.gob"
+	
+    selfp->set_password_request = request;
+    g_object_notify(G_OBJECT(self), "setting-password");
+  }}
+#line 538 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 211 "mn-authenticated-mailbox.gob"
+static void 
+___9_mn_authenticated_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
+#line 544 "mn-authenticated-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_MAILBOX_CLASS(parent_class)->check) \
 		(* MN_MAILBOX_CLASS(parent_class)->check)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::check"
 {
-#line 44 "mn-authenticated-mailbox.gob"
+#line 213 "mn-authenticated-mailbox.gob"
 	
     Self *self = SELF(mailbox);
 
@@ -276,23 +562,23 @@ ___1_mn_authenticated_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
     g_object_ref(self);
     mn_thread_create((GThreadFunc) self_check_thread_cb, self);
   }}
-#line 280 "mn-authenticated-mailbox.c"
+#line 566 "mn-authenticated-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 59 "mn-authenticated-mailbox.gob"
+#line 228 "mn-authenticated-mailbox.gob"
 static void 
 mn_authenticated_mailbox_check_thread_cb (MNAuthenticatedMailbox * self)
-#line 287 "mn-authenticated-mailbox.c"
+#line 573 "mn-authenticated-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::check_thread_cb"
-#line 59 "mn-authenticated-mailbox.gob"
+#line 228 "mn-authenticated-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 59 "mn-authenticated-mailbox.gob"
+#line 228 "mn-authenticated-mailbox.gob"
 	g_return_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self));
-#line 294 "mn-authenticated-mailbox.c"
+#line 580 "mn-authenticated-mailbox.c"
 {
-#line 61 "mn-authenticated-mailbox.gob"
+#line 230 "mn-authenticated-mailbox.gob"
 	
     self_authenticated_check(self);
 
@@ -304,22 +590,431 @@ mn_authenticated_mailbox_check_thread_cb (MNAuthenticatedMailbox * self)
     gdk_flush();
     GDK_THREADS_LEAVE();
   }}
-#line 308 "mn-authenticated-mailbox.c"
+#line 594 "mn-authenticated-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 73 "mn-authenticated-mailbox.gob"
+#line 242 "mn-authenticated-mailbox.gob"
 static void 
 mn_authenticated_mailbox_authenticated_check (MNAuthenticatedMailbox * self)
-#line 314 "mn-authenticated-mailbox.c"
+#line 600 "mn-authenticated-mailbox.c"
 {
 	MNAuthenticatedMailboxClass *klass;
-#line 73 "mn-authenticated-mailbox.gob"
+#line 242 "mn-authenticated-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 73 "mn-authenticated-mailbox.gob"
+#line 242 "mn-authenticated-mailbox.gob"
 	g_return_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self));
-#line 321 "mn-authenticated-mailbox.c"
+#line 607 "mn-authenticated-mailbox.c"
 	klass = MN_AUTHENTICATED_MAILBOX_GET_CLASS(self);
 
 	if(klass->authenticated_check)
 		(*klass->authenticated_check)(self);
 }
+#line 242 "mn-authenticated-mailbox.gob"
+static void 
+___real_mn_authenticated_mailbox_authenticated_check (MNAuthenticatedMailbox * self G_GNUC_UNUSED)
+#line 616 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::authenticated_check"
+{
+#line 244 "mn-authenticated-mailbox.gob"
+	
+    self->auth_prompted = FALSE;
+    self->auth_cancelled = FALSE;
+    self->auth_failed = FALSE;
+
+    g_free(selfp->prompted_password_keyring);
+    selfp->prompted_password_keyring = NULL;
+
+    selfp->prompted_password_item_id = 0;
+  }}
+#line 631 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 255 "mn-authenticated-mailbox.gob"
+void 
+mn_authenticated_mailbox_parse_username (MNAuthenticatedMailbox * self, char ** username, char ** domain)
+#line 637 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::parse_username"
+#line 255 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 255 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self));
+#line 644 "mn-authenticated-mailbox.c"
+{
+#line 257 "mn-authenticated-mailbox.gob"
+	
+    char *at;
+
+    at = strrchr(self->username, '@');
+    if (at)
+      {
+	if (username)
+	  *username = g_strndup(self->username, at - self->username);
+	if (domain)
+	  *domain = g_strdup(at + 1);
+      }
+    else
+      {
+	if (username)
+	  *username = g_strdup(self->username);
+	if (domain)
+	  *domain = NULL;
+      }
+  }}
+#line 666 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 282 "mn-authenticated-mailbox.gob"
+gboolean 
+mn_authenticated_mailbox_fill_password (MNAuthenticatedMailbox * self, gboolean may_prompt)
+#line 672 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::fill_password"
+#line 282 "mn-authenticated-mailbox.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 282 "mn-authenticated-mailbox.gob"
+	g_return_val_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self), (gboolean )0);
+#line 679 "mn-authenticated-mailbox.c"
+{
+#line 284 "mn-authenticated-mailbox.gob"
+	
+    self->auth_cancelled = FALSE;
+
+    g_free(self->runtime_password);
+    self->runtime_password = self_get_password_sync(self);
+
+    /*
+     * Check if the user removed the mailbox while we were waiting for
+     * the keyring password.
+     */
+    if (! mn_mailbox_get_active(MN_MAILBOX(self)))
+      {
+	self->auth_cancelled = TRUE;
+	return FALSE;
+      }
+
+    if (! self->runtime_password && may_prompt)
+      {
+	GDK_THREADS_ENTER();
+
+	self->auth_prompted = TRUE;
+
+	if (! self_prompt_for_password(self,
+				       &self->runtime_password,
+				       self->auth_failed
+				       /* translators: the first %s is the mailbox format (eg: IMAP) and the second %s is the mailbox name (eg: john@imapserver.org) */
+				       ? _("Mail Notification was unable to log into %s mailbox %s, possibly because the password you have entered is invalid.\n\nPlease re-enter your password.")
+				       /* translators: the first %s is the mailbox format (eg: IMAP) and the second %s is the mailbox name (eg: john@imapserver.org) */
+				       : _("Enter your password for %s mailbox %s."),
+				       MN_MAILBOX(self)->format,
+				       MN_MAILBOX(self)->runtime_name))
+	  self->auth_cancelled = TRUE;
+
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+      }
+
+    return ! self->auth_cancelled;
+  }}
+#line 721 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 324 "mn-authenticated-mailbox.gob"
+static char * 
+mn_authenticated_mailbox_get_password_sync (MNAuthenticatedMailbox * self)
+#line 727 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::get_password_sync"
+#line 324 "mn-authenticated-mailbox.gob"
+	g_return_val_if_fail (self != NULL, (char * )0);
+#line 324 "mn-authenticated-mailbox.gob"
+	g_return_val_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self), (char * )0);
+#line 734 "mn-authenticated-mailbox.c"
+{
+#line 326 "mn-authenticated-mailbox.gob"
+	
+    return mn_keyring_get_password_sync(self->keyring_username,
+					self->keyring_domain,
+					self->keyring_server,
+					self->keyring_protocol,
+					self->keyring_authtype,
+					self->keyring_port,
+					self_get_password_sync_request_cb,
+					self);
+  }}
+#line 747 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 337 "mn-authenticated-mailbox.gob"
+static void 
+mn_authenticated_mailbox_get_password_sync_request_cb (gpointer request, gpointer data)
+#line 753 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::get_password_sync_request_cb"
+{
+#line 339 "mn-authenticated-mailbox.gob"
+	
+    Self *self = data;
+
+    selfp->get_password_request = request;
+  }}
+#line 763 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 345 "mn-authenticated-mailbox.gob"
+void 
+mn_authenticated_mailbox_auth_failed (MNAuthenticatedMailbox * self)
+#line 769 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::auth_failed"
+#line 345 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 345 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self));
+#line 776 "mn-authenticated-mailbox.c"
+{
+#line 347 "mn-authenticated-mailbox.gob"
+	
+    /*
+     * If the password had been entered at the password prompt, we
+     * must remove it from the keyring since the authentication has
+     * failed.
+     */
+    if (self->auth_prompted && selfp->prompted_password_item_id)
+      {
+	self_delete_password(self,
+			     selfp->prompted_password_keyring,
+			     selfp->prompted_password_item_id);
+
+	g_free(selfp->prompted_password_keyring);
+	selfp->prompted_password_keyring = NULL;
+
+	selfp->prompted_password_item_id = 0;
+      }
+
+    self->auth_failed = TRUE;
+  }}
+#line 799 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 368 "mn-authenticated-mailbox.gob"
+static gboolean 
+mn_authenticated_mailbox_prompt_for_password (MNAuthenticatedMailbox * self, char ** password, const char * format, ...)
+#line 805 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::prompt_for_password"
+#line 368 "mn-authenticated-mailbox.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 368 "mn-authenticated-mailbox.gob"
+	g_return_val_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self), (gboolean )0);
+#line 368 "mn-authenticated-mailbox.gob"
+	g_return_val_if_fail (password != NULL, (gboolean )0);
+#line 368 "mn-authenticated-mailbox.gob"
+	g_return_val_if_fail (format != NULL, (gboolean )0);
+#line 816 "mn-authenticated-mailbox.c"
+{
+#line 372 "mn-authenticated-mailbox.gob"
+	
+    va_list args;
+    char *message;
+    gboolean ok;
+
+    g_return_val_if_fail(selfp->auth_dialog == NULL, FALSE);
+
+    va_start(args, format);
+    message = g_strdup_vprintf(format, args);
+    va_end(args);
+
+    /* keep the title in sync with gnome-authentication-manager */
+
+    /* translators: header capitalization */
+    selfp->auth_dialog = gnome_password_dialog_new(_("Authentication Required"),
+						   message,
+						   self->username,
+						   NULL,
+						   FALSE);
+    g_free(message);
+
+    eel_add_weak_pointer(&selfp->auth_dialog);
+
+    gnome_password_dialog_set_show_userpass_buttons(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), FALSE);
+    gnome_password_dialog_set_readonly_username(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), TRUE);
+    gnome_password_dialog_set_show_remember(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), TRUE);
+    gnome_password_dialog_set_remember(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), GNOME_PASSWORD_DIALOG_REMEMBER_SESSION);
+
+    ok = gnome_password_dialog_run_and_block(GNOME_PASSWORD_DIALOG(selfp->auth_dialog));
+    if (ok)
+      {
+	GnomePasswordDialogRemember remember;
+
+	*password = gnome_password_dialog_get_password(GNOME_PASSWORD_DIALOG(selfp->auth_dialog));
+
+	remember = gnome_password_dialog_get_remember(GNOME_PASSWORD_DIALOG(selfp->auth_dialog));
+	if (remember == GNOME_PASSWORD_DIALOG_REMEMBER_SESSION)
+	  self_set_prompted_password(self, "session", *password);
+	else if (remember == GNOME_PASSWORD_DIALOG_REMEMBER_FOREVER)
+	  self_set_prompted_password(self, NULL, *password);
+      }
+
+    gtk_widget_destroy(selfp->auth_dialog);
+
+    return ok;
+  }}
+#line 865 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 419 "mn-authenticated-mailbox.gob"
+static void 
+mn_authenticated_mailbox_set_prompted_password (MNAuthenticatedMailbox * self, const char * keyring, const char * password)
+#line 871 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::set_prompted_password"
+#line 419 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 419 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self));
+#line 419 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (password != NULL);
+#line 880 "mn-authenticated-mailbox.c"
+{
+#line 423 "mn-authenticated-mailbox.gob"
+	
+    GnomeKeyringResult result;
+
+    /* do not block the main loop */
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+
+    g_free(selfp->prompted_password_keyring);
+    selfp->prompted_password_keyring = g_strdup(keyring);
+
+    result = mn_keyring_set_password_sync(keyring,
+					  self->keyring_username,
+					  self->keyring_domain,
+					  self->keyring_server,
+					  self->keyring_protocol,
+					  self->keyring_authtype,
+					  self->keyring_port,
+					  password,
+					  &selfp->prompted_password_item_id,
+					  self_set_prompted_password_request_cb,
+					  self);
+
+    GDK_THREADS_ENTER();
+
+    self_handle_set_password_result(self, result);
+  }}
+#line 909 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 450 "mn-authenticated-mailbox.gob"
+static void 
+mn_authenticated_mailbox_set_prompted_password_request_cb (gpointer request, gpointer data)
+#line 915 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::set_prompted_password_request_cb"
+{
+#line 452 "mn-authenticated-mailbox.gob"
+	
+    Self *self = data;
+
+    GDK_THREADS_ENTER();
+
+    self_set_set_password_request(self, request);
+
+    /* do not call gdk_flush(), we're normally in the main thread */
+    GDK_THREADS_LEAVE();
+  }}
+#line 930 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 463 "mn-authenticated-mailbox.gob"
+static void 
+mn_authenticated_mailbox_handle_set_password_result (MNAuthenticatedMailbox * self, GnomeKeyringResult result)
+#line 936 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::handle_set_password_result"
+#line 463 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 463 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self));
+#line 943 "mn-authenticated-mailbox.c"
+{
+#line 465 "mn-authenticated-mailbox.gob"
+	
+    if (result != GNOME_KEYRING_RESULT_OK && result != GNOME_KEYRING_RESULT_CANCELLED)
+      mn_error_dialog(NULL,
+		      _("Unable to save the mailbox password"),
+		      /* translators: the first %s is the mailbox format (eg: IMAP) and the second %s is the mailbox name (eg: john@imapserver.org) */
+		      _("The password of %s mailbox %s could not be saved to the keyring."),
+		      MN_MAILBOX(self)->format,
+		      MN_MAILBOX(self)->runtime_name);
+  }}
+#line 955 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 475 "mn-authenticated-mailbox.gob"
+gpointer 
+mn_authenticated_mailbox_get_password (MNAuthenticatedMailbox * self, GnomeKeyringOperationGetListCallback cb, gpointer data)
+#line 961 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::get_password"
+#line 475 "mn-authenticated-mailbox.gob"
+	g_return_val_if_fail (self != NULL, (gpointer )0);
+#line 475 "mn-authenticated-mailbox.gob"
+	g_return_val_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self), (gpointer )0);
+#line 968 "mn-authenticated-mailbox.c"
+{
+#line 479 "mn-authenticated-mailbox.gob"
+	
+    return gnome_keyring_find_network_password(self->keyring_username,
+					       self->keyring_domain,
+					       self->keyring_server,
+					       NULL,
+					       self->keyring_protocol,
+					       self->keyring_authtype,
+					       self->keyring_port,
+					       cb,
+					       data,
+					       NULL);
+  }}
+#line 983 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 492 "mn-authenticated-mailbox.gob"
+static void 
+mn_authenticated_mailbox_delete_password (MNAuthenticatedMailbox * self, const char * keyring, guint32 item_id)
+#line 989 "mn-authenticated-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Authenticated:Mailbox::delete_password"
+#line 492 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 492 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (MN_IS_AUTHENTICATED_MAILBOX (self));
+#line 492 "mn-authenticated-mailbox.gob"
+	g_return_if_fail (item_id != 0);
+#line 998 "mn-authenticated-mailbox.c"
+{
+#line 496 "mn-authenticated-mailbox.gob"
+	
+    char *default_keyring = NULL;
+
+    if (keyring == NULL)
+      {
+	/*
+	 * gnome_keyring_item_delete_sync() does not work if the
+	 * passed keyring is NULL, so we must get the default keyring.
+	 */
+	if (gnome_keyring_get_default_keyring_sync(&default_keyring) != GNOME_KEYRING_RESULT_OK)
+	  return;
+
+	keyring = default_keyring;
+      }
+
+    gnome_keyring_item_delete_sync(keyring, item_id);
+
+    g_free(default_keyring);
+  }}
+#line 1020 "mn-authenticated-mailbox.c"
+#undef __GOB_FUNCTION__

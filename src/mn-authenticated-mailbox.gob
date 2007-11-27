@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -20,24 +20,193 @@
 requires 2.0.14
 
 %headertop{
+#include <gnome-keyring.h>
 #include "mn-mailbox.h"
+%}
+
+%privateheader{
+#include <gtk/gtk.h>
 %}
 
 %{
 #include "config.h"
+#include <glib/gi18n.h>
+#include <gnome.h>
+#include <eel/eel.h>
 #include "mn-mailbox-private.h"
+#include "mn-shell.h"
 #include "mn-util.h"
+#include "mn-keyring.h"
 %}
 
 class MN:Authenticated:Mailbox from MN:Mailbox (abstract)
 {
   public char *username destroywith g_free;
-  property STRING username (link, flags = MN_MAILBOX_PARAM_PERMANENT);
+  property STRING username (link, flags = MN_MAILBOX_PARAM_LOAD_SAVE | MN_MAILBOX_PARAM_REQUIRED);
 
+  /*
+   * Set when:
+   *
+   *   - the password is loaded from a mailboxes.xml file produced by
+   *     an older version of MN
+   *   - a mailbox has just been created by the properties dialog
+   *     (where the user has entered a password)
+   *
+   * When the password is set here, it is automatically saved to the
+   * keyring in added(). Is is otherwise unused (when getting the
+   * password, this field is not consulted, the keyring is used
+   * instead).
+   */
   public char *password destroywith g_free;
-  property STRING password (link, flags = MN_MAILBOX_PARAM_PERMANENT);
+  property STRING password (link, flags = MN_MAILBOX_PARAM_LOAD);
+
+  /* last moment for subclasses to set these attributes is during seal() */
+  protected char *keyring_username destroywith g_free;
+  protected char *keyring_domain destroywith g_free;
+  protected char *keyring_server destroywith g_free;
+  protected char *keyring_protocol destroywith g_free;
+  protected char *keyring_authtype destroywith g_free;
+  protected int keyring_port;
+
+  private gpointer get_password_request;
+  private gpointer set_password_request;
+
+  property BOOLEAN setting_password (export)
+    get {
+      g_value_set_boolean(VAL, selfp->set_password_request != NULL);
+    };
 
   private gboolean checking;
+
+  public char *runtime_password destroywith g_free;
+
+  private GtkWidget *auth_dialog;
+  protected gboolean auth_prompted;
+  protected gboolean auth_cancelled; /* user pressed Cancel or mailbox removed */
+  protected gboolean auth_failed;
+
+  private char *prompted_password_keyring destroywith g_free;
+  private guint32 prompted_password_item_id;
+
+  class_init (class)
+  {
+    /*
+     * We might need to save the password to the keyring before the
+     * first check, so we will call mn_mailbox_enable_checking()
+     * ourselves.
+     */
+    MN_MAILBOX_CLASS(class)->enable_checking_when_added = FALSE;
+  }
+
+  override (MN:Mailbox) void
+    seal (MNMailbox *mailbox)
+  {
+    Self *self = SELF(mailbox);
+
+    PARENT_HANDLER(mailbox);
+
+    if (self->password)
+      mn_shell->mailboxes->must_save_after_load = TRUE;
+
+    self_parse_username(self, &self->keyring_username, &self->keyring_domain);
+  }
+
+  override (MN:Mailbox) void
+    added (MNMailbox *mailbox)
+  {
+    Self *self = SELF(mailbox);
+
+    PARENT_HANDLER(mailbox);
+
+    /*
+     * If self->password is set, the password must be saved to the
+     * keyring (either because the user has just added the mailbox or
+     * because a mailboxes.xml produced by an older version of MN was
+     * loaded). Checking will be enabled after the password has been
+     * saved. Otherwise we must enable checking immediately.
+     */
+    if (self->password)
+      self_set_password(self);
+    else
+      mn_mailbox_enable_checking(mailbox);
+  }
+
+  override (MN:Mailbox) void
+    removed (MNMailbox *mailbox)
+  {
+    Self *self = SELF(mailbox);
+
+    PARENT_HANDLER(mailbox);
+
+    if (selfp->auth_dialog)
+      gtk_dialog_response(GTK_DIALOG(selfp->auth_dialog), GTK_RESPONSE_CANCEL);
+
+    if (selfp->get_password_request)
+      gnome_keyring_cancel_request(selfp->get_password_request);
+
+    if (selfp->set_password_request)
+      gnome_keyring_cancel_request(selfp->set_password_request);
+
+    /*
+     * We do not remove the password from the keyring, since it is
+     * meant to be shared with other applications
+     */
+  }
+
+  private void
+    set_password (self)
+  {
+    g_assert(self->password != NULL);
+    g_assert(selfp->set_password_request == NULL);
+
+    g_object_ref(self);
+    self_set_set_password_request(self,
+				  gnome_keyring_set_network_password(NULL,
+								     self->keyring_username,
+								     self->keyring_domain,
+								     self->keyring_server,
+								     NULL,
+								     self->keyring_protocol,
+								     self->keyring_authtype,
+								     self->keyring_port,
+								     self->password,
+								     self_set_password_cb,
+								     self,
+								     g_object_unref));
+  }
+
+  private void
+    set_password_cb (GnomeKeyringResult result,
+		     guint32 item_id,
+		     gpointer data)
+  {
+    Self *self = data;
+
+    GDK_THREADS_ENTER();
+
+    self_set_set_password_request(self, NULL);
+
+    /*
+     * If the mailbox has not been removed, display an error dialog if
+     * the password could not be saved and enable checking.
+     */
+    if (mn_mailbox_get_active(MN_MAILBOX(self)))
+      {
+	self_handle_set_password_result(self, result);
+
+	mn_mailbox_enable_checking(MN_MAILBOX(self));
+      }
+
+    /* do not call gdk_flush(), we're normally in the main thread */
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    set_set_password_request (self, gpointer request)
+  {
+    selfp->set_password_request = request;
+    g_object_notify(G_OBJECT(self), "setting-password");
+  }
 
   override (MN:Mailbox) void
     check (MNMailbox *mailbox)
@@ -71,5 +240,276 @@ class MN:Authenticated:Mailbox from MN:Mailbox (abstract)
   }
 
   virtual private void
-    authenticated_check (self);
+    authenticated_check (self)
+  {
+    self->auth_prompted = FALSE;
+    self->auth_cancelled = FALSE;
+    self->auth_failed = FALSE;
+
+    g_free(selfp->prompted_password_keyring);
+    selfp->prompted_password_keyring = NULL;
+
+    selfp->prompted_password_item_id = 0;
+  }
+
+  protected void
+    parse_username (self, char **username, char **domain)
+  {
+    char *at;
+
+    at = strrchr(self->username, '@');
+    if (at)
+      {
+	if (username)
+	  *username = g_strndup(self->username, at - self->username);
+	if (domain)
+	  *domain = g_strdup(at + 1);
+      }
+    else
+      {
+	if (username)
+	  *username = g_strdup(self->username);
+	if (domain)
+	  *domain = NULL;
+      }
+  }
+
+  /*
+   * Returns FALSE if the authentication was cancelled (either because
+   * the user pressed Cancel in the password prompt dialog or because
+   * the mailbox was removed).
+   */
+  protected gboolean
+    fill_password (self, gboolean may_prompt)
+  {
+    self->auth_cancelled = FALSE;
+
+    g_free(self->runtime_password);
+    self->runtime_password = self_get_password_sync(self);
+
+    /*
+     * Check if the user removed the mailbox while we were waiting for
+     * the keyring password.
+     */
+    if (! mn_mailbox_get_active(MN_MAILBOX(self)))
+      {
+	self->auth_cancelled = TRUE;
+	return FALSE;
+      }
+
+    if (! self->runtime_password && may_prompt)
+      {
+	GDK_THREADS_ENTER();
+
+	self->auth_prompted = TRUE;
+
+	if (! self_prompt_for_password(self,
+				       &self->runtime_password,
+				       self->auth_failed
+				       /* translators: the first %s is the mailbox format (eg: IMAP) and the second %s is the mailbox name (eg: john@imapserver.org) */
+				       ? _("Mail Notification was unable to log into %s mailbox %s, possibly because the password you have entered is invalid.\n\nPlease re-enter your password.")
+				       /* translators: the first %s is the mailbox format (eg: IMAP) and the second %s is the mailbox name (eg: john@imapserver.org) */
+				       : _("Enter your password for %s mailbox %s."),
+				       MN_MAILBOX(self)->format,
+				       MN_MAILBOX(self)->runtime_name))
+	  self->auth_cancelled = TRUE;
+
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+      }
+
+    return ! self->auth_cancelled;
+  }
+
+  private char *
+    get_password_sync (self)
+  {
+    return mn_keyring_get_password_sync(self->keyring_username,
+					self->keyring_domain,
+					self->keyring_server,
+					self->keyring_protocol,
+					self->keyring_authtype,
+					self->keyring_port,
+					self_get_password_sync_request_cb,
+					self);
+  }
+
+  private void
+    get_password_sync_request_cb (gpointer request, gpointer data)
+  {
+    Self *self = data;
+
+    selfp->get_password_request = request;
+  }
+
+  protected void
+    auth_failed (self)
+  {
+    /*
+     * If the password had been entered at the password prompt, we
+     * must remove it from the keyring since the authentication has
+     * failed.
+     */
+    if (self->auth_prompted && selfp->prompted_password_item_id)
+      {
+	self_delete_password(self,
+			     selfp->prompted_password_keyring,
+			     selfp->prompted_password_item_id);
+
+	g_free(selfp->prompted_password_keyring);
+	selfp->prompted_password_keyring = NULL;
+
+	selfp->prompted_password_item_id = 0;
+      }
+
+    self->auth_failed = TRUE;
+  }
+
+  private gboolean
+    prompt_for_password (self,
+			 char **password (check null),
+			 const char *format (check null), ...)
+  {
+    va_list args;
+    char *message;
+    gboolean ok;
+
+    g_return_val_if_fail(selfp->auth_dialog == NULL, FALSE);
+
+    va_start(args, format);
+    message = g_strdup_vprintf(format, args);
+    va_end(args);
+
+    /* keep the title in sync with gnome-authentication-manager */
+
+    /* translators: header capitalization */
+    selfp->auth_dialog = gnome_password_dialog_new(_("Authentication Required"),
+						   message,
+						   self->username,
+						   NULL,
+						   FALSE);
+    g_free(message);
+
+    eel_add_weak_pointer(&selfp->auth_dialog);
+
+    gnome_password_dialog_set_show_userpass_buttons(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), FALSE);
+    gnome_password_dialog_set_readonly_username(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), TRUE);
+    gnome_password_dialog_set_show_remember(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), TRUE);
+    gnome_password_dialog_set_remember(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), GNOME_PASSWORD_DIALOG_REMEMBER_SESSION);
+
+    ok = gnome_password_dialog_run_and_block(GNOME_PASSWORD_DIALOG(selfp->auth_dialog));
+    if (ok)
+      {
+	GnomePasswordDialogRemember remember;
+
+	*password = gnome_password_dialog_get_password(GNOME_PASSWORD_DIALOG(selfp->auth_dialog));
+
+	remember = gnome_password_dialog_get_remember(GNOME_PASSWORD_DIALOG(selfp->auth_dialog));
+	if (remember == GNOME_PASSWORD_DIALOG_REMEMBER_SESSION)
+	  self_set_prompted_password(self, "session", *password);
+	else if (remember == GNOME_PASSWORD_DIALOG_REMEMBER_FOREVER)
+	  self_set_prompted_password(self, NULL, *password);
+      }
+
+    gtk_widget_destroy(selfp->auth_dialog);
+
+    return ok;
+  }
+
+  private void
+    set_prompted_password (self,
+			   const char *keyring,
+			   const char *password (check null))
+  {
+    GnomeKeyringResult result;
+
+    /* do not block the main loop */
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+
+    g_free(selfp->prompted_password_keyring);
+    selfp->prompted_password_keyring = g_strdup(keyring);
+
+    result = mn_keyring_set_password_sync(keyring,
+					  self->keyring_username,
+					  self->keyring_domain,
+					  self->keyring_server,
+					  self->keyring_protocol,
+					  self->keyring_authtype,
+					  self->keyring_port,
+					  password,
+					  &selfp->prompted_password_item_id,
+					  self_set_prompted_password_request_cb,
+					  self);
+
+    GDK_THREADS_ENTER();
+
+    self_handle_set_password_result(self, result);
+  }
+
+  private void
+    set_prompted_password_request_cb (gpointer request, gpointer data)
+  {
+    Self *self = data;
+
+    GDK_THREADS_ENTER();
+
+    self_set_set_password_request(self, request);
+
+    /* do not call gdk_flush(), we're normally in the main thread */
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    handle_set_password_result (self, GnomeKeyringResult result)
+  {
+    if (result != GNOME_KEYRING_RESULT_OK && result != GNOME_KEYRING_RESULT_CANCELLED)
+      mn_error_dialog(NULL,
+		      _("Unable to save the mailbox password"),
+		      /* translators: the first %s is the mailbox format (eg: IMAP) and the second %s is the mailbox name (eg: john@imapserver.org) */
+		      _("The password of %s mailbox %s could not be saved to the keyring."),
+		      MN_MAILBOX(self)->format,
+		      MN_MAILBOX(self)->runtime_name);
+  }
+
+  public gpointer
+    get_password (self,
+		  GnomeKeyringOperationGetListCallback cb,
+		  gpointer data)
+  {
+    return gnome_keyring_find_network_password(self->keyring_username,
+					       self->keyring_domain,
+					       self->keyring_server,
+					       NULL,
+					       self->keyring_protocol,
+					       self->keyring_authtype,
+					       self->keyring_port,
+					       cb,
+					       data,
+					       NULL);
+  }
+
+  private void
+    delete_password (self,
+		     const char *keyring,
+		     guint32 item_id (check != 0))
+  {
+    char *default_keyring = NULL;
+
+    if (keyring == NULL)
+      {
+	/*
+	 * gnome_keyring_item_delete_sync() does not work if the
+	 * passed keyring is NULL, so we must get the default keyring.
+	 */
+	if (gnome_keyring_get_default_keyring_sync(&default_keyring) != GNOME_KEYRING_RESULT_OK)
+	  return;
+
+	keyring = default_keyring;
+      }
+
+    gnome_keyring_item_delete_sync(keyring, item_id);
+
+    g_free(default_keyring);
+  }
 }

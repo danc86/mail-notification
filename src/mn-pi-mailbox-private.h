@@ -16,25 +16,23 @@ extern "C" {
 #include "mn-client-session.h"
 
 #define MN_PI_MAILBOX_SESSION_PRIVATE \
-  MNMailbox		*mailbox;	\
-  MNPIMailbox		*pi_mailbox;	\
-  MNClientSession	*session
+  MNMailbox			*mailbox;	\
+  MNAuthenticatedMailbox	*auth_mailbox;	\
+  MNPIMailbox			*pi_mailbox;	\
+  MNClientSession		*session
 
-#line 24 "mn-pi-mailbox-private.h"
+#line 25 "mn-pi-mailbox-private.h"
 struct _MNPIMailboxPrivate {
-#line 93 "mn-pi-mailbox.gob"
-	GtkWidget * auth_dialog;
-#line 96 "mn-pi-mailbox.gob"
-	gboolean auth_failed;
-#line 30 "mn-pi-mailbox-private.h"
+#line 89 "mn-pi-mailbox.gob"
+	GtkWidget * untrusted_dialog;
+#line 29 "mn-pi-mailbox-private.h"
 };
-gboolean 	mn_pi_mailbox_split_uri	(const char * uri, int maxlen, char * scheme, char * auth, char * location, gboolean * has_auth);
-gboolean 	mn_pi_mailbox_split_uri_auth	(const char * auth, int maxlen, char * username, char * authmech, gboolean * has_username, gboolean * has_authmech);
+gboolean 	mn_pi_mailbox_split_uri	(const char * uri, int maxlen, char * scheme, char * auth, char * location);
+gboolean 	mn_pi_mailbox_split_uri_auth	(const char * auth, int maxlen, char * username, char * authmech, gboolean * has_authmech);
 void 	mn_pi_mailbox_split_uri_hostport	(const char * hostport, int maxlen, char * hostname, int * port);
-void 	mn_pi_mailbox_auth_failed	(MNPIMailbox * self);
-gboolean 	mn_pi_mailbox_fill_credentials	(MNPIMailbox * self, gboolean need_username, gboolean need_password);
 void 	mn_pi_mailbox_session_private_init	(MNPIMailbox * self, MNClientSessionPrivate * priv);
 gboolean 	mn_pi_mailbox_sasl_get_credentials_cb	(MNClientSession * session, MNClientSessionPrivate * priv, const char ** username, const char ** password);
+gboolean 	mn_pi_mailbox_ssl_trust_server_cb	(MNClientSession * session, const char * server, int port, const char * fingerprint, const char * verify_error, MNClientSessionPrivate * priv);
 void 	mn_pi_mailbox_notice_cb	(MNClientSession * session, const char * message, MNClientSessionPrivate * priv);
 void 	mn_pi_mailbox_warning_cb	(MNClientSession * session, const char * message, MNClientSessionPrivate * priv);
 

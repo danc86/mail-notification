@@ -25,9 +25,6 @@ extern "C" {
 
 #define MN_SYLPHEED_MAILBOX_BACKEND_GET_CLASS(obj)	G_TYPE_INSTANCE_GET_CLASS((obj), mn_sylpheed_mailbox_backend_get_type(), MNSylpheedMailboxBackendClass)
 
-/* Private structure type */
-typedef struct _MNSylpheedMailboxBackendPrivate MNSylpheedMailboxBackendPrivate;
-
 /*
  * Main object structure
  */
@@ -37,8 +34,6 @@ typedef struct _MNSylpheedMailboxBackend MNSylpheedMailboxBackend;
 #endif
 struct _MNSylpheedMailboxBackend {
 	MNVFSMailboxBackend __parent__;
-	/*< private >*/
-	MNSylpheedMailboxBackendPrivate *_priv;
 };
 
 /*

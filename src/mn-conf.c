@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -140,6 +140,8 @@
   MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_FONTS_CONTENTS_NAMESPACE "/font"
 #define MN_CONF_OBSOLETE_CLICK_ACTION \
   MN_CONF_NAMESPACE "/click-action"
+#define MN_CONF_OBSOLETE_CLICK_ACTION_2 \
+  MN_CONF_NAMESPACE "/click-action-2"
 
 #define BLOCK(info) \
   g_signal_handler_block((info)->object, (info)->handler_id)
@@ -147,9 +149,6 @@
   g_signal_handler_unblock((info)->object, (info)->handler_id)
 
 #define LINK_INFO(ptr)			((LinkInfo *) (ptr))
-
-#define SESSION_MANUAL_CONFIG_PREFIX	"session-manual/"
-#define SESSION_MANUAL_NAME		"Default"
 
 /*** types *******************************************************************/
 
@@ -177,27 +176,18 @@ typedef struct
 typedef struct
 {
   LinkInfo		parent;
-  GEnumClass		*enum_class;
-} LinkRadioActionInfo;
-
-typedef struct
-{
-  LinkInfo		parent;
   GParamSpec		*pspec;
 } LinkObjectInfo;
-
-typedef struct
-{
-  int	order;
-  int	argc;
-  char	**argv;
-} StartupClient;
 
 /*** variables ***************************************************************/
 
 const char *mn_conf_dot_dir = NULL;
 
 /*** functions ***************************************************************/
+
+#if WITH_GCONF_SANITY_CHECK
+static void mn_conf_check_schemas (void);
+#endif
 
 static void mn_conf_import_obsolete_key (const char *obsolete, const char *new);
 static void mn_conf_import_obsolete_string (const char *obsolete,
@@ -226,24 +216,6 @@ static void mn_conf_link_window_notify_cb (GConfClient *client,
 					   gpointer user_data);
 static void mn_conf_link_window_free_info (LinkWindowInfo *info);
 
-static void mn_conf_link_radio_action_set (LinkRadioActionInfo *info,
-					   const GConfValue *value);
-static void mn_conf_link_radio_action_h (GtkRadioAction *action,
-					 GtkRadioAction *current,
-					 gpointer user_data);
-static void mn_conf_link_radio_action_notify_cb (GConfClient *client,
-						 unsigned int cnxn_id,
-						 GConfEntry *entry,
-						 gpointer user_data);
-static void mn_conf_link_radio_action_free_info (LinkRadioActionInfo *info);
-
-static void mn_conf_link_toggle_action_h (GtkToggleAction *action,
-					  gpointer user_data);
-static void mn_conf_link_toggle_action_notify_cb (GConfClient *client,
-						  unsigned int cnxn_id,
-						  GConfEntry *entry,
-						  gpointer user_data);
-
 static void mn_conf_link_spin_button_h (GtkSpinButton *button,
 					gpointer user_data);
 static void mn_conf_link_spin_button_notify_cb (GConfClient *client,
@@ -268,8 +240,6 @@ mn_conf_init (void)
 {
   g_assert(mn_conf_dot_dir == NULL);
 
-  /* create our dot dir if it does not already exist */
-
   mn_conf_dot_dir = g_build_filename(g_get_home_dir(),
 				     GNOME_DOT_GNOME,
 				     "mail-notification",
@@ -285,11 +255,11 @@ mn_conf_init (void)
 			g_strerror(errno));
     }
 
-  /* monitor our namespace */
+#if WITH_GCONF_SANITY_CHECK
+  mn_conf_check_schemas();
+#endif
 
   eel_gconf_monitor_add(MN_CONF_NAMESPACE);
-
-  /* import obsolete keys */
 
   mn_conf_import_obsolete_key(MN_CONF_OBSOLETE_PREFERENCES_DIALOG "/height",
 			      MN_CONF_PROPERTIES_DIALOG "/height");
@@ -297,6 +267,11 @@ mn_conf_init (void)
 			      MN_CONF_PROPERTIES_DIALOG "/width");
   mn_conf_import_obsolete_key(MN_CONF_OBSOLETE_CLICK_ACTION,
 			      MN_CONF_CLICK_ACTION);
+
+  mn_conf_import_obsolete_string(MN_CONF_OBSOLETE_CLICK_ACTION_2,
+				 MN_CONF_CLICK_ACTION,
+				 "display-properties-dialog", "launch-mail-reader",
+				 NULL);
 
   mn_conf_import_obsolete_string(MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION_2,
 				 MN_CONF_CLICK_ACTION,
@@ -314,6 +289,77 @@ mn_conf_init (void)
 	eel_gconf_set_string(MN_CONF_TOOLTIP_MAIL_SUMMARY, "none");
     }
 }
+
+#if WITH_GCONF_SANITY_CHECK
+/*
+ * If the GConf schemas were not installed properly, refuse to
+ * proceed. This ensures that MN will not behave unexpectedly because
+ * of missing default values. The --disable-gconf-sanity-check
+ * configure argument disables this check and is meant to be used for
+ * development only.
+ */
+static void
+mn_conf_check_schemas (void)
+{
+  static const char *keys[] = {
+    MN_CONF_COMMANDS_NEW_MAIL_ENABLED,
+    MN_CONF_COMMANDS_NEW_MAIL_COMMAND,
+    MN_CONF_COMMANDS_MAIL_READ_ENABLED,
+    MN_CONF_COMMANDS_MAIL_READ_COMMAND,
+    MN_CONF_COMMANDS_MAIL_CHANGED_ENABLED,
+    MN_CONF_COMMANDS_MAIL_CHANGED_COMMAND,
+    MN_CONF_SOUNDS_NEW_MAIL_ENABLED,
+    MN_CONF_SOUNDS_NEW_MAIL_FILE,
+    MN_CONF_SOUNDS_PLAY_COMMAND,
+    MN_CONF_PROPERTIES_DIALOG "/width",
+    MN_CONF_PROPERTIES_DIALOG "/height",
+    MN_CONF_BLINK_ON_ERRORS,
+    MN_CONF_TRUSTED_X509_CERTIFICATES,
+    MN_CONF_TRUSTED_SERVERS,
+    MN_CONF_DISPLAY_SEEN_MAIL,
+    MN_CONF_TOOLTIP_MAIL_SUMMARY,
+    MN_CONF_ALWAYS_DISPLAY_ICON,
+    MN_CONF_DISPLAY_MESSAGE_COUNT,
+    MN_CONF_CLICK_ACTION,
+    MN_CONF_POPUPS_ENABLED,
+    MN_CONF_POPUPS_POSITION,
+    MN_CONF_POPUPS_EXPIRATION_ENABLED,
+    MN_CONF_POPUPS_EXPIRATION_DELAY_MINUTES,
+    MN_CONF_POPUPS_EXPIRATION_DELAY_SECONDS,
+    MN_CONF_POPUPS_ACTIONS,
+    MN_CONF_POPUPS_LIMIT
+  };
+  int i;
+  GConfClient *client;
+  gboolean schema_missing = FALSE;
+
+  client = eel_gconf_client_get_global();
+  g_assert(client != NULL);
+
+  for (i = 0; i < G_N_ELEMENTS(keys); i++)
+    {
+      GConfEntry *entry;
+
+      entry = gconf_client_get_entry(client, keys[i], NULL, TRUE, NULL);
+      if (entry)
+	{
+	  gboolean has_schema;
+
+	  has_schema = gconf_entry_get_schema_name(entry) != NULL;
+	  gconf_entry_unref(entry);
+
+	  if (has_schema)
+	    continue;
+	}
+
+      g_warning(_("cannot find default value of configuration key \"%s\""), keys[i]);
+      schema_missing = TRUE;
+    }
+
+  if (schema_missing)
+    mn_fatal_error_dialog(NULL, _("The default configuration has not been installed properly. Please check your Mail Notification installation."));
+}
+#endif /* WITH_GCONF_SANITY_CHECK */
 
 static void
 mn_conf_import_obsolete_key (const char *obsolete, const char *new)
@@ -398,7 +444,8 @@ mn_conf_unset_obsolete (void)
     MN_CONF_OBSOLETE_DOUBLE_CLICK_ACTION_2,
     MN_CONF_OBSOLETE_MAIN_WINDOW_NAMESPACE,
     MN_CONF_OBSOLETE_MAIL_SUMMARY_POPUP_NAMESPACE,
-    MN_CONF_OBSOLETE_CLICK_ACTION
+    MN_CONF_OBSOLETE_CLICK_ACTION,
+    MN_CONF_OBSOLETE_CLICK_ACTION_2
   };
   int i;
 
@@ -507,38 +554,6 @@ mn_conf_link (gpointer object, ...)
 	  signal_name = "configure-event";
 	  signal_handler = G_CALLBACK(mn_conf_link_window_h);
 	  notification_cb = mn_conf_link_window_notify_cb;
-	}
-      else if (GTK_IS_RADIO_ACTION(object))
-	{
-	  LinkRadioActionInfo *radio_action_info;
-	  GType enum_type;
-	  GConfValue *value;
-
-	  enum_type = va_arg(args, GType);
-	  g_return_if_fail(enum_type != 0);
-
-	  radio_action_info = g_new0(LinkRadioActionInfo, 1);
-	  radio_action_info->enum_class = g_type_class_ref(enum_type);
-	  info = LINK_INFO(radio_action_info);
-	  info->object = object;
-	  info->finalize = (GDestroyNotify) mn_conf_link_radio_action_free_info;
-
-	  value = eel_gconf_get_value(key);
-	  mn_conf_link_radio_action_set(radio_action_info, value);
-	  if (value)
-	    gconf_value_free(value);
-
-	  signal_name = g_strdup("changed");
-	  signal_handler = G_CALLBACK(mn_conf_link_radio_action_h);
-	  notification_cb = mn_conf_link_radio_action_notify_cb;
-	}
-      else if (GTK_IS_TOGGLE_ACTION(object))
-	{
-	  gtk_toggle_action_set_active(object, eel_gconf_get_boolean(key));
-
-	  signal_name = g_strdup("toggled");
-	  signal_handler = G_CALLBACK(mn_conf_link_toggle_action_h);
-	  notification_cb = mn_conf_link_toggle_action_notify_cb;
 	}
       else if (GTK_IS_SPIN_BUTTON(object))
 	{
@@ -736,99 +751,6 @@ mn_conf_link_window_free_info (LinkWindowInfo *info)
 {
   g_free(info->width_key);
   g_free(info->height_key);
-}
-
-static void
-mn_conf_link_radio_action_set (LinkRadioActionInfo *info,
-			       const GConfValue *value)
-{
-  GEnumValue *enum_value;
-  const char *nick;
-
-  g_return_if_fail(info != NULL);
-
-  if (! value)
-    return;
-
-  nick = gconf_value_get_string(value);
-  enum_value = nick ? g_enum_get_value_by_nick(info->enum_class, nick) : NULL;
-
-  if (enum_value)
-    {
-      GSList *l;
-
-      MN_LIST_FOREACH(l, gtk_radio_action_get_group(LINK_INFO(info)->object))
-        {
-	  GtkRadioAction *this_action = l->data;
-	  int this_value;
-
-	  g_object_get(this_action, "value", &this_value, NULL);
-	  if (this_value == enum_value->value)
-	    {
-	      gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(this_action), TRUE);
-	      break;
-	    }
-	}
-    }
-}
-
-static void
-mn_conf_link_radio_action_h (GtkRadioAction *action,
-			     GtkRadioAction *current,
-			     gpointer user_data)
-{
-  LinkRadioActionInfo *info = user_data;
-  int current_value;
-  GEnumValue *enum_value;
-
-  g_object_get(current, "value", &current_value, NULL);
-
-  enum_value = g_enum_get_value(info->enum_class, current_value);
-  g_assert(enum_value != NULL);
-
-  eel_gconf_set_string(LINK_INFO(info)->key, enum_value->value_nick);
-}
-
-static void
-mn_conf_link_radio_action_notify_cb (GConfClient *client,
-				     unsigned int cnxn_id,
-				     GConfEntry *entry,
-				     gpointer user_data)
-{
-  LinkRadioActionInfo *info = user_data;
-
-  BLOCK(LINK_INFO(info));
-  mn_conf_link_radio_action_set(info, gconf_entry_get_value(entry));
-  UNBLOCK(LINK_INFO(info));
-}
-
-static void
-mn_conf_link_radio_action_free_info (LinkRadioActionInfo *info)
-{
-  g_type_class_unref(info->enum_class);
-}
-
-static void
-mn_conf_link_toggle_action_h (GtkToggleAction *action,
-			      gpointer user_data)
-{
-  LinkInfo *info = user_data;
-
-  eel_gconf_set_boolean(info->key, gtk_toggle_action_get_active(action));
-}
-
-static void
-mn_conf_link_toggle_action_notify_cb (GConfClient *client,
-				      unsigned int cnxn_id,
-				      GConfEntry *entry,
-				      gpointer user_data)
-{
-  LinkInfo *info = user_data;
-  GConfValue *value = gconf_entry_get_value(entry);
-
-  BLOCK(info);
-  gtk_toggle_action_set_active(info->object, value ? gconf_value_get_bool(value) : FALSE);
-  UNBLOCK(info);
 }
 
 static void

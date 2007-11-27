@@ -9,8 +9,26 @@
 extern "C" {
 #endif /* __cplusplus */
 
+
+#line 27 "mn-authenticated-mailbox-properties.gob"
+
+#include "mn-authenticated-mailbox.h"
+
+#line 18 "mn-authenticated-mailbox-properties-private.h"
+struct _MNAuthenticatedMailboxPropertiesPrivate {
+#line 47 "mn-authenticated-mailbox-properties.gob"
+	GtkWidget * password_operation_label;
+#line 48 "mn-authenticated-mailbox-properties.gob"
+	GtkWidget * password_widget;
+#line 50 "mn-authenticated-mailbox-properties.gob"
+	MNAuthenticatedMailbox * mailbox_setting_password;
+#line 51 "mn-authenticated-mailbox-properties.gob"
+	gpointer get_password_request;
+#line 28 "mn-authenticated-mailbox-properties-private.h"
+};
 GtkWidget * 	mn_authenticated_mailbox_properties_field_new	(MNAuthenticatedMailboxProperties * self, const char * mnemonic, GtkWidget ** label, GtkWidget ** entry);
 void 	mn_authenticated_mailbox_properties_get_contents	(MNAuthenticatedMailboxProperties * self, const char ** username, const char ** password);
+gboolean 	mn_authenticated_mailbox_properties_is_complete	(MNAuthenticatedMailboxProperties * self);
 
 #ifdef __cplusplus
 }

@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -37,28 +37,6 @@ requires 2.0.14
 
 class MN:POP3:Mailbox:Properties from MN:PI:Mailbox:Properties
 {
-  property BOOLEAN complete (override)
-    get
-    {
-      MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
-      gboolean complete;
-      const char *server;
-
-      mn_pi_mailbox_properties_get_contents(pi,
-					    NULL,
-					    NULL,
-					    &server,
-					    NULL);
-
-      complete = *server != 0;
-#if ! WITH_SSL
-      if (complete)
-	complete = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL]));
-#endif /* WITH_SSL */
-
-      g_value_set_boolean(VAL, complete);
-    };
-
   property STRING default_name (override)
     get
     {

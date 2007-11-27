@@ -60,7 +60,9 @@ static void mn_evolution_mailbox_init (MNEvolutionMailbox * self) G_GNUC_UNUSED;
 static void ___3_mn_evolution_mailbox_seal (MNMailbox * mailbox) G_GNUC_UNUSED;
 static void ___4_mn_evolution_mailbox_dispose (GObject * object) G_GNUC_UNUSED;
 static void mn_evolution_mailbox_listener_cb (BonoboListener * listener, const char * event_name, const CORBA_any * any, CORBA_Environment * env, gpointer user_data) G_GNUC_UNUSED;
-static void ___6_mn_evolution_mailbox_reentrant_check (MNReentrantMailbox * mailbox, unsigned long check_id) G_GNUC_UNUSED;
+static void ___6_mn_evolution_mailbox_reentrant_check (MNReentrantMailbox * mailbox, int check_id) G_GNUC_UNUSED;
+static void mn_evolution_mailbox_lock (MNEvolutionMailbox * self) G_GNUC_UNUSED;
+static void mn_evolution_mailbox_unlock (MNEvolutionMailbox * self) G_GNUC_UNUSED;
 
 enum {
 	PROP_0,
@@ -73,6 +75,8 @@ static MNReentrantMailboxClass *parent_class = NULL;
 
 /* Short form macros */
 #define self_listener_cb mn_evolution_mailbox_listener_cb
+#define self_lock mn_evolution_mailbox_lock
+#define self_unlock mn_evolution_mailbox_unlock
 GType
 mn_evolution_mailbox_get_type (void)
 {
@@ -126,17 +130,20 @@ ___finalize(GObject *obj_self)
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
 #line 51 "mn-evolution-mailbox.gob"
 	if(self->uri) { g_free ((gpointer) self->uri); self->uri = NULL; }
-#line 130 "mn-evolution-mailbox.c"
+#line 134 "mn-evolution-mailbox.c"
 #line 58 "mn-evolution-mailbox.gob"
 	if(self->folder_name) { g_free ((gpointer) self->folder_name); self->folder_name = NULL; }
-#line 133 "mn-evolution-mailbox.c"
+#line 137 "mn-evolution-mailbox.c"
+#line 66 "mn-evolution-mailbox.gob"
+	if(self->_priv->mutex) { g_mutex_free ((gpointer) self->_priv->mutex); self->_priv->mutex = NULL; }
+#line 140 "mn-evolution-mailbox.c"
 }
 #undef __GOB_FUNCTION__
 
-#line 66 "mn-evolution-mailbox.gob"
+#line 68 "mn-evolution-mailbox.gob"
 static void 
 mn_evolution_mailbox_class_init (MNEvolutionMailboxClass * class G_GNUC_UNUSED)
-#line 140 "mn-evolution-mailbox.c"
+#line 147 "mn-evolution-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Mailbox::class_init"
 	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
@@ -147,13 +154,13 @@ mn_evolution_mailbox_class_init (MNEvolutionMailboxClass * class G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (MN_TYPE_REENTRANT_MAILBOX);
 
-#line 91 "mn-evolution-mailbox.gob"
+#line 93 "mn-evolution-mailbox.gob"
 	mn_mailbox_class->seal = ___3_mn_evolution_mailbox_seal;
-#line 100 "mn-evolution-mailbox.gob"
+#line 102 "mn-evolution-mailbox.gob"
 	g_object_class->dispose = ___4_mn_evolution_mailbox_dispose;
-#line 164 "mn-evolution-mailbox.gob"
+#line 166 "mn-evolution-mailbox.gob"
 	mn_reentrant_mailbox_class->reentrant_check = ___6_mn_evolution_mailbox_reentrant_check;
-#line 157 "mn-evolution-mailbox.c"
+#line 164 "mn-evolution-mailbox.c"
 	g_object_class->finalize = ___finalize;
 	g_object_class->get_property = ___object_get_property;
 	g_object_class->set_property = ___object_set_property;
@@ -165,7 +172,7 @@ mn_evolution_mailbox_class_init (MNEvolutionMailboxClass * class G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_REQUIRED | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_REQUIRED | MN_MAILBOX_PARAM_LOAD_SAVE));
 	g_object_class_install_property (g_object_class,
 		PROP_URI,
 		param_spec);
@@ -174,13 +181,13 @@ mn_evolution_mailbox_class_init (MNEvolutionMailboxClass * class G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_REQUIRED | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_REQUIRED | MN_MAILBOX_PARAM_LOAD_SAVE));
 	g_object_class_install_property (g_object_class,
 		PROP_FOLDER_NAME,
 		param_spec);
     }
  {
-#line 67 "mn-evolution-mailbox.gob"
+#line 69 "mn-evolution-mailbox.gob"
 
     MN_MAILBOX_CLASS(class)->type = "evolution";
 
@@ -195,19 +202,22 @@ mn_evolution_mailbox_class_init (MNEvolutionMailboxClass * class G_GNUC_UNUSED)
     bonobo_exception_add_handler_str(ex_GNOME_MailNotification_Evolution_Glue_FolderNotFound, _("folder not found"));
     bonobo_exception_add_handler_str(ex_GNOME_MailNotification_Evolution_Glue_MessageNotFound, _("message not found"));
   
-#line 199 "mn-evolution-mailbox.c"
+#line 206 "mn-evolution-mailbox.c"
  }
 }
 #undef __GOB_FUNCTION__
-#line 82 "mn-evolution-mailbox.gob"
+#line 84 "mn-evolution-mailbox.gob"
 static void 
 mn_evolution_mailbox_init (MNEvolutionMailbox * self G_GNUC_UNUSED)
-#line 206 "mn-evolution-mailbox.c"
+#line 213 "mn-evolution-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Mailbox::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_EVOLUTION_MAILBOX,MNEvolutionMailboxPrivate);
+#line 66 "mn-evolution-mailbox.gob"
+	self->_priv->mutex = g_mutex_new();
+#line 219 "mn-evolution-mailbox.c"
  {
-#line 83 "mn-evolution-mailbox.gob"
+#line 85 "mn-evolution-mailbox.gob"
 
     mn_mailbox_set_format(MN_MAILBOX(self), "Evolution");
     mn_mailbox_set_stock_id(MN_MAILBOX(self), MN_STOCK_EVOLUTION_MAILBOX);
@@ -215,7 +225,7 @@ mn_evolution_mailbox_init (MNEvolutionMailbox * self G_GNUC_UNUSED)
     /* we receive notifications from Evolution, no need to poll */
     mn_mailbox_set_poll(MN_MAILBOX(self), FALSE);
   
-#line 219 "mn-evolution-mailbox.c"
+#line 229 "mn-evolution-mailbox.c"
  }
 }
 #undef __GOB_FUNCTION__
@@ -236,14 +246,14 @@ ___object_set_property (GObject *object,
 		{
 #line 52 "mn-evolution-mailbox.gob"
 { char *old = self->uri; self->uri = g_value_dup_string (VAL); g_free (old); }
-#line 240 "mn-evolution-mailbox.c"
+#line 250 "mn-evolution-mailbox.c"
 		}
 		break;
 	case PROP_FOLDER_NAME:
 		{
 #line 59 "mn-evolution-mailbox.gob"
 { char *old = self->folder_name; self->folder_name = g_value_dup_string (VAL); g_free (old); }
-#line 247 "mn-evolution-mailbox.c"
+#line 257 "mn-evolution-mailbox.c"
 		}
 		break;
 	default:
@@ -274,14 +284,14 @@ ___object_get_property (GObject *object,
 		{
 #line 52 "mn-evolution-mailbox.gob"
 g_value_set_string (VAL, self->uri);
-#line 278 "mn-evolution-mailbox.c"
+#line 288 "mn-evolution-mailbox.c"
 		}
 		break;
 	case PROP_FOLDER_NAME:
 		{
 #line 59 "mn-evolution-mailbox.gob"
 g_value_set_string (VAL, self->folder_name);
-#line 285 "mn-evolution-mailbox.c"
+#line 295 "mn-evolution-mailbox.c"
 		}
 		break;
 	default:
@@ -298,38 +308,38 @@ g_value_set_string (VAL, self->folder_name);
 
 
 
-#line 91 "mn-evolution-mailbox.gob"
+#line 93 "mn-evolution-mailbox.gob"
 static void 
 ___3_mn_evolution_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
-#line 305 "mn-evolution-mailbox.c"
+#line 315 "mn-evolution-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_MAILBOX_CLASS(parent_class)->seal) \
 		(* MN_MAILBOX_CLASS(parent_class)->seal)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Mailbox::seal"
 {
-#line 93 "mn-evolution-mailbox.gob"
+#line 95 "mn-evolution-mailbox.gob"
 	
     PARENT_HANDLER(mailbox);
 
     if (! mailbox->runtime_name)
       mailbox->runtime_name = g_strdup(SELF(mailbox)->folder_name);
   }}
-#line 319 "mn-evolution-mailbox.c"
+#line 329 "mn-evolution-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 100 "mn-evolution-mailbox.gob"
+#line 102 "mn-evolution-mailbox.gob"
 static void 
 ___4_mn_evolution_mailbox_dispose (GObject * object G_GNUC_UNUSED)
-#line 326 "mn-evolution-mailbox.c"
+#line 336 "mn-evolution-mailbox.c"
 #define PARENT_HANDLER(___object) \
 	{ if(G_OBJECT_CLASS(parent_class)->dispose) \
 		(* G_OBJECT_CLASS(parent_class)->dispose)(___object); }
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Mailbox::dispose"
 {
-#line 102 "mn-evolution-mailbox.gob"
+#line 104 "mn-evolution-mailbox.gob"
 	
     Self *self = SELF(object);
 
@@ -359,18 +369,18 @@ ___4_mn_evolution_mailbox_dispose (GObject * object G_GNUC_UNUSED)
 
     PARENT_HANDLER(object);
   }}
-#line 363 "mn-evolution-mailbox.c"
+#line 373 "mn-evolution-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 132 "mn-evolution-mailbox.gob"
+#line 134 "mn-evolution-mailbox.gob"
 static void 
 mn_evolution_mailbox_listener_cb (BonoboListener * listener, const char * event_name, const CORBA_any * any, CORBA_Environment * env, gpointer user_data)
-#line 370 "mn-evolution-mailbox.c"
+#line 380 "mn-evolution-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Mailbox::listener_cb"
 {
-#line 138 "mn-evolution-mailbox.gob"
+#line 140 "mn-evolution-mailbox.gob"
 	
     Self *self = user_data;
     const char *uri;
@@ -382,9 +392,9 @@ mn_evolution_mailbox_listener_cb (BonoboListener * listener, const char * event_
 	  {
 	    time_t now = mn_time();
 
-	    mn_reentrant_mailbox_lock(MN_REENTRANT_MAILBOX(self));
+	    self_lock(self);
 	    selfp->last_browsed = now;
-	    mn_reentrant_mailbox_unlock(MN_REENTRANT_MAILBOX(self));
+	    self_unlock(self);
 
 	    mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self));
 	  }
@@ -396,20 +406,20 @@ mn_evolution_mailbox_listener_cb (BonoboListener * listener, const char * event_
 	  mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self));
       }
   }}
-#line 400 "mn-evolution-mailbox.c"
+#line 410 "mn-evolution-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 164 "mn-evolution-mailbox.gob"
+#line 166 "mn-evolution-mailbox.gob"
 static void 
-___6_mn_evolution_mailbox_reentrant_check (MNReentrantMailbox * mailbox G_GNUC_UNUSED, unsigned long check_id)
-#line 406 "mn-evolution-mailbox.c"
+___6_mn_evolution_mailbox_reentrant_check (MNReentrantMailbox * mailbox G_GNUC_UNUSED, int check_id)
+#line 416 "mn-evolution-mailbox.c"
 #define PARENT_HANDLER(___mailbox,___check_id) \
 	{ if(MN_REENTRANT_MAILBOX_CLASS(parent_class)->reentrant_check) \
 		(* MN_REENTRANT_MAILBOX_CLASS(parent_class)->reentrant_check)(___mailbox,___check_id); }
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Mailbox::reentrant_check"
 {
-#line 166 "mn-evolution-mailbox.gob"
+#line 168 "mn-evolution-mailbox.gob"
 	
     Self *self = SELF(mailbox);
     GNOME_MailNotification_Evolution_Glue glue;
@@ -417,7 +427,7 @@ ___6_mn_evolution_mailbox_reentrant_check (MNReentrantMailbox * mailbox G_GNUC_U
     CORBA_sequence_GNOME_MailNotification_Evolution_Message *message_seq;
     time_t last_browsed;
 
-    mn_reentrant_mailbox_lock(mailbox);
+    self_lock(self);
 
     if (! selfp->glue)
       {
@@ -456,22 +466,22 @@ ___6_mn_evolution_mailbox_reentrant_check (MNReentrantMailbox * mailbox G_GNUC_U
 
     last_browsed = selfp->last_browsed;
 
-    mn_reentrant_mailbox_unlock(mailbox);
+    self_unlock(self);
 
     if (glue == CORBA_OBJECT_NIL)
       {
-	GDK_THREADS_ENTER();
-
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(mailbox, check_id))
+	if (! mn_reentrant_mailbox_check_aborted(mailbox, check_id))
 	  {
+	    GDK_THREADS_ENTER();
+
 	    mn_mailbox_set_error(MN_MAILBOX(self), _("unable to contact Evolution"));
 
 	    if (mn_mailbox_get_poll(MN_MAILBOX(self)))
 	      mn_mailbox_set_poll(MN_MAILBOX(self), FALSE);
-	  }
 
-	gdk_flush();
-	GDK_THREADS_LEAVE();
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	  }
 
 	return;
       }
@@ -482,11 +492,11 @@ ___6_mn_evolution_mailbox_reentrant_check (MNReentrantMailbox * mailbox G_GNUC_U
 
     if (BONOBO_EX(&env))
       {
-	GDK_THREADS_ENTER();
-
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(mailbox, check_id))
+	if (! mn_reentrant_mailbox_check_aborted(mailbox, check_id))
 	  {
 	    char *errmsg;
+
+	    GDK_THREADS_ENTER();
 
 	    errmsg = bonobo_exception_get_text(&env);
 	    mn_mailbox_set_error(MN_MAILBOX(self), "%s", errmsg);
@@ -499,10 +509,10 @@ ___6_mn_evolution_mailbox_reentrant_check (MNReentrantMailbox * mailbox G_GNUC_U
 	       * re-enable polling.
 	       */
 	      mn_mailbox_set_poll(MN_MAILBOX(self), TRUE);
-	  }
 
-	gdk_flush();
-	GDK_THREADS_LEAVE();
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	  }
       }
     else
       {
@@ -531,7 +541,7 @@ ___6_mn_evolution_mailbox_reentrant_check (MNReentrantMailbox * mailbox G_GNUC_U
 
 	GDK_THREADS_ENTER();
 
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(mailbox, check_id))
+	if (! mn_reentrant_mailbox_check_aborted(mailbox, check_id))
 	  {
 	    mn_mailbox_set_messages(MN_MAILBOX(self), messages);
 
@@ -550,6 +560,44 @@ ___6_mn_evolution_mailbox_reentrant_check (MNReentrantMailbox * mailbox G_GNUC_U
     CORBA_exception_free(&env);
     bonobo_object_release_unref(glue, NULL);
   }}
-#line 554 "mn-evolution-mailbox.c"
+#line 564 "mn-evolution-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
+
+#line 309 "mn-evolution-mailbox.gob"
+static void 
+mn_evolution_mailbox_lock (MNEvolutionMailbox * self)
+#line 571 "mn-evolution-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Evolution:Mailbox::lock"
+#line 309 "mn-evolution-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 309 "mn-evolution-mailbox.gob"
+	g_return_if_fail (MN_IS_EVOLUTION_MAILBOX (self));
+#line 578 "mn-evolution-mailbox.c"
+{
+#line 311 "mn-evolution-mailbox.gob"
+	
+    g_mutex_lock(selfp->mutex);
+  }}
+#line 584 "mn-evolution-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 315 "mn-evolution-mailbox.gob"
+static void 
+mn_evolution_mailbox_unlock (MNEvolutionMailbox * self)
+#line 590 "mn-evolution-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Evolution:Mailbox::unlock"
+#line 315 "mn-evolution-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 315 "mn-evolution-mailbox.gob"
+	g_return_if_fail (MN_IS_EVOLUTION_MAILBOX (self));
+#line 597 "mn-evolution-mailbox.c"
+{
+#line 317 "mn-evolution-mailbox.gob"
+	
+    g_mutex_unlock(selfp->mutex);
+  }}
+#line 603 "mn-evolution-mailbox.c"
+#undef __GOB_FUNCTION__

@@ -1,0 +1,77 @@
+/*
+ * Mail Notification
+ * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include "mn-vfs-message.h"
+%}
+
+%{
+#include "config.h"
+#include <stdlib.h>
+#include <glib/gi18n.h>
+#include "mn-util.h"
+#include "mn-sylpheed-mailbox-backend-private.h"
+%}
+
+class MN:Sylpheed:Message from MN:VFS:Message
+{
+  override (MN:Message) gboolean
+    mark_as_read_impl (MNMessage *message, GError **err)
+  {
+    MNVFSMessage *vmessage = MN_VFS_MESSAGE(message);
+    char *filename;
+    int num;
+    GError *tmp_err = NULL;
+    Marks *marks;
+    MarkEntry *entry;
+    gboolean status;
+
+    filename = gnome_vfs_uri_extract_short_name(vmessage->vfs_uri);
+    g_assert(mn_str_isnumeric(filename));
+    num = atoi(filename);
+    g_free(filename);
+
+    marks = mn_sylpheed_mailbox_backend_marks_new(MN_VFS_MAILBOX(message->mailbox)->vfs_uri, &tmp_err);
+    if (! marks)
+      {
+	g_set_error(err, 0, 0, _("Unable to read %s: %s."), SYLPHEED_MARK_FILE, tmp_err->message);
+	g_error_free(tmp_err);
+	return FALSE;
+      }
+
+    entry = g_hash_table_lookup(marks->table, GINT_TO_POINTER(num));
+    if (entry)
+      entry->flags &= ~(SYLPHEED_MSG_NEW | SYLPHEED_MSG_UNREAD);
+    else
+      {
+	marks->data_size += sizeof(MarkEntry);
+	marks->data = g_realloc(marks->data, marks->data_size);
+	entry = (MarkEntry *) (marks->data + marks->data_size - sizeof(MarkEntry));
+	entry->num = num;
+	entry->flags = 0;
+      }
+
+    status = mn_sylpheed_mailbox_backend_marks_write(MN_VFS_MAILBOX(message->mailbox)->vfs_uri, marks, err);
+    mn_sylpheed_mailbox_backend_marks_free(marks);
+
+    return status;
+  }
+}

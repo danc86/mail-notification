@@ -34,17 +34,19 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 @WITH_GMAIL_TRUE@am__append_1 = gmail.png
+@WITH_YAHOO_TRUE@am__append_2 = yahoo.png
+@WITH_HOTMAIL_TRUE@am__append_3 = hotmail.png
 subdir = art
-DIST_COMMON = $(am__dist_app_pixmaps_DATA_DIST) \
-	$(nobase_dist_icons_DATA) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in
+DIST_COMMON = $(am__dist_pkgdata_DATA_DIST) $(nobase_dist_icons_DATA) \
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/evolution-plugin.m4 \
 	$(top_srcdir)/m4/gnome.m4 $(top_srcdir)/m4/idl.m4 \
 	$(top_srcdir)/m4/openssl.m4 \
 	$(top_srcdir)/m4/reentrant-resolver.m4 \
-	$(top_srcdir)/m4/sasl2.m4 $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/sasl2.m4 \
+	$(top_srcdir)/m4/string-arch-unaligned.m4 \
+	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -52,18 +54,17 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 SOURCES =
 DIST_SOURCES =
-am__dist_app_pixmaps_DATA_DIST = logo.png gmail.png
+am__dist_pkgdata_DATA_DIST = logo.png gmail.png yahoo.png hotmail.png
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(app_pixmapsdir)" \
-	"$(DESTDIR)$(iconsdir)"
-dist_app_pixmapsDATA_INSTALL = $(INSTALL_DATA)
+am__installdirs = "$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(iconsdir)"
+dist_pkgdataDATA_INSTALL = $(INSTALL_DATA)
 nobase_dist_iconsDATA_INSTALL = $(install_sh_DATA)
-DATA = $(dist_app_pixmaps_DATA) $(nobase_dist_icons_DATA)
+DATA = $(dist_pkgdata_DATA) $(nobase_dist_icons_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALL_LINGUAS = @ALL_LINGUAS@
@@ -110,11 +111,11 @@ GMIME_LIBS = @GMIME_LIBS@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GNOME_CFLAGS = @GNOME_CFLAGS@
+GNOME_KEYRING_CFLAGS = @GNOME_KEYRING_CFLAGS@
+GNOME_KEYRING_LIBS = @GNOME_KEYRING_LIBS@
 GNOME_LIBS = @GNOME_LIBS@
 GOB2 = @GOB2@
 GREP = @GREP@
-GTK_CFLAGS = @GTK_CFLAGS@
-GTK_LIBS = @GTK_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -126,14 +127,12 @@ INTLTOOL_CAVES_RULE = @INTLTOOL_CAVES_RULE@
 INTLTOOL_DESKTOP_RULE = @INTLTOOL_DESKTOP_RULE@
 INTLTOOL_DIRECTORY_RULE = @INTLTOOL_DIRECTORY_RULE@
 INTLTOOL_EXTRACT = @INTLTOOL_EXTRACT@
-INTLTOOL_ICONV = @INTLTOOL_ICONV@
 INTLTOOL_KBD_RULE = @INTLTOOL_KBD_RULE@
 INTLTOOL_KEYS_RULE = @INTLTOOL_KEYS_RULE@
 INTLTOOL_MERGE = @INTLTOOL_MERGE@
-INTLTOOL_MSGFMT = @INTLTOOL_MSGFMT@
-INTLTOOL_MSGMERGE = @INTLTOOL_MSGMERGE@
 INTLTOOL_OAF_RULE = @INTLTOOL_OAF_RULE@
 INTLTOOL_PERL = @INTLTOOL_PERL@
+INTLTOOL_POLICY_RULE = @INTLTOOL_POLICY_RULE@
 INTLTOOL_PONG_RULE = @INTLTOOL_PONG_RULE@
 INTLTOOL_PROP_RULE = @INTLTOOL_PROP_RULE@
 INTLTOOL_SCHEMAS_RULE = @INTLTOOL_SCHEMAS_RULE@
@@ -145,7 +144,6 @@ INTLTOOL_THEME_RULE = @INTLTOOL_THEME_RULE@
 INTLTOOL_UI_RULE = @INTLTOOL_UI_RULE@
 INTLTOOL_UPDATE = @INTLTOOL_UPDATE@
 INTLTOOL_XAM_RULE = @INTLTOOL_XAM_RULE@
-INTLTOOL_XGETTEXT = @INTLTOOL_XGETTEXT@
 INTLTOOL_XML_NOMERGE_RULE = @INTLTOOL_XML_NOMERGE_RULE@
 INTLTOOL_XML_RULE = @INTLTOOL_XML_RULE@
 LDFLAGS = @LDFLAGS@
@@ -179,6 +177,7 @@ PO_IN_DATADIR_TRUE = @PO_IN_DATADIR_TRUE@
 RANLIB = @RANLIB@
 SASL_CFLAGS = @SASL_CFLAGS@
 SASL_LIBS = @SASL_LIBS@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -253,8 +252,8 @@ nobase_dist_icons_DATA = \
 	48x48/apps/mail-notification.png \
 	scalable/apps/mail-notification.svg
 
-app_pixmapsdir = $(pkgdatadir)/ui
-dist_app_pixmaps_DATA = logo.png $(am__append_1)
+dist_pkgdata_DATA = logo.png $(am__append_1) $(am__append_2) \
+	$(am__append_3)
 all: all-am
 
 .SUFFIXES:
@@ -293,22 +292,22 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-dist_app_pixmapsDATA: $(dist_app_pixmaps_DATA)
+install-dist_pkgdataDATA: $(dist_pkgdata_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(app_pixmapsdir)" || $(MKDIR_P) "$(DESTDIR)$(app_pixmapsdir)"
-	@list='$(dist_app_pixmaps_DATA)'; for p in $$list; do \
+	test -z "$(pkgdatadir)" || $(MKDIR_P) "$(DESTDIR)$(pkgdatadir)"
+	@list='$(dist_pkgdata_DATA)'; for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  f=$(am__strip_dir) \
-	  echo " $(dist_app_pixmapsDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(app_pixmapsdir)/$$f'"; \
-	  $(dist_app_pixmapsDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(app_pixmapsdir)/$$f"; \
+	  echo " $(dist_pkgdataDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/$$f'"; \
+	  $(dist_pkgdataDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/$$f"; \
 	done
 
-uninstall-dist_app_pixmapsDATA:
+uninstall-dist_pkgdataDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dist_app_pixmaps_DATA)'; for p in $$list; do \
+	@list='$(dist_pkgdata_DATA)'; for p in $$list; do \
 	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(app_pixmapsdir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(app_pixmapsdir)/$$f"; \
+	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(pkgdatadir)/$$f"; \
 	done
 install-nobase_dist_iconsDATA: $(nobase_dist_icons_DATA)
 	@$(NORMAL_INSTALL)
@@ -366,7 +365,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(app_pixmapsdir)" "$(DESTDIR)$(iconsdir)"; do \
+	for dir in "$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(iconsdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -411,7 +410,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dist_app_pixmapsDATA \
+install-data-am: install-dist_pkgdataDATA \
 	install-nobase_dist_iconsDATA
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
@@ -448,16 +447,18 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dist_app_pixmapsDATA \
+uninstall-am: uninstall-dist_pkgdataDATA \
 	uninstall-nobase_dist_iconsDATA
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) uninstall-hook
 
-.MAKE: install-am install-data-am install-strip
+.MAKE: install-am install-data-am install-strip uninstall-am
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-data install-data-am install-data-hook \
-	install-dist_app_pixmapsDATA install-dvi install-dvi-am \
+	install-dist_pkgdataDATA install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-man \
 	install-nobase_dist_iconsDATA install-pdf install-pdf-am \
@@ -465,10 +466,15 @@ uninstall-am: uninstall-dist_app_pixmapsDATA \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-dist_app_pixmapsDATA uninstall-nobase_dist_iconsDATA
+	uninstall-dist_pkgdataDATA uninstall-hook \
+	uninstall-nobase_dist_iconsDATA
 
 
-install-data-hook:
+install-data-hook: update-icon-cache
+
+uninstall-hook: update-icon-cache
+
+update-icon-cache:
 	-gtk-update-icon-cache -f -t $(iconsdir)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

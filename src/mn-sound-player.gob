@@ -1,0 +1,262 @@
+/*
+ * Mail Notification
+ * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%h{
+#include <gtk/gtk.h>
+%}
+
+%{
+#include "config.h"
+#include <sys/types.h>
+#include <signal.h>
+#include <glib/gi18n.h>
+#include <gnome.h>
+#include "mn-conf.h"
+#include "mn-locked-callback.h"
+%}
+
+class MN:Sound:Player from G:Object
+{
+  private gboolean can_play;
+  property BOOLEAN can_play (export)
+    get
+    {
+      g_value_set_boolean(VAL, selfp->can_play);
+    };
+
+  property BOOLEAN can_stop (export)
+    get
+    {
+      g_value_set_boolean(VAL, selfp->pid != 0);
+    };
+
+  private GPid pid;
+  private GSource *watch_source;
+
+  init (self)
+  {
+    selfp->can_play = self_can_play(self);
+
+    mn_g_object_gconf_notification_add_gdk_locked(self,
+						  MN_CONF_SOUNDS_PLAY_COMMAND,
+						  self_notify_play_command_cb,
+						  self);
+  }
+
+  override (G:Object) void
+    dispose (GObject *object)
+  {
+    Self *self = SELF(object);
+
+    /* do not emit notify::can-stop at finalization time (pass FALSE) */
+    self_stop_real(self, FALSE);
+
+    PARENT_HANDLER(object);
+  }
+
+  private void
+    notify_play_command_cb (GConfClient *client,
+			    unsigned int cnxn_id,
+			    GConfEntry *entry,
+			    gpointer user_data)
+  {
+    Self *self = user_data;
+    gboolean can_play;
+
+    can_play = self_can_play(self);
+    if (can_play != selfp->can_play)
+      {
+	selfp->can_play = can_play;
+	g_object_notify(G_OBJECT(self), "can-play");
+      }
+  }
+
+  private gboolean
+    can_play (self)
+  {
+    char *command;
+    gboolean can;
+
+    command = eel_gconf_get_string(MN_CONF_SOUNDS_PLAY_COMMAND);
+    can = command && *command;
+    g_free(command);
+
+    return can;
+  }
+
+  public void
+    play (self, const char *filename (check null), GtkWindow *parent)
+  {
+    const char *error_message;
+    char *command = NULL;
+    char *subst_command;
+    char *shell;
+    char *argv[4];
+    GError *err = NULL;
+
+    g_return_if_fail(parent == NULL || GTK_IS_WINDOW(parent));
+    g_return_if_fail(selfp->can_play);
+
+    self_stop(self);
+
+    /*
+     * If a parent window is provided, we are normally called because
+     * the user interacted with the UI. Otherwise, we are called because
+     * a background event has occurred, and for clarity we should
+     * mention the originating application in the error message.
+     */
+    if (parent)
+      error_message = N_("Unable to play sound");
+    else
+      error_message = N_("A command error has occurred in Mail Notification");
+
+    command = eel_gconf_get_string(MN_CONF_SOUNDS_PLAY_COMMAND);
+    if (! command || ! *command)
+      goto end;
+
+    subst_command = mn_subst_command(command, self_subst_cb, (gpointer) filename, &err);
+    if (! subst_command)
+      {
+	mn_error_dialog(parent,
+			_(error_message),
+			_("Unable to execute \"%s\": %s."),
+			command,
+			err->message);
+	g_error_free(err);
+	goto end;
+      }
+
+    /*
+     * We cannot use gnome_execute_child() because it does not reap the
+     * child, which is needed for GChildWatch.
+     */
+
+    shell = gnome_util_user_shell();
+
+    argv[0] = shell;
+    argv[1] = "-c";
+    argv[2] = subst_command;
+    argv[3] = NULL;
+
+    if (g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, &selfp->pid, &err))
+      {
+	GSource *source;
+
+	g_object_notify(G_OBJECT(self), "can-stop");
+
+	g_assert(selfp->watch_source == NULL);
+
+	source = g_child_watch_source_new(selfp->pid);
+	g_source_set_callback(source, (GSourceFunc) self_watch_cb, self, NULL);
+	g_source_attach(source, NULL);
+	selfp->watch_source = source;
+      }
+    else
+      {
+	mn_error_dialog(parent,
+			_(error_message),
+			_("Unable to execute \"%s\": %s."),
+			command,
+			err->message);
+	g_error_free(err);
+      }
+
+    g_free(subst_command);
+    g_free(shell);
+
+  end:
+    g_free(command);
+  }
+
+  private gboolean
+    subst_cb (const char *name, char **value, gpointer data)
+  {
+    const char *filename = data;
+
+    if (! strcmp(name, "file"))
+      {
+	*value = g_strdup(filename);
+	return TRUE;
+      }
+
+    return FALSE;
+  }
+
+  public void
+    stop (self)
+  {
+    self_stop_real(self, TRUE);
+  }
+
+  private void
+    stop_real (self, gboolean notify_can_stop)
+  {
+    /*
+     * If we remove the watch, a zombie will be left since GLib will
+     * not have waited for the process, so we just abandon the watch.
+     */
+    if (selfp->watch_source)
+      {
+	g_source_set_callback(selfp->watch_source, (GSourceFunc) self_watch_abandoned_cb, NULL, NULL);
+	g_source_unref(selfp->watch_source);
+	selfp->watch_source = NULL;
+      }
+
+    if (selfp->pid)
+      {
+	kill(selfp->pid, SIGTERM);
+	selfp->pid = 0;
+	if (notify_can_stop)
+	  g_object_notify(G_OBJECT(self), "can-stop");
+      }
+  }
+
+  private void
+    watch_abandoned_cb (GPid pid, int status, gpointer data)
+  {
+    /* no op */
+  }
+
+  private void
+    watch_cb (GPid pid, int status, gpointer data)
+  {
+    Self *self = data;
+
+    GDK_THREADS_ENTER();
+
+    g_assert(selfp->watch_source != NULL);
+
+    g_source_unref(selfp->watch_source);
+    selfp->watch_source = NULL;
+    selfp->pid = 0;
+
+    g_object_notify(G_OBJECT(self), "can-stop");
+
+    /* do not call gdk_flush(), we're normally in the main thread */
+    GDK_THREADS_LEAVE();
+  }
+
+  public MNSoundPlayer *
+    new (void)
+  {
+    return GET_NEW;
+  }
+}

@@ -252,9 +252,9 @@ mn_pop3_mailbox_class_init (MNPOP3MailboxClass * class G_GNUC_UNUSED)
 
 #line 139 "mn-pop3-mailbox.gob"
 	mn_mailbox_class->seal = ___3_mn_pop3_mailbox_seal;
-#line 152 "mn-pop3-mailbox.gob"
+#line 161 "mn-pop3-mailbox.gob"
 	mn_mailbox_class->parse_uri = ___4_mn_pop3_mailbox_parse_uri;
-#line 742 "mn-pop3-mailbox.gob"
+#line 740 "mn-pop3-mailbox.gob"
 	mn_authenticated_mailbox_class->authenticated_check = ___18_mn_pop3_mailbox_authenticated_check;
 #line 260 "mn-pop3-mailbox.c"
 	g_object_class->finalize = ___finalize;
@@ -299,20 +299,29 @@ ___3_mn_pop3_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
 {
 #line 141 "mn-pop3-mailbox.gob"
 	
+    MNAuthenticatedMailbox *auth_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
+
     PARENT_HANDLER(mailbox);
 
     if (! mailbox->runtime_name)
       mailbox->runtime_name = self_build_name(MN_AUTHENTICATED_MAILBOX(mailbox)->username,
 					      MN_PI_MAILBOX(mailbox)->hostname);
+
+#if WITH_SSL
+    if (MN_PI_MAILBOX(mailbox)->connection_type == MN_PI_MAILBOX_CONNECTION_TYPE_SSL)
+      auth_mailbox->keyring_protocol = g_strdup("pop3s");
+    else
+#endif
+      auth_mailbox->keyring_protocol = g_strdup("pop3");
   }}
-#line 309 "mn-pop3-mailbox.c"
+#line 318 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 152 "mn-pop3-mailbox.gob"
+#line 161 "mn-pop3-mailbox.gob"
 static MNMailbox * 
 ___4_mn_pop3_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const char * uri)
-#line 316 "mn-pop3-mailbox.c"
+#line 325 "mn-pop3-mailbox.c"
 #define PARENT_HANDLER(___dummy,___uri) \
 	((MN_MAILBOX_CLASS(parent_class)->parse_uri)? \
 		(* MN_MAILBOX_CLASS(parent_class)->parse_uri)(___dummy,___uri): \
@@ -320,7 +329,7 @@ ___4_mn_pop3_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const char * ur
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::parse_uri"
 {
-#line 154 "mn-pop3-mailbox.gob"
+#line 163 "mn-pop3-mailbox.gob"
 	
     int len;
     int buflen;
@@ -340,34 +349,23 @@ ___4_mn_pop3_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const char * ur
       char username_buf[buflen];
       char authmech_buf[buflen];
       char hostname_buf[buflen];
-      gboolean has_auth;
-      gboolean has_username = FALSE;
       gboolean has_authmech = FALSE;
 
-      if (! mn_pi_mailbox_split_uri(uri, len, scheme_buf, auth_buf, location_buf, &has_auth))
+      if (! mn_pi_mailbox_split_uri(uri, len, scheme_buf, auth_buf, location_buf))
 	return NULL;
 
       if (strcmp(scheme_buf, "pop"))
 	return NULL;
 
-      if (has_auth)
-	{
-	  if (! mn_pi_mailbox_split_uri_auth(auth_buf, len, username_buf, authmech_buf, &has_username, &has_authmech))
-	    return NULL;
+      if (! mn_pi_mailbox_split_uri_auth(auth_buf, len, username_buf, authmech_buf, &has_authmech))
+	return NULL;
 
-	  if (has_authmech)
-	    {
-	      if (! has_username)
-		return NULL;	/* see user-auth in RFC 2384 ABNF */
-	      if (! strcmp(authmech_buf, "*"))
-		has_authmech = FALSE;
-	    }
-	}
+      if (has_authmech && ! strcmp(authmech_buf, "*"))
+	has_authmech = FALSE;
 
       mn_pi_mailbox_split_uri_hostport(location_buf, len, hostname_buf, &port);
 
-      if (has_username)
-	username = gnome_vfs_unescape_string(username_buf, NULL);
+      username = gnome_vfs_unescape_string(username_buf, NULL);
       if (has_authmech)
 	authmech = gnome_vfs_unescape_string(authmech_buf, NULL);
       hostname = gnome_vfs_unescape_string(hostname_buf, NULL);
@@ -386,18 +384,18 @@ ___4_mn_pop3_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const char * ur
 
     return mailbox;
   }}
-#line 390 "mn-pop3-mailbox.c"
+#line 388 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 220 "mn-pop3-mailbox.gob"
+#line 218 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_handle_greeting_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
-#line 397 "mn-pop3-mailbox.c"
+#line 395 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::handle_greeting_cb"
 {
-#line 224 "mn-pop3-mailbox.gob"
+#line 222 "mn-pop3-mailbox.gob"
 	
     priv->session = session;
 
@@ -427,31 +425,31 @@ mn_pop3_mailbox_handle_greeting_cb (MNClientSession * session, MNClientSessionRe
 	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
       }
   }}
-#line 431 "mn-pop3-mailbox.c"
+#line 429 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 254 "mn-pop3-mailbox.gob"
+#line 252 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_enter_capa_cb (MNClientSession * session, MNClientSessionPrivate * priv)
-#line 437 "mn-pop3-mailbox.c"
+#line 435 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::enter_capa_cb"
 {
-#line 257 "mn-pop3-mailbox.gob"
+#line 255 "mn-pop3-mailbox.gob"
 	
     return mn_client_session_write(session, "CAPA");
   }}
-#line 445 "mn-pop3-mailbox.c"
+#line 443 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 261 "mn-pop3-mailbox.gob"
+#line 259 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_handle_capa_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
-#line 451 "mn-pop3-mailbox.c"
+#line 449 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::handle_capa_cb"
 {
-#line 265 "mn-pop3-mailbox.gob"
+#line 263 "mn-pop3-mailbox.gob"
 	
     self_handle_list_response(priv, response, FALSE);
 
@@ -540,17 +538,17 @@ mn_pop3_mailbox_handle_capa_cb (MNClientSession * session, MNClientSessionRespon
 	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
       }
   }}
-#line 544 "mn-pop3-mailbox.c"
+#line 542 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 354 "mn-pop3-mailbox.gob"
+#line 352 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_enter_stls_cb (MNClientSession * session, MNClientSessionPrivate * priv)
-#line 550 "mn-pop3-mailbox.c"
+#line 548 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::enter_stls_cb"
 {
-#line 357 "mn-pop3-mailbox.gob"
+#line 355 "mn-pop3-mailbox.gob"
 	
 #if WITH_SSL
     return mn_client_session_write(session, "STLS");
@@ -559,17 +557,17 @@ mn_pop3_mailbox_enter_stls_cb (MNClientSession * session, MNClientSessionPrivate
     return 0;
 #endif /* WITH_SSL */
   }}
-#line 563 "mn-pop3-mailbox.c"
+#line 561 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 366 "mn-pop3-mailbox.gob"
+#line 364 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_handle_stls_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
-#line 569 "mn-pop3-mailbox.c"
+#line 567 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::handle_stls_cb"
 {
-#line 370 "mn-pop3-mailbox.gob"
+#line 368 "mn-pop3-mailbox.gob"
 	
 #if WITH_SSL
     switch (response->type)
@@ -600,17 +598,17 @@ mn_pop3_mailbox_handle_stls_cb (MNClientSession * session, MNClientSessionRespon
     return 0;
 #endif /* WITH_SSL */
   }}
-#line 604 "mn-pop3-mailbox.c"
+#line 602 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 401 "mn-pop3-mailbox.gob"
+#line 399 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_enter_auth_cb (MNClientSession * session, MNClientSessionPrivate * priv)
-#line 610 "mn-pop3-mailbox.c"
+#line 608 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::enter_auth_cb"
 {
-#line 404 "mn-pop3-mailbox.gob"
+#line 402 "mn-pop3-mailbox.gob"
 	
 #if WITH_SASL
     /*
@@ -657,7 +655,7 @@ mn_pop3_mailbox_enter_auth_cb (MNClientSession * session, MNClientSessionPrivate
 	  }
       }
     else
-      return priv->pi_mailbox->auth_cancelled
+      return priv->auth_mailbox->auth_cancelled
 	? STATE_QUIT
 	: self_session_authenticate_fallback(priv, FALSE, FALSE);
 #else
@@ -665,17 +663,17 @@ mn_pop3_mailbox_enter_auth_cb (MNClientSession * session, MNClientSessionPrivate
     return 0;
 #endif /* WITH_SASL */
   }}
-#line 669 "mn-pop3-mailbox.c"
+#line 667 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 459 "mn-pop3-mailbox.gob"
+#line 457 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_handle_auth_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
-#line 675 "mn-pop3-mailbox.c"
+#line 673 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::handle_auth_cb"
 {
-#line 463 "mn-pop3-mailbox.gob"
+#line 461 "mn-pop3-mailbox.gob"
 	
 #if WITH_SASL
     switch (response->type)
@@ -686,7 +684,7 @@ mn_pop3_mailbox_handle_auth_cb (MNClientSession * session, MNClientSessionRespon
 	  : MN_CLIENT_SESSION_RESULT_DISCONNECT;
 
       case RESPONSE_ERR:
-	if (priv->pi_mailbox->auth_cancelled)
+	if (priv->auth_mailbox->auth_cancelled)
 	  return STATE_QUIT;
 	else
 	  {
@@ -717,32 +715,34 @@ mn_pop3_mailbox_handle_auth_cb (MNClientSession * session, MNClientSessionRespon
     return 0;
 #endif /* WITH_SASL */
   }}
-#line 721 "mn-pop3-mailbox.c"
+#line 719 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 505 "mn-pop3-mailbox.gob"
+#line 503 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_enter_apop_cb (MNClientSession * session, MNClientSessionPrivate * priv)
-#line 727 "mn-pop3-mailbox.c"
+#line 725 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::enter_apop_cb"
 {
-#line 508 "mn-pop3-mailbox.gob"
+#line 506 "mn-pop3-mailbox.gob"
 	
     MNMD5Context context;
-    char buf[33];
+    char buf[16];
+    char hexbuf[33];
 
     g_assert(priv->apop_timestamp != NULL);
 
-    if (! mn_pi_mailbox_fill_credentials(priv->pi_mailbox, TRUE, TRUE))
+    if (! mn_authenticated_mailbox_fill_password(priv->auth_mailbox, TRUE))
       return STATE_QUIT;
 
-    mn_md5_init(&context);
-    mn_md5_update(&context, priv->apop_timestamp, strlen(priv->apop_timestamp));
-    mn_md5_update(&context, priv->pi_mailbox->runtime_password, strlen(priv->pi_mailbox->runtime_password));
-    mn_md5_end(&context, buf);
+    mn_md5_init_ctx(&context);
+    mn_md5_process_bytes(&context, priv->apop_timestamp, strlen(priv->apop_timestamp));
+    mn_md5_process_bytes(&context, priv->auth_mailbox->runtime_password, strlen(priv->auth_mailbox->runtime_password));
+    mn_md5_finish_ctx(&context, buf);
+    mn_md5_to_hex(buf, hexbuf);
 
-    return mn_client_session_write(session, "APOP %s %s", priv->pi_mailbox->runtime_username, buf);
+    return mn_client_session_write(session, "APOP %s %s", priv->auth_mailbox->username, hexbuf);
   }}
 #line 748 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
@@ -792,22 +792,19 @@ mn_pop3_mailbox_enter_user_cb (MNClientSession * session, MNClientSessionPrivate
 {
 #line 546 "mn-pop3-mailbox.gob"
 	
-    if (! mn_pi_mailbox_fill_credentials(priv->pi_mailbox, TRUE, TRUE))
-      return STATE_QUIT;
-
-    return mn_client_session_write(session, "USER %s", priv->pi_mailbox->runtime_username);
+    return mn_client_session_write(session, "USER %s", priv->auth_mailbox->username);
   }}
-#line 801 "mn-pop3-mailbox.c"
+#line 798 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 553 "mn-pop3-mailbox.gob"
+#line 550 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_handle_user_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
-#line 807 "mn-pop3-mailbox.c"
+#line 804 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::handle_user_cb"
 {
-#line 557 "mn-pop3-mailbox.gob"
+#line 554 "mn-pop3-mailbox.gob"
 	
     switch (response->type)
       {
@@ -822,33 +819,34 @@ mn_pop3_mailbox_handle_user_cb (MNClientSession * session, MNClientSessionRespon
 	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
       }
   }}
-#line 826 "mn-pop3-mailbox.c"
+#line 823 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 572 "mn-pop3-mailbox.gob"
+#line 569 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_enter_pass_cb (MNClientSession * session, MNClientSessionPrivate * priv)
-#line 832 "mn-pop3-mailbox.c"
+#line 829 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::enter_pass_cb"
 {
-#line 575 "mn-pop3-mailbox.gob"
+#line 572 "mn-pop3-mailbox.gob"
 	
-    g_assert(priv->pi_mailbox->runtime_password != NULL);
+    if (! mn_authenticated_mailbox_fill_password(priv->auth_mailbox, TRUE))
+      return STATE_QUIT;
 
-    return mn_client_session_write(session, "PASS %s", priv->pi_mailbox->runtime_password);
+    return mn_client_session_write(session, "PASS %s", priv->auth_mailbox->runtime_password);
   }}
-#line 842 "mn-pop3-mailbox.c"
+#line 840 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 581 "mn-pop3-mailbox.gob"
+#line 579 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_handle_pass_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
-#line 848 "mn-pop3-mailbox.c"
+#line 846 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::handle_pass_cb"
 {
-#line 585 "mn-pop3-mailbox.gob"
+#line 583 "mn-pop3-mailbox.gob"
 	
     switch (response->type)
       {
@@ -862,31 +860,31 @@ mn_pop3_mailbox_handle_pass_cb (MNClientSession * session, MNClientSessionRespon
 	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
       }
   }}
-#line 866 "mn-pop3-mailbox.c"
+#line 864 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 599 "mn-pop3-mailbox.gob"
+#line 597 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_enter_list_cb (MNClientSession * session, MNClientSessionPrivate * priv)
-#line 872 "mn-pop3-mailbox.c"
+#line 870 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::enter_list_cb"
 {
-#line 602 "mn-pop3-mailbox.gob"
+#line 600 "mn-pop3-mailbox.gob"
 	
     return mn_client_session_write(session, "LIST");
   }}
-#line 880 "mn-pop3-mailbox.c"
+#line 878 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 606 "mn-pop3-mailbox.gob"
+#line 604 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_handle_list_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
-#line 886 "mn-pop3-mailbox.c"
+#line 884 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::handle_list_cb"
 {
-#line 610 "mn-pop3-mailbox.gob"
+#line 608 "mn-pop3-mailbox.gob"
 	
     self_handle_list_response(priv, response, FALSE);
 
@@ -918,17 +916,17 @@ mn_pop3_mailbox_handle_list_cb (MNClientSession * session, MNClientSessionRespon
 	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
       }
   }}
-#line 922 "mn-pop3-mailbox.c"
+#line 920 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 642 "mn-pop3-mailbox.gob"
+#line 640 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_enter_retr_top_cb (MNClientSession * session, MNClientSessionPrivate * priv)
-#line 928 "mn-pop3-mailbox.c"
+#line 926 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::enter_retr_top_cb"
 {
-#line 645 "mn-pop3-mailbox.gob"
+#line 643 "mn-pop3-mailbox.gob"
 	
     if (priv->current_message_number)
       return mn_client_session_write(session, priv->top_supported ? "TOP %i 0" : "RETR %i", GPOINTER_TO_INT(priv->current_message_number->data));
@@ -952,17 +950,17 @@ mn_pop3_mailbox_enter_retr_top_cb (MNClientSession * session, MNClientSessionPri
 	return STATE_QUIT;
       }
   }}
-#line 956 "mn-pop3-mailbox.c"
+#line 954 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 669 "mn-pop3-mailbox.gob"
+#line 667 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_handle_retr_top_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
-#line 962 "mn-pop3-mailbox.c"
+#line 960 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::handle_retr_top_cb"
 {
-#line 673 "mn-pop3-mailbox.gob"
+#line 671 "mn-pop3-mailbox.gob"
 	
     self_handle_list_response(priv, response, TRUE);
 
@@ -1006,31 +1004,31 @@ mn_pop3_mailbox_handle_retr_top_cb (MNClientSession * session, MNClientSessionRe
 	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
       }
   }}
-#line 1010 "mn-pop3-mailbox.c"
+#line 1008 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 717 "mn-pop3-mailbox.gob"
+#line 715 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_enter_quit_cb (MNClientSession * session, MNClientSessionPrivate * priv)
-#line 1016 "mn-pop3-mailbox.c"
+#line 1014 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::enter_quit_cb"
 {
-#line 720 "mn-pop3-mailbox.gob"
+#line 718 "mn-pop3-mailbox.gob"
 	
     return mn_client_session_write(session, "QUIT");
   }}
-#line 1024 "mn-pop3-mailbox.c"
+#line 1022 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 724 "mn-pop3-mailbox.gob"
+#line 722 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_handle_quit_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
-#line 1030 "mn-pop3-mailbox.c"
+#line 1028 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::handle_quit_cb"
 {
-#line 728 "mn-pop3-mailbox.gob"
+#line 726 "mn-pop3-mailbox.gob"
 	
     switch (response->type)
       {
@@ -1044,20 +1042,20 @@ mn_pop3_mailbox_handle_quit_cb (MNClientSession * session, MNClientSessionRespon
 	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
       }
   }}
-#line 1048 "mn-pop3-mailbox.c"
+#line 1046 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 742 "mn-pop3-mailbox.gob"
+#line 740 "mn-pop3-mailbox.gob"
 static void 
 ___18_mn_pop3_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GNUC_UNUSED)
-#line 1054 "mn-pop3-mailbox.c"
+#line 1052 "mn-pop3-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_AUTHENTICATED_MAILBOX_CLASS(parent_class)->authenticated_check) \
 		(* MN_AUTHENTICATED_MAILBOX_CLASS(parent_class)->authenticated_check)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::authenticated_check"
 {
-#line 744 "mn-pop3-mailbox.gob"
+#line 742 "mn-pop3-mailbox.gob"
 	
     Self *self = SELF(mailbox);
     static const MNClientSessionState states[] = {
@@ -1087,6 +1085,9 @@ ___18_mn_pop3_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GN
       NULL,			/* post_read */
 #if WITH_SASL
       mn_pi_mailbox_sasl_get_credentials_cb,
+#endif
+#if WITH_SSL
+      mn_pi_mailbox_ssl_trust_server_cb,
 #endif
     };
     MNClientSessionPrivate priv;
@@ -1161,18 +1162,18 @@ ___18_mn_pop3_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GN
     if (priv.current_message)
       g_string_free(priv.current_message, TRUE);
   }}
-#line 1165 "mn-pop3-mailbox.c"
+#line 1166 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 848 "mn-pop3-mailbox.gob"
+#line 849 "mn-pop3-mailbox.gob"
 static MNClientSessionResponse * 
 mn_pop3_mailbox_response_new_cb (MNClientSession * session, const char * input, MNClientSessionPrivate * priv)
-#line 1172 "mn-pop3-mailbox.c"
+#line 1173 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::response_new_cb"
 {
-#line 852 "mn-pop3-mailbox.gob"
+#line 853 "mn-pop3-mailbox.gob"
 	
     MNClientSessionResponse *response = NULL;
 
@@ -1252,35 +1253,35 @@ mn_pop3_mailbox_response_new_cb (MNClientSession * session, const char * input, 
 
     return response;
   }}
-#line 1256 "mn-pop3-mailbox.c"
+#line 1257 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 932 "mn-pop3-mailbox.gob"
+#line 933 "mn-pop3-mailbox.gob"
 static void 
 mn_pop3_mailbox_response_free_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
-#line 1262 "mn-pop3-mailbox.c"
+#line 1263 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::response_free_cb"
 {
-#line 936 "mn-pop3-mailbox.gob"
+#line 937 "mn-pop3-mailbox.gob"
 	
     g_free(response->arguments);
     g_free(response);
   }}
-#line 1271 "mn-pop3-mailbox.c"
+#line 1272 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 941 "mn-pop3-mailbox.gob"
+#line 942 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_session_authenticate (MNClientSessionPrivate * priv)
-#line 1277 "mn-pop3-mailbox.c"
+#line 1278 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::session_authenticate"
-#line 941 "mn-pop3-mailbox.gob"
+#line 942 "mn-pop3-mailbox.gob"
 	g_return_val_if_fail (priv != NULL, (int )0);
-#line 1282 "mn-pop3-mailbox.c"
+#line 1283 "mn-pop3-mailbox.c"
 {
-#line 943 "mn-pop3-mailbox.gob"
+#line 944 "mn-pop3-mailbox.gob"
 	
 #if WITH_SASL
     g_slist_free(priv->sasl_remaining_mechanisms);
@@ -1331,20 +1332,20 @@ mn_pop3_mailbox_session_authenticate (MNClientSessionPrivate * priv)
 	  return STATE_USER;
       }
   }}
-#line 1335 "mn-pop3-mailbox.c"
+#line 1336 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 994 "mn-pop3-mailbox.gob"
+#line 995 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_session_authenticate_fallback (MNClientSessionPrivate * priv, gboolean tried_apop, gboolean tried_pass)
-#line 1341 "mn-pop3-mailbox.c"
+#line 1342 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::session_authenticate_fallback"
-#line 994 "mn-pop3-mailbox.gob"
+#line 995 "mn-pop3-mailbox.gob"
 	g_return_val_if_fail (priv != NULL, (int )0);
-#line 1346 "mn-pop3-mailbox.c"
+#line 1347 "mn-pop3-mailbox.c"
 {
-#line 998 "mn-pop3-mailbox.gob"
+#line 999 "mn-pop3-mailbox.gob"
 	
     if (! priv->pi_mailbox->authmech)
       {
@@ -1381,9 +1382,9 @@ mn_pop3_mailbox_session_authenticate_fallback (MNClientSessionPrivate * priv, gb
 	  }
       }
 
-    if (priv->pi_mailbox->auth_prompted)
+    if (priv->auth_mailbox->auth_prompted)
       {
-	mn_pi_mailbox_auth_failed(priv->pi_mailbox);
+	mn_authenticated_mailbox_auth_failed(priv->auth_mailbox);
 	return self_session_authenticate(priv);
       }
     else
@@ -1392,20 +1393,20 @@ mn_pop3_mailbox_session_authenticate_fallback (MNClientSessionPrivate * priv, gb
 	return STATE_QUIT;
       }
   }}
-#line 1396 "mn-pop3-mailbox.c"
+#line 1397 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1046 "mn-pop3-mailbox.gob"
+#line 1047 "mn-pop3-mailbox.gob"
 static int 
 mn_pop3_mailbox_session_authenticated (MNClientSessionPrivate * priv)
-#line 1402 "mn-pop3-mailbox.c"
+#line 1403 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::session_authenticated"
-#line 1046 "mn-pop3-mailbox.gob"
+#line 1047 "mn-pop3-mailbox.gob"
 	g_return_val_if_fail (priv != NULL, (int )0);
-#line 1407 "mn-pop3-mailbox.c"
+#line 1408 "mn-pop3-mailbox.c"
 {
-#line 1048 "mn-pop3-mailbox.gob"
+#line 1049 "mn-pop3-mailbox.gob"
 	
     priv->authenticated = TRUE;
     if (priv->self->_priv->login_delay)
@@ -1432,22 +1433,22 @@ mn_pop3_mailbox_session_authenticated (MNClientSessionPrivate * priv)
       ? STATE_CAPA
       : STATE_LIST;
   }}
-#line 1436 "mn-pop3-mailbox.c"
+#line 1437 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1075 "mn-pop3-mailbox.gob"
+#line 1076 "mn-pop3-mailbox.gob"
 static void 
 mn_pop3_mailbox_handle_list_response (MNClientSessionPrivate * priv, MNClientSessionResponse * response, gboolean in_retr_top)
-#line 1442 "mn-pop3-mailbox.c"
+#line 1443 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::handle_list_response"
-#line 1075 "mn-pop3-mailbox.gob"
+#line 1076 "mn-pop3-mailbox.gob"
 	g_return_if_fail (priv != NULL);
-#line 1075 "mn-pop3-mailbox.gob"
+#line 1076 "mn-pop3-mailbox.gob"
 	g_return_if_fail (response != NULL);
-#line 1449 "mn-pop3-mailbox.c"
+#line 1450 "mn-pop3-mailbox.c"
 {
-#line 1079 "mn-pop3-mailbox.gob"
+#line 1080 "mn-pop3-mailbox.gob"
 	
     switch (response->type)
       {
@@ -1465,24 +1466,24 @@ mn_pop3_mailbox_handle_list_response (MNClientSessionPrivate * priv, MNClientSes
 	break;
       }
   }}
-#line 1469 "mn-pop3-mailbox.c"
+#line 1470 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1097 "mn-pop3-mailbox.gob"
+#line 1098 "mn-pop3-mailbox.gob"
 char * 
 mn_pop3_mailbox_build_name (const char * username, const char * server)
-#line 1475 "mn-pop3-mailbox.c"
+#line 1476 "mn-pop3-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox::build_name"
-#line 1097 "mn-pop3-mailbox.gob"
+#line 1098 "mn-pop3-mailbox.gob"
+	g_return_val_if_fail (username != NULL, (char * )0);
+#line 1098 "mn-pop3-mailbox.gob"
 	g_return_val_if_fail (server != NULL, (char * )0);
-#line 1480 "mn-pop3-mailbox.c"
+#line 1483 "mn-pop3-mailbox.c"
 {
-#line 1099 "mn-pop3-mailbox.gob"
+#line 1101 "mn-pop3-mailbox.gob"
 	
-    return username
-      ? g_strdup_printf("%s@%s", username, server)
-      : g_strdup(server);
+    return g_strdup_printf("%s@%s", username, server);
   }}
-#line 1488 "mn-pop3-mailbox.c"
+#line 1489 "mn-pop3-mailbox.c"
 #undef __GOB_FUNCTION__

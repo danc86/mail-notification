@@ -10,7 +10,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNPopupsPrivate {
-#line 36 "mn-popups.gob"
+#line 41 "mn-popups.gob"
 	GHashTable * popups;
 #line 16 "mn-popups-private.h"
 };

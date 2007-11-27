@@ -340,7 +340,7 @@ mn_autodetect_mailbox_properties_browse_clicked_h (GtkButton * button, gpointer 
 
     if (selfp->chooser)
       {
-	gtk_window_present(GTK_WINDOW(selfp->chooser));
+	mn_window_present_from_event(GTK_WINDOW(selfp->chooser));
 	return;
       }
 

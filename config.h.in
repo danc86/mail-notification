@@ -78,6 +78,9 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
+/* taken from glibc */
+#undef STRING_ARCH_UNALIGNED
+
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
 
@@ -87,8 +90,14 @@
 /* Define to 1 if evolution is enabled, 0 otherwise */
 #undef WITH_EVOLUTION
 
+/* Define to 1 if gconf-sanity-check is enabled, 0 otherwise */
+#undef WITH_GCONF_SANITY_CHECK
+
 /* Define to 1 if gmail is enabled, 0 otherwise */
 #undef WITH_GMAIL
+
+/* Define to 1 if hotmail is enabled, 0 otherwise */
+#undef WITH_HOTMAIL
 
 /* Define to 1 if imap is enabled, 0 otherwise */
 #undef WITH_IMAP
@@ -123,8 +132,12 @@
 /* Define to 1 if sylpheed is enabled, 0 otherwise */
 #undef WITH_SYLPHEED
 
-/* Define to 1 if sylpheed-locking is enabled, 0 otherwise */
-#undef WITH_SYLPHEED_LOCKING
+/* Define to 1 if yahoo is enabled, 0 otherwise */
+#undef WITH_YAHOO
+
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
 
 /* Number of bits in a file offset, on hosts where this is settable. */
 #undef _FILE_OFFSET_BITS

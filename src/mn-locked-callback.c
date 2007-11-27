@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -453,6 +453,11 @@ mn_gnome_vfs_monitor_add_locked (GnomeVFSMonitorHandle **handle,
   g_return_val_if_fail(handle != NULL, GNOME_VFS_ERROR_BAD_PARAMETERS);
   g_return_val_if_fail(text_uri != NULL, GNOME_VFS_ERROR_BAD_PARAMETERS);
   g_return_val_if_fail(callback != NULL, GNOME_VFS_ERROR_BAD_PARAMETERS);
+
+  /*
+   * We need a global monitor hash table because
+   * gnome_vfs_monitor_add() has no destroy_data parameter.
+   */
 
   G_LOCK(vfs_monitors);
   result = gnome_vfs_monitor_add(&_handle, text_uri, monitor_type, mn_locked_gnome_vfs_monitor_cb, user_data);

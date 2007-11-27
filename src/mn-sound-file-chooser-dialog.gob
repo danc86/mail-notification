@@ -1,0 +1,142 @@
+/*
+ * Mail Notification
+ * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include <gtk/gtk.h>
+%}
+
+%privateheader{
+#include "mn-sound-player.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+
+enum
+{
+  RESPONSE_PLAY = 1,
+  RESPONSE_STOP
+};
+%}
+
+class MN:Sound:File:Chooser:Dialog from Gtk:File:Chooser:Dialog
+{
+  private MNSoundPlayer *sound_player unrefwith g_object_unref;
+
+  override (G:Object) GObject *
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    Self *self = SELF(object);
+    GtkFileFilter *filter;
+
+    selfp->sound_player = mn_sound_player_new();
+
+    gtk_window_set_title(GTK_WINDOW(self), _("Select a File"));
+
+    gtk_dialog_add_buttons(GTK_DIALOG(self),
+			   GTK_STOCK_MEDIA_PLAY, RESPONSE_PLAY,
+			   GTK_STOCK_MEDIA_STOP, RESPONSE_STOP,
+			   GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			   GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+			   NULL);
+
+    filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(filter, _("All files"));
+    gtk_file_filter_add_pattern(filter, "*");
+    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(self), filter);
+
+    filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(filter, _("Audio files"));
+    gtk_file_filter_add_mime_type(filter, "audio/*");
+    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(self), filter);
+    gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(self), filter);
+
+    g_object_connect(self,
+		     "signal::response", self_response_h, NULL,
+		     "signal::selection-changed", self_update_sensitivity, NULL,
+		     NULL);
+
+    g_object_connect(selfp->sound_player,
+		     "swapped-signal::notify::can-play", self_update_sensitivity, self,
+		     "swapped-signal::notify::can-stop", self_update_sensitivity, self,
+		     NULL);
+
+    self_update_sensitivity(self);
+
+    return object;
+  }
+
+  private void
+    response_h (GtkDialog *dialog, int response, gpointer user_data)
+  {
+    Self *self = SELF(dialog);
+
+    if (response == RESPONSE_PLAY)
+      {
+	char *filename;
+
+	filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+	if (filename)
+	  {
+	    mn_sound_player_play(selfp->sound_player, filename, GTK_WINDOW(dialog));
+	    g_free(filename);
+	  }
+      }
+    else if (response == RESPONSE_STOP)
+      mn_sound_player_stop(selfp->sound_player);
+    else
+      return;
+
+    /*
+     * Do not pass our internal responses to client code and do not
+     * let the dialog be destroyed.
+     */
+    g_signal_stop_emission_by_name(dialog, "response");
+  }
+
+  private void
+    update_sensitivity (self)
+  {
+    gtk_dialog_set_response_sensitive(GTK_DIALOG(self), RESPONSE_PLAY, self_has_selected_file(self) && mn_sound_player_get_can_play(selfp->sound_player));
+    gtk_dialog_set_response_sensitive(GTK_DIALOG(self), RESPONSE_STOP, mn_sound_player_get_can_stop(selfp->sound_player));
+  }
+
+  private gboolean
+    has_selected_file (self)
+  {
+    char *filename;
+    gboolean has;
+
+    filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(self));
+    has = filename && ! g_file_test(filename, G_FILE_TEST_IS_DIR);
+    g_free(filename);
+
+    return has;
+  }
+
+  public GtkWidget *
+    new (void)
+  {
+    return GTK_WIDGET(GET_NEW);
+  }
+}

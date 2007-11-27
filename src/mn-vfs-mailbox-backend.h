@@ -5,7 +5,6 @@
 
 
 #include "mn-vfs-mailbox.h"
-#include "mn-vfs-message.h"
 
 #ifndef __MN_VFS_MAILBOX_BACKEND_H__
 #define __MN_VFS_MAILBOX_BACKEND_H__
@@ -26,6 +25,9 @@ extern "C" {
 
 #define MN_VFS_MAILBOX_BACKEND_GET_CLASS(obj)	G_TYPE_INSTANCE_GET_CLASS((obj), mn_vfs_mailbox_backend_get_type(), MNVFSMailboxBackendClass)
 
+/* Private structure type */
+typedef struct _MNVFSMailboxBackendPrivate MNVFSMailboxBackendPrivate;
+
 /*
  * Main object structure
  */
@@ -37,6 +39,8 @@ struct _MNVFSMailboxBackend {
 	GObject __parent__;
 	/*< private >*/
 	MNVFSMailbox * mailbox; /* protected */
+	int check_latency; /* protected */
+	MNVFSMailboxBackendPrivate *_priv;
 };
 
 /*
@@ -47,8 +51,7 @@ struct _MNVFSMailboxBackendClass {
 	GObjectClass __parent__;
 	void (* monitor_cb) (MNVFSMailboxBackend * self, const char * info_uri, GnomeVFSMonitorEventType event_type);
 	gboolean (* is) (MNVFSMailboxBackend * self, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox);
-	void (* check) (MNVFSMailboxBackend * self, unsigned long check_id);
-	gboolean (* mark_as_read) (MNVFSMailboxBackend * self, MNVFSMessage * message, GError ** err);
+	void (* check) (MNVFSMailboxBackend * self, int check_id);
 	const char * format;
 };
 
@@ -61,10 +64,7 @@ gboolean 	mn_vfs_mailbox_backend_is	(MNVFSMailboxBackend * self,
 					MNVFSMailboxBackendClass * class,
 					MNVFSMailbox * mailbox);
 void 	mn_vfs_mailbox_backend_check	(MNVFSMailboxBackend * self,
-					unsigned long check_id);
-gboolean 	mn_vfs_mailbox_backend_mark_as_read	(MNVFSMailboxBackend * self,
-					MNVFSMessage * message,
-					GError ** err);
+					int check_id);
 
 /*
  * Argument wrapping macros

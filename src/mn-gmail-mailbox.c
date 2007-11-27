@@ -61,20 +61,23 @@ static void ___object_get_property (GObject *object, guint property_id, GValue *
 static void mn_gmail_mailbox_class_init (MNGmailMailboxClass * class) G_GNUC_UNUSED;
 static void mn_gmail_mailbox_init (MNGmailMailbox * self) G_GNUC_UNUSED;
 static void ___3_mn_gmail_mailbox_seal (MNMailbox * mailbox) G_GNUC_UNUSED;
-static void ___4_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox) G_GNUC_UNUSED;
+static GnomeVFSURI * mn_gmail_mailbox_build_uri (MNGmailMailbox * self) G_GNUC_UNUSED;
+static void ___5_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox) G_GNUC_UNUSED;
 static void mn_gmail_mailbox_parse_entry (xmlNode * node, time_t * sent_time, char ** id, char ** from, char ** subject, char ** url) G_GNUC_UNUSED;
 static char * mn_gmail_mailbox_parse_author (xmlNode * node) G_GNUC_UNUSED;
 static time_t mn_gmail_mailbox_parse_date (const char * w3c_datetime) G_GNUC_UNUSED;
 
 enum {
 	PROP_0,
-	PROP_LOCATION
+	PROP_LOCATION,
+	PROP_LABEL
 };
 
 /* pointer to the class of our parent */
 static MNAuthenticatedMailboxClass *parent_class = NULL;
 
 /* Short form macros */
+#define self_build_uri mn_gmail_mailbox_build_uri
 #define self_parse_entry mn_gmail_mailbox_parse_entry
 #define self_parse_author mn_gmail_mailbox_parse_author
 #define self_parse_date mn_gmail_mailbox_parse_date
@@ -129,9 +132,9 @@ ___dispose (GObject *obj_self)
 	MNGmailMailbox *self G_GNUC_UNUSED = MN_GMAIL_MAILBOX (obj_self);
 	if (G_OBJECT_CLASS (parent_class)->dispose) \
 		(* G_OBJECT_CLASS (parent_class)->dispose) (obj_self);
-#line 59 "mn-gmail-mailbox.gob"
+#line 62 "mn-gmail-mailbox.gob"
 	if(self->_priv->uri) { gnome_vfs_uri_unref ((gpointer) self->_priv->uri); self->_priv->uri = NULL; }
-#line 135 "mn-gmail-mailbox.c"
+#line 138 "mn-gmail-mailbox.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -146,14 +149,17 @@ ___finalize(GObject *obj_self)
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
 #line 53 "mn-gmail-mailbox.gob"
 	if(self->location) { g_free ((gpointer) self->location); self->location = NULL; }
-#line 150 "mn-gmail-mailbox.c"
+#line 153 "mn-gmail-mailbox.c"
+#line 59 "mn-gmail-mailbox.gob"
+	if(self->label) { g_free ((gpointer) self->label); self->label = NULL; }
+#line 156 "mn-gmail-mailbox.c"
 }
 #undef __GOB_FUNCTION__
 
-#line 61 "mn-gmail-mailbox.gob"
+#line 64 "mn-gmail-mailbox.gob"
 static void 
 mn_gmail_mailbox_class_init (MNGmailMailboxClass * class G_GNUC_UNUSED)
-#line 157 "mn-gmail-mailbox.c"
+#line 163 "mn-gmail-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::class_init"
 	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
@@ -166,9 +172,9 @@ mn_gmail_mailbox_class_init (MNGmailMailboxClass * class G_GNUC_UNUSED)
 
 #line 78 "mn-gmail-mailbox.gob"
 	mn_mailbox_class->seal = ___3_mn_gmail_mailbox_seal;
-#line 87 "mn-gmail-mailbox.gob"
-	mn_authenticated_mailbox_class->authenticated_check = ___4_mn_gmail_mailbox_authenticated_check;
-#line 172 "mn-gmail-mailbox.c"
+#line 143 "mn-gmail-mailbox.gob"
+	mn_authenticated_mailbox_class->authenticated_check = ___5_mn_gmail_mailbox_authenticated_check;
+#line 178 "mn-gmail-mailbox.c"
 	g_object_class->dispose = ___dispose;
 	g_object_class->finalize = ___finalize;
 	g_object_class->get_property = ___object_get_property;
@@ -181,30 +187,36 @@ mn_gmail_mailbox_class_init (MNGmailMailboxClass * class G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 "https://mail.google.com/mail/feed/atom" /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_REQUIRED | MN_MAILBOX_PARAM_PERMANENT | G_PARAM_CONSTRUCT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_REQUIRED | MN_MAILBOX_PARAM_LOAD_SAVE | G_PARAM_CONSTRUCT));
 	g_object_class_install_property (g_object_class,
 		PROP_LOCATION,
 		param_spec);
+	param_spec = g_param_spec_string
+		("label" /* name */,
+		 NULL /* nick */,
+		 NULL /* blurb */,
+		 NULL /* default_value */,
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_LOAD_SAVE));
+	g_object_class_install_property (g_object_class,
+		PROP_LABEL,
+		param_spec);
     }
  {
-#line 62 "mn-gmail-mailbox.gob"
+#line 65 "mn-gmail-mailbox.gob"
 
     MN_MAILBOX_CLASS(class)->type = "gmail";
 
-    /*
-     * 5 minutes is a good default check delay for remote Gmail
-     * mailboxes.
-     */
+    /* 5 minutes is a good default */
     MN_MAILBOX_CLASS(class)->default_check_delay = 60 * 5;
   
-#line 201 "mn-gmail-mailbox.c"
+#line 213 "mn-gmail-mailbox.c"
  }
 }
 #undef __GOB_FUNCTION__
 #line 72 "mn-gmail-mailbox.gob"
 static void 
 mn_gmail_mailbox_init (MNGmailMailbox * self G_GNUC_UNUSED)
-#line 208 "mn-gmail-mailbox.c"
+#line 220 "mn-gmail-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_GMAIL_MAILBOX,MNGmailMailboxPrivate);
@@ -214,7 +226,7 @@ mn_gmail_mailbox_init (MNGmailMailbox * self G_GNUC_UNUSED)
     mn_mailbox_set_format(MN_MAILBOX(self), "Gmail");
     mn_mailbox_set_stock_id(MN_MAILBOX(self), MN_STOCK_GMAIL);
   
-#line 218 "mn-gmail-mailbox.c"
+#line 230 "mn-gmail-mailbox.c"
  }
 }
 #undef __GOB_FUNCTION__
@@ -235,7 +247,14 @@ ___object_set_property (GObject *object,
 		{
 #line 54 "mn-gmail-mailbox.gob"
 { char *old = self->location; self->location = g_value_dup_string (VAL); g_free (old); }
-#line 239 "mn-gmail-mailbox.c"
+#line 251 "mn-gmail-mailbox.c"
+		}
+		break;
+	case PROP_LABEL:
+		{
+#line 60 "mn-gmail-mailbox.gob"
+{ char *old = self->label; self->label = g_value_dup_string (VAL); g_free (old); }
+#line 258 "mn-gmail-mailbox.c"
 		}
 		break;
 	default:
@@ -266,7 +285,14 @@ ___object_get_property (GObject *object,
 		{
 #line 54 "mn-gmail-mailbox.gob"
 g_value_set_string (VAL, self->location);
-#line 270 "mn-gmail-mailbox.c"
+#line 289 "mn-gmail-mailbox.c"
+		}
+		break;
+	case PROP_LABEL:
+		{
+#line 60 "mn-gmail-mailbox.gob"
+g_value_set_string (VAL, self->label);
+#line 296 "mn-gmail-mailbox.c"
 		}
 		break;
 	default:
@@ -286,7 +312,7 @@ g_value_set_string (VAL, self->location);
 #line 78 "mn-gmail-mailbox.gob"
 static void 
 ___3_mn_gmail_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
-#line 290 "mn-gmail-mailbox.c"
+#line 316 "mn-gmail-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_MAILBOX_CLASS(parent_class)->seal) \
 		(* MN_MAILBOX_CLASS(parent_class)->seal)(___mailbox); }
@@ -295,26 +321,95 @@ ___3_mn_gmail_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
 {
 #line 80 "mn-gmail-mailbox.gob"
 	
+    MNAuthenticatedMailbox *auth_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
+    Self *self = SELF(mailbox);
+    GnomeVFSURI *uri;
+
     PARENT_HANDLER(mailbox);
 
     if (! mailbox->runtime_name)
-      mailbox->runtime_name = self_build_name(MN_AUTHENTICATED_MAILBOX(mailbox)->username);
+      mailbox->runtime_name = self_build_name(auth_mailbox->username, self->label);
+
+    uri = self_build_uri(self);
+    if (uri)
+      {
+	/*
+	 * Use keyring attributes that are compatible with what
+	 * GnomeVFS uses. This allows the password entered by the user
+	 * at the GnomeVFS password prompt to be recognized by Mail
+	 * Notification and displayed in the mailbox properties
+	 * dialog.
+	 */
+	auth_mailbox->keyring_server = g_strdup(gnome_vfs_uri_get_host_name(uri));
+	auth_mailbox->keyring_protocol = g_strdup("http");
+	auth_mailbox->keyring_authtype = g_strdup("basic");
+	auth_mailbox->keyring_port = gnome_vfs_uri_get_host_port(uri);
+	if (auth_mailbox->keyring_port == 0)
+	  {
+	    const char *scheme;
+
+	    scheme = gnome_vfs_uri_get_scheme(uri);
+	    if (! strcmp(scheme, "http"))
+	      auth_mailbox->keyring_port = 80;
+	    else if (! strcmp(scheme, "https"))
+	      auth_mailbox->keyring_port = 443;
+	  }
+
+	gnome_vfs_uri_unref(uri);
+      }
+    else
+      /* fallback */
+      auth_mailbox->keyring_domain = g_strdup("gmail.com");
   }}
-#line 304 "mn-gmail-mailbox.c"
+#line 365 "mn-gmail-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 87 "mn-gmail-mailbox.gob"
+#line 122 "mn-gmail-mailbox.gob"
+static GnomeVFSURI * 
+mn_gmail_mailbox_build_uri (MNGmailMailbox * self)
+#line 372 "mn-gmail-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Gmail:Mailbox::build_uri"
+#line 122 "mn-gmail-mailbox.gob"
+	g_return_val_if_fail (self != NULL, (GnomeVFSURI * )0);
+#line 122 "mn-gmail-mailbox.gob"
+	g_return_val_if_fail (MN_IS_GMAIL_MAILBOX (self), (GnomeVFSURI * )0);
+#line 379 "mn-gmail-mailbox.c"
+{
+#line 124 "mn-gmail-mailbox.gob"
+	
+    GnomeVFSURI *uri;
+
+    uri = gnome_vfs_uri_new(self->location);
+    if (uri)
+      {
+	GnomeVFSURI *new_uri;
+
+	if (self->label)
+	  {
+	    new_uri = gnome_vfs_uri_append_file_name(uri, self->label);
+	    gnome_vfs_uri_unref(uri);
+	    uri = new_uri;
+	  }
+      }
+
+    return uri;
+  }}
+#line 400 "mn-gmail-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 143 "mn-gmail-mailbox.gob"
 static void 
-___4_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GNUC_UNUSED)
-#line 311 "mn-gmail-mailbox.c"
+___5_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GNUC_UNUSED)
+#line 406 "mn-gmail-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_AUTHENTICATED_MAILBOX_CLASS(parent_class)->authenticated_check) \
 		(* MN_AUTHENTICATED_MAILBOX_CLASS(parent_class)->authenticated_check)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::authenticated_check"
 {
-#line 89 "mn-gmail-mailbox.gob"
+#line 145 "mn-gmail-mailbox.gob"
 	
     Self *self = SELF(mailbox);
     GnomeVFSResult result;
@@ -323,9 +418,11 @@ ___4_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GN
     xmlDoc *doc;
     xmlNode *node;
 
+    PARENT_HANDLER(mailbox);
+
     if (! selfp->uri)
       {
-	selfp->uri = gnome_vfs_uri_new(self->location);
+	selfp->uri = self_build_uri(self);
 	if (! selfp->uri)
 	  {
 	    GDK_THREADS_ENTER();
@@ -340,8 +437,15 @@ ___4_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GN
 	    return;
 	  }
 
+	/*
+	 * Obtain the password from the keyring but do not prompt
+	 * (GnomeVFS will prompt on our behalf if the password is
+	 * missing).
+	 */
+	mn_authenticated_mailbox_fill_password(mailbox, FALSE);
+
 	gnome_vfs_uri_set_user_name(selfp->uri, mailbox->username);
-	gnome_vfs_uri_set_password(selfp->uri, mailbox->password);
+	gnome_vfs_uri_set_password(selfp->uri, mailbox->runtime_password);
       }
 
     mn_mailbox_notice(MN_MAILBOX(self), _("retrieving feed from %s"), self->location);
@@ -358,6 +462,12 @@ ___4_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GN
 
 	return;
       }
+
+    mn_mailbox_notice(MN_MAILBOX(self),
+		      ngettext("feed retrieved successfully (%i byte)",
+			       "feed retrieved successfully (%i bytes)",
+			       atom_size),
+		      atom_size);
 
     doc = xmlParseMemory(atom, atom_size);
     g_free(atom);
@@ -425,31 +535,31 @@ ___4_mn_gmail_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GN
 
     xmlFreeDoc(doc);
   }}
-#line 429 "mn-gmail-mailbox.c"
+#line 539 "mn-gmail-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 200 "mn-gmail-mailbox.gob"
+#line 271 "mn-gmail-mailbox.gob"
 static void 
 mn_gmail_mailbox_parse_entry (xmlNode * node, time_t * sent_time, char ** id, char ** from, char ** subject, char ** url)
-#line 436 "mn-gmail-mailbox.c"
+#line 546 "mn-gmail-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::parse_entry"
-#line 200 "mn-gmail-mailbox.gob"
+#line 271 "mn-gmail-mailbox.gob"
 	g_return_if_fail (node != NULL);
-#line 200 "mn-gmail-mailbox.gob"
+#line 271 "mn-gmail-mailbox.gob"
 	g_return_if_fail (sent_time != NULL);
-#line 200 "mn-gmail-mailbox.gob"
+#line 271 "mn-gmail-mailbox.gob"
 	g_return_if_fail (id != NULL);
-#line 200 "mn-gmail-mailbox.gob"
+#line 271 "mn-gmail-mailbox.gob"
 	g_return_if_fail (from != NULL);
-#line 200 "mn-gmail-mailbox.gob"
+#line 271 "mn-gmail-mailbox.gob"
 	g_return_if_fail (subject != NULL);
-#line 200 "mn-gmail-mailbox.gob"
+#line 271 "mn-gmail-mailbox.gob"
 	g_return_if_fail (url != NULL);
-#line 451 "mn-gmail-mailbox.c"
+#line 561 "mn-gmail-mailbox.c"
 {
-#line 207 "mn-gmail-mailbox.gob"
+#line 278 "mn-gmail-mailbox.gob"
 	
     *sent_time = 0;
     *id = NULL;
@@ -495,20 +605,20 @@ mn_gmail_mailbox_parse_entry (xmlNode * node, time_t * sent_time, char ** id, ch
 #endif
 	}
   }}
-#line 499 "mn-gmail-mailbox.c"
+#line 609 "mn-gmail-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 253 "mn-gmail-mailbox.gob"
+#line 324 "mn-gmail-mailbox.gob"
 static char * 
 mn_gmail_mailbox_parse_author (xmlNode * node)
-#line 505 "mn-gmail-mailbox.c"
+#line 615 "mn-gmail-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::parse_author"
-#line 253 "mn-gmail-mailbox.gob"
+#line 324 "mn-gmail-mailbox.gob"
 	g_return_val_if_fail (node != NULL, (char * )0);
-#line 510 "mn-gmail-mailbox.c"
+#line 620 "mn-gmail-mailbox.c"
 {
-#line 255 "mn-gmail-mailbox.gob"
+#line 326 "mn-gmail-mailbox.gob"
 	
     char *from;
     char *name = NULL;
@@ -538,20 +648,20 @@ mn_gmail_mailbox_parse_author (xmlNode * node)
 
     return from;
   }}
-#line 542 "mn-gmail-mailbox.c"
+#line 652 "mn-gmail-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 285 "mn-gmail-mailbox.gob"
+#line 356 "mn-gmail-mailbox.gob"
 static time_t 
 mn_gmail_mailbox_parse_date (const char * w3c_datetime)
-#line 548 "mn-gmail-mailbox.c"
+#line 658 "mn-gmail-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::parse_date"
-#line 285 "mn-gmail-mailbox.gob"
+#line 356 "mn-gmail-mailbox.gob"
 	g_return_val_if_fail (w3c_datetime != NULL, (time_t )0);
-#line 553 "mn-gmail-mailbox.c"
+#line 663 "mn-gmail-mailbox.c"
 {
-#line 287 "mn-gmail-mailbox.gob"
+#line 358 "mn-gmail-mailbox.gob"
 	
 #ifdef HAVE_TIMEGM
     time_t t = 0;
@@ -590,24 +700,34 @@ mn_gmail_mailbox_parse_date (const char * w3c_datetime)
     return 0;
 #endif
   }}
-#line 594 "mn-gmail-mailbox.c"
+#line 704 "mn-gmail-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 326 "mn-gmail-mailbox.gob"
+#line 397 "mn-gmail-mailbox.gob"
 char * 
-mn_gmail_mailbox_build_name (const char * username)
-#line 600 "mn-gmail-mailbox.c"
+mn_gmail_mailbox_build_name (const char * username, const char * label)
+#line 710 "mn-gmail-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox::build_name"
+#line 397 "mn-gmail-mailbox.gob"
+	g_return_val_if_fail (username != NULL, (char * )0);
+#line 715 "mn-gmail-mailbox.c"
 {
-#line 328 "mn-gmail-mailbox.gob"
+#line 399 "mn-gmail-mailbox.gob"
 	
-    if (username)
-      return g_str_has_suffix(username, "@gmail.com")
-	? g_strdup(username)
-	: g_strdup_printf("%s@gmail.com", username);
+    GString *name;
+
+    name = g_string_new(NULL);
+
+    if (g_str_has_suffix(username, "@gmail.com"))
+      g_string_append(name, username);
     else
-      return g_strdup("gmail.com");
+      g_string_append_printf(name, "%s@gmail.com", username);
+
+    if (label)
+      g_string_append_printf(name, "/%s", label);
+
+    return g_string_free(name, FALSE);
   }}
-#line 613 "mn-gmail-mailbox.c"
+#line 733 "mn-gmail-mailbox.c"
 #undef __GOB_FUNCTION__

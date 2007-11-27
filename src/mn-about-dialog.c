@@ -139,30 +139,27 @@ mn_about_dialog_init (MNAboutDialog * self G_GNUC_UNUSED)
      */
     gtk_about_dialog_set_translator_credits(about, _("translator-credits"));
 
-    logo = mn_pixbuf_new(UIDIR G_DIR_SEPARATOR_S "logo.png");
-    if (logo)
-      {
-	gtk_about_dialog_set_logo(about, logo);
-	g_object_unref(logo);
-      }
+    logo = mn_pixbuf_new(PKGDATADIR G_DIR_SEPARATOR_S "logo.png");
+    gtk_about_dialog_set_logo(about, logo);
+    g_object_unref(logo);
 
     g_signal_connect(self, "response", G_CALLBACK(gtk_widget_destroy), NULL);
   
-#line 152 "mn-about-dialog.c"
+#line 149 "mn-about-dialog.c"
  }
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 70 "mn-about-dialog.gob"
+#line 67 "mn-about-dialog.gob"
 static void 
 mn_about_dialog_activate_link_cb (GtkAboutDialog * about, const char * link, gpointer data)
-#line 162 "mn-about-dialog.c"
+#line 159 "mn-about-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:About:Dialog::activate_link_cb"
 {
-#line 74 "mn-about-dialog.gob"
+#line 71 "mn-about-dialog.gob"
 	
     const char *prefix = data;
     char *url;
@@ -171,5 +168,5 @@ mn_about_dialog_activate_link_cb (GtkAboutDialog * about, const char * link, gpo
     mn_open_link(GTK_WINDOW(about), url);
     g_free(url);
   }}
-#line 175 "mn-about-dialog.c"
+#line 172 "mn-about-dialog.c"
 #undef __GOB_FUNCTION__

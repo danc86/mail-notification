@@ -17,8 +17,14 @@ extern "C" {
 
 typedef enum
 {
+  /* load from mailboxes.xml */
+  MN_MAILBOX_PARAM_LOAD		= MN_XML_PARAM_IMPORT,
+
   /* save to mailboxes.xml */
-  MN_MAILBOX_PARAM_PERMANENT	= MN_XML_PARAM_IMPORT_EXPORT,
+  MN_MAILBOX_PARAM_SAVE		= MN_XML_PARAM_EXPORT,
+
+  /* load from and save to mailboxes.xml */
+  MN_MAILBOX_PARAM_LOAD_SAVE	= MN_MAILBOX_PARAM_LOAD | MN_MAILBOX_PARAM_SAVE,
 
   /* ignore the case of a string property when checking if it has the default value */
   MN_MAILBOX_PARAM_IGNORE_CASE	= MN_XML_PARAM_IGNORE_CASE,
@@ -27,23 +33,26 @@ typedef enum
   MN_MAILBOX_PARAM_REQUIRED	= 1 << (MN_XML_PARAM_USER_SHIFT + 0),
 } MNMailboxParamFlags;
 
-#line 31 "mn-mailbox-private.h"
+#line 37 "mn-mailbox-private.h"
 struct _MNMailboxPrivate {
-#line 99 "mn-mailbox.gob"
-	gboolean added;
-#line 153 "mn-mailbox.gob"
+#line 126 "mn-mailbox.gob"
+	gboolean _active;
+#line 194 "mn-mailbox.gob"
 	MNLockedGSource * check_timeout_source;
-#line 162 "mn-mailbox.gob"
+#line 203 "mn-mailbox.gob"
 	gboolean poll;
-#line 195 "mn-mailbox.gob"
+#line 250 "mn-mailbox.gob"
 	GSList * unfiltered_messages;
-#line 197 "mn-mailbox.gob"
-	GHashTable * messages_marked_as_read;
-#line 219 "mn-mailbox.gob"
+#line 252 "mn-mailbox.gob"
+	GHashTable * messages_considered_as_read;
+#line 274 "mn-mailbox.gob"
 	GHashTable * messages_hash_table;
-#line 45 "mn-mailbox-private.h"
+#line 1031 "mn-mailbox.gob"
+	gboolean checking_enabled;
+#line 53 "mn-mailbox-private.h"
 };
 void 	mn_mailbox_set_error	(MNMailbox * self, const char * format, ...);
+void 	mn_mailbox_enable_checking	(MNMailbox * self);
 void 	mn_mailbox_notice	(MNMailbox * self, const char * format, ...);
 void 	mn_mailbox_warning	(MNMailbox * self, const char * format, ...);
 

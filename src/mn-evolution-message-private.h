@@ -10,7 +10,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNEvolutionMessagePrivate {
-#line 73 "mn-evolution-message.gob"
+#line 74 "mn-evolution-message.gob"
 	char * uid;
 #line 16 "mn-evolution-message-private.h"
 };

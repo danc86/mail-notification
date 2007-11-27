@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -57,7 +57,7 @@ enum
 
 typedef struct
 {
-  gboolean has_polled;
+  gboolean has_manually_checkable;
   gboolean has_selection;
 } SensitivityInfo;
 
@@ -101,7 +101,8 @@ class MN:Mailbox:View from Gtk:Tree:View
     MNMailbox *mailbox;
 
     gtk_tree_model_get(model, iter, COLUMN_MAILBOX, &mailbox, -1);
-    mn_mailbox_check(mailbox);
+    if (mn_mailbox_get_manually_checkable(mailbox))
+      mn_mailbox_check(mailbox);
     g_object_unref(mailbox);
   }
 
@@ -128,7 +129,7 @@ class MN:Mailbox:View from Gtk:Tree:View
 
     dialog = (GtkWidget *) mn_shell_get_mailbox_properties_dialog(mn_shell, mailbox);
     if (dialog)
-      gtk_window_present(GTK_WINDOW(dialog));
+      mn_window_present_from_event(GTK_WINDOW(dialog));
     else
       {
 	dialog = mn_mailbox_properties_dialog_new(mn_widget_get_parent_window(GTK_WIDGET(self)), mailbox);
@@ -320,7 +321,7 @@ class MN:Mailbox:View from Gtk:Tree:View
     selfp->copy_item = mn_menu_shell_append(shell, GTK_STOCK_COPY, NULL);
     selfp->paste_item = mn_menu_shell_append(shell, GTK_STOCK_PASTE, NULL);
     mn_menu_shell_append(shell, NULL, NULL);
-    select_all_item = mn_menu_shell_append(shell, MN_STOCK_SELECT_ALL, NULL);
+    select_all_item = mn_menu_shell_append(shell, GTK_STOCK_SELECT_ALL, NULL);
 
     g_signal_connect_swapped(selfp->properties_item, "activate", G_CALLBACK(self_activate_properties), self);
     g_signal_connect_swapped(selfp->update_item, "activate", G_CALLBACK(self_activate_update), self);
@@ -393,8 +394,7 @@ class MN:Mailbox:View from Gtk:Tree:View
 			mn_shell->mailboxes,
 			"signal::mailbox-added", self_mailbox_added_h, self,
 			"signal::mailbox-notify::stock-id", self_mailbox_notify_h, self,
-			"signal::mailbox-notify::poll", self_mailbox_notify_h, self,
-			"swapped-signal::mailbox-notify::poll", self_update_sensitivity, self,
+			"swapped-signal::mailbox-notify::manually-checkable", self_update_sensitivity, self,
 			"signal::mailbox-notify::format", self_mailbox_notify_h, self,
 			"signal::mailbox-notify::error", self_mailbox_notify_h, self,
 			"signal::mailbox-removed", self_mailbox_removed_h, self,
@@ -553,7 +553,6 @@ class MN:Mailbox:View from Gtk:Tree:View
   {
     GtkTreeModel *model;
     char *status;
-    const char *stock_id = NULL;
     const char *emblem_stock_id = NULL;
     GdkPixbuf *emblem = NULL;
     char *markup;
@@ -567,29 +566,21 @@ class MN:Mailbox:View from Gtk:Tree:View
 	    emblem_stock_id = MN_STOCK_ERROR;
 	  }
 	else
-	  {
-	    status = g_strdup_printf(_("%s mailbox"), mailbox->format);
-	    if (mn_mailbox_get_poll(mailbox))
-	      emblem_stock_id = MN_STOCK_POLLED;
-	  }
+	  status = g_strdup_printf(_("%s mailbox"), mailbox->format);
       }
     else
       {
 	if (mailbox->error)
 	  {
 	    status = g_strdup(mailbox->error);
-	    if (strcmp(mailbox->stock_id, MN_STOCK_UNKNOWN))
-	      emblem_stock_id = MN_STOCK_UNKNOWN;
+	    emblem_stock_id = MN_STOCK_ERROR;
 	  }
 	else
 	  {
 	    status = g_strdup(_("detecting mailbox type..."));
-	    stock_id = GTK_STOCK_EXECUTE;
+	    emblem_stock_id = GTK_STOCK_EXECUTE;
 	  }
       }
-
-    if (! stock_id)
-      stock_id = mailbox->stock_id;
 
     if (emblem_stock_id)
       emblem = gtk_widget_render_icon(GTK_WIDGET(self),
@@ -606,7 +597,7 @@ class MN:Mailbox:View from Gtk:Tree:View
     model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
     gtk_list_store_set(GTK_LIST_STORE(model), iter,
 		       COLUMN_MAILBOX, mailbox,
-		       COLUMN_ICON, stock_id,
+		       COLUMN_ICON, mailbox->stock_id,
 		       COLUMN_EMBLEM, emblem,
 		       COLUMN_PIXBUF, NULL,
 		       COLUMN_LABEL, markup,
@@ -660,7 +651,7 @@ class MN:Mailbox:View from Gtk:Tree:View
     gtk_tree_selection_selected_foreach(selection, self_update_sensitivity_cb, &info);
 
     gtk_widget_set_sensitive(selfp->properties_item, info.has_selection);
-    gtk_widget_set_sensitive(selfp->update_item, info.has_polled);
+    gtk_widget_set_sensitive(selfp->update_item, info.has_manually_checkable);
     gtk_widget_set_sensitive(selfp->remove_item, info.has_selection);
     gtk_widget_set_sensitive(selfp->cut_item, info.has_selection);
     gtk_widget_set_sensitive(selfp->copy_item, info.has_selection);
@@ -675,13 +666,13 @@ class MN:Mailbox:View from Gtk:Tree:View
     SensitivityInfo *info = data;
 
     info->has_selection = TRUE;
-    if (! info->has_polled)
+    if (! info->has_manually_checkable)
       {
 	MNMailbox *mailbox;
 
 	gtk_tree_model_get(model, iter, COLUMN_MAILBOX, &mailbox, -1);
-	if (mn_mailbox_get_poll(mailbox))
-	  info->has_polled = TRUE;
+	if (mn_mailbox_get_manually_checkable(mailbox))
+	  info->has_manually_checkable = TRUE;
 	g_object_unref(mailbox);
       }
   }
@@ -738,6 +729,18 @@ class MN:Mailbox:View from Gtk:Tree:View
   {
     GSList **configurations = data;
     MNMailbox *mailbox;
+
+    /*
+     * Note that the MNMailboxConfiguration object returned by
+     * mn_mailbox_get_configuration() does not include the keyring
+     * password. This is not a problem unless the user copies a
+     * mailbox, removes the password from the keyring and then pastes
+     * the mailbox: the pasted mailbox will have no password.
+     *
+     * Including the password in MNMailboxConfiguration would require
+     * to cope with the fact that gnome-keyring requests can block the
+     * UI. It's really not worth the effort.
+     */
 
     gtk_tree_model_get(model, iter, COLUMN_MAILBOX, &mailbox, -1);
     *configurations = g_slist_append(*configurations, mn_mailbox_get_configuration(mailbox));

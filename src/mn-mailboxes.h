@@ -40,6 +40,7 @@ struct _MNMailboxes {
 	/*< public >*/
 	GList * list;
 	GSList * messages;
+	gboolean must_save_after_load;
 	/*< private >*/
 	MNMailboxesPrivate *_priv;
 };
@@ -63,9 +64,7 @@ struct _MNMailboxesClass {
  * Public methods
  */
 GType	mn_mailboxes_get_type	(void);
-gboolean 	mn_mailboxes_get_poll	(MNMailboxes * self);
-void 	mn_mailboxes_load	(MNMailboxes * self);
-void 	mn_mailboxes_save	(MNMailboxes * self);
+gboolean 	mn_mailboxes_get_manually_checkable	(MNMailboxes * self);
 void 	mn_mailboxes_check	(MNMailboxes * self);
 void 	mn_mailboxes_add	(MNMailboxes * self,
 					MNMailbox * mailbox);
@@ -127,9 +126,9 @@ MNMailboxes * 	mn_mailboxes_new	(void);
  * Argument wrapping macros
  */
 #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
-#define MN_MAILBOXES_GET_PROP_POLL(arg)	"poll", __extension__ ({gboolean *z = (arg); z;})
+#define MN_MAILBOXES_GET_PROP_MANUALLY_CHECKABLE(arg)	"manually_checkable", __extension__ ({gboolean *z = (arg); z;})
 #else /* __GNUC__ && !__STRICT_ANSI__ */
-#define MN_MAILBOXES_GET_PROP_POLL(arg)	"poll",(gboolean *)(arg)
+#define MN_MAILBOXES_GET_PROP_MANUALLY_CHECKABLE(arg)	"manually_checkable",(gboolean *)(arg)
 #endif /* __GNUC__ && !__STRICT_ANSI__ */
 
 

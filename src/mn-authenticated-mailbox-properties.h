@@ -26,6 +26,9 @@ extern "C" {
 
 #define MN_AUTHENTICATED_MAILBOX_PROPERTIES_GET_CLASS(obj)	G_TYPE_INSTANCE_GET_CLASS((obj), mn_authenticated_mailbox_properties_get_type(), MNAuthenticatedMailboxPropertiesClass)
 
+/* Private structure type */
+typedef struct _MNAuthenticatedMailboxPropertiesPrivate MNAuthenticatedMailboxPropertiesPrivate;
+
 /*
  * Main object structure
  */
@@ -43,6 +46,7 @@ struct _MNAuthenticatedMailboxProperties {
 	GtkWidget * password_vbox; /* protected */
 	GtkWidget * password_label; /* protected */
 	GtkWidget * password_entry; /* protected */
+	MNAuthenticatedMailboxPropertiesPrivate *_priv;
 };
 
 /*

@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -27,13 +27,12 @@ requires 2.0.14
 #include "config.h"
 #include <glib/gi18n.h>
 #include "mn-mailbox-private.h"
-#include "mn-stock.h"
 %}
 
 class MN:Custom:VFS:Mailbox from MN:VFS:Mailbox
 {
   public char *uri destroywith g_free;
-  property STRING uri (link, flags = MN_MAILBOX_PARAM_PERMANENT | MN_MAILBOX_PARAM_REQUIRED);
+  property STRING uri (link, flags = MN_MAILBOX_PARAM_LOAD_SAVE | MN_MAILBOX_PARAM_REQUIRED);
 
   class_init (class)
   {
@@ -73,7 +72,6 @@ class MN:Custom:VFS:Mailbox from MN:VFS:Mailbox
       }
     else
       {
-	mn_mailbox_set_stock_id(mailbox, MN_STOCK_UNKNOWN);
 	mn_mailbox_set_error(mailbox, _("invalid location"));
 	mn_mailbox_set_poll(mailbox, FALSE); /* disable the mailbox */
       }

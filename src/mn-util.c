@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -32,6 +32,7 @@
 #include "mn-util.h"
 #include "mn-mailboxes.h"
 #include "mn-shell.h"
+#include "mn-conf.h"
 
 /*** types *******************************************************************/
 
@@ -348,7 +349,7 @@ mn_pixbuf_new (const char *filename)
   pixbuf = gdk_pixbuf_new_from_file(filename, &err);
   if (! pixbuf)
     {
-      g_warning(_("error loading image: %s"), err->message);
+      mn_fatal_error_dialog(NULL, _("Unable to load image \"%s\" (%s). Please check your Mail Notification installation."), filename, err->message);
       g_error_free(err);
     }
 
@@ -485,6 +486,9 @@ mn_widget_get_parent_window (GtkWidget *widget)
  * Allows @dialog to pick a file (%GTK_FILE_CHOOSER_ACTION_OPEN) or
  * select a folder (%GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER) at the
  * same time.
+ *
+ * Can be removed after
+ * http://bugzilla.gnome.org/show_bug.cgi?id=136294 is fixed.
  **/
 void
 mn_file_chooser_dialog_allow_select_folder (GtkFileChooserDialog *dialog,
@@ -1418,6 +1422,102 @@ mn_g_static_mutex_unlock (GStaticMutex *mutex)
   g_static_mutex_unlock(mutex);
 }
 
+char *
+mn_subst_command (const char *command,
+		  MNSubstCommandFunction subst,
+		  gpointer data,
+		  GError **err)
+{
+  GString *result;
+  const char *p;
+
+  g_return_val_if_fail(command != NULL, NULL);
+  g_return_val_if_fail(subst != NULL, NULL);
+
+  result = g_string_new(NULL);
+
+  for (p = command; *p;)
+    if (*p == '%')
+      {
+	char *name = NULL;
+
+	if (p[1] == '%')
+	  {
+	    g_string_append_c(result, '%');
+	    p += 2;
+	  }
+	else if (p[1] == '{')
+	  {
+	    char *end;
+
+	    end = strchr(p + 2, '}');
+	    if (! end)
+	      {
+		g_set_error(err, 0, 0, _("unterminated substitution"));
+		goto error;
+	      }
+
+	    name = g_strndup(p + 2, end - p - 2);
+	    p = end + 1;
+	  }
+	else
+	  {
+	    const char *end = p + 1;
+
+	    while (g_ascii_isalnum(*end) || *end == '-' || *end == '_')
+	      end++;
+
+	    name = g_strndup(p + 1, end - p - 1);
+	    p = end;
+	  }
+
+	if (name)
+	  {
+	    gboolean ok = FALSE;
+
+	    if (*name)
+	      {
+		char *value;
+
+		if (subst(name, &value, data))
+		  {
+		    char *quoted;
+
+		    quoted = mn_shell_quote_safe(value ? value : "");
+		    g_free(value);
+
+		    g_string_append(result, quoted);
+		    g_free(quoted);
+
+		    ok = TRUE;
+		  }
+		else
+		  g_set_error(err, 0, 0, _("unknown substitution \"%s\""), name);
+	      }
+	    else
+	      g_set_error(err, 0, 0, _("empty substitution"));
+
+	    g_free(name);
+	    if (! ok)
+	      goto error;
+	  }
+      }
+    else
+      {
+	g_string_append_c(result, *p);
+	p++;
+      }
+
+  goto end;			/* success */
+
+ error:
+  g_string_free(result, TRUE);
+  result = NULL;
+
+ end:
+  return result ? g_string_free(result, FALSE) : NULL;
+}
+
 static void
 mn_handle_execute_result (int status, const char *command)
 {
@@ -1545,9 +1645,12 @@ mn_g_value_to_string (const GValue *value)
 
   g_return_val_if_fail(G_IS_VALUE(value), NULL);
 
-  if (G_VALUE_HOLDS_BOOLEAN(value))
-    str = g_strdup(g_value_get_boolean(value) ? "true" : "false");
-  else if (G_VALUE_HOLDS_INT(value))
+  /*
+   * We only handle types which we actually export (grep for
+   * MN_MESSAGE_PARAM_EXPORT and MN_MAILBOX_PARAM.*SAVE).
+   */
+
+  if (G_VALUE_HOLDS_INT(value))
     str = g_strdup_printf("%i", g_value_get_int(value));
   else if (G_VALUE_HOLDS_ULONG(value))
     str = g_strdup_printf("%lu", g_value_get_ulong(value));
@@ -1577,16 +1680,12 @@ mn_g_value_from_string (GValue *value, const char *str)
   g_return_val_if_fail(G_IS_VALUE(value), FALSE);
   g_return_val_if_fail(str != NULL, FALSE);
 
-  if (G_VALUE_HOLDS_BOOLEAN(value))
-    {
-      if (! strcmp(str, "false"))
-	g_value_set_boolean(value, FALSE);
-      else if (! strcmp(str, "true"))
-	g_value_set_boolean(value, TRUE);
-      else
-	return FALSE;
-    }
-  else if (G_VALUE_HOLDS_INT(value))
+  /*
+   * We only handle types which we actually import (grep for
+   * MN_MAILBOX_PARAM_LOAD).
+   */
+
+  if (G_VALUE_HOLDS_INT(value))
     {
       int n;
       char *endptr;
@@ -1625,4 +1724,12 @@ mn_g_value_from_string (GValue *value, const char *str)
     g_return_val_if_reached(FALSE);
 
   return TRUE;
+}
+
+void
+mn_window_present_from_event (GtkWindow *window)
+{
+  g_return_if_fail(GTK_IS_WINDOW(window));
+
+  gtk_window_present_with_time(window, gtk_get_current_event_time());
 }

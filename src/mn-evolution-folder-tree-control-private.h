@@ -10,9 +10,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNEvolutionFolderTreeControlPrivate {
-#line 41 "mn-evolution-folder-tree-control.gob"
-	BonoboPropertyBag * pb;
 #line 42 "mn-evolution-folder-tree-control.gob"
+	BonoboPropertyBag * pb;
+#line 43 "mn-evolution-folder-tree-control.gob"
 	BonoboEventSource * es;
 #line 18 "mn-evolution-folder-tree-control-private.h"
 };

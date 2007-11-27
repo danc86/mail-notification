@@ -12,7 +12,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -62,8 +62,6 @@ extern int mn_imap_mailbox_default_ports[MN_PI_MAILBOX_N_CONNECTION_TYPES];
 #define IS_NO(response)			IS(response, "NO")
 #define IS_BAD(response)		IS(response, "BAD")
 #define IS_BYE(response)		IS(response, "BYE")
-
-#define REMOVED(self)			(g_atomic_int_get(&(self)->_priv->removed))
 
 enum
 {
@@ -150,9 +148,6 @@ enum MN_IMAP_MAILBOX_USE_IDLE
 
 class MN:IMAP:Mailbox from MN:PI:Mailbox
 {
-  private int removed;		/* boolean, access with g_atomic_int_ API */
-
-  /* lock for synchronization between main thread and check thread */
   private GMutex *mutex = {g_mutex_new()} destroywith g_mutex_free;
 
   private MNClientSessionPrivate *idle_session;
@@ -160,7 +155,7 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
   public char *mailbox destroywith g_free;
   property STRING mailbox (link,
 			   flags = CONSTRUCT
-			   | MN_MAILBOX_PARAM_PERMANENT
+			   | MN_MAILBOX_PARAM_LOAD_SAVE
 			   | MN_MAILBOX_PARAM_REQUIRED
 			   | MN_MAILBOX_PARAM_IGNORE_CASE,
 			   default_value = "INBOX");
@@ -169,7 +164,7 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
   property ENUM use_idle_extension (link,
 				    enum_type = MN:IMAP:Mailbox:Use:IDLE,
 				    flags = CONSTRUCT
-				    | MN_MAILBOX_PARAM_PERMANENT,
+				    | MN_MAILBOX_PARAM_LOAD_SAVE,
 				    default_value = MN_IMAP_MAILBOX_USE_IDLE_AUTODETECT);
 
   class_init (class)
@@ -186,6 +181,7 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
   override (MN:Mailbox) void
     seal (MNMailbox *mailbox)
   {
+    MNAuthenticatedMailbox *auth_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
     Self *self = SELF(mailbox);
 
     PARENT_HANDLER(mailbox);
@@ -194,6 +190,13 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
       mailbox->runtime_name = self_build_name(MN_AUTHENTICATED_MAILBOX(mailbox)->username,
 					      MN_PI_MAILBOX(mailbox)->hostname,
 					      self->mailbox);
+
+#if WITH_SSL
+    if (MN_PI_MAILBOX(self)->connection_type == MN_PI_MAILBOX_CONNECTION_TYPE_SSL)
+      auth_mailbox->keyring_protocol = g_strdup("imaps");
+    else
+#endif
+      auth_mailbox->keyring_protocol = g_strdup("imap");
   }
 
   /*
@@ -201,7 +204,8 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
    *
    * Note: we only handle a subset of the RFC 2192 specification,
    * since mailbox lists, message lists and message parts have no
-   * meaning in Mail Notification.
+   * meaning in Mail Notification. Furthermore, Mail Notification
+   * requires an username.
    */
   override (MN:Mailbox) MNMailbox *
     parse_uri (MNMailbox *dummy, const char *uri)
@@ -227,12 +231,10 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
       char username_buf[buflen];
       char authmech_buf[buflen];
       char hostname_buf[buflen];
-      gboolean has_auth;
       gboolean has_path;
-      gboolean has_username = FALSE;
       gboolean has_authmech = FALSE;
 
-      if (! mn_pi_mailbox_split_uri(uri, len, scheme_buf, auth_buf, location_buf, &has_auth))
+      if (! mn_pi_mailbox_split_uri(uri, len, scheme_buf, auth_buf, location_buf))
 	return NULL;
 
       if (strcmp(scheme_buf, "imap"))
@@ -241,19 +243,15 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
       if (! self_split_uri_location(location_buf, len, hostport_buf, path_buf, &has_path))
 	return NULL;
 
-      if (has_auth)
-	{
-	  if (! mn_pi_mailbox_split_uri_auth(auth_buf, len, username_buf, authmech_buf, &has_username, &has_authmech))
-	    return NULL;
+      if (! mn_pi_mailbox_split_uri_auth(auth_buf, len, username_buf, authmech_buf, &has_authmech))
+	return NULL;
 
-	  if (has_authmech && ! strcmp(authmech_buf, "*"))
-	    has_authmech = FALSE;
-	}
+      if (has_authmech && ! strcmp(authmech_buf, "*"))
+	has_authmech = FALSE;
 
       mn_pi_mailbox_split_uri_hostport(hostport_buf, len, hostname_buf, &port);
 
-      if (has_username)
-	username = gnome_vfs_unescape_string(username_buf, NULL);
+      username = gnome_vfs_unescape_string(username_buf, NULL);
       if (has_authmech)
 	authmech = gnome_vfs_unescape_string(authmech_buf, NULL);
       hostname = gnome_vfs_unescape_string(hostname_buf, NULL);
@@ -266,8 +264,10 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
 			     "authmech", authmech,
 			     "hostname", hostname,
 			     "port", port,
-			     "mailbox", path,
 			     NULL);
+
+    if (path)
+      g_object_set(mailbox, MN_IMAP_MAILBOX_PROP_MAILBOX(path), NULL);
 
     g_free(username);
     g_free(authmech);
@@ -309,21 +309,15 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
   {
     Self *self = SELF(mailbox);
 
-    /*
-     * We do not use g_atomic_int_set() yet because it was only added
-     * in GLib 2.10.
-     */
-    g_atomic_int_inc(&selfp->removed);
+    PARENT_HANDLER(mailbox);
 
-    g_mutex_lock(selfp->mutex);
+    self_lock(self);
     if (selfp->idle_session)
       {
 	mn_client_session_write(selfp->idle_session->session, "DONE");
 	selfp->idle_session->idle_state = IDLE_STATE_POST_IDLE;
       }
-    g_mutex_unlock(selfp->mutex);
-
-    PARENT_HANDLER(mailbox);
+    self_unlock(self);
   }
 
   private int
@@ -465,7 +459,7 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
 	return self_session_write(priv, "AUTHENTICATE %s", priv->sasl_mechanism);
       }
     else
-      return priv->pi_mailbox->auth_cancelled
+      return priv->auth_mailbox->auth_cancelled
 	? STATE_LOGOUT
 	: self_session_authenticate_fallback(priv, FALSE);
 
@@ -521,7 +515,7 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
 	      }
 	    else if (IS_NO(response) || IS_BAD(response))
 	      {
-		return priv->pi_mailbox->auth_cancelled
+		return priv->auth_mailbox->auth_cancelled
 		  ? STATE_LOGOUT
 		  : self_session_authenticate_fallback(priv, FALSE);
 	      }
@@ -555,11 +549,11 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
 	char *quoted_password;
 	int result;
 
-	if (! mn_pi_mailbox_fill_credentials(priv->pi_mailbox, TRUE, TRUE))
+	if (! mn_authenticated_mailbox_fill_password(priv->auth_mailbox, TRUE))
 	  return STATE_LOGOUT;
 
-	quoted_username = self_quote(priv->pi_mailbox->runtime_username);
-	quoted_password = self_quote(priv->pi_mailbox->runtime_password);
+	quoted_username = self_quote(priv->auth_mailbox->username);
+	quoted_password = self_quote(priv->auth_mailbox->runtime_password);
 	result = self_session_write(priv, "LOGIN %s %s", quoted_username, quoted_password);
 	g_free(quoted_username);
 	g_free(quoted_password);
@@ -832,7 +826,7 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
     enter_idle_cb (MNClientSession *session,
 		   MNClientSessionPrivate *priv)
   {
-    if (! REMOVED(priv->self))
+    if (mn_mailbox_get_active(priv->mailbox))
       {
 	if (priv->self->use_idle_extension == MN_IMAP_MAILBOX_USE_IDLE_NEVER)
 	  mn_client_session_notice(session, _("\"Use the IDLE extension\" set to \"never\" in the mailbox properties, logging out"));
@@ -941,7 +935,7 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
 	      {
 		if (IS_OK(response))
 		  {
-		    if (REMOVED(priv->self))
+		    if (! mn_mailbox_get_active(priv->mailbox))
 		      return STATE_LOGOUT;
 		    else if (priv->idle_inactivity)
 		      return STATE_IDLE; /* anti-inactivity, re-enter */
@@ -1029,11 +1023,13 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
 #if WITH_SASL
       mn_pi_mailbox_sasl_get_credentials_cb,
 #endif
+#if WITH_SSL
+      mn_pi_mailbox_ssl_trust_server_cb,
+#endif
     };
     MNClientSessionPrivate priv;
     gboolean status;
     GError *err = NULL;
-    gboolean again;
 
     PARENT_HANDLER(mailbox);
 
@@ -1041,56 +1037,52 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
     if (! mn_mailbox_get_poll(MN_MAILBOX(self)))
       return;
 
-    do
-      {
-	g_clear_error(&err);
-	again = FALSE;
+  again:
+    g_clear_error(&err);
 
-	memset(&priv, 0, sizeof(priv));
-	mn_pi_mailbox_session_private_init(MN_PI_MAILBOX(self), &priv);
-	priv.self = self;
-	priv.server_software_supports_idle = TRUE; /* assume it does */
+    memset(&priv, 0, sizeof(priv));
+    mn_pi_mailbox_session_private_init(MN_PI_MAILBOX(self), &priv);
+    priv.self = self;
+    priv.server_software_supports_idle = TRUE; /* assume it does */
 
-	status = mn_client_session_run(states,
-				       &callbacks,
+    status = mn_client_session_run(states,
+				   &callbacks,
 #if WITH_SSL
-				       priv.pi_mailbox->connection_type == MN_PI_MAILBOX_CONNECTION_TYPE_SSL,
+				   priv.pi_mailbox->connection_type == MN_PI_MAILBOX_CONNECTION_TYPE_SSL,
 #endif
-				       priv.pi_mailbox->hostname,
-				       priv.pi_mailbox->runtime_port,
-				       &priv,
-				       &err);
+				   priv.pi_mailbox->hostname,
+				   priv.pi_mailbox->runtime_port,
+				   &priv,
+				   &err);
 
-	g_strfreev(priv.capabilities);
-	eel_g_slist_free_deep(priv.auth_mechanisms);
+    g_strfreev(priv.capabilities);
+    eel_g_slist_free_deep(priv.auth_mechanisms);
 
-	if (priv.unseen_numbers)
-	  g_hash_table_destroy(priv.unseen_numbers);
-	if (priv.recent_numbers)
-	  g_hash_table_destroy(priv.recent_numbers);
-	if (priv.received_numbers)
-	  g_hash_table_destroy(priv.received_numbers);
+    if (priv.unseen_numbers)
+      g_hash_table_destroy(priv.unseen_numbers);
+    if (priv.recent_numbers)
+      g_hash_table_destroy(priv.recent_numbers);
+    if (priv.received_numbers)
+      g_hash_table_destroy(priv.received_numbers);
 
-	mn_g_object_slist_free(priv.messages);
+    mn_g_object_slist_free(priv.messages);
 
 #if WITH_SASL
-	g_slist_free(priv.sasl_remaining_mechanisms);
+    g_slist_free(priv.sasl_remaining_mechanisms);
 #endif
 
-	if (priv.could_idle && ! REMOVED(self))
+    if (priv.could_idle && mn_mailbox_get_active(priv.mailbox))
+      {
+	if (status)
+	  goto again;
+	/* some servers abruptly disconnect for inactivity */
+	else if (g_error_matches(err, MN_CLIENT_SESSION_ERROR, MN_CLIENT_SESSION_ERROR_CONNECTION_LOST))
 	  {
-	    if (status)
-	      again = TRUE;
-	    /* some servers abruptly disconnect for inactivity */
-	    else if (g_error_matches(err, MN_CLIENT_SESSION_ERROR, MN_CLIENT_SESSION_ERROR_CONNECTION_LOST))
-	      {
-		/* g_log() escapes unsafe and non UTF-8 characters, so this is safe */
-		mn_mailbox_notice(priv.mailbox, "%s", err->message);
-		again = TRUE;
-	      }
+	    /* g_log() escapes unsafe and non UTF-8 characters, so this is safe */
+	    mn_mailbox_notice(priv.mailbox, "%s", err->message);
+	    goto again;
 	  }
       }
-    while (again);
 
     GDK_THREADS_ENTER();
 
@@ -1218,7 +1210,7 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
       {
 	Self *self = priv->self;
 
-	g_mutex_lock(selfp->mutex);
+	self_lock(self);
 
 	selfp->idle_session = priv;
 
@@ -1227,7 +1219,7 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
 	g_assert(priv->idle_inactivity_timeout_id == 0);
 	priv->idle_inactivity_timeout_id = g_timeout_add(60 * 29 * 1000, self_idle_inactivity_timeout_cb, self);
 
-	g_mutex_unlock(selfp->mutex);
+	self_unlock(self);
       }
   }
 
@@ -1237,13 +1229,15 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
   {
     Self *self = priv->self;
 
-    g_mutex_lock(selfp->mutex);
+    self_lock(self);
+
     if (priv->idle_state >= IDLE_STATE_IDLE)
       {
 	selfp->idle_session = NULL;
 	mn_source_clear(&priv->idle_inactivity_timeout_id);
       }
-    g_mutex_unlock(selfp->mutex);
+
+    self_unlock(self);
   }
 
   private gboolean
@@ -1251,7 +1245,8 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
   {
     Self *self = data;
 
-    g_mutex_lock(selfp->mutex);
+    self_lock(self);
+
     if (selfp->idle_session)
       {
 	mn_client_session_write(selfp->idle_session->session, "DONE");
@@ -1259,7 +1254,8 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
 	selfp->idle_session->idle_inactivity = TRUE;
       }
     selfp->idle_session->idle_inactivity_timeout_id = 0;
-    g_mutex_unlock(selfp->mutex);
+
+    self_unlock(self);
 
     return FALSE;
   }
@@ -1448,9 +1444,9 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
 	  }
       }
 
-    if (priv->pi_mailbox->auth_prompted)
+    if (priv->auth_mailbox->auth_prompted)
       {
-	mn_pi_mailbox_auth_failed(priv->pi_mailbox);
+	mn_authenticated_mailbox_auth_failed(priv->auth_mailbox);
 	return self_session_authenticate(priv);
       }
     else
@@ -1662,7 +1658,7 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
   }
 
   public char *
-    build_name (const char *username,
+    build_name (const char *username (check null),
 		const char *server (check null),
 		const char *mailbox)
   {
@@ -1670,14 +1666,23 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
 
     name = g_string_new(NULL);
 
-    if (username)
-      g_string_append_printf(name, "%s@", username);
-
-    g_string_append(name, server);
+    g_string_append_printf(name, "%s@%s", username, server);
 
     if (mailbox && mn_utf8_strcasecmp(mailbox, "INBOX"))
       g_string_append_printf(name, "/%s", mailbox);
 
     return g_string_free(name, FALSE);
+  }
+
+  private void
+    lock (self)
+  {
+    g_mutex_lock(selfp->mutex);
+  }
+
+  private void
+    unlock (self)
+  {
+    g_mutex_unlock(selfp->mutex);
   }
 }

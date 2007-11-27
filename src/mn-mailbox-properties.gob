@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -57,13 +57,9 @@ class MN:Mailbox:Properties from G:Object (abstract)
   property INT default_check_delay
     get
     {
-      GType mailbox_type;
       MNMailboxClass *class;
 
-      mailbox_type = mn_mailbox_get_type_from_name(SELF_GET_CLASS(self)->type);
-      g_assert(mailbox_type != 0);
-
-      class = g_type_class_ref(mailbox_type);
+      class = mn_mailbox_get_class_from_name(SELF_GET_CLASS(self)->type);
       g_value_set_int(VAL, class->default_check_delay);
       g_type_class_unref(class);
     };

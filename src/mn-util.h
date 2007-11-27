@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -178,6 +178,14 @@ void		mn_gdk_threads_leave		(void);
 void		mn_g_static_mutex_lock		(GStaticMutex *mutex);
 void		mn_g_static_mutex_unlock	(GStaticMutex *mutex);
 
+typedef gboolean (*MNSubstCommandFunction)	(const char	*name,
+						 char		**value,
+						 gpointer	data);
+char		*mn_subst_command		(const char	*command,
+						 MNSubstCommandFunction subst,
+						 gpointer	data,
+						 GError		**err);
+
 void		mn_execute_command		(const char	*command);
 void		mn_execute_command_in_terminal	(const char	*command);
 
@@ -193,5 +201,7 @@ GtkWidget	*mn_hig_section_new_with_box	(const char	*title,
 char		*mn_g_value_to_string		(const GValue	*value);
 gboolean	mn_g_value_from_string		(GValue		*value,
 						 const char	*str);
+
+void		mn_window_present_from_event	(GtkWindow	*window);
 
 #endif /* _MN_UTIL_H */

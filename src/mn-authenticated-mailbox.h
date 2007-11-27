@@ -4,6 +4,7 @@
 #include <glib-object.h>
 
 
+#include <gnome-keyring.h>
 #include "mn-mailbox.h"
 
 #ifndef __MN_AUTHENTICATED_MAILBOX_H__
@@ -40,7 +41,17 @@ struct _MNAuthenticatedMailbox {
 	/*< public >*/
 	char * username;
 	char * password;
+	char * runtime_password;
 	/*< private >*/
+	char * keyring_username; /* protected */
+	char * keyring_domain; /* protected */
+	char * keyring_server; /* protected */
+	char * keyring_protocol; /* protected */
+	char * keyring_authtype; /* protected */
+	int keyring_port; /* protected */
+	gboolean auth_prompted; /* protected */
+	gboolean auth_cancelled; /* protected */
+	gboolean auth_failed; /* protected */
 	MNAuthenticatedMailboxPrivate *_priv;
 };
 
@@ -58,6 +69,10 @@ struct _MNAuthenticatedMailboxClass {
  * Public methods
  */
 GType	mn_authenticated_mailbox_get_type	(void);
+gboolean 	mn_authenticated_mailbox_get_setting_password	(MNAuthenticatedMailbox * self);
+gpointer 	mn_authenticated_mailbox_get_password	(MNAuthenticatedMailbox * self,
+					GnomeKeyringOperationGetListCallback cb,
+					gpointer data);
 
 /*
  * Argument wrapping macros
@@ -67,11 +82,13 @@ GType	mn_authenticated_mailbox_get_type	(void);
 #define MN_AUTHENTICATED_MAILBOX_GET_PROP_USERNAME(arg)	"username", __extension__ ({gchar **z = (arg); z;})
 #define MN_AUTHENTICATED_MAILBOX_PROP_PASSWORD(arg)    	"password", __extension__ ({gchar *z = (arg); z;})
 #define MN_AUTHENTICATED_MAILBOX_GET_PROP_PASSWORD(arg)	"password", __extension__ ({gchar **z = (arg); z;})
+#define MN_AUTHENTICATED_MAILBOX_GET_PROP_SETTING_PASSWORD(arg)	"setting_password", __extension__ ({gboolean *z = (arg); z;})
 #else /* __GNUC__ && !__STRICT_ANSI__ */
 #define MN_AUTHENTICATED_MAILBOX_PROP_USERNAME(arg)    	"username",(gchar *)(arg)
 #define MN_AUTHENTICATED_MAILBOX_GET_PROP_USERNAME(arg)	"username",(gchar **)(arg)
 #define MN_AUTHENTICATED_MAILBOX_PROP_PASSWORD(arg)    	"password",(gchar *)(arg)
 #define MN_AUTHENTICATED_MAILBOX_GET_PROP_PASSWORD(arg)	"password",(gchar **)(arg)
+#define MN_AUTHENTICATED_MAILBOX_GET_PROP_SETTING_PASSWORD(arg)	"setting_password",(gboolean *)(arg)
 #endif /* __GNUC__ && !__STRICT_ANSI__ */
 
 

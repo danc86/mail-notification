@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -35,6 +35,7 @@ requires 2.0.14
 #include "mn-vfs.h"
 #include "mn-util.h"
 #include "mn-message-mime.h"
+#include "mn-maildir-message.h"
 %}
 
 class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
@@ -66,32 +67,32 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
       }
   }
 
+  private gboolean
+    dir_exists (MN:VFS:Mailbox *mailbox (check null type),
+		const char *name (check null))
+  {
+    GnomeVFSURI *dir_uri;
+    gboolean exists;
+
+    dir_uri = gnome_vfs_uri_append_path(mailbox->vfs_uri, name);
+    exists = mn_vfs_test(dir_uri, G_FILE_TEST_IS_DIR);
+    gnome_vfs_uri_unref(dir_uri);
+
+    return exists;
+  }
+
   override (MN:VFS:Mailbox:Backend) gboolean
     is (MNVFSMailboxBackend *dummy,
 	MNVFSMailboxBackendClass *class,
 	MNVFSMailbox *mailbox)
   {
-    int i;
-    static const char *constitutive_dirs[] = { "cur", "new", "tmp" };
-    gboolean is = FALSE;
-
-    for (i = 0; i < G_N_ELEMENTS(constitutive_dirs); i++)
-      {
-	GnomeVFSURI *dir_uri;
-
-	dir_uri = gnome_vfs_uri_append_path(mailbox->vfs_uri, constitutive_dirs[i]);
-	is = mn_vfs_test(dir_uri, G_FILE_TEST_IS_DIR);
-	gnome_vfs_uri_unref(dir_uri);
-
-	if (! is)
-	  break;
-      }
-
-    return is;
+    return self_dir_exists(mailbox, "cur")
+      && self_dir_exists(mailbox, "new")
+      && self_dir_exists(mailbox, "tmp");
   }
 
   private void
-    monitor_directory (self, unsigned long check_id, const char *dir (check null))
+    monitor_directory (self, int check_id, const char *dir (check null))
   {
     MNVFSMailboxBackend *backend = MN_VFS_MAILBOX_BACKEND(self);
     GnomeVFSURI *uri;
@@ -107,7 +108,7 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
 
   private gboolean
     scan_directory (self,
-		    unsigned long check_id,
+		    int check_id,
 		    const char *dir (check null),
 		    gboolean new,
 		    GSList **messages (check null),
@@ -159,7 +160,8 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
 		continue; /* no info, or message seen/trashed: ignore it */
 	    }
 
-	  message = mn_vfs_message_new(backend,
+	  message = mn_vfs_message_new(MN_TYPE_MAILDIR_MESSAGE,
+				       backend,
 				       uri,
 				       file_info->name,
 				       flags,
@@ -188,7 +190,7 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
   }
 
   override (MN:VFS:Mailbox:Backend) void
-    check (MNVFSMailboxBackend *backend, unsigned long check_id)
+    check (MNVFSMailboxBackend *backend, int check_id)
   {
     Self *self = SELF(backend);
     GSList *messages = NULL;
@@ -203,7 +205,7 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
 
     GDK_THREADS_ENTER();
 
-    if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+    if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
       {
 	if (status)
 	  mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
@@ -218,77 +220,5 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
 
     if (err)
       g_error_free(err);
-  }
-
-  private int
-    flags_sort_cb (const void *a, const void *b)
-  {
-    char ca = *((char *) a);
-    char cb = *((char *) b);
-
-    /* sort flags using ASCII order, see http://cr.yp.to/proto/maildir.html */
-
-    return ca - cb;
-  }
-
-  override (MN:VFS:Mailbox:Backend) gboolean
-    mark_as_read (MNVFSMailboxBackend *dummy,
-		  MNVFSMessage *message,
-		  GError **err)
-  {
-    char *old_flags;
-    char *old_filename;
-    char *new_filename;
-    GnomeVFSURI *dir_uri;
-    GnomeVFSURI *new_uri;
-    GnomeVFSResult result;
-    gboolean status;
-
-    /* http://cr.yp.to/proto/maildir.html */
-
-    old_filename = gnome_vfs_uri_extract_short_name(message->vfs_uri);
-
-    old_flags = strrchr(old_filename, ',');
-    if (old_flags)
-      {
-	char *new_flags;
-	int old_len;
-	char *base_filename;
-
-	/* append the S (seen) flag */
-
-	old_flags++;
-	g_assert(strchr(old_flags, 'S') == NULL);
-
-	old_len = strlen(old_flags);
-	new_flags = g_new(char, old_len + 2); /* + space for S and nul */
-	memcpy(new_flags, old_flags, old_len);
-	new_flags[old_len] = 'S';
-	new_flags[old_len + 1] = 0;
-	qsort(new_flags, old_len + 1, sizeof(char), self_flags_sort_cb);
-
-	base_filename = g_strndup(old_filename, old_flags - old_filename - 1);
-	new_filename = g_strdup_printf("%s,%s", base_filename, new_flags);
-	g_free(base_filename);
-	g_free(new_flags);
-      }
-    else
-      new_filename = g_strconcat(old_filename, ":2,S", NULL);
-
-    g_free(old_filename);
-
-    dir_uri = gnome_vfs_uri_append_path(MN_VFS_MAILBOX(MN_MESSAGE(message)->mailbox)->vfs_uri, "cur");
-    new_uri = gnome_vfs_uri_append_file_name(dir_uri, new_filename);
-    gnome_vfs_uri_unref(dir_uri);
-    g_free(new_filename);
-
-    result = gnome_vfs_move_uri(message->vfs_uri, new_uri, TRUE);
-    status = result == GNOME_VFS_OK;
-    if (! status)
-      g_set_error(err, 0, 0, "%s", gnome_vfs_result_to_string(result));
-
-    gnome_vfs_uri_unref(new_uri);
-
-    return status;
   }
 }

@@ -149,7 +149,7 @@
                                         <property name="adjustment">1 0 1440 1 10 10</property>
                                         <property name="climb_rate">1</property>
                                         <property name="numeric">True</property>
-                                        <signal name="changed" handler="delay_changed_h"/>
+                                        <signal name="value_changed" handler="delay_changed_h"/>
                                         <signal name="activate" handler="entry_activate_h"/>
                                       </widget>
                                       <packing>
@@ -176,6 +176,7 @@
                                         <property name="climb_rate">1</property>
                                         <property name="numeric">True</property>
                                         <signal name="changed" handler="delay_changed_h"/>
+                                        <signal name="value_changed" handler="delay_changed_h"/>
                                         <signal name="activate" handler="entry_activate_h"/>
                                       </widget>
                                       <packing>

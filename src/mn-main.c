@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -30,7 +30,12 @@
 #endif
 #if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
 #include "mn-vfs-mailbox.h"
-#include "mn-vfs-message.h"
+#endif
+#if WITH_MAILDIR
+#include "mn-maildir-message.h"
+#endif
+#if WITH_SYLPHEED
+#include "mn-sylpheed-message.h"
 #endif
 #if WITH_EVOLUTION
 #include "mn-bonobo-unknown.h"
@@ -114,30 +119,28 @@ static void
 mn_main_print_version (void)
 {
   /*
-   * Here and everywhere else, we order the backends by descending
-   * order of (believed) popularity.
+   * Here and everywhere else, backends and features are sorted
+   * alphabetically.
    */
 
   static const Component mailbox_backends[] = {
-    { "mbox",			WITH_MBOX		},
-    { "mh",			WITH_MH			},
-    { "Maildir",		WITH_MAILDIR		},
-    { "POP3",			WITH_POP3		},
-    { "IMAP",			WITH_IMAP		},
-    { "Gmail",			WITH_GMAIL		},
     { "Evolution",		WITH_EVOLUTION		},
+    { "Gmail",			WITH_GMAIL		},
+    { "IMAP",			WITH_IMAP		},
+    { "Maildir",		WITH_MAILDIR		},
+    { "mbox",			WITH_MBOX		},
+    { "MH",			WITH_MH			},
     { "Mozilla products",	WITH_MOZILLA		},
-    { "Sylpheed",		WITH_SYLPHEED		}
+    { "POP3",			WITH_POP3		},
+    { "Sylpheed",		WITH_SYLPHEED		},
+    { "Windows Live Hotmail",	WITH_HOTMAIL		},
+    { "Yahoo! Mail",		WITH_YAHOO		}
   };
 
   static const Component pi_features[] = {
-    { "SSL/TLS",		WITH_SSL		},
+    { "IPv6",			WITH_IPV6		},
     { "SASL",			WITH_SASL		},
-    { "IPv6",			WITH_IPV6		}
-  };
-
-  static const Component sylpheed_features[] = {
-    { ".sylpheed_mark locking",	WITH_SYLPHEED_LOCKING	}
+    { "SSL/TLS",		WITH_SSL		}
   };
 
   g_print(_("%s version %s\n"), _("Mail Notification"), VERSION);
@@ -152,11 +155,6 @@ mn_main_print_version (void)
 
   g_print(_("POP3 and IMAP features:\n"));
   mn_main_print_components(pi_features, G_N_ELEMENTS(pi_features));
-
-  g_print("\n");
-
-  g_print(_("Sylpheed features:\n"));
-  mn_main_print_components(sylpheed_features, G_N_ELEMENTS(sylpheed_features));
 }
 
 static void
@@ -183,7 +181,12 @@ mn_main_init_classes (void)
 #if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
   for (i = 0; mn_vfs_mailbox_backend_types[i]; i++)
     g_type_class_ref(mn_vfs_mailbox_backend_types[i]);
-  g_type_class_ref(MN_TYPE_VFS_MESSAGE);
+#endif
+#if WITH_MAILDIR
+  g_type_class_ref(MN_TYPE_MAILDIR_MESSAGE);
+#endif
+#if WITH_SYLPHEED
+  g_type_class_ref(MN_TYPE_SYLPHEED_MESSAGE);
 #endif
 #if WITH_EVOLUTION
   g_type_class_ref(MN_TYPE_BONOBO_UNKNOWN);
@@ -254,6 +257,7 @@ main (int argc, char **argv)
   gboolean arg_version = FALSE;
   gboolean arg_display_properties = FALSE;
   gboolean arg_display_about = FALSE;
+  gboolean arg_consider_new_mail_as_read = FALSE;
   gboolean arg_update = FALSE;
   gboolean arg_print_summary = FALSE;
   gboolean arg_unset_obsolete_configuration = FALSE;
@@ -293,6 +297,15 @@ main (int argc, char **argv)
       G_OPTION_ARG_NONE,
       &arg_display_about,
       N_("Display the about dialog"),
+      NULL
+    },
+    {
+      "consider-new-mail-as-read",
+      'r',
+      0,
+      G_OPTION_ARG_NONE,
+      &arg_consider_new_mail_as_read,
+      N_("Consider new mail as read"),
       NULL
     },
     {
@@ -481,6 +494,11 @@ main (int argc, char **argv)
 
 	    if (result == Bonobo_ACTIVATION_REG_ALREADY_ACTIVE)
 	      {
+		if (arg_consider_new_mail_as_read)
+		  {
+		    g_message(_("considering new mail as read"));
+		    AUTOMATION_METHOD(considerNewMailAsRead);
+		  }
 		if (arg_update)
 		  {
 		    g_message(_("updating the mail status"));
@@ -497,12 +515,15 @@ main (int argc, char **argv)
 
 		if (! (display_properties
 		       || arg_display_about
+		       || arg_consider_new_mail_as_read
 		       || arg_update
 		       || arg_print_summary))
 		  g_message(_("Mail Notification is already running"));
 	      }
 	    else
 	      {
+		if (arg_consider_new_mail_as_read)
+		  mn_main_report_option_ignored("--consider-new-mail-as-read");
 		if (arg_update)
 		  mn_main_report_option_ignored("--update");
 		if (arg_print_summary)

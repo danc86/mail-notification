@@ -1,0 +1,175 @@
+/*
+ * Mail Notification
+ * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include <gtk/gtk.h>
+#include "mn-authenticated-mailbox-properties.h"
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include "mn-webmail-mailbox.h"
+#include "mn-mailbox-properties-private.h"
+#include "mn-authenticated-mailbox-properties-private.h"
+#include "mn-util.h"
+%}
+
+class MN:Webmail:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstract)
+{
+  private GtkWidget *inbox_radio;
+  private GtkWidget *other_radio;
+  private GtkWidget *folder_entry;
+
+  property BOOLEAN complete (override)
+    get
+    {
+      gboolean complete;
+
+      complete = mn_authenticated_mailbox_properties_is_complete(MN_AUTHENTICATED_MAILBOX_PROPERTIES(self));
+      if (complete)
+	{
+	  gboolean other_active;
+	  const char *folder;
+
+	  other_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->other_radio));
+	  folder = gtk_entry_get_text(GTK_ENTRY(selfp->folder_entry));
+
+	  if (other_active && ! *folder)
+	    complete = FALSE;
+	}
+
+      g_value_set_boolean(VAL, complete);
+    };
+
+  property STRING default_name (override)
+    get
+    {
+      const char *username;
+      gboolean other_active;
+      const char *folder;
+      MNMailboxClass *class;
+
+      username = gtk_entry_get_text(GTK_ENTRY(MN_AUTHENTICATED_MAILBOX_PROPERTIES(self)->username_entry));
+      g_assert(*username != 0);
+
+      other_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->other_radio));
+      folder = gtk_entry_get_text(GTK_ENTRY(selfp->folder_entry));
+
+      class = mn_mailbox_get_class_from_name(MN_MAILBOX_PROPERTIES_CLASS(SELF_GET_CLASS(self))->type);
+      g_value_take_string(VAL, mn_webmail_mailbox_build_name(MN_WEBMAIL_MAILBOX_CLASS(class),
+							     username,
+							     other_active ? folder : NULL));
+      g_type_class_unref(class);
+    };
+
+  init (self)
+  {
+    MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
+    MNAuthenticatedMailboxProperties *auth = MN_AUTHENTICATED_MAILBOX_PROPERTIES(self);
+    GtkWidget *folder_vbox;
+    GtkWidget *hbox;
+
+    gtk_box_pack_start(GTK_BOX(auth->account_vbox), auth->username_vbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(auth->account_vbox), auth->password_vbox, FALSE, FALSE, 0);
+
+    /* translators: header capitalization */
+    folder_vbox = mn_mailbox_properties_add_general_section(properties, _("Folder"));
+
+    selfp->inbox_radio = gtk_radio_button_new_with_mnemonic(NULL, _("In_box"));
+    gtk_size_group_add_widget(properties->label_size_group, selfp->inbox_radio);
+
+    gtk_box_pack_start(GTK_BOX(folder_vbox), selfp->inbox_radio, FALSE, FALSE, 0);
+
+    selfp->other_radio = gtk_radio_button_new_with_mnemonic_from_widget(GTK_RADIO_BUTTON(selfp->inbox_radio), _("_Other:"));
+    gtk_size_group_add_widget(properties->label_size_group, selfp->other_radio);
+
+    selfp->folder_entry = gtk_entry_new();
+    gtk_widget_set_sensitive(selfp->folder_entry, FALSE);
+
+    hbox = gtk_hbox_new(FALSE, 12);
+    gtk_box_pack_start(GTK_BOX(hbox), selfp->other_radio, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), selfp->folder_entry, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(folder_vbox), hbox, FALSE, FALSE, 0);
+    gtk_widget_show_all(folder_vbox);
+
+    properties->entries = mn_g_slist_append_elements(properties->entries,
+						     auth->username_entry,
+						     auth->password_entry,
+						     selfp->folder_entry,
+						     NULL);
+
+    g_signal_connect(selfp->inbox_radio, "toggled", G_CALLBACK(self_radio_toggled_h), self);
+    g_signal_connect(selfp->other_radio, "toggled", G_CALLBACK(self_radio_toggled_h), self);
+
+    g_object_connect(auth->username_entry,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_complete, self,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_default_name, self,
+		     NULL);
+
+    g_object_connect(selfp->folder_entry,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_complete, self,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_default_name, self,
+		     NULL);
+  }
+
+  private void
+    radio_toggled_h (GtkToggleButton *togglebutton, gpointer user_data)
+  {
+    Self *self = user_data;
+
+    gtk_widget_set_sensitive(selfp->folder_entry, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->other_radio)));
+
+    g_object_notify(G_OBJECT(self), "complete");
+    g_object_notify(G_OBJECT(self), "default-name");
+  }
+
+  override (MN:Mailbox:Properties) void
+    set_mailbox (MNMailboxProperties *properties, MNMailbox *mailbox)
+  {
+    Self *self = SELF(properties);
+    MNWebmailMailbox *webmail_mailbox = MN_WEBMAIL_MAILBOX(mailbox);
+
+    PARENT_HANDLER(properties, mailbox);
+
+    if (! strcmp(webmail_mailbox->folder, "Inbox"))
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->inbox_radio), TRUE);
+    else
+      {
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->other_radio), TRUE);
+	gtk_entry_set_text(GTK_ENTRY(selfp->folder_entry), webmail_mailbox->folder);
+      }
+  }
+
+  override (MN:Mailbox:Properties) MNMailbox *
+    get_mailbox (MNMailboxProperties *properties)
+  {
+    Self *self = SELF(properties);
+    MNMailbox *mailbox;
+
+    mailbox = PARENT_HANDLER(properties);
+
+    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->other_radio)))
+      g_object_set(mailbox, MN_WEBMAIL_MAILBOX_PROP_FOLDER((char *) gtk_entry_get_text(GTK_ENTRY(selfp->folder_entry))), NULL);
+
+    return mailbox;
+  }
+}

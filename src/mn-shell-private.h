@@ -9,16 +9,24 @@
 extern "C" {
 #endif /* __cplusplus */
 
+
+#line 30 "mn-shell.gob"
+
+#include "mn-sound-player.h"
+
+#line 18 "mn-shell-private.h"
 struct _MNShellPrivate {
-#line 62 "mn-shell.gob"
+#line 84 "mn-shell.gob"
+	MNSoundPlayer * sound_player;
+#line 86 "mn-shell.gob"
 	gboolean has_new;
-#line 64 "mn-shell.gob"
+#line 88 "mn-shell.gob"
 	GtkWidget * properties_dialog;
-#line 65 "mn-shell.gob"
+#line 89 "mn-shell.gob"
 	GSList * mailbox_properties_dialogs;
-#line 66 "mn-shell.gob"
+#line 90 "mn-shell.gob"
 	GtkWidget * about_dialog;
-#line 22 "mn-shell-private.h"
+#line 30 "mn-shell-private.h"
 };
 
 #ifdef __cplusplus

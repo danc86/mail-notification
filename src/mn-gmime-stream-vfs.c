@@ -74,16 +74,17 @@ typedef MNGMimeStreamVFSClass SelfClass;
 /* here are local prototypes */
 static void mn_gmime_stream_vfs_init (MNGMimeStreamVFS * o) G_GNUC_UNUSED;
 static void mn_gmime_stream_vfs_class_init (MNGMimeStreamVFSClass * c) G_GNUC_UNUSED;
-static ssize_t ___1_mn_gmime_stream_vfs_read (GMimeStream * stream, char * buf, size_t len) G_GNUC_UNUSED;
-static ssize_t ___2_mn_gmime_stream_vfs_write (GMimeStream * stream, const char * buf, size_t len) G_GNUC_UNUSED;
-static int ___3_mn_gmime_stream_vfs_flush (GMimeStream * stream) G_GNUC_UNUSED;
-static int ___4_mn_gmime_stream_vfs_close (GMimeStream * stream) G_GNUC_UNUSED;
-static gboolean ___5_mn_gmime_stream_vfs_eos (GMimeStream * stream) G_GNUC_UNUSED;
-static int ___6_mn_gmime_stream_vfs_reset (GMimeStream * stream) G_GNUC_UNUSED;
-static off_t ___7_mn_gmime_stream_vfs_seek (GMimeStream * stream, off_t offset, GMimeSeekWhence whence) G_GNUC_UNUSED;
-static off_t ___8_mn_gmime_stream_vfs_tell (GMimeStream * stream) G_GNUC_UNUSED;
-static ssize_t ___9_mn_gmime_stream_vfs_length (GMimeStream * stream) G_GNUC_UNUSED;
-static GMimeStream * ___a_mn_gmime_stream_vfs_substream (GMimeStream * stream, off_t start, off_t end) G_GNUC_UNUSED;
+static void ___1_mn_gmime_stream_vfs_finalize (GObject * object) G_GNUC_UNUSED;
+static ssize_t ___2_mn_gmime_stream_vfs_read (GMimeStream * stream, char * buf, size_t len) G_GNUC_UNUSED;
+static ssize_t ___3_mn_gmime_stream_vfs_write (GMimeStream * stream, const char * buf, size_t len) G_GNUC_UNUSED;
+static int ___4_mn_gmime_stream_vfs_flush (GMimeStream * stream) G_GNUC_UNUSED;
+static int ___5_mn_gmime_stream_vfs_close (GMimeStream * stream) G_GNUC_UNUSED;
+static gboolean ___6_mn_gmime_stream_vfs_eos (GMimeStream * stream) G_GNUC_UNUSED;
+static int ___7_mn_gmime_stream_vfs_reset (GMimeStream * stream) G_GNUC_UNUSED;
+static off_t ___8_mn_gmime_stream_vfs_seek (GMimeStream * stream, off_t offset, GMimeSeekWhence whence) G_GNUC_UNUSED;
+static off_t ___9_mn_gmime_stream_vfs_tell (GMimeStream * stream) G_GNUC_UNUSED;
+static ssize_t ___a_mn_gmime_stream_vfs_length (GMimeStream * stream) G_GNUC_UNUSED;
+static GMimeStream * ___b_mn_gmime_stream_vfs_substream (GMimeStream * stream, off_t start, off_t end) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
 static GMimeStreamClass *parent_class = NULL;
@@ -139,11 +140,12 @@ ___finalize(GObject *obj_self)
 #define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::finalize"
 	MNGMimeStreamVFS *self G_GNUC_UNUSED = MN_GMIME_STREAM_VFS (obj_self);
 	gpointer priv G_GNUC_UNUSED = self->_priv;
-	if(G_OBJECT_CLASS(parent_class)->finalize) \
-		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 65 "mn-gmime-stream-vfs.gob"
+#line 70 "mn-gmime-stream-vfs.gob"
+	___1_mn_gmime_stream_vfs_finalize(obj_self);
+#line 146 "mn-gmime-stream-vfs.c"
+#line 67 "mn-gmime-stream-vfs.gob"
 	if(self->_priv->uri) { g_free ((gpointer) self->_priv->uri); self->_priv->uri = NULL; }
-#line 147 "mn-gmime-stream-vfs.c"
+#line 149 "mn-gmime-stream-vfs.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -165,37 +167,61 @@ mn_gmime_stream_vfs_class_init (MNGMimeStreamVFSClass * c G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (GMIME_TYPE_STREAM);
 
-#line 68 "mn-gmime-stream-vfs.gob"
-	gmime_stream_class->read = ___1_mn_gmime_stream_vfs_read;
-#line 88 "mn-gmime-stream-vfs.gob"
-	gmime_stream_class->write = ___2_mn_gmime_stream_vfs_write;
-#line 108 "mn-gmime-stream-vfs.gob"
-	gmime_stream_class->flush = ___3_mn_gmime_stream_vfs_flush;
-#line 115 "mn-gmime-stream-vfs.gob"
-	gmime_stream_class->close = ___4_mn_gmime_stream_vfs_close;
-#line 125 "mn-gmime-stream-vfs.gob"
-	gmime_stream_class->eos = ___5_mn_gmime_stream_vfs_eos;
-#line 136 "mn-gmime-stream-vfs.gob"
-	gmime_stream_class->reset = ___6_mn_gmime_stream_vfs_reset;
-#line 150 "mn-gmime-stream-vfs.gob"
-	gmime_stream_class->seek = ___7_mn_gmime_stream_vfs_seek;
-#line 195 "mn-gmime-stream-vfs.gob"
-	gmime_stream_class->tell = ___8_mn_gmime_stream_vfs_tell;
-#line 201 "mn-gmime-stream-vfs.gob"
-	gmime_stream_class->length = ___9_mn_gmime_stream_vfs_length;
-#line 220 "mn-gmime-stream-vfs.gob"
-	gmime_stream_class->substream = ___a_mn_gmime_stream_vfs_substream;
-#line 189 "mn-gmime-stream-vfs.c"
+#line 70 "mn-gmime-stream-vfs.gob"
 	g_object_class->finalize = ___finalize;
+#line 81 "mn-gmime-stream-vfs.gob"
+	gmime_stream_class->read = ___2_mn_gmime_stream_vfs_read;
+#line 101 "mn-gmime-stream-vfs.gob"
+	gmime_stream_class->write = ___3_mn_gmime_stream_vfs_write;
+#line 121 "mn-gmime-stream-vfs.gob"
+	gmime_stream_class->flush = ___4_mn_gmime_stream_vfs_flush;
+#line 128 "mn-gmime-stream-vfs.gob"
+	gmime_stream_class->close = ___5_mn_gmime_stream_vfs_close;
+#line 138 "mn-gmime-stream-vfs.gob"
+	gmime_stream_class->eos = ___6_mn_gmime_stream_vfs_eos;
+#line 149 "mn-gmime-stream-vfs.gob"
+	gmime_stream_class->reset = ___7_mn_gmime_stream_vfs_reset;
+#line 163 "mn-gmime-stream-vfs.gob"
+	gmime_stream_class->seek = ___8_mn_gmime_stream_vfs_seek;
+#line 208 "mn-gmime-stream-vfs.gob"
+	gmime_stream_class->tell = ___9_mn_gmime_stream_vfs_tell;
+#line 214 "mn-gmime-stream-vfs.gob"
+	gmime_stream_class->length = ___a_mn_gmime_stream_vfs_length;
+#line 233 "mn-gmime-stream-vfs.gob"
+	gmime_stream_class->substream = ___b_mn_gmime_stream_vfs_substream;
+#line 193 "mn-gmime-stream-vfs.c"
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 68 "mn-gmime-stream-vfs.gob"
+#line 70 "mn-gmime-stream-vfs.gob"
+static void 
+___1_mn_gmime_stream_vfs_finalize (GObject * object G_GNUC_UNUSED)
+#line 202 "mn-gmime-stream-vfs.c"
+#define PARENT_HANDLER(___object) \
+	{ if(G_OBJECT_CLASS(parent_class)->finalize) \
+		(* G_OBJECT_CLASS(parent_class)->finalize)(___object); }
+{
+#define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::finalize"
+{
+#line 72 "mn-gmime-stream-vfs.gob"
+	
+    Self *self = SELF(object);
+
+    if (selfp->handle_owned)
+      g_mime_stream_close(GMIME_STREAM(object));
+
+    PARENT_HANDLER(object);
+  }}
+#line 218 "mn-gmime-stream-vfs.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 81 "mn-gmime-stream-vfs.gob"
 static ssize_t 
-___1_mn_gmime_stream_vfs_read (GMimeStream * stream G_GNUC_UNUSED, char * buf, size_t len)
-#line 199 "mn-gmime-stream-vfs.c"
+___2_mn_gmime_stream_vfs_read (GMimeStream * stream G_GNUC_UNUSED, char * buf, size_t len)
+#line 225 "mn-gmime-stream-vfs.c"
 #define PARENT_HANDLER(___stream,___buf,___len) \
 	((GMIME_STREAM_CLASS(parent_class)->read)? \
 		(* GMIME_STREAM_CLASS(parent_class)->read)(___stream,___buf,___len): \
@@ -203,7 +229,7 @@ ___1_mn_gmime_stream_vfs_read (GMimeStream * stream G_GNUC_UNUSED, char * buf, s
 {
 #define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::read"
 {
-#line 70 "mn-gmime-stream-vfs.gob"
+#line 83 "mn-gmime-stream-vfs.gob"
 	
     Self *self = SELF(stream);
     GnomeVFSFileSize bytes_read;
@@ -221,14 +247,14 @@ ___1_mn_gmime_stream_vfs_read (GMimeStream * stream G_GNUC_UNUSED, char * buf, s
 
     return bytes_read;
   }}
-#line 225 "mn-gmime-stream-vfs.c"
+#line 251 "mn-gmime-stream-vfs.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 88 "mn-gmime-stream-vfs.gob"
+#line 101 "mn-gmime-stream-vfs.gob"
 static ssize_t 
-___2_mn_gmime_stream_vfs_write (GMimeStream * stream G_GNUC_UNUSED, const char * buf, size_t len)
-#line 232 "mn-gmime-stream-vfs.c"
+___3_mn_gmime_stream_vfs_write (GMimeStream * stream G_GNUC_UNUSED, const char * buf, size_t len)
+#line 258 "mn-gmime-stream-vfs.c"
 #define PARENT_HANDLER(___stream,___buf,___len) \
 	((GMIME_STREAM_CLASS(parent_class)->write)? \
 		(* GMIME_STREAM_CLASS(parent_class)->write)(___stream,___buf,___len): \
@@ -236,7 +262,7 @@ ___2_mn_gmime_stream_vfs_write (GMimeStream * stream G_GNUC_UNUSED, const char *
 {
 #define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::write"
 {
-#line 90 "mn-gmime-stream-vfs.gob"
+#line 103 "mn-gmime-stream-vfs.gob"
 	
     Self *self = SELF(stream);
     GnomeVFSFileSize bytes_written;
@@ -254,14 +280,14 @@ ___2_mn_gmime_stream_vfs_write (GMimeStream * stream G_GNUC_UNUSED, const char *
 
     return bytes_written;
   }}
-#line 258 "mn-gmime-stream-vfs.c"
+#line 284 "mn-gmime-stream-vfs.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 108 "mn-gmime-stream-vfs.gob"
+#line 121 "mn-gmime-stream-vfs.gob"
 static int 
-___3_mn_gmime_stream_vfs_flush (GMimeStream * stream G_GNUC_UNUSED)
-#line 265 "mn-gmime-stream-vfs.c"
+___4_mn_gmime_stream_vfs_flush (GMimeStream * stream G_GNUC_UNUSED)
+#line 291 "mn-gmime-stream-vfs.c"
 #define PARENT_HANDLER(___stream) \
 	((GMIME_STREAM_CLASS(parent_class)->flush)? \
 		(* GMIME_STREAM_CLASS(parent_class)->flush)(___stream): \
@@ -269,19 +295,19 @@ ___3_mn_gmime_stream_vfs_flush (GMimeStream * stream G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::flush"
 {
-#line 110 "mn-gmime-stream-vfs.gob"
+#line 123 "mn-gmime-stream-vfs.gob"
 	
     /* nop */
     return 0;			/* success */
   }}
-#line 278 "mn-gmime-stream-vfs.c"
+#line 304 "mn-gmime-stream-vfs.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 115 "mn-gmime-stream-vfs.gob"
+#line 128 "mn-gmime-stream-vfs.gob"
 static int 
-___4_mn_gmime_stream_vfs_close (GMimeStream * stream G_GNUC_UNUSED)
-#line 285 "mn-gmime-stream-vfs.c"
+___5_mn_gmime_stream_vfs_close (GMimeStream * stream G_GNUC_UNUSED)
+#line 311 "mn-gmime-stream-vfs.c"
 #define PARENT_HANDLER(___stream) \
 	((GMIME_STREAM_CLASS(parent_class)->close)? \
 		(* GMIME_STREAM_CLASS(parent_class)->close)(___stream): \
@@ -289,7 +315,7 @@ ___4_mn_gmime_stream_vfs_close (GMimeStream * stream G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::close"
 {
-#line 117 "mn-gmime-stream-vfs.gob"
+#line 130 "mn-gmime-stream-vfs.gob"
 	
     Self *self = SELF(stream);
 
@@ -297,14 +323,14 @@ ___4_mn_gmime_stream_vfs_close (GMimeStream * stream G_GNUC_UNUSED)
 
     return 0;			/* success */
   }}
-#line 301 "mn-gmime-stream-vfs.c"
+#line 327 "mn-gmime-stream-vfs.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 125 "mn-gmime-stream-vfs.gob"
+#line 138 "mn-gmime-stream-vfs.gob"
 static gboolean 
-___5_mn_gmime_stream_vfs_eos (GMimeStream * stream G_GNUC_UNUSED)
-#line 308 "mn-gmime-stream-vfs.c"
+___6_mn_gmime_stream_vfs_eos (GMimeStream * stream G_GNUC_UNUSED)
+#line 334 "mn-gmime-stream-vfs.c"
 #define PARENT_HANDLER(___stream) \
 	((GMIME_STREAM_CLASS(parent_class)->eos)? \
 		(* GMIME_STREAM_CLASS(parent_class)->eos)(___stream): \
@@ -312,7 +338,7 @@ ___5_mn_gmime_stream_vfs_eos (GMimeStream * stream G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::eos"
 {
-#line 127 "mn-gmime-stream-vfs.gob"
+#line 140 "mn-gmime-stream-vfs.gob"
 	
     Self *self = SELF(stream);
 
@@ -321,14 +347,14 @@ ___5_mn_gmime_stream_vfs_eos (GMimeStream * stream G_GNUC_UNUSED)
     else
       return stream->position >= stream->bound_end;
   }}
-#line 325 "mn-gmime-stream-vfs.c"
+#line 351 "mn-gmime-stream-vfs.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 136 "mn-gmime-stream-vfs.gob"
+#line 149 "mn-gmime-stream-vfs.gob"
 static int 
-___6_mn_gmime_stream_vfs_reset (GMimeStream * stream G_GNUC_UNUSED)
-#line 332 "mn-gmime-stream-vfs.c"
+___7_mn_gmime_stream_vfs_reset (GMimeStream * stream G_GNUC_UNUSED)
+#line 358 "mn-gmime-stream-vfs.c"
 #define PARENT_HANDLER(___stream) \
 	((GMIME_STREAM_CLASS(parent_class)->reset)? \
 		(* GMIME_STREAM_CLASS(parent_class)->reset)(___stream): \
@@ -336,7 +362,7 @@ ___6_mn_gmime_stream_vfs_reset (GMimeStream * stream G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::reset"
 {
-#line 138 "mn-gmime-stream-vfs.gob"
+#line 151 "mn-gmime-stream-vfs.gob"
 	
     Self *self = SELF(stream);
 
@@ -348,14 +374,14 @@ ___6_mn_gmime_stream_vfs_reset (GMimeStream * stream G_GNUC_UNUSED)
 
     return 0;
   }}
-#line 352 "mn-gmime-stream-vfs.c"
+#line 378 "mn-gmime-stream-vfs.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 150 "mn-gmime-stream-vfs.gob"
+#line 163 "mn-gmime-stream-vfs.gob"
 static off_t 
-___7_mn_gmime_stream_vfs_seek (GMimeStream * stream G_GNUC_UNUSED, off_t offset, GMimeSeekWhence whence)
-#line 359 "mn-gmime-stream-vfs.c"
+___8_mn_gmime_stream_vfs_seek (GMimeStream * stream G_GNUC_UNUSED, off_t offset, GMimeSeekWhence whence)
+#line 385 "mn-gmime-stream-vfs.c"
 #define PARENT_HANDLER(___stream,___offset,___whence) \
 	((GMIME_STREAM_CLASS(parent_class)->seek)? \
 		(* GMIME_STREAM_CLASS(parent_class)->seek)(___stream,___offset,___whence): \
@@ -363,7 +389,7 @@ ___7_mn_gmime_stream_vfs_seek (GMimeStream * stream G_GNUC_UNUSED, off_t offset,
 {
 #define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::seek"
 {
-#line 152 "mn-gmime-stream-vfs.gob"
+#line 165 "mn-gmime-stream-vfs.gob"
 	
     Self *self = SELF(stream);
     off_t real = stream->position;
@@ -406,14 +432,14 @@ ___7_mn_gmime_stream_vfs_seek (GMimeStream * stream G_GNUC_UNUSED, off_t offset,
 
     return real;
   }}
-#line 410 "mn-gmime-stream-vfs.c"
+#line 436 "mn-gmime-stream-vfs.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 195 "mn-gmime-stream-vfs.gob"
+#line 208 "mn-gmime-stream-vfs.gob"
 static off_t 
-___8_mn_gmime_stream_vfs_tell (GMimeStream * stream G_GNUC_UNUSED)
-#line 417 "mn-gmime-stream-vfs.c"
+___9_mn_gmime_stream_vfs_tell (GMimeStream * stream G_GNUC_UNUSED)
+#line 443 "mn-gmime-stream-vfs.c"
 #define PARENT_HANDLER(___stream) \
 	((GMIME_STREAM_CLASS(parent_class)->tell)? \
 		(* GMIME_STREAM_CLASS(parent_class)->tell)(___stream): \
@@ -421,18 +447,18 @@ ___8_mn_gmime_stream_vfs_tell (GMimeStream * stream G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::tell"
 {
-#line 197 "mn-gmime-stream-vfs.gob"
+#line 210 "mn-gmime-stream-vfs.gob"
 	
     return stream->position;
   }}
-#line 429 "mn-gmime-stream-vfs.c"
+#line 455 "mn-gmime-stream-vfs.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 201 "mn-gmime-stream-vfs.gob"
+#line 214 "mn-gmime-stream-vfs.gob"
 static ssize_t 
-___9_mn_gmime_stream_vfs_length (GMimeStream * stream G_GNUC_UNUSED)
-#line 436 "mn-gmime-stream-vfs.c"
+___a_mn_gmime_stream_vfs_length (GMimeStream * stream G_GNUC_UNUSED)
+#line 462 "mn-gmime-stream-vfs.c"
 #define PARENT_HANDLER(___stream) \
 	((GMIME_STREAM_CLASS(parent_class)->length)? \
 		(* GMIME_STREAM_CLASS(parent_class)->length)(___stream): \
@@ -440,7 +466,7 @@ ___9_mn_gmime_stream_vfs_length (GMimeStream * stream G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::length"
 {
-#line 203 "mn-gmime-stream-vfs.gob"
+#line 216 "mn-gmime-stream-vfs.gob"
 	
     Self *self = SELF(stream);
     GnomeVFSFileSize bound_end;
@@ -457,14 +483,14 @@ ___9_mn_gmime_stream_vfs_length (GMimeStream * stream G_GNUC_UNUSED)
 
     return bound_end - stream->bound_start;
   }}
-#line 461 "mn-gmime-stream-vfs.c"
+#line 487 "mn-gmime-stream-vfs.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 220 "mn-gmime-stream-vfs.gob"
+#line 233 "mn-gmime-stream-vfs.gob"
 static GMimeStream * 
-___a_mn_gmime_stream_vfs_substream (GMimeStream * stream G_GNUC_UNUSED, off_t start, off_t end)
-#line 468 "mn-gmime-stream-vfs.c"
+___b_mn_gmime_stream_vfs_substream (GMimeStream * stream G_GNUC_UNUSED, off_t start, off_t end)
+#line 494 "mn-gmime-stream-vfs.c"
 #define PARENT_HANDLER(___stream,___start,___end) \
 	((GMIME_STREAM_CLASS(parent_class)->substream)? \
 		(* GMIME_STREAM_CLASS(parent_class)->substream)(___stream,___start,___end): \
@@ -472,34 +498,35 @@ ___a_mn_gmime_stream_vfs_substream (GMimeStream * stream G_GNUC_UNUSED, off_t st
 {
 #define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::substream"
 {
-#line 222 "mn-gmime-stream-vfs.gob"
+#line 235 "mn-gmime-stream-vfs.gob"
 	
     Self *self;
 
     self = GET_NEW;
     selfp->handle = SELF(stream)->_priv->handle;
+    /* handle of the substream is not owned */
 
     g_mime_stream_construct(GMIME_STREAM(self), start, end);
 
     return GMIME_STREAM(self);
   }}
-#line 487 "mn-gmime-stream-vfs.c"
+#line 514 "mn-gmime-stream-vfs.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 233 "mn-gmime-stream-vfs.gob"
+#line 250 "mn-gmime-stream-vfs.gob"
 GMimeStream * 
 mn_gmime_stream_vfs_new (GnomeVFSHandle * handle, GnomeVFSURI * uri, GnomeVFSResult * result)
-#line 494 "mn-gmime-stream-vfs.c"
+#line 521 "mn-gmime-stream-vfs.c"
 {
 #define __GOB_FUNCTION__ "MN:GMime:Stream:VFS::new"
-#line 233 "mn-gmime-stream-vfs.gob"
+#line 250 "mn-gmime-stream-vfs.gob"
 	g_return_val_if_fail (handle != NULL, (GMimeStream * )0);
-#line 233 "mn-gmime-stream-vfs.gob"
+#line 250 "mn-gmime-stream-vfs.gob"
 	g_return_val_if_fail (uri != NULL, (GMimeStream * )0);
-#line 501 "mn-gmime-stream-vfs.c"
+#line 528 "mn-gmime-stream-vfs.c"
 {
-#line 237 "mn-gmime-stream-vfs.gob"
+#line 254 "mn-gmime-stream-vfs.gob"
 	
     GMimeStream *stream;
     GnomeVFSResult _result;
@@ -521,6 +548,8 @@ mn_gmime_stream_vfs_new (GnomeVFSHandle * handle, GnomeVFSURI * uri, GnomeVFSRes
 	  }
 	else
 	  stream = NULL;
+
+	gnome_vfs_close(handle);
       }
     else
       {
@@ -530,6 +559,7 @@ mn_gmime_stream_vfs_new (GnomeVFSHandle * handle, GnomeVFSURI * uri, GnomeVFSRes
 
 	self = GET_NEW;
 	selfp->handle = handle;
+	selfp->handle_owned = TRUE;
 	selfp->uri = gnome_vfs_uri_to_string(uri, GNOME_VFS_URI_HIDE_NONE);
 
 	stream = GMIME_STREAM(self);
@@ -545,5 +575,5 @@ mn_gmime_stream_vfs_new (GnomeVFSHandle * handle, GnomeVFSURI * uri, GnomeVFSRes
 
     return stream;
   }}
-#line 549 "mn-gmime-stream-vfs.c"
+#line 579 "mn-gmime-stream-vfs.c"
 #undef __GOB_FUNCTION__

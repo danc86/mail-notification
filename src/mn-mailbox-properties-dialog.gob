@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -43,6 +43,12 @@ requires 2.0.14
 #endif
 #if WITH_GMAIL
 #include "mn-gmail-mailbox-properties.h"
+#endif
+#if WITH_YAHOO
+#include "mn-yahoo-mailbox-properties.h"
+#endif
+#if WITH_HOTMAIL
+#include "mn-hotmail-mailbox-properties.h"
 #endif
 #if WITH_EVOLUTION
 #include "mn-evolution-mailbox-properties.h"
@@ -145,7 +151,7 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
     self = SELF(object);
 
     mn_container_create_interface(GTK_CONTAINER(self),
-				  UIDIR G_DIR_SEPARATOR_S "mailbox-properties-dialog.glade",
+				  PKGDATADIR G_DIR_SEPARATOR_S "mailbox-properties-dialog.glade",
 				  "notebook",
 				  "mn_mailbox_properties_dialog_",
 				  "notebook", &self->notebook,
@@ -199,9 +205,17 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
 #if WITH_GMAIL
     self_add_type(self, MN_TYPE_GMAIL_MAILBOX_PROPERTIES);
 #endif
+#if WITH_YAHOO
+    self_add_type(self, MN_TYPE_YAHOO_MAILBOX_PROPERTIES);
+#endif
+#if WITH_HOTMAIL
+    self_add_type(self, MN_TYPE_HOTMAIL_MAILBOX_PROPERTIES);
+#endif
 #if WITH_EVOLUTION
     self_add_type(self, MN_TYPE_EVOLUTION_MAILBOX_PROPERTIES);
 #endif
+
+    gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(selfp->store), COLUMN_LABEL, GTK_SORT_ASCENDING);
 
     renderer = gtk_cell_renderer_pixbuf_new();
     g_object_set(renderer, "stock-size", GTK_ICON_SIZE_MENU, NULL);
@@ -491,21 +505,22 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
     if (properties)
       {
 	gboolean complete;
-	const char *default_name;
-
-	g_free(selfp->default_name);
 
 	g_object_get(G_OBJECT(properties),
 		     MN_MAILBOX_PROPERTIES_GET_PROP_COMPLETE(&complete),
-		     MN_MAILBOX_PROPERTIES_GET_PROP_DEFAULT_NAME(&selfp->default_name),
 		     NULL);
+
+	g_free(selfp->default_name);
+	if (complete)
+	  g_object_get(G_OBJECT(properties),
+		       MN_MAILBOX_PROPERTIES_GET_PROP_DEFAULT_NAME(&selfp->default_name),
+		       NULL);
+	else
+	  selfp->default_name = NULL;
+
 	g_object_unref(properties);
 
-	default_name = complete ? selfp->default_name : NULL;
-	if (! default_name)
-	  default_name = "";
-
-	gtk_entry_set_text(GTK_ENTRY(selfp->mailbox_name_entry), default_name);
+	gtk_entry_set_text(GTK_ENTRY(selfp->mailbox_name_entry), selfp->default_name ? selfp->default_name : "");
 	gtk_widget_set_sensitive(selfp->mailbox_name_default_button, selfp->has_custom_name = FALSE);
       }
   }
@@ -608,7 +623,7 @@ class MN:Mailbox:Properties:Dialog from MN:Dialog
   }
 
   protected void
-    delay_changed_h (self, GtkEditable *editable)
+    delay_changed_h (self, GtkSpinButton *button)
   {
     int minutes;
     int seconds;

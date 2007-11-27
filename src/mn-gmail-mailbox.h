@@ -39,6 +39,7 @@ struct _MNGmailMailbox {
 	MNAuthenticatedMailbox __parent__;
 	/*< public >*/
 	char * location;
+	char * label;
 	/*< private >*/
 	MNGmailMailboxPrivate *_priv;
 };
@@ -56,7 +57,8 @@ struct _MNGmailMailboxClass {
  * Public methods
  */
 GType	mn_gmail_mailbox_get_type	(void);
-char * 	mn_gmail_mailbox_build_name	(const char * username);
+char * 	mn_gmail_mailbox_build_name	(const char * username,
+					const char * label);
 
 /*
  * Argument wrapping macros
@@ -64,9 +66,13 @@ char * 	mn_gmail_mailbox_build_name	(const char * username);
 #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
 #define MN_GMAIL_MAILBOX_PROP_LOCATION(arg)    	"location", __extension__ ({gchar *z = (arg); z;})
 #define MN_GMAIL_MAILBOX_GET_PROP_LOCATION(arg)	"location", __extension__ ({gchar **z = (arg); z;})
+#define MN_GMAIL_MAILBOX_PROP_LABEL(arg)    	"label", __extension__ ({gchar *z = (arg); z;})
+#define MN_GMAIL_MAILBOX_GET_PROP_LABEL(arg)	"label", __extension__ ({gchar **z = (arg); z;})
 #else /* __GNUC__ && !__STRICT_ANSI__ */
 #define MN_GMAIL_MAILBOX_PROP_LOCATION(arg)    	"location",(gchar *)(arg)
 #define MN_GMAIL_MAILBOX_GET_PROP_LOCATION(arg)	"location",(gchar **)(arg)
+#define MN_GMAIL_MAILBOX_PROP_LABEL(arg)    	"label",(gchar *)(arg)
+#define MN_GMAIL_MAILBOX_GET_PROP_LABEL(arg)	"label",(gchar **)(arg)
 #endif /* __GNUC__ && !__STRICT_ANSI__ */
 
 

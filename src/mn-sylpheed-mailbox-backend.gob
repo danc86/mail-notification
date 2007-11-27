@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -25,31 +25,13 @@ requires 2.0.14
 
 %privateheader{
 #include "mn-locked-callback.h"
-%}
-
-%{
-#include "config.h"
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <glib/gi18n.h>
-#include <eel/eel.h>
-#include "mn-mailbox-private.h"
-#include "mn-reentrant-mailbox-private.h"
-#include "mn-vfs-mailbox-backend-private.h"
-#include "mn-vfs.h"
-#include "mn-util.h"
-#include "mn-message-mime.h"
 
 /* taken from procmsg.h in the Sylpheed sources */
-#define SYLPHEED_MSG_NEW		(1U << 0)
-#define SYLPHEED_MSG_UNREAD		(1U << 1)
+#define SYLPHEED_MSG_NEW	(1U << 0)
+#define SYLPHEED_MSG_UNREAD	(1U << 1)
 
 /* taken from defs.h in the Sylpheed sources */
-#define SYLPHEED_MARK_FILE		".sylpheed_mark"
-#define SYLPHEED_MARK_VERSION		2
+#define SYLPHEED_MARK_FILE	".sylpheed_mark"
 
 typedef struct
 {
@@ -63,50 +45,38 @@ typedef struct
   gsize		data_size;
   GHashTable	*table;
 } Marks;
+%}
 
-static GStaticMutex timeouts_mutex = G_STATIC_MUTEX_INIT;
+%{
+#include "config.h"
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <glib/gi18n.h>
+#include <eel/eel.h>
+#include "mn-mailbox-private.h"
+#include "mn-reentrant-mailbox-private.h"
+#include "mn-vfs-mailbox-private.h"
+#include "mn-vfs-mailbox-backend-private.h"
+#include "mn-vfs.h"
+#include "mn-util.h"
+#include "mn-message-mime.h"
+#include "mn-sylpheed-message.h"
+
+/* taken from defs.h in the Sylpheed sources */
+#define SYLPHEED_MARK_VERSION		2
+
+/* taken from defs.h in the Claws Mail sources */
+#define CLAWS_MAIL_CACHE_FILE		".sylpheed_claws_cache"
 %}
 
 class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
 {
-  private MNLockedGSource *monitor_timeout_source;
-  private gboolean can_lock_mark_file;
-
   class_init (class)
   {
     MN_VFS_MAILBOX_BACKEND_CLASS(class)->format = "Sylpheed";
-  }
-
-  override (G:Object) GObject *
-    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
-  {
-    GObject *object;
-    Self *self;
-
-    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    self = SELF(object);
-
-#if WITH_SYLPHEED_LOCKING
-    if (gnome_vfs_uri_is_local(MN_VFS_MAILBOX_BACKEND(self)->mailbox->vfs_uri))
-      selfp->can_lock_mark_file = TRUE;
-#endif
-
-    return object;
-  }
-
-  override (G:Object) void
-    finalize (GObject *object)
-  {
-    Self *self = SELF(object);
-
-    g_static_mutex_lock(&timeouts_mutex);
-
-    if (selfp->monitor_timeout_source)
-      mn_locked_g_source_remove(selfp->monitor_timeout_source);
-
-    g_static_mutex_unlock(&timeouts_mutex);
-
-    PARENT_HANDLER(object);
   }
 
   override (MN:VFS:Mailbox:Backend) void
@@ -123,53 +93,17 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	filename = eel_uri_get_basename(info_uri);
 	if (filename)
 	  {
-	    if (! strcmp(filename, SYLPHEED_MARK_FILE))
-	      {
-		Self *self = SELF(backend);
-
-		if (selfp->can_lock_mark_file)
-		  mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(backend->mailbox));
-		else
-		  {
-		    /*
-		     * We cannot lock the mark file. To avoid races,
-		     * delay the check.
-		     */
-
-		    /*
-		     * We do not need to lock timeouts_mutex, because
-		     * this function and monitor_timeout_cb() are
-		     * always run in the same thread (from the GLib
-		     * main loop).
-		     */
-		    if (selfp->monitor_timeout_source)
-		      mn_locked_g_source_remove(selfp->monitor_timeout_source);
-
-		    selfp->monitor_timeout_source = mn_g_timeout_add_locked(3000,
-									    self_monitor_timeout_cb,
-									    self,
-									    (MNLockFunc) mn_g_static_mutex_lock,
-									    (MNUnlockFunc) mn_g_static_mutex_unlock,
-									    &timeouts_mutex);
-		  }
-	      }
-	    else if (mn_str_isnumeric(filename))
-	      mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(backend->mailbox));
+	    /*
+	     * The status of the mailbox can only have changed if the
+	     * subject of the event is the mark file or a message file
+	     * (having a numbered filename).
+	     */
+	    if (! strcmp(filename, SYLPHEED_MARK_FILE) || mn_str_isnumeric(filename))
+	      mn_vfs_mailbox_backend_queue_check(backend);
 
 	    g_free(filename);
 	  }
       }
-  }
-
-  private gboolean
-    monitor_timeout_cb (gpointer data)
-  {
-    Self *self = data;
-
-    mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(MN_VFS_MAILBOX_BACKEND(self)->mailbox));
-
-    selfp->monitor_timeout_source = NULL;
-    return FALSE;		/* remove source */
   }
 
   override (MN:VFS:Mailbox:Backend) gboolean
@@ -177,18 +111,91 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	MNVFSMailboxBackendClass *class,
 	MNVFSMailbox *mailbox)
   {
-    gboolean is = FALSE;
-    GnomeVFSURI *markfile_uri;
+    gboolean is;
+    GnomeVFSURI *uri;
 
-    markfile_uri = gnome_vfs_uri_append_file_name(mailbox->vfs_uri, SYLPHEED_MARK_FILE);
-    is = mn_vfs_test(markfile_uri, G_FILE_TEST_IS_REGULAR);
-    gnome_vfs_uri_unref(markfile_uri);
+    uri = gnome_vfs_uri_append_file_name(mailbox->vfs_uri, SYLPHEED_MARK_FILE);
+    is = mn_vfs_test(uri, G_FILE_TEST_IS_REGULAR);
+    gnome_vfs_uri_unref(uri);
 
     return is;
   }
 
+  private gboolean
+    is_claws_mail_mailbox (self)
+  {
+    gboolean is;
+    GnomeVFSURI *uri;
+
+    uri = gnome_vfs_uri_append_file_name(MN_VFS_MAILBOX_BACKEND(self)->mailbox->vfs_uri, CLAWS_MAIL_CACHE_FILE);
+    is = mn_vfs_test(uri, G_FILE_TEST_IS_REGULAR);
+    gnome_vfs_uri_unref(uri);
+
+    return is;
+  }
+
+  /* non-reentrant, must be called with a lock held */
+  private gboolean
+    has_sylpheed_locking (void)
+  {
+    static gboolean checked = FALSE;
+    static gboolean has = FALSE;
+
+    if (! checked)
+      {
+	char *output;
+
+	if (g_spawn_command_line_sync("sylpheed --version", &output, NULL, NULL, NULL))
+	  {
+	    if (strstr(output, "+locking"))
+	      has = TRUE;
+	    g_free(output);
+	  }
+
+	checked = TRUE;
+      }
+
+    return has;
+  }
+
+  private void
+    update_check_latency (self)
+  {
+    MNVFSMailboxBackend *backend = MN_VFS_MAILBOX_BACKEND(self);
+
+    mn_vfs_mailbox_lock(backend->mailbox);
+
+    /*
+     * If it is a Claws Mail mailbox, the check_latency can be set to
+     * 0, since Claws Mail does not write the mark file in place but
+     * uses an atomic rename() to move the new mark file over the
+     * previous one.
+     */
+    if (self_is_claws_mail_mailbox(self))
+      backend->check_latency = 0;
+    else
+      {
+	/*
+	 * If Sylpheed was compiled with the locking patch and the
+	 * mailbox is local, check_latency can be set to 0, since we
+	 * lock the mark file while reading it.
+	 */
+	if (self_has_sylpheed_locking() && gnome_vfs_uri_is_local(backend->mailbox->vfs_uri))
+	  backend->check_latency = 0;
+	else
+	  /*
+	   * Otherwise, set check_latency to 3 seconds to avoid race
+	   * conditions that can occur when Sylpheed writes the mark
+	   * file while we read it.
+	   */
+	  backend->check_latency = 3000;
+      }
+
+    mn_vfs_mailbox_unlock(backend->mailbox);
+  }
+
   override (MN:VFS:Mailbox:Backend) void
-    check (MNVFSMailboxBackend *backend, unsigned long check_id)
+    check (MNVFSMailboxBackend *backend, int check_id)
   {
     GError *err = NULL;
     GnomeVFSResult result;
@@ -198,20 +205,24 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
     Marks *marks;
     GSList *messages = NULL;
 
+    self_update_check_latency(SELF(backend));
+
     mn_vfs_mailbox_backend_monitor(backend, check_id, backend->mailbox->uri, GNOME_VFS_MONITOR_DIRECTORY);
 
     marks = self_marks_new(backend->mailbox->vfs_uri, &err);
     if (! marks)
       {
-	GDK_THREADS_ENTER();
+	if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+	  {
+	    GDK_THREADS_ENTER();
 
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to read %s: %s"), SYLPHEED_MARK_FILE, err->message);
+	    mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to read %s: %s"), SYLPHEED_MARK_FILE, err->message);
+
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	  }
+
 	g_error_free(err);
-
-	gdk_flush();
-	GDK_THREADS_LEAVE();
-
 	return;
       }
 
@@ -221,13 +232,15 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
     result = gnome_vfs_directory_open_from_uri(&handle, backend->mailbox->vfs_uri, GNOME_VFS_FILE_INFO_FOLLOW_LINKS);
     if (result != GNOME_VFS_OK)
       {
-	GDK_THREADS_ENTER();
+	if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+	  {
+	    GDK_THREADS_ENTER();
 
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open folder: %s"), gnome_vfs_result_to_string(result));
+	    mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open folder: %s"), gnome_vfs_result_to_string(result));
 
-	gdk_flush();
-	GDK_THREADS_LEAVE();
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	  }
 
 	goto end;
       }
@@ -255,7 +268,8 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	       * own way (mark file) of differencing seen/unseen
 	       * messages.
 	       */
-	      message = mn_vfs_message_new(backend,
+	      message = mn_vfs_message_new(MN_TYPE_SYLPHEED_MESSAGE,
+					   backend,
 					   backend->mailbox->vfs_uri,
 					   file_info->name,
 					   flags,
@@ -270,7 +284,7 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
   finish:
     GDK_THREADS_ENTER();
 
-    if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+    if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
       {
 	if (result == GNOME_VFS_ERROR_EOF || result == GNOME_VFS_OK)
 	  {
@@ -311,13 +325,6 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	return FALSE;
       }
 
-    /*
-     * Even if --enable-sylpheed-locking was not used and we are here
-     * after the 3 seconds delay, it does not hurt to obtain a lock,
-     * in case the user has a patched Sylpheed but did not use
-     * --enable-sylpheed-locking.
-     */
-
     memset(&lock, 0, sizeof(lock));
     lock.l_start = 0;		/* from l_whence */
     lock.l_len = 0;		/* to end of file */
@@ -335,7 +342,7 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
       }
     else
       {
-	g_set_error(err, 0, 0, "unable to set encoding: %s", tmp_err->message);
+	g_set_error(err, 0, 0, _("unable to set encoding: %s"), tmp_err->message);
 	g_error_free(tmp_err);
       }
 
@@ -393,7 +400,7 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
     return status;
   }
 
-  private Marks *
+  protected Marks *
     marks_new (GnomeVFSURI *mailbox_uri (check null), GError **err)
   {
     Marks *marks = NULL;
@@ -448,7 +455,7 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
     return marks;
   }
 
-  private gboolean
+  protected gboolean
     marks_write (GnomeVFSURI *mailbox_uri (check null),
 		 Marks *marks (check null),
 		 GError **err)
@@ -470,54 +477,11 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
     return status;
   }
 
-  private void
+  protected void
     marks_free (Marks *marks (check null))
   {
     g_free(marks->data);
     g_hash_table_destroy(marks->table);
     g_free(marks);
-  }
-
-  override (MN:VFS:Mailbox:Backend) gboolean
-    mark_as_read (MNVFSMailboxBackend *dummy,
-		  MNVFSMessage *message,
-		  GError **err)
-  {
-    char *filename;
-    int num;
-    GError *tmp_err = NULL;
-    Marks *marks;
-    MarkEntry *entry;
-    gboolean status;
-
-    filename = gnome_vfs_uri_extract_short_name(message->vfs_uri);
-    g_assert(mn_str_isnumeric(filename));
-    num = atoi(filename);
-    g_free(filename);
-
-    marks = self_marks_new(MN_VFS_MAILBOX(MN_MESSAGE(message)->mailbox)->vfs_uri, &tmp_err);
-    if (! marks)
-      {
-	g_set_error(err, 0, 0, _("Unable to read %s: %s."), SYLPHEED_MARK_FILE, tmp_err->message);
-	g_error_free(tmp_err);
-	return FALSE;
-      }
-
-    entry = g_hash_table_lookup(marks->table, GINT_TO_POINTER(num));
-    if (entry)
-      entry->flags &= ~(SYLPHEED_MSG_NEW | SYLPHEED_MSG_UNREAD);
-    else
-      {
-	marks->data_size += sizeof(MarkEntry);
-	marks->data = g_realloc(marks->data, marks->data_size);
-	entry = (MarkEntry *) (marks->data + marks->data_size - sizeof(MarkEntry));
-	entry->num = num;
-	entry->flags = 0;
-      }
-
-    status = self_marks_write(MN_VFS_MAILBOX(MN_MESSAGE(message)->mailbox)->vfs_uri, marks, err);
-    self_marks_free(marks);
-
-    return status;
   }
 }

@@ -56,11 +56,7 @@ struct _MNPIMailbox {
 	char * hostname;
 	int port;
 	int runtime_port;
-	char * runtime_username;
-	char * runtime_password;
 	/*< private >*/
-	gboolean auth_prompted; /* protected */
-	gboolean auth_cancelled; /* protected */
 	MNPIMailboxPrivate *_priv;
 };
 

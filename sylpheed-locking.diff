@@ -1,5 +1,5 @@
 --- libsylph/procmsg.c.orig	2007-01-16 07:00:10.000000000 +0100
-+++ libsylph/procmsg.c	2007-06-17 08:44:53.000000000 +0200
++++ libsylph/procmsg.c	2007-08-27 22:48:47.000000000 +0200
 @@ -24,6 +24,9 @@
  #include <stdio.h>
  #include <stdlib.h>
@@ -89,3 +89,14 @@
  	} else {
  		/* open with overwrite mode if mark file doesn't exist or
  		   version is different */
+--- src/main.c.orig	2007-01-12 07:14:58.000000000 +0100
++++ src/main.c	2007-08-27 22:50:44.000000000 +0200
+@@ -368,7 +368,7 @@
+ 		} else if (!strncmp(argv[i], "--send", 6)) {
+ 			cmd.send = TRUE;
+ 		} else if (!strncmp(argv[i], "--version", 9)) {
+-			puts("Sylpheed version " VERSION);
++			puts("Sylpheed version " VERSION "+locking");
+ 			exit(0);
+ 		} else if (!strncmp(argv[i], "--status-full", 13)) {
+ 			const gchar *p = argv[i + 1];

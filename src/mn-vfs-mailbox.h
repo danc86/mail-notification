@@ -56,7 +56,6 @@ struct _MNVFSMailbox {
 typedef struct _MNVFSMailboxClass MNVFSMailboxClass;
 struct _MNVFSMailboxClass {
 	MNReentrantMailboxClass __parent__;
-	const char * stock_id;
 };
 
 

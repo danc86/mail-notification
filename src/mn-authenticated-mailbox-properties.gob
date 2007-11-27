@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -24,11 +24,15 @@ requires 2.0.14
 #include "mn-mailbox-properties.h"
 %}
 
+%privateheader{
+#include "mn-authenticated-mailbox.h"
+%}
+
 %{
 #include "config.h"
 #include <glib/gi18n.h>
-#include "mn-authenticated-mailbox.h"
 #include "mn-mailbox-properties-private.h"
+#include "mn-util.h"
 %}
 
 class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties (abstract)
@@ -39,7 +43,12 @@ class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties (abstract)
   protected GtkWidget *username_entry;
   protected GtkWidget *password_vbox;
   protected GtkWidget *password_label;
-  protected GtkWidget *password_entry;
+  protected GtkWidget *password_entry unrefwith g_object_unref;
+  private GtkWidget *password_operation_label unrefwith g_object_unref;
+  private GtkWidget *password_widget;
+
+  private MNAuthenticatedMailbox *mailbox_setting_password;
+  private gpointer get_password_request;
 
   init (self)
   {
@@ -58,12 +67,35 @@ class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties (abstract)
 					 &self->password_label,
 					 &self->password_entry);
 
+    selfp->password_operation_label = gtk_label_new(NULL);
+    gtk_misc_set_alignment(GTK_MISC(selfp->password_operation_label), 0.0, 0.5);
+
+    /*
+     * These two widgets will alternate in their parent container so
+     * we need to reference them.
+     */
+    mn_gtk_object_ref_and_sink(GTK_OBJECT(self->password_entry));
+    mn_gtk_object_ref_and_sink(GTK_OBJECT(selfp->password_operation_label));
+
+    selfp->password_widget = self->password_entry;
+
     /* defaults to the login name */
     username = g_get_user_name();
     if (username)
       gtk_entry_set_text(GTK_ENTRY(self->username_entry), username);
 
     gtk_entry_set_visibility(GTK_ENTRY(self->password_entry), FALSE);
+  }
+
+  /* dispose and not finalize because we use unrefwith above */
+  override (G:Object) void
+    dispose (GObject *object)
+  {
+    Self *self = SELF(object);
+
+    self_clear_mailbox_callbacks(self);
+
+    PARENT_HANDLER(object);
   }
 
   protected GtkWidget *
@@ -100,8 +132,101 @@ class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties (abstract)
     Self *self = SELF(properties);
     MNAuthenticatedMailbox *auth_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
 
-    gtk_entry_set_text(GTK_ENTRY(self->username_entry), auth_mailbox->username ? auth_mailbox->username : "");
-    gtk_entry_set_text(GTK_ENTRY(self->password_entry), auth_mailbox->password ? auth_mailbox->password : "");
+    self_clear_mailbox_callbacks(self);
+
+    gtk_entry_set_text(GTK_ENTRY(self->username_entry), auth_mailbox->username);
+
+    /*
+     * If the password is currently being saved, wait for that
+     * operation to finish before querying the keyring for the
+     * password.
+     */
+    if (mn_authenticated_mailbox_get_setting_password(auth_mailbox))
+      {
+	selfp->mailbox_setting_password = g_object_ref(auth_mailbox);
+	g_signal_connect(auth_mailbox, "notify::setting-password", G_CALLBACK(self_setting_password_notify_h), self);
+	self_set_password_operation(self, _("Saving password to keyring..."));
+      }
+    else
+      self_get_password(self, auth_mailbox);
+  }
+
+  private void
+    clear_mailbox_callbacks (self)
+  {
+    if (selfp->mailbox_setting_password)
+      {
+	g_signal_handlers_disconnect_by_func(selfp->mailbox_setting_password, self_setting_password_notify_h, self);
+	g_object_unref(selfp->mailbox_setting_password);
+	selfp->mailbox_setting_password = NULL;
+      }
+
+    if (selfp->get_password_request)
+      {
+	gnome_keyring_cancel_request(selfp->get_password_request);
+	selfp->get_password_request = NULL;
+      }
+  }
+
+  private void
+    setting_password_notify_h (GObject *object,
+			       GParamSpec *pspec,
+			       gpointer user_data)
+  {
+    Self *self = user_data;
+    MNAuthenticatedMailbox *mailbox = MN_AUTHENTICATED_MAILBOX(object);
+
+    /*
+     * If the password save operation is finished, we can query the
+     * keyring for the password.
+     */
+    if (! mn_authenticated_mailbox_get_setting_password(mailbox))
+      {
+	g_signal_handlers_disconnect_by_func(mailbox, self_setting_password_notify_h, self);
+	self_get_password(self, mailbox);
+      }
+  }
+
+  private void
+    get_password (self, MN:Authenticated:Mailbox *mailbox (check null))
+  {
+    self_set_password_operation(self, _("Retrieving password from keyring..."));
+
+    selfp->get_password_request = mn_authenticated_mailbox_get_password(mailbox,
+									self_get_password_cb,
+									self);
+  }
+
+  private void
+    get_password_cb (GnomeKeyringResult result, GList *list, gpointer data)
+  {
+    Self *self = data;
+    const char *password = NULL;
+
+    /*
+     * If the request was cancelled, it is either from dispose() and
+     * self might already have been finalized (since this is a main
+     * loop callback), or it is from set_mailbox() and the password
+     * will be retrieved again. In both cases we must do nothing.
+     */
+    if (result == GNOME_KEYRING_RESULT_CANCELLED)
+      return;
+
+    selfp->get_password_request = NULL;
+
+    if (result == GNOME_KEYRING_RESULT_OK && list)
+      {
+	GnomeKeyringNetworkPasswordData *data = list->data;
+	password = data->password;
+      }
+
+    GDK_THREADS_ENTER();
+
+    gtk_entry_set_text(GTK_ENTRY(self->password_entry), password ? password : "");
+    self_set_password_operation(self, NULL);
+
+    /* do not call gdk_flush(), we're normally in the main thread */
+    GDK_THREADS_LEAVE();
   }
 
   override (MN:Mailbox:Properties) MNMailbox *
@@ -109,20 +234,45 @@ class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties (abstract)
   {
     Self *self = SELF(properties);
     MNMailbox *mailbox;
+    MNAuthenticatedMailbox *auth_mailbox;
     const char *username;
     const char *password;
 
     mailbox = PARENT_HANDLER(properties);
+    auth_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
 
     username = gtk_entry_get_text(GTK_ENTRY(self->username_entry));
     password = gtk_entry_get_text(GTK_ENTRY(self->password_entry));
 
-    g_object_set(mailbox,
-		 MN_AUTHENTICATED_MAILBOX_PROP_USERNAME((char *) (*username ? username : NULL)),
-		 MN_AUTHENTICATED_MAILBOX_PROP_PASSWORD((char *) (*password ? password : NULL)),
-		 NULL);
+    auth_mailbox->username = g_strdup(username);
+    if (*password)
+      auth_mailbox->password = g_strdup(password);
 
     return mailbox;
+  }
+
+  private void
+    set_password_operation (self, const char *operation)
+  {
+    GtkWidget *password_widget;
+
+    gtk_label_set_text(GTK_LABEL(selfp->password_operation_label), operation);
+
+    if (operation)
+      password_widget = selfp->password_operation_label;
+    else
+      password_widget = self->password_entry;
+
+    if (password_widget != selfp->password_widget)
+      {
+	gtk_container_remove(GTK_CONTAINER(self->password_vbox), selfp->password_widget);
+
+	gtk_box_pack_start(GTK_BOX(self->password_vbox), password_widget, TRUE, TRUE, 0);
+	gtk_widget_show(password_widget);
+	selfp->password_widget = password_widget;
+
+	mn_mailbox_properties_notify_complete(MN_MAILBOX_PROPERTIES(self));
+      }
   }
 
   protected void
@@ -144,5 +294,18 @@ class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties (abstract)
 	_password = gtk_entry_get_text(GTK_ENTRY(self->password_entry));
 	*password = *_password ? _password : NULL;
       }
+  }
+
+  protected gboolean
+    is_complete (self)
+  {
+    const char *username;
+
+    if (selfp->password_widget == selfp->password_operation_label)
+      return FALSE;
+
+    username = gtk_entry_get_text(GTK_ENTRY(self->username_entry));
+
+    return *username != 0;
   }
 }

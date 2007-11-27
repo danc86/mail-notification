@@ -36,7 +36,6 @@ typedef struct _MNVFSMessage MNVFSMessage;
 struct _MNVFSMessage {
 	MNMessage __parent__;
 	/*< public >*/
-	GType backend_type;
 	GnomeVFSURI * vfs_uri;
 };
 
@@ -53,7 +52,8 @@ struct _MNVFSMessageClass {
  * Public methods
  */
 GType	mn_vfs_message_get_type	(void);
-MNMessage * 	mn_vfs_message_new	(gpointer backend,
+MNMessage * 	mn_vfs_message_new	(GType type,
+					gpointer backend,
 					GnomeVFSURI * dir_uri,
 					const char * filename,
 					MNMessageFlags flags,

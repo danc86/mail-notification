@@ -19,6 +19,8 @@ schemasdir = $(GCONF_SCHEMA_FILE_DIR)
 schemas_in_files = mail-notification.schemas.in
 schemas_DATA = mail-notification.schemas
 
+dist_pkgdata_DATA = new-mail.wav
+
 @INTLTOOL_DESKTOP_RULE@
 @INTLTOOL_SERVER_RULE@
 @INTLTOOL_SCHEMAS_RULE@
@@ -50,4 +52,4 @@ GNOME_MailNotification.server.in: GNOME_MailNotification.server.in.in
 	sed -e 's|\@bindir\@|$(bindir)|' GNOME_MailNotification.server.in.in > GNOME_MailNotification.server.in
 
 mail-notification.schemas.in: mail-notification.schemas.in.in
-	sed -e 's|\@gnome_prefix\@|$(gnome_prefix)|' mail-notification.schemas.in.in > mail-notification.schemas.in
+	sed -e 's|\@pkgdatadir\@|$(pkgdatadir)|' mail-notification.schemas.in.in > mail-notification.schemas.in

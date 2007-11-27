@@ -46,17 +46,30 @@
                             <property name="visible">True</property>
                             <property name="spacing">6</property>
                             <child>
-                              <widget class="GtkCheckButton" id="display_seen_mail_check">
+                              <widget class="GtkHBox" id="play_sound_hbox">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="label" translatable="yes">_Display seen mail</property>
-                                <property name="use_underline">True</property>
-                                <property name="draw_indicator">True</property>
+                                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                                <property name="spacing">12</property>
+                                <child>
+                                  <widget class="GtkCheckButton" id="play_sound_check">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                                    <property name="label" translatable="yes">Play a _sound when new mail arrives:</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="response_id">0</property>
+                                    <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="toggled_h"/>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
                               </widget>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                              </packing>
                             </child>
                           </widget>
                         </child>
@@ -128,6 +141,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="label">gtk-add</property>
                                     <property name="use_stock">True</property>
+                                    <property name="response_id">0</property>
                                     <signal name="clicked" handler="add_clicked_h"/>
                                   </widget>
                                 </child>
@@ -137,6 +151,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="label">gtk-remove</property>
                                     <property name="use_stock">True</property>
+                                    <property name="response_id">0</property>
                                     <signal name="clicked" handler="remove_clicked_h"/>
                                   </widget>
                                   <packing>
@@ -149,6 +164,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="label">gtk-properties</property>
                                     <property name="use_stock">True</property>
+                                    <property name="response_id">0</property>
                                     <signal name="clicked" handler="properties_clicked_h"/>
                                   </widget>
                                   <packing>
@@ -174,109 +190,7 @@
                     <property name="position">1</property>
                   </packing>
                 </child>
-                <child>
-                  <widget class="GtkVBox" id="vbox24">
-                    <property name="visible">True</property>
-                    <property name="spacing">6</property>
-                    <child>
-                      <widget class="GtkLabel" id="label38">
-                        <property name="visible">True</property>
-                        <property name="xalign">0</property>
-                        <property name="label" translatable="yes" comments="translators: header capitalization">&lt;span weight="bold"&gt;Commands&lt;/span&gt;</property>
-                        <property name="use_markup">True</property>
-                      </widget>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkAlignment" id="alignment2">
-                        <property name="visible">True</property>
-                        <property name="left_padding">12</property>
-                        <child>
-                          <widget class="GtkVBox" id="vbox25">
-                            <property name="visible">True</property>
-                            <property name="spacing">6</property>
-                            <child>
-                              <widget class="GtkHBox" id="hbox29">
-                                <property name="visible">True</property>
-                                <property name="spacing">12</property>
-                                <child>
-                                  <widget class="GtkCheckButton" id="command_new_mail_check">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="label" translatable="yes">When _new mail arrives:</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_indicator">True</property>
-                                    <signal name="toggled" handler="toggled_h"/>
-                                  </widget>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">False</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <widget class="GtkEntry" id="command_new_mail_entry">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                  </widget>
-                                  <packing>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
-                              </widget>
-                            </child>
-                            <child>
-                              <widget class="GtkHBox" id="hbox30">
-                                <property name="visible">True</property>
-                                <property name="spacing">12</property>
-                                <child>
-                                  <widget class="GtkCheckButton" id="command_mail_read_check">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="label" translatable="yes">When all mail has _been read:</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="draw_indicator">True</property>
-                                    <signal name="toggled" handler="toggled_h"/>
-                                  </widget>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">False</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <widget class="GtkEntry" id="command_mail_read_entry">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                  </widget>
-                                  <packing>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
-                              </widget>
-                              <packing>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                          </widget>
-                        </child>
-                      </widget>
-                      <packing>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
               </widget>
-              <packing>
-                <property name="tab_expand">False</property>
-              </packing>
             </child>
             <child>
               <widget class="GtkLabel" id="label25">
@@ -285,7 +199,6 @@
               </widget>
               <packing>
                 <property name="type">tab</property>
-                <property name="tab_expand">False</property>
                 <property name="tab_fill">False</property>
               </packing>
             </child>
@@ -294,151 +207,6 @@
                 <property name="visible">True</property>
                 <property name="border_width">12</property>
                 <property name="spacing">18</property>
-                <child>
-                  <widget class="GtkVBox" id="vbox33">
-                    <property name="visible">True</property>
-                    <property name="spacing">6</property>
-                    <child>
-                      <widget class="GtkLabel" id="label46">
-                        <property name="visible">True</property>
-                        <property name="xalign">0</property>
-                        <property name="label" translatable="yes" comments="translators: header capitalization">&lt;span weight="bold"&gt;General&lt;/span&gt;</property>
-                        <property name="use_markup">True</property>
-                      </widget>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkAlignment" id="alignment11">
-                        <property name="visible">True</property>
-                        <property name="left_padding">12</property>
-                        <child>
-                          <widget class="GtkVBox" id="vbox34">
-                            <property name="visible">True</property>
-                            <property name="spacing">6</property>
-                            <child>
-                              <widget class="GtkCheckButton" id="icon_blink_check">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="label" translatable="yes">_Blink on errors</property>
-                                <property name="use_underline">True</property>
-                                <property name="draw_indicator">True</property>
-                              </widget>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <widget class="GtkCheckButton" id="icon_always_display_check">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="label" translatable="yes">_Always display</property>
-                                <property name="use_underline">True</property>
-                                <property name="draw_indicator">True</property>
-                              </widget>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                          </widget>
-                        </child>
-                      </widget>
-                      <packing>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkVBox" id="vbox35">
-                    <property name="visible">True</property>
-                    <property name="spacing">6</property>
-                    <child>
-                      <widget class="GtkLabel" id="label47">
-                        <property name="visible">True</property>
-                        <property name="xalign">0</property>
-                        <property name="label" translatable="yes" comments="translators: header capitalization">&lt;span weight="bold"&gt;Tooltip Mail Summary&lt;/span&gt;</property>
-                        <property name="use_markup">True</property>
-                      </widget>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkAlignment" id="alignment12">
-                        <property name="visible">True</property>
-                        <property name="left_padding">12</property>
-                        <child>
-                          <widget class="GtkVBox" id="vbox36">
-                            <property name="visible">True</property>
-                            <property name="spacing">6</property>
-                            <child>
-                              <widget class="GtkRadioButton" id="icon_tooltip_mail_summary_standard_radio">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="label" translatable="yes" context="yes">icon tooltip's mail summary layout|_Standard</property>
-                                <property name="use_underline">True</property>
-                                <property name="draw_indicator">True</property>
-                              </widget>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <widget class="GtkRadioButton" id="icon_tooltip_mail_summary_compact_radio">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="label" translatable="yes" context="yes">icon tooltip's mail summary layout|Co_mpact</property>
-                                <property name="use_underline">True</property>
-                                <property name="draw_indicator">True</property>
-                                <property name="group">icon_tooltip_mail_summary_standard_radio</property>
-                              </widget>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <widget class="GtkRadioButton" id="icon_tooltip_mail_summary_none_radio">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="label" translatable="yes" context="yes">_None</property>
-                                <property name="use_underline">True</property>
-                                <property name="draw_indicator">True</property>
-                                <property name="group">icon_tooltip_mail_summary_standard_radio</property>
-                              </widget>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                                <property name="position">2</property>
-                              </packing>
-                            </child>
-                          </widget>
-                        </child>
-                      </widget>
-                      <packing>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
                 <child>
                   <widget class="GtkVBox" id="vbox26">
                     <property name="visible">True</property>
@@ -464,40 +232,43 @@
                             <property name="visible">True</property>
                             <property name="spacing">6</property>
                             <child>
-                              <widget class="GtkRadioButton" id="icon_action_properties_dialog_radio">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="label" translatable="yes" context="yes">_Display this dialog</property>
-                                <property name="use_underline">True</property>
-                                <property name="draw_indicator">True</property>
-                              </widget>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                              </packing>
-                            </child>
-                            <child>
                               <widget class="GtkRadioButton" id="icon_action_mail_reader_radio">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="label" translatable="yes" context="yes">_Launch the mail reader</property>
                                 <property name="use_underline">True</property>
+                                <property name="response_id">0</property>
                                 <property name="draw_indicator">True</property>
-                                <property name="group">icon_action_properties_dialog_radio</property>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
-                                <property name="position">1</property>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkRadioButton" id="icon_action_open_latest_message_radio">
                                 <property name="visible">True</property>
-                                <property name="label" translatable="yes">_Open the latest message</property>
+                                <property name="label" translatable="yes" context="yes">_Open the latest message</property>
                                 <property name="use_underline">True</property>
+                                <property name="response_id">0</property>
                                 <property name="draw_indicator">True</property>
-                                <property name="group">icon_action_properties_dialog_radio</property>
+                                <property name="group">icon_action_mail_reader_radio</property>
+                              </widget>
+                              <packing>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioButton" id="icon_action_consider_new_mail_as_read_radio">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                                <property name="label" translatable="yes" context="yes">Co_nsider new mail as read</property>
+                                <property name="use_underline">True</property>
+                                <property name="response_id">0</property>
+                                <property name="active">True</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">icon_action_mail_reader_radio</property>
                               </widget>
                               <packing>
                                 <property name="position">2</property>
@@ -509,8 +280,9 @@
                                 <property name="can_focus">True</property>
                                 <property name="label" translatable="yes" context="yes">_Update the mail status</property>
                                 <property name="use_underline">True</property>
+                                <property name="response_id">0</property>
                                 <property name="draw_indicator">True</property>
-                                <property name="group">icon_action_properties_dialog_radio</property>
+                                <property name="group">icon_action_mail_reader_radio</property>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -529,13 +301,11 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">False</property>
-                    <property name="position">2</property>
                   </packing>
                 </child>
               </widget>
               <packing>
                 <property name="position">1</property>
-                <property name="tab_expand">False</property>
               </packing>
             </child>
             <child>
@@ -546,7 +316,6 @@
               <packing>
                 <property name="type">tab</property>
                 <property name="position">1</property>
-                <property name="tab_expand">False</property>
                 <property name="tab_fill">False</property>
               </packing>
             </child>
@@ -585,6 +354,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="label" translatable="yes" context="yes">_Enable message popups</property>
                                 <property name="use_underline">True</property>
+                                <property name="response_id">0</property>
                                 <property name="draw_indicator">True</property>
                                 <signal name="toggled" handler="toggled_h"/>
                               </widget>
@@ -635,6 +405,7 @@
                                 <property name="visible">True</property>
                                 <property name="label" translatable="yes" context="yes">_Attached to the status icon</property>
                                 <property name="use_underline">True</property>
+                                <property name="response_id">0</property>
                                 <property name="draw_indicator">True</property>
                               </widget>
                             </child>
@@ -643,6 +414,7 @@
                                 <property name="visible">True</property>
                                 <property name="label" translatable="yes" context="yes">In the p_opup stack</property>
                                 <property name="use_underline">True</property>
+                                <property name="response_id">0</property>
                                 <property name="draw_indicator">True</property>
                                 <property name="group">popups_position_attached_radio</property>
                               </widget>
@@ -693,6 +465,7 @@
                                 <property name="visible">True</property>
                                 <property name="label" translatable="yes" context="yes">_Desktop default</property>
                                 <property name="use_underline">True</property>
+                                <property name="response_id">0</property>
                                 <property name="draw_indicator">True</property>
                                 <signal name="toggled" handler="toggled_h"/>
                               </widget>
@@ -700,8 +473,9 @@
                             <child>
                               <widget class="GtkRadioButton" id="popups_expiration_never_radio">
                                 <property name="visible">True</property>
-                                <property name="label" translatable="yes" context="yes">_Never</property>
+                                <property name="label" translatable="yes" context="yes">message popups tab|_Never</property>
                                 <property name="use_underline">True</property>
+                                <property name="response_id">0</property>
                                 <property name="draw_indicator">True</property>
                                 <property name="group">popups_expiration_default_radio</property>
                                 <signal name="toggled" handler="toggled_h"/>
@@ -719,6 +493,7 @@
                                     <property name="visible">True</property>
                                     <property name="label" translatable="yes" context="yes">A_fter:</property>
                                     <property name="use_underline">True</property>
+                                    <property name="response_id">0</property>
                                     <property name="draw_indicator">True</property>
                                     <property name="group">popups_expiration_default_radio</property>
                                     <signal name="toggled" handler="toggled_h"/>
@@ -807,7 +582,6 @@
               </widget>
               <packing>
                 <property name="position">2</property>
-                <property name="tab_expand">False</property>
               </packing>
             </child>
             <child>
@@ -818,7 +592,6 @@
               <packing>
                 <property name="type">tab</property>
                 <property name="position">2</property>
-                <property name="tab_expand">False</property>
                 <property name="tab_fill">False</property>
               </packing>
             </child>

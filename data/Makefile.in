@@ -34,14 +34,16 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 subdir = data
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(dist_pkgdata_DATA) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/evolution-plugin.m4 \
 	$(top_srcdir)/m4/gnome.m4 $(top_srcdir)/m4/idl.m4 \
 	$(top_srcdir)/m4/openssl.m4 \
 	$(top_srcdir)/m4/reentrant-resolver.m4 \
-	$(top_srcdir)/m4/sasl2.m4 $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/sasl2.m4 \
+	$(top_srcdir)/m4/string-arch-unaligned.m4 \
+	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -56,14 +58,15 @@ am__vpath_adj = case $$p in \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(autostartdir)" \
-	"$(DESTDIR)$(gnome_cappletdir)" "$(DESTDIR)$(schemasdir)" \
-	"$(DESTDIR)$(serverdir)"
+	"$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(gnome_cappletdir)" \
+	"$(DESTDIR)$(schemasdir)" "$(DESTDIR)$(serverdir)"
 autostartDATA_INSTALL = $(INSTALL_DATA)
+dist_pkgdataDATA_INSTALL = $(INSTALL_DATA)
 gnome_cappletDATA_INSTALL = $(INSTALL_DATA)
 schemasDATA_INSTALL = $(INSTALL_DATA)
 serverDATA_INSTALL = $(INSTALL_DATA)
-DATA = $(autostart_DATA) $(gnome_capplet_DATA) $(schemas_DATA) \
-	$(server_DATA)
+DATA = $(autostart_DATA) $(dist_pkgdata_DATA) $(gnome_capplet_DATA) \
+	$(schemas_DATA) $(server_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALL_LINGUAS = @ALL_LINGUAS@
@@ -110,11 +113,11 @@ GMIME_LIBS = @GMIME_LIBS@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GNOME_CFLAGS = @GNOME_CFLAGS@
+GNOME_KEYRING_CFLAGS = @GNOME_KEYRING_CFLAGS@
+GNOME_KEYRING_LIBS = @GNOME_KEYRING_LIBS@
 GNOME_LIBS = @GNOME_LIBS@
 GOB2 = @GOB2@
 GREP = @GREP@
-GTK_CFLAGS = @GTK_CFLAGS@
-GTK_LIBS = @GTK_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -126,14 +129,12 @@ INTLTOOL_CAVES_RULE = @INTLTOOL_CAVES_RULE@
 INTLTOOL_DESKTOP_RULE = @INTLTOOL_DESKTOP_RULE@
 INTLTOOL_DIRECTORY_RULE = @INTLTOOL_DIRECTORY_RULE@
 INTLTOOL_EXTRACT = @INTLTOOL_EXTRACT@
-INTLTOOL_ICONV = @INTLTOOL_ICONV@
 INTLTOOL_KBD_RULE = @INTLTOOL_KBD_RULE@
 INTLTOOL_KEYS_RULE = @INTLTOOL_KEYS_RULE@
 INTLTOOL_MERGE = @INTLTOOL_MERGE@
-INTLTOOL_MSGFMT = @INTLTOOL_MSGFMT@
-INTLTOOL_MSGMERGE = @INTLTOOL_MSGMERGE@
 INTLTOOL_OAF_RULE = @INTLTOOL_OAF_RULE@
 INTLTOOL_PERL = @INTLTOOL_PERL@
+INTLTOOL_POLICY_RULE = @INTLTOOL_POLICY_RULE@
 INTLTOOL_PONG_RULE = @INTLTOOL_PONG_RULE@
 INTLTOOL_PROP_RULE = @INTLTOOL_PROP_RULE@
 INTLTOOL_SCHEMAS_RULE = @INTLTOOL_SCHEMAS_RULE@
@@ -145,7 +146,6 @@ INTLTOOL_THEME_RULE = @INTLTOOL_THEME_RULE@
 INTLTOOL_UI_RULE = @INTLTOOL_UI_RULE@
 INTLTOOL_UPDATE = @INTLTOOL_UPDATE@
 INTLTOOL_XAM_RULE = @INTLTOOL_XAM_RULE@
-INTLTOOL_XGETTEXT = @INTLTOOL_XGETTEXT@
 INTLTOOL_XML_NOMERGE_RULE = @INTLTOOL_XML_NOMERGE_RULE@
 INTLTOOL_XML_RULE = @INTLTOOL_XML_RULE@
 LDFLAGS = @LDFLAGS@
@@ -179,6 +179,7 @@ PO_IN_DATADIR_TRUE = @PO_IN_DATADIR_TRUE@
 RANLIB = @RANLIB@
 SASL_CFLAGS = @SASL_CFLAGS@
 SASL_LIBS = @SASL_LIBS@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -258,6 +259,7 @@ server_DATA = $(evolution_server) GNOME_MailNotification.server
 schemasdir = $(GCONF_SCHEMA_FILE_DIR)
 schemas_in_files = mail-notification.schemas.in
 schemas_DATA = mail-notification.schemas
+dist_pkgdata_DATA = new-mail.wav
 EXTRA_DIST = \
 	GNOME_MailNotification.server.in.in		\
 	GNOME_MailNotification_Evolution.server.in	\
@@ -328,6 +330,23 @@ uninstall-autostartDATA:
 	  f=$(am__strip_dir) \
 	  echo " rm -f '$(DESTDIR)$(autostartdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(autostartdir)/$$f"; \
+	done
+install-dist_pkgdataDATA: $(dist_pkgdata_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(pkgdatadir)" || $(MKDIR_P) "$(DESTDIR)$(pkgdatadir)"
+	@list='$(dist_pkgdata_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(dist_pkgdataDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/$$f'"; \
+	  $(dist_pkgdataDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/$$f"; \
+	done
+
+uninstall-dist_pkgdataDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_pkgdata_DATA)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(pkgdatadir)/$$f"; \
 	done
 install-gnome_cappletDATA: $(gnome_capplet_DATA)
 	@$(NORMAL_INSTALL)
@@ -417,7 +436,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(autostartdir)" "$(DESTDIR)$(gnome_cappletdir)" "$(DESTDIR)$(schemasdir)" "$(DESTDIR)$(serverdir)"; do \
+	for dir in "$(DESTDIR)$(autostartdir)" "$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(gnome_cappletdir)" "$(DESTDIR)$(schemasdir)" "$(DESTDIR)$(serverdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -465,8 +484,8 @@ info: info-am
 info-am:
 
 install-data-am: install-autostartDATA install-data-local \
-	install-gnome_cappletDATA install-schemasDATA \
-	install-serverDATA
+	install-dist_pkgdataDATA install-gnome_cappletDATA \
+	install-schemasDATA install-serverDATA
 
 install-dvi: install-dvi-am
 
@@ -500,8 +519,9 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-autostartDATA uninstall-gnome_cappletDATA \
-	uninstall-schemasDATA uninstall-serverDATA
+uninstall-am: uninstall-autostartDATA uninstall-dist_pkgdataDATA \
+	uninstall-gnome_cappletDATA uninstall-schemasDATA \
+	uninstall-serverDATA
 
 .MAKE: install-am install-strip
 
@@ -509,15 +529,16 @@ uninstall-am: uninstall-autostartDATA uninstall-gnome_cappletDATA \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-autostartDATA install-data install-data-am \
-	install-data-local install-dvi install-dvi-am install-exec \
-	install-exec-am install-gnome_cappletDATA install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-schemasDATA install-serverDATA install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-autostartDATA uninstall-gnome_cappletDATA \
+	install-data-local install-dist_pkgdataDATA install-dvi \
+	install-dvi-am install-exec install-exec-am \
+	install-gnome_cappletDATA install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-schemasDATA \
+	install-serverDATA install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
+	ps ps-am uninstall uninstall-am uninstall-autostartDATA \
+	uninstall-dist_pkgdataDATA uninstall-gnome_cappletDATA \
 	uninstall-schemasDATA uninstall-serverDATA
 
 
@@ -534,7 +555,7 @@ GNOME_MailNotification.server.in: GNOME_MailNotification.server.in.in
 	sed -e 's|\@bindir\@|$(bindir)|' GNOME_MailNotification.server.in.in > GNOME_MailNotification.server.in
 
 mail-notification.schemas.in: mail-notification.schemas.in.in
-	sed -e 's|\@gnome_prefix\@|$(gnome_prefix)|' mail-notification.schemas.in.in > mail-notification.schemas.in
+	sed -e 's|\@pkgdatadir\@|$(pkgdatadir)|' mail-notification.schemas.in.in > mail-notification.schemas.in
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

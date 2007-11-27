@@ -14,7 +14,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -139,11 +139,20 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
   override (MN:Mailbox) void
     seal (MNMailbox *mailbox)
   {
+    MNAuthenticatedMailbox *auth_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
+
     PARENT_HANDLER(mailbox);
 
     if (! mailbox->runtime_name)
       mailbox->runtime_name = self_build_name(MN_AUTHENTICATED_MAILBOX(mailbox)->username,
 					      MN_PI_MAILBOX(mailbox)->hostname);
+
+#if WITH_SSL
+    if (MN_PI_MAILBOX(mailbox)->connection_type == MN_PI_MAILBOX_CONNECTION_TYPE_SSL)
+      auth_mailbox->keyring_protocol = g_strdup("pop3s");
+    else
+#endif
+      auth_mailbox->keyring_protocol = g_strdup("pop3");
   }
 
   /*
@@ -170,34 +179,23 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
       char username_buf[buflen];
       char authmech_buf[buflen];
       char hostname_buf[buflen];
-      gboolean has_auth;
-      gboolean has_username = FALSE;
       gboolean has_authmech = FALSE;
 
-      if (! mn_pi_mailbox_split_uri(uri, len, scheme_buf, auth_buf, location_buf, &has_auth))
+      if (! mn_pi_mailbox_split_uri(uri, len, scheme_buf, auth_buf, location_buf))
 	return NULL;
 
       if (strcmp(scheme_buf, "pop"))
 	return NULL;
 
-      if (has_auth)
-	{
-	  if (! mn_pi_mailbox_split_uri_auth(auth_buf, len, username_buf, authmech_buf, &has_username, &has_authmech))
-	    return NULL;
+      if (! mn_pi_mailbox_split_uri_auth(auth_buf, len, username_buf, authmech_buf, &has_authmech))
+	return NULL;
 
-	  if (has_authmech)
-	    {
-	      if (! has_username)
-		return NULL;	/* see user-auth in RFC 2384 ABNF */
-	      if (! strcmp(authmech_buf, "*"))
-		has_authmech = FALSE;
-	    }
-	}
+      if (has_authmech && ! strcmp(authmech_buf, "*"))
+	has_authmech = FALSE;
 
       mn_pi_mailbox_split_uri_hostport(location_buf, len, hostname_buf, &port);
 
-      if (has_username)
-	username = gnome_vfs_unescape_string(username_buf, NULL);
+      username = gnome_vfs_unescape_string(username_buf, NULL);
       if (has_authmech)
 	authmech = gnome_vfs_unescape_string(authmech_buf, NULL);
       hostname = gnome_vfs_unescape_string(hostname_buf, NULL);
@@ -447,7 +445,7 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 	  }
       }
     else
-      return priv->pi_mailbox->auth_cancelled
+      return priv->auth_mailbox->auth_cancelled
 	? STATE_QUIT
 	: self_session_authenticate_fallback(priv, FALSE, FALSE);
 #else
@@ -470,7 +468,7 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 	  : MN_CLIENT_SESSION_RESULT_DISCONNECT;
 
       case RESPONSE_ERR:
-	if (priv->pi_mailbox->auth_cancelled)
+	if (priv->auth_mailbox->auth_cancelled)
 	  return STATE_QUIT;
 	else
 	  {
@@ -507,19 +505,21 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 		   MNClientSessionPrivate *priv)
   {
     MNMD5Context context;
-    char buf[33];
+    char buf[16];
+    char hexbuf[33];
 
     g_assert(priv->apop_timestamp != NULL);
 
-    if (! mn_pi_mailbox_fill_credentials(priv->pi_mailbox, TRUE, TRUE))
+    if (! mn_authenticated_mailbox_fill_password(priv->auth_mailbox, TRUE))
       return STATE_QUIT;
 
-    mn_md5_init(&context);
-    mn_md5_update(&context, priv->apop_timestamp, strlen(priv->apop_timestamp));
-    mn_md5_update(&context, priv->pi_mailbox->runtime_password, strlen(priv->pi_mailbox->runtime_password));
-    mn_md5_end(&context, buf);
+    mn_md5_init_ctx(&context);
+    mn_md5_process_bytes(&context, priv->apop_timestamp, strlen(priv->apop_timestamp));
+    mn_md5_process_bytes(&context, priv->auth_mailbox->runtime_password, strlen(priv->auth_mailbox->runtime_password));
+    mn_md5_finish_ctx(&context, buf);
+    mn_md5_to_hex(buf, hexbuf);
 
-    return mn_client_session_write(session, "APOP %s %s", priv->pi_mailbox->runtime_username, buf);
+    return mn_client_session_write(session, "APOP %s %s", priv->auth_mailbox->username, hexbuf);
   }
 
   private int
@@ -544,10 +544,7 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
     enter_user_cb (MNClientSession *session (check null),
 		   MNClientSessionPrivate *priv (check null))
   {
-    if (! mn_pi_mailbox_fill_credentials(priv->pi_mailbox, TRUE, TRUE))
-      return STATE_QUIT;
-
-    return mn_client_session_write(session, "USER %s", priv->pi_mailbox->runtime_username);
+    return mn_client_session_write(session, "USER %s", priv->auth_mailbox->username);
   }
 
   private int
@@ -573,9 +570,10 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
     enter_pass_cb (MNClientSession *session,
 		   MNClientSessionPrivate *priv)
   {
-    g_assert(priv->pi_mailbox->runtime_password != NULL);
+    if (! mn_authenticated_mailbox_fill_password(priv->auth_mailbox, TRUE))
+      return STATE_QUIT;
 
-    return mn_client_session_write(session, "PASS %s", priv->pi_mailbox->runtime_password);
+    return mn_client_session_write(session, "PASS %s", priv->auth_mailbox->runtime_password);
   }
 
   private int
@@ -770,6 +768,9 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
       NULL,			/* post_read */
 #if WITH_SASL
       mn_pi_mailbox_sasl_get_credentials_cb,
+#endif
+#if WITH_SSL
+      mn_pi_mailbox_ssl_trust_server_cb,
 #endif
     };
     MNClientSessionPrivate priv;
@@ -1031,9 +1032,9 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 	  }
       }
 
-    if (priv->pi_mailbox->auth_prompted)
+    if (priv->auth_mailbox->auth_prompted)
       {
-	mn_pi_mailbox_auth_failed(priv->pi_mailbox);
+	mn_authenticated_mailbox_auth_failed(priv->auth_mailbox);
 	return self_session_authenticate(priv);
       }
     else
@@ -1095,10 +1096,9 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
   }
 
   public char *
-    build_name (const char *username, const char *server (check null))
+    build_name (const char *username (check null),
+		const char *server (check null))
   {
-    return username
-      ? g_strdup_printf("%s@%s", username, server)
-      : g_strdup(server);
+    return g_strdup_printf("%s@%s", username, server);
   }
 }

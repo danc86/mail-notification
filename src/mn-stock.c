@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -23,15 +23,6 @@
 #include "mn-stock.h"
 #include "mn-util.h"
 
-/*** constants ***************************************************************/
-
-static const GtkStockItem items[] = {
-  /* translators: header capitalization */
-  { MN_STOCK_SELECT_ALL, N_("Select _All"), 0, 0, NULL },
-  /* translators: header capitalization */
-  { MN_STOCK_CONNECT, N_("Co_nnect"), 0, 0, NULL }
-};
-
 /*** implementation **********************************************************/
 
 void
@@ -48,11 +39,16 @@ mn_stock_init (void)
     { MN_STOCK_NO_MAIL,			NULL, "stock_inbox" },
     { MN_STOCK_LOCAL,			NULL, "stock_folder" },
     { MN_STOCK_REMOTE,			NULL, "stock_internet" },
-    { MN_STOCK_POLLED,			NULL, "stock_timer" },
     { MN_STOCK_UNKNOWN,			NULL, "stock_unknown" },
     { MN_STOCK_ERROR,			NULL, NULL, GTK_STOCK_DIALOG_ERROR },
 #if WITH_GMAIL
-    { MN_STOCK_GMAIL,			UIDIR G_DIR_SEPARATOR_S "gmail.png" },
+    { MN_STOCK_GMAIL,			PKGDATADIR G_DIR_SEPARATOR_S "gmail.png" },
+#endif
+#if WITH_YAHOO
+    { MN_STOCK_YAHOO,			PKGDATADIR G_DIR_SEPARATOR_S "yahoo.png" },
+#endif
+#if WITH_HOTMAIL
+    { MN_STOCK_HOTMAIL,			PKGDATADIR G_DIR_SEPARATOR_S "hotmail.png" },
 #endif
 #if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
     { MN_STOCK_SYSTEM_MAILBOX,		NULL, "system" },
@@ -60,10 +56,9 @@ mn_stock_init (void)
 #if WITH_EVOLUTION
     { MN_STOCK_EVOLUTION_MAILBOX,	NULL, "evolution" },
 #endif
-    { MN_STOCK_SELECT_ALL,		NULL, "stock_select-all" },
     { MN_STOCK_MAIL_READER,		NULL, "stock_mail-handling" },
     { MN_STOCK_OPEN_MESSAGE,		NULL, "stock_mail-open" },
-    { MN_STOCK_CONNECT,			NULL, NULL, GTK_STOCK_CONNECT }
+    { MN_STOCK_CONSIDER_NEW_MAIL_AS_READ, NULL, "stock_mark" }
   };
   GtkIconFactory *factory;
   GtkIconTheme *icon_theme;
@@ -82,13 +77,8 @@ mn_stock_init (void)
 	  GdkPixbuf *pixbuf;
 
 	  pixbuf = mn_pixbuf_new(icons[i].filename);
-	  if (pixbuf)
-	    {
-	      icon_set = gtk_icon_set_new_from_pixbuf(pixbuf);
-	      g_object_unref(pixbuf);
-	    }
-	  else
-	    icon_set = gtk_icon_set_new();
+	  icon_set = gtk_icon_set_new_from_pixbuf(pixbuf);
+	  g_object_unref(pixbuf);
 	}
       else if (icons[i].icon_name)
 	{
@@ -113,6 +103,4 @@ mn_stock_init (void)
     }
 
   g_object_unref(factory);
-
-  gtk_stock_add_static(items, G_N_ELEMENTS(items));
 }

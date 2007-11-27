@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -53,31 +53,38 @@ class MN:Automation from Bonobo:Object (BonoboObject GNOME_MailNotification_Auto
   }
 
   BonoboObject private void
+    considerNewMailAsRead (PortableServer_Servant servant, CORBA_Environment *env)
+  {
+    g_assert(mn_shell != NULL);
+    mn_shell_consider_new_mail_as_read(mn_shell);
+  }
+
+  BonoboObject private void
     update (PortableServer_Servant servant, CORBA_Environment *env)
   {
     g_assert(mn_shell != NULL);
-    mn_mailboxes_check(mn_shell->mailboxes);
+    mn_shell_update(mn_shell);
   }
 
   BonoboObject private void
     displayProperties (PortableServer_Servant servant, CORBA_Environment *env)
   {
     g_assert(mn_shell != NULL);
-    mn_shell_display_properties_dialog(mn_shell);
+    mn_shell_display_properties_dialog(mn_shell, 0);
   }
 
   BonoboObject private void
     displayAbout (PortableServer_Servant servant, CORBA_Environment *env)
   {
     g_assert(mn_shell != NULL);
-    mn_shell_display_about_dialog(mn_shell);
+    mn_shell_display_about_dialog(mn_shell, 0);
   }
 
   BonoboObject private void
     quit (PortableServer_Servant servant, CORBA_Environment *env)
   {
     g_assert(mn_shell != NULL);
-    g_object_unref(mn_shell);
+    mn_shell_quit(mn_shell);
   }
 
   public MNAutomation *

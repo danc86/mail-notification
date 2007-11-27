@@ -13,10 +13,12 @@ struct _MNGMimeStreamVFSPrivate {
 #line 64 "mn-gmime-stream-vfs.gob"
 	GnomeVFSHandle * handle;
 #line 65 "mn-gmime-stream-vfs.gob"
+	gboolean handle_owned;
+#line 67 "mn-gmime-stream-vfs.gob"
 	char * uri;
-#line 66 "mn-gmime-stream-vfs.gob"
+#line 68 "mn-gmime-stream-vfs.gob"
 	gboolean eof;
-#line 20 "mn-gmime-stream-vfs-private.h"
+#line 22 "mn-gmime-stream-vfs-private.h"
 };
 
 #ifdef __cplusplus

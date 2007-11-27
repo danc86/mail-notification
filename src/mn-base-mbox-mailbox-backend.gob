@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -108,20 +108,26 @@ class MN:Base:Mbox:Mailbox:Backend from MN:VFS:Mailbox:Backend (abstract)
     get_mailbox_type (GnomeVFSURI *uri (check null))
   {
     GMimeParser *parser;
-    GnomeVFSHandle *handle;
     GType type = 0;
 
-    parser = self_parser_new(uri, &handle, NULL);
+    parser = self_parser_new(uri, NULL);
     if (parser != NULL)
       {
 	if (g_mime_parser_eos(parser))
 	  /*
-	   * The file is empty. Treat it as a mbox mailbox for
-	   * now. Whenever the file grows, it will be checked again
-	   * and at that point we will decide whether it is a mbox
-	   * mailbox, a Mozilla mailbox or another type of file.
+	   * The file is empty. For now, treat it as a mbox mailbox
+	   * or, if mbox support was not compiled in, as a Mozilla
+	   * mailbox. Whenever the file grows, it will be checked
+	   * again and at that point we will decide whether it is a
+	   * mbox mailbox, a Mozilla mailbox or another type of file.
 	   */
-	  type = MN_TYPE_MBOX_MAILBOX_BACKEND;
+	  {
+#if WITH_MBOX
+	    type = MN_TYPE_MBOX_MAILBOX_BACKEND;
+#elif WITH_MOZILLA
+	    type = MN_TYPE_MOZILLA_MAILBOX_BACKEND;
+#endif
+	  }
 	else
 	  {
 	    /*
@@ -153,34 +159,30 @@ class MN:Base:Mbox:Mailbox:Backend from MN:VFS:Mailbox:Backend (abstract)
 	      }
 	  }
 	g_object_unref(parser);
-	gnome_vfs_close(handle);
       }
 
     return type;
   }
 
   private GMimeParser *
-    parser_new (GnomeVFSURI *uri (check null),
-		GnomeVFSHandle **handle (check null),
-		GnomeVFSResult *result)
+    parser_new (GnomeVFSURI *uri (check null), GnomeVFSResult *result)
   {
     GnomeVFSResult _result;
+    GnomeVFSHandle *handle;
     GMimeParser *parser = NULL;
 
-    _result = gnome_vfs_open_uri(handle, uri, GNOME_VFS_OPEN_READ);
+    _result = gnome_vfs_open_uri(&handle, uri, GNOME_VFS_OPEN_READ);
     if (_result == GNOME_VFS_OK)
       {
 	GMimeStream *stream;
 
-	stream = mn_gmime_stream_vfs_new(*handle, uri, &_result);
+	stream = mn_gmime_stream_vfs_new(handle, uri, &_result);
 	if (stream)
 	  {
 	    parser = g_mime_parser_new_with_stream(stream);
 	    g_object_unref(stream);
 	    g_mime_parser_set_scan_from(parser, TRUE);
 	  }
-	else
-	  gnome_vfs_close(*handle);
       }
 
     if (result)
@@ -190,33 +192,26 @@ class MN:Base:Mbox:Mailbox:Backend from MN:VFS:Mailbox:Backend (abstract)
   }
 
   override (MN:VFS:Mailbox:Backend) void
-    check (MNVFSMailboxBackend *backend, unsigned long check_id)
+    check (MNVFSMailboxBackend *backend, int check_id)
   {
     Self *self = SELF(backend);
-    gboolean aborted;
     gboolean polled;
     GMimeParser *parser;
-    GnomeVFSHandle *handle;
     GnomeVFSResult result;
     gboolean uri_set;
 
     mn_vfs_mailbox_backend_monitor(backend, check_id, backend->mailbox->uri, GNOME_VFS_MONITOR_FILE);
 
+    if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+      return;
+
+    /* the poll property is protected by the GDK lock */
     GDK_THREADS_ENTER();
 
-    if (mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-      aborted = TRUE;
-    else
-      {
-	aborted = FALSE;
-	polled = mn_mailbox_get_poll(MN_MAILBOX(backend->mailbox));
-      }
+    polled = mn_mailbox_get_poll(MN_MAILBOX(backend->mailbox));
 
     gdk_flush();
     GDK_THREADS_LEAVE();
-
-    if (aborted)
-      return;
 
     if (polled)
       {
@@ -258,7 +253,7 @@ class MN:Base:Mbox:Mailbox:Backend from MN:VFS:Mailbox:Backend (abstract)
 	    selfp->last_mtime = file_info->mtime;
 	    selfp->last_ctime = file_info->ctime;
 
-	    if (mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+	    if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 	      check = FALSE;
 	  }
 
@@ -278,6 +273,7 @@ class MN:Base:Mbox:Mailbox:Backend from MN:VFS:Mailbox:Backend (abstract)
       {
 	GnomeVFSFileInfo *file_info;
 	GnomeVFSURI *uri;
+	gboolean aborted;
 
 	file_info = gnome_vfs_file_info_new();
 	if (gnome_vfs_get_file_info_uri(backend->mailbox->vfs_uri, file_info, GNOME_VFS_FILE_INFO_FOLLOW_LINKS | GNOME_VFS_FILE_INFO_GET_MIME_TYPE) == GNOME_VFS_OK)
@@ -294,8 +290,8 @@ class MN:Base:Mbox:Mailbox:Backend from MN:VFS:Mailbox:Backend (abstract)
 	    selfp->uri = uri;
 	    uri = NULL;
 	  }
-	if (mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	  aborted = TRUE;
+
+	aborted = mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id);
 
 	g_mutex_unlock(selfp->mutex);
 
@@ -306,11 +302,10 @@ class MN:Base:Mbox:Mailbox:Backend from MN:VFS:Mailbox:Backend (abstract)
 	  return;
       }
 
-    parser = self_parser_new(selfp->uri, &handle, &result);
+    parser = self_parser_new(selfp->uri, &result);
     if (parser)
       {
 	GSList *messages = NULL;
-	GnomeVFSResult close_result;
 
 	while (! g_mime_parser_eos(parser))
 	  {
@@ -333,33 +328,29 @@ class MN:Base:Mbox:Mailbox:Backend from MN:VFS:Mailbox:Backend (abstract)
 	  }
 
 	g_object_unref(parser);
-	close_result = gnome_vfs_close(handle);
 
 	GDK_THREADS_ENTER();
 
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	  {
-	    if (close_result == GNOME_VFS_OK)
-	      mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
-	    else
-	      mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to close file: %s"), gnome_vfs_result_to_string(close_result));
-	  }
+	if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+	  mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
 
 	mn_g_object_slist_free(messages);
 
 	gdk_flush();
 	GDK_THREADS_LEAVE();
 
-	return;
+	return;			/* success */
       }
 
-    GDK_THREADS_ENTER();
+    if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+      {
+	GDK_THREADS_ENTER();
 
-    if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-      mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open mailbox: %s"), gnome_vfs_result_to_string(result));
+	mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open mailbox: %s"), gnome_vfs_result_to_string(result));
 
-    gdk_flush();
-    GDK_THREADS_LEAVE();
+	gdk_flush();
+	GDK_THREADS_LEAVE();
+      }
   }
 
   virtual private MNMessage *

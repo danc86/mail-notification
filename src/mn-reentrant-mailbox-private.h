@@ -17,20 +17,15 @@ extern "C" {
 #line 18 "mn-reentrant-mailbox-private.h"
 struct _MNReentrantMailboxPrivate {
 #line 45 "mn-reentrant-mailbox.gob"
-	GMutex * mutex;
-#line 47 "mn-reentrant-mailbox.gob"
 	MNLockedGSource * queue_check_source;
-#line 49 "mn-reentrant-mailbox.gob"
-	unsigned long check_id;
-#line 50 "mn-reentrant-mailbox.gob"
-	unsigned long check_unique_id;
-#line 28 "mn-reentrant-mailbox-private.h"
+#line 47 "mn-reentrant-mailbox.gob"
+	int check_id;
+#line 48 "mn-reentrant-mailbox.gob"
+	int check_unique_id;
+#line 26 "mn-reentrant-mailbox-private.h"
 };
 void 	mn_reentrant_mailbox_queue_check	(MNReentrantMailbox * self);
-gboolean 	mn_reentrant_mailbox_check_aborted	(MNReentrantMailbox * self, unsigned long check_id);
-gboolean 	mn_reentrant_mailbox_check_aborted_unlocked	(MNReentrantMailbox * self, unsigned long check_id);
-void 	mn_reentrant_mailbox_lock	(MNReentrantMailbox * self);
-void 	mn_reentrant_mailbox_unlock	(MNReentrantMailbox * self);
+gboolean 	mn_reentrant_mailbox_check_aborted	(MNReentrantMailbox * self, int check_id);
 
 #ifdef __cplusplus
 }

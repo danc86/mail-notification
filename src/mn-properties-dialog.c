@@ -32,9 +32,11 @@
 #include "mn-util.h"
 #include "mn-mailbox-view.h"
 #include "mn-shell.h"
+#include "mn-file-chooser-button.h"
+#include "mn-sound-file-chooser-dialog.h"
 #include "mn-test-mailbox.h"
 
-#line 38 "mn-properties-dialog.c"
+#line 40 "mn-properties-dialog.c"
 /* self casting macros */
 #define SELF(x) MN_PROPERTIES_DIALOG(x)
 #define SELF_CONST(x) MN_PROPERTIES_DIALOG_CONST(x)
@@ -51,6 +53,7 @@ typedef MNPropertiesDialogClass SelfClass;
 /* here are local prototypes */
 static void mn_properties_dialog_class_init (MNPropertiesDialogClass * c) G_GNUC_UNUSED;
 static void mn_properties_dialog_init (MNPropertiesDialog * self) G_GNUC_UNUSED;
+static GtkFileChooserDialog * mn_properties_dialog_play_sound_file_chooser_create_dialog_cb (gpointer data) G_GNUC_UNUSED;
 static void mn_properties_dialog_test_messages_toggled_h (MNPropertiesDialog * self, GtkToggleButton * button) G_GNUC_UNUSED;
 static void mn_properties_dialog_remove_test_mailbox (MNPropertiesDialog * self) G_GNUC_UNUSED;
 static void mn_properties_dialog_response_h (MNPropertiesDialog * self, int response, gpointer user_data) G_GNUC_UNUSED;
@@ -61,6 +64,7 @@ static void mn_properties_dialog_update_sensitivity (MNPropertiesDialog * self) 
 static MNDialogClass *parent_class = NULL;
 
 /* Short form macros */
+#define self_play_sound_file_chooser_create_dialog_cb mn_properties_dialog_play_sound_file_chooser_create_dialog_cb
 #define self_test_messages_toggled_h mn_properties_dialog_test_messages_toggled_h
 #define self_remove_test_mailbox mn_properties_dialog_remove_test_mailbox
 #define self_response_h mn_properties_dialog_response_h
@@ -124,9 +128,9 @@ ___finalize(GObject *obj_self)
 #define test_mailbox (self->_priv->test_mailbox)
 #define VAR test_mailbox
 	{
-#line 84 "mn-properties-dialog.gob"
+#line 79 "mn-properties-dialog.gob"
 	 self_remove_test_mailbox(self); }
-#line 130 "mn-properties-dialog.c"
+#line 134 "mn-properties-dialog.c"
 	memset(&test_mailbox, 0, sizeof(test_mailbox));
 #undef VAR
 #undef test_mailbox
@@ -146,43 +150,34 @@ mn_properties_dialog_class_init (MNPropertiesDialogClass * c G_GNUC_UNUSED)
 	g_object_class->finalize = ___finalize;
 }
 #undef __GOB_FUNCTION__
-#line 86 "mn-properties-dialog.gob"
+#line 81 "mn-properties-dialog.gob"
 static void 
 mn_properties_dialog_init (MNPropertiesDialog * self G_GNUC_UNUSED)
-#line 153 "mn-properties-dialog.c"
+#line 157 "mn-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Properties:Dialog::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_PROPERTIES_DIALOG,MNPropertiesDialogPrivate);
  {
-#line 87 "mn-properties-dialog.gob"
+#line 82 "mn-properties-dialog.gob"
 
-    GtkSizeGroup *size_group;
     GtkTreeSelection *selection;
     GtkWidget *test_messages_check;
 
     mn_container_create_interface(GTK_CONTAINER(self),
-				  UIDIR G_DIR_SEPARATOR_S "properties-dialog.glade",
+				  PKGDATADIR G_DIR_SEPARATOR_S "properties-dialog.glade",
 				  "notebook",
 				  "mn_properties_dialog_",
 				  "notebook", &selfp->notebook,
-				  "display_seen_mail_check", &selfp->display_seen_mail_check,
+				  "play_sound_hbox", &selfp->play_sound_hbox,
+				  "play_sound_check", &selfp->play_sound_check,
 				  "scrolled", &selfp->scrolled,
 				  "selected_label", &selfp->selected_label,
 				  "add", &selfp->add,
 				  "remove", &selfp->remove,
 				  "properties", &selfp->properties,
-				  "command_new_mail_check", &selfp->command_new_mail_check,
-				  "command_new_mail_entry", &selfp->command_new_mail_entry,
-				  "command_mail_read_check", &selfp->command_mail_read_check,
-				  "command_mail_read_entry", &selfp->command_mail_read_entry,
-				  "icon_blink_check", &selfp->icon_blink_check,
-				  "icon_always_display_check", &selfp->icon_always_display_check,
-				  "icon_tooltip_mail_summary_standard_radio", &selfp->icon_tooltip_mail_summary_standard_radio,
-				  "icon_tooltip_mail_summary_compact_radio", &selfp->icon_tooltip_mail_summary_compact_radio,
-				  "icon_tooltip_mail_summary_none_radio", &selfp->icon_tooltip_mail_summary_none_radio,
-				  "icon_action_properties_dialog_radio", &selfp->icon_action_properties_dialog_radio,
 				  "icon_action_mail_reader_radio", &selfp->icon_action_mail_reader_radio,
 				  "icon_action_open_latest_message_radio", &selfp->icon_action_open_latest_message_radio,
+				  "icon_action_consider_new_mail_as_read_radio", &selfp->icon_action_consider_new_mail_as_read_radio,
 				  "icon_action_update_radio", &selfp->icon_action_update_radio,
 				  "popups_enable_check", &selfp->popups_enable_check,
 				  "popups_position_section_label", &selfp->popups_position_section_label,
@@ -211,6 +206,10 @@ mn_properties_dialog_init (MNPropertiesDialog * self G_GNUC_UNUSED)
 
     gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
 
+    selfp->play_sound_file_chooser_button = mn_file_chooser_button_new(self_play_sound_file_chooser_create_dialog_cb, NULL);
+    gtk_box_pack_start(GTK_BOX(selfp->play_sound_hbox), selfp->play_sound_file_chooser_button, TRUE, TRUE, 0);
+    gtk_widget_show(selfp->play_sound_file_chooser_button);
+
     selfp->list = mn_mailbox_view_new();
     gtk_container_add(GTK_CONTAINER(selfp->scrolled), selfp->list);
     gtk_widget_show(selfp->list);
@@ -223,34 +222,18 @@ mn_properties_dialog_init (MNPropertiesDialog * self G_GNUC_UNUSED)
 
     mn_setup_dnd(selfp->scrolled);
 
-    size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
-    gtk_size_group_add_widget(size_group, selfp->command_new_mail_check);
-    gtk_size_group_add_widget(size_group, selfp->command_mail_read_check);
-    g_object_unref(size_group);
-
     mn_conf_link(self, MN_CONF_PROPERTIES_DIALOG,
-		 selfp->display_seen_mail_check, MN_CONF_DISPLAY_SEEN_MAIL, "active",
-		 selfp->command_new_mail_check, MN_CONF_COMMANDS_NEW_MAIL_ENABLED, "active",
-		 selfp->command_new_mail_entry, MN_CONF_COMMANDS_NEW_MAIL_COMMAND, "text",
-		 selfp->command_mail_read_check, MN_CONF_COMMANDS_MAIL_READ_ENABLED, "active",
-		 selfp->command_mail_read_entry, MN_CONF_COMMANDS_MAIL_READ_COMMAND, "text",
-		 selfp->icon_blink_check, MN_CONF_BLINK_ON_ERRORS, "active",
-		 selfp->icon_always_display_check, MN_CONF_ALWAYS_DISPLAY_ICON, "active",
+		 selfp->play_sound_check, MN_CONF_SOUNDS_NEW_MAIL_ENABLED, "active",
+		 selfp->play_sound_file_chooser_button, MN_CONF_SOUNDS_NEW_MAIL_FILE, "filename",
 		 selfp->popups_enable_check, MN_CONF_POPUPS_ENABLED, "active",
 		 selfp->popups_expiration_minutes_spin, MN_CONF_POPUPS_EXPIRATION_DELAY_MINUTES,
 		 selfp->popups_expiration_seconds_spin, MN_CONF_POPUPS_EXPIRATION_DELAY_SECONDS,
 		 NULL);
-    mn_conf_link_radio_group_to_enum(MN_TYPE_SHELL_TOOLTIP_MAIL_SUMMARY,
-				     MN_CONF_TOOLTIP_MAIL_SUMMARY,
-				     selfp->icon_tooltip_mail_summary_standard_radio, MN_SHELL_TOOLTIP_MAIL_SUMMARY_STANDARD,
-				     selfp->icon_tooltip_mail_summary_compact_radio, MN_SHELL_TOOLTIP_MAIL_SUMMARY_COMPACT,
-				     selfp->icon_tooltip_mail_summary_none_radio, MN_SHELL_TOOLTIP_MAIL_SUMMARY_NONE,
-				     NULL);
     mn_conf_link_radio_group_to_enum(MN_TYPE_ACTION,
 				     MN_CONF_CLICK_ACTION,
-				     selfp->icon_action_properties_dialog_radio, MN_ACTION_DISPLAY_PROPERTIES_DIALOG,
 				     selfp->icon_action_mail_reader_radio, MN_ACTION_LAUNCH_MAIL_READER,
 				     selfp->icon_action_open_latest_message_radio, MN_ACTION_OPEN_LATEST_MESSAGE,
+				     selfp->icon_action_consider_new_mail_as_read_radio, MN_ACTION_CONSIDER_NEW_MAIL_AS_READ,
 				     selfp->icon_action_update_radio, MN_ACTION_UPDATE_MAIL_STATUS,
 				     NULL);
     mn_conf_link_radio_group_to_enum(MN_TYPE_POPUP_POSITION,
@@ -279,26 +262,40 @@ mn_properties_dialog_init (MNPropertiesDialog * self G_GNUC_UNUSED)
 
     g_signal_connect(self, "response", G_CALLBACK(self_response_h), NULL);
   
-#line 283 "mn-properties-dialog.c"
+#line 266 "mn-properties-dialog.c"
  }
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 212 "mn-properties-dialog.gob"
+#line 186 "mn-properties-dialog.gob"
+static GtkFileChooserDialog * 
+mn_properties_dialog_play_sound_file_chooser_create_dialog_cb (gpointer data)
+#line 276 "mn-properties-dialog.c"
+{
+#define __GOB_FUNCTION__ "MN:Properties:Dialog::play_sound_file_chooser_create_dialog_cb"
+{
+#line 188 "mn-properties-dialog.gob"
+	
+    return GTK_FILE_CHOOSER_DIALOG(mn_sound_file_chooser_dialog_new());
+  }}
+#line 284 "mn-properties-dialog.c"
+#undef __GOB_FUNCTION__
+
+#line 192 "mn-properties-dialog.gob"
 static void 
 mn_properties_dialog_test_messages_toggled_h (MNPropertiesDialog * self, GtkToggleButton * button)
-#line 293 "mn-properties-dialog.c"
+#line 290 "mn-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Properties:Dialog::test_messages_toggled_h"
-#line 212 "mn-properties-dialog.gob"
+#line 192 "mn-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 212 "mn-properties-dialog.gob"
+#line 192 "mn-properties-dialog.gob"
 	g_return_if_fail (MN_IS_PROPERTIES_DIALOG (self));
-#line 300 "mn-properties-dialog.c"
+#line 297 "mn-properties-dialog.c"
 {
-#line 214 "mn-properties-dialog.gob"
+#line 194 "mn-properties-dialog.gob"
 	
     if (gtk_toggle_button_get_active(button))
       {
@@ -312,22 +309,22 @@ mn_properties_dialog_test_messages_toggled_h (MNPropertiesDialog * self, GtkTogg
     else
       self_remove_test_mailbox(self);
   }}
-#line 316 "mn-properties-dialog.c"
+#line 313 "mn-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 228 "mn-properties-dialog.gob"
+#line 208 "mn-properties-dialog.gob"
 static void 
 mn_properties_dialog_remove_test_mailbox (MNPropertiesDialog * self)
-#line 322 "mn-properties-dialog.c"
+#line 319 "mn-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Properties:Dialog::remove_test_mailbox"
-#line 228 "mn-properties-dialog.gob"
+#line 208 "mn-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 228 "mn-properties-dialog.gob"
+#line 208 "mn-properties-dialog.gob"
 	g_return_if_fail (MN_IS_PROPERTIES_DIALOG (self));
-#line 329 "mn-properties-dialog.c"
+#line 326 "mn-properties-dialog.c"
 {
-#line 230 "mn-properties-dialog.gob"
+#line 210 "mn-properties-dialog.gob"
 	
     if (selfp->test_mailbox)
       {
@@ -336,22 +333,22 @@ mn_properties_dialog_remove_test_mailbox (MNPropertiesDialog * self)
 	selfp->test_mailbox = NULL;
       }
   }}
-#line 340 "mn-properties-dialog.c"
+#line 337 "mn-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 239 "mn-properties-dialog.gob"
+#line 219 "mn-properties-dialog.gob"
 static void 
 mn_properties_dialog_response_h (MNPropertiesDialog * self, int response, gpointer user_data)
-#line 346 "mn-properties-dialog.c"
+#line 343 "mn-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Properties:Dialog::response_h"
-#line 239 "mn-properties-dialog.gob"
+#line 219 "mn-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 239 "mn-properties-dialog.gob"
+#line 219 "mn-properties-dialog.gob"
 	g_return_if_fail (MN_IS_PROPERTIES_DIALOG (self));
-#line 353 "mn-properties-dialog.c"
+#line 350 "mn-properties-dialog.c"
 {
-#line 241 "mn-properties-dialog.gob"
+#line 221 "mn-properties-dialog.gob"
 	
     switch (response)
       {
@@ -376,22 +373,22 @@ mn_properties_dialog_response_h (MNPropertiesDialog * self, int response, gpoint
 	break;
       }
   }}
-#line 380 "mn-properties-dialog.c"
+#line 377 "mn-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 266 "mn-properties-dialog.gob"
+#line 246 "mn-properties-dialog.gob"
 static void 
 mn_properties_dialog_update_selected_label (MNPropertiesDialog * self)
-#line 386 "mn-properties-dialog.c"
+#line 383 "mn-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Properties:Dialog::update_selected_label"
-#line 266 "mn-properties-dialog.gob"
+#line 246 "mn-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 266 "mn-properties-dialog.gob"
+#line 246 "mn-properties-dialog.gob"
 	g_return_if_fail (MN_IS_PROPERTIES_DIALOG (self));
-#line 393 "mn-properties-dialog.c"
+#line 390 "mn-properties-dialog.c"
 {
-#line 268 "mn-properties-dialog.gob"
+#line 248 "mn-properties-dialog.gob"
 	
     GtkTreeSelection *selection;
     int n_rows;
@@ -412,35 +409,32 @@ mn_properties_dialog_update_selected_label (MNPropertiesDialog * self)
 	g_free(str);
       }
   }}
-#line 416 "mn-properties-dialog.c"
+#line 413 "mn-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 289 "mn-properties-dialog.gob"
+#line 269 "mn-properties-dialog.gob"
 static void 
 mn_properties_dialog_update_sensitivity (MNPropertiesDialog * self)
-#line 422 "mn-properties-dialog.c"
+#line 419 "mn-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Properties:Dialog::update_sensitivity"
-#line 289 "mn-properties-dialog.gob"
+#line 269 "mn-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 289 "mn-properties-dialog.gob"
+#line 269 "mn-properties-dialog.gob"
 	g_return_if_fail (MN_IS_PROPERTIES_DIALOG (self));
-#line 429 "mn-properties-dialog.c"
+#line 426 "mn-properties-dialog.c"
 {
-#line 291 "mn-properties-dialog.gob"
+#line 271 "mn-properties-dialog.gob"
 	
-    gboolean command_new_mail_enabled;
-    gboolean command_mail_read_enabled;
+    gboolean play_sound_enabled;
     GtkTreeSelection *selection;
     gboolean has_selection;
     gboolean popups_enabled;
     gboolean popups_expiration_after_enabled;
 
-    command_new_mail_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->command_new_mail_check));
-    command_mail_read_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->command_mail_read_check));
+    play_sound_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->play_sound_check));
 
-    gtk_widget_set_sensitive(selfp->command_new_mail_entry, command_new_mail_enabled);
-    gtk_widget_set_sensitive(selfp->command_mail_read_entry, command_mail_read_enabled);
+    gtk_widget_set_sensitive(selfp->play_sound_file_chooser_button, play_sound_enabled);
 
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(selfp->list));
     has_selection = gtk_tree_selection_count_selected_rows(selection) > 0;
@@ -463,81 +457,81 @@ mn_properties_dialog_update_sensitivity (MNPropertiesDialog * self)
     gtk_widget_set_sensitive(selfp->popups_expiration_seconds_spin, popups_enabled && popups_expiration_after_enabled);
     gtk_widget_set_sensitive(selfp->popups_expiration_seconds_label, popups_enabled && popups_expiration_after_enabled);
   }}
-#line 467 "mn-properties-dialog.c"
+#line 461 "mn-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 329 "mn-properties-dialog.gob"
+#line 306 "mn-properties-dialog.gob"
 void 
 mn_properties_dialog_toggled_h (MNPropertiesDialog * self, GtkToggleButton * button)
-#line 473 "mn-properties-dialog.c"
+#line 467 "mn-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Properties:Dialog::toggled_h"
-#line 329 "mn-properties-dialog.gob"
+#line 306 "mn-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 329 "mn-properties-dialog.gob"
+#line 306 "mn-properties-dialog.gob"
 	g_return_if_fail (MN_IS_PROPERTIES_DIALOG (self));
-#line 480 "mn-properties-dialog.c"
+#line 474 "mn-properties-dialog.c"
 {
-#line 331 "mn-properties-dialog.gob"
+#line 308 "mn-properties-dialog.gob"
 	
     self_update_sensitivity(self);
   }}
-#line 486 "mn-properties-dialog.c"
+#line 480 "mn-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 335 "mn-properties-dialog.gob"
+#line 312 "mn-properties-dialog.gob"
 void 
 mn_properties_dialog_add_clicked_h (MNPropertiesDialog * self, GtkButton * button)
-#line 492 "mn-properties-dialog.c"
+#line 486 "mn-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Properties:Dialog::add_clicked_h"
-#line 335 "mn-properties-dialog.gob"
+#line 312 "mn-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 335 "mn-properties-dialog.gob"
+#line 312 "mn-properties-dialog.gob"
 	g_return_if_fail (MN_IS_PROPERTIES_DIALOG (self));
-#line 499 "mn-properties-dialog.c"
+#line 493 "mn-properties-dialog.c"
 {
-#line 337 "mn-properties-dialog.gob"
+#line 314 "mn-properties-dialog.gob"
 	
     mn_mailbox_view_activate_add(MN_MAILBOX_VIEW(selfp->list));
   }}
-#line 505 "mn-properties-dialog.c"
+#line 499 "mn-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 341 "mn-properties-dialog.gob"
+#line 318 "mn-properties-dialog.gob"
 void 
 mn_properties_dialog_remove_clicked_h (MNPropertiesDialog * self, GtkButton * button)
-#line 511 "mn-properties-dialog.c"
+#line 505 "mn-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Properties:Dialog::remove_clicked_h"
-#line 341 "mn-properties-dialog.gob"
+#line 318 "mn-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 341 "mn-properties-dialog.gob"
+#line 318 "mn-properties-dialog.gob"
 	g_return_if_fail (MN_IS_PROPERTIES_DIALOG (self));
-#line 518 "mn-properties-dialog.c"
+#line 512 "mn-properties-dialog.c"
 {
-#line 343 "mn-properties-dialog.gob"
+#line 320 "mn-properties-dialog.gob"
 	
     mn_mailbox_view_activate_remove(MN_MAILBOX_VIEW(selfp->list));
   }}
-#line 524 "mn-properties-dialog.c"
+#line 518 "mn-properties-dialog.c"
 #undef __GOB_FUNCTION__
 
-#line 347 "mn-properties-dialog.gob"
+#line 324 "mn-properties-dialog.gob"
 void 
 mn_properties_dialog_properties_clicked_h (MNPropertiesDialog * self, GtkButton * button)
-#line 530 "mn-properties-dialog.c"
+#line 524 "mn-properties-dialog.c"
 {
 #define __GOB_FUNCTION__ "MN:Properties:Dialog::properties_clicked_h"
-#line 347 "mn-properties-dialog.gob"
+#line 324 "mn-properties-dialog.gob"
 	g_return_if_fail (self != NULL);
-#line 347 "mn-properties-dialog.gob"
+#line 324 "mn-properties-dialog.gob"
 	g_return_if_fail (MN_IS_PROPERTIES_DIALOG (self));
-#line 537 "mn-properties-dialog.c"
+#line 531 "mn-properties-dialog.c"
 {
-#line 349 "mn-properties-dialog.gob"
+#line 326 "mn-properties-dialog.gob"
 	
     mn_mailbox_view_activate_properties(MN_MAILBOX_VIEW(selfp->list));
   }}
-#line 543 "mn-properties-dialog.c"
+#line 537 "mn-properties-dialog.c"
 #undef __GOB_FUNCTION__

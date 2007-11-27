@@ -18,7 +18,7 @@ extern "C" {
 
 
 
-#define MN_MAILBOX_MAX_TYPES	6
+#define MN_MAILBOX_MAX_TYPES	8
 extern GType mn_mailbox_types[MN_MAILBOX_MAX_TYPES + 1];
 
 typedef struct _MNMailboxConfiguration MNMailboxConfiguration;
@@ -80,6 +80,7 @@ struct _MNMailboxClass {
 	void (* check) (MNMailbox * self);
 	const char * type;
 	int default_check_delay;
+	gboolean enable_checking_when_added;
 };
 
 
@@ -87,6 +88,7 @@ struct _MNMailboxClass {
  * Public methods
  */
 GType	mn_mailbox_get_type	(void);
+gboolean 	mn_mailbox_get_active	(MNMailbox * self);
 void 	mn_mailbox_added	(MNMailbox * self);
 void 	mn_mailbox_removed	(MNMailbox * self);
 gchar * 	mn_mailbox_get_stock_id	(MNMailbox * self);
@@ -98,10 +100,12 @@ void 	mn_mailbox_set_format	(MNMailbox * self,
 gboolean 	mn_mailbox_get_poll	(MNMailbox * self);
 void 	mn_mailbox_set_poll	(MNMailbox * self,
 					gboolean val);
+gboolean 	mn_mailbox_get_manually_checkable	(MNMailbox * self);
 const GSList * 	mn_mailbox_get_messages	(MNMailbox * self);
 void 	mn_mailbox_set_messages	(MNMailbox * self,
 					const GSList * val);
 void 	mn_mailbox_init_types	(void);
+MNMailboxClass * 	mn_mailbox_get_class_from_name	(const char * type);
 GType 	mn_mailbox_get_type_from_name	(const char * type);
 MNMailbox * 	mn_mailbox_new	(const char * type,
 					const char * first,
@@ -116,7 +120,8 @@ void 	mn_mailbox_configuration_free	(MNMailboxConfiguration * config);
 MNMailbox * 	mn_mailbox_new_from_obsolete_uri	(const char * uri);
 void 	mn_mailbox_seal	(MNMailbox * self);
 void 	mn_mailbox_check	(MNMailbox * self);
-void 	mn_mailbox_mark_as_read	(gpointer _message);
+void 	mn_mailbox_consider_as_read	(gpointer _message);
+void 	mn_mailbox_consider_as_read_list	(const GSList * messages);
 char * 	mn_mailbox_get_command	(MNMailbox * self,
 					const char * id);
 gboolean 	mn_mailbox_has_command	(MNMailbox * self,
@@ -170,6 +175,7 @@ gboolean 	mn_mailbox_has_command	(MNMailbox * self,
 #define MN_MAILBOX_GET_PROP_CHECK_DELAY(arg)	"check_delay", __extension__ ({gint *z = (arg); z;})
 #define MN_MAILBOX_PROP_POLL(arg)    	"poll", __extension__ ({gboolean z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_POLL(arg)	"poll", __extension__ ({gboolean *z = (arg); z;})
+#define MN_MAILBOX_GET_PROP_MANUALLY_CHECKABLE(arg)	"manually_checkable", __extension__ ({gboolean *z = (arg); z;})
 #define MN_MAILBOX_PROP_MESSAGES(arg)    	"messages", __extension__ ({const GSList * z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_MESSAGES(arg)	"messages", __extension__ ({const GSList * *z = (arg); z;})
 #define MN_MAILBOX_PROP_ERROR(arg)    	"error", __extension__ ({gchar *z = (arg); z;})
@@ -193,6 +199,7 @@ gboolean 	mn_mailbox_has_command	(MNMailbox * self,
 #define MN_MAILBOX_GET_PROP_CHECK_DELAY(arg)	"check_delay",(gint *)(arg)
 #define MN_MAILBOX_PROP_POLL(arg)    	"poll",(gboolean )(arg)
 #define MN_MAILBOX_GET_PROP_POLL(arg)	"poll",(gboolean *)(arg)
+#define MN_MAILBOX_GET_PROP_MANUALLY_CHECKABLE(arg)	"manually_checkable",(gboolean *)(arg)
 #define MN_MAILBOX_PROP_MESSAGES(arg)    	"messages",(const GSList * )(arg)
 #define MN_MAILBOX_GET_PROP_MESSAGES(arg)	"messages",(const GSList * *)(arg)
 #define MN_MAILBOX_PROP_ERROR(arg)    	"error",(gchar *)(arg)

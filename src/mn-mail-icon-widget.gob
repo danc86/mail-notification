@@ -1,0 +1,311 @@
+/*
+ * Mail Notification
+ * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include <gtk/gtk.h>
+%}
+
+%privateheader{
+#include "mn-locked-callback.h"
+%}
+
+%{
+#include "config.h"
+#include <math.h>
+
+#define ICON_XALIGN		0.5
+#define ICON_YALIGN		0.5
+
+#define COUNT_BOX_XPAD		3
+#define COUNT_BOX_YPAD		3
+
+#define COUNT_BOX_XMARGIN	0
+#define COUNT_BOX_YMARGIN	0
+%}
+
+class MN:Mail:Icon:Widget from Gtk:Drawing:Area
+{
+  private gboolean blinking;
+  property BOOLEAN blinking (export)
+    set
+    {
+      gboolean blinking = g_value_get_boolean(VAL);
+      if (blinking != selfp->blinking)
+	{
+	  selfp->blinking = blinking;
+	  if (blinking)
+	    {
+	      g_assert(selfp->blink_timeout_source == NULL);
+	      selfp->blink_timeout_source = mn_g_timeout_add_gdk_locked(500, self_blink_timeout_cb, self);
+	    }
+	  else
+	    {
+	      g_assert(selfp->blink_timeout_source != NULL);
+	      mn_locked_g_source_clear(&selfp->blink_timeout_source);
+	      selfp->is_on = TRUE;
+	      gtk_widget_queue_draw(GTK_WIDGET(self));
+	    }
+	}
+    }
+    get
+    {
+      g_value_set_boolean(VAL, selfp->blinking);
+    };
+
+  private PangoLayout *count_layout unrefwith g_object_unref;
+
+  private int count;
+  property INT count (export)
+    set
+    {
+      int count = g_value_get_int(VAL);
+      if (count != selfp->count)
+	{
+	  selfp->count = count;
+	  self_invalidate_count_layout(self);
+	  gtk_widget_queue_draw(GTK_WIDGET(self));
+	}
+    }
+    get
+    {
+      g_value_set_int(VAL, selfp->count);
+    };
+
+  private MNLockedGSource *blink_timeout_source;
+  private gboolean is_on = TRUE; /* is currently displaying the image? */
+
+  private char *stock_id destroywith g_free;
+  private GtkIconSize icon_size;
+
+  init (self)
+  {
+    gtk_widget_set_name(GTK_WIDGET(self), "mn-mail-icon");
+
+    g_object_connect(self,
+		     "swapped-signal::size-allocate", self_invalidate_count_layout, self,
+		     "swapped-signal::style-set", self_context_changed, self,
+		     "swapped-signal::direction-changed", self_context_changed, self,
+		     NULL);
+  }
+
+  override (G:Object) void
+    dispose (GObject *object)
+  {
+    Self *self = SELF(object);
+
+    mn_locked_g_source_clear(&selfp->blink_timeout_source);
+
+    PARENT_HANDLER(object);
+  }
+
+  override (Gtk:Widget) void
+    size_request (GtkWidget *widget, GtkRequisition *requisition)
+  {
+    Self *self = SELF(widget);
+    GdkPixbuf *pixbuf;
+
+    pixbuf = self_render_icon(self);
+
+    if (pixbuf)
+      {
+	requisition->width = gdk_pixbuf_get_width(pixbuf);
+	requisition->height = gdk_pixbuf_get_height(pixbuf);
+
+	g_object_unref(pixbuf);
+      }
+    else
+      {
+	requisition->width = 0;
+	requisition->height = 0;
+      }
+  }
+
+  override (Gtk:Widget) gboolean
+    expose_event (GtkWidget *widget, GdkEventExpose *event)
+  {
+    Self *self = SELF(widget);
+
+    self_redraw(self);
+
+    return FALSE;		/* propagate event */
+  }
+
+  private GdkPixbuf *
+    render_icon (self)
+  {
+    if (selfp->stock_id)
+      return gtk_widget_render_icon(GTK_WIDGET(self),
+				    selfp->stock_id,
+				    selfp->icon_size,
+				    NULL);
+    else
+      return NULL;
+  }
+
+  private void
+    context_changed (self)
+  {
+    if (selfp->count_layout)
+      {
+	pango_layout_context_changed(selfp->count_layout);
+	gtk_widget_queue_draw(GTK_WIDGET(self));
+      }
+  }
+
+  private void
+    invalidate_count_layout (self)
+  {
+    if (selfp->count_layout)
+      {
+	g_object_unref(selfp->count_layout);
+	selfp->count_layout = NULL;
+      }
+  }
+
+  private void
+    redraw (self)
+  {
+    GtkWidget *widget = GTK_WIDGET(self);
+
+    if (! GTK_WIDGET_MAPPED(widget))
+      return;
+
+    if (! selfp->stock_id)
+      return;
+
+    if (selfp->is_on)
+      {
+	GdkPixbuf *pixbuf;
+	int x;
+	int y;
+
+	pixbuf = self_render_icon(self);
+
+	x = floor(widget->allocation.x + ((widget->allocation.width - widget->requisition.width) * ICON_XALIGN));
+	y = floor(widget->allocation.y + ((widget->allocation.height - widget->requisition.height) * ICON_YALIGN));
+
+	gdk_draw_pixbuf(widget->window,
+			widget->style->black_gc,
+			pixbuf,
+			0,
+			0,
+			x,
+			y,
+			-1,
+			-1,
+			GDK_RGB_DITHER_NORMAL,
+			0,
+			0);
+
+	g_object_unref(pixbuf);
+      }
+    else
+      gdk_window_clear(widget->window);
+
+    if (selfp->count)
+      {
+	PangoRectangle count_rect;
+	int count_x;
+	int count_y;
+	int box_x;
+	int box_y;
+	int box_width;
+	int box_height;
+
+	if (! selfp->count_layout)
+	  {
+	    const char *size;
+	    char *markup;
+
+	    if (widget->allocation.height < 32)
+	      size = "small";
+	    else
+	      size = "medium";
+
+	    selfp->count_layout = gtk_widget_create_pango_layout(widget, NULL);
+
+	    markup = g_strdup_printf("<span size=\"%s\">%i</span>", size, selfp->count);
+	    pango_layout_set_markup(selfp->count_layout, markup, -1);
+	    g_free(markup);
+	  }
+
+	pango_layout_get_pixel_extents(selfp->count_layout, &count_rect, NULL);
+
+	box_width = count_rect.width + COUNT_BOX_XPAD * 2;
+	box_height = count_rect.height + COUNT_BOX_YPAD * 2;
+
+	box_x = widget->allocation.width - box_width - COUNT_BOX_XMARGIN;
+	box_y = widget->allocation.height - box_height - COUNT_BOX_YMARGIN;
+
+	count_x = box_x - count_rect.x + COUNT_BOX_XPAD;
+	count_y = box_y - count_rect.y + COUNT_BOX_YPAD;
+
+	gtk_paint_box(widget->style,
+		      widget->window,
+		      GTK_WIDGET_STATE(widget),
+		      GTK_SHADOW_OUT,
+		      NULL,
+		      widget,
+		      NULL,
+		      box_x,
+		      box_y,
+		      box_width,
+		      box_height);
+
+	gdk_draw_layout(widget->window,
+			widget->style->text_gc[GTK_WIDGET_STATE(widget)],
+			count_x,
+			count_y,
+			selfp->count_layout);
+      }
+  }
+
+  private gboolean
+    blink_timeout_cb (gpointer data)
+  {
+    Self *self = data;
+
+    selfp->is_on = ! selfp->is_on;
+
+    gtk_widget_queue_draw(GTK_WIDGET(self));
+
+    return TRUE;
+  }
+
+  public GtkWidget *
+    new (void)
+  {
+    return GTK_WIDGET(GET_NEW);
+  }
+
+  public void
+    set_from_stock (self,
+		    const char *stock_id (check null),
+		    GtkIconSize icon_size)
+  {
+    g_free(selfp->stock_id);
+    selfp->stock_id = g_strdup(stock_id);
+    selfp->icon_size = icon_size;
+
+    /* affects the size request: call queue_resize(), not queue_draw() */
+    gtk_widget_queue_resize(GTK_WIDGET(self));
+  }
+}

@@ -20,7 +20,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 30 "mn-sylpheed-mailbox-backend.gob"
+#line 50 "mn-sylpheed-mailbox-backend.gob"
 
 #include "config.h"
 #include <stdlib.h>
@@ -32,35 +32,20 @@
 #include <eel/eel.h>
 #include "mn-mailbox-private.h"
 #include "mn-reentrant-mailbox-private.h"
+#include "mn-vfs-mailbox-private.h"
 #include "mn-vfs-mailbox-backend-private.h"
 #include "mn-vfs.h"
 #include "mn-util.h"
 #include "mn-message-mime.h"
-
-/* taken from procmsg.h in the Sylpheed sources */
-#define SYLPHEED_MSG_NEW		(1U << 0)
-#define SYLPHEED_MSG_UNREAD		(1U << 1)
+#include "mn-sylpheed-message.h"
 
 /* taken from defs.h in the Sylpheed sources */
-#define SYLPHEED_MARK_FILE		".sylpheed_mark"
 #define SYLPHEED_MARK_VERSION		2
 
-typedef struct
-{
-  int		num;
-  guint32	flags;
-} MarkEntry;
+/* taken from defs.h in the Claws Mail sources */
+#define CLAWS_MAIL_CACHE_FILE		".sylpheed_claws_cache"
 
-typedef struct
-{
-  char		*data;
-  gsize		data_size;
-  GHashTable	*table;
-} Marks;
-
-static GStaticMutex timeouts_mutex = G_STATIC_MUTEX_INIT;
-
-#line 64 "mn-sylpheed-mailbox-backend.c"
+#line 49 "mn-sylpheed-mailbox-backend.c"
 /* self casting macros */
 #define SELF(x) MN_SYLPHEED_MAILBOX_BACKEND(x)
 #define SELF_CONST(x) MN_SYLPHEED_MAILBOX_BACKEND_CONST(x)
@@ -77,25 +62,23 @@ typedef MNSylpheedMailboxBackendClass SelfClass;
 /* here are local prototypes */
 static void mn_sylpheed_mailbox_backend_init (MNSylpheedMailboxBackend * o) G_GNUC_UNUSED;
 static void mn_sylpheed_mailbox_backend_class_init (MNSylpheedMailboxBackendClass * class) G_GNUC_UNUSED;
-static GObject * ___2_mn_sylpheed_mailbox_backend_constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam * construct_params) G_GNUC_UNUSED;
-static void ___3_mn_sylpheed_mailbox_backend_finalize (GObject * object) G_GNUC_UNUSED;
-static void ___4_mn_sylpheed_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend, const char * info_uri, GnomeVFSMonitorEventType event_type) G_GNUC_UNUSED;
-static gboolean mn_sylpheed_mailbox_backend_monitor_timeout_cb (gpointer data) G_GNUC_UNUSED;
-static gboolean ___6_mn_sylpheed_mailbox_backend_is (MNVFSMailboxBackend * dummy, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox) G_GNUC_UNUSED;
-static void ___7_mn_sylpheed_mailbox_backend_check (MNVFSMailboxBackend * backend, unsigned long check_id) G_GNUC_UNUSED;
+static void ___2_mn_sylpheed_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend, const char * info_uri, GnomeVFSMonitorEventType event_type) G_GNUC_UNUSED;
+static gboolean ___3_mn_sylpheed_mailbox_backend_is (MNVFSMailboxBackend * dummy, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox) G_GNUC_UNUSED;
+static gboolean mn_sylpheed_mailbox_backend_is_claws_mail_mailbox (MNSylpheedMailboxBackend * self) G_GNUC_UNUSED;
+static gboolean mn_sylpheed_mailbox_backend_has_sylpheed_locking (void) G_GNUC_UNUSED;
+static void mn_sylpheed_mailbox_backend_update_check_latency (MNSylpheedMailboxBackend * self) G_GNUC_UNUSED;
+static void ___7_mn_sylpheed_mailbox_backend_check (MNVFSMailboxBackend * backend, int check_id) G_GNUC_UNUSED;
 static gboolean mn_sylpheed_mailbox_backend_read_local_mark_file (const char * filename, gsize * size, char ** contents, GError ** err) G_GNUC_UNUSED;
 static gboolean mn_sylpheed_mailbox_backend_read_remote_mark_file (GnomeVFSURI * uri, gsize * size, char ** contents, GError ** err) G_GNUC_UNUSED;
 static gboolean mn_sylpheed_mailbox_backend_read_mark_file (GnomeVFSURI * mailbox_uri, gsize * size, char ** contents, GError ** err) G_GNUC_UNUSED;
-static Marks * mn_sylpheed_mailbox_backend_marks_new (GnomeVFSURI * mailbox_uri, GError ** err) G_GNUC_UNUSED;
-static gboolean mn_sylpheed_mailbox_backend_marks_write (GnomeVFSURI * mailbox_uri, Marks * marks, GError ** err) G_GNUC_UNUSED;
-static void mn_sylpheed_mailbox_backend_marks_free (Marks * marks) G_GNUC_UNUSED;
-static gboolean ___e_mn_sylpheed_mailbox_backend_mark_as_read (MNVFSMailboxBackend * dummy, MNVFSMessage * message, GError ** err) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
 static MNVFSMailboxBackendClass *parent_class = NULL;
 
 /* Short form macros */
-#define self_monitor_timeout_cb mn_sylpheed_mailbox_backend_monitor_timeout_cb
+#define self_is_claws_mail_mailbox mn_sylpheed_mailbox_backend_is_claws_mail_mailbox
+#define self_has_sylpheed_locking mn_sylpheed_mailbox_backend_has_sylpheed_locking
+#define self_update_check_latency mn_sylpheed_mailbox_backend_update_check_latency
 #define self_read_local_mark_file mn_sylpheed_mailbox_backend_read_local_mark_file
 #define self_read_remote_mark_file mn_sylpheed_mailbox_backend_read_remote_mark_file
 #define self_read_mark_file mn_sylpheed_mailbox_backend_read_mark_file
@@ -144,132 +127,52 @@ GET_NEW_VARG (const char *first, ...)
 	return ret;
 }
 
-
-static void
-___finalize(GObject *obj_self)
-{
-#define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::finalize"
-	MNSylpheedMailboxBackend *self G_GNUC_UNUSED = MN_SYLPHEED_MAILBOX_BACKEND (obj_self);
-	gpointer priv G_GNUC_UNUSED = self->_priv;
-#line 97 "mn-sylpheed-mailbox-backend.gob"
-	___3_mn_sylpheed_mailbox_backend_finalize(obj_self);
-#line 157 "mn-sylpheed-mailbox-backend.c"
-}
-#undef __GOB_FUNCTION__
-
 static void 
 mn_sylpheed_mailbox_backend_init (MNSylpheedMailboxBackend * o G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::init"
-	o->_priv = G_TYPE_INSTANCE_GET_PRIVATE(o,MN_TYPE_SYLPHEED_MAILBOX_BACKEND,MNSylpheedMailboxBackendPrivate);
 }
 #undef __GOB_FUNCTION__
-#line 75 "mn-sylpheed-mailbox-backend.gob"
+#line 77 "mn-sylpheed-mailbox-backend.gob"
 static void 
 mn_sylpheed_mailbox_backend_class_init (MNSylpheedMailboxBackendClass * class G_GNUC_UNUSED)
-#line 171 "mn-sylpheed-mailbox-backend.c"
+#line 140 "mn-sylpheed-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::class_init"
-	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
 	MNVFSMailboxBackendClass *mn_vfs_mailbox_backend_class = (MNVFSMailboxBackendClass *)class;
-
-	g_type_class_add_private(class,sizeof(MNSylpheedMailboxBackendPrivate));
 
 	parent_class = g_type_class_ref (MN_TYPE_VFS_MAILBOX_BACKEND);
 
-#line 80 "mn-sylpheed-mailbox-backend.gob"
-	g_object_class->constructor = ___2_mn_sylpheed_mailbox_backend_constructor;
-#line 97 "mn-sylpheed-mailbox-backend.gob"
-	g_object_class->finalize = ___finalize;
-#line 112 "mn-sylpheed-mailbox-backend.gob"
-	mn_vfs_mailbox_backend_class->monitor_cb = ___4_mn_sylpheed_mailbox_backend_monitor_cb;
-#line 175 "mn-sylpheed-mailbox-backend.gob"
-	mn_vfs_mailbox_backend_class->is = ___6_mn_sylpheed_mailbox_backend_is;
-#line 190 "mn-sylpheed-mailbox-backend.gob"
+#line 82 "mn-sylpheed-mailbox-backend.gob"
+	mn_vfs_mailbox_backend_class->monitor_cb = ___2_mn_sylpheed_mailbox_backend_monitor_cb;
+#line 109 "mn-sylpheed-mailbox-backend.gob"
+	mn_vfs_mailbox_backend_class->is = ___3_mn_sylpheed_mailbox_backend_is;
+#line 197 "mn-sylpheed-mailbox-backend.gob"
 	mn_vfs_mailbox_backend_class->check = ___7_mn_sylpheed_mailbox_backend_check;
-#line 481 "mn-sylpheed-mailbox-backend.gob"
-	mn_vfs_mailbox_backend_class->mark_as_read = ___e_mn_sylpheed_mailbox_backend_mark_as_read;
-#line 193 "mn-sylpheed-mailbox-backend.c"
+#line 153 "mn-sylpheed-mailbox-backend.c"
  {
-#line 76 "mn-sylpheed-mailbox-backend.gob"
+#line 78 "mn-sylpheed-mailbox-backend.gob"
 
     MN_VFS_MAILBOX_BACKEND_CLASS(class)->format = "Sylpheed";
   
-#line 199 "mn-sylpheed-mailbox-backend.c"
+#line 159 "mn-sylpheed-mailbox-backend.c"
  }
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 80 "mn-sylpheed-mailbox-backend.gob"
-static GObject * 
-___2_mn_sylpheed_mailbox_backend_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_properties, GObjectConstructParam * construct_params)
-#line 209 "mn-sylpheed-mailbox-backend.c"
-#define PARENT_HANDLER(___type,___n_construct_properties,___construct_params) \
-	((G_OBJECT_CLASS(parent_class)->constructor)? \
-		(* G_OBJECT_CLASS(parent_class)->constructor)(___type,___n_construct_properties,___construct_params): \
-		((GObject * )0))
-{
-#define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::constructor"
-{
 #line 82 "mn-sylpheed-mailbox-backend.gob"
-	
-    GObject *object;
-    Self *self;
-
-    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    self = SELF(object);
-
-#if WITH_SYLPHEED_LOCKING
-    if (gnome_vfs_uri_is_local(MN_VFS_MAILBOX_BACKEND(self)->mailbox->vfs_uri))
-      selfp->can_lock_mark_file = TRUE;
-#endif
-
-    return object;
-  }}
-#line 232 "mn-sylpheed-mailbox-backend.c"
-#undef __GOB_FUNCTION__
-#undef PARENT_HANDLER
-
-#line 97 "mn-sylpheed-mailbox-backend.gob"
 static void 
-___3_mn_sylpheed_mailbox_backend_finalize (GObject * object G_GNUC_UNUSED)
-#line 239 "mn-sylpheed-mailbox-backend.c"
-#define PARENT_HANDLER(___object) \
-	{ if(G_OBJECT_CLASS(parent_class)->finalize) \
-		(* G_OBJECT_CLASS(parent_class)->finalize)(___object); }
-{
-#define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::finalize"
-{
-#line 99 "mn-sylpheed-mailbox-backend.gob"
-	
-    Self *self = SELF(object);
-
-    g_static_mutex_lock(&timeouts_mutex);
-
-    if (selfp->monitor_timeout_source)
-      mn_locked_g_source_remove(selfp->monitor_timeout_source);
-
-    g_static_mutex_unlock(&timeouts_mutex);
-
-    PARENT_HANDLER(object);
-  }}
-#line 259 "mn-sylpheed-mailbox-backend.c"
-#undef __GOB_FUNCTION__
-#undef PARENT_HANDLER
-
-#line 112 "mn-sylpheed-mailbox-backend.gob"
-static void 
-___4_mn_sylpheed_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend G_GNUC_UNUSED, const char * info_uri, GnomeVFSMonitorEventType event_type)
-#line 266 "mn-sylpheed-mailbox-backend.c"
+___2_mn_sylpheed_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend G_GNUC_UNUSED, const char * info_uri, GnomeVFSMonitorEventType event_type)
+#line 169 "mn-sylpheed-mailbox-backend.c"
 #define PARENT_HANDLER(___backend,___info_uri,___event_type) \
 	{ if(MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->monitor_cb) \
 		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->monitor_cb)(___backend,___info_uri,___event_type); }
 {
 #define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::monitor_cb"
 {
-#line 116 "mn-sylpheed-mailbox-backend.gob"
+#line 86 "mn-sylpheed-mailbox-backend.gob"
 	
     if (event_type == GNOME_VFS_MONITOR_EVENT_CHANGED
 	|| event_type == GNOME_VFS_MONITOR_EVENT_DELETED
@@ -280,70 +183,26 @@ ___4_mn_sylpheed_mailbox_backend_monitor_cb (MNVFSMailboxBackend * backend G_GNU
 	filename = eel_uri_get_basename(info_uri);
 	if (filename)
 	  {
-	    if (! strcmp(filename, SYLPHEED_MARK_FILE))
-	      {
-		Self *self = SELF(backend);
-
-		if (selfp->can_lock_mark_file)
-		  mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(backend->mailbox));
-		else
-		  {
-		    /*
-		     * We cannot lock the mark file. To avoid races,
-		     * delay the check.
-		     */
-
-		    /*
-		     * We do not need to lock timeouts_mutex, because
-		     * this function and monitor_timeout_cb() are
-		     * always run in the same thread (from the GLib
-		     * main loop).
-		     */
-		    if (selfp->monitor_timeout_source)
-		      mn_locked_g_source_remove(selfp->monitor_timeout_source);
-
-		    selfp->monitor_timeout_source = mn_g_timeout_add_locked(3000,
-									    self_monitor_timeout_cb,
-									    self,
-									    (MNLockFunc) mn_g_static_mutex_lock,
-									    (MNUnlockFunc) mn_g_static_mutex_unlock,
-									    &timeouts_mutex);
-		  }
-	      }
-	    else if (mn_str_isnumeric(filename))
-	      mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(backend->mailbox));
+	    /*
+	     * The status of the mailbox can only have changed if the
+	     * subject of the event is the mark file or a message file
+	     * (having a numbered filename).
+	     */
+	    if (! strcmp(filename, SYLPHEED_MARK_FILE) || mn_str_isnumeric(filename))
+	      mn_vfs_mailbox_backend_queue_check(backend);
 
 	    g_free(filename);
 	  }
       }
   }}
-#line 321 "mn-sylpheed-mailbox-backend.c"
+#line 199 "mn-sylpheed-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 164 "mn-sylpheed-mailbox-backend.gob"
+#line 109 "mn-sylpheed-mailbox-backend.gob"
 static gboolean 
-mn_sylpheed_mailbox_backend_monitor_timeout_cb (gpointer data)
-#line 328 "mn-sylpheed-mailbox-backend.c"
-{
-#define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::monitor_timeout_cb"
-{
-#line 166 "mn-sylpheed-mailbox-backend.gob"
-	
-    Self *self = data;
-
-    mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(MN_VFS_MAILBOX_BACKEND(self)->mailbox));
-
-    selfp->monitor_timeout_source = NULL;
-    return FALSE;		/* remove source */
-  }}
-#line 341 "mn-sylpheed-mailbox-backend.c"
-#undef __GOB_FUNCTION__
-
-#line 175 "mn-sylpheed-mailbox-backend.gob"
-static gboolean 
-___6_mn_sylpheed_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox)
-#line 347 "mn-sylpheed-mailbox-backend.c"
+___3_mn_sylpheed_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSMailboxBackendClass * class, MNVFSMailbox * mailbox)
+#line 206 "mn-sylpheed-mailbox-backend.c"
 #define PARENT_HANDLER(___dummy,___class,___mailbox) \
 	((MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->is)? \
 		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->is)(___dummy,___class,___mailbox): \
@@ -351,32 +210,138 @@ ___6_mn_sylpheed_mailbox_backend_is (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, 
 {
 #define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::is"
 {
-#line 179 "mn-sylpheed-mailbox-backend.gob"
+#line 113 "mn-sylpheed-mailbox-backend.gob"
 	
-    gboolean is = FALSE;
-    GnomeVFSURI *markfile_uri;
+    gboolean is;
+    GnomeVFSURI *uri;
 
-    markfile_uri = gnome_vfs_uri_append_file_name(mailbox->vfs_uri, SYLPHEED_MARK_FILE);
-    is = mn_vfs_test(markfile_uri, G_FILE_TEST_IS_REGULAR);
-    gnome_vfs_uri_unref(markfile_uri);
+    uri = gnome_vfs_uri_append_file_name(mailbox->vfs_uri, SYLPHEED_MARK_FILE);
+    is = mn_vfs_test(uri, G_FILE_TEST_IS_REGULAR);
+    gnome_vfs_uri_unref(uri);
 
     return is;
   }}
-#line 366 "mn-sylpheed-mailbox-backend.c"
+#line 225 "mn-sylpheed-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 190 "mn-sylpheed-mailbox-backend.gob"
+#line 124 "mn-sylpheed-mailbox-backend.gob"
+static gboolean 
+mn_sylpheed_mailbox_backend_is_claws_mail_mailbox (MNSylpheedMailboxBackend * self)
+#line 232 "mn-sylpheed-mailbox-backend.c"
+{
+#define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::is_claws_mail_mailbox"
+#line 124 "mn-sylpheed-mailbox-backend.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 124 "mn-sylpheed-mailbox-backend.gob"
+	g_return_val_if_fail (MN_IS_SYLPHEED_MAILBOX_BACKEND (self), (gboolean )0);
+#line 239 "mn-sylpheed-mailbox-backend.c"
+{
+#line 126 "mn-sylpheed-mailbox-backend.gob"
+	
+    gboolean is;
+    GnomeVFSURI *uri;
+
+    uri = gnome_vfs_uri_append_file_name(MN_VFS_MAILBOX_BACKEND(self)->mailbox->vfs_uri, CLAWS_MAIL_CACHE_FILE);
+    is = mn_vfs_test(uri, G_FILE_TEST_IS_REGULAR);
+    gnome_vfs_uri_unref(uri);
+
+    return is;
+  }}
+#line 252 "mn-sylpheed-mailbox-backend.c"
+#undef __GOB_FUNCTION__
+
+#line 138 "mn-sylpheed-mailbox-backend.gob"
+static gboolean 
+mn_sylpheed_mailbox_backend_has_sylpheed_locking (void)
+#line 258 "mn-sylpheed-mailbox-backend.c"
+{
+#define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::has_sylpheed_locking"
+{
+#line 140 "mn-sylpheed-mailbox-backend.gob"
+	
+    static gboolean checked = FALSE;
+    static gboolean has = FALSE;
+
+    if (! checked)
+      {
+	char *output;
+
+	if (g_spawn_command_line_sync("sylpheed --version", &output, NULL, NULL, NULL))
+	  {
+	    if (strstr(output, "+locking"))
+	      has = TRUE;
+	    g_free(output);
+	  }
+
+	checked = TRUE;
+      }
+
+    return has;
+  }}
+#line 283 "mn-sylpheed-mailbox-backend.c"
+#undef __GOB_FUNCTION__
+
+#line 161 "mn-sylpheed-mailbox-backend.gob"
 static void 
-___7_mn_sylpheed_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, unsigned long check_id)
-#line 373 "mn-sylpheed-mailbox-backend.c"
+mn_sylpheed_mailbox_backend_update_check_latency (MNSylpheedMailboxBackend * self)
+#line 289 "mn-sylpheed-mailbox-backend.c"
+{
+#define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::update_check_latency"
+#line 161 "mn-sylpheed-mailbox-backend.gob"
+	g_return_if_fail (self != NULL);
+#line 161 "mn-sylpheed-mailbox-backend.gob"
+	g_return_if_fail (MN_IS_SYLPHEED_MAILBOX_BACKEND (self));
+#line 296 "mn-sylpheed-mailbox-backend.c"
+{
+#line 163 "mn-sylpheed-mailbox-backend.gob"
+	
+    MNVFSMailboxBackend *backend = MN_VFS_MAILBOX_BACKEND(self);
+
+    mn_vfs_mailbox_lock(backend->mailbox);
+
+    /*
+     * If it is a Claws Mail mailbox, the check_latency can be set to
+     * 0, since Claws Mail does not write the mark file in place but
+     * uses an atomic rename() to move the new mark file over the
+     * previous one.
+     */
+    if (self_is_claws_mail_mailbox(self))
+      backend->check_latency = 0;
+    else
+      {
+	/*
+	 * If Sylpheed was compiled with the locking patch and the
+	 * mailbox is local, check_latency can be set to 0, since we
+	 * lock the mark file while reading it.
+	 */
+	if (self_has_sylpheed_locking() && gnome_vfs_uri_is_local(backend->mailbox->vfs_uri))
+	  backend->check_latency = 0;
+	else
+	  /*
+	   * Otherwise, set check_latency to 3 seconds to avoid race
+	   * conditions that can occur when Sylpheed writes the mark
+	   * file while we read it.
+	   */
+	  backend->check_latency = 3000;
+      }
+
+    mn_vfs_mailbox_unlock(backend->mailbox);
+  }}
+#line 332 "mn-sylpheed-mailbox-backend.c"
+#undef __GOB_FUNCTION__
+
+#line 197 "mn-sylpheed-mailbox-backend.gob"
+static void 
+___7_mn_sylpheed_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, int check_id)
+#line 338 "mn-sylpheed-mailbox-backend.c"
 #define PARENT_HANDLER(___backend,___check_id) \
 	{ if(MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->check) \
 		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->check)(___backend,___check_id); }
 {
 #define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::check"
 {
-#line 192 "mn-sylpheed-mailbox-backend.gob"
+#line 199 "mn-sylpheed-mailbox-backend.gob"
 	
     GError *err = NULL;
     GnomeVFSResult result;
@@ -386,20 +351,24 @@ ___7_mn_sylpheed_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNU
     Marks *marks;
     GSList *messages = NULL;
 
+    self_update_check_latency(SELF(backend));
+
     mn_vfs_mailbox_backend_monitor(backend, check_id, backend->mailbox->uri, GNOME_VFS_MONITOR_DIRECTORY);
 
     marks = self_marks_new(backend->mailbox->vfs_uri, &err);
     if (! marks)
       {
-	GDK_THREADS_ENTER();
+	if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+	  {
+	    GDK_THREADS_ENTER();
 
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to read %s: %s"), SYLPHEED_MARK_FILE, err->message);
+	    mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to read %s: %s"), SYLPHEED_MARK_FILE, err->message);
+
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	  }
+
 	g_error_free(err);
-
-	gdk_flush();
-	GDK_THREADS_LEAVE();
-
 	return;
       }
 
@@ -409,13 +378,15 @@ ___7_mn_sylpheed_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNU
     result = gnome_vfs_directory_open_from_uri(&handle, backend->mailbox->vfs_uri, GNOME_VFS_FILE_INFO_FOLLOW_LINKS);
     if (result != GNOME_VFS_OK)
       {
-	GDK_THREADS_ENTER();
+	if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+	  {
+	    GDK_THREADS_ENTER();
 
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open folder: %s"), gnome_vfs_result_to_string(result));
+	    mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open folder: %s"), gnome_vfs_result_to_string(result));
 
-	gdk_flush();
-	GDK_THREADS_LEAVE();
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	  }
 
 	goto end;
       }
@@ -443,7 +414,8 @@ ___7_mn_sylpheed_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNU
 	       * own way (mark file) of differencing seen/unseen
 	       * messages.
 	       */
-	      message = mn_vfs_message_new(backend,
+	      message = mn_vfs_message_new(MN_TYPE_SYLPHEED_MESSAGE,
+					   backend,
 					   backend->mailbox->vfs_uri,
 					   file_info->name,
 					   flags,
@@ -458,7 +430,7 @@ ___7_mn_sylpheed_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNU
   finish:
     GDK_THREADS_ENTER();
 
-    if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+    if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
       {
 	if (result == GNOME_VFS_ERROR_EOF || result == GNOME_VFS_OK)
 	  {
@@ -479,25 +451,25 @@ ___7_mn_sylpheed_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNU
   end:
     self_marks_free(marks);
   }}
-#line 483 "mn-sylpheed-mailbox-backend.c"
+#line 455 "mn-sylpheed-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 295 "mn-sylpheed-mailbox-backend.gob"
+#line 309 "mn-sylpheed-mailbox-backend.gob"
 static gboolean 
 mn_sylpheed_mailbox_backend_read_local_mark_file (const char * filename, gsize * size, char ** contents, GError ** err)
-#line 490 "mn-sylpheed-mailbox-backend.c"
+#line 462 "mn-sylpheed-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::read_local_mark_file"
-#line 295 "mn-sylpheed-mailbox-backend.gob"
+#line 309 "mn-sylpheed-mailbox-backend.gob"
 	g_return_val_if_fail (filename != NULL, (gboolean )0);
-#line 295 "mn-sylpheed-mailbox-backend.gob"
+#line 309 "mn-sylpheed-mailbox-backend.gob"
 	g_return_val_if_fail (size != NULL, (gboolean )0);
-#line 295 "mn-sylpheed-mailbox-backend.gob"
+#line 309 "mn-sylpheed-mailbox-backend.gob"
 	g_return_val_if_fail (contents != NULL, (gboolean )0);
-#line 499 "mn-sylpheed-mailbox-backend.c"
+#line 471 "mn-sylpheed-mailbox-backend.c"
 {
-#line 300 "mn-sylpheed-mailbox-backend.gob"
+#line 314 "mn-sylpheed-mailbox-backend.gob"
 	
     int fd;
     struct flock lock;
@@ -511,13 +483,6 @@ mn_sylpheed_mailbox_backend_read_local_mark_file (const char * filename, gsize *
 	g_set_error(err, 0, 0, "%s", g_strerror(errno));
 	return FALSE;
       }
-
-    /*
-     * Even if --enable-sylpheed-locking was not used and we are here
-     * after the 3 seconds delay, it does not hurt to obtain a lock,
-     * in case the user has a patched Sylpheed but did not use
-     * --enable-sylpheed-locking.
-     */
 
     memset(&lock, 0, sizeof(lock));
     lock.l_start = 0;		/* from l_whence */
@@ -536,7 +501,7 @@ mn_sylpheed_mailbox_backend_read_local_mark_file (const char * filename, gsize *
       }
     else
       {
-	g_set_error(err, 0, 0, "unable to set encoding: %s", tmp_err->message);
+	g_set_error(err, 0, 0, _("unable to set encoding: %s"), tmp_err->message);
 	g_error_free(tmp_err);
       }
 
@@ -545,24 +510,24 @@ mn_sylpheed_mailbox_backend_read_local_mark_file (const char * filename, gsize *
 
     return status;
   }}
-#line 549 "mn-sylpheed-mailbox-backend.c"
+#line 514 "mn-sylpheed-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 348 "mn-sylpheed-mailbox-backend.gob"
+#line 355 "mn-sylpheed-mailbox-backend.gob"
 static gboolean 
 mn_sylpheed_mailbox_backend_read_remote_mark_file (GnomeVFSURI * uri, gsize * size, char ** contents, GError ** err)
-#line 555 "mn-sylpheed-mailbox-backend.c"
+#line 520 "mn-sylpheed-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::read_remote_mark_file"
-#line 348 "mn-sylpheed-mailbox-backend.gob"
+#line 355 "mn-sylpheed-mailbox-backend.gob"
 	g_return_val_if_fail (uri != NULL, (gboolean )0);
-#line 348 "mn-sylpheed-mailbox-backend.gob"
+#line 355 "mn-sylpheed-mailbox-backend.gob"
 	g_return_val_if_fail (size != NULL, (gboolean )0);
-#line 348 "mn-sylpheed-mailbox-backend.gob"
+#line 355 "mn-sylpheed-mailbox-backend.gob"
 	g_return_val_if_fail (contents != NULL, (gboolean )0);
-#line 564 "mn-sylpheed-mailbox-backend.c"
+#line 529 "mn-sylpheed-mailbox-backend.c"
 {
-#line 353 "mn-sylpheed-mailbox-backend.gob"
+#line 360 "mn-sylpheed-mailbox-backend.gob"
 	
     GnomeVFSResult result;
     int _size;
@@ -579,24 +544,24 @@ mn_sylpheed_mailbox_backend_read_remote_mark_file (GnomeVFSURI * uri, gsize * si
 	return FALSE;
       }
   }}
-#line 583 "mn-sylpheed-mailbox-backend.c"
+#line 548 "mn-sylpheed-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 370 "mn-sylpheed-mailbox-backend.gob"
+#line 377 "mn-sylpheed-mailbox-backend.gob"
 static gboolean 
 mn_sylpheed_mailbox_backend_read_mark_file (GnomeVFSURI * mailbox_uri, gsize * size, char ** contents, GError ** err)
-#line 589 "mn-sylpheed-mailbox-backend.c"
+#line 554 "mn-sylpheed-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::read_mark_file"
-#line 370 "mn-sylpheed-mailbox-backend.gob"
+#line 377 "mn-sylpheed-mailbox-backend.gob"
 	g_return_val_if_fail (mailbox_uri != NULL, (gboolean )0);
-#line 370 "mn-sylpheed-mailbox-backend.gob"
+#line 377 "mn-sylpheed-mailbox-backend.gob"
 	g_return_val_if_fail (size != NULL, (gboolean )0);
-#line 370 "mn-sylpheed-mailbox-backend.gob"
+#line 377 "mn-sylpheed-mailbox-backend.gob"
 	g_return_val_if_fail (contents != NULL, (gboolean )0);
-#line 598 "mn-sylpheed-mailbox-backend.c"
+#line 563 "mn-sylpheed-mailbox-backend.c"
 {
-#line 375 "mn-sylpheed-mailbox-backend.gob"
+#line 382 "mn-sylpheed-mailbox-backend.gob"
 	
     GnomeVFSURI *markfile_uri;
     char *filename;
@@ -617,20 +582,20 @@ mn_sylpheed_mailbox_backend_read_mark_file (GnomeVFSURI * mailbox_uri, gsize * s
 
     return status;
   }}
-#line 621 "mn-sylpheed-mailbox-backend.c"
+#line 586 "mn-sylpheed-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 396 "mn-sylpheed-mailbox-backend.gob"
-static Marks * 
+#line 403 "mn-sylpheed-mailbox-backend.gob"
+Marks * 
 mn_sylpheed_mailbox_backend_marks_new (GnomeVFSURI * mailbox_uri, GError ** err)
-#line 627 "mn-sylpheed-mailbox-backend.c"
+#line 592 "mn-sylpheed-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::marks_new"
-#line 396 "mn-sylpheed-mailbox-backend.gob"
+#line 403 "mn-sylpheed-mailbox-backend.gob"
 	g_return_val_if_fail (mailbox_uri != NULL, (Marks * )0);
-#line 632 "mn-sylpheed-mailbox-backend.c"
+#line 597 "mn-sylpheed-mailbox-backend.c"
 {
-#line 398 "mn-sylpheed-mailbox-backend.gob"
+#line 405 "mn-sylpheed-mailbox-backend.gob"
 	
     Marks *marks = NULL;
     gsize bytes_left;
@@ -683,22 +648,22 @@ mn_sylpheed_mailbox_backend_marks_new (GnomeVFSURI * mailbox_uri, GError ** err)
 
     return marks;
   }}
-#line 687 "mn-sylpheed-mailbox-backend.c"
+#line 652 "mn-sylpheed-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 451 "mn-sylpheed-mailbox-backend.gob"
-static gboolean 
+#line 458 "mn-sylpheed-mailbox-backend.gob"
+gboolean 
 mn_sylpheed_mailbox_backend_marks_write (GnomeVFSURI * mailbox_uri, Marks * marks, GError ** err)
-#line 693 "mn-sylpheed-mailbox-backend.c"
+#line 658 "mn-sylpheed-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::marks_write"
-#line 451 "mn-sylpheed-mailbox-backend.gob"
+#line 458 "mn-sylpheed-mailbox-backend.gob"
 	g_return_val_if_fail (mailbox_uri != NULL, (gboolean )0);
-#line 451 "mn-sylpheed-mailbox-backend.gob"
+#line 458 "mn-sylpheed-mailbox-backend.gob"
 	g_return_val_if_fail (marks != NULL, (gboolean )0);
-#line 700 "mn-sylpheed-mailbox-backend.c"
+#line 665 "mn-sylpheed-mailbox-backend.c"
 {
-#line 455 "mn-sylpheed-mailbox-backend.gob"
+#line 462 "mn-sylpheed-mailbox-backend.gob"
 	
     GnomeVFSURI *markfile_uri;
     gboolean status;
@@ -716,78 +681,24 @@ mn_sylpheed_mailbox_backend_marks_write (GnomeVFSURI * mailbox_uri, Marks * mark
 
     return status;
   }}
-#line 720 "mn-sylpheed-mailbox-backend.c"
+#line 685 "mn-sylpheed-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 473 "mn-sylpheed-mailbox-backend.gob"
-static void 
+#line 480 "mn-sylpheed-mailbox-backend.gob"
+void 
 mn_sylpheed_mailbox_backend_marks_free (Marks * marks)
-#line 726 "mn-sylpheed-mailbox-backend.c"
+#line 691 "mn-sylpheed-mailbox-backend.c"
 {
 #define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::marks_free"
-#line 473 "mn-sylpheed-mailbox-backend.gob"
+#line 480 "mn-sylpheed-mailbox-backend.gob"
 	g_return_if_fail (marks != NULL);
-#line 731 "mn-sylpheed-mailbox-backend.c"
+#line 696 "mn-sylpheed-mailbox-backend.c"
 {
-#line 475 "mn-sylpheed-mailbox-backend.gob"
+#line 482 "mn-sylpheed-mailbox-backend.gob"
 	
     g_free(marks->data);
     g_hash_table_destroy(marks->table);
     g_free(marks);
   }}
-#line 739 "mn-sylpheed-mailbox-backend.c"
+#line 704 "mn-sylpheed-mailbox-backend.c"
 #undef __GOB_FUNCTION__
-
-#line 481 "mn-sylpheed-mailbox-backend.gob"
-static gboolean 
-___e_mn_sylpheed_mailbox_backend_mark_as_read (MNVFSMailboxBackend * dummy G_GNUC_UNUSED, MNVFSMessage * message, GError ** err)
-#line 745 "mn-sylpheed-mailbox-backend.c"
-#define PARENT_HANDLER(___dummy,___message,___err) \
-	((MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->mark_as_read)? \
-		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->mark_as_read)(___dummy,___message,___err): \
-		((gboolean )0))
-{
-#define __GOB_FUNCTION__ "MN:Sylpheed:Mailbox:Backend::mark_as_read"
-{
-#line 485 "mn-sylpheed-mailbox-backend.gob"
-	
-    char *filename;
-    int num;
-    GError *tmp_err = NULL;
-    Marks *marks;
-    MarkEntry *entry;
-    gboolean status;
-
-    filename = gnome_vfs_uri_extract_short_name(message->vfs_uri);
-    g_assert(mn_str_isnumeric(filename));
-    num = atoi(filename);
-    g_free(filename);
-
-    marks = self_marks_new(MN_VFS_MAILBOX(MN_MESSAGE(message)->mailbox)->vfs_uri, &tmp_err);
-    if (! marks)
-      {
-	g_set_error(err, 0, 0, _("Unable to read %s: %s."), SYLPHEED_MARK_FILE, tmp_err->message);
-	g_error_free(tmp_err);
-	return FALSE;
-      }
-
-    entry = g_hash_table_lookup(marks->table, GINT_TO_POINTER(num));
-    if (entry)
-      entry->flags &= ~(SYLPHEED_MSG_NEW | SYLPHEED_MSG_UNREAD);
-    else
-      {
-	marks->data_size += sizeof(MarkEntry);
-	marks->data = g_realloc(marks->data, marks->data_size);
-	entry = (MarkEntry *) (marks->data + marks->data_size - sizeof(MarkEntry));
-	entry->num = num;
-	entry->flags = 0;
-      }
-
-    status = self_marks_write(MN_VFS_MAILBOX(MN_MESSAGE(message)->mailbox)->vfs_uri, marks, err);
-    self_marks_free(marks);
-
-    return status;
-  }}
-#line 792 "mn-sylpheed-mailbox-backend.c"
-#undef __GOB_FUNCTION__
-#undef PARENT_HANDLER

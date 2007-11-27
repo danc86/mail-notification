@@ -16,7 +16,7 @@
       <applyto>/apps/mail-notification/commands/new-mail/command</applyto>
       <owner>mail-notification</owner>
       <type>string</type>
-      <default>play @gnome_prefix@/share/gnome/sounds/email.wav</default>
+      <default></default>
       <locale name="C">
         <short>New mail command</short>
 	<long>The command to run when new mail arrives.</long>
@@ -51,7 +51,8 @@
       <default>0</default>
       <locale name="C">
         <short>Run a command when the message list changes</short>
-	<long>Whether to run a command when the message list changes or not.</long>
+	<long>Whether to run a command when the message list changes
+	or not.</long>
       </locale>
     </schema> 
     <schema>
@@ -105,7 +106,8 @@
       <list_type>string</list_type>
       <locale name="C">
         <short>Fingerprints of trusted X509 certificates</short>
-	<long>The list of trusted X509 certificates, represented by their MD5 fingerprint.</long>
+	<long>The list of trusted X509 certificates, represented by
+	their MD5 fingerprint.</long>
       </locale>
     </schema>
     <schema>
@@ -116,7 +118,8 @@
       <list_type>string</list_type>
       <locale name="C">
         <short>Trusted servers list</short>
-	<long>The list of trusted SSL/TLS servers (hostname:port) lacking a X509 certificate.</long>
+	<long>The list of trusted SSL/TLS servers (hostname:port)
+	lacking a X509 certificate.</long>
       </locale>
     </schema>
     <schema>
@@ -127,7 +130,8 @@
       <default>1</default>
       <locale name="C">
         <short>Display seen mail</short>
-	<long>Whether to display seen mail or not.</long>
+	<long>Whether to display mail which is still marked as unread
+	but has been seen or not.</long>
       </locale>
     </schema>
     <schema>
@@ -138,7 +142,8 @@
       <default>standard</default>
       <locale name="C">
         <short>Tooltip mail summary</short>
-	<long>The type of mail summary to display in the icon's tooltip. Must be "standard", "compact" or "none".</long>
+	<long>The type of mail summary to display in the icon's
+	tooltip. Must be "standard", "compact" or "none".</long>
       </locale>
     </schema>
     <schema>
@@ -149,18 +154,33 @@
       <default>0</default>
       <locale name="C">
         <short>Always display an icon</short>
-	<long>Whether to display an icon when there is no new mail or not.</long>
+	<long>Whether to display an icon when there is no new mail or
+	not.</long>
       </locale>
     </schema>
     <schema>
-      <key>/schemas/apps/mail-notification/click-action-2</key>
-      <applyto>/apps/mail-notification/click-action-2</applyto>
+      <key>/schemas/apps/mail-notification/display-message-count</key>
+      <applyto>/apps/mail-notification/display-message-count</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>1</default>
+      <locale name="C">
+        <short>Display a message count in the status icon</short>
+	<long>Whether to display a message count in the status icon or
+	not.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/click-action-3</key>
+      <applyto>/apps/mail-notification/click-action-3</applyto>
       <owner>mail-notification</owner>
       <type>string</type>
-      <default>display-properties-dialog</default>
+      <default>launch-mail-reader</default>
       <locale name="C">
         <short>Click action</short>
-	<long>The action to perform when the icon is clicked. Must be "display-properties-dialog", "launch-mail-reader", "open-latest-message" or "update-mail-status".</long>
+	<long>The action to perform when the icon is clicked. Must be
+	"launch-mail-reader", "open-latest-message",
+	"consider-new-mail-as-read" or "update-mail-status".</long>
       </locale>
     </schema>
     <schema>
@@ -183,7 +203,9 @@
       <default>[open,mark-as-read,mark-as-spam]</default>
       <locale name="C">
         <short>Message popups actions</short>
-	<long>The ordered list of actions to include in the message popups. Each element must be "open", "mark-as-read", "mark-as-spam" or "delete".</long>
+	<long>The ordered list of actions to include in the message
+	popups. Each element must be "open", "mark-as-read",
+	"mark-as-spam" or "delete".</long>
       </locale>
     </schema>
     <schema>
@@ -194,7 +216,23 @@
       <default>attached</default>
       <locale name="C">
         <short>Message popups position</short>
-	<long>The position of the message popups. Must be "attached" or "free".</long>
+	<long>The position of the message popups. Must be "attached"
+	or "free".</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/popups/limit</key>
+      <applyto>/apps/mail-notification/popups/limit</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>10</default>
+      <locale name="C">
+        <short>Maximum number of simultaneous popups</short>
+	<long>The maximum number of popups to display simultaneously.
+	If this limit is exceeded, only the most recent messages will
+	be displayed. If the /apps/mail-notification/popups/position
+	key is set to "attached", this limit will be ignored and only
+	one popup will be allowed.</long>
       </locale>
     </schema>
     <schema>
@@ -205,7 +243,8 @@
       <default>default</default>
       <locale name="C">
         <short>Expire message popups</short>
-	<long>Whether to expire message popups or not. Must be "default", "false" or "true".</long>
+	<long>Whether to expire message popups or not. Must be
+	"default", "false" or "true".</long>
       </locale>
     </schema>
     <schema>
@@ -216,7 +255,9 @@
       <default>0</default>
       <locale name="C">
         <short>Minutes to wait before expiring message popups</short>
-        <long>If /apps/mail-notification/popups/expiration/enabled is set to "true", the amount of time to wait before expiring message popups (minutes part).</long>
+        <long>If /apps/mail-notification/popups/expiration/enabled is
+        set to "true", the amount of time to wait before expiring
+        message popups (minutes part).</long>
       </locale>
     </schema>
     <schema>
@@ -227,7 +268,44 @@
       <default>10</default>
       <locale name="C">
         <short>Seconds to wait before expiring message popups</short>
-        <long>If /apps/mail-notification/popups/expiration/enabled is set to "true", the amount of time to wait before expiring message popups (seconds part).</long>
+        <long>If /apps/mail-notification/popups/expiration/enabled is
+        set to "true", the amount of time to wait before expiring
+        message popups (seconds part).</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/sounds/play-command</key>
+      <applyto>/apps/mail-notification/sounds/play-command</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>exec gst-launch-0.10 filesrc location=%file ! decodebin ! audioconvert ! gconfaudiosink &gt;/dev/null 2&gt;&amp;1</default>
+      <locale name="C">
+        <short>Play sound command</short>
+	<long>The command to use to play a sound file. The string
+	%file will be substituted with the filename of the sound to
+	play.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/sounds/new-mail/enabled</key>
+      <applyto>/apps/mail-notification/sounds/new-mail/enabled</applyto>
+      <owner>mail-notification</owner>
+      <type>bool</type>
+      <default>0</default>
+      <locale name="C">
+        <short>Play a sound when new mail arrives</short>
+	<long>Whether to play a sound when new mail arrives or not.</long>
+      </locale>
+    </schema> 
+    <schema>
+      <key>/schemas/apps/mail-notification/sounds/new-mail/file</key>
+      <applyto>/apps/mail-notification/sounds/new-mail/file</applyto>
+      <owner>mail-notification</owner>
+      <type>string</type>
+      <default>@pkgdatadir@/new-mail.wav</default>
+      <locale name="C">
+        <short>New mail sound</short>
+	<long>The sound file to play when new mail arrives.</long>
       </locale>
     </schema>
   </schemalist>

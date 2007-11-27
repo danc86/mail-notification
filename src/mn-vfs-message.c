@@ -45,7 +45,6 @@ typedef MNVFSMessageClass SelfClass;
 /* here are local prototypes */
 static void mn_vfs_message_init (MNVFSMessage * o) G_GNUC_UNUSED;
 static void mn_vfs_message_class_init (MNVFSMessageClass * c) G_GNUC_UNUSED;
-static gboolean ___1_mn_vfs_message_mark_as_read_impl (MNMessage * message, GError ** err) G_GNUC_UNUSED;
 
 /* pointer to the class of our parent */
 static MNMessageClass *parent_class = NULL;
@@ -71,7 +70,7 @@ mn_vfs_message_get_type (void)
 			NULL
 		};
 
-		type = g_type_register_static (MN_TYPE_MESSAGE, "MNVFSMessage", &info, (GTypeFlags)0);
+		type = g_type_register_static (MN_TYPE_MESSAGE, "MNVFSMessage", &info, (GTypeFlags)G_TYPE_FLAG_ABSTRACT);
 	}
 
 	return type;
@@ -102,9 +101,9 @@ ___dispose (GObject *obj_self)
 	MNVFSMessage *self G_GNUC_UNUSED = MN_VFS_MESSAGE (obj_self);
 	if (G_OBJECT_CLASS (parent_class)->dispose) \
 		(* G_OBJECT_CLASS (parent_class)->dispose) (obj_self);
-#line 36 "mn-vfs-message.gob"
+#line 35 "mn-vfs-message.gob"
 	if(self->vfs_uri) { gnome_vfs_uri_unref ((gpointer) self->vfs_uri); self->vfs_uri = NULL; }
-#line 108 "mn-vfs-message.c"
+#line 107 "mn-vfs-message.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -119,61 +118,28 @@ mn_vfs_message_class_init (MNVFSMessageClass * c G_GNUC_UNUSED)
 {
 #define __GOB_FUNCTION__ "MN:VFS:Message::class_init"
 	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) c;
-	MNMessageClass *mn_message_class = (MNMessageClass *)c;
 
 	parent_class = g_type_class_ref (MN_TYPE_MESSAGE);
 
-#line 38 "mn-vfs-message.gob"
-	mn_message_class->mark_as_read_impl = ___1_mn_vfs_message_mark_as_read_impl;
-#line 129 "mn-vfs-message.c"
 	g_object_class->dispose = ___dispose;
 }
 #undef __GOB_FUNCTION__
 
 
 
-#line 38 "mn-vfs-message.gob"
-static gboolean 
-___1_mn_vfs_message_mark_as_read_impl (MNMessage * message G_GNUC_UNUSED, GError ** err)
-#line 139 "mn-vfs-message.c"
-#define PARENT_HANDLER(___message,___err) \
-	((MN_MESSAGE_CLASS(parent_class)->mark_as_read_impl)? \
-		(* MN_MESSAGE_CLASS(parent_class)->mark_as_read_impl)(___message,___err): \
-		((gboolean )0))
-{
-#define __GOB_FUNCTION__ "MN:VFS:Message::mark_as_read_impl"
-{
-#line 40 "mn-vfs-message.gob"
-	
-    Self *self = SELF(message);
-    MNVFSMailboxBackendClass *class;
-
-    g_assert(self->backend_type != 0);
-    g_assert(self->vfs_uri != NULL);
-
-    class = g_type_class_peek(self->backend_type);
-    g_assert(class != NULL);
-    g_assert(class->mark_as_read != NULL);
-
-    return class->mark_as_read(NULL, SELF(message), err);
-  }}
-#line 161 "mn-vfs-message.c"
-#undef __GOB_FUNCTION__
-#undef PARENT_HANDLER
-
-#line 58 "mn-vfs-message.gob"
+#line 41 "mn-vfs-message.gob"
 MNMessage * 
-mn_vfs_message_new (gpointer backend, GnomeVFSURI * dir_uri, const char * filename, MNMessageFlags flags, gboolean handle_status)
-#line 168 "mn-vfs-message.c"
+mn_vfs_message_new (GType type, gpointer backend, GnomeVFSURI * dir_uri, const char * filename, MNMessageFlags flags, gboolean handle_status)
+#line 134 "mn-vfs-message.c"
 {
 #define __GOB_FUNCTION__ "MN:VFS:Message::new"
-#line 58 "mn-vfs-message.gob"
+#line 41 "mn-vfs-message.gob"
 	g_return_val_if_fail (dir_uri != NULL, (MNMessage * )0);
-#line 58 "mn-vfs-message.gob"
+#line 41 "mn-vfs-message.gob"
 	g_return_val_if_fail (filename != NULL, (MNMessage * )0);
-#line 175 "mn-vfs-message.c"
+#line 141 "mn-vfs-message.c"
 {
-#line 64 "mn-vfs-message.gob"
+#line 48 "mn-vfs-message.gob"
 	
     GnomeVFSURI *message_uri;
     MNMessage *message;
@@ -182,18 +148,15 @@ mn_vfs_message_new (gpointer backend, GnomeVFSURI * dir_uri, const char * filena
     g_return_val_if_fail(MN_IS_VFS_MAILBOX_BACKEND(backend), NULL);
 
     message_uri = gnome_vfs_uri_append_file_name(dir_uri, filename);
-    message = mn_message_new_from_uri_full(MN_TYPE_VFS_MESSAGE, MN_MAILBOX(MN_VFS_MAILBOX_BACKEND(backend)->mailbox), message_uri, flags, handle_status);
+    message = mn_message_new_from_uri_full(type, MN_MAILBOX(MN_VFS_MAILBOX_BACKEND(backend)->mailbox), message_uri, flags, handle_status);
 
     vmessage = MN_VFS_MESSAGE(message);
     if (vmessage)
-      {
-	vmessage->backend_type = G_OBJECT_TYPE(backend);
-	vmessage->vfs_uri = gnome_vfs_uri_ref(message_uri);
-      }
+      vmessage->vfs_uri = gnome_vfs_uri_ref(message_uri);
 
     gnome_vfs_uri_unref(message_uri);
 
     return message;
   }}
-#line 199 "mn-vfs-message.c"
+#line 162 "mn-vfs-message.c"
 #undef __GOB_FUNCTION__

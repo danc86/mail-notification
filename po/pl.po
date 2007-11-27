@@ -4,22 +4,22 @@
 # This file is distributed under the same license as the
 # mail-notification package.
 #
-# Maurycy Pawłowski-Wieroński <maurycy@abstrakcja.pl>, 2005.
 # Tomasz Sarota-Raczek <tomasz.sarota.raczek@gmail.com>, 2004.
+# Maurycy Pawłowski-Wieroński <maurycy@abstrakcja.pl>, 2005.
+# Tomasz Sałaciński <tsalacinski@gmail.com>, 2007.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mail-notification 1.0\n"
+"Project-Id-Version: mail-notification 4.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2004-11-25 01:43+0100\n"
-"PO-Revision-Date: 2004-11-23 18:06+0100\n"
-"Last-Translator: Maurycy Pawłowski-Wieroński <maurycy@abstrakcja.pl>\n"
+"PO-Revision-Date: 2007-11-23 00:46+0100\n"
+"Last-Translator: Tomasz Sałaciński <tsalacinski@gmail.com>\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
-"|| n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: data/GNOME_MailNotification_Automation.server.in.in.h:1
 msgid "Mail Notification automation"
@@ -415,7 +415,7 @@ msgstr ""
 
 #: src/mn-autodetect-mailbox-properties.gob:68
 msgid "_Location:"
-msgstr "_Lokacja:"
+msgstr "_Lokalizacja:"
 
 #: src/mn-autodetect-mailbox-properties.gob:74
 msgid "_Browse..."
@@ -427,7 +427,7 @@ msgstr "URI skrzynki pocztowej"
 
 #: src/mn-autodetect-mailbox-properties.gob:118
 msgid "Select a File or Folder"
-msgstr "Wybierz Plik lub Teczkę"
+msgstr "Wybierz plik lub folder"
 
 #: src/mn-blinking-image.gob:32
 msgid "Whether the image is blinking or not"
@@ -857,7 +857,7 @@ msgstr "logowanie nie udało się"
 
 #: src/mn-mail-icon.gob:92 ui/summary-dialog.glade.h:2
 msgid "_Launch Mail Reader"
-msgstr "_Uruchom czytnik poczty"
+msgstr "_Uruchom program pocztowy"
 
 #: src/mn-mail-icon.gob:93 ui/summary-dialog.glade.h:3
 msgid "_Update"
@@ -1186,44 +1186,44 @@ msgstr "Nieczytalna wiadomość"
 
 #: src/mn-message-box.gob:69
 msgid "From"
-msgstr "Od"
+msgstr "Nadawca"
 
 #: src/mn-message-box.gob:70
 msgid "Subject"
-msgstr "Temat"
+msgstr "Temat wiadomości"
 
 #: src/mn-message-box.gob:75
 msgid "Sent"
-msgstr "Posłanę"
+msgstr "Wysłano"
 
 #: src/mn-message-box.gob:192
 #, c-format
-msgid "%i second ago"
-msgid_plural "%i seconds ago"
+msgid "about %i second ago"
+msgid_plural "about %i seconds ago"
 msgstr[0] "%i sekundę temu"
-msgstr[1] "%i sekund temu"
-msgstr[2] "%i sekundy temu"
+msgstr[1] "%i sekundy temu"
+msgstr[2] "%i sekund temu"
 
 #: src/mn-message-box.gob:196
 #, c-format
-msgid "%i minute ago"
-msgid_plural "%i minutes ago"
+msgid "about %i minute ago"
+msgid_plural "about %i minutes ago"
 msgstr[0] "%i minutę temu"
-msgstr[1] "%i minut temu"
-msgstr[2] "%i minuty temu"
+msgstr[1] "%i minuty temu"
+msgstr[2] "%i minut temu"
 
 #: src/mn-message-box.gob:201
 #, c-format
-msgid "%i hour ago"
-msgid_plural "%i hours ago"
+msgid "about %i hour ago"
+msgid_plural "about %i hours ago"
 msgstr[0] "%i godzinę temu"
-msgstr[1] "%i godzin temu"
-msgstr[2] "%i godziny temu"
+msgstr[1] "%i godziny temu"
+msgstr[2] "%i godzin temu"
 
 #: src/mn-message-box.gob:206
 #, c-format
-msgid "%i day ago"
-msgid_plural "%i days ago"
+msgid "about %i day ago"
+msgid_plural "about %i days ago"
 msgstr[0] "%i dzień temu"
 msgstr[1] "%i dni temu"
 msgstr[2] "%i dni temu"
@@ -1351,8 +1351,8 @@ msgstr "Żadna skrzynka pocztowa nie została wybrana."
 msgid "%i mailbox selected."
 msgid_plural "%i mailboxes selected."
 msgstr[0] "%i skrzynka pocztowa wybrana"
-msgstr[1] "%i skrzynek pocztowych wybranych"
-msgstr[2] "%i skrzynki pocztowe wybranę"
+msgstr[1] "%i skrzynki pocztowe wybrane"
+msgstr[2] "%i wybranych skrzynek pocztowych"
 
 #: src/mn-shell.gob:93
 msgid "You have new mail."
@@ -1372,7 +1372,7 @@ msgstr "Nieskonfigurowane skrzynki pocztowe"
 
 #: src/mn-shell.gob:381 ui/summary-dialog.glade.h:1
 msgid "Mail Summary"
-msgstr "Streszczenie poczty"
+msgstr "Podsumowanie wiadomości"
 
 #: src/mn-soup.c:140
 #, c-format
@@ -1685,7 +1685,7 @@ msgstr "_Streszczenie poczty"
 
 #: ui/properties.glade.h:42
 msgid "_Launch the mail reader"
-msgstr "U_ruchom czytnik poczty"
+msgstr "U_ruchom program pocztowy"
 
 #: ui/properties.glade.h:43
 msgid "_Mail reader:"
@@ -1756,3 +1756,186 @@ msgstr "_Konfiguracja Zawiadomienia pocztowego"
 #: ui/welcome.glade.h:9
 msgid "_Skip configuration"
 msgstr "_Pomiń konfigurację"
+
+# These messages are not translated in any PO file
+
+msgid "_Display seen mail"
+msgstr "_Pokazuj widzianą pocztę"
+
+msgid "_Always display"
+msgstr "Z_awsze pokazuj ikonę w tacce systemowej"
+
+msgid "_Test messages"
+msgstr "Wiadomość _testowa"
+
+msgid "Status Icon"
+msgstr "Ikona w tacce systemowej"
+
+msgid "When all mail has _been read:"
+msgstr "Kiedy wszystkie wiadomości zostały przeczytane:"
+
+msgid "<span weight=\"bold\">Tooltip Mail Summary</span>"
+msgstr "<span weight=\"bold\">Podsumowanie wiadomości</span>"
+
+msgid "icon tooltip's mail summary layout|_Standard"
+msgstr "_Standardowe"
+
+msgid "icon tooltip's mail summary layout|Co_mpact"
+msgstr "Ko_mpaktowe"
+
+msgid "_None"
+msgstr "Br_ak"
+
+msgid "Message Popups"
+msgstr "Okienka wiadomości"
+
+msgid "<span weight=\"bold\">Click Action</span>"
+msgstr "<span weight=\"bold\">Akcja po kliknięciu</span>"
+
+msgid "_Display this dialog"
+msgstr "Pokaż to okno _dialogowe"
+
+msgid "_Open the latest message"
+msgstr "_Otwórz ostatnią wiadomość"
+
+msgid "_Update the mail status"
+msgstr "O_dśwież stan poczty"
+
+msgid "_Enable message popups"
+msgstr "Włącz wyskakujące okna wiadomości"
+
+msgid "_Attached to the status icon"
+msgstr "_Podłączone do ikony w tacce systemowej"
+
+msgid "In the p_opup stack"
+msgstr "Okna ułożone na stosie"
+
+msgid "<span weight=\"bold\">Expiration</span>"
+msgstr "<span weight=\"bold\">Przedawnienie</span>"
+
+msgid "_Desktop default"
+msgstr "_Domyślne ustawienia systemowe"
+
+msgid "_Never"
+msgstr "_Nigdy"
+
+msgid "A_fter:"
+msgstr "P_o określonym czasie:"
+
+msgid "New Message"
+msgstr "Nowa wiadomość"
+
+msgid "Test mailbox"
+msgstr "Skrzynka testowa"
+
+msgid "From:"
+msgstr "Nadawca:"
+
+msgid "Subject:"
+msgstr "Temat wiadomości:"
+
+#, c-format
+msgid "Test message #%i"
+msgstr "Wiadomość testowa nr. %i"
+
+msgid "Mail Notification Properties Dialog"
+msgstr "Okno preferencji powiadamiania o nowej poczcie"
+
+msgid "Mailbox _type:"
+msgstr "_Typ skrzynki pocztowej:"
+
+msgid "Mailbox _name:"
+msgstr "_Nazwa skrzynki pocztowej:"
+
+msgid "_Use Default"
+msgstr "_Użyj domyślnej"
+
+msgid "Autodetect"
+msgstr "Wykryj automatycznie"
+
+msgid "System mailbox"
+msgstr "Skrzynka systemowa"
+
+msgid "Us_e Default"
+msgstr "_Domyślnie"
+
+msgid "<span weight=\"bold\">Location</span>"
+msgstr "<span weight=\"bold\">Lokalizacja</span>"
+
+msgid "Account"
+msgstr "Konto pocztowe"
+
+msgid "_Server:"
+msgstr "_Serwer:"
+
+msgid "IMAP Mailbox"
+msgstr "Skrzynka IMAP"
+
+msgid "In_box"
+msgstr "Ode_brane"
+
+msgid "_Other:"
+msgstr "_Inna:"
+
+msgid "Connection"
+msgstr "Połączenie"
+
+msgid "Connection Type"
+msgstr "Typ połączenia"
+
+msgid "In-_band SSL/TLS"
+msgstr "Wewnętrzne SSL/TLS"
+
+msgid "SSL/TLS on s_eparate port"
+msgstr "SSL/TLS na oddzielnym porcie"
+
+msgid "Authentication"
+msgstr "Autoryzacja"
+
+msgid "_Mechanism:"
+msgstr "_Mechanizm:"
+
+msgid "Use the IDLE Extension"
+msgstr "Użyj rozszerzenia IDLE"
+
+msgid "A_utodetect"
+msgstr "Wykryj a_utomatycznie"
+
+msgid "Al_ways"
+msgstr "_Zawsze"
+
+msgid "Location"
+msgstr "Lokalizacja"
+
+msgid "Your system mailbox is <span weight=\"bold\">%s</span>."
+msgstr "Lokalizacja Twojej systemowej skrzynki pocztowej:<span weight=\"bold\">%s</span>." 
+
+msgid "Mail Notification can not contact Evolution. Make sure that Evolution is running and that the Evolution Jean-Yves Lefort's Mail Notification plugin is installed and loaded. Fedora ships the plugin in a separate package called mail-notification-evolution-plugin; you might need to install it manually."
+
+msgstr "Aplikacja powiadamiania o nowej poczcie nie może skontaktować się z Evolution. Upewnij się, że Evolution jest uruchomione i że wtyczka Jean-Yves Lefort's Mail Notification jest zainstalowana i załadowana. Fedora udostępnia tą wtyczkę w oddzielnej paczce: mail-notification-evolution-plugin; może zajść konieczność ręcznego zainstalowania tej paczki."
+
+#, c-format
+msgid "%s mailbox"
+msgstr "Skrzynka %s"
+
+msgid "You have no new mail."
+msgstr "Brak nowych wiadomości."
+
+msgid "_Mail Reader"
+msgstr "Otwórz program pocztowy"
+
+msgid "_Open Latest Message"
+msgstr "_Otwórz ostatnią wiadomość"
+
+msgid "Sent:"
+msgstr "Wysłano:"
+
+msgid "about"
+msgstr "około"
+
+msgid "day"
+msgstr "dzień/dni"
+
+msgid "ago"
+msgstr "temu"
+

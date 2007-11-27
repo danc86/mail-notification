@@ -13,7 +13,6 @@ src/mn-authenticated-mailbox.gob
 src/mn-autodetect-mailbox-properties.gob
 src/mn-automation.gob
 src/mn-base-mbox-mailbox-backend.gob
-src/mn-blinking-image.gob
 src/mn-client-session.c
 src/mn-client-session.h
 src/mn-compact-message-view.gob
@@ -24,9 +23,11 @@ src/mn-evolution-folder-tree-control.gob
 src/mn-evolution-mailbox-properties.gob
 src/mn-evolution-mailbox.gob
 src/mn-evolution-plugin.c
+src/mn-file-chooser-button.gob
 src/mn-gmail-mailbox-properties.gob
 src/mn-gmail-mailbox.gob
 src/mn-gmime-stream-vfs.gob
+src/mn-hotmail-mailbox.gob
 src/mn-imap-mailbox-properties.gob
 src/mn-imap-mailbox.gob
 src/mn-mail-icon.gob
@@ -35,6 +36,7 @@ src/mn-mailbox-view.gob
 src/mn-mailbox.gob
 src/mn-mailboxes.gob
 src/mn-maildir-mailbox-backend.gob
+src/mn-maildir-message.gob
 src/mn-main.c
 src/mn-mbox-mailbox-backend.gob
 src/mn-md5.c
@@ -53,12 +55,15 @@ src/mn-properties-dialog.gob
 src/mn-sasl.c
 src/mn-sasl.h
 src/mn-shell.gob
+src/mn-sound-file-chooser-dialog.gob
+src/mn-sound-player.gob
 src/mn-ssl.c
 src/mn-ssl.h
 src/mn-standard-message-view.gob
 src/mn-stock.c
 src/mn-stock.h
 src/mn-sylpheed-mailbox-backend.gob
+src/mn-sylpheed-message.gob
 src/mn-system-vfs-mailbox-properties.gob
 src/mn-system-vfs-mailbox.gob
 src/mn-test-mailbox.gob
@@ -69,6 +74,9 @@ src/mn-vfs-mailbox-backend.gob
 src/mn-vfs-mailbox.gob
 src/mn-vfs.c
 src/mn-vfs.h
+src/mn-webmail-mailbox-properties.gob
+src/mn-webmail-mailbox.gob
 src/mn-xml.c
+src/mn-yahoo-mailbox.gob
 ui/mailbox-properties-dialog.glade
 ui/properties-dialog.glade

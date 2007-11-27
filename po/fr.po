@@ -8,10 +8,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mail-notification 4.1\n"
+"Project-Id-Version: mail-notification 5.0-rc1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-06-18 07:44+0200\n"
-"PO-Revision-Date: 2007-06-18 07:47+0200\n"
+"POT-Creation-Date: 2007-11-27 17:27+0100\n"
+"PO-Revision-Date: 2007-11-27 17:28+0100\n"
 "Last-Translator: Jean-Yves Lefort <jylefort@brutele.be>\n"
 "Language-Team: Jean-Yves Lefort <jylefort@brutele.be>\n"
 "MIME-Version: 1.0\n"
@@ -29,11 +29,11 @@ msgstr "usine d'automation de l'avertisseur de courrier"
 
 #: ../data/GNOME_MailNotification_Evolution.server.in.h:1
 msgid "Evolution folder tree control"
-msgstr "contrôle Evolution \"hiérarchie de dossiers\""
+msgstr "contrôle Evolution « hiérarchie de dossiers »"
 
 #: ../data/GNOME_MailNotification_Evolution.server.in.h:2
 msgid "Evolution folder tree control factory"
-msgstr "usine de contrôle Evolution \"hiérarchie de dossiers\""
+msgstr "créateur du contrôle Evolution « hiérarchie de dossiers »"
 
 #: ../data/GNOME_MailNotification_Evolution.server.in.h:3
 msgid "Mail Notification / Evolution glue"
@@ -41,16 +41,16 @@ msgstr "colle avertisseur de courrier / Evolution"
 
 #: ../data/GNOME_MailNotification_Evolution.server.in.h:4
 msgid "Mail Notification / Evolution glue factory"
-msgstr "usine de colle avertisseur de courrier / Evolution"
+msgstr "créateur du liant avertisseur de courrier / Evolution"
 
 #: ../data/mail-notification-properties.desktop.in.h:1
 msgid "Configure Mail Notification"
 msgstr "Configurer l'avertisseur de courrier"
 
 #: ../data/mail-notification-properties.desktop.in.h:2
-#: ../data/mail-notification.desktop.in.h:2 ../src/mn-mail-icon.gob:234
-#: ../src/mn-main.c:143 ../src/mn-main.c:350 ../src/mn-main.c:371
-#: ../src/mn-main.c:445
+#: ../data/mail-notification.desktop.in.h:2 ../src/mn-mail-icon.gob:299
+#: ../src/mn-main.c:146 ../src/mn-main.c:363 ../src/mn-main.c:384
+#: ../src/mn-main.c:458
 msgid "Mail Notification"
 msgstr "Avertisseur de courrier"
 
@@ -71,108 +71,137 @@ msgid "Click action"
 msgstr "Action du click"
 
 #: ../data/mail-notification.schemas.in.in.h:4
+msgid "Display a message count in the status icon"
+msgstr "Afficher le nombre de messages dans l'icône de statut"
+
+#: ../data/mail-notification.schemas.in.in.h:5
 msgid "Display seen mail"
 msgstr "Afficher le courrier vu"
 
-#: ../data/mail-notification.schemas.in.in.h:5
+#: ../data/mail-notification.schemas.in.in.h:6
 msgid "Enable message popups"
 msgstr "Activer les popups"
 
-#: ../data/mail-notification.schemas.in.in.h:6
+#: ../data/mail-notification.schemas.in.in.h:7
 msgid "Expire message popups"
 msgstr "Activer l'expiration des popups"
 
-#: ../data/mail-notification.schemas.in.in.h:7
+#: ../data/mail-notification.schemas.in.in.h:8
 msgid "Fingerprints of trusted X509 certificates"
 msgstr "Empreintes digitales des certificats X509 de confiance"
 
-#: ../data/mail-notification.schemas.in.in.h:8
+#: ../data/mail-notification.schemas.in.in.h:9
 msgid "Height of properties dialog"
 msgstr "Hauteur de la boîte de dialogue contenant les propriétés"
-
-#: ../data/mail-notification.schemas.in.in.h:9
-msgid ""
-"If /apps/mail-notification/popups/expiration/enabled is set to \"true\", the "
-"amount of time to wait before expiring message popups (minutes part)."
-msgstr ""
-"Si /apps/mail-notification/popups/expiration/enabled est \"true\", le délai "
-"d'expiration des popups (minutes)."
 
 #: ../data/mail-notification.schemas.in.in.h:10
 msgid ""
 "If /apps/mail-notification/popups/expiration/enabled is set to \"true\", the "
-"amount of time to wait before expiring message popups (seconds part)."
+"amount of time to wait before expiring message popups (minutes part)."
 msgstr ""
-"Si /apps/mail-notification/popups/expiration/enabled est \\\"true\\\", le "
-"délai d'expiration des popups (secondes)."
+"Si /apps/mail-notification/popups/expiration/enabled est « true », le délai "
+"d'expiration des popups (minutes)."
 
 #: ../data/mail-notification.schemas.in.in.h:11
+msgid ""
+"If /apps/mail-notification/popups/expiration/enabled is set to \"true\", the "
+"amount of time to wait before expiring message popups (seconds part)."
+msgstr ""
+"Si /apps/mail-notification/popups/expiration/enabled est « true », le délai "
+"d'expiration des popups (secondes)."
+
+#: ../data/mail-notification.schemas.in.in.h:12
 msgid "Mail changed command"
 msgstr "Commande de courrier changé"
 
-#: ../data/mail-notification.schemas.in.in.h:12
+#: ../data/mail-notification.schemas.in.in.h:13
 msgid "Mail read command"
 msgstr "Commande de courrier lu"
 
-#: ../data/mail-notification.schemas.in.in.h:13
+#: ../data/mail-notification.schemas.in.in.h:14
+msgid "Maximum number of simultaneous popups"
+msgstr "Nombre maximum de popups simultanés"
+
+#: ../data/mail-notification.schemas.in.in.h:15
 msgid "Message popups actions"
 msgstr "Actions des popups"
 
-#: ../data/mail-notification.schemas.in.in.h:14
+#: ../data/mail-notification.schemas.in.in.h:16
 msgid "Message popups position"
 msgstr "Position des popups"
 
-#: ../data/mail-notification.schemas.in.in.h:15
+#: ../data/mail-notification.schemas.in.in.h:17
 msgid "Minutes to wait before expiring message popups"
 msgstr "Minutes du délai d'expiration des popups"
 
-#: ../data/mail-notification.schemas.in.in.h:16
+#: ../data/mail-notification.schemas.in.in.h:18
 msgid "New mail command"
-msgstr "Commande de nouveau message"
+msgstr "Commande de nouveau courrier"
 
-#: ../data/mail-notification.schemas.in.in.h:17
+#: ../data/mail-notification.schemas.in.in.h:19
+msgid "New mail sound"
+msgstr "Son de nouveau courrier"
+
+#: ../data/mail-notification.schemas.in.in.h:20
+msgid "Play a sound when new mail arrives"
+msgstr "Lire un son lorsque du nouveau courrier arrive"
+
+#: ../data/mail-notification.schemas.in.in.h:21
+msgid "Play sound command"
+msgstr "Commande de lecture de son"
+
+#: ../data/mail-notification.schemas.in.in.h:22
 msgid "Run a command when all mail is read"
 msgstr "Exécuter une commande lorsque tout le courrier est lu"
 
-#: ../data/mail-notification.schemas.in.in.h:18
+#: ../data/mail-notification.schemas.in.in.h:23
 msgid "Run a command when new mail arrives"
 msgstr "Exécuter une commande lorsque du nouveau courrier arrive"
 
-#: ../data/mail-notification.schemas.in.in.h:19
+#: ../data/mail-notification.schemas.in.in.h:24
 msgid "Run a command when the message list changes"
 msgstr "Exécuter une commande lorsque la liste des messages change"
 
-#: ../data/mail-notification.schemas.in.in.h:20
+#: ../data/mail-notification.schemas.in.in.h:25
 msgid "Seconds to wait before expiring message popups"
 msgstr "Secondes du délai d'expiration des popups"
 
-#: ../data/mail-notification.schemas.in.in.h:21
+#: ../data/mail-notification.schemas.in.in.h:26
 msgid ""
-"The action to perform when the icon is clicked. Must be \"display-properties-"
-"dialog\", \"launch-mail-reader\", \"open-latest-message\" or \"update-mail-"
+"The action to perform when the icon is clicked. Must be \"launch-mail-reader"
+"\", \"open-latest-message\", \"consider-new-mail-as-read\" or \"update-mail-"
 "status\"."
 msgstr ""
-"L'action à effectuer lorsque l'icône est clickée. Doit être \"display-"
-"properties-dialog\", \"launch-mail-reader\", \"open-latest-message\" ou "
-"\"update-mail-status\"."
+"L'action à effectuer lorsque l'icône est clickée. Doit être « launch-mail-"
+"reader », « open-latest-message », « consider-new-mail-as-read » ou « update-"
+"mail-status »."
 
-#: ../data/mail-notification.schemas.in.in.h:22
+#: ../data/mail-notification.schemas.in.in.h:27
 msgid "The command to run when all mail is read."
 msgstr "La commande à exécuter lorsque tout le courrier est lu"
 
-#: ../data/mail-notification.schemas.in.in.h:23
+#: ../data/mail-notification.schemas.in.in.h:28
 msgid "The command to run when new mail arrives."
 msgstr "La commande à exécuter lorsque du nouveau courrier arrive."
 
-#: ../data/mail-notification.schemas.in.in.h:24
+#: ../data/mail-notification.schemas.in.in.h:29
 msgid "The command to run when the message list changes."
 msgstr "La commande à exécuter lorsque la liste des messages change."
 
-#: ../data/mail-notification.schemas.in.in.h:25
+#: ../data/mail-notification.schemas.in.in.h:31
+#, no-c-format
+msgid ""
+"The command to use to play a sound file. The string %file will be "
+"substituted with the filename of the sound to play."
+msgstr ""
+"La commande à utiliser pour lire un fichier son. La chaîne de caractères %"
+"file sera remplacée par le nom de fichier du son à jouer."
+
+#: ../data/mail-notification.schemas.in.in.h:32
 msgid "The height of the properties dialog in pixels."
 msgstr "La hauteur de la boîte de dialogue contenant les propriétés en pixels."
 
-#: ../data/mail-notification.schemas.in.in.h:26
+#: ../data/mail-notification.schemas.in.in.h:33
 msgid ""
 "The list of trusted SSL/TLS servers (hostname:port) lacking a X509 "
 "certificate."
@@ -180,96 +209,127 @@ msgstr ""
 "La liste des serveurs SSL/TLS (hôte:port) de confiance auxquels il manque un "
 "certificat X509."
 
-#: ../data/mail-notification.schemas.in.in.h:27
+#: ../data/mail-notification.schemas.in.in.h:34
 msgid ""
 "The list of trusted X509 certificates, represented by their MD5 fingerprint."
 msgstr ""
 "La liste des certificats X509 de confiance, représentés par leur empreinte "
 "digitale."
 
-#: ../data/mail-notification.schemas.in.in.h:28
+#: ../data/mail-notification.schemas.in.in.h:35
+msgid ""
+"The maximum number of popups to display simultaneously. If this limit is "
+"exceeded, only the most recent messages will be displayed. If the /apps/mail-"
+"notification/popups/position key is set to \"attached\", this limit will be "
+"ignored and only one popup will be allowed."
+msgstr ""
+"Le nombre maximum de popups à afficher simultanément. Si cette limite est "
+"dépassée,\n"
+"seuls les messages les plus récents seront affichés. Si la clé /apps/mail-"
+"notification/popups/position a la valeur \"attached\", cette limite sera "
+"ignorée et un seul popup sera autorisé."
+
+#: ../data/mail-notification.schemas.in.in.h:36
 msgid ""
 "The ordered list of actions to include in the message popups. Each element "
 "must be \"open\", \"mark-as-read\", \"mark-as-spam\" or \"delete\"."
 msgstr ""
 "La liste triée d'actions à inclure dans les popups. Chaque élément doit être "
-"\"open\", \"mark-as-read\", \"mark-as-spam\" ou \"delete\"."
+"« open », « mark-as-read », « mark-as-spam » ou « delete »."
 
-#: ../data/mail-notification.schemas.in.in.h:29
+#: ../data/mail-notification.schemas.in.in.h:37
 msgid "The position of the message popups. Must be \"attached\" or \"free\"."
-msgstr "La position des popups. Doit être \"attached\" ou \"free\"."
+msgstr "La position des popups. Doit être « attached » ou « free »."
 
-#: ../data/mail-notification.schemas.in.in.h:30
+#: ../data/mail-notification.schemas.in.in.h:38
+msgid "The sound file to play when new mail arrives."
+msgstr "Le fichier son à lire lorsque du nouveau courrier arrive."
+
+#: ../data/mail-notification.schemas.in.in.h:39
 msgid ""
 "The type of mail summary to display in the icon's tooltip. Must be \"standard"
 "\", \"compact\" or \"none\"."
 msgstr ""
 "Le type d'aperçu du courrier à afficher dans le ballon d'aide de l'icône. "
-"Doit être \"standard\", \"compact\" ou \"aucun\"."
+"Doit être « standard », « compact » ou « none »."
 
-#: ../data/mail-notification.schemas.in.in.h:31
+#: ../data/mail-notification.schemas.in.in.h:40
 msgid "The width of the properties dialog in pixels."
 msgstr "La largeur de la boîte de dialogue contenant les propriétés en pixels."
 
-#: ../data/mail-notification.schemas.in.in.h:32
+#: ../data/mail-notification.schemas.in.in.h:41
 msgid "Tooltip mail summary"
 msgstr "Aperçu du courrier dans le ballon d'aide"
 
-#: ../data/mail-notification.schemas.in.in.h:33
+#: ../data/mail-notification.schemas.in.in.h:42
 msgid "Trusted servers list"
 msgstr "Liste des serveurs de confiance"
 
-#: ../data/mail-notification.schemas.in.in.h:34
+#: ../data/mail-notification.schemas.in.in.h:43
 msgid "Whether the status icon should blink on errors or not."
 msgstr "Si l'icône de statut doit clignoter lors d'erreurs ou pas."
 
-#: ../data/mail-notification.schemas.in.in.h:35
+#: ../data/mail-notification.schemas.in.in.h:44
+msgid "Whether to display a message count in the status icon or not."
+msgstr ""
+"Si le nombre de messages doit être affiché dans l'icône de statut ou pas."
+
+#: ../data/mail-notification.schemas.in.in.h:45
 msgid "Whether to display an icon when there is no new mail or not."
 msgstr ""
 "Si une icône doit être affichée lorsqu'il n'y a pas de nouveau courrier ou "
 "pas."
 
-#: ../data/mail-notification.schemas.in.in.h:36
-msgid "Whether to display seen mail or not."
-msgstr "Si le courrier vu doit être affiché ou pas."
+#: ../data/mail-notification.schemas.in.in.h:46
+msgid ""
+"Whether to display mail which is still marked as unread but has been seen or "
+"not."
+msgstr ""
+"Si le courrier qui est encore marqué comme non lu mais qui a été vu\n"
+"doit être affiché ou pas."
 
-#: ../data/mail-notification.schemas.in.in.h:37
+#: ../data/mail-notification.schemas.in.in.h:47
 msgid "Whether to enable message popups or not."
 msgstr "Si les popups doivent être activés ou pas."
 
-#: ../data/mail-notification.schemas.in.in.h:38
+#: ../data/mail-notification.schemas.in.in.h:48
 msgid ""
 "Whether to expire message popups or not. Must be \"default\", \"false\" or "
 "\"true\"."
 msgstr ""
-"Si l'expiration des popups doit être activée ou pas. Doit être \"default\", "
-"\"false\" ou \"true\"."
+"Si l'expiration des popups doit être activée ou pas. Doit être « default », "
+"« false » ou « true »."
 
-#: ../data/mail-notification.schemas.in.in.h:39
+#: ../data/mail-notification.schemas.in.in.h:49
+msgid "Whether to play a sound when new mail arrives or not."
+msgstr ""
+"Si un fichier son doit être lu lorsque du nouveau courrier arrive ou pas."
+
+#: ../data/mail-notification.schemas.in.in.h:50
 msgid "Whether to run a command when all mail is read or not."
 msgstr ""
 "Si une commande doit être exécutée lorsque tout le courrier est lu ou pas."
 
-#: ../data/mail-notification.schemas.in.in.h:40
+#: ../data/mail-notification.schemas.in.in.h:51
 msgid "Whether to run a command when new mail arrives or not."
 msgstr ""
 "Si une commande doit être exécutée lorsque du nouveau courrier arrive ou pas."
 
-#: ../data/mail-notification.schemas.in.in.h:41
+#: ../data/mail-notification.schemas.in.in.h:52
 msgid "Whether to run a command when the message list changes or not."
 msgstr ""
 "Si une commande doit être exécutée lorsque la liste des messages change ou "
 "pas."
 
-#: ../data/mail-notification.schemas.in.in.h:42
+#: ../data/mail-notification.schemas.in.in.h:53
 msgid "Width of properties dialog"
 msgstr "Largeur de la boîte de dialogue contenant les propriétés"
 
-#: ../src/eggtrayicon.c:132
+#: ../src/eggtrayicon.c:134
 msgid "Orientation"
 msgstr "Orientation"
 
-#: ../src/eggtrayicon.c:133
+#: ../src/eggtrayicon.c:135
 msgid "The orientation of the tray."
 msgstr "L'orientation du plateau."
 
@@ -292,17 +352,64 @@ msgid "Autodetect"
 msgstr "Autodétecter"
 
 #. translators: header capitalization
-#: ../src/mn-authenticated-mailbox-properties.gob:50
+#: ../src/mn-authenticated-mailbox-properties.gob:59
 msgid "Account"
 msgstr "Compte"
 
-#: ../src/mn-authenticated-mailbox-properties.gob:53
+#: ../src/mn-authenticated-mailbox-properties.gob:62
 msgid "_Username:"
 msgstr "Nom d'_utilisateur :"
 
-#: ../src/mn-authenticated-mailbox-properties.gob:57
+#: ../src/mn-authenticated-mailbox-properties.gob:66
 msgid "_Password:"
 msgstr "Mot de _passe :"
+
+#: ../src/mn-authenticated-mailbox-properties.gob:148
+msgid "Saving password to keyring..."
+msgstr "Sauvegarde du mot de passe dans le trousseau de clés en cours..."
+
+#: ../src/mn-authenticated-mailbox-properties.gob:193
+msgid "Retrieving password from keyring..."
+msgstr "Récupération du mot de passe du trousseau de clés en cours..."
+
+#. translators: the first %s is the mailbox format (eg: IMAP) and the second %s is the mailbox name (eg: john@imapserver.org)
+#: ../src/mn-authenticated-mailbox.gob:310
+#, c-format
+msgid ""
+"Mail Notification was unable to log into %s mailbox %s, possibly because the "
+"password you have entered is invalid.\n"
+"\n"
+"Please re-enter your password."
+msgstr ""
+"L'avertisseur de courrier n'a pas été en mesure d'ouvrir une session dans la "
+"boîte aux lettres %s %s, peut-être parce que le mot de passe que vous avez "
+"saisi est invalide.\n"
+"\n"
+"Veuillez à nouveau saisir vos données d'authentification."
+
+#. translators: the first %s is the mailbox format (eg: IMAP) and the second %s is the mailbox name (eg: john@imapserver.org)
+#: ../src/mn-authenticated-mailbox.gob:312
+#, c-format
+msgid "Enter your password for %s mailbox %s."
+msgstr "Entrez votre mot de passe pour la boîte aux lettres %s %s."
+
+#. keep the title in sync with gnome-authentication-manager
+#. translators: header capitalization
+#: ../src/mn-authenticated-mailbox.gob:386
+msgid "Authentication Required"
+msgstr "Authentification requise"
+
+#: ../src/mn-authenticated-mailbox.gob:468
+msgid "Unable to save the mailbox password"
+msgstr "Impossible de sauvegarder le mot de passe de la boîte aux lettres"
+
+#. translators: the first %s is the mailbox format (eg: IMAP) and the second %s is the mailbox name (eg: john@imapserver.org)
+#: ../src/mn-authenticated-mailbox.gob:470
+#, c-format
+msgid "The password of %s mailbox %s could not be saved to the keyring."
+msgstr ""
+"Le mot de passe de la boîte aux lettres %s %s n'a pu être sauvegardé dans le "
+"trousseau de clés."
 
 #. translators: header capitalization
 #: ../src/mn-autodetect-mailbox-properties.gob:124
@@ -324,265 +431,239 @@ msgstr "_Parcourir..."
 msgid "Select a File or Folder"
 msgstr "Sélectionnez un fichier ou dossier"
 
-#: ../src/mn-base-mbox-mailbox-backend.gob:345
-#, c-format
-msgid "unable to close file: %s"
-msgstr "impossible de fermer le fichier : %s"
-
-#: ../src/mn-base-mbox-mailbox-backend.gob:359
+#: ../src/mn-base-mbox-mailbox-backend.gob:349
 #, c-format
 msgid "unable to open mailbox: %s"
 msgstr "impossible d'ouvrir la boîte aux lettres : %s"
 
-#: ../src/mn-client-session.c:257
+#: ../src/mn-client-session.c:255
 #, c-format
 msgid "resolving %s"
 msgstr "résolution de %s en cours"
 
-#: ../src/mn-client-session.c:273
+#: ../src/mn-client-session.c:271
 #, c-format
 msgid "unable to resolve %s: %s"
 msgstr "impossible de résoudre %s : %s"
 
-#: ../src/mn-client-session.c:314
+#: ../src/mn-client-session.c:312
 #, c-format
 msgid "network address #%i"
 msgstr "adresse réseau %i"
 
-#: ../src/mn-client-session.c:317
+#: ../src/mn-client-session.c:315
 #, c-format
 msgid "unable to convert network address #%i into textual form: %s"
 msgstr ""
 "impossible de convertir l'adresse réseau %i vers une forme textuelle : %s"
 
-#: ../src/mn-client-session.c:328
+#: ../src/mn-client-session.c:326
 #, c-format
 msgid "%s: unsupported address family"
 msgstr "%s : famille d'adresse non prise en charge"
 
-#: ../src/mn-client-session.c:335
+#: ../src/mn-client-session.c:333
 #, c-format
 msgid "%s: unable to create socket: %s"
 msgstr "%s : impossible de créer un socket : %s"
 
-#: ../src/mn-client-session.c:339
+#: ../src/mn-client-session.c:337
 #, c-format
 msgid "connecting to %s (%s) port %i"
 msgstr "connexion à %s (%s) port %i en cours"
 
-#: ../src/mn-client-session.c:342
+#: ../src/mn-client-session.c:340
 #, c-format
 msgid "unable to connect: %s"
 msgstr "impossible de se connecter : %s"
 
-#: ../src/mn-client-session.c:347
+#: ../src/mn-client-session.c:345
 msgid "connected successfully"
 msgstr "connecté avec succès"
 
 #. if reached, we couldn't find a working address
-#: ../src/mn-client-session.c:361
+#: ../src/mn-client-session.c:359
 #, c-format
 msgid "unable to connect to %s"
 msgstr "impossible de se connecter à %s"
 
-#: ../src/mn-client-session.c:388
+#: ../src/mn-client-session.c:386
 #, c-format
 msgid "unable to initialize the OpenSSL library: %s"
 msgstr "impossible d'initialiser la bibliothèque OpenSSL : %s"
 
-#: ../src/mn-client-session.c:396
+#: ../src/mn-client-session.c:394
 #, c-format
 msgid "unable to create a SSL/TLS object: %s"
 msgstr "impossible de créer un objet SSL/TLS : %s"
 
-#: ../src/mn-client-session.c:402
+#: ../src/mn-client-session.c:400
 #, c-format
 msgid "unable to set the SSL/TLS file descriptor: %s"
 msgstr "impossible de spécifier le descripteur de fichier SSL/TLS : %s"
 
-#: ../src/mn-client-session.c:408
+#: ../src/mn-client-session.c:406
 #, c-format
 msgid "unable to perform the SSL/TLS handshake: %s"
 msgstr "impossible d'accomplir la négociation SSL/TLS : %s"
 
-#: ../src/mn-client-session.c:414
+#: ../src/mn-client-session.c:412
 msgid "untrusted server"
 msgstr "serveur non fiable"
 
-#: ../src/mn-client-session.c:418
+#: ../src/mn-client-session.c:416
 #, c-format
 msgid "a SSL/TLS layer is now active (%s, %s %i-bit)"
 msgstr "une couche SSL/TLS est maintenant active (%s, %s %i-bit)"
 
-#: ../src/mn-client-session.c:589
+#: ../src/mn-client-session.c:587
 msgid "server name not found in certificate"
 msgstr "nom de serveur non trouvé dans le certificat"
 
-#: ../src/mn-client-session.c:594
+#: ../src/mn-client-session.c:592
 #, c-format
 msgid ""
 "user-provided server name \"%s\" does not match certificate-provided server "
 "name \"%s\""
 msgstr ""
-"le nom de serveur \"%s\" fourni par l'utilisateur ne correspond pas au nom "
-"de serveur \"%s\" fourni par le certificat"
+"le nom de serveur « %s » fourni par l'utilisateur ne correspond pas au nom "
+"de serveur « %s » fourni par le certificat"
 
-#: ../src/mn-client-session.c:612
+#: ../src/mn-client-session.c:606
+#, c-format
+msgid "\"%s\", "
+msgstr "« %s », "
+
+#: ../src/mn-client-session.c:608 ../src/mn-client-session.c:1585
+#: ../src/mn-yahoo-mailbox.gob:192
+#, c-format
+msgid "\"%s\""
+msgstr "« %s »"
+
+#: ../src/mn-client-session.c:611
 #, c-format
 msgid ""
 "user-provided server name \"%s\" matches none of the certificate-provided "
 "server names %s"
 msgstr ""
-"le nom de serveur \"%s\" fourni par l'utilisateur ne correspond à aucun des "
+"le nom de serveur « %s » fourni par l'utilisateur ne correspond à aucun des "
 "noms de serveur %s fournis par le certificat"
 
-#: ../src/mn-client-session.c:688
-msgid "missing certificate"
-msgstr "certificat manquant"
-
-#: ../src/mn-client-session.c:717
-#, c-format
-msgid ""
-"Mail Notification was unable to trust \"%s\" (%s). It is possible that "
-"someone is intercepting your communication to obtain your confidential "
-"information.\n"
-"\n"
-"You should only connect to the server if you are certain you are connected "
-"to \"%s\". If you choose to connect to the server, this message will not be "
-"shown again."
-msgstr ""
-"L'avertisseur de courrier n'a pas été en mesure de faire confiance à \"%s"
-"\" (%s). Il est possible que quelqu'un soit en train d'intercepter votre "
-"communication afin d'obtenir vos informations confidentielles.\n"
-"\n"
-"Vous devriez vous connecter au serveur uniquement si vous êtes certain que "
-"vous êtes connecté à \"%s\". Si vous choisissez de vous connecter au "
-"serveur, ce message ne sera plus affiché."
-
-#: ../src/mn-client-session.c:731
-#, c-format
-msgid "Certificate fingerprint: %s."
-msgstr "Empreinte digitale du certificat: %s."
-
-#: ../src/mn-client-session.c:738
-msgid "Connect to untrusted server?"
-msgstr "Se connecter au serveur non fiable ?"
-
-#: ../src/mn-client-session.c:803
+#: ../src/mn-client-session.c:727
 #, c-format
 msgid "response \"%s\" is not valid in current context"
-msgstr "la réponse \"%s\" n'est pas valable dans le contexte actuel"
+msgstr "la réponse « %s » n'est pas valable dans le contexte actuel"
 
-#: ../src/mn-client-session.c:832
+#: ../src/mn-client-session.c:756
 #, c-format
 msgid "unable to parse response \"%s\""
-msgstr "impossible d'interpréter la réponse \"%s\""
+msgstr "impossible d'interpréter la réponse « %s »"
 
-#: ../src/mn-client-session.c:882 ../src/mn-client-session.c:889
+#: ../src/mn-client-session.c:806 ../src/mn-client-session.c:813
 #, c-format
 msgid "unable to read from server: %s"
 msgstr "impossible de lire depuis le serveur : %s"
 
-#: ../src/mn-client-session.c:887
+#: ../src/mn-client-session.c:811
 msgid "unable to read from server: EOF"
 msgstr "impossible de lire depuis le serveur : EOF"
 
-#: ../src/mn-client-session.c:899
+#: ../src/mn-client-session.c:823
 #, c-format
 msgid "unable to decode data using SASL: %s"
 msgstr "impossible de décoder les données en utilisant SASL : %s"
 
-#: ../src/mn-client-session.c:1044
+#: ../src/mn-client-session.c:968
 #, c-format
 msgid "unable to encode data using SASL: %s"
 msgstr "impossible d'encoder les données en utilisant SASL : %s"
 
-#: ../src/mn-client-session.c:1075 ../src/mn-client-session.c:1082
+#: ../src/mn-client-session.c:999 ../src/mn-client-session.c:1006
 #, c-format
 msgid "unable to write to server: %s"
 msgstr "impossible d'écrire vers le serveur : %s"
 
-#: ../src/mn-client-session.c:1080
+#: ../src/mn-client-session.c:1004
 msgid "unable to write to server: EOF"
 msgstr "impossible d'écrire vers le serveur : EOF"
 
-#: ../src/mn-client-session.c:1111 ../src/mn-pop3-mailbox.gob:434
+#: ../src/mn-client-session.c:1035 ../src/mn-pop3-mailbox.gob:432
 #, c-format
 msgid "unable to encode Base64: %s"
 msgstr "impossible d'encoder en Base64 : %s"
 
-#: ../src/mn-client-session.c:1288
+#: ../src/mn-client-session.c:1212
 #, c-format
 msgid "unable to initialize the SASL library: %s"
 msgstr "impossible d'initialiser la bibliothèque SASL : %s"
 
-#: ../src/mn-client-session.c:1300
+#: ../src/mn-client-session.c:1224
 #, c-format
 msgid "unable to retrieve local address of socket: %s"
 msgstr "impossible d'obtenir l'adresse locale du socket : %s"
 
-#: ../src/mn-client-session.c:1306
+#: ../src/mn-client-session.c:1230
 #, c-format
 msgid "unable to retrieve remote address of socket: %s"
 msgstr "impossible d'obtenir l'adresse distante du socket : %s"
 
-#: ../src/mn-client-session.c:1340
+#: ../src/mn-client-session.c:1264
 #, c-format
 msgid "unable to set SASL security properties: %s"
 msgstr "impossible de spécifier les propriétés de sécurité SASL : %s"
 
-#: ../src/mn-client-session.c:1364
+#: ../src/mn-client-session.c:1288
 msgid ""
 "unable to start SASL authentication: SASL asked for something we did not know"
 msgstr ""
 "impossible de démarrer l'authentification SASL : SASL a demandé quelque "
 "chose que nous ne connaissions pas"
 
-#: ../src/mn-client-session.c:1383
+#: ../src/mn-client-session.c:1307
 #, c-format
 msgid "unable to start SASL authentication: %s"
 msgstr "impossible de démarrer l'authentification SASL : %s"
 
-#: ../src/mn-client-session.c:1387
+#: ../src/mn-client-session.c:1311
 #, c-format
 msgid "unable to create a SASL connection: %s"
 msgstr "impossible de créer une connexion SASL : %s"
 
-#: ../src/mn-client-session.c:1434
+#: ../src/mn-client-session.c:1358
 msgid "SASL asked for something we did not know, aborting SASL authentication"
 msgstr ""
 "SASL a demandé quelque chose que nous ne connaissions pas, annulation de "
 "l'authentification SASL"
 
-#: ../src/mn-client-session.c:1451
+#: ../src/mn-client-session.c:1375
 #, c-format
 msgid "%s, aborting SASL authentication"
 msgstr "%s, annulation de l'authentification SASL"
 
 #. compliance error
-#: ../src/mn-client-session.c:1456
+#: ../src/mn-client-session.c:1380
 #, c-format
 msgid "unable to decode Base64 input from server: %s"
 msgstr "impossible de décoder l'entrée Base64 du serveur : %s"
 
-#: ../src/mn-client-session.c:1492
+#: ../src/mn-client-session.c:1416
 #, c-format
 msgid "a SASL security layer of strength factor %i is now active"
 msgstr ""
 "une couche de sécurité SASL de facteur de force %i est maintenant active"
 
 #. a security layer is active but we can't retrieve maxoutbuf -> fatal
-#: ../src/mn-client-session.c:1497
+#: ../src/mn-client-session.c:1421
 #, c-format
 msgid "unable to get SASL_MAXOUTBUF property: %s"
 msgstr "impossible d'obtenir la propriété SASL_MAXOUTBUF : %s"
 
-#: ../src/mn-client-session.c:1503
+#: ../src/mn-client-session.c:1427
 #, c-format
 msgid "warning: unable to get SASL_SSF property: %s"
 msgstr "avertissement : impossible d'obtenir la propriété SASL_SSF : %s"
 
-#: ../src/mn-client-session.c:1662
+#: ../src/mn-client-session.c:1586
 msgid "unknown server error"
 msgstr "erreur serveur inconnue"
 
@@ -602,38 +683,53 @@ msgstr "Sujet"
 msgid "Sent"
 msgstr "Envoyé"
 
-#: ../src/mn-conf.c:282
+#: ../src/mn-conf.c:252
 msgid "A directory creation error has occurred"
 msgstr "Une erreur de création de répertoire s'est produite"
 
-#: ../src/mn-conf.c:283
+#: ../src/mn-conf.c:253
 #, c-format
 msgid "Unable to create directory \"%s\": %s."
-msgstr "Impossible de créer le répertoire \"%s\" : %s."
+msgstr "Impossible de créer le répertoire « %s » : %s."
 
-#: ../src/mn-conf.c:407
+#: ../src/mn-conf.c:355
+#, c-format
+msgid "cannot find default value of configuration key \"%s\""
+msgstr ""
+"impossible de trouver la valeur par défaut de la clé de configuration « %s »"
+
+#: ../src/mn-conf.c:360
+msgid ""
+"The default configuration has not been installed properly. Please check your "
+"Mail Notification installation."
+msgstr ""
+"La configuration par défaut n'a pas été installée correctement. Veuillez "
+"vérifier votre installation de l'avertisseur de courrier."
+
+#: ../src/mn-conf.c:454
 #, c-format
 msgid "recursively unsetting %s"
 msgstr "en train de supprimer récursivement %s"
 
-#: ../src/mn-conf.c:411
+#: ../src/mn-conf.c:458
 msgid "syncing the GConf database"
 msgstr "en train de synchroniser la base de données GConf"
 
-#: ../src/mn-conf.c:414
+#: ../src/mn-conf.c:461
 msgid "completed"
 msgstr "terminé"
 
-#: ../src/mn-custom-vfs-mailbox.gob:77
+#: ../src/mn-custom-vfs-mailbox.gob:75
 msgid "invalid location"
 msgstr "emplacement invalide"
 
-#: ../src/mn-evolution-folder-tree-control.gob:69
+#: ../src/mn-evolution-folder-tree-control.gob:70
 msgid "The currently selected URI"
 msgstr "L'URI actuellement sélectionnée"
 
 #. translators: header capitalization
 #: ../src/mn-evolution-mailbox-properties.gob:79
+#: ../src/mn-webmail-mailbox-properties.gob:95
 msgid "Folder"
 msgstr "Dossier"
 
@@ -642,23 +738,26 @@ msgid ""
 "Mail Notification can not contact Evolution. Make sure that Evolution is "
 "running and that the Evolution Jean-Yves Lefort's Mail Notification plugin "
 "is loaded."
-msgstr "L'avertisseur de courrier ne peut contacter Evolution. Assurez-vous qu'Evolution est en cours de fonctionnement et que l'extension Evolution \"Avertisseur de courrier de Jean-Yves Lefort\" est chargée."
+msgstr ""
+"L'avertisseur de courrier ne peut contacter Evolution. Assurez-vous "
+"qu'Evolution est en cours de fonctionnement et que l'extension Evolution « "
+"Avertisseur de courrier de Jean-Yves Lefort » est chargée."
 
-#: ../src/mn-evolution-mailbox.gob:78
+#: ../src/mn-evolution-mailbox.gob:80
 msgid "folder not found"
 msgstr "dossier non trouvé"
 
-#: ../src/mn-evolution-mailbox.gob:79
+#: ../src/mn-evolution-mailbox.gob:81
 msgid "message not found"
 msgstr "message non trouvé"
 
-#: ../src/mn-evolution-mailbox.gob:220
+#: ../src/mn-evolution-mailbox.gob:222
 msgid "unable to contact Evolution"
 msgstr "impossible de contacter Evolution"
 
 #: ../src/mn-evolution-plugin.c:102 ../src/mn-evolution-plugin.c:106
 msgid "Unable to activate the Mail Notification plugin"
-msgstr "Impossible d'activer l'extension \"Avertisseur de courrier\""
+msgstr "Impossible d'activer l'extension « Avertisseur de courrier »"
 
 #: ../src/mn-evolution-plugin.c:102
 #, c-format
@@ -669,7 +768,7 @@ msgstr ""
 "Bonobo n'a pu localiser le serveur %s. Veuillez vérifier votre installation "
 "de l'avertisseur de courrier."
 
-#: ../src/mn-evolution-plugin.c:106 ../src/mn-main.c:523
+#: ../src/mn-evolution-plugin.c:106 ../src/mn-main.c:544
 #, c-format
 msgid ""
 "Bonobo was unable to register the %s server. Please check your Mail "
@@ -678,31 +777,55 @@ msgstr ""
 "Bonobo n'a pu inscrire le serveur %s. Veuillez vérifier votre installation "
 "de l'avertisseur de courrier."
 
-#: ../src/mn-gmail-mailbox.gob:104
+#.
+#. * translators: GTK+ has the same message used in the same
+#. * context; please use the GTK+ translation for consistency
+#.
+#: ../src/mn-file-chooser-button.gob:183
+msgid "(None)"
+msgstr "(Aucun)"
+
+#. translators: header capitalization
+#: ../src/mn-gmail-mailbox-properties.gob:108
+msgid "Gmail Label"
+msgstr "Etiquette Gmail"
+
+#: ../src/mn-gmail-mailbox-properties.gob:110
+msgid "_Restrict to this label:"
+msgstr "_Restreindre à cette étiquette :"
+
+#: ../src/mn-gmail-mailbox.gob:162
 msgid "invalid feed location"
 msgstr "emplacement d'alimentation non valide"
 
-#: ../src/mn-gmail-mailbox.gob:118
+#: ../src/mn-gmail-mailbox.gob:183
 #, c-format
 msgid "retrieving feed from %s"
 msgstr "obtention de l'alimentation depuis %s en cours"
 
-#: ../src/mn-gmail-mailbox.gob:125
+#: ../src/mn-gmail-mailbox.gob:190
 #, c-format
 msgid "unable to retrieve feed: %s"
 msgstr "impossible d'obtenir l'alimentation : %s"
 
-#: ../src/mn-gmail-mailbox.gob:140 ../src/mn-gmail-mailbox.gob:191
+#: ../src/mn-gmail-mailbox.gob:199
+#, c-format
+msgid "feed retrieved successfully (%i byte)"
+msgid_plural "feed retrieved successfully (%i bytes)"
+msgstr[0] "données récupérées avec succès (%i octet)"
+msgstr[1] "données récupérées avec succès (%i octets)"
+
+#: ../src/mn-gmail-mailbox.gob:211 ../src/mn-gmail-mailbox.gob:262
 msgid "unable to parse feed"
 msgstr "impossible d'interpréter l'alimentation"
 
 #: ../src/mn-gmime-stream-vfs.gob:51
-#: ../src/mn-sylpheed-mailbox-backend.gob:209
+#: ../src/mn-sylpheed-mailbox-backend.gob:219
 #, c-format
 msgid "unable to read %s: %s"
 msgstr "impossible de lire %s : %s"
 
-#: ../src/mn-gmime-stream-vfs.gob:53
+#: ../src/mn-gmime-stream-vfs.gob:53 ../src/mn-webmail-mailbox.gob:136
 #, c-format
 msgid "unable to write to %s: %s"
 msgstr "impossible d'écrire vers %s : %s"
@@ -717,74 +840,81 @@ msgstr "impossible de chercher dans %s : %s"
 msgid "unable to tell position of %s: %s"
 msgstr "impossible de dire la position de %s : %s"
 
-#: ../src/mn-gmime-stream-vfs.gob:59 ../src/mn-mh-mailbox-backend.gob:174
+#: ../src/mn-gmime-stream-vfs.gob:59 ../src/mn-mh-mailbox-backend.gob:193
+#: ../src/mn-webmail-mailbox.gob:142
 #, c-format
 msgid "unable to close %s: %s"
 msgstr "impossible de fermer %s : %s"
 
+#: ../src/mn-hotmail-mailbox.gob:128 ../src/mn-imap-mailbox.gob:1454
+#: ../src/mn-pop3-mailbox.gob:1042
+msgid "authentication failed"
+msgstr "l'authentification a échoué"
+
 #. translators: header capitalization
-#: ../src/mn-imap-mailbox-properties.gob:118
+#: ../src/mn-imap-mailbox-properties.gob:112
 msgid "IMAP Mailbox"
 msgstr "Boîte aux lettres IMAP"
 
-#: ../src/mn-imap-mailbox-properties.gob:120
+#: ../src/mn-imap-mailbox-properties.gob:114
+#: ../src/mn-webmail-mailbox-properties.gob:97
 msgid "In_box"
 msgstr "_Boîte de réception"
 
-#: ../src/mn-imap-mailbox-properties.gob:125
+#: ../src/mn-imap-mailbox-properties.gob:119
+#: ../src/mn-webmail-mailbox-properties.gob:102
 msgid "_Other:"
-msgstr "Autr_e :"
+msgstr "_Autre :"
 
 #. translators: header capitalization
-#: ../src/mn-imap-mailbox-properties.gob:138
+#: ../src/mn-imap-mailbox-properties.gob:132
 msgid "Use the IDLE Extension"
 msgstr "Utiliser l'extension IDLE"
 
-#: ../src/mn-imap-mailbox-properties.gob:142
-#: ../ui/properties-dialog.glade.h:35
-msgid "_Never"
+#: ../src/mn-imap-mailbox-properties.gob:136
+msgid "IMAP connection tab|_Never"
 msgstr "Jamai_s"
 
-#: ../src/mn-imap-mailbox-properties.gob:143
+#: ../src/mn-imap-mailbox-properties.gob:137
 msgid "A_utodetect"
-msgstr "Auto_détecter"
+msgstr "_Autodétecter"
 
-#: ../src/mn-imap-mailbox-properties.gob:144
+#: ../src/mn-imap-mailbox-properties.gob:138
 msgid "Al_ways"
 msgstr "_Toujours"
 
-#: ../src/mn-imap-mailbox.gob:381
+#: ../src/mn-imap-mailbox.gob:375
 msgid "server did not send capabilities"
 msgstr "le serveur n'a pas envoyé ses possibilités"
 
-#: ../src/mn-imap-mailbox.gob:548
+#: ../src/mn-imap-mailbox.gob:542
 msgid "server advertised LOGINDISABLED, not using LOGIN authentication"
 msgstr ""
 "le serveur a annoncé LOGINDISABLED, pas d'utilisation de l'authentification "
 "LOGIN"
 
-#: ../src/mn-imap-mailbox.gob:549
+#: ../src/mn-imap-mailbox.gob:543
 msgid "unable to login"
 msgstr "impossible d'ouvrir la session"
 
-#: ../src/mn-imap-mailbox.gob:822
+#: ../src/mn-imap-mailbox.gob:816
 msgid "unable to fetch message"
 msgstr "impossible d'obtenir le message"
 
-#: ../src/mn-imap-mailbox.gob:838
+#: ../src/mn-imap-mailbox.gob:832
 msgid ""
 "\"Use the IDLE extension\" set to \"never\" in the mailbox properties, "
 "logging out"
 msgstr ""
-"la valeur de l'option \"Utiliser l'extension IDLE\" dans les propriétés de "
-"la boîte aux lettres est \"jamais\", fermeture de session"
+"la valeur de l'option « Utiliser l'extension IDLE » dans les propriétés de "
+"la boîte aux lettres est « jamais », fermeture de session"
 
-#: ../src/mn-imap-mailbox.gob:849
+#: ../src/mn-imap-mailbox.gob:843
 #, c-format
 msgid "the remote server runs %s, not using the IDLE extension"
 msgstr "le serveur distant utilise %s, l'extension IDLE ne sera pas utilisée"
 
-#: ../src/mn-imap-mailbox.gob:854
+#: ../src/mn-imap-mailbox.gob:848
 #, c-format
 msgid ""
 "the remote server runs %s, the IDLE extension might not function properly"
@@ -792,16 +922,16 @@ msgstr ""
 "le serveur distant utilise %s, il se peut que l'extension IDLE ne fonctionne "
 "pas correctement"
 
-#: ../src/mn-imap-mailbox.gob:863
+#: ../src/mn-imap-mailbox.gob:857
 msgid "the remote server does not support the IDLE extension, logging out"
 msgstr ""
 "le serveur distant ne supporte pas l'extension IDLE, fermeture de session"
 
-#: ../src/mn-imap-mailbox.gob:1368 ../src/mn-pop3-mailbox.gob:297
+#: ../src/mn-imap-mailbox.gob:1364 ../src/mn-pop3-mailbox.gob:295
 msgid "server does not support in-band SSL/TLS"
 msgstr "le serveur ne supporte pas le mode SSL/TLS interne"
 
-#: ../src/mn-imap-mailbox.gob:1392 ../src/mn-pop3-mailbox.gob:956
+#: ../src/mn-imap-mailbox.gob:1388 ../src/mn-pop3-mailbox.gob:957
 msgid ""
 "a SASL authentication mechanism was selected but SASL support has not been "
 "compiled in"
@@ -809,123 +939,133 @@ msgstr ""
 "un mécanisme d'authentification SASL a été sélectionné mais le support SASL "
 "n'a pas été inclus lors de la compilation"
 
-#: ../src/mn-imap-mailbox.gob:1402 ../src/mn-pop3-mailbox.gob:976
+#: ../src/mn-imap-mailbox.gob:1398 ../src/mn-pop3-mailbox.gob:977
 #, c-format
 msgid "unknown authentication mechanism \"%s\""
-msgstr "mécanisme d'authentification inconnu \"%s\""
+msgstr "mécanisme d'authentification inconnu « %s »"
 
-#: ../src/mn-imap-mailbox.gob:1434 ../src/mn-pop3-mailbox.gob:1012
+#: ../src/mn-imap-mailbox.gob:1430 ../src/mn-pop3-mailbox.gob:1013
 #, c-format
 msgid "disabling mechanism \"%s\" and retrying SASL authentication"
 msgstr ""
-"désactivation du mécanisme \"%s\" et nouvelle tentative d'authentification "
+"désactivation du mécanisme « %s » et nouvelle tentative d'authentification "
 "SASL"
 
-#: ../src/mn-imap-mailbox.gob:1446
+#: ../src/mn-imap-mailbox.gob:1442
 msgid "falling back to IMAP LOGIN authentication"
 msgstr "rétrogradation vers l'authentification IMAP LOGIN"
 
-#: ../src/mn-imap-mailbox.gob:1458 ../src/mn-pop3-mailbox.gob:1041
-msgid "authentication failed"
-msgstr "l'authentification a échoué"
-
 #. translators: header capitalization
-#: ../src/mn-mail-icon.gob:93
+#: ../src/mn-mail-icon.gob:89
 msgid "_Mail Reader"
 msgstr "_Lecteur de courrier"
 
 #. translators: header capitalization
-#: ../src/mn-mail-icon.gob:95
+#: ../src/mn-mail-icon.gob:91
 msgid "_Open Latest Message"
 msgstr "_Ouvrir le dernier message"
 
 #. translators: header capitalization
-#: ../src/mn-mail-icon.gob:97 ../src/mn-mailbox-view.gob:314
+#: ../src/mn-mail-icon.gob:96
+msgid "_Consider New Mail as Read"
+msgstr "_Considérer le nouveau courrier comme lu"
+
+#. translators: header capitalization
+#: ../src/mn-mail-icon.gob:98 ../src/mn-mailbox-view.gob:315
 msgid "_Update"
 msgstr "_Mettre à jour"
 
 #. translators: header capitalization
-#: ../src/mn-mail-icon.gob:104
+#: ../src/mn-mail-icon.gob:109
 msgid "R_emove From Notification Area"
 msgstr "_Enlever de la zone d'avertissement"
 
 #. translators: header capitalization
-#: ../src/mn-mailbox-properties-dialog.gob:95
+#: ../src/mn-mailbox-properties-dialog.gob:101
 #, c-format
 msgid "%s Properties"
 msgstr "Propriétés de %s"
 
 #. translators: header capitalization
-#: ../src/mn-mailbox-properties-dialog.gob:244
+#: ../src/mn-mailbox-properties-dialog.gob:258
 msgid "Add a Mailbox"
 msgstr "Ajouter une boîte aux lettres"
 
-#: ../src/mn-mailbox-view.gob:250
+#: ../src/mn-mailbox-view.gob:251
 msgid "A paste error has occurred"
 msgstr "Une erreur de collage s'est produite"
 
-#: ../src/mn-mailbox-view.gob:566
+#: ../src/mn-mailbox-view.gob:565
 #, c-format
 msgid "unhandled %s mailbox (%s)"
 msgstr "boîte aux lettres %s non prise en charge (%s)"
 
-#: ../src/mn-mailbox-view.gob:571
+#: ../src/mn-mailbox-view.gob:569
 #, c-format
 msgid "%s mailbox"
 msgstr "boîte aux lettres %s"
 
-#: ../src/mn-mailbox-view.gob:586
+#: ../src/mn-mailbox-view.gob:580
 msgid "detecting mailbox type..."
 msgstr "détection du type de boîte aux lettres en cours..."
 
-#: ../src/mn-mailbox.gob:507
+#: ../src/mn-mailbox.gob:573
+#, c-format
 msgid "\"type\" attribute missing"
-msgstr "attribut \"type\" manquant"
+msgstr "attribut « type » manquant"
 
-#: ../src/mn-mailbox.gob:514
+#: ../src/mn-mailbox.gob:580
 #, c-format
 msgid "unknown mailbox type \"%s\""
-msgstr "type de boîte aux lettres \"%s\" inconnu"
+msgstr "type de boîte aux lettres « %s » inconnu"
 
-#: ../src/mn-mailbox.gob:910
+#: ../src/mn-mailbox.gob:979
 #, c-format
 msgid "property \"%s\" has no value"
-msgstr "la propriété \"%s\" n'a pas de valeur"
+msgstr "la propriété « %s » n'a pas de valeur"
 
-#: ../src/mn-mailboxes.gob:241
+#: ../src/mn-mailbox.gob:1060 ../src/mn-mailbox.gob:1081
+#: ../src/mn-shell.gob:541
+#, c-format
+msgid "%s: %s"
+msgstr "%s : %s"
+
+#: ../src/mn-mailboxes.gob:253
 msgid "An error has occurred while importing old mailboxes"
 msgstr ""
 "Une erreur s'est produite lors de l'importation des anciennes boîtes aux "
 "lettres"
 
-#: ../src/mn-mailboxes.gob:267
+#: ../src/mn-mailboxes.gob:279
 msgid "Unable to load the mailboxes configuration"
 msgstr "Impossible de charger la configuration des boîtes aux lettres"
 
-#: ../src/mn-mailboxes.gob:313
+#: ../src/mn-mailboxes.gob:328
+#, c-format
 msgid "Unable to parse the XML document."
 msgstr "Impossible d'interpréter le document XML."
 
-#: ../src/mn-mailboxes.gob:320
+#: ../src/mn-mailboxes.gob:335
+#, c-format
 msgid "The root element is missing."
 msgstr "L'élément racine est manquant."
 
-#: ../src/mn-mailboxes.gob:326
+#: ../src/mn-mailboxes.gob:341
 #, c-format
 msgid "The root element \"%s\" is invalid."
-msgstr "L'élément racine \"%s\" est invalide."
+msgstr "L'élément racine « %s » est invalide."
 
-#: ../src/mn-mailboxes.gob:349
+#: ../src/mn-mailboxes.gob:363
 #, c-format
 msgid "On line %i: %s."
 msgstr "A la ligne %i : %s."
 
-#: ../src/mn-mailboxes.gob:354
+#: ../src/mn-mailboxes.gob:368
 #, c-format
 msgid "On line %i: unknown element \"%s\"."
-msgstr "A la ligne %i : élément \"%s\" inconnu."
+msgstr "A la ligne %i : élément « %s » inconnu."
 
-#: ../src/mn-mailboxes.gob:363
+#: ../src/mn-mailboxes.gob:377
 msgid "An error has occurred while loading the mailboxes configuration"
 msgid_plural "Errors have occurred while loading the mailboxes configuration"
 msgstr[0] ""
@@ -935,139 +1075,160 @@ msgstr[1] ""
 "Des erreurs se sont produites lors du chargement de la configuration des "
 "boîtes aux lettres"
 
-#: ../src/mn-mailboxes.gob:388
+#: ../src/mn-mailboxes.gob:402
 msgid "Unable to save the mailboxes configuration"
 msgstr "Impossible de sauvegarder la configuration des boîtes aux lettres"
 
-#: ../src/mn-mailboxes.gob:430 ../src/mn-vfs.c:240
+#: ../src/mn-mailboxes.gob:447 ../src/mn-vfs.c:240
 #, c-format
 msgid "Unable to remove %s: %s."
 msgstr "Impossible d'enlever %s : %s."
 
-#: ../src/mn-mailboxes.gob:438
+#: ../src/mn-mailboxes.gob:455
 #, c-format
 msgid "Unable to create %s: %s."
 msgstr "Impossible de créer %s : %s."
 
-#: ../src/mn-mailboxes.gob:445
+#: ../src/mn-mailboxes.gob:462
 #, c-format
 msgid "Unable to open %s for writing: %s."
 msgstr "Impossible d'ouvrir %s en mode écriture : %s."
 
-#: ../src/mn-mailboxes.gob:452
+#: ../src/mn-mailboxes.gob:469
+#, c-format
 msgid "Unable to write the XML document."
 msgstr "Impossible d'écrire le document XML."
 
-#: ../src/mn-mailboxes.gob:458
+#: ../src/mn-mailboxes.gob:475
 #, c-format
 msgid "Unable to close %s: %s."
 msgstr "Impossible de fermer %s : %s."
 
-#: ../src/mn-mailboxes.gob:468 ../src/mn-mailboxes.gob:475 ../src/mn-vfs.c:258
+#: ../src/mn-mailboxes.gob:485 ../src/mn-mailboxes.gob:492 ../src/mn-vfs.c:258
 #: ../src/mn-vfs.c:266
 #, c-format
 msgid "Unable to rename %s to %s: %s."
 msgstr "Impossible de renommer %s en %s : %s."
 
 #. non fatal
-#: ../src/mn-mailboxes.gob:481 ../src/mn-vfs.c:276
+#: ../src/mn-mailboxes.gob:498 ../src/mn-vfs.c:276
 #, c-format
 msgid "unable to delete %s: %s"
 msgstr "impossible de supprimer %s : %s"
 
-#: ../src/mn-mailboxes.gob:511
+#: ../src/mn-mailboxes.gob:528
 #, c-format
 msgid "%s has %i new message"
 msgid_plural "%s has %i new messages"
 msgstr[0] "%s a %i nouveau message"
 msgstr[1] "%s a %i nouveaux messages"
 
-#: ../src/mn-mailboxes.gob:537
+#: ../src/mn-mailboxes.gob:554
 #, c-format
 msgid "%s reported an error: %s"
 msgstr "%s a indiqué une erreur : %s"
 
-#: ../src/mn-maildir-mailbox-backend.gob:129
+#: ../src/mn-maildir-mailbox-backend.gob:130
 #, c-format
 msgid "unable to open folder \"%s\": %s"
-msgstr "impossible d'ouvrir le dossier \"%s\" : %s"
+msgstr "impossible d'ouvrir le dossier « %s » : %s"
 
-#: ../src/mn-maildir-mailbox-backend.gob:178
+#: ../src/mn-maildir-mailbox-backend.gob:183
 #, c-format
 msgid "unable to close folder \"%s\": %s"
-msgstr "impossible de fermer le dossier \"%s\" : %s"
+msgstr "impossible de fermer le dossier « %s » : %s"
 
-#: ../src/mn-maildir-mailbox-backend.gob:181
+#: ../src/mn-maildir-mailbox-backend.gob:186
 #, c-format
 msgid "error while reading folder \"%s\": %s"
-msgstr "erreur lors de la lecture du dossier \"%s\" : %s"
+msgstr "erreur lors de la lecture du dossier « %s » : %s"
 
-#: ../src/mn-main.c:110
+#: ../src/mn-maildir-message.gob:162
+msgid "Delete message?"
+msgstr "Supprimer le message?"
+
+#: ../src/mn-maildir-message.gob:202
+msgid "The message cannot be moved to the trash. Permanently delete it?"
+msgstr ""
+"Le message ne peut être déplacé vers la corbeille. Le supprimer de manière "
+"permanente ?"
+
+#: ../src/mn-maildir-message.gob:225
+#, c-format
+msgid ""
+"The message could not be moved to the trash (%s). Permanently delete it?"
+msgstr ""
+"Le message n'a pu être déplacé vers la corbeille (%s). Le supprimer de "
+"manière permanente ?"
+
+#: ../src/mn-main.c:115
 msgid "yes"
 msgstr "oui"
 
-#: ../src/mn-main.c:110
+#: ../src/mn-main.c:115
 msgid "no"
 msgstr "non"
 
-#: ../src/mn-main.c:143
+#: ../src/mn-main.c:146
 #, c-format
 msgid "%s version %s\n"
 msgstr "%s version %s\n"
 
-#: ../src/mn-main.c:148
+#: ../src/mn-main.c:151
+#, c-format
 msgid "Mailbox backends:\n"
 msgstr "Prises en charge de boîtes aux lettres :\n"
 
-#: ../src/mn-main.c:153
+#: ../src/mn-main.c:156
+#, c-format
 msgid "POP3 and IMAP features:\n"
 msgstr "Fonctionnalités POP3 et IMAP :\n"
 
-#: ../src/mn-main.c:158
-msgid "Sylpheed features:\n"
-msgstr "Fonctionnalités Sylpheed :\n"
-
-#: ../src/mn-main.c:206
+#: ../src/mn-main.c:209
 #, c-format
 msgid "A Bonobo exception (%s) has occurred in %s()."
 msgstr "Une exception Bonobo (%s) s'est produite dans %s()."
 
-#: ../src/mn-main.c:248
+#: ../src/mn-main.c:251
 #, c-format
 msgid "%s option ignored since Mail Notification is not already running"
 msgstr ""
 "option %s ignorée puisque l'avertisseur de courrier n'est pas déjà en cours "
 "d'exécution"
 
-#: ../src/mn-main.c:268
+#: ../src/mn-main.c:272
 msgid "Show version information"
 msgstr "Afficher les informations de version"
 
-#: ../src/mn-main.c:277
+#: ../src/mn-main.c:281
 msgid "Enable informational output"
 msgstr "Activer la sortie informationnelle"
 
-#: ../src/mn-main.c:286
+#: ../src/mn-main.c:290
 msgid "Display the properties dialog"
 msgstr "Afficher la boîte de dialogue contenant les propriétés"
 
-#: ../src/mn-main.c:295
+#: ../src/mn-main.c:299
 msgid "Display the about dialog"
-msgstr "Afficher la boîte de dialogue \"à propos\""
+msgstr "Afficher la boîte de dialogue « à propos »"
 
-#: ../src/mn-main.c:304
+#: ../src/mn-main.c:308
+msgid "Consider new mail as read"
+msgstr "Considérer le nouveau courrier comme lu"
+
+#: ../src/mn-main.c:317
 msgid "Update the mail status"
 msgstr "Mettre à jour le statut du courrier"
 
-#: ../src/mn-main.c:313
+#: ../src/mn-main.c:326
 msgid "Print a XML mail summary"
 msgstr "Afficher un aperçu XML du courrier"
 
-#: ../src/mn-main.c:322
+#: ../src/mn-main.c:335
 msgid "Unset obsolete GConf configuration"
 msgstr "Supprimer la configuration GConf obsolète"
 
-#: ../src/mn-main.c:331
+#: ../src/mn-main.c:344
 msgid "Quit Mail Notification"
 msgstr "Quitter l'avertisseur de courrier"
 
@@ -1075,11 +1236,11 @@ msgstr "Quitter l'avertisseur de courrier"
 #. * We cannot use mn_fatal_error_dialog() because gtk_init() has
 #. * not been called yet.
 #.
-#: ../src/mn-main.c:358
+#: ../src/mn-main.c:371
 msgid "multi-threading is not available"
 msgstr "le multi-threading n'est pas disponible"
 
-#: ../src/mn-main.c:412
+#: ../src/mn-main.c:425
 msgid ""
 "Bonobo could not locate the automation object. Please check your Mail "
 "Notification installation."
@@ -1087,24 +1248,24 @@ msgstr ""
 "Bonobo n'a pu localiser l'objet automation. Veuillez vérifier votre "
 "installation de l'avertisseur de courrier."
 
-#: ../src/mn-main.c:418
+#: ../src/mn-main.c:431
 msgid "quitting Mail Notification"
 msgstr "en train de quitter l'avertisseur de courrier"
 
-#: ../src/mn-main.c:422
+#: ../src/mn-main.c:435
 msgid "Mail Notification is not running"
 msgstr "L'avertisseur de courrier n'est pas en cours d'exécution"
 
-#: ../src/mn-main.c:437
+#: ../src/mn-main.c:450
 msgid "Unable to initialize the GnomeVFS library."
 msgstr "Impossible d'initialiser la bibliothèque GnomeVFS."
 
-#: ../src/mn-main.c:447
+#: ../src/mn-main.c:460
 msgid "An initialization error has occurred in Mail Notification"
 msgstr ""
 "Une erreur d'initialisation s'est produite dans l'avertisseur de courrier"
 
-#: ../src/mn-main.c:448
+#: ../src/mn-main.c:461
 msgid ""
 "Unable to initialize the notification library. Message popups will not be "
 "displayed."
@@ -1112,15 +1273,19 @@ msgstr ""
 "Impossible d'initialiser la bibliothèque d'avertissement. Les popups ne "
 "seront pas affichés."
 
-#: ../src/mn-main.c:486
+#: ../src/mn-main.c:499
+msgid "considering new mail as read"
+msgstr "considération du nouveau courrier comme étant lu"
+
+#: ../src/mn-main.c:504
 msgid "updating the mail status"
 msgstr "mise à jour du statut du courrier"
 
-#: ../src/mn-main.c:502
+#: ../src/mn-main.c:521
 msgid "Mail Notification is already running"
 msgstr "L'avertisseur de courrier est déjà en cours d'exécution"
 
-#: ../src/mn-main.c:519
+#: ../src/mn-main.c:540
 #, c-format
 msgid ""
 "Bonobo could not locate the %s file. Please check your Mail Notification "
@@ -1133,106 +1298,101 @@ msgstr ""
 msgid "unable to parse MIME message"
 msgstr "impossible d'interpréter le message MIME"
 
-#: ../src/mn-message.gob:145
+#: ../src/mn-message.gob:143
 msgid "Unknown"
 msgstr "Inconnu"
 
-#: ../src/mn-message.gob:208
-msgid "unterminated substitution"
-msgstr "substitution non terminée"
-
-#: ../src/mn-message.gob:247
-#, c-format
-msgid "unknown substitution \"%s\""
-msgstr "substitution \"%s\" inconnue"
-
-#: ../src/mn-message.gob:250
-msgid "empty substitution"
-msgstr "substitution vide"
-
-#: ../src/mn-message.gob:313 ../src/mn-util.c:1427
+#: ../src/mn-message.gob:220 ../src/mn-sound-player.gob:140
+#: ../src/mn-sound-player.gob:176 ../src/mn-util.c:1527
 #, c-format
 msgid "Unable to execute \"%s\": %s."
-msgstr "Impossible d'exécuter \"%s\" : %s"
+msgstr "Impossible d'exécuter « %s » : %s"
 
-#: ../src/mn-mh-mailbox-backend.gob:177
+#: ../src/mn-mh-mailbox-backend.gob:196
 #, c-format
 msgid "error while reading %s: %s"
 msgstr "erreur lors de la lecture de %s : %s"
 
-#: ../src/mn-mh-mailbox-backend.gob:190
+#: ../src/mn-mh-mailbox-backend.gob:210 ../src/mn-webmail-mailbox.gob:271
 #, c-format
 msgid "unable to open %s: %s"
 msgstr "impossible d'ouvrir %s : %s"
 
-#: ../src/mn-pi-mailbox-properties.gob:70
+#: ../src/mn-pi-mailbox-properties.gob:76
 msgid "_Standard"
 msgstr "_Standard"
 
-#: ../src/mn-pi-mailbox-properties.gob:71
+#: ../src/mn-pi-mailbox-properties.gob:77
 msgid "In-_band SSL/TLS"
 msgstr "SS_L/TLS interne"
 
-#: ../src/mn-pi-mailbox-properties.gob:72
+#: ../src/mn-pi-mailbox-properties.gob:78
 msgid "SSL/TLS on s_eparate port"
 msgstr "SSL/TLS sur port sépa_ré"
 
-#: ../src/mn-pi-mailbox-properties.gob:76
+#: ../src/mn-pi-mailbox-properties.gob:82
 msgid "_Server:"
 msgstr "_Serveur :"
 
 #. translators: header capitalization
-#: ../src/mn-pi-mailbox-properties.gob:96
+#: ../src/mn-pi-mailbox-properties.gob:102
 msgid "Connection Type"
 msgstr "Type de connexion"
 
-#: ../src/mn-pi-mailbox-properties.gob:140
+#: ../src/mn-pi-mailbox-properties.gob:149
 msgid "Port:"
 msgstr "Port :"
 
 #. translators: header capitalization
-#: ../src/mn-pi-mailbox-properties.gob:167
+#: ../src/mn-pi-mailbox-properties.gob:176
 msgid "Authentication"
 msgstr "Authentification"
 
-#: ../src/mn-pi-mailbox-properties.gob:171
+#: ../src/mn-pi-mailbox-properties.gob:180
 msgid "_Mechanism:"
 msgstr "_Mécanisme :"
 
-#: ../src/mn-pi-mailbox-properties.gob:205
+#: ../src/mn-pi-mailbox-properties.gob:214
 msgid "Connection"
 msgstr "Connexion"
 
-#: ../src/mn-pi-mailbox.gob:154
+#: ../src/mn-pi-mailbox.gob:147
 msgid "SSL/TLS support has not been compiled in"
 msgstr "le support SSL/TLS n'a pas été inclus lors de la compilation"
 
-#: ../src/mn-pi-mailbox.gob:320
+#: ../src/mn-pi-mailbox.gob:305
+msgid "missing certificate"
+msgstr "certificat manquant"
+
+#: ../src/mn-pi-mailbox.gob:339
 #, c-format
 msgid ""
-"Mail Notification was unable to log into %s mailbox %s, possibly because the "
-"credentials you have entered are invalid.\n"
+"Mail Notification was unable to trust \"%s\" (%s). It is possible that "
+"someone is intercepting your communication to obtain your confidential "
+"information.\n"
 "\n"
-"Please re-enter your credentials."
+"You should only connect to the server if you are certain you are connected "
+"to \"%s\". If you choose to connect to the server, this message will not be "
+"shown again."
 msgstr ""
-"L'avertisseur de courrier n'a pas été en mesure d'ouvrir une session dans la "
-"boîte aux lettres %s %s, peut-être parce que les données d'authentification "
-"que vous avez saisies sont invalides.\n"
+"L'avertisseur de courrier n'a pas été en mesure de faire confiance à « %s "
+"» (%s). Il est possible que quelqu'un soit en train d'intercepter votre "
+"communication afin d'obtenir vos informations confidentielles.\n"
 "\n"
-"Veuillez à nouveau saisir vos données d'authentification."
+"Vous devriez vous connecter au serveur uniquement si vous êtes certain que "
+"vous êtes connecté à « %s ». Si vous choisissez de vous connecter au "
+"serveur, ce message ne sera plus affiché."
 
-#: ../src/mn-pi-mailbox.gob:321
+#: ../src/mn-pi-mailbox.gob:353
 #, c-format
-msgid "Enter your credentials for %s mailbox %s."
-msgstr "Entrez vos données d'authentification pour la boîte aux lettres %s %s."
+msgid "Certificate fingerprint: %s."
+msgstr "Empreinte digitale du certificat: %s."
 
-#. keep the title in sync with gnome-authentication-manager
-#. translators: header capitalization
-#: ../src/mn-pi-mailbox.gob:364
-msgid "Authentication Required"
-msgstr "Authentification requise"
+#: ../src/mn-pi-mailbox.gob:360
+msgid "Connect to untrusted server?"
+msgstr "Se connecter au serveur non fiable ?"
 
-#: ../src/mn-pop3-mailbox.gob:345
+#: ../src/mn-pop3-mailbox.gob:343
 msgid "invalid arguments for the LOGIN-DELAY capability"
 msgstr "arguments invalides pour la possibilité LOGIN-DELAY"
 
@@ -1242,7 +1402,7 @@ msgstr "arguments invalides pour la possibilité LOGIN-DELAY"
 #. * servers nevertheless, by retrying without the SASL
 #. * initial client response.
 #.
-#: ../src/mn-pop3-mailbox.gob:486
+#: ../src/mn-pop3-mailbox.gob:484
 msgid ""
 "SASL authentication with initial client response failed, retrying without "
 "initial client response"
@@ -1250,128 +1410,133 @@ msgstr ""
 "l'authentification SASL avec réponse client SASL initiale a échoué, nouvel "
 "essai sans réponse client SASL initiale"
 
-#: ../src/mn-pop3-mailbox.gob:703
+#: ../src/mn-pop3-mailbox.gob:701
 msgid "unknown error"
 msgstr "erreur inconnue"
 
-#: ../src/mn-pop3-mailbox.gob:798
+#: ../src/mn-pop3-mailbox.gob:799
 #, c-format
 msgid "honouring LOGIN-DELAY, sleeping for %i second"
 msgid_plural "honouring LOGIN-DELAY, sleeping for %i seconds"
 msgstr[0] "attente de %i seconde afin d'obéir à LOGIN-DELAY"
 msgstr[1] "attente de %i secondes afin d'obéir à LOGIN-DELAY"
 
-#: ../src/mn-pop3-mailbox.gob:968
+#: ../src/mn-pop3-mailbox.gob:969
 msgid "server does not support APOP authentication"
 msgstr "le serveur ne supporte pas l'authentification APOP"
 
-#: ../src/mn-pop3-mailbox.gob:1024
+#: ../src/mn-pop3-mailbox.gob:1025
 msgid "falling back to APOP authentication"
 msgstr "rétrogradation vers l'authentification APOP"
 
-#: ../src/mn-pop3-mailbox.gob:1029
+#: ../src/mn-pop3-mailbox.gob:1030
 msgid "falling back to USER/PASS authentication"
 msgstr "rétrogradation vers l'authentification USER/PASS"
 
-#: ../src/mn-popup.gob:60 ../src/mn-standard-message-view.gob:63
+#: ../src/mn-popup.gob:61 ../src/mn-standard-message-view.gob:63
 msgid "Mailbox:"
 msgstr "Boîte aux lettres :"
 
-#: ../src/mn-popup.gob:62 ../src/mn-standard-message-view.gob:65
+#: ../src/mn-popup.gob:63 ../src/mn-standard-message-view.gob:65
 msgid "Unreadable message:"
 msgstr "Message non lisible :"
 
-#: ../src/mn-popup.gob:65 ../src/mn-standard-message-view.gob:68
+#: ../src/mn-popup.gob:66 ../src/mn-standard-message-view.gob:68
 msgid "From:"
 msgstr "De :"
 
-#: ../src/mn-popup.gob:66 ../src/mn-standard-message-view.gob:69
+#: ../src/mn-popup.gob:67 ../src/mn-standard-message-view.gob:69
 msgid "Subject:"
 msgstr "Sujet :"
 
-#: ../src/mn-popup.gob:128
+#: ../src/mn-popup.gob:129
 #, c-format
-msgid "configuration key %s: there is no action named `%s'"
-msgstr "clé de configuration %s: il n'y a pas d'action nommée `%s'"
+msgid "configuration key %s: there is no action named \"%s\""
+msgstr "clé de configuration %s : il n'y a pas d'action nommée « %s »"
 
 #. translators: header capitalization
-#: ../src/mn-popup.gob:141
+#: ../src/mn-popup.gob:142
 msgid "Open"
 msgstr "Ouvrir"
 
 #. translators: header capitalization
-#: ../src/mn-popup.gob:154
+#: ../src/mn-popup.gob:155
 msgid "Mark as Read"
 msgstr "Marquer comme lu"
 
 #. translators: header capitalization
-#: ../src/mn-popup.gob:167
+#: ../src/mn-popup.gob:168
 msgid "Mark as Spam"
 msgstr "Marquer comme indésirable"
 
 #. translators: header capitalization
-#: ../src/mn-popup.gob:180
+#: ../src/mn-popup.gob:181
 msgid "Delete"
-msgstr "Effacer"
+msgstr "Supprimer"
 
-#: ../src/mn-popup.gob:196
+#: ../src/mn-popup.gob:197
 msgid "Unable to open message"
 msgstr "Impossible d'ouvrir le message"
 
-#: ../src/mn-popup.gob:213
+#: ../src/mn-popup.gob:214
 msgid "Unable to mark message as read"
 msgstr "Impossible de marquer le message comme lu"
 
-#: ../src/mn-popup.gob:230
+#: ../src/mn-popup.gob:231
 msgid "Unable to mark message as spam"
 msgstr "Impossible de marquer le message comme indésirable"
 
-#: ../src/mn-popup.gob:247
+#: ../src/mn-popup.gob:248
 msgid "Unable to delete message"
-msgstr "Impossible d'effacer le message"
+msgstr "Impossible de supprimer le message"
 
-#: ../src/mn-popup.gob:306
+#: ../src/mn-popup.gob:310
 #, c-format
 msgid "unable to show popup: %s"
 msgstr "impossible d'afficher le popup : %s"
 
-#: ../src/mn-popup.gob:323
+#: ../src/mn-popup.gob:328
 #, c-format
 msgid "unable to close popup: %s"
 msgstr "impossible de fermer le popup : %s"
 
 #. we set the summary here because libnotify requires it
 #. translators: header capitalization
-#: ../src/mn-popup.gob:334
+#: ../src/mn-popup.gob:339
 msgid "New Message"
 msgstr "Nouveau message"
 
 #. translators: header capitalization
-#: ../src/mn-properties-dialog.gob:131 ../ui/properties-dialog.glade.h:20
+#: ../src/mn-properties-dialog.gob:117 ../ui/properties-dialog.glade.h:17
 msgid "Mail Notification Properties"
 msgstr "Propriétés de l'avertisseur de courrier"
 
 #. translators: "test" is an adjective, not a verb
-#: ../src/mn-properties-dialog.gob:136
+#: ../src/mn-properties-dialog.gob:122
 msgid "_Test messages"
 msgstr "_Messages de test"
 
-#: ../src/mn-properties-dialog.gob:276
+#: ../src/mn-properties-dialog.gob:256
 msgid "No mailbox selected."
 msgstr "Pas de boîte aux lettres sélectionnée."
 
-#: ../src/mn-properties-dialog.gob:281
+#: ../src/mn-properties-dialog.gob:261
 #, c-format
 msgid "%i mailbox selected."
 msgid_plural "%i mailboxes selected."
 msgstr[0] "%i boîte aux lettres sélectionnée"
 msgstr[1] "%i boîtes aux lettres sélectionnées"
 
-#: ../src/mn-shell.gob:224
+#: ../src/mn-shell.gob:219
+#, c-format
+msgid "received %s signal, exiting"
+msgstr "signal %s reçu, application quittée"
+
+#: ../src/mn-shell.gob:354
 msgid "No mail reader is configured"
 msgstr "Aucun lecteur de courrier n'est configuré"
 
-#: ../src/mn-shell.gob:225
+#: ../src/mn-shell.gob:355
 msgid ""
 "You can configure a mail reader by choosing <b>System → Preferences → "
 "Preferred Applications</b>."
@@ -1379,33 +1544,58 @@ msgstr ""
 "Vous pouvez configurer un lecteur de courrier en choisissant <b>Système → "
 "Préférences → Applications préférées</b>."
 
-#: ../src/mn-shell.gob:236 ../src/mn-shell.gob:242 ../src/mn-shell.gob:534
+#: ../src/mn-shell.gob:366 ../src/mn-shell.gob:372 ../src/mn-shell.gob:663
 msgid "Unable to open the latest message"
 msgstr "Impossible d'ouvrir le dernier message"
 
-#: ../src/mn-shell.gob:237
+#: ../src/mn-shell.gob:367
 #, c-format
 msgid "Messages of mailbox \"%s\" cannot be opened."
-msgstr "Les messages de la boîte aux lettres \"%s\" ne peuvent être ouverts."
+msgstr "Les messages de la boîte aux lettres « %s » ne peuvent être ouverts."
 
-#: ../src/mn-shell.gob:243 ../src/mn-shell.gob:462
+#: ../src/mn-shell.gob:373 ../src/mn-shell.gob:591
 msgid "You have no new mail."
 msgstr "Vous n'avez pas de nouveau courrier."
 
+#: ../src/mn-shell.gob:522
+#, c-format
+msgid "%s (%i)"
+msgstr "%s (%i)"
+
 #. translators: header capitalization
-#: ../src/mn-shell.gob:398
+#: ../src/mn-shell.gob:527
 msgid "Mailboxes Having New Mail"
 msgstr "Boîtes aux lettres ayant du nouveau courrier"
 
 #. translators: header capitalization
-#: ../src/mn-shell.gob:417
+#: ../src/mn-shell.gob:546
 msgid "Errors"
 msgstr "Erreurs"
 
 #. translators: header capitalization
-#: ../src/mn-shell.gob:433
+#: ../src/mn-shell.gob:562
 msgid "Mail Summary"
 msgstr "Aperçu du courrier"
+
+#: ../src/mn-sound-file-chooser-dialog.gob:54
+msgid "Select a File"
+msgstr "Sélectionnez un fichier"
+
+#: ../src/mn-sound-file-chooser-dialog.gob:64
+msgid "All files"
+msgstr "Tous les fichiers"
+
+#: ../src/mn-sound-file-chooser-dialog.gob:69
+msgid "Audio files"
+msgstr "Fichiers audio"
+
+#: ../src/mn-sound-player.gob:127
+msgid "Unable to play sound"
+msgstr "Impossible de lire le son"
+
+#: ../src/mn-sound-player.gob:129 ../src/mn-util.c:1526
+msgid "A command error has occurred in Mail Notification"
+msgstr "Une erreur de commande s'est produite dans l'avertisseur de courrier"
 
 #: ../src/mn-ssl.c:159
 msgid "unknown SSL/TLS error"
@@ -1415,52 +1605,49 @@ msgstr "erreur SSL/TLS inconnue"
 msgid "Sent:"
 msgstr "Envoyé :"
 
-#. translators: header capitalization
-#: ../src/mn-stock.c:30
-msgid "Select _All"
-msgstr "Sélectionner _tout"
-
-#. translators: header capitalization
-#: ../src/mn-stock.c:32
-msgid "Co_nnect"
-msgstr "Se co_nnecter"
-
-#: ../src/mn-sylpheed-mailbox-backend.gob:227
+#: ../src/mn-sylpheed-mailbox-backend.gob:239
 #, c-format
 msgid "unable to open folder: %s"
 msgstr "impossible d'ouvrir le dossier : %s"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:277
+#: ../src/mn-sylpheed-mailbox-backend.gob:294
 #, c-format
 msgid "unable to close folder: %s"
 msgstr "impossible de fermer le dossier : %s"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:280
+#: ../src/mn-sylpheed-mailbox-backend.gob:297
 #, c-format
 msgid "error while reading folder: %s"
 msgstr "erreur lors de la lecture du dossier : %s"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:424
+#: ../src/mn-sylpheed-mailbox-backend.gob:345
+#, c-format
+msgid "unable to set encoding: %s"
+msgstr "impossible de sélectionner la page de code : %s"
+
+#: ../src/mn-sylpheed-mailbox-backend.gob:434
+#, c-format
 msgid "unexpected end of file"
 msgstr "fin de fichier inattendue"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:437
+#: ../src/mn-sylpheed-mailbox-backend.gob:447
 #, c-format
 msgid "incompatible file version \"%i\""
-msgstr "version de fichier \"%i\" incompatible"
+msgstr "version de fichier « %i » incompatible"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:440
+#: ../src/mn-sylpheed-mailbox-backend.gob:450
+#, c-format
 msgid "file version missing"
 msgstr "version de fichier manquante"
 
-#: ../src/mn-sylpheed-mailbox-backend.gob:498
+#: ../src/mn-sylpheed-message.gob:55
 #, c-format
 msgid "Unable to read %s: %s."
 msgstr "Impossible de lire %s : %s."
 
 #: ../src/mn-system-vfs-mailbox-properties.gob:41
 #: ../src/mn-system-vfs-mailbox-properties.gob:49
-#: ../src/mn-system-vfs-mailbox.gob:46
+#: ../src/mn-system-vfs-mailbox.gob:47
 msgid "System mailbox"
 msgstr "Boîte aux lettres système"
 
@@ -1477,7 +1664,7 @@ msgstr ""
 "L'emplacement de votre boîte aux lettres système n'a pu être détecté. "
 "Vérifiez la variable d'environnement MAIL."
 
-#: ../src/mn-system-vfs-mailbox.gob:73
+#: ../src/mn-system-vfs-mailbox.gob:74
 msgid "system mailbox not found"
 msgstr "boîte aux lettres système non trouvée"
 
@@ -1496,70 +1683,74 @@ msgid "Mail Notification Properties Dialog"
 msgstr ""
 "Boîte de dialogue contenant les propriétés de l'avertisseur de courrier"
 
-#: ../src/mn-util.c:351
+#: ../src/mn-util.c:352
 #, c-format
-msgid "error loading image: %s"
-msgstr "erreur de chargement d'image : %s"
+msgid ""
+"Unable to load image \"%s\" (%s). Please check your Mail Notification "
+"installation."
+msgstr ""
+"Impossible de charger l'image « %s » (%s). Veuillez vérifier votre "
+"installation de l'avertisseur de courrier."
 
-#: ../src/mn-util.c:367
+#: ../src/mn-util.c:368
 #, c-format
 msgid ""
 "Unable to load interface \"%s\". Please check your Mail Notification "
 "installation."
 msgstr ""
-"Impossible de charger l'interface \"%s\". Veuillez vérifier votre "
+"Impossible de charger l'interface « %s ». Veuillez vérifier votre "
 "installation de l'avertisseur de courrier."
 
-#: ../src/mn-util.c:382
+#: ../src/mn-util.c:383
 #, c-format
 msgid ""
 "Widget \"%s\" not found in interface \"%s\". Please check your Mail "
 "Notification installation."
 msgstr ""
-"Elément \"%s\" non trouvé dans l'interface \"%s\". Veuillez vérifier votre "
+"Elément « %s » non trouvé dans l'interface « %s ». Veuillez vérifier votre "
 "installation de l'avertisseur de courrier."
 
-#: ../src/mn-util.c:451
+#: ../src/mn-util.c:452
 #, c-format
 msgid "Unable to open self as a module (%s)."
 msgstr "Impossible de s'auto-ouvrir en tant que module (%s)."
 
-#: ../src/mn-util.c:456
+#: ../src/mn-util.c:457
 #, c-format
 msgid ""
 "Signal handler \"%s\" not found. Please check your Mail Notification "
 "installation."
 msgstr ""
-"Gestionnaire de signal \"%s\" non trouvé. Veuillez vérifier votre "
+"Gestionnaire de signal « %s » non trouvé. Veuillez vérifier votre "
 "installation de l'avertisseur de courrier."
 
-#: ../src/mn-util.c:607 ../src/mn-util.c:630 ../src/mn-util.c:650
-#: ../src/mn-util.c:672
+#: ../src/mn-util.c:611 ../src/mn-util.c:634 ../src/mn-util.c:654
+#: ../src/mn-util.c:676
 msgid "A drag and drop error has occurred"
 msgstr "Une erreur de glisser-déposer s'est produite"
 
-#: ../src/mn-util.c:608
+#: ../src/mn-util.c:612
 msgid "An invalid location list has been received."
 msgstr "Une liste d'emplacements non valide a été reçue."
 
-#: ../src/mn-util.c:651
+#: ../src/mn-util.c:655
 msgid "An invalid Mozilla location has been received."
 msgstr "Un emplacement Mozilla non valide a été reçu."
 
-#: ../src/mn-util.c:727
+#: ../src/mn-util.c:731
 msgid "Unable to display help"
 msgstr "Impossible d'afficher l'aide"
 
-#: ../src/mn-util.c:739
+#: ../src/mn-util.c:743
 msgid "Unable to open link"
 msgstr "Impossible d'ouvrir le lien"
 
-#: ../src/mn-util.c:753
+#: ../src/mn-util.c:757
 #, c-format
 msgid "Unable to create a thread: %s."
 msgstr "Impossible de créer un thread : %s."
 
-#: ../src/mn-util.c:930
+#: ../src/mn-util.c:934
 #, c-format
 msgid ""
 "The following location is invalid:\n"
@@ -1578,68 +1769,79 @@ msgstr[1] ""
 "\n"
 "%s"
 
-#: ../src/mn-util.c:946
+#: ../src/mn-util.c:950
 msgid "A fatal error has occurred in Mail Notification"
 msgstr "Une erreur fatale s'est produite dans l'avertisseur de courrier"
 
-#: ../src/mn-util.c:990
+#: ../src/mn-util.c:994
 #, c-format
 msgid "unable to get current time: %s"
 msgstr "impossible d'obtenir l'heure courante : %s"
 
-#: ../src/mn-util.c:1359
+#: ../src/mn-util.c:1363
 #, c-format
 msgid "%i second ago"
 msgid_plural "%i seconds ago"
 msgstr[0] "il y a %i seconde"
 msgstr[1] "il y a %i secondes"
 
-#: ../src/mn-util.c:1363
+#: ../src/mn-util.c:1367
 #, c-format
 msgid "about %i minute ago"
 msgid_plural "about %i minutes ago"
 msgstr[0] "il y a approximativement %i minute"
 msgstr[1] "il y a approximativement %i minutes"
 
-#: ../src/mn-util.c:1368
+#: ../src/mn-util.c:1372
 #, c-format
 msgid "about %i hour ago"
 msgid_plural "about %i hours ago"
 msgstr[0] "il y a approximativement %i heure"
 msgstr[1] "il y a approximativement %i heures"
 
-#: ../src/mn-util.c:1373
+#: ../src/mn-util.c:1377
 #, c-format
 msgid "about %i day ago"
 msgid_plural "about %i days ago"
 msgstr[0] "il y a approximativement %i jour"
 msgstr[1] "il y a approximativement %i jours"
 
-#: ../src/mn-util.c:1378
+#: ../src/mn-util.c:1382
 #, c-format
 msgid "about %i week ago"
 msgid_plural "about %i weeks ago"
 msgstr[0] "il y a approximativement %i semaine"
 msgstr[1] "il y a approximativement %i semaines"
 
-#: ../src/mn-util.c:1391
+#: ../src/mn-util.c:1395
 msgid "unknown date"
 msgstr "date inconnue"
 
-#: ../src/mn-util.c:1426
-msgid "A command error has occurred in Mail Notification"
-msgstr "Une erreur de commande s'est produite dans l'avertisseur de courrier"
+#: ../src/mn-util.c:1456
+#, c-format
+msgid "unterminated substitution"
+msgstr "substitution non terminée"
 
-#: ../src/mn-vfs-mailbox.gob:249
+#: ../src/mn-util.c:1495
+#, c-format
+msgid "unknown substitution \"%s\""
+msgstr "substitution « %s » inconnue"
+
+#: ../src/mn-util.c:1498
+#, c-format
+msgid "empty substitution"
+msgstr "substitution vide"
+
+#: ../src/mn-vfs-mailbox.gob:255
 #, c-format
 msgid "unable to monitor %s (%s), poll mode activated"
 msgstr "impossible de surveiller %s (%s), vérification explicite activée"
 
-#: ../src/mn-vfs-mailbox.gob:421
+#: ../src/mn-vfs-mailbox.gob:447
 msgid "unknown mailbox format"
 msgstr "format de boîte aux lettres inconnu"
 
-#: ../src/mn-vfs-mailbox.gob:421
+#: ../src/mn-vfs-mailbox.gob:447
 msgid "does not exist"
 msgstr "n'existe pas"
 
@@ -1648,29 +1850,81 @@ msgstr "n'existe pas"
 msgid "Unable to write %s: %s."
 msgstr "Impossible d'écrire %s : %s."
 
+#: ../src/mn-webmail-mailbox.gob:87
+#, c-format
+msgid "unable to create a temporary file: %s"
+msgstr "impossible de créer un fichier temporaire : %s"
+
+#: ../src/mn-webmail-mailbox.gob:94
+#, c-format
+msgid "unable to change the permissions of the temporary file: %s"
+msgstr "impossible de modifier les permissions du fichier temporaire : %s"
+
+#: ../src/mn-webmail-mailbox.gob:187
+msgid "configuration:"
+msgstr "configuration :"
+
+#: ../src/mn-webmail-mailbox.gob:215
+#, c-format
+msgid "running %s"
+msgstr "exécution de %s"
+
+#: ../src/mn-webmail-mailbox.gob:219
+#, c-format
+msgid "cannot execute \"%s\": %s"
+msgstr "impossible d'exécuter « %s » : %s"
+
+#: ../src/mn-webmail-mailbox.gob:224
+msgid "standard output:"
+msgstr "sortie standard :"
+
+#: ../src/mn-webmail-mailbox.gob:225
+msgid "standard error output:"
+msgstr "sortie d'erreur standard :"
+
+#. translators: %s is a program name, as in "unknown fetchyahoo failure"
+#: ../src/mn-webmail-mailbox.gob:243
+#, c-format
+msgid "unknown %s failure"
+msgstr "échec inconnu de %s"
+
 #: ../src/mn-xml.c:54
 #, c-format
 msgid ""
 "property \"%s\": unable to transform string \"%s\" into a value of type \"%s"
 "\""
 msgstr ""
-"propriété \"%s\" : impossible de transformer la chaîne de caractères \"%s\" "
-"en une valeur de type \"%s\""
+"propriété « %s » : impossible de transformer la chaîne de caractères « %s » "
+"en une valeur de type « %s »"
+
+#: ../src/mn-yahoo-mailbox.gob:73
+#, c-format
+msgid "unable to change the permissions of %s: %s"
+msgstr "impossible de changer les permissions de %s : %s"
+
+#: ../src/mn-yahoo-mailbox.gob:84
+#, c-format
+msgid "unable to create %s: %s"
+msgstr "impossible de créer %s : %s"
+
+#: ../src/mn-yahoo-mailbox.gob:203
+msgid "delay between mail checks too small"
+msgstr "délai entre les vérifications de courrier trop faible"
 
 #. translators: header capitalization
-#: ../ui/mailbox-properties-dialog.glade.h:1 ../ui/properties-dialog.glade.h:8
+#: ../ui/mailbox-properties-dialog.glade.h:1 ../ui/properties-dialog.glade.h:6
 msgid "<span weight=\"bold\">General</span>"
 msgstr "<span weight=\"bold\">Général</span>"
 
 #. translators: header capitalization
 #: ../ui/mailbox-properties-dialog.glade.h:2
-#: ../ui/properties-dialog.glade.h:17
+#: ../ui/properties-dialog.glade.h:14
 msgid "General"
 msgstr "Général"
 
 #: ../ui/mailbox-properties-dialog.glade.h:3
 msgid "Mailbox _name:"
-msgstr "No_m de la boîte aux lettres :"
+msgstr "N_om de la boîte aux lettres :"
 
 #: ../ui/mailbox-properties-dialog.glade.h:4
 msgid "Mailbox _type:"
@@ -1683,7 +1937,7 @@ msgstr "Par dé_faut"
 
 #: ../ui/mailbox-properties-dialog.glade.h:7
 msgid "_Delay between mail checks:"
-msgstr "Délai entre les _vérifications de courrier :"
+msgstr "_Délai entre les vérifications de courrier :"
 
 #. translators: header capitalization
 #: ../ui/mailbox-properties-dialog.glade.h:9
@@ -1691,12 +1945,12 @@ msgid "_Use Default"
 msgstr "_Par défaut"
 
 #: ../ui/mailbox-properties-dialog.glade.h:10
-#: ../ui/properties-dialog.glade.h:41
+#: ../ui/properties-dialog.glade.h:30
 msgid "minutes"
 msgstr "minutes"
 
 #: ../ui/mailbox-properties-dialog.glade.h:11
-#: ../ui/properties-dialog.glade.h:42
+#: ../ui/properties-dialog.glade.h:31
 msgid "seconds"
 msgstr "secondes"
 
@@ -1707,103 +1961,69 @@ msgstr "<span weight=\"bold\">Action du click</span>"
 
 #. translators: header capitalization
 #: ../ui/properties-dialog.glade.h:4
-msgid "<span weight=\"bold\">Commands</span>"
-msgstr "<span weight=\"bold\">Commandes</span>"
-
-#. translators: header capitalization
-#: ../ui/properties-dialog.glade.h:6
 msgid "<span weight=\"bold\">Expiration</span>"
 msgstr "<span weight=\"bold\">Expiration</span>"
 
 #. translators: header capitalization
-#: ../ui/properties-dialog.glade.h:10
+#: ../ui/properties-dialog.glade.h:8
 msgid "<span weight=\"bold\">Mailbox List</span>"
 msgstr "<span weight=\"bold\">Liste des boîtes aux lettres</span>"
 
 #. translators: header capitalization
-#: ../ui/properties-dialog.glade.h:12
+#: ../ui/properties-dialog.glade.h:10
 msgid "<span weight=\"bold\">Position</span>"
 msgstr "<span weight=\"bold\">Position</span>"
 
-#. translators: header capitalization
-#: ../ui/properties-dialog.glade.h:14
-msgid "<span weight=\"bold\">Tooltip Mail Summary</span>"
-msgstr "<span weight=\"bold\">Aperçu du courrier dans le ballon d'aide</span>"
-
-#: ../ui/properties-dialog.glade.h:15
+#: ../ui/properties-dialog.glade.h:11
 msgid "A_fter:"
 msgstr "Ap_rès :"
 
-#: ../ui/properties-dialog.glade.h:18
+#: ../ui/properties-dialog.glade.h:12
+msgid "Co_nsider new mail as read"
+msgstr "_Considérer le nouveau courrier comme lu"
+
+#: ../ui/properties-dialog.glade.h:15
 msgid "In the p_opup stack"
-msgstr "Dans la pile des p_opups"
+msgstr "Dans la _pile des popups"
 
 #. translators: header capitalization
-#: ../ui/properties-dialog.glade.h:22
+#: ../ui/properties-dialog.glade.h:19
 msgid "Message Popups"
 msgstr "Popups"
 
+#: ../ui/properties-dialog.glade.h:20
+msgid "Play a _sound when new mail arrives:"
+msgstr "_Lire un son lorsque du nouveau courrier arrive :"
+
 #. translators: header capitalization
-#: ../ui/properties-dialog.glade.h:24
+#: ../ui/properties-dialog.glade.h:22
 msgid "Status Icon"
 msgstr "Icône de statut"
 
-#: ../ui/properties-dialog.glade.h:25
-msgid "When _new mail arrives:"
-msgstr "Quand du _nouveau courrier arrive :"
-
-#: ../ui/properties-dialog.glade.h:26
-msgid "When all mail has _been read:"
-msgstr "Quand _tout le courrier a été lu :"
-
-#: ../ui/properties-dialog.glade.h:27
-msgid "_Always display"
-msgstr "_Toujours afficher"
-
-#: ../ui/properties-dialog.glade.h:28
+#: ../ui/properties-dialog.glade.h:23
 msgid "_Attached to the status icon"
 msgstr "A_ttachés à l'icône de statut"
 
-#: ../ui/properties-dialog.glade.h:29
-msgid "_Blink on errors"
-msgstr "_Clignoter lors d'erreurs"
-
-#: ../ui/properties-dialog.glade.h:30
+#: ../ui/properties-dialog.glade.h:24
 msgid "_Desktop default"
-msgstr "Valeur par _défaut du bureau"
+msgstr "_Valeur par défaut du bureau"
 
-#: ../ui/properties-dialog.glade.h:31
-msgid "_Display seen mail"
-msgstr "Afficher le courrier _vu"
-
-#: ../ui/properties-dialog.glade.h:32
-msgid "_Display this dialog"
-msgstr "Afficher cette _boîte de dialogue"
-
-#: ../ui/properties-dialog.glade.h:33
+#: ../ui/properties-dialog.glade.h:25
 msgid "_Enable message popups"
-msgstr "A_ctiver les popups"
+msgstr "_Activer les popups"
 
-#: ../ui/properties-dialog.glade.h:34
+#: ../ui/properties-dialog.glade.h:26
 msgid "_Launch the mail reader"
-msgstr "_Exécuter le lecteur de courrier"
+msgstr "E_xécuter le lecteur de courrier"
 
-#: ../ui/properties-dialog.glade.h:36
-msgid "_None"
-msgstr "Aucu_n"
-
-#: ../ui/properties-dialog.glade.h:37
+#: ../ui/properties-dialog.glade.h:27
 msgid "_Open the latest message"
 msgstr "_Ouvrir le dernier message"
 
-#: ../ui/properties-dialog.glade.h:38
+#: ../ui/properties-dialog.glade.h:28
 msgid "_Update the mail status"
 msgstr "Mett_re à jour le statut du courrier"
 
-#: ../ui/properties-dialog.glade.h:39
-msgid "icon tooltip's mail summary layout|Co_mpact"
-msgstr "Co_mpact"
-
-#: ../ui/properties-dialog.glade.h:40
-msgid "icon tooltip's mail summary layout|_Standard"
-msgstr "_Standard"
+#: ../ui/properties-dialog.glade.h:29
+msgid "message popups tab|_Never"
+msgstr "Jamai_s"

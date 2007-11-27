@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -45,6 +45,12 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
   protected GtkWidget *conn_radio[MN_PI_MAILBOX_N_CONNECTION_TYPES];
   protected GtkWidget *port_spin[MN_PI_MAILBOX_N_CONNECTION_TYPES];
   protected GtkWidget *auth_combo;
+
+  property BOOLEAN complete (override)
+    get
+    {
+      g_value_set_boolean(VAL, self_is_complete(self));
+    };
 
   class_init (class)
   {
@@ -121,7 +127,10 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
 		     "swapped-signal::changed", mn_mailbox_properties_notify_default_name, self,
 		     NULL);
 
-    g_signal_connect_swapped(auth->username_entry, "changed", G_CALLBACK(mn_mailbox_properties_notify_default_name), self);
+    g_object_connect(auth->username_entry,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_complete, self,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_default_name, self,
+		     NULL);
   }
 
   private void
@@ -289,5 +298,25 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
       *server = gtk_entry_get_text(GTK_ENTRY(self->server_entry));
     if (port)
       *port = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(self->port_spin[_connection_type]));
+  }
+
+  protected gboolean
+    is_complete (self)
+  {
+    const char *server;
+
+    if (! mn_authenticated_mailbox_properties_is_complete(MN_AUTHENTICATED_MAILBOX_PROPERTIES(self)))
+      return FALSE;
+
+    server = gtk_entry_get_text(GTK_ENTRY(self->server_entry));
+    if (! *server)
+      return FALSE;
+
+#if ! WITH_SSL
+    if (! gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL])))
+      return FALSE;
+#endif /* WITH_SSL */
+
+    return TRUE;
   }
 }

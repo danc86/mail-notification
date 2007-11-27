@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -173,6 +173,24 @@ typedef struct
 					 const char		**username,
 					 const char		**password);
 #endif /* WITH_SASL */
+
+#if WITH_SSL
+  /*
+   * ssl_trust_server (required if SSL support was compiled in):
+   *
+   * Decides whether to trust the given server after SSL verification
+   * failed. If the server provided a certificate, the @fingerprint
+   * and @verify_error arguments will be set.
+   *
+   * Return value: must return %TRUE if the given server should be trusted.
+   */
+  gboolean  (*ssl_trust_server)		(MNClientSession	*session,
+					 const char		*server,
+					 int			port,
+					 const char		*fingerprint,
+					 const char		*verify_error,
+					 MNClientSessionPrivate	*priv);
+#endif /* WITH_SSL */
 } MNClientSessionCallbacks;
 
 gboolean mn_client_session_run (const MNClientSessionState *states,

@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -49,19 +49,21 @@ static GStaticMutex listeners_mutex = G_STATIC_MUTEX_INIT;
 class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 {
   public char *uri destroywith g_free;
-  property STRING uri (link, flags = MN_MAILBOX_PARAM_PERMANENT | MN_MAILBOX_PARAM_REQUIRED);
+  property STRING uri (link, flags = MN_MAILBOX_PARAM_LOAD_SAVE | MN_MAILBOX_PARAM_REQUIRED);
 
   /*
    * Evolution might not be running when we instantiate the mailbox,
    * so we cache the folder name.
    */
   public char *folder_name destroywith g_free;
-  property STRING folder_name (link, flags = MN_MAILBOX_PARAM_PERMANENT | MN_MAILBOX_PARAM_REQUIRED);
+  property STRING folder_name (link, flags = MN_MAILBOX_PARAM_LOAD_SAVE | MN_MAILBOX_PARAM_REQUIRED);
 
   private MNBonoboUnknown *glue;
   private MNLockedBonoboListener *listener;
 
   private time_t last_browsed;
+
+  private GMutex *mutex = {g_mutex_new()} destroywith g_mutex_free;
 
   class_init (class)
   {
@@ -146,9 +148,9 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 	  {
 	    time_t now = mn_time();
 
-	    mn_reentrant_mailbox_lock(MN_REENTRANT_MAILBOX(self));
+	    self_lock(self);
 	    selfp->last_browsed = now;
-	    mn_reentrant_mailbox_unlock(MN_REENTRANT_MAILBOX(self));
+	    self_unlock(self);
 
 	    mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self));
 	  }
@@ -162,7 +164,7 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
   }
 
   override (MN:Reentrant:Mailbox) void
-    reentrant_check (MNReentrantMailbox *mailbox, unsigned long check_id)
+    reentrant_check (MNReentrantMailbox *mailbox, int check_id)
   {
     Self *self = SELF(mailbox);
     GNOME_MailNotification_Evolution_Glue glue;
@@ -170,7 +172,7 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
     CORBA_sequence_GNOME_MailNotification_Evolution_Message *message_seq;
     time_t last_browsed;
 
-    mn_reentrant_mailbox_lock(mailbox);
+    self_lock(self);
 
     if (! selfp->glue)
       {
@@ -209,22 +211,22 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 
     last_browsed = selfp->last_browsed;
 
-    mn_reentrant_mailbox_unlock(mailbox);
+    self_unlock(self);
 
     if (glue == CORBA_OBJECT_NIL)
       {
-	GDK_THREADS_ENTER();
-
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(mailbox, check_id))
+	if (! mn_reentrant_mailbox_check_aborted(mailbox, check_id))
 	  {
+	    GDK_THREADS_ENTER();
+
 	    mn_mailbox_set_error(MN_MAILBOX(self), _("unable to contact Evolution"));
 
 	    if (mn_mailbox_get_poll(MN_MAILBOX(self)))
 	      mn_mailbox_set_poll(MN_MAILBOX(self), FALSE);
-	  }
 
-	gdk_flush();
-	GDK_THREADS_LEAVE();
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	  }
 
 	return;
       }
@@ -235,11 +237,11 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 
     if (BONOBO_EX(&env))
       {
-	GDK_THREADS_ENTER();
-
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(mailbox, check_id))
+	if (! mn_reentrant_mailbox_check_aborted(mailbox, check_id))
 	  {
 	    char *errmsg;
+
+	    GDK_THREADS_ENTER();
 
 	    errmsg = bonobo_exception_get_text(&env);
 	    mn_mailbox_set_error(MN_MAILBOX(self), "%s", errmsg);
@@ -252,10 +254,10 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 	       * re-enable polling.
 	       */
 	      mn_mailbox_set_poll(MN_MAILBOX(self), TRUE);
-	  }
 
-	gdk_flush();
-	GDK_THREADS_LEAVE();
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	  }
       }
     else
       {
@@ -284,7 +286,7 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 
 	GDK_THREADS_ENTER();
 
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(mailbox, check_id))
+	if (! mn_reentrant_mailbox_check_aborted(mailbox, check_id))
 	  {
 	    mn_mailbox_set_messages(MN_MAILBOX(self), messages);
 
@@ -302,5 +304,17 @@ class MN:Evolution:Mailbox from MN:Reentrant:Mailbox
 
     CORBA_exception_free(&env);
     bonobo_object_release_unref(glue, NULL);
+  }
+
+  private void
+    lock (self)
+  {
+    g_mutex_lock(selfp->mutex);
+  }
+
+  private void
+    unlock (self)
+  {
+    g_mutex_unlock(selfp->mutex);
   }
 }

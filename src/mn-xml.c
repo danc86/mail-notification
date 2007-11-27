@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -37,7 +37,7 @@ mn_xml_import_properties (GObject *object, xmlNode *node)
 
   properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(object), &n_properties);
   for (i = 0; i < n_properties; i++)
-    if ((properties[i]->flags & MN_XML_PARAM_IMPORT_EXPORT) != 0)
+    if ((properties[i]->flags & MN_XML_PARAM_IMPORT) != 0)
       {
 	char *content;
 
@@ -73,7 +73,7 @@ mn_xml_export_properties (GObject *object, xmlNode *node)
 
   properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(object), &n_properties);
   for (i = 0; i < n_properties; i++)
-    if ((properties[i]->flags & MN_XML_PARAM_IMPORT_EXPORT) != 0)
+    if ((properties[i]->flags & MN_XML_PARAM_EXPORT) != 0)
       {
 	GValue value = { 0, };
 	gboolean is_default;

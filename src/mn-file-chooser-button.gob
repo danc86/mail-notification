@@ -1,0 +1,285 @@
+/*
+ * MNFileChooserButton - a non-broken partial reimplementation of
+ * GtkFileChooserButton (GtkFileChooserButton is unusable, see
+ * http://bugzilla.gnome.org/show_bug.cgi?id=327243)
+ *
+ * Based on GtkFileChooserButton,
+ * Copyright (c) 2004 James M. Cape <jcape@ignore-your.tv>
+ *
+ * Mail Notification
+ * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+requires 2.0.14
+
+%headertop{
+#include <gtk/gtk.h>
+%}
+
+%h{
+typedef GtkFileChooserDialog *(*MNFileChooserButtonCreateDialogFunction) (gpointer data);
+%}
+
+%privateheader{
+#include <libgnomevfs/gnome-vfs.h>
+%}
+
+%{
+#include "config.h"
+#include <glib/gi18n.h>
+#include <gnome.h>
+#include <eel/eel.h>
+#include "mn-util.h"
+%}
+
+class MN:File:Chooser:Button from Gtk:HBox
+{
+  private char *filename destroywith g_free;
+  property STRING filename (export)
+    get
+    {
+      g_value_set_string(VAL, selfp->filename);
+    }
+    set
+    {
+      g_free(selfp->filename);
+      selfp->filename = g_value_dup_string(VAL);
+
+      self_update(self);
+
+      if (selfp->dialog)
+	gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(selfp->dialog), selfp->filename);
+    };
+
+  private MNFileChooserButtonCreateDialogFunction create_dialog;
+  private gpointer create_dialog_data;
+
+  private GtkWidget *image;
+  private GtkWidget *label;
+  private GtkWidget *dialog unrefwith gtk_widget_destroy;
+
+  private GnomeVFSAsyncHandle *async_handle unrefwith gnome_vfs_async_cancel;
+
+  init (self)
+  {
+    GtkWidget *button;
+    GtkWidget *box;
+    GtkWidget *separator;
+    GtkWidget *image;
+
+    button = gtk_button_new();
+    gtk_container_add(GTK_CONTAINER(self), button);
+    gtk_widget_show(button);
+
+    box = gtk_hbox_new(FALSE, 4);
+    gtk_container_add(GTK_CONTAINER(button), box);
+    gtk_widget_show(box);
+
+    selfp->image = gtk_image_new();
+    gtk_box_pack_start(GTK_BOX(box), selfp->image, FALSE, FALSE, 0);
+    gtk_widget_show(selfp->image);
+
+    selfp->label = gtk_label_new(NULL);
+    gtk_label_set_ellipsize(GTK_LABEL(selfp->label), PANGO_ELLIPSIZE_END);
+    gtk_misc_set_alignment(GTK_MISC(selfp->label), 0.0, 0.5);
+    gtk_container_add(GTK_CONTAINER(box), selfp->label);
+    gtk_widget_show(selfp->label);
+
+    separator = gtk_vseparator_new();
+    gtk_box_pack_start(GTK_BOX(box), separator, FALSE, FALSE, 0);
+    gtk_widget_show(separator);
+
+    image = gtk_image_new_from_stock(GTK_STOCK_OPEN, GTK_ICON_SIZE_MENU);
+    gtk_box_pack_start(GTK_BOX(box), image, FALSE, FALSE, 0);
+    gtk_widget_show(image);
+
+    g_signal_connect(button, "clicked", G_CALLBACK(self_clicked_h), self);
+
+    self_update(self);
+  }
+
+  private void
+    clicked_h (GtkButton *button, gpointer data)
+  {
+    Self *self = data;
+
+    if (! selfp->dialog)
+      {
+	/* translators: header capitalization */
+	selfp->dialog = GTK_WIDGET(selfp->create_dialog(selfp->create_dialog_data));
+	g_assert(GTK_IS_FILE_CHOOSER_DIALOG(selfp->dialog));
+
+	eel_add_weak_pointer(&selfp->dialog);
+
+	if (selfp->filename)
+	  gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(selfp->dialog), selfp->filename);
+
+	g_signal_connect(selfp->dialog, "response", G_CALLBACK(self_response_h), self);
+      }
+
+    if (! GTK_WIDGET_VISIBLE(selfp->dialog))
+      {
+	GtkWindow *parent;
+
+	parent = mn_widget_get_parent_window(GTK_WIDGET(self));
+	if (parent)
+	  {
+	    if (parent != gtk_window_get_transient_for(GTK_WINDOW(selfp->dialog)))
+	      gtk_window_set_transient_for(GTK_WINDOW(selfp->dialog), parent);
+
+	    gtk_window_set_modal(GTK_WINDOW(selfp->dialog), gtk_window_get_modal(parent));
+	  }
+      }
+
+    mn_window_present_from_event(GTK_WINDOW(selfp->dialog));
+  }
+
+  private void
+    update (self)
+  {
+    GnomeVFSURI *uri = NULL;
+
+    if (selfp->async_handle)
+      {
+	gnome_vfs_async_cancel(selfp->async_handle);
+	selfp->async_handle = NULL;
+      }
+
+    if (selfp->filename && *selfp->filename)
+      {
+	char *text_uri;
+	char *base;
+
+	base = g_path_get_basename(selfp->filename);
+	gtk_label_set_text(GTK_LABEL(selfp->label), base);
+	g_free(base);
+
+	text_uri = gnome_vfs_get_uri_from_local_path(selfp->filename);
+	if (text_uri)
+	  {
+	    uri = gnome_vfs_uri_new(text_uri);
+	    g_free(text_uri);
+	  }
+      }
+    else
+      /*
+       * translators: GTK+ has the same message used in the same
+       * context; please use the GTK+ translation for consistency
+       */
+      gtk_label_set_text(GTK_LABEL(selfp->label), _("(None)"));
+
+    /*
+     * Do not use MN_STOCK_UNKNOWN: we want to appear exactly as a
+     * GtkFileChooserButton.
+     */
+    gtk_image_set_from_icon_name(GTK_IMAGE(selfp->image), "stock_unknown", GTK_ICON_SIZE_MENU);
+
+    if (uri)
+      {
+	GList *uri_list = NULL;
+
+	uri_list = g_list_append(uri_list, uri);
+
+	g_object_ref(self);
+	gnome_vfs_async_get_file_info(&selfp->async_handle,
+				      uri_list,
+				      GNOME_VFS_FILE_INFO_GET_MIME_TYPE
+				      | GNOME_VFS_FILE_INFO_FOLLOW_LINKS,
+				      GNOME_VFS_PRIORITY_DEFAULT,
+				      self_get_file_info_cb,
+				      self);
+
+	gnome_vfs_uri_unref(uri);
+	g_list_free(uri_list);
+      }
+  }
+
+  private void
+    get_file_info_cb (GnomeVFSAsyncHandle *handle, GList *results, gpointer data)
+  {
+    Self *self = data;
+
+    GDK_THREADS_ENTER();
+
+    if (results)
+      {
+	GnomeVFSGetFileInfoResult *result = results->data;
+
+	if (result->result == GNOME_VFS_OK
+	    && (result->file_info->valid_fields & GNOME_VFS_FILE_INFO_FIELDS_MIME_TYPE) != 0)
+	  {
+	    char *uri;
+	    char *icon_name;
+
+	    uri = gnome_vfs_get_uri_from_local_path(selfp->filename);
+	    g_assert(uri != NULL);
+
+	    icon_name = gnome_icon_lookup(gtk_icon_theme_get_default(),
+					  NULL,
+					  uri,
+					  NULL,
+					  result->file_info,
+					  result->file_info->mime_type,
+					  GNOME_ICON_LOOKUP_FLAGS_NONE,
+					  NULL);
+
+	    g_free(uri);
+
+	    if (icon_name)
+	      {
+		gtk_image_set_from_icon_name(GTK_IMAGE(selfp->image), icon_name, GTK_ICON_SIZE_MENU);
+		g_free(icon_name);
+	      }
+	  }
+      }
+
+    selfp->async_handle = NULL;
+    g_object_unref(self);
+
+    /* do not call gdk_flush(), we're normally in the main thread */
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    response_h (GtkDialog *dialog, int response, gpointer user_data)
+  {
+    Self *self = user_data;
+
+    if (response == GTK_RESPONSE_ACCEPT)
+      {
+	char *filename;
+
+	filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+	self_set_filename(self, filename);
+	g_free(filename);
+      }
+
+    gtk_widget_destroy(GTK_WIDGET(dialog));
+  }
+
+  public GtkWidget *
+    new (MNFileChooserButtonCreateDialogFunction create_dialog (check null),
+	 gpointer data)
+  {
+    Self *self = GET_NEW;
+
+    selfp->create_dialog = create_dialog;
+    selfp->create_dialog_data = data;
+
+    return GTK_WIDGET(self);
+  }
+}

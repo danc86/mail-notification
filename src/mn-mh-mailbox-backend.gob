@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -44,6 +44,25 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
     MN_VFS_MAILBOX_BACKEND_CLASS(class)->format = "MH";
   }
 
+  override (G:Object) GObject *
+    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  {
+    GObject *object;
+    MNVFSMailboxBackend *backend;
+
+    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
+    backend = MN_VFS_MAILBOX_BACKEND(object);
+
+    /*
+     * There is no standard way of locking a MH mailbox, so avoid race
+     * conditions by setting a check latency of 3 seconds.
+     */
+
+    backend->check_latency = 3000;
+
+    return object;
+  }
+
   override (MN:VFS:Mailbox:Backend) void
     monitor_cb (MNVFSMailboxBackend *backend,
 		const char *info_uri,
@@ -59,7 +78,7 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	if (filename)
 	  {
 	    if (! strcmp(filename, SEQUENCES_FILE) || mn_str_isnumeric(filename))
-	      mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(backend->mailbox));
+	      mn_vfs_mailbox_backend_queue_check(backend);
 
 	    g_free(filename);
 	  }
@@ -82,7 +101,7 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
   }
 
   override (MN:VFS:Mailbox:Backend) void
-    check (MNVFSMailboxBackend *backend, unsigned long check_id)
+    check (MNVFSMailboxBackend *backend, int check_id)
   {
     GnomeVFSURI *sequences_uri;
     GnomeVFSResult result;
@@ -164,7 +183,7 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
 
 	GDK_THREADS_ENTER();
 
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+	if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 	  {
 	    if (result == GNOME_VFS_ERROR_EOF || result == GNOME_VFS_OK)
 	      {
@@ -184,13 +203,15 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
       }
     else
       {
-	GDK_THREADS_ENTER();
+	if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
+	  {
+	    GDK_THREADS_ENTER();
 
-	if (! mn_reentrant_mailbox_check_aborted_unlocked(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
-	  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open %s: %s"), SEQUENCES_FILE, gnome_vfs_result_to_string(result));
+	    mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open %s: %s"), SEQUENCES_FILE, gnome_vfs_result_to_string(result));
 
-	gdk_flush();
-	GDK_THREADS_LEAVE();
+	    gdk_flush();
+	    GDK_THREADS_LEAVE();
+	  }
       }
   }
 }

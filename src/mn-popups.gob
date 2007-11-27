@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -33,6 +33,11 @@ requires 2.0.14
 
 class MN:Popups from G:Object
 {
+  /*
+   * Maps message IDs to popups. If a message is known but has no
+   * popup (because popups were disabled when that message was first
+   * encountered), the value is NULL.
+   */
   private GHashTable *popups = {g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify) mn_g_object_null_unref)} destroywith g_hash_table_destroy;
 
   init (self)
@@ -45,6 +50,30 @@ class MN:Popups from G:Object
 						   NULL);
 
     g_signal_connect(mn_shell->mailboxes, "messages-changed", G_CALLBACK(self_messages_changed_h), self);
+  }
+
+  private void
+    close_cb (const char *id, MNPopup *popup, gpointer user_data)
+  {
+    if (popup)
+      mn_popup_close(popup);
+  }
+
+  private void
+    close_popups (self)
+  {
+    g_hash_table_foreach(selfp->popups, (GHFunc) self_close_cb, NULL);
+  }
+
+  override (G:Object) void
+    finalize (GObject *object)
+  {
+    Self *self = SELF(object);
+
+    /* close popups on exit */
+    self_close_popups(self);
+
+    PARENT_HANDLER(object);
   }
 
   private void
@@ -68,17 +97,53 @@ class MN:Popups from G:Object
     self_update(self, TRUE);
   }
 
-  private gboolean
-    clean_cb (const char *id,
-	      MNPopup *popup,
-	      gpointer user_data)
+  private int
+    popups_show_timestamp_compare_cb (MNPopup *a, MNPopup *b)
   {
-    GHashTable *messages = user_data;
+    int cmp;
 
+    cmp = a->show_timestamp.tv_sec - b->show_timestamp.tv_sec;
+    if (cmp != 0)
+      return cmp;
+
+    return a->show_timestamp.tv_usec - b->show_timestamp.tv_usec;
+  }
+
+  private void
+    get_visible_popups_cb (const char *id, MNPopup *popup, GSList **list)
+  {
+    if (popup && popup->visible)
+      *list = g_slist_insert_sorted(*list, popup, (GCompareFunc) self_popups_show_timestamp_compare_cb);
+  }
+
+  /* returns the visible popups sorted by show timestamp, oldest first */
+  private GSList *
+    get_visible_popups (self)
+  {
+    GSList *popups = NULL;
+
+    g_hash_table_foreach(selfp->popups, (GHFunc) self_get_visible_popups_cb, &popups);
+
+    return popups;
+  }
+
+  private gboolean
+    close_and_remove_cb (const char *id, MNPopup *popup, gpointer user_data)
+  {
+    if (popup != NULL)
+      mn_popup_close(popup);
+
+    return TRUE;		/* remove */
+  }
+
+  private gboolean
+    close_and_remove_stale_cb (const char *id, MNPopup *popup, GHashTable *messages)
+  {
     if (! g_hash_table_lookup(messages, id))
       {
 	if (popup != NULL)
 	  mn_popup_close(popup);
+
 	return TRUE;		/* remove */
       }
     else
@@ -88,46 +153,127 @@ class MN:Popups from G:Object
   private void
     update (self, gboolean reshow_current_popups)
   {
-    GHashTable *messages;
     GSList *l;
 
-    /* remove notifications whose message no longer exists */
-
-    messages = g_hash_table_new(g_str_hash, g_str_equal);
-    MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
+    if (reshow_current_popups)
+      /* we have to reshow the popups, so close them */
+      g_hash_table_foreach_remove(selfp->popups, (GHRFunc) self_close_and_remove_cb, NULL);
+    else
       {
-	MNMessage *message = l->data;
-	g_hash_table_insert(messages, message->id, message);
+	GHashTable *messages_hash;
+
+	/* close and remove stale popups */
+
+	messages_hash = g_hash_table_new(g_str_hash, g_str_equal);
+	MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
+	  {
+	    MNMessage *message = l->data;
+	    g_hash_table_insert(messages_hash, message->id, message);
+	  }
+
+	g_hash_table_foreach_remove(selfp->popups, (GHRFunc) self_close_and_remove_stale_cb, messages_hash);
+	g_hash_table_destroy(messages_hash);
       }
 
-    g_hash_table_foreach_remove(selfp->popups, (GHRFunc) self_clean_cb, messages);
-    g_hash_table_destroy(messages);
-
-    /* send notifications for new messages */
-
-    MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
+    if (eel_gconf_get_boolean(MN_CONF_POPUPS_ENABLED))
       {
-	MNMessage *message = l->data;
-	MNPopup *popup = NULL;
-	gpointer ptr;
+	GPtrArray *messages;	/* for O(1) length retrieval and indexing */
+	GSList *visible_popups;
+	int num_visible_popups;
+	int popup_limit;
+	int new_popup_count;
+	int messages_to_popup;	/* the number of messages to popup */
+	int i;
 
-	if (g_hash_table_lookup_extended(selfp->popups, message->id, NULL, &ptr))
+	if (mn_conf_get_enum_value(MN_TYPE_POPUP_POSITION, MN_CONF_POPUPS_POSITION) == MN_POPUP_POSITION_ATTACHED)
+	  /* the popup is attached to the icon: allow at most one popup */
+	  popup_limit = 1;
+	else
+	  popup_limit = eel_gconf_get_integer(MN_CONF_POPUPS_LIMIT);
+
+	/* build a list of messages which are not already known */
+
+	messages = g_ptr_array_new();
+
+	MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
 	  {
-	    MNPopup *cur_popup = ptr;
+	    MNMessage *message = l->data;
+	    gpointer ptr;
 
-	    if (reshow_current_popups && cur_popup && cur_popup->visible)
-	      mn_popup_close(cur_popup);
-	    else
-	      continue;
+	    if (! g_hash_table_lookup_extended(selfp->popups, message->id, NULL, &ptr))
+	      g_ptr_array_add(messages, message);
 	  }
 
-	if (eel_gconf_get_boolean(MN_CONF_POPUPS_ENABLED))
+	visible_popups = self_get_visible_popups(self);
+	num_visible_popups = g_slist_length(visible_popups);
+
+	new_popup_count = num_visible_popups + messages->len;
+	if (new_popup_count > popup_limit)
 	  {
+	    int to_remove;
+
+	    /* make room for n new popups by closing the n oldest popups */
+
+	    to_remove = new_popup_count - popup_limit;
+	    to_remove = MIN(num_visible_popups, to_remove);
+
+	    while (to_remove > 0)
+	      {
+		MNPopup *oldest;
+
+		g_assert(visible_popups != NULL);
+
+		oldest = visible_popups->data;
+		mn_popup_close(oldest);
+
+		visible_popups = g_slist_delete_link(visible_popups, visible_popups);
+		to_remove--;
+	      }
+	  }
+
+	g_slist_free(visible_popups);
+
+	messages_to_popup = MIN(messages->len, popup_limit);
+
+	/*
+	 * Below we iterate over the messages array backwards because
+	 * it is sorted by sent time most recent first, while we want
+	 * to popup the oldest messages first.
+	 */
+
+	/* register the messages which we will not popup */
+
+	for (i = messages->len - 1; i >= messages_to_popup; i--)
+	  {
+	    MNMessage *message = g_ptr_array_index(messages, i);
+
+	    g_hash_table_replace(selfp->popups, g_strdup(message->id), NULL);
+	  }
+
+	/* popup the first messages_to_popup messages */
+
+	for (i = messages_to_popup - 1; i >= 0; i--)
+	  {
+	    MNMessage *message = g_ptr_array_index(messages, i);
+	    MNPopup *popup;
+
 	    popup = mn_popup_new(message);
 	    mn_popup_show(popup);
+
+	    g_hash_table_replace(selfp->popups, g_strdup(message->id), popup);
 	  }
 
-	g_hash_table_replace(selfp->popups, g_strdup(message->id), popup);
+	g_ptr_array_free(messages, TRUE);
+      }
+    else
+      {
+	/* register the new messages */
+
+	MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
+	  {
+	    MNMessage *message = l->data;
+	    g_hash_table_replace(selfp->popups, g_strdup(message->id), NULL);
+	  }
       }
   }
 

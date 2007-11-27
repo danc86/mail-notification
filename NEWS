@@ -1,3 +1,120 @@
+---
+ Note: below, bug numbers refer to the old bug tracker
+ (https://savannah.nongnu.org/bugs/?group=mailnotify).
+---
+
+5.0 Release Candidate 1			November 27, 2007
+
+	* Core changes:
+		* A "Play a sound when new mail arrives" option has
+		  been added
+		* Yahoo! Mail support has been added (requires
+		  fetchyahoo)
+		* Windows Live Hotmail support has been added
+		  (requires GetLive)
+		* A "consider new mail as read" action has been added
+		  (#18241)
+		* An optional message count has been added over the
+		  icon (#18241)
+		* The "Display the properties dialog" click action was
+		  not very useful and has been removed
+		* The size of the status icon is now dynamically
+		  adjusted when the size of the notification area
+		  changes
+		* The mailbox list icon selection algorithm has been
+		  made more coherent; the "timer" icon was confusing
+		  and has been removed
+		* In order to simplify the properties dialog, several
+		  options have been removed (they are however still
+		  available in GConf)
+		* The "Delay between mail checks" spin buttons did not
+		  retain a value typed in manually: fixed (#19379)
+		* If a mailbox was added or removed while the "Test
+		  messages" option was enabled, a bogus mailbox was
+		  added to the configuration file: fixed
+		* If some GConf default values are missing, MN will
+		  now refuse to run. This ensures that MN will not
+		  behave unexpectedly because of unproper
+		  installation.
+		* The simultaneous number of popups is now limited
+		  (/apps/mail-notification/popups/limit)
+		* New messages are no longer cleared when a mailbox
+		  error occurs. This way, already shown message popups
+		  will not unduly reappear after the error is unset
+		  (https://bugs.launchpad.net/ubuntu/+source/mail-notification/+bug/78487).
+		* Message popups are now closed when MN exits
+		* Minor bugs have been fixed (#20266, #20352, #20353)
+		* Mail Notification is now licensed under the terms of
+		  the GNU General Public License version 3
+		* The documentation is now licensed under the terms of
+		  the GNU Free Documentation License version 1.2
+
+	* Gmail, IMAP and POP3 changes:
+		* Passwords are now encrypted, using GNOME
+		  Keyring. Note that I do not endorse the flawed GNOME
+		  Keyring approach of granting passwords an
+		  encryption-worth status while ignoring other
+		  sensitive data. Furthermore, at the time of this
+		  writing, GNOME Keyring does not seem to prevent the
+		  memory it uses for storing the passwords from being
+		  swapped out to disk. However, despite these flaws,
+		  it has been observed that GNOME Keyring has
+		  beneficial psychological effects on some users. For
+		  increased psychological well-being, MN even moves
+		  the plain text passwords it finds in mailboxes.xml
+		  to the keyring.
+		* Filling in the username in the mailbox properties is
+		  now mandatory again (it had been optional since 2.0)
+
+	* IMAP and POP3 changes:
+		* The "Connect to untrusted server?" dialog is now
+		  closed when the mailbox is removed
+
+	* Gmail changes:
+		* Label support has been added
+
+	* IMAP changes:
+		* IMAP URLs (RFC 2192) having no path component are
+		  now handled properly again
+
+	* POP3 changes:
+		* The RSA MD5 implementation has been replaced by the
+		  glibc implementation because the RSA license is
+		  incompatible with the GPL (#21138)
+
+	* Maildir changes:
+		* The delete message action has been implemented
+
+	* MH changes:
+		* Race conditions with the MDA and MUA are now
+		  avoided, using a delay-based workaround
+
+	* Evolution changes:
+		* The Evolution 2.12 API change which caused the build
+		  to fail has been adapted to; as a consequence, MN
+		  now requires Evolution 2.12 or superior (#20904)
+		* The configure script now properly uses the
+		  unversioned evolution-plugin package which was
+		  introduced with Evolution 2.10 (#20904, #20124)
+
+	* Sylpheed changes:
+		* The delay-based race condition avoidance code now
+		  works regardless of the underlying file monitor
+		  implementation
+		* Claws Mail mailboxes (which contain both a
+		  .mh_sequences and a .sylpheed_mark file) are now
+		  detected as Sylpheed mailboxes rather than as MH
+		  mailboxes: this removes the need to use rcvstore
+		  from procmail
+		* The --enable-sylpheed-locking configure option has
+		  been removed: the appropriate race condition
+		  avoidance strategy is now automatically detected at
+		  runtime
+
+	* Updated translations:
+		* French
+		* Polish (Tomasz Sałaciński)
+
 4.1					June 26, 2007
 
 	* Core changes:

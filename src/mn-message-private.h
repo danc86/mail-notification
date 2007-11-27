@@ -17,7 +17,7 @@ extern "C" {
 typedef enum
 {
   /* include in the XML summary and allow as a command format */
-  MN_MESSAGE_PARAM_EXPORT	= MN_XML_PARAM_IMPORT_EXPORT,
+  MN_MESSAGE_PARAM_EXPORT	= MN_XML_PARAM_EXPORT,
 } MNMessageParamFlags;
 
 #line 24 "mn-message-private.h"

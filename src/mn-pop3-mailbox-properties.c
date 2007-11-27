@@ -55,7 +55,6 @@ static void mn_pop3_mailbox_properties_init (MNPOP3MailboxProperties * self) G_G
 
 enum {
 	PROP_0,
-	PROP_COMPLETE,
 	PROP_DEFAULT_NAME
 };
 
@@ -104,10 +103,10 @@ GET_NEW_VARG (const char *first, ...)
 	return ret;
 }
 
-#line 80 "mn-pop3-mailbox-properties.gob"
+#line 58 "mn-pop3-mailbox-properties.gob"
 static void 
 mn_pop3_mailbox_properties_class_init (MNPOP3MailboxPropertiesClass * class G_GNUC_UNUSED)
-#line 111 "mn-pop3-mailbox-properties.c"
+#line 110 "mn-pop3-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox:Properties::class_init"
 	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
@@ -117,32 +116,29 @@ mn_pop3_mailbox_properties_class_init (MNPOP3MailboxPropertiesClass * class G_GN
 	g_object_class->get_property = ___object_get_property;
     {
 	g_object_class_override_property (g_object_class,
-		PROP_COMPLETE,
-		"complete");
-	g_object_class_override_property (g_object_class,
 		PROP_DEFAULT_NAME,
 		"default_name");
     }
  {
-#line 81 "mn-pop3-mailbox-properties.gob"
+#line 59 "mn-pop3-mailbox-properties.gob"
 
     MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
 
     p_class->type = "pop3";
     p_class->combo_label = "POP3";
   
-#line 135 "mn-pop3-mailbox-properties.c"
+#line 131 "mn-pop3-mailbox-properties.c"
  }
 }
 #undef __GOB_FUNCTION__
-#line 88 "mn-pop3-mailbox-properties.gob"
+#line 66 "mn-pop3-mailbox-properties.gob"
 static void 
 mn_pop3_mailbox_properties_init (MNPOP3MailboxProperties * self G_GNUC_UNUSED)
-#line 142 "mn-pop3-mailbox-properties.c"
+#line 138 "mn-pop3-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:POP3:Mailbox:Properties::init"
  {
-#line 89 "mn-pop3-mailbox-properties.gob"
+#line 67 "mn-pop3-mailbox-properties.gob"
 
     MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
     int i;
@@ -153,7 +149,7 @@ mn_pop3_mailbox_properties_init (MNPOP3MailboxProperties * self G_GNUC_UNUSED)
     for (i = 0; i < MN_PI_MAILBOX_N_CONNECTION_TYPES; i++)
       gtk_spin_button_set_value(GTK_SPIN_BUTTON(pi->port_spin[i]), mn_pop3_mailbox_default_ports[i]);
   
-#line 157 "mn-pop3-mailbox-properties.c"
+#line 153 "mn-pop3-mailbox-properties.c"
  }
 }
 #undef __GOB_FUNCTION__
@@ -170,34 +166,9 @@ ___object_get_property (GObject *object,
 	self = MN_POP3_MAILBOX_PROPERTIES (object);
 
 	switch (property_id) {
-	case PROP_COMPLETE:
-		{
-#line 42 "mn-pop3-mailbox-properties.gob"
-
-      MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
-      gboolean complete;
-      const char *server;
-
-      mn_pi_mailbox_properties_get_contents(pi,
-					    NULL,
-					    NULL,
-					    &server,
-					    NULL);
-
-      complete = *server != 0;
-#if ! WITH_SSL
-      if (complete)
-	complete = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL]));
-#endif /* WITH_SSL */
-
-      g_value_set_boolean(VAL, complete);
-    
-#line 196 "mn-pop3-mailbox-properties.c"
-		}
-		break;
 	case PROP_DEFAULT_NAME:
 		{
-#line 64 "mn-pop3-mailbox-properties.gob"
+#line 42 "mn-pop3-mailbox-properties.gob"
 
       const char *username;
       const char *server;
@@ -213,7 +184,7 @@ ___object_get_property (GObject *object,
 
       g_value_take_string(VAL, mn_pop3_mailbox_build_name(username, server));
     
-#line 217 "mn-pop3-mailbox-properties.c"
+#line 188 "mn-pop3-mailbox-properties.c"
 		}
 		break;
 	default:

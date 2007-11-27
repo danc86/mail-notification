@@ -72,8 +72,13 @@ struct _MNShellClass {
  */
 GType	mn_shell_get_type	(void);
 MNShell * 	mn_shell_new	(void);
-void 	mn_shell_display_properties_dialog	(MNShell * self);
-void 	mn_shell_display_about_dialog	(MNShell * self);
+void 	mn_shell_consider_new_mail_as_read	(MNShell * self);
+void 	mn_shell_update	(MNShell * self);
+void 	mn_shell_quit	(MNShell * self);
+void 	mn_shell_display_properties_dialog	(MNShell * self,
+					guint32 timestamp);
+void 	mn_shell_display_about_dialog	(MNShell * self,
+					guint32 timestamp);
 void 	mn_shell_add_mailbox_properties_dialog	(MNShell * self,
 					MNMailboxPropertiesDialog * dialog);
 MNMailboxPropertiesDialog * 	mn_shell_get_mailbox_properties_dialog	(MNShell * self,
@@ -85,9 +90,9 @@ extern MNShell *mn_shell;
 
 
 typedef enum {
-	MN_ACTION_DISPLAY_PROPERTIES_DIALOG,
 	MN_ACTION_LAUNCH_MAIL_READER,
 	MN_ACTION_OPEN_LATEST_MESSAGE,
+	MN_ACTION_CONSIDER_NEW_MAIL_AS_READ,
 	MN_ACTION_UPDATE_MAIL_STATUS
 } MNAction;
 #define MN_TYPE_ACTION mn_action_get_type()

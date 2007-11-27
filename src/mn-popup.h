@@ -40,6 +40,7 @@ struct _MNPopup {
 	NotifyNotification __parent__;
 	/*< public >*/
 	gboolean visible;
+	GTimeVal show_timestamp;
 	/*< private >*/
 	MNPopupPrivate *_priv;
 };

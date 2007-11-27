@@ -60,8 +60,10 @@ GType	mn_gmail_mailbox_properties_get_type	(void);
  * Argument wrapping macros
  */
 #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+#define MN_GMAIL_MAILBOX_PROPERTIES_GET_PROP_COMPLETE(arg)	"complete", __extension__ ({gboolean *z = (arg); z;})
 #define MN_GMAIL_MAILBOX_PROPERTIES_GET_PROP_DEFAULT_NAME(arg)	"default_name", __extension__ ({gchar **z = (arg); z;})
 #else /* __GNUC__ && !__STRICT_ANSI__ */
+#define MN_GMAIL_MAILBOX_PROPERTIES_GET_PROP_COMPLETE(arg)	"complete",(gboolean *)(arg)
 #define MN_GMAIL_MAILBOX_PROPERTIES_GET_PROP_DEFAULT_NAME(arg)	"default_name",(gchar **)(arg)
 #endif /* __GNUC__ && !__STRICT_ANSI__ */
 

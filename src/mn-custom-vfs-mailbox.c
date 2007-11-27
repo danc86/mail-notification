@@ -27,9 +27,8 @@
 #include "config.h"
 #include <glib/gi18n.h>
 #include "mn-mailbox-private.h"
-#include "mn-stock.h"
 
-#line 33 "mn-custom-vfs-mailbox.c"
+#line 32 "mn-custom-vfs-mailbox.c"
 /* self casting macros */
 #define SELF(x) MN_CUSTOM_VFS_MAILBOX(x)
 #define SELF_CONST(x) MN_CUSTOM_VFS_MAILBOX_CONST(x)
@@ -110,9 +109,9 @@ ___finalize(GObject *obj_self)
 	MNCustomVFSMailbox *self G_GNUC_UNUSED = MN_CUSTOM_VFS_MAILBOX (obj_self);
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 35 "mn-custom-vfs-mailbox.gob"
+#line 34 "mn-custom-vfs-mailbox.gob"
 	if(self->uri) { g_free ((gpointer) self->uri); self->uri = NULL; }
-#line 116 "mn-custom-vfs-mailbox.c"
+#line 115 "mn-custom-vfs-mailbox.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -122,10 +121,10 @@ mn_custom_vfs_mailbox_init (MNCustomVFSMailbox * o G_GNUC_UNUSED)
 #define __GOB_FUNCTION__ "MN:Custom:VFS:Mailbox::init"
 }
 #undef __GOB_FUNCTION__
-#line 38 "mn-custom-vfs-mailbox.gob"
+#line 37 "mn-custom-vfs-mailbox.gob"
 static void 
 mn_custom_vfs_mailbox_class_init (MNCustomVFSMailboxClass * class G_GNUC_UNUSED)
-#line 129 "mn-custom-vfs-mailbox.c"
+#line 128 "mn-custom-vfs-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Custom:VFS:Mailbox::class_init"
 	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
@@ -133,13 +132,13 @@ mn_custom_vfs_mailbox_class_init (MNCustomVFSMailboxClass * class G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (MN_TYPE_VFS_MAILBOX);
 
-#line 43 "mn-custom-vfs-mailbox.gob"
+#line 42 "mn-custom-vfs-mailbox.gob"
 	mn_mailbox_class->seal = ___2_mn_custom_vfs_mailbox_seal;
-#line 51 "mn-custom-vfs-mailbox.gob"
+#line 50 "mn-custom-vfs-mailbox.gob"
 	mn_mailbox_class->parse_uri = ___3_mn_custom_vfs_mailbox_parse_uri;
-#line 67 "mn-custom-vfs-mailbox.gob"
+#line 66 "mn-custom-vfs-mailbox.gob"
 	mn_mailbox_class->check = ___4_mn_custom_vfs_mailbox_check;
-#line 143 "mn-custom-vfs-mailbox.c"
+#line 142 "mn-custom-vfs-mailbox.c"
 	g_object_class->finalize = ___finalize;
 	g_object_class->get_property = ___object_get_property;
 	g_object_class->set_property = ___object_set_property;
@@ -151,17 +150,17 @@ mn_custom_vfs_mailbox_class_init (MNCustomVFSMailboxClass * class G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_REQUIRED | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_REQUIRED | MN_MAILBOX_PARAM_LOAD_SAVE));
 	g_object_class_install_property (g_object_class,
 		PROP_URI,
 		param_spec);
     }
  {
-#line 39 "mn-custom-vfs-mailbox.gob"
+#line 38 "mn-custom-vfs-mailbox.gob"
 
     MN_MAILBOX_CLASS(class)->type = "custom-vfs";
   
-#line 165 "mn-custom-vfs-mailbox.c"
+#line 164 "mn-custom-vfs-mailbox.c"
  }
 }
 #undef __GOB_FUNCTION__
@@ -180,9 +179,9 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_URI:
 		{
-#line 36 "mn-custom-vfs-mailbox.gob"
+#line 35 "mn-custom-vfs-mailbox.gob"
 { char *old = self->uri; self->uri = g_value_dup_string (VAL); g_free (old); }
-#line 186 "mn-custom-vfs-mailbox.c"
+#line 185 "mn-custom-vfs-mailbox.c"
 		}
 		break;
 	default:
@@ -211,9 +210,9 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_URI:
 		{
-#line 36 "mn-custom-vfs-mailbox.gob"
+#line 35 "mn-custom-vfs-mailbox.gob"
 g_value_set_string (VAL, self->uri);
-#line 217 "mn-custom-vfs-mailbox.c"
+#line 216 "mn-custom-vfs-mailbox.c"
 		}
 		break;
 	default:
@@ -230,30 +229,30 @@ g_value_set_string (VAL, self->uri);
 
 
 
-#line 43 "mn-custom-vfs-mailbox.gob"
+#line 42 "mn-custom-vfs-mailbox.gob"
 static void 
 ___2_mn_custom_vfs_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
-#line 237 "mn-custom-vfs-mailbox.c"
+#line 236 "mn-custom-vfs-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_MAILBOX_CLASS(parent_class)->seal) \
 		(* MN_MAILBOX_CLASS(parent_class)->seal)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:Custom:VFS:Mailbox::seal"
 {
-#line 45 "mn-custom-vfs-mailbox.gob"
+#line 44 "mn-custom-vfs-mailbox.gob"
 	
     MN_VFS_MAILBOX(mailbox)->uri = gnome_vfs_make_uri_canonical(SELF(mailbox)->uri);
 
     PARENT_HANDLER(mailbox);
   }}
-#line 250 "mn-custom-vfs-mailbox.c"
+#line 249 "mn-custom-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 51 "mn-custom-vfs-mailbox.gob"
+#line 50 "mn-custom-vfs-mailbox.gob"
 static MNMailbox * 
 ___3_mn_custom_vfs_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const char * uri)
-#line 257 "mn-custom-vfs-mailbox.c"
+#line 256 "mn-custom-vfs-mailbox.c"
 #define PARENT_HANDLER(___dummy,___uri) \
 	((MN_MAILBOX_CLASS(parent_class)->parse_uri)? \
 		(* MN_MAILBOX_CLASS(parent_class)->parse_uri)(___dummy,___uri): \
@@ -261,7 +260,7 @@ ___3_mn_custom_vfs_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const cha
 {
 #define __GOB_FUNCTION__ "MN:Custom:VFS:Mailbox::parse_uri"
 {
-#line 53 "mn-custom-vfs-mailbox.gob"
+#line 52 "mn-custom-vfs-mailbox.gob"
 	
     GnomeVFSURI *vfs_uri;
     MNMailbox *mailbox = NULL;
@@ -275,21 +274,21 @@ ___3_mn_custom_vfs_mailbox_parse_uri (MNMailbox * dummy G_GNUC_UNUSED, const cha
 
     return mailbox;
   }}
-#line 279 "mn-custom-vfs-mailbox.c"
+#line 278 "mn-custom-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 67 "mn-custom-vfs-mailbox.gob"
+#line 66 "mn-custom-vfs-mailbox.gob"
 static void 
 ___4_mn_custom_vfs_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
-#line 286 "mn-custom-vfs-mailbox.c"
+#line 285 "mn-custom-vfs-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_MAILBOX_CLASS(parent_class)->check) \
 		(* MN_MAILBOX_CLASS(parent_class)->check)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:Custom:VFS:Mailbox::check"
 {
-#line 69 "mn-custom-vfs-mailbox.gob"
+#line 68 "mn-custom-vfs-mailbox.gob"
 	
     if (MN_VFS_MAILBOX(mailbox)->vfs_uri)
       {
@@ -297,11 +296,10 @@ ___4_mn_custom_vfs_mailbox_check (MNMailbox * mailbox G_GNUC_UNUSED)
       }
     else
       {
-	mn_mailbox_set_stock_id(mailbox, MN_STOCK_UNKNOWN);
 	mn_mailbox_set_error(mailbox, _("invalid location"));
 	mn_mailbox_set_poll(mailbox, FALSE); /* disable the mailbox */
       }
   }}
-#line 306 "mn-custom-vfs-mailbox.c"
+#line 304 "mn-custom-vfs-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER

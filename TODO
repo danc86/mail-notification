@@ -1,4 +1,5 @@
-* List the available IMAP folders in the mailbox properties dialog
+* List the available IMAP folders in the mailbox properties dialog,
+  and/or allow to check all subscribed folders
 
 * Allow to set a different mail reader for each mailbox. Invoking the
   mail reader action would run the mail reader of the most recent
@@ -7,5 +8,5 @@
 * Limit the tooltip height to the screen height
 
 * The "delete" message action could also be implemented with little
-  effort for Maildir and Sylpheed mailboxes (other mailbox types would
+  effort for Sylpheed mailboxes (other mailbox types would
   require more work).

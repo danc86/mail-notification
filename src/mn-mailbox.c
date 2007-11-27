@@ -22,7 +22,7 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 53 "mn-mailbox.gob"
+#line 59 "mn-mailbox.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
@@ -40,6 +40,12 @@
 #endif
 #if WITH_GMAIL
 #include "mn-gmail-mailbox.h"
+#endif
+#if WITH_YAHOO
+#include "mn-yahoo-mailbox.h"
+#endif
+#if WITH_HOTMAIL
+#include "mn-hotmail-mailbox.h"
 #endif
 #if WITH_EVOLUTION
 #include "mn-evolution-mailbox.h"
@@ -63,7 +69,7 @@ typedef struct
   gboolean	changed;
 } CompareMessagesInfo;
 
-#line 67 "mn-mailbox.c"
+#line 73 "mn-mailbox.c"
 /* self casting macros */
 #define SELF(x) MN_MAILBOX(x)
 #define SELF_CONST(x) MN_MAILBOX_CONST(x)
@@ -81,16 +87,17 @@ typedef MNMailboxClass SelfClass;
 static void ___object_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void ___object_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void mn_mailbox_class_init (MNMailboxClass * c) G_GNUC_UNUSED;
+static void mn_mailbox_set_active (MNMailbox * self, gboolean value) G_GNUC_UNUSED;
 static void ___real_mn_mailbox_added (MNMailbox * self);
 static void ___real_mn_mailbox_removed (MNMailbox * self);
 static void mn_mailbox_update_check_timeout (MNMailbox * self) G_GNUC_UNUSED;
 static void mn_mailbox_filter_messages (MNMailbox * self) G_GNUC_UNUSED;
-static gboolean mn_mailbox_clean_messages_marked_as_read_cb (const char * id, MNMessage * message, GHashTable * messages) G_GNUC_UNUSED;
+static gboolean mn_mailbox_clean_messages_considered_as_read_cb (const char * id, MNMessage * message, GHashTable * messages) G_GNUC_UNUSED;
 static gboolean mn_mailbox_compare_messages (GHashTable * messages1, GHashTable * messages2) G_GNUC_UNUSED;
 static void mn_mailbox_compare_messages_cb (const char * id, MNMessage * message, CompareMessagesInfo * info) G_GNUC_UNUSED;
 static void mn_mailbox_messages_changed (MNMailbox * self, gboolean has_new) G_GNUC_UNUSED;
 static void mn_mailbox_init (MNMailbox * self) G_GNUC_UNUSED;
-static void ___15_mn_mailbox_finalize (GObject * object) G_GNUC_UNUSED;
+static void ___19_mn_mailbox_finalize (GObject * object) G_GNUC_UNUSED;
 static void mn_mailbox_notify_display_seen_messages_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data) G_GNUC_UNUSED;
 static MNMailbox * mn_mailbox_parse_obsolete_uri (const char * uri) G_GNUC_UNUSED;
 static gboolean mn_mailbox_check_timeout_cb (gpointer data) G_GNUC_UNUSED;
@@ -98,6 +105,7 @@ static gboolean mn_mailbox_validate (MNMailbox * self, GError ** err) G_GNUC_UNU
 static void ___real_mn_mailbox_seal (MNMailbox * self);
 static MNMailbox * mn_mailbox_parse_uri (MNMailbox * self, const char * uri) G_GNUC_UNUSED;
 static void ___real_mn_mailbox_check (MNMailbox * self);
+static void mn_mailbox_consider_as_read_real (MNMailbox * self, MNMessage * message) G_GNUC_UNUSED;
 
 /*
  * Signal connection wrapper macro shortcuts
@@ -162,6 +170,7 @@ enum {
 	PROP_FORMAT,
 	PROP_CHECK_DELAY,
 	PROP_POLL,
+	PROP_MANUALLY_CHECKABLE,
 	PROP_MESSAGES,
 	PROP_ERROR
 };
@@ -172,6 +181,8 @@ static guint object_signals[LAST_SIGNAL] = {0};
 static GObjectClass *parent_class = NULL;
 
 /* Short form macros */
+#define self_get_active mn_mailbox_get_active
+#define self_set_active mn_mailbox_set_active
 #define self_added mn_mailbox_added
 #define self_removed mn_mailbox_removed
 #define self_get_stock_id mn_mailbox_get_stock_id
@@ -180,16 +191,18 @@ static GObjectClass *parent_class = NULL;
 #define self_set_format mn_mailbox_set_format
 #define self_get_poll mn_mailbox_get_poll
 #define self_set_poll mn_mailbox_set_poll
+#define self_get_manually_checkable mn_mailbox_get_manually_checkable
 #define self_update_check_timeout mn_mailbox_update_check_timeout
 #define self_get_messages mn_mailbox_get_messages
 #define self_set_messages mn_mailbox_set_messages
 #define self_filter_messages mn_mailbox_filter_messages
-#define self_clean_messages_marked_as_read_cb mn_mailbox_clean_messages_marked_as_read_cb
+#define self_clean_messages_considered_as_read_cb mn_mailbox_clean_messages_considered_as_read_cb
 #define self_compare_messages mn_mailbox_compare_messages
 #define self_compare_messages_cb mn_mailbox_compare_messages_cb
 #define self_messages_changed mn_mailbox_messages_changed
 #define self_set_error mn_mailbox_set_error
 #define self_init_types mn_mailbox_init_types
+#define self_get_class_from_name mn_mailbox_get_class_from_name
 #define self_get_type_from_name mn_mailbox_get_type_from_name
 #define self_notify_display_seen_messages_cb mn_mailbox_notify_display_seen_messages_cb
 #define self_new mn_mailbox_new
@@ -206,9 +219,12 @@ static GObjectClass *parent_class = NULL;
 #define self_seal mn_mailbox_seal
 #define self_parse_uri mn_mailbox_parse_uri
 #define self_check mn_mailbox_check
+#define self_enable_checking mn_mailbox_enable_checking
 #define self_notice mn_mailbox_notice
 #define self_warning mn_mailbox_warning
-#define self_mark_as_read mn_mailbox_mark_as_read
+#define self_consider_as_read_real mn_mailbox_consider_as_read_real
+#define self_consider_as_read mn_mailbox_consider_as_read
+#define self_consider_as_read_list mn_mailbox_consider_as_read_list
 #define self_get_command mn_mailbox_get_command
 #define self_has_command mn_mailbox_has_command
 GType
@@ -260,48 +276,48 @@ ___finalize(GObject *obj_self)
 #define __GOB_FUNCTION__ "MN:Mailbox::finalize"
 	MNMailbox *self G_GNUC_UNUSED = MN_MAILBOX (obj_self);
 	gpointer priv G_GNUC_UNUSED = self->_priv;
-#line 453 "mn-mailbox.gob"
-	___15_mn_mailbox_finalize(obj_self);
-#line 266 "mn-mailbox.c"
-#line 130 "mn-mailbox.gob"
+#line 519 "mn-mailbox.gob"
+	___19_mn_mailbox_finalize(obj_self);
+#line 282 "mn-mailbox.c"
+#line 171 "mn-mailbox.gob"
 	if(self->runtime_name) { g_free ((gpointer) self->runtime_name); self->runtime_name = NULL; }
-#line 269 "mn-mailbox.c"
-#line 132 "mn-mailbox.gob"
+#line 285 "mn-mailbox.c"
+#line 173 "mn-mailbox.gob"
 	if(self->name) { g_free ((gpointer) self->name); self->name = NULL; }
-#line 272 "mn-mailbox.c"
-#line 135 "mn-mailbox.gob"
+#line 288 "mn-mailbox.c"
+#line 176 "mn-mailbox.gob"
 	if(self->open_command) { g_free ((gpointer) self->open_command); self->open_command = NULL; }
-#line 275 "mn-mailbox.c"
-#line 138 "mn-mailbox.gob"
+#line 291 "mn-mailbox.c"
+#line 179 "mn-mailbox.gob"
 	if(self->mark_as_read_command) { g_free ((gpointer) self->mark_as_read_command); self->mark_as_read_command = NULL; }
-#line 278 "mn-mailbox.c"
-#line 141 "mn-mailbox.gob"
+#line 294 "mn-mailbox.c"
+#line 182 "mn-mailbox.gob"
 	if(self->mark_as_spam_command) { g_free ((gpointer) self->mark_as_spam_command); self->mark_as_spam_command = NULL; }
-#line 281 "mn-mailbox.c"
-#line 144 "mn-mailbox.gob"
+#line 297 "mn-mailbox.c"
+#line 185 "mn-mailbox.gob"
 	if(self->delete_command) { g_free ((gpointer) self->delete_command); self->delete_command = NULL; }
-#line 284 "mn-mailbox.c"
-#line 147 "mn-mailbox.gob"
+#line 300 "mn-mailbox.c"
+#line 188 "mn-mailbox.gob"
 	if(self->stock_id) { g_free ((gpointer) self->stock_id); self->stock_id = NULL; }
-#line 287 "mn-mailbox.c"
-#line 150 "mn-mailbox.gob"
+#line 303 "mn-mailbox.c"
+#line 191 "mn-mailbox.gob"
 	if(self->format) { g_free ((gpointer) self->format); self->format = NULL; }
-#line 290 "mn-mailbox.c"
-#line 195 "mn-mailbox.gob"
+#line 306 "mn-mailbox.c"
+#line 250 "mn-mailbox.gob"
 	if(self->_priv->unfiltered_messages) { mn_g_object_slist_free ((gpointer) self->_priv->unfiltered_messages); self->_priv->unfiltered_messages = NULL; }
-#line 293 "mn-mailbox.c"
-#line 197 "mn-mailbox.gob"
-	if(self->_priv->messages_marked_as_read) { g_hash_table_destroy ((gpointer) self->_priv->messages_marked_as_read); self->_priv->messages_marked_as_read = NULL; }
-#line 296 "mn-mailbox.c"
-#line 200 "mn-mailbox.gob"
+#line 309 "mn-mailbox.c"
+#line 252 "mn-mailbox.gob"
+	if(self->_priv->messages_considered_as_read) { g_hash_table_destroy ((gpointer) self->_priv->messages_considered_as_read); self->_priv->messages_considered_as_read = NULL; }
+#line 312 "mn-mailbox.c"
+#line 255 "mn-mailbox.gob"
 	if(self->messages) { mn_g_object_slist_free ((gpointer) self->messages); self->messages = NULL; }
-#line 299 "mn-mailbox.c"
-#line 219 "mn-mailbox.gob"
+#line 315 "mn-mailbox.c"
+#line 274 "mn-mailbox.gob"
 	if(self->_priv->messages_hash_table) { g_hash_table_destroy ((gpointer) self->_priv->messages_hash_table); self->_priv->messages_hash_table = NULL; }
-#line 302 "mn-mailbox.c"
-#line 365 "mn-mailbox.gob"
+#line 318 "mn-mailbox.c"
+#line 420 "mn-mailbox.gob"
 	if(self->error) { g_free ((gpointer) self->error); self->error = NULL; }
-#line 305 "mn-mailbox.c"
+#line 321 "mn-mailbox.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -312,9 +328,12 @@ mn_mailbox_class_init (MNMailboxClass * c G_GNUC_UNUSED)
 	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) c;
 
 	g_type_class_add_private(c,sizeof(MNMailboxPrivate));
-#line 53 "mn-mailbox.gob"
+#line 59 "mn-mailbox.gob"
 	c->default_check_delay = -1;
-#line 318 "mn-mailbox.c"
+#line 334 "mn-mailbox.c"
+#line 59 "mn-mailbox.gob"
+	c->enable_checking_when_added = TRUE;
+#line 337 "mn-mailbox.c"
 
 	parent_class = g_type_class_ref (G_TYPE_OBJECT);
 
@@ -344,24 +363,24 @@ mn_mailbox_class_init (MNMailboxClass * c G_GNUC_UNUSED)
 			G_TYPE_NONE, 1,
 			G_TYPE_BOOLEAN);
 	if ___GOB_UNLIKELY(sizeof(gboolean ) != sizeof(gboolean ) || parent_class == NULL /* avoid warning */) {
-		g_error("mn-mailbox.gob line 362: Type mismatch of \"messages_changed\" signal signature");
+		g_error("mn-mailbox.gob line 417: Type mismatch of \"messages_changed\" signal signature");
 	}
 
-#line 108 "mn-mailbox.gob"
+#line 147 "mn-mailbox.gob"
 	c->added = ___real_mn_mailbox_added;
-#line 124 "mn-mailbox.gob"
+#line 163 "mn-mailbox.gob"
 	c->removed = ___real_mn_mailbox_removed;
-#line 355 "mn-mailbox.c"
+#line 374 "mn-mailbox.c"
 	c->messages_changed = NULL;
-#line 453 "mn-mailbox.gob"
+#line 519 "mn-mailbox.gob"
 	g_object_class->finalize = ___finalize;
-#line 919 "mn-mailbox.gob"
+#line 1000 "mn-mailbox.gob"
 	c->seal = ___real_mn_mailbox_seal;
-#line 361 "mn-mailbox.c"
+#line 380 "mn-mailbox.c"
 	c->parse_uri = NULL;
-#line 936 "mn-mailbox.gob"
+#line 1017 "mn-mailbox.gob"
 	c->check = ___real_mn_mailbox_check;
-#line 365 "mn-mailbox.c"
+#line 384 "mn-mailbox.c"
 	g_object_class->get_property = ___object_get_property;
 	g_object_class->set_property = ___object_set_property;
     {
@@ -372,7 +391,7 @@ mn_mailbox_class_init (MNMailboxClass * c G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_LOAD_SAVE));
 	g_object_class_install_property (g_object_class,
 		PROP_NAME,
 		param_spec);
@@ -381,7 +400,7 @@ mn_mailbox_class_init (MNMailboxClass * c G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_LOAD_SAVE));
 	g_object_class_install_property (g_object_class,
 		PROP_OPEN_COMMAND,
 		param_spec);
@@ -390,7 +409,7 @@ mn_mailbox_class_init (MNMailboxClass * c G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_LOAD_SAVE));
 	g_object_class_install_property (g_object_class,
 		PROP_MARK_AS_READ_COMMAND,
 		param_spec);
@@ -399,7 +418,7 @@ mn_mailbox_class_init (MNMailboxClass * c G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_LOAD_SAVE));
 	g_object_class_install_property (g_object_class,
 		PROP_MARK_AS_SPAM_COMMAND,
 		param_spec);
@@ -408,7 +427,7 @@ mn_mailbox_class_init (MNMailboxClass * c G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_LOAD_SAVE));
 	g_object_class_install_property (g_object_class,
 		PROP_DELETE_COMMAND,
 		param_spec);
@@ -437,7 +456,7 @@ mn_mailbox_class_init (MNMailboxClass * c G_GNUC_UNUSED)
 		 G_MININT /* minimum */,
 		 G_MAXINT /* maximum */,
 		 -1 /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_PERMANENT | G_PARAM_CONSTRUCT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_LOAD_SAVE | G_PARAM_CONSTRUCT));
 	g_object_class_install_property (g_object_class,
 		PROP_CHECK_DELAY,
 		param_spec);
@@ -449,6 +468,15 @@ mn_mailbox_class_init (MNMailboxClass * c G_GNUC_UNUSED)
 		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (g_object_class,
 		PROP_POLL,
+		param_spec);
+	param_spec = g_param_spec_boolean
+		("manually_checkable" /* name */,
+		 NULL /* nick */,
+		 NULL /* blurb */,
+		 FALSE /* default_value */,
+		 (GParamFlags)(G_PARAM_READABLE));
+	g_object_class_install_property (g_object_class,
+		PROP_MANUALLY_CHECKABLE,
 		param_spec);
 	param_spec = g_param_spec_pointer
 		("messages" /* name */,
@@ -470,25 +498,25 @@ mn_mailbox_class_init (MNMailboxClass * c G_GNUC_UNUSED)
     }
 }
 #undef __GOB_FUNCTION__
-#line 448 "mn-mailbox.gob"
+#line 514 "mn-mailbox.gob"
 static void 
 mn_mailbox_init (MNMailbox * self G_GNUC_UNUSED)
-#line 477 "mn-mailbox.c"
+#line 505 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_MAILBOX,MNMailboxPrivate);
-#line 126 "mn-mailbox.gob"
+#line 165 "mn-mailbox.gob"
 	self->_priv->poll = TRUE;
-#line 483 "mn-mailbox.c"
-#line 197 "mn-mailbox.gob"
-	self->_priv->messages_marked_as_read = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref);
-#line 486 "mn-mailbox.c"
+#line 511 "mn-mailbox.c"
+#line 252 "mn-mailbox.gob"
+	self->_priv->messages_considered_as_read = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref);
+#line 514 "mn-mailbox.c"
  {
-#line 449 "mn-mailbox.gob"
+#line 515 "mn-mailbox.gob"
 
     mn_g_object_gconf_notification_add_gdk_locked(self, MN_CONF_DISPLAY_SEEN_MAIL, self_notify_display_seen_messages_cb, self);
   
-#line 492 "mn-mailbox.c"
+#line 520 "mn-mailbox.c"
  }
 }
 #undef __GOB_FUNCTION__
@@ -507,63 +535,63 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_NAME:
 		{
-#line 133 "mn-mailbox.gob"
+#line 174 "mn-mailbox.gob"
 { char *old = self->name; self->name = g_value_dup_string (VAL); g_free (old); }
-#line 513 "mn-mailbox.c"
+#line 541 "mn-mailbox.c"
 		}
 		break;
 	case PROP_OPEN_COMMAND:
 		{
-#line 136 "mn-mailbox.gob"
+#line 177 "mn-mailbox.gob"
 { char *old = self->open_command; self->open_command = g_value_dup_string (VAL); g_free (old); }
-#line 520 "mn-mailbox.c"
+#line 548 "mn-mailbox.c"
 		}
 		break;
 	case PROP_MARK_AS_READ_COMMAND:
 		{
-#line 139 "mn-mailbox.gob"
+#line 180 "mn-mailbox.gob"
 { char *old = self->mark_as_read_command; self->mark_as_read_command = g_value_dup_string (VAL); g_free (old); }
-#line 527 "mn-mailbox.c"
+#line 555 "mn-mailbox.c"
 		}
 		break;
 	case PROP_MARK_AS_SPAM_COMMAND:
 		{
-#line 142 "mn-mailbox.gob"
+#line 183 "mn-mailbox.gob"
 { char *old = self->mark_as_spam_command; self->mark_as_spam_command = g_value_dup_string (VAL); g_free (old); }
-#line 534 "mn-mailbox.c"
+#line 562 "mn-mailbox.c"
 		}
 		break;
 	case PROP_DELETE_COMMAND:
 		{
-#line 145 "mn-mailbox.gob"
+#line 186 "mn-mailbox.gob"
 { char *old = self->delete_command; self->delete_command = g_value_dup_string (VAL); g_free (old); }
-#line 541 "mn-mailbox.c"
+#line 569 "mn-mailbox.c"
 		}
 		break;
 	case PROP_STOCK_ID:
 		{
-#line 148 "mn-mailbox.gob"
+#line 189 "mn-mailbox.gob"
 { char *old = self->stock_id; self->stock_id = g_value_dup_string (VAL); g_free (old); }
-#line 548 "mn-mailbox.c"
+#line 576 "mn-mailbox.c"
 		}
 		break;
 	case PROP_FORMAT:
 		{
-#line 151 "mn-mailbox.gob"
+#line 192 "mn-mailbox.gob"
 { char *old = self->format; self->format = g_value_dup_string (VAL); g_free (old); }
-#line 555 "mn-mailbox.c"
+#line 583 "mn-mailbox.c"
 		}
 		break;
 	case PROP_CHECK_DELAY:
 		{
-#line 158 "mn-mailbox.gob"
+#line 199 "mn-mailbox.gob"
 self->check_delay = g_value_get_int (VAL);
-#line 562 "mn-mailbox.c"
+#line 590 "mn-mailbox.c"
 		}
 		break;
 	case PROP_POLL:
 		{
-#line 165 "mn-mailbox.gob"
+#line 206 "mn-mailbox.gob"
 
       gboolean new_poll = g_value_get_boolean(VAL);
 
@@ -574,37 +602,32 @@ self->check_delay = g_value_get_int (VAL);
       if (new_poll != selfp->poll)
 	{
 	  selfp->poll = new_poll;
-	  if (selfp->added)
+	  if (self_get_active(self) && selfp->checking_enabled)
 	    self_update_check_timeout(self);
+
+	  g_object_notify(G_OBJECT(self), "manually-checkable");
 	}
     
-#line 582 "mn-mailbox.c"
+#line 612 "mn-mailbox.c"
 		}
 		break;
 	case PROP_MESSAGES:
 		{
-#line 208 "mn-mailbox.gob"
+#line 263 "mn-mailbox.gob"
 
       mn_g_object_slist_free(selfp->unfiltered_messages);
       selfp->unfiltered_messages = mn_g_object_slist_copy(g_value_get_pointer(VAL));
 
       self_filter_messages(self);
     
-#line 594 "mn-mailbox.c"
+#line 624 "mn-mailbox.c"
 		}
 		break;
 	case PROP_ERROR:
 		{
-#line 368 "mn-mailbox.gob"
-
-      g_free(self->error);
-      self->error = g_value_dup_string(VAL);
-
-      /* if an error is set, we unset messages */
-      if (self->error)
-	self_set_messages(self, NULL);
-    
-#line 608 "mn-mailbox.c"
+#line 421 "mn-mailbox.gob"
+{ char *old = self->error; self->error = g_value_dup_string (VAL); g_free (old); }
+#line 631 "mn-mailbox.c"
 		}
 		break;
 	default:
@@ -633,85 +656,92 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_NAME:
 		{
-#line 133 "mn-mailbox.gob"
+#line 174 "mn-mailbox.gob"
 g_value_set_string (VAL, self->name);
-#line 639 "mn-mailbox.c"
+#line 662 "mn-mailbox.c"
 		}
 		break;
 	case PROP_OPEN_COMMAND:
 		{
-#line 136 "mn-mailbox.gob"
+#line 177 "mn-mailbox.gob"
 g_value_set_string (VAL, self->open_command);
-#line 646 "mn-mailbox.c"
+#line 669 "mn-mailbox.c"
 		}
 		break;
 	case PROP_MARK_AS_READ_COMMAND:
 		{
-#line 139 "mn-mailbox.gob"
+#line 180 "mn-mailbox.gob"
 g_value_set_string (VAL, self->mark_as_read_command);
-#line 653 "mn-mailbox.c"
+#line 676 "mn-mailbox.c"
 		}
 		break;
 	case PROP_MARK_AS_SPAM_COMMAND:
 		{
-#line 142 "mn-mailbox.gob"
+#line 183 "mn-mailbox.gob"
 g_value_set_string (VAL, self->mark_as_spam_command);
-#line 660 "mn-mailbox.c"
+#line 683 "mn-mailbox.c"
 		}
 		break;
 	case PROP_DELETE_COMMAND:
 		{
-#line 145 "mn-mailbox.gob"
+#line 186 "mn-mailbox.gob"
 g_value_set_string (VAL, self->delete_command);
-#line 667 "mn-mailbox.c"
+#line 690 "mn-mailbox.c"
 		}
 		break;
 	case PROP_STOCK_ID:
 		{
-#line 148 "mn-mailbox.gob"
+#line 189 "mn-mailbox.gob"
 g_value_set_string (VAL, self->stock_id);
-#line 674 "mn-mailbox.c"
+#line 697 "mn-mailbox.c"
 		}
 		break;
 	case PROP_FORMAT:
 		{
-#line 151 "mn-mailbox.gob"
+#line 192 "mn-mailbox.gob"
 g_value_set_string (VAL, self->format);
-#line 681 "mn-mailbox.c"
+#line 704 "mn-mailbox.c"
 		}
 		break;
 	case PROP_CHECK_DELAY:
 		{
-#line 158 "mn-mailbox.gob"
+#line 199 "mn-mailbox.gob"
 g_value_set_int (VAL, self->check_delay);
-#line 688 "mn-mailbox.c"
+#line 711 "mn-mailbox.c"
 		}
 		break;
 	case PROP_POLL:
 		{
-#line 180 "mn-mailbox.gob"
+#line 223 "mn-mailbox.gob"
 
       g_value_set_boolean(VAL, selfp->poll);
     
-#line 697 "mn-mailbox.c"
+#line 720 "mn-mailbox.c"
+		}
+		break;
+	case PROP_MANUALLY_CHECKABLE:
+		{
+#line 234 "mn-mailbox.gob"
+
+      g_value_set_boolean(VAL, selfp->checking_enabled && selfp->poll);
+    
+#line 729 "mn-mailbox.c"
 		}
 		break;
 	case PROP_MESSAGES:
 		{
-#line 215 "mn-mailbox.gob"
+#line 270 "mn-mailbox.gob"
 
       g_value_set_pointer(VAL, self->messages);
     
-#line 706 "mn-mailbox.c"
+#line 738 "mn-mailbox.c"
 		}
 		break;
 	case PROP_ERROR:
 		{
-#line 377 "mn-mailbox.gob"
-
-      g_value_set_string(VAL, self->error);
-    
-#line 715 "mn-mailbox.c"
+#line 421 "mn-mailbox.gob"
+g_value_set_string (VAL, self->error);
+#line 745 "mn-mailbox.c"
 		}
 		break;
 	default:
@@ -727,17 +757,55 @@ g_value_set_int (VAL, self->check_delay);
 #undef __GOB_FUNCTION__
 
 
+#line 128 "mn-mailbox.gob"
+gboolean 
+mn_mailbox_get_active (MNMailbox * self)
+#line 764 "mn-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Mailbox::get_active"
+#line 128 "mn-mailbox.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 128 "mn-mailbox.gob"
+	g_return_val_if_fail (MN_IS_MAILBOX (self), (gboolean )0);
+#line 771 "mn-mailbox.c"
+{
+#line 130 "mn-mailbox.gob"
+	
+    return g_atomic_int_get(&selfp->_active);
+  }}
+#line 777 "mn-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 134 "mn-mailbox.gob"
+static void 
+mn_mailbox_set_active (MNMailbox * self, gboolean value)
+#line 783 "mn-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Mailbox::set_active"
+#line 134 "mn-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 134 "mn-mailbox.gob"
+	g_return_if_fail (MN_IS_MAILBOX (self));
+#line 790 "mn-mailbox.c"
+{
+#line 136 "mn-mailbox.gob"
+	
+    g_atomic_int_set(&selfp->_active, value);
+  }}
+#line 796 "mn-mailbox.c"
+#undef __GOB_FUNCTION__
+
 /**
  * mn_mailbox_added:
  * @self: the object which received the signal
  *
- * This signal gets emitted after the mailbox is removed from the
+ * This signal gets emitted after the mailbox is added to the
  * mailboxes list.
  **/
-#line 108 "mn-mailbox.gob"
+#line 147 "mn-mailbox.gob"
 void 
 mn_mailbox_added (MNMailbox * self)
-#line 741 "mn-mailbox.c"
+#line 809 "mn-mailbox.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -745,11 +813,11 @@ mn_mailbox_added (MNMailbox * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 108 "mn-mailbox.gob"
+#line 147 "mn-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 108 "mn-mailbox.gob"
+#line 147 "mn-mailbox.gob"
 	g_return_if_fail (MN_IS_MAILBOX (self));
-#line 753 "mn-mailbox.c"
+#line 821 "mn-mailbox.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -762,21 +830,21 @@ memset (&___param_values, 0, sizeof (___param_values));
 
 	g_value_unset (&___param_values[0]);
 }
-#line 108 "mn-mailbox.gob"
+#line 147 "mn-mailbox.gob"
 static void 
 ___real_mn_mailbox_added (MNMailbox * self G_GNUC_UNUSED)
-#line 769 "mn-mailbox.c"
+#line 837 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::added"
 {
-#line 110 "mn-mailbox.gob"
+#line 149 "mn-mailbox.gob"
 	
-    selfp->added = TRUE;
+    self_set_active(self, TRUE);
 
-    self_update_check_timeout(self);
-    self_check(self);
+    if (SELF_GET_CLASS(self)->enable_checking_when_added)
+      self_enable_checking(self);
   }}
-#line 780 "mn-mailbox.c"
+#line 848 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
 /**
@@ -786,10 +854,10 @@ ___real_mn_mailbox_added (MNMailbox * self G_GNUC_UNUSED)
  * This signal gets emitted after the mailbox is removed from the
  * mailboxes list.
  **/
-#line 124 "mn-mailbox.gob"
+#line 163 "mn-mailbox.gob"
 void 
 mn_mailbox_removed (MNMailbox * self)
-#line 793 "mn-mailbox.c"
+#line 861 "mn-mailbox.c"
 {
 	GValue ___param_values[1];
 	GValue ___return_val;
@@ -797,11 +865,11 @@ mn_mailbox_removed (MNMailbox * self)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 124 "mn-mailbox.gob"
+#line 163 "mn-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 124 "mn-mailbox.gob"
+#line 163 "mn-mailbox.gob"
 	g_return_if_fail (MN_IS_MAILBOX (self));
-#line 805 "mn-mailbox.c"
+#line 873 "mn-mailbox.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -814,169 +882,185 @@ memset (&___param_values, 0, sizeof (___param_values));
 
 	g_value_unset (&___param_values[0]);
 }
-#line 124 "mn-mailbox.gob"
+#line 163 "mn-mailbox.gob"
 static void 
 ___real_mn_mailbox_removed (MNMailbox * self G_GNUC_UNUSED)
-#line 821 "mn-mailbox.c"
+#line 889 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::removed"
 {
-#line 126 "mn-mailbox.gob"
+#line 165 "mn-mailbox.gob"
 	
+    self_set_active(self, FALSE);
+
     mn_locked_g_source_clear(&selfp->check_timeout_source);
   }}
-#line 829 "mn-mailbox.c"
+#line 899 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 148 "mn-mailbox.gob"
+#line 189 "mn-mailbox.gob"
 gchar * 
 mn_mailbox_get_stock_id (MNMailbox * self)
-#line 835 "mn-mailbox.c"
+#line 905 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::get_stock_id"
 {
-#line 148 "mn-mailbox.gob"
+#line 189 "mn-mailbox.gob"
 		gchar* val; g_object_get (G_OBJECT (self), "stock_id", &val, NULL); return val;
 }}
-#line 842 "mn-mailbox.c"
+#line 912 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 148 "mn-mailbox.gob"
+#line 189 "mn-mailbox.gob"
 void 
 mn_mailbox_set_stock_id (MNMailbox * self, gchar * val)
-#line 848 "mn-mailbox.c"
+#line 918 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::set_stock_id"
 {
-#line 148 "mn-mailbox.gob"
+#line 189 "mn-mailbox.gob"
 		g_object_set (G_OBJECT (self), "stock_id", val, NULL);
 }}
-#line 855 "mn-mailbox.c"
+#line 925 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 151 "mn-mailbox.gob"
+#line 192 "mn-mailbox.gob"
 gchar * 
 mn_mailbox_get_format (MNMailbox * self)
-#line 861 "mn-mailbox.c"
+#line 931 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::get_format"
 {
-#line 151 "mn-mailbox.gob"
+#line 192 "mn-mailbox.gob"
 		gchar* val; g_object_get (G_OBJECT (self), "format", &val, NULL); return val;
 }}
-#line 868 "mn-mailbox.c"
+#line 938 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 151 "mn-mailbox.gob"
+#line 192 "mn-mailbox.gob"
 void 
 mn_mailbox_set_format (MNMailbox * self, gchar * val)
-#line 874 "mn-mailbox.c"
+#line 944 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::set_format"
 {
-#line 151 "mn-mailbox.gob"
+#line 192 "mn-mailbox.gob"
 		g_object_set (G_OBJECT (self), "format", val, NULL);
 }}
-#line 881 "mn-mailbox.c"
+#line 951 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 180 "mn-mailbox.gob"
+#line 223 "mn-mailbox.gob"
 gboolean 
 mn_mailbox_get_poll (MNMailbox * self)
-#line 887 "mn-mailbox.c"
+#line 957 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::get_poll"
 {
-#line 163 "mn-mailbox.gob"
+#line 204 "mn-mailbox.gob"
 		gboolean val; g_object_get (G_OBJECT (self), "poll", &val, NULL); return val;
 }}
-#line 894 "mn-mailbox.c"
+#line 964 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 165 "mn-mailbox.gob"
+#line 206 "mn-mailbox.gob"
 void 
 mn_mailbox_set_poll (MNMailbox * self, gboolean val)
-#line 900 "mn-mailbox.c"
+#line 970 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::set_poll"
 {
-#line 163 "mn-mailbox.gob"
+#line 204 "mn-mailbox.gob"
 		g_object_set (G_OBJECT (self), "poll", val, NULL);
 }}
-#line 907 "mn-mailbox.c"
+#line 977 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 184 "mn-mailbox.gob"
+#line 234 "mn-mailbox.gob"
+gboolean 
+mn_mailbox_get_manually_checkable (MNMailbox * self)
+#line 983 "mn-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Mailbox::get_manually_checkable"
+{
+#line 232 "mn-mailbox.gob"
+		gboolean val; g_object_get (G_OBJECT (self), "manually_checkable", &val, NULL); return val;
+}}
+#line 990 "mn-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 238 "mn-mailbox.gob"
 static void 
 mn_mailbox_update_check_timeout (MNMailbox * self)
-#line 913 "mn-mailbox.c"
+#line 996 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::update_check_timeout"
-#line 184 "mn-mailbox.gob"
+#line 238 "mn-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 184 "mn-mailbox.gob"
+#line 238 "mn-mailbox.gob"
 	g_return_if_fail (MN_IS_MAILBOX (self));
-#line 920 "mn-mailbox.c"
+#line 1003 "mn-mailbox.c"
 {
-#line 186 "mn-mailbox.gob"
+#line 240 "mn-mailbox.gob"
 	
-    g_assert(selfp->added == TRUE);
+    g_assert(self_get_active(self) == TRUE);
+    g_assert(selfp->checking_enabled == TRUE);
 
     mn_locked_g_source_clear(&selfp->check_timeout_source);
     if (selfp->poll && self->runtime_check_delay > 0)
       selfp->check_timeout_source = mn_g_timeout_add_gdk_locked(self->runtime_check_delay * 1000, self_check_timeout_cb, self);
   }}
-#line 930 "mn-mailbox.c"
+#line 1014 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 215 "mn-mailbox.gob"
+#line 270 "mn-mailbox.gob"
 const GSList * 
 mn_mailbox_get_messages (MNMailbox * self)
-#line 936 "mn-mailbox.c"
+#line 1020 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::get_messages"
 {
-#line 206 "mn-mailbox.gob"
+#line 261 "mn-mailbox.gob"
 		const GSList* val; g_object_get (G_OBJECT (self), "messages", &val, NULL); return val;
 }}
-#line 943 "mn-mailbox.c"
+#line 1027 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 208 "mn-mailbox.gob"
+#line 263 "mn-mailbox.gob"
 void 
 mn_mailbox_set_messages (MNMailbox * self, const GSList * val)
-#line 949 "mn-mailbox.c"
+#line 1033 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::set_messages"
 {
-#line 206 "mn-mailbox.gob"
+#line 261 "mn-mailbox.gob"
 		g_object_set (G_OBJECT (self), "messages", val, NULL);
 }}
-#line 956 "mn-mailbox.c"
+#line 1040 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
 /**
  * mn_mailbox_filter_messages:
  * @self: the mailbox to act upon
  *
- * Filter @self->unfiltered_messages with the "seen mail" filter and
- * @selfp->messages_marked_as_read, and store the resulting list in
- * @self->messages. Additionally, if @self->messages has changed,
- * emit the "messages-changed" signal.
+ * Filters @self->unfiltered_messages with the "seen mail" filter
+ * and @selfp->messages_considered_as_read, and stores the resulting
+ * list in @self->messages. Additionally, if @self->messages has
+ * changed, emits the "messages-changed" signal.
  **/
-#line 230 "mn-mailbox.gob"
+#line 285 "mn-mailbox.gob"
 static void 
 mn_mailbox_filter_messages (MNMailbox * self)
-#line 971 "mn-mailbox.c"
+#line 1055 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::filter_messages"
-#line 230 "mn-mailbox.gob"
+#line 285 "mn-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 230 "mn-mailbox.gob"
+#line 285 "mn-mailbox.gob"
 	g_return_if_fail (MN_IS_MAILBOX (self));
-#line 978 "mn-mailbox.c"
+#line 1062 "mn-mailbox.c"
 {
-#line 232 "mn-mailbox.gob"
+#line 287 "mn-mailbox.gob"
 	
     gboolean display_seen_mail;
     GSList *messages = NULL;
@@ -1004,7 +1088,7 @@ mn_mailbox_filter_messages (MNMailbox * self)
 	if ((display_seen_mail
 	     || message->error
 	     || (message->flags & MN_MESSAGE_NEW) != 0)
-	    && ! g_hash_table_lookup(selfp->messages_marked_as_read, message->id))
+	    && ! g_hash_table_lookup(selfp->messages_considered_as_read, message->id))
 	  {
 	    self->n_messages++;
 	    if (message->sent_time > self->timestamp)
@@ -1015,8 +1099,8 @@ mn_mailbox_filter_messages (MNMailbox * self)
 	  }
       }
 
-    /* remove stale messages from messages_marked_as_read */
-    g_hash_table_foreach_remove(selfp->messages_marked_as_read, (GHRFunc) self_clean_messages_marked_as_read_cb, all_messages_hash_table);
+    /* remove stale messages from messages_considered_as_read */
+    g_hash_table_foreach_remove(selfp->messages_considered_as_read, (GHRFunc) self_clean_messages_considered_as_read_cb, all_messages_hash_table);
     g_hash_table_destroy(all_messages_hash_table);
 
     if (! messages)
@@ -1044,21 +1128,21 @@ mn_mailbox_filter_messages (MNMailbox * self)
     if (changed)
       self_messages_changed(self, has_new);
   }}
-#line 1048 "mn-mailbox.c"
+#line 1132 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 300 "mn-mailbox.gob"
+#line 355 "mn-mailbox.gob"
 static gboolean 
-mn_mailbox_clean_messages_marked_as_read_cb (const char * id, MNMessage * message, GHashTable * messages)
-#line 1054 "mn-mailbox.c"
+mn_mailbox_clean_messages_considered_as_read_cb (const char * id, MNMessage * message, GHashTable * messages)
+#line 1138 "mn-mailbox.c"
 {
-#define __GOB_FUNCTION__ "MN:Mailbox::clean_messages_marked_as_read_cb"
+#define __GOB_FUNCTION__ "MN:Mailbox::clean_messages_considered_as_read_cb"
 {
-#line 304 "mn-mailbox.gob"
+#line 359 "mn-mailbox.gob"
 	
     return g_hash_table_lookup(messages, id) == NULL;
   }}
-#line 1062 "mn-mailbox.c"
+#line 1146 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
 /**
@@ -1071,14 +1155,14 @@ mn_mailbox_clean_messages_marked_as_read_cb (const char * id, MNMessage * messag
  * Return value: %TRUE if @messages1 contains messages not present
  * in @messages2, %FALSE otherwise.
  **/
-#line 318 "mn-mailbox.gob"
+#line 373 "mn-mailbox.gob"
 static gboolean 
 mn_mailbox_compare_messages (GHashTable * messages1, GHashTable * messages2)
-#line 1078 "mn-mailbox.c"
+#line 1162 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::compare_messages"
 {
-#line 320 "mn-mailbox.gob"
+#line 375 "mn-mailbox.gob"
 	
     if (messages1)
       {
@@ -1098,28 +1182,28 @@ mn_mailbox_compare_messages (GHashTable * messages1, GHashTable * messages2)
     else
       return FALSE;
   }}
-#line 1102 "mn-mailbox.c"
+#line 1186 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 340 "mn-mailbox.gob"
+#line 395 "mn-mailbox.gob"
 static void 
 mn_mailbox_compare_messages_cb (const char * id, MNMessage * message, CompareMessagesInfo * info)
-#line 1108 "mn-mailbox.c"
+#line 1192 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::compare_messages_cb"
 {
-#line 344 "mn-mailbox.gob"
+#line 399 "mn-mailbox.gob"
 	
     if (! info->changed && ! g_hash_table_lookup(info->other, id))
       info->changed = TRUE;
   }}
-#line 1117 "mn-mailbox.c"
+#line 1201 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 362 "mn-mailbox.gob"
+#line 417 "mn-mailbox.gob"
 static void 
 mn_mailbox_messages_changed (MNMailbox * self, gboolean has_new)
-#line 1123 "mn-mailbox.c"
+#line 1207 "mn-mailbox.c"
 {
 	GValue ___param_values[2];
 	GValue ___return_val;
@@ -1127,11 +1211,11 @@ mn_mailbox_messages_changed (MNMailbox * self, gboolean has_new)
 memset (&___return_val, 0, sizeof (___return_val));
 memset (&___param_values, 0, sizeof (___param_values));
 
-#line 362 "mn-mailbox.gob"
+#line 417 "mn-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 362 "mn-mailbox.gob"
+#line 417 "mn-mailbox.gob"
 	g_return_if_fail (MN_IS_MAILBOX (self));
-#line 1135 "mn-mailbox.c"
+#line 1219 "mn-mailbox.c"
 
 	___param_values[0].g_type = 0;
 	g_value_init (&___param_values[0], G_TYPE_FROM_INSTANCE (self));
@@ -1150,19 +1234,19 @@ memset (&___param_values, 0, sizeof (___param_values));
 	g_value_unset (&___param_values[1]);
 }
 
-#line 381 "mn-mailbox.gob"
+#line 423 "mn-mailbox.gob"
 void 
 mn_mailbox_set_error (MNMailbox * self, const char * format, ...)
-#line 1157 "mn-mailbox.c"
+#line 1241 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::set_error"
-#line 381 "mn-mailbox.gob"
+#line 423 "mn-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 381 "mn-mailbox.gob"
+#line 423 "mn-mailbox.gob"
 	g_return_if_fail (MN_IS_MAILBOX (self));
-#line 1164 "mn-mailbox.c"
+#line 1248 "mn-mailbox.c"
 {
-#line 383 "mn-mailbox.gob"
+#line 425 "mn-mailbox.gob"
 	
     va_list args;
     char *error = NULL;
@@ -1177,17 +1261,17 @@ mn_mailbox_set_error (MNMailbox * self, const char * format, ...)
     g_object_set(G_OBJECT(self), MN_MAILBOX_PROP_ERROR(error), NULL);
     g_free(error);
   }}
-#line 1181 "mn-mailbox.c"
+#line 1265 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 398 "mn-mailbox.gob"
+#line 440 "mn-mailbox.gob"
 void 
 mn_mailbox_init_types (void)
-#line 1187 "mn-mailbox.c"
+#line 1271 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::init_types"
 {
-#line 400 "mn-mailbox.gob"
+#line 442 "mn-mailbox.gob"
 	
     int i = 0;
 
@@ -1209,55 +1293,86 @@ mn_mailbox_init_types (void)
 #if WITH_GMAIL
     mn_mailbox_types[i++] = MN_TYPE_GMAIL_MAILBOX;
 #endif
+#if WITH_YAHOO
+    mn_mailbox_types[i++] = MN_TYPE_YAHOO_MAILBOX;
+#endif
+#if WITH_HOTMAIL
+    mn_mailbox_types[i++] = MN_TYPE_HOTMAIL_MAILBOX;
+#endif
 #if WITH_EVOLUTION
     mn_mailbox_types[i++] = MN_TYPE_EVOLUTION_MAILBOX;
 #endif
     mn_mailbox_types[i] = 0;
   }}
-#line 1218 "mn-mailbox.c"
+#line 1308 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 427 "mn-mailbox.gob"
-GType 
-mn_mailbox_get_type_from_name (const char * type)
-#line 1224 "mn-mailbox.c"
+#line 476 "mn-mailbox.gob"
+MNMailboxClass * 
+mn_mailbox_get_class_from_name (const char * type)
+#line 1314 "mn-mailbox.c"
 {
-#define __GOB_FUNCTION__ "MN:Mailbox::get_type_from_name"
+#define __GOB_FUNCTION__ "MN:Mailbox::get_class_from_name"
 {
-#line 429 "mn-mailbox.gob"
+#line 478 "mn-mailbox.gob"
 	
     int i;
 
     for (i = 0; mn_mailbox_types[i]; i++)
       {
 	SelfClass *class;
-	gboolean found;
 
 	class = g_type_class_ref(mn_mailbox_types[i]);
-	found = ! strcmp(class->type, type);
+	if (! strcmp(class->type, type))
+	  return class;
+
+	g_type_class_unref(class);
+      }
+
+    return NULL;
+  }}
+#line 1335 "mn-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 495 "mn-mailbox.gob"
+GType 
+mn_mailbox_get_type_from_name (const char * type)
+#line 1341 "mn-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Mailbox::get_type_from_name"
+{
+#line 497 "mn-mailbox.gob"
+	
+    SelfClass *class;
+
+    class = self_get_class_from_name(type);
+    if (class)
+      {
+	GType type;
+
+	type = G_OBJECT_CLASS_TYPE(class);
 	g_type_class_unref(class);
 
-	if (found)
-	  return mn_mailbox_types[i];
+	return type;
       }
 
     return 0;
   }}
-#line 1247 "mn-mailbox.c"
+#line 1362 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
 
-#line 453 "mn-mailbox.gob"
+#line 519 "mn-mailbox.gob"
 static void 
-___15_mn_mailbox_finalize (GObject * object G_GNUC_UNUSED)
-#line 1254 "mn-mailbox.c"
+___19_mn_mailbox_finalize (GObject * object G_GNUC_UNUSED)
+#line 1369 "mn-mailbox.c"
 #define PARENT_HANDLER(___object) \
 	{ if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(___object); }
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::finalize"
 {
-#line 455 "mn-mailbox.gob"
+#line 521 "mn-mailbox.gob"
 	
     Self *self = SELF(object);
 
@@ -1271,37 +1386,37 @@ ___15_mn_mailbox_finalize (GObject * object G_GNUC_UNUSED)
 
     PARENT_HANDLER(object);
   }}
-#line 1275 "mn-mailbox.c"
+#line 1390 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 469 "mn-mailbox.gob"
+#line 535 "mn-mailbox.gob"
 static void 
 mn_mailbox_notify_display_seen_messages_cb (GConfClient * client, unsigned int cnxn_id, GConfEntry * entry, gpointer user_data)
-#line 1282 "mn-mailbox.c"
+#line 1397 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::notify_display_seen_messages_cb"
 {
-#line 474 "mn-mailbox.gob"
+#line 540 "mn-mailbox.gob"
 	
     Self *self = user_data;
 
     self_filter_messages(self);
   }}
-#line 1292 "mn-mailbox.c"
+#line 1407 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 480 "mn-mailbox.gob"
+#line 546 "mn-mailbox.gob"
 MNMailbox * 
 mn_mailbox_new (const char * type, const char * first, ...)
-#line 1298 "mn-mailbox.c"
+#line 1413 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::new"
-#line 480 "mn-mailbox.gob"
+#line 546 "mn-mailbox.gob"
 	g_return_val_if_fail (type != NULL, (MNMailbox * )0);
-#line 1303 "mn-mailbox.c"
+#line 1418 "mn-mailbox.c"
 {
-#line 482 "mn-mailbox.gob"
+#line 548 "mn-mailbox.gob"
 	
     va_list args;
     GType type_id;
@@ -1317,20 +1432,20 @@ mn_mailbox_new (const char * type, const char * first, ...)
 
     return SELF(object);
   }}
-#line 1321 "mn-mailbox.c"
+#line 1436 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 498 "mn-mailbox.gob"
+#line 564 "mn-mailbox.gob"
 MNMailbox * 
 mn_mailbox_new_from_xml_node (xmlNode * node, GError ** err)
-#line 1327 "mn-mailbox.c"
+#line 1442 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::new_from_xml_node"
-#line 498 "mn-mailbox.gob"
+#line 564 "mn-mailbox.gob"
 	g_return_val_if_fail (node != NULL, (MNMailbox * )0);
-#line 1332 "mn-mailbox.c"
+#line 1447 "mn-mailbox.c"
 {
-#line 500 "mn-mailbox.gob"
+#line 566 "mn-mailbox.gob"
 	
     char *type;
     Self *self = NULL;
@@ -1361,22 +1476,22 @@ mn_mailbox_new_from_xml_node (xmlNode * node, GError ** err)
     g_free(type);
     return self;
   }}
-#line 1365 "mn-mailbox.c"
+#line 1480 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 531 "mn-mailbox.gob"
+#line 597 "mn-mailbox.gob"
 xmlNode * 
 mn_mailbox_xml_node_new (MNMailbox * self)
-#line 1371 "mn-mailbox.c"
+#line 1486 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::xml_node_new"
-#line 531 "mn-mailbox.gob"
+#line 597 "mn-mailbox.gob"
 	g_return_val_if_fail (self != NULL, (xmlNode * )0);
-#line 531 "mn-mailbox.gob"
+#line 597 "mn-mailbox.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX (self), (xmlNode * )0);
-#line 1378 "mn-mailbox.c"
+#line 1493 "mn-mailbox.c"
 {
-#line 533 "mn-mailbox.gob"
+#line 599 "mn-mailbox.gob"
 	
     xmlNode *node;
 
@@ -1386,20 +1501,20 @@ mn_mailbox_xml_node_new (MNMailbox * self)
 
     return node;
   }}
-#line 1390 "mn-mailbox.c"
+#line 1505 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 543 "mn-mailbox.gob"
+#line 609 "mn-mailbox.gob"
 MNMailbox * 
 mn_mailbox_new_from_uri (const char * uri)
-#line 1396 "mn-mailbox.c"
+#line 1511 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::new_from_uri"
-#line 543 "mn-mailbox.gob"
+#line 609 "mn-mailbox.gob"
 	g_return_val_if_fail (uri != NULL, (MNMailbox * )0);
-#line 1401 "mn-mailbox.c"
+#line 1516 "mn-mailbox.c"
 {
-#line 545 "mn-mailbox.gob"
+#line 611 "mn-mailbox.gob"
 	
     int i;
 
@@ -1418,39 +1533,39 @@ mn_mailbox_new_from_uri (const char * uri)
 
     return NULL;
   }}
-#line 1422 "mn-mailbox.c"
+#line 1537 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 564 "mn-mailbox.gob"
+#line 630 "mn-mailbox.gob"
 MNMailbox * 
 mn_mailbox_new_from_configuration (MNMailboxConfiguration * config)
-#line 1428 "mn-mailbox.c"
+#line 1543 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::new_from_configuration"
-#line 564 "mn-mailbox.gob"
+#line 630 "mn-mailbox.gob"
 	g_return_val_if_fail (config != NULL, (MNMailbox * )0);
-#line 1433 "mn-mailbox.c"
+#line 1548 "mn-mailbox.c"
 {
-#line 566 "mn-mailbox.gob"
+#line 632 "mn-mailbox.gob"
 	
     return g_object_newv(config->type, config->n_parameters, config->parameters);
   }}
-#line 1439 "mn-mailbox.c"
+#line 1554 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 570 "mn-mailbox.gob"
+#line 636 "mn-mailbox.gob"
 MNMailboxConfiguration * 
 mn_mailbox_get_configuration (MNMailbox * self)
-#line 1445 "mn-mailbox.c"
+#line 1560 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::get_configuration"
-#line 570 "mn-mailbox.gob"
+#line 636 "mn-mailbox.gob"
 	g_return_val_if_fail (self != NULL, (MNMailboxConfiguration * )0);
-#line 570 "mn-mailbox.gob"
+#line 636 "mn-mailbox.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX (self), (MNMailboxConfiguration * )0);
-#line 1452 "mn-mailbox.c"
+#line 1567 "mn-mailbox.c"
 {
-#line 572 "mn-mailbox.gob"
+#line 638 "mn-mailbox.gob"
 	
     GObject *object = G_OBJECT(self);
     GArray *parameters;
@@ -1463,7 +1578,7 @@ mn_mailbox_get_configuration (MNMailbox * self)
 
     properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(self), &n_properties);
     for (i = 0; i < n_properties; i++)
-      if ((properties[i]->flags & MN_MAILBOX_PARAM_PERMANENT) != 0)
+      if ((properties[i]->flags & MN_MAILBOX_PARAM_SAVE) != 0)
 	{
 	  GParameter parameter = { NULL, { 0, } };
 
@@ -1483,20 +1598,20 @@ mn_mailbox_get_configuration (MNMailbox * self)
 
     return config;
   }}
-#line 1487 "mn-mailbox.c"
+#line 1602 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 605 "mn-mailbox.gob"
+#line 671 "mn-mailbox.gob"
 void 
 mn_mailbox_configuration_free (MNMailboxConfiguration * config)
-#line 1493 "mn-mailbox.c"
+#line 1608 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::configuration_free"
-#line 605 "mn-mailbox.gob"
+#line 671 "mn-mailbox.gob"
 	g_return_if_fail (config != NULL);
-#line 1498 "mn-mailbox.c"
+#line 1613 "mn-mailbox.c"
 {
-#line 607 "mn-mailbox.gob"
+#line 673 "mn-mailbox.gob"
 	
     int i;
 
@@ -1506,20 +1621,20 @@ mn_mailbox_configuration_free (MNMailboxConfiguration * config)
     g_free(config->parameters);
     g_free(config);
   }}
-#line 1510 "mn-mailbox.c"
+#line 1625 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 617 "mn-mailbox.gob"
+#line 683 "mn-mailbox.gob"
 MNMailbox * 
 mn_mailbox_new_from_obsolete_uri (const char * uri)
-#line 1516 "mn-mailbox.c"
+#line 1631 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::new_from_obsolete_uri"
-#line 617 "mn-mailbox.gob"
+#line 683 "mn-mailbox.gob"
 	g_return_val_if_fail (uri != NULL, (MNMailbox * )0);
-#line 1521 "mn-mailbox.c"
+#line 1636 "mn-mailbox.c"
 {
-#line 619 "mn-mailbox.gob"
+#line 685 "mn-mailbox.gob"
 	
     char *real_uri;
     char *scheme;
@@ -1551,20 +1666,20 @@ mn_mailbox_new_from_obsolete_uri (const char * uri)
 
     return self;
   }}
-#line 1555 "mn-mailbox.c"
+#line 1670 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 651 "mn-mailbox.gob"
+#line 717 "mn-mailbox.gob"
 static MNMailbox * 
 mn_mailbox_parse_obsolete_uri (const char * uri)
-#line 1561 "mn-mailbox.c"
+#line 1676 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::parse_obsolete_uri"
-#line 651 "mn-mailbox.gob"
+#line 717 "mn-mailbox.gob"
 	g_return_val_if_fail (uri != NULL, (MNMailbox * )0);
-#line 1566 "mn-mailbox.c"
+#line 1681 "mn-mailbox.c"
 {
-#line 653 "mn-mailbox.gob"
+#line 719 "mn-mailbox.gob"
 	
     int len;
     int buflen;
@@ -1757,8 +1872,10 @@ mn_mailbox_parse_obsolete_uri (const char * uri)
 			"authmech", authmech,
 			"hostname", hostname,
 			"port", port,
-			"mailbox", path,
 			NULL);
+
+	if (path)
+	  g_object_set(self, MN_IMAP_MAILBOX_PROP_MAILBOX(path), NULL);
 
 	if (queries && eel_g_strv_find(queries, "noidle") != -1)
 	  g_object_set(G_OBJECT(self), MN_IMAP_MAILBOX_PROP_USE_IDLE_EXTENSION(MN_IMAP_MAILBOX_USE_IDLE_NEVER), NULL);
@@ -1784,17 +1901,17 @@ mn_mailbox_parse_obsolete_uri (const char * uri)
 
     return self;
   }}
-#line 1788 "mn-mailbox.c"
+#line 1905 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 873 "mn-mailbox.gob"
+#line 941 "mn-mailbox.gob"
 static gboolean 
 mn_mailbox_check_timeout_cb (gpointer data)
-#line 1794 "mn-mailbox.c"
+#line 1911 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::check_timeout_cb"
 {
-#line 875 "mn-mailbox.gob"
+#line 943 "mn-mailbox.gob"
 	
     Self *self = data;
 
@@ -1802,26 +1919,27 @@ mn_mailbox_check_timeout_cb (gpointer data)
 
     return TRUE;		/* continue */
   }}
-#line 1806 "mn-mailbox.c"
+#line 1923 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 883 "mn-mailbox.gob"
+#line 951 "mn-mailbox.gob"
 static gboolean 
 mn_mailbox_validate (MNMailbox * self, GError ** err)
-#line 1812 "mn-mailbox.c"
+#line 1929 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::validate"
-#line 883 "mn-mailbox.gob"
+#line 951 "mn-mailbox.gob"
 	g_return_val_if_fail (self != NULL, (gboolean )0);
-#line 883 "mn-mailbox.gob"
+#line 951 "mn-mailbox.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX (self), (gboolean )0);
-#line 1819 "mn-mailbox.c"
+#line 1936 "mn-mailbox.c"
 {
-#line 885 "mn-mailbox.gob"
+#line 953 "mn-mailbox.gob"
 	
     GParamSpec **properties;
     unsigned int n_properties;
     int i;
+    gboolean status = TRUE;
 
     properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(self), &n_properties);
     for (i = 0; i < n_properties; i++)
@@ -1844,40 +1962,52 @@ mn_mailbox_validate (MNMailbox * self, GError ** err)
 	  if (is_empty)
 	    {
 	      g_set_error(err, 0, 0, _("property \"%s\" has no value"), g_param_spec_get_name(properties[i]));
-	      return FALSE;
+	      status = FALSE;
+	      break;
 	    }
 	}
     g_free(properties);
 
-    return TRUE;
+    return status;
   }}
-#line 1855 "mn-mailbox.c"
+#line 1974 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 919 "mn-mailbox.gob"
+/**
+ * mn_mailbox_seal:
+ * @self: a mailbox
+ *
+ * Seals the mailbox before it is made operational by being added to
+ * the mailboxes list. The point of this function is to allow
+ * subclasses to perform initialization which needs to consult the
+ * value of properties loaded from mailboxes.xml or set by the
+ * properties dialog. That would not be possible from init(), since
+ * these properties are only set after the mailbox is constructed.
+ **/
+#line 1000 "mn-mailbox.gob"
 void 
 mn_mailbox_seal (MNMailbox * self)
-#line 1861 "mn-mailbox.c"
+#line 1991 "mn-mailbox.c"
 {
 	MNMailboxClass *klass;
-#line 919 "mn-mailbox.gob"
+#line 1000 "mn-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 919 "mn-mailbox.gob"
+#line 1000 "mn-mailbox.gob"
 	g_return_if_fail (MN_IS_MAILBOX (self));
-#line 1868 "mn-mailbox.c"
+#line 1998 "mn-mailbox.c"
 	klass = MN_MAILBOX_GET_CLASS(self);
 
 	if(klass->seal)
 		(*klass->seal)(self);
 }
-#line 919 "mn-mailbox.gob"
+#line 1000 "mn-mailbox.gob"
 static void 
 ___real_mn_mailbox_seal (MNMailbox * self G_GNUC_UNUSED)
-#line 1877 "mn-mailbox.c"
+#line 2007 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::seal"
 {
-#line 921 "mn-mailbox.gob"
+#line 1002 "mn-mailbox.gob"
 	
     if (self->name)
       {
@@ -1889,20 +2019,20 @@ ___real_mn_mailbox_seal (MNMailbox * self G_GNUC_UNUSED)
       ? self->check_delay
       : SELF_GET_CLASS(self)->default_check_delay;
   }}
-#line 1893 "mn-mailbox.c"
+#line 2023 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 933 "mn-mailbox.gob"
+#line 1014 "mn-mailbox.gob"
 static MNMailbox * 
 mn_mailbox_parse_uri (MNMailbox * self, const char * uri)
-#line 1899 "mn-mailbox.c"
+#line 2029 "mn-mailbox.c"
 {
 	MNMailboxClass *klass;
-#line 933 "mn-mailbox.gob"
+#line 1014 "mn-mailbox.gob"
 	g_return_val_if_fail (self != NULL, (MNMailbox * )0);
-#line 933 "mn-mailbox.gob"
+#line 1014 "mn-mailbox.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX (self), (MNMailbox * )0);
-#line 1906 "mn-mailbox.c"
+#line 2036 "mn-mailbox.c"
 	klass = MN_MAILBOX_GET_CLASS(self);
 
 	if(klass->parse_uri)
@@ -1911,134 +2041,225 @@ mn_mailbox_parse_uri (MNMailbox * self, const char * uri)
 		return (MNMailbox * )(0);
 }
 
-#line 936 "mn-mailbox.gob"
+#line 1017 "mn-mailbox.gob"
 void 
 mn_mailbox_check (MNMailbox * self)
-#line 1918 "mn-mailbox.c"
+#line 2048 "mn-mailbox.c"
 {
 	MNMailboxClass *klass;
-#line 936 "mn-mailbox.gob"
+#line 1017 "mn-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 936 "mn-mailbox.gob"
+#line 1017 "mn-mailbox.gob"
 	g_return_if_fail (MN_IS_MAILBOX (self));
-#line 1925 "mn-mailbox.c"
+#line 2055 "mn-mailbox.c"
 	klass = MN_MAILBOX_GET_CLASS(self);
 
 	if(klass->check)
 		(*klass->check)(self);
 }
-#line 936 "mn-mailbox.gob"
+#line 1017 "mn-mailbox.gob"
 static void 
 ___real_mn_mailbox_check (MNMailbox * self G_GNUC_UNUSED)
-#line 1934 "mn-mailbox.c"
+#line 2064 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::check"
 {
-#line 938 "mn-mailbox.gob"
+#line 1019 "mn-mailbox.gob"
 	
-    g_assert(selfp->added == TRUE);
+    g_assert(self_get_active(self) == TRUE);
+    g_assert(selfp->checking_enabled == TRUE);
   }}
-#line 1942 "mn-mailbox.c"
+#line 2073 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 942 "mn-mailbox.gob"
+#line 1033 "mn-mailbox.gob"
+void 
+mn_mailbox_enable_checking (MNMailbox * self)
+#line 2079 "mn-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Mailbox::enable_checking"
+#line 1033 "mn-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 1033 "mn-mailbox.gob"
+	g_return_if_fail (MN_IS_MAILBOX (self));
+#line 2086 "mn-mailbox.c"
+{
+#line 1035 "mn-mailbox.gob"
+	
+    selfp->checking_enabled = TRUE;
+    g_object_notify(G_OBJECT(self), "manually-checkable");
+
+    self_update_check_timeout(self);
+    self_check(self);
+  }}
+#line 2096 "mn-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 1043 "mn-mailbox.gob"
 void 
 mn_mailbox_notice (MNMailbox * self, const char * format, ...)
-#line 1948 "mn-mailbox.c"
+#line 2102 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::notice"
-#line 942 "mn-mailbox.gob"
+#line 1043 "mn-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 942 "mn-mailbox.gob"
+#line 1043 "mn-mailbox.gob"
 	g_return_if_fail (MN_IS_MAILBOX (self));
-#line 942 "mn-mailbox.gob"
+#line 1043 "mn-mailbox.gob"
 	g_return_if_fail (format != NULL);
-#line 1957 "mn-mailbox.c"
+#line 2111 "mn-mailbox.c"
 {
-#line 944 "mn-mailbox.gob"
+#line 1045 "mn-mailbox.gob"
 	
     va_list args;
     char *message;
+
+    /*
+     * Disregard messages sent by a threaded check still in progress
+     * after the mailbox has been removed.
+     */
+    if (! self_get_active(self))
+      return;
 
     va_start(args, format);
     message = g_strdup_vprintf(format, args);
     va_end(args);
 
-    mn_info("%s: %s", self->runtime_name, message);
+    mn_info(_("%s: %s"), self->runtime_name, message);
     g_free(message);
   }}
-#line 1971 "mn-mailbox.c"
+#line 2132 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 956 "mn-mailbox.gob"
+#line 1064 "mn-mailbox.gob"
 void 
 mn_mailbox_warning (MNMailbox * self, const char * format, ...)
-#line 1977 "mn-mailbox.c"
+#line 2138 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::warning"
-#line 956 "mn-mailbox.gob"
+#line 1064 "mn-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 956 "mn-mailbox.gob"
+#line 1064 "mn-mailbox.gob"
 	g_return_if_fail (MN_IS_MAILBOX (self));
-#line 956 "mn-mailbox.gob"
+#line 1064 "mn-mailbox.gob"
 	g_return_if_fail (format != NULL);
-#line 1986 "mn-mailbox.c"
+#line 2147 "mn-mailbox.c"
 {
-#line 958 "mn-mailbox.gob"
+#line 1066 "mn-mailbox.gob"
 	
     va_list args;
     char *message;
+
+    /*
+     * Disregard messages sent by a threaded check still in progress
+     * after the mailbox has been removed.
+     */
+    if (! self_get_active(self))
+      return;
 
     va_start(args, format);
     message = g_strdup_vprintf(format, args);
     va_end(args);
 
-    g_warning("%s: %s", self->runtime_name, message);
+    g_warning(_("%s: %s"), self->runtime_name, message);
     g_free(message);
   }}
-#line 2000 "mn-mailbox.c"
+#line 2168 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 976 "mn-mailbox.gob"
-void 
-mn_mailbox_mark_as_read (gpointer _message)
-#line 2006 "mn-mailbox.c"
+#line 1085 "mn-mailbox.gob"
+static void 
+mn_mailbox_consider_as_read_real (MNMailbox * self, MNMessage * message)
+#line 2174 "mn-mailbox.c"
 {
-#define __GOB_FUNCTION__ "MN:Mailbox::mark_as_read"
+#define __GOB_FUNCTION__ "MN:Mailbox::consider_as_read_real"
+#line 1085 "mn-mailbox.gob"
+	g_return_if_fail (self != NULL);
+#line 1085 "mn-mailbox.gob"
+	g_return_if_fail (MN_IS_MAILBOX (self));
+#line 1085 "mn-mailbox.gob"
+	g_return_if_fail (message != NULL);
+#line 1085 "mn-mailbox.gob"
+	g_return_if_fail (MN_IS_MESSAGE (message));
+#line 2185 "mn-mailbox.c"
 {
-#line 978 "mn-mailbox.gob"
+#line 1087 "mn-mailbox.gob"
 	
-    MNMessage *message;
-    Self *self;
+    g_hash_table_replace(selfp->messages_considered_as_read, message->id, g_object_ref(message));
+  }}
+#line 2191 "mn-mailbox.c"
+#undef __GOB_FUNCTION__
 
-    message = MN_MESSAGE(_message);
-    g_return_if_fail(message != NULL);
+#line 1101 "mn-mailbox.gob"
+void 
+mn_mailbox_consider_as_read (gpointer _message)
+#line 2197 "mn-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Mailbox::consider_as_read"
+{
+#line 1103 "mn-mailbox.gob"
+	
+    MNMessage *message = MN_MESSAGE(_message);
+    Self *self;
 
     self = message->mailbox;
     g_assert(self != NULL);
 
-    g_hash_table_replace(selfp->messages_marked_as_read, message->id, g_object_ref(message));
+    self_consider_as_read_real(self, message);
 
     self_filter_messages(self);
   }}
-#line 2025 "mn-mailbox.c"
+#line 2213 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 993 "mn-mailbox.gob"
+#line 1120 "mn-mailbox.gob"
+void 
+mn_mailbox_consider_as_read_list (const GSList * messages)
+#line 2219 "mn-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:Mailbox::consider_as_read_list"
+{
+#line 1122 "mn-mailbox.gob"
+	
+    Self *self = NULL;
+    const GSList *l;
+
+    MN_LIST_FOREACH(l, messages)
+      {
+	MNMessage *message = l->data;
+
+	if (self)
+	  g_assert(self == message->mailbox);
+	else
+	  {
+	    self = message->mailbox;
+	    g_assert(self != NULL);
+	  }
+
+	self_consider_as_read_real(self, message);
+      }
+
+    if (self)			/* non empty list */
+      self_filter_messages(self);
+  }}
+#line 2246 "mn-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 1145 "mn-mailbox.gob"
 char * 
 mn_mailbox_get_command (MNMailbox * self, const char * id)
-#line 2031 "mn-mailbox.c"
+#line 2252 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::get_command"
-#line 993 "mn-mailbox.gob"
+#line 1145 "mn-mailbox.gob"
 	g_return_val_if_fail (self != NULL, (char * )0);
-#line 993 "mn-mailbox.gob"
+#line 1145 "mn-mailbox.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX (self), (char * )0);
-#line 993 "mn-mailbox.gob"
+#line 1145 "mn-mailbox.gob"
 	g_return_val_if_fail (id != NULL, (char * )0);
-#line 2040 "mn-mailbox.c"
+#line 2261 "mn-mailbox.c"
 {
-#line 995 "mn-mailbox.gob"
+#line 1147 "mn-mailbox.gob"
 	
     char *prop;
     char *command;
@@ -2055,24 +2276,24 @@ mn_mailbox_get_command (MNMailbox * self, const char * id)
 
     return command;
   }}
-#line 2059 "mn-mailbox.c"
+#line 2280 "mn-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1012 "mn-mailbox.gob"
+#line 1164 "mn-mailbox.gob"
 gboolean 
 mn_mailbox_has_command (MNMailbox * self, const char * id)
-#line 2065 "mn-mailbox.c"
+#line 2286 "mn-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:Mailbox::has_command"
-#line 1012 "mn-mailbox.gob"
+#line 1164 "mn-mailbox.gob"
 	g_return_val_if_fail (self != NULL, (gboolean )0);
-#line 1012 "mn-mailbox.gob"
+#line 1164 "mn-mailbox.gob"
 	g_return_val_if_fail (MN_IS_MAILBOX (self), (gboolean )0);
-#line 1012 "mn-mailbox.gob"
+#line 1164 "mn-mailbox.gob"
 	g_return_val_if_fail (id != NULL, (gboolean )0);
-#line 2074 "mn-mailbox.c"
+#line 2295 "mn-mailbox.c"
 {
-#line 1014 "mn-mailbox.gob"
+#line 1166 "mn-mailbox.gob"
 	
     char *command;
     gboolean has;
@@ -2083,5 +2304,5 @@ mn_mailbox_has_command (MNMailbox * self, const char * id)
 
     return has;
   }}
-#line 2087 "mn-mailbox.c"
+#line 2308 "mn-mailbox.c"
 #undef __GOB_FUNCTION__

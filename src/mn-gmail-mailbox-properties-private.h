@@ -10,9 +10,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _MNGmailMailboxPropertiesPrivate {
-#line 45 "mn-gmail-mailbox-properties.gob"
+#line 42 "mn-gmail-mailbox-properties.gob"
+	GtkWidget * label_check;
+#line 43 "mn-gmail-mailbox-properties.gob"
+	GtkWidget * label_entry;
+#line 49 "mn-gmail-mailbox-properties.gob"
 	char * location;
-#line 16 "mn-gmail-mailbox-properties-private.h"
+#line 20 "mn-gmail-mailbox-properties-private.h"
 };
 
 #ifdef __cplusplus

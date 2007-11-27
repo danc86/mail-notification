@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -37,7 +37,7 @@ typedef enum
 typedef enum
 {
   /* include in the XML summary and allow as a command format */
-  MN_MESSAGE_PARAM_EXPORT	= MN_XML_PARAM_IMPORT_EXPORT,
+  MN_MESSAGE_PARAM_EXPORT	= MN_XML_PARAM_EXPORT,
 } MNMessageParamFlags;
 %}
 
@@ -53,8 +53,6 @@ typedef enum
 class MN:Message from G:Object
 {
   /*
-   * May be NULL.
-   *
    * In order to not create reference cycles, we do not hold a
    * reference to the mailbox. The code is arranged so that a message
    * cannot survive its containing mailbox (whenever the mailbox is
@@ -150,10 +148,9 @@ class MN:Message from G:Object
   }
 
   private gboolean
-    get_subst (self,
-	       const char *prop_name (check null),
-	       char **result (check null))
+    subst_command_cb (const char *name, char **value, gpointer data)
   {
+    Self *self = data;
     GParamSpec **properties;
     unsigned int n_properties;
     gboolean status = FALSE;
@@ -162,15 +159,15 @@ class MN:Message from G:Object
     properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(self), &n_properties);
     for (i = 0; i < n_properties; i++)
       if ((properties[i]->flags & MN_MESSAGE_PARAM_EXPORT) != 0
-	  && ! strcmp(g_param_spec_get_name(properties[i]), prop_name))
+	  && ! strcmp(g_param_spec_get_name(properties[i]), name))
 	{
-	  GValue value = { 0, };
+	  GValue gvalue = { 0, };
 
-	  g_value_init(&value, G_PARAM_SPEC_VALUE_TYPE(properties[i]));
-	  g_object_get_property(G_OBJECT(self), prop_name, &value);
+	  g_value_init(&gvalue, G_PARAM_SPEC_VALUE_TYPE(properties[i]));
+	  g_object_get_property(G_OBJECT(self), name, &gvalue);
 
-	  *result = mn_g_value_to_string(&value);
-	  g_value_unset(&value);
+	  *value = mn_g_value_to_string(&gvalue);
+	  g_value_unset(&gvalue);
 
 	  status = TRUE;
 	  break;
@@ -178,96 +175,6 @@ class MN:Message from G:Object
     g_free(properties);
 
     return status;
-  }
-
-  private char *
-    subst_command (self, const char *command (check null), GError **err)
-  {
-    GString *result;
-    const char *p;
-
-    result = g_string_new(NULL);
-
-    for (p = command; *p;)
-      if (*p == '%')
-	{
-	  char *prop_name = NULL;
-
-	  if (p[1] == '%')
-	    {
-	      g_string_append_c(result, '%');
-	      p += 2;
-	    }
-	  else if (p[1] == '{')
-	    {
-	      char *end;
-
-	      end = strchr(p + 2, '}');
-	      if (! end)
-		{
-		  g_set_error(err, 0, 0, _("unterminated substitution"));
-		  goto error;
-		}
-
-	      prop_name = g_strndup(p + 2, end - p - 2);
-	      p = end + 1;
-	    }
-	  else
-	    {
-	      const char *end = p + 1;
-
-	      while (g_ascii_isalnum(*end) || *end == '-' || *end == '_')
-		end++;
-
-	      prop_name = g_strndup(p + 1, end - p - 1);
-	      p = end;
-	    }
-
-	  if (prop_name)
-	    {
-	      gboolean ok = FALSE;
-
-	      if (*prop_name)
-		{
-		  char *value;
-
-		  if (self_get_subst(self, prop_name, &value))
-		    {
-		      char *quoted;
-
-		      quoted = mn_shell_quote_safe(value ? value : "");
-		      g_free(value);
-
-		      g_string_append(result, quoted);
-		      g_free(quoted);
-
-		      ok = TRUE;
-		    }
-		  else
-		    g_set_error(err, 0, 0, _("unknown substitution \"%s\""), prop_name);
-		}
-	      else
-		g_set_error(err, 0, 0, _("empty substitution"));
-
-	      g_free(prop_name);
-	      if (! ok)
-		goto error;
-	    }
-	}
-      else
-	{
-	  g_string_append_c(result, *p);
-	  p++;
-	}
-
-    goto end;			/* success */
-
-  error:
-    g_string_free(result, TRUE);
-    result = NULL;
-
-  end:
-    return result ? g_string_free(result, FALSE) : NULL;
   }
 
   private gboolean
@@ -278,7 +185,7 @@ class MN:Message from G:Object
     char *subst;
     int status;
 
-    subst = self_subst_command(self, command, err);
+    subst = mn_subst_command(command, self_subst_command_cb, self, err);
     if (! subst)
       return FALSE;
 
@@ -337,7 +244,7 @@ class MN:Message from G:Object
 
     if (self_execute_command(self, "open", &status, err))
       {
-	mn_mailbox_mark_as_read(self);
+	mn_mailbox_consider_as_read(self);
 	return status;
       }
     else
@@ -378,7 +285,7 @@ class MN:Message from G:Object
   {
     if (self_mark_as_read_real(self, err))
       {
-	mn_mailbox_mark_as_read(self);
+	mn_mailbox_consider_as_read(self);
 	return TRUE;
       }
     else
@@ -416,7 +323,7 @@ class MN:Message from G:Object
   {
     if (self_mark_as_spam_real(self, err))
       {
-	mn_mailbox_mark_as_read(self);
+	mn_mailbox_consider_as_read(self);
 	return TRUE;
       }
     else
@@ -449,12 +356,13 @@ class MN:Message from G:Object
       return self_delete_impl(self, err);
   }
 
+  /* If cancelled by the user, returns FALSE but do not sets @err. */
   public gboolean
     delete (self, GError **err)
   {
     if (self_delete_real(self, err))
       {
-	mn_mailbox_mark_as_read(self);
+	mn_mailbox_consider_as_read(self);
 	return TRUE;
       }
     else

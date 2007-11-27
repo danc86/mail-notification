@@ -7,12 +7,23 @@ nobase_dist_icons_DATA = \
 	48x48/apps/mail-notification.png \
 	scalable/apps/mail-notification.svg
 
-app_pixmapsdir = $(pkgdatadir)/ui
-dist_app_pixmaps_DATA = logo.png
+dist_pkgdata_DATA = logo.png
 
 if WITH_GMAIL
-dist_app_pixmaps_DATA += gmail.png
+dist_pkgdata_DATA += gmail.png
 endif
 
-install-data-hook:
+if WITH_YAHOO
+dist_pkgdata_DATA += yahoo.png
+endif
+
+if WITH_HOTMAIL
+dist_pkgdata_DATA += hotmail.png
+endif
+
+install-data-hook: update-icon-cache
+
+uninstall-hook: update-icon-cache
+
+update-icon-cache:
 	-gtk-update-icon-cache -f -t $(iconsdir)

@@ -22,25 +22,23 @@
 #define ___GOB_UNLIKELY(expr) (expr)
 #endif /* G_LIKELY */
 
-#line 40 "mn-pi-mailbox.gob"
+#line 41 "mn-pi-mailbox.gob"
 
 #include "config.h"
 #include <glib/gi18n.h>
-#include <gnome.h>
 #include <eel/eel.h>
+#include "mn-authenticated-mailbox-private.h"
 #include "mn-mailbox-private.h"
 #include "mn-util.h"
 #include "mn-stock.h"
-
-static GHashTable *password_database;
-G_LOCK_DEFINE_STATIC(password_database);
+#include "mn-conf.h"
 
 struct _MNClientSessionPrivate
 {
   MN_PI_MAILBOX_SESSION_PRIVATE;
 };
 
-#line 44 "mn-pi-mailbox.c"
+#line 42 "mn-pi-mailbox.c"
 static const GEnumValue _mn_pi_mailbox_connection_type_values[] = {
 	{ MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL, (char *)"MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL", (char *)"normal" },
 	{ MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL, (char *)"MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL", (char *)"inband-ssl" },
@@ -75,13 +73,10 @@ static void ___object_set_property (GObject *object, guint property_id, const GV
 static void ___object_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void mn_pi_mailbox_class_init (MNPIMailboxClass * class) G_GNUC_UNUSED;
 static void mn_pi_mailbox_init (MNPIMailbox * self) G_GNUC_UNUSED;
-static void ___3_mn_pi_mailbox_removed (MNMailbox * mailbox) G_GNUC_UNUSED;
-static void ___4_mn_pi_mailbox_seal (MNMailbox * mailbox) G_GNUC_UNUSED;
+static void ___3_mn_pi_mailbox_seal (MNMailbox * mailbox) G_GNUC_UNUSED;
+static void ___4_mn_pi_mailbox_removed (MNMailbox * mailbox) G_GNUC_UNUSED;
 static void ___5_mn_pi_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox) G_GNUC_UNUSED;
-static gboolean mn_pi_mailbox_credentials_prompt (MNPIMailbox * self, char ** username, char ** password, const char * format, ...) G_GNUC_UNUSED;
-static char * mn_pi_mailbox_build_auth_id (MNPIMailbox * self, const char * username) G_GNUC_UNUSED;
-static char * mn_pi_mailbox_get_password (MNPIMailbox * self, const char * username) G_GNUC_UNUSED;
-static void mn_pi_mailbox_set_password (MNPIMailbox * self, const char * username, const char * password) G_GNUC_UNUSED;
+static gboolean mn_pi_mailbox_run_untrusted_dialog (MNPIMailbox * self, const char * server, const char * reason, const char * cert_fingerprint) G_GNUC_UNUSED;
 
 enum {
 	PROP_0,
@@ -98,14 +93,10 @@ static MNAuthenticatedMailboxClass *parent_class = NULL;
 #define self_split_uri mn_pi_mailbox_split_uri
 #define self_split_uri_auth mn_pi_mailbox_split_uri_auth
 #define self_split_uri_hostport mn_pi_mailbox_split_uri_hostport
-#define self_auth_failed mn_pi_mailbox_auth_failed
-#define self_fill_credentials mn_pi_mailbox_fill_credentials
-#define self_credentials_prompt mn_pi_mailbox_credentials_prompt
-#define self_build_auth_id mn_pi_mailbox_build_auth_id
-#define self_get_password mn_pi_mailbox_get_password
-#define self_set_password mn_pi_mailbox_set_password
 #define self_session_private_init mn_pi_mailbox_session_private_init
 #define self_sasl_get_credentials_cb mn_pi_mailbox_sasl_get_credentials_cb
+#define self_ssl_trust_server_cb mn_pi_mailbox_ssl_trust_server_cb
+#define self_run_untrusted_dialog mn_pi_mailbox_run_untrusted_dialog
 #define self_notice_cb mn_pi_mailbox_notice_cb
 #define self_warning_cb mn_pi_mailbox_warning_cb
 GType
@@ -159,25 +150,19 @@ ___finalize(GObject *obj_self)
 	gpointer priv G_GNUC_UNUSED = self->_priv;
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 75 "mn-pi-mailbox.gob"
+#line 74 "mn-pi-mailbox.gob"
 	if(self->authmech) { g_free ((gpointer) self->authmech); self->authmech = NULL; }
-#line 165 "mn-pi-mailbox.c"
-#line 79 "mn-pi-mailbox.gob"
+#line 156 "mn-pi-mailbox.c"
+#line 78 "mn-pi-mailbox.gob"
 	if(self->hostname) { g_free ((gpointer) self->hostname); self->hostname = NULL; }
-#line 168 "mn-pi-mailbox.c"
-#line 90 "mn-pi-mailbox.gob"
-	if(self->runtime_username) { g_free ((gpointer) self->runtime_username); self->runtime_username = NULL; }
-#line 171 "mn-pi-mailbox.c"
-#line 91 "mn-pi-mailbox.gob"
-	if(self->runtime_password) { g_free ((gpointer) self->runtime_password); self->runtime_password = NULL; }
-#line 174 "mn-pi-mailbox.c"
+#line 159 "mn-pi-mailbox.c"
 }
 #undef __GOB_FUNCTION__
 
-#line 98 "mn-pi-mailbox.gob"
+#line 91 "mn-pi-mailbox.gob"
 static void 
 mn_pi_mailbox_class_init (MNPIMailboxClass * class G_GNUC_UNUSED)
-#line 181 "mn-pi-mailbox.c"
+#line 166 "mn-pi-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox::class_init"
 	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
@@ -188,13 +173,13 @@ mn_pi_mailbox_class_init (MNPIMailboxClass * class G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (MN_TYPE_AUTHENTICATED_MAILBOX);
 
-#line 114 "mn-pi-mailbox.gob"
-	mn_mailbox_class->removed = ___3_mn_pi_mailbox_removed;
+#line 105 "mn-pi-mailbox.gob"
+	mn_mailbox_class->seal = ___3_mn_pi_mailbox_seal;
 #line 125 "mn-pi-mailbox.gob"
-	mn_mailbox_class->seal = ___4_mn_pi_mailbox_seal;
-#line 141 "mn-pi-mailbox.gob"
+	mn_mailbox_class->removed = ___4_mn_pi_mailbox_removed;
+#line 136 "mn-pi-mailbox.gob"
 	mn_authenticated_mailbox_class->authenticated_check = ___5_mn_pi_mailbox_authenticated_check;
-#line 198 "mn-pi-mailbox.c"
+#line 183 "mn-pi-mailbox.c"
 	g_object_class->finalize = ___finalize;
 	g_object_class->get_property = ___object_get_property;
 	g_object_class->set_property = ___object_set_property;
@@ -207,7 +192,7 @@ mn_pi_mailbox_class_init (MNPIMailboxClass * class G_GNUC_UNUSED)
 		 NULL /* blurb */,
 		 MN_TYPE_PI_MAILBOX_CONNECTION_TYPE /* enum_type */,
 		 MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_PERMANENT | G_PARAM_CONSTRUCT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_LOAD_SAVE | G_PARAM_CONSTRUCT));
 	g_object_class_install_property (g_object_class,
 		PROP_CONNECTION_TYPE,
 		param_spec);
@@ -216,7 +201,7 @@ mn_pi_mailbox_class_init (MNPIMailboxClass * class G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_LOAD_SAVE));
 	g_object_class_install_property (g_object_class,
 		PROP_AUTHMECH,
 		param_spec);
@@ -225,7 +210,7 @@ mn_pi_mailbox_class_init (MNPIMailboxClass * class G_GNUC_UNUSED)
 		 NULL /* nick */,
 		 NULL /* blurb */,
 		 NULL /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_REQUIRED | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_REQUIRED | MN_MAILBOX_PARAM_LOAD_SAVE));
 	g_object_class_install_property (g_object_class,
 		PROP_HOSTNAME,
 		param_spec);
@@ -236,15 +221,13 @@ mn_pi_mailbox_class_init (MNPIMailboxClass * class G_GNUC_UNUSED)
 		 0 /* minimum */,
 		 65535 /* maximum */,
 		 0 /* default_value */,
-		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_PERMANENT));
+		 (GParamFlags)(G_PARAM_READABLE | G_PARAM_WRITABLE | MN_MAILBOX_PARAM_LOAD_SAVE));
 	g_object_class_install_property (g_object_class,
 		PROP_PORT,
 		param_spec);
     }
  {
-#line 99 "mn-pi-mailbox.gob"
-
-    password_database = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+#line 92 "mn-pi-mailbox.gob"
 
     /*
      * 5 minutes is a good default check delay for remote POP3/IMAP
@@ -252,23 +235,23 @@ mn_pi_mailbox_class_init (MNPIMailboxClass * class G_GNUC_UNUSED)
      */
     MN_MAILBOX_CLASS(class)->default_check_delay = 60 * 5;
   
-#line 256 "mn-pi-mailbox.c"
+#line 239 "mn-pi-mailbox.c"
  }
 }
 #undef __GOB_FUNCTION__
-#line 109 "mn-pi-mailbox.gob"
+#line 100 "mn-pi-mailbox.gob"
 static void 
 mn_pi_mailbox_init (MNPIMailbox * self G_GNUC_UNUSED)
-#line 263 "mn-pi-mailbox.c"
+#line 246 "mn-pi-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_PI_MAILBOX,MNPIMailboxPrivate);
  {
-#line 110 "mn-pi-mailbox.gob"
+#line 101 "mn-pi-mailbox.gob"
 
     mn_mailbox_set_stock_id(MN_MAILBOX(self), MN_STOCK_REMOTE);
   
-#line 272 "mn-pi-mailbox.c"
+#line 255 "mn-pi-mailbox.c"
  }
 }
 #undef __GOB_FUNCTION__
@@ -287,30 +270,30 @@ ___object_set_property (GObject *object,
 	switch (property_id) {
 	case PROP_CONNECTION_TYPE:
 		{
-#line 70 "mn-pi-mailbox.gob"
+#line 69 "mn-pi-mailbox.gob"
 self->connection_type = g_value_get_enum (VAL);
-#line 293 "mn-pi-mailbox.c"
+#line 276 "mn-pi-mailbox.c"
 		}
 		break;
 	case PROP_AUTHMECH:
 		{
-#line 76 "mn-pi-mailbox.gob"
+#line 75 "mn-pi-mailbox.gob"
 { char *old = self->authmech; self->authmech = g_value_dup_string (VAL); g_free (old); }
-#line 300 "mn-pi-mailbox.c"
+#line 283 "mn-pi-mailbox.c"
 		}
 		break;
 	case PROP_HOSTNAME:
 		{
-#line 80 "mn-pi-mailbox.gob"
+#line 79 "mn-pi-mailbox.gob"
 { char *old = self->hostname; self->hostname = g_value_dup_string (VAL); g_free (old); }
-#line 307 "mn-pi-mailbox.c"
+#line 290 "mn-pi-mailbox.c"
 		}
 		break;
 	case PROP_PORT:
 		{
-#line 83 "mn-pi-mailbox.gob"
+#line 82 "mn-pi-mailbox.gob"
 self->port = g_value_get_int (VAL);
-#line 314 "mn-pi-mailbox.c"
+#line 297 "mn-pi-mailbox.c"
 		}
 		break;
 	default:
@@ -339,30 +322,30 @@ ___object_get_property (GObject *object,
 	switch (property_id) {
 	case PROP_CONNECTION_TYPE:
 		{
-#line 70 "mn-pi-mailbox.gob"
+#line 69 "mn-pi-mailbox.gob"
 g_value_set_enum (VAL, self->connection_type);
-#line 345 "mn-pi-mailbox.c"
+#line 328 "mn-pi-mailbox.c"
 		}
 		break;
 	case PROP_AUTHMECH:
 		{
-#line 76 "mn-pi-mailbox.gob"
+#line 75 "mn-pi-mailbox.gob"
 g_value_set_string (VAL, self->authmech);
-#line 352 "mn-pi-mailbox.c"
+#line 335 "mn-pi-mailbox.c"
 		}
 		break;
 	case PROP_HOSTNAME:
 		{
-#line 80 "mn-pi-mailbox.gob"
+#line 79 "mn-pi-mailbox.gob"
 g_value_set_string (VAL, self->hostname);
-#line 359 "mn-pi-mailbox.c"
+#line 342 "mn-pi-mailbox.c"
 		}
 		break;
 	case PROP_PORT:
 		{
-#line 83 "mn-pi-mailbox.gob"
+#line 82 "mn-pi-mailbox.gob"
 g_value_set_int (VAL, self->port);
-#line 366 "mn-pi-mailbox.c"
+#line 349 "mn-pi-mailbox.c"
 		}
 		break;
 	default:
@@ -379,41 +362,19 @@ g_value_set_int (VAL, self->port);
 
 
 
-#line 114 "mn-pi-mailbox.gob"
+#line 105 "mn-pi-mailbox.gob"
 static void 
-___3_mn_pi_mailbox_removed (MNMailbox * mailbox G_GNUC_UNUSED)
-#line 386 "mn-pi-mailbox.c"
-#define PARENT_HANDLER(___mailbox) \
-	{ if(MN_MAILBOX_CLASS(parent_class)->removed) \
-		(* MN_MAILBOX_CLASS(parent_class)->removed)(___mailbox); }
-{
-#define __GOB_FUNCTION__ "MN:PI:Mailbox::removed"
-{
-#line 116 "mn-pi-mailbox.gob"
-	
-    Self *self = SELF(mailbox);
-
-    if (selfp->auth_dialog)
-      gtk_dialog_response(GTK_DIALOG(selfp->auth_dialog), GTK_RESPONSE_CANCEL);
-
-    PARENT_HANDLER(mailbox);
-  }}
-#line 402 "mn-pi-mailbox.c"
-#undef __GOB_FUNCTION__
-#undef PARENT_HANDLER
-
-#line 125 "mn-pi-mailbox.gob"
-static void 
-___4_mn_pi_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
-#line 409 "mn-pi-mailbox.c"
+___3_mn_pi_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
+#line 369 "mn-pi-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_MAILBOX_CLASS(parent_class)->seal) \
 		(* MN_MAILBOX_CLASS(parent_class)->seal)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox::seal"
 {
-#line 127 "mn-pi-mailbox.gob"
+#line 107 "mn-pi-mailbox.gob"
 	
+    MNAuthenticatedMailbox *auth_mailbox = MN_AUTHENTICATED_MAILBOX(mailbox);
     Self *self = SELF(mailbox);
 
     PARENT_HANDLER(mailbox);
@@ -425,25 +386,49 @@ ___4_mn_pi_mailbox_seal (MNMailbox * mailbox G_GNUC_UNUSED)
     self->runtime_port = self->port == 0
       ? SELF_GET_CLASS(self)->default_ports[self->connection_type]
       : self->port;
+
+    auth_mailbox->keyring_server = g_strdup(self->hostname);
+    auth_mailbox->keyring_port = self->runtime_port;
   }}
-#line 430 "mn-pi-mailbox.c"
+#line 394 "mn-pi-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 141 "mn-pi-mailbox.gob"
+#line 125 "mn-pi-mailbox.gob"
+static void 
+___4_mn_pi_mailbox_removed (MNMailbox * mailbox G_GNUC_UNUSED)
+#line 401 "mn-pi-mailbox.c"
+#define PARENT_HANDLER(___mailbox) \
+	{ if(MN_MAILBOX_CLASS(parent_class)->removed) \
+		(* MN_MAILBOX_CLASS(parent_class)->removed)(___mailbox); }
+{
+#define __GOB_FUNCTION__ "MN:PI:Mailbox::removed"
+{
+#line 127 "mn-pi-mailbox.gob"
+	
+    Self *self = SELF(mailbox);
+
+    PARENT_HANDLER(mailbox);
+
+    if (selfp->untrusted_dialog)
+      gtk_dialog_response(GTK_DIALOG(selfp->untrusted_dialog), GTK_RESPONSE_CANCEL);
+  }}
+#line 417 "mn-pi-mailbox.c"
+#undef __GOB_FUNCTION__
+#undef PARENT_HANDLER
+
+#line 136 "mn-pi-mailbox.gob"
 static void 
 ___5_mn_pi_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GNUC_UNUSED)
-#line 437 "mn-pi-mailbox.c"
+#line 424 "mn-pi-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_AUTHENTICATED_MAILBOX_CLASS(parent_class)->authenticated_check) \
 		(* MN_AUTHENTICATED_MAILBOX_CLASS(parent_class)->authenticated_check)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox::authenticated_check"
 {
-#line 143 "mn-pi-mailbox.gob"
+#line 138 "mn-pi-mailbox.gob"
 	
-    Self *self = SELF(mailbox);
-
     PARENT_HANDLER(mailbox);
 
 #if ! WITH_SSL
@@ -459,33 +444,28 @@ ___5_mn_pi_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GNUC_
 	GDK_THREADS_LEAVE();
       }
 #endif
-
-    self->auth_prompted = FALSE;
-    selfp->auth_failed = FALSE;
   }}
-#line 467 "mn-pi-mailbox.c"
+#line 449 "mn-pi-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 166 "mn-pi-mailbox.gob"
+#line 156 "mn-pi-mailbox.gob"
 gboolean 
-mn_pi_mailbox_split_uri (const char * uri, int maxlen, char * scheme, char * auth, char * location, gboolean * has_auth)
-#line 474 "mn-pi-mailbox.c"
+mn_pi_mailbox_split_uri (const char * uri, int maxlen, char * scheme, char * auth, char * location)
+#line 456 "mn-pi-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox::split_uri"
-#line 166 "mn-pi-mailbox.gob"
+#line 156 "mn-pi-mailbox.gob"
 	g_return_val_if_fail (uri != NULL, (gboolean )0);
-#line 166 "mn-pi-mailbox.gob"
+#line 156 "mn-pi-mailbox.gob"
 	g_return_val_if_fail (scheme != NULL, (gboolean )0);
-#line 166 "mn-pi-mailbox.gob"
+#line 156 "mn-pi-mailbox.gob"
 	g_return_val_if_fail (auth != NULL, (gboolean )0);
-#line 166 "mn-pi-mailbox.gob"
+#line 156 "mn-pi-mailbox.gob"
 	g_return_val_if_fail (location != NULL, (gboolean )0);
-#line 166 "mn-pi-mailbox.gob"
-	g_return_val_if_fail (has_auth != NULL, (gboolean )0);
-#line 487 "mn-pi-mailbox.c"
+#line 467 "mn-pi-mailbox.c"
 {
-#line 173 "mn-pi-mailbox.gob"
+#line 162 "mn-pi-mailbox.gob"
 	
     char *pat;
     int n;
@@ -494,40 +474,28 @@ mn_pi_mailbox_split_uri (const char * uri, int maxlen, char * scheme, char * aut
     n = sscanf(uri, pat, scheme, auth, location);
     g_free(pat);
 
-    if (n >= 2)
-      {
-	*has_auth = n == 3;
-
-	if (! *has_auth)
-	  strcpy(location, auth);
-
-	return TRUE;
-      }
-    else
-      return FALSE;
+    return n == 3;	/* MN requires an username, hence the auth part */
   }}
-#line 510 "mn-pi-mailbox.c"
+#line 480 "mn-pi-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 194 "mn-pi-mailbox.gob"
+#line 173 "mn-pi-mailbox.gob"
 gboolean 
-mn_pi_mailbox_split_uri_auth (const char * auth, int maxlen, char * username, char * authmech, gboolean * has_username, gboolean * has_authmech)
-#line 516 "mn-pi-mailbox.c"
+mn_pi_mailbox_split_uri_auth (const char * auth, int maxlen, char * username, char * authmech, gboolean * has_authmech)
+#line 486 "mn-pi-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox::split_uri_auth"
-#line 194 "mn-pi-mailbox.gob"
+#line 173 "mn-pi-mailbox.gob"
 	g_return_val_if_fail (auth != NULL, (gboolean )0);
-#line 194 "mn-pi-mailbox.gob"
+#line 173 "mn-pi-mailbox.gob"
 	g_return_val_if_fail (username != NULL, (gboolean )0);
-#line 194 "mn-pi-mailbox.gob"
+#line 173 "mn-pi-mailbox.gob"
 	g_return_val_if_fail (authmech != NULL, (gboolean )0);
-#line 194 "mn-pi-mailbox.gob"
-	g_return_val_if_fail (has_username != NULL, (gboolean )0);
-#line 194 "mn-pi-mailbox.gob"
+#line 173 "mn-pi-mailbox.gob"
 	g_return_val_if_fail (has_authmech != NULL, (gboolean )0);
-#line 529 "mn-pi-mailbox.c"
+#line 497 "mn-pi-mailbox.c"
 {
-#line 201 "mn-pi-mailbox.gob"
+#line 179 "mn-pi-mailbox.gob"
 	
     char *pat;
     int n;
@@ -536,48 +504,31 @@ mn_pi_mailbox_split_uri_auth (const char * auth, int maxlen, char * username, ch
     n = sscanf(auth, pat, username, authmech);
     g_free(pat);
 
-    *has_username = FALSE;
-    *has_authmech = FALSE;
+    if (n < 1)
+      return FALSE;		/* MN requires an username */
 
-    if (n >= 1)
-      {
-	*has_username = TRUE;
-
-	if (n == 2)
-	  *has_authmech = TRUE;
-      }
-    else
-      {
-	pat = g_strdup_printf(";AUTH=%%%is", maxlen);
-	n = sscanf(auth, pat, authmech);
-	g_free(pat);
-
-	if (n < 1)
-	  return FALSE;
-
-	*has_authmech = TRUE;
-      }
+    *has_authmech = n == 2;
 
     return TRUE;
   }}
-#line 564 "mn-pi-mailbox.c"
+#line 515 "mn-pi-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 234 "mn-pi-mailbox.gob"
+#line 195 "mn-pi-mailbox.gob"
 void 
 mn_pi_mailbox_split_uri_hostport (const char * hostport, int maxlen, char * hostname, int * port)
-#line 570 "mn-pi-mailbox.c"
+#line 521 "mn-pi-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox::split_uri_hostport"
-#line 234 "mn-pi-mailbox.gob"
+#line 195 "mn-pi-mailbox.gob"
 	g_return_if_fail (hostport != NULL);
-#line 234 "mn-pi-mailbox.gob"
+#line 195 "mn-pi-mailbox.gob"
 	g_return_if_fail (hostname != NULL);
-#line 234 "mn-pi-mailbox.gob"
+#line 195 "mn-pi-mailbox.gob"
 	g_return_if_fail (port != NULL);
-#line 579 "mn-pi-mailbox.c"
+#line 530 "mn-pi-mailbox.c"
 {
-#line 239 "mn-pi-mailbox.gob"
+#line 200 "mn-pi-mailbox.gob"
 	
     char *pat;
     int n;
@@ -600,340 +551,229 @@ mn_pi_mailbox_split_uri_hostport (const char * hostport, int maxlen, char * host
     if (n < 2)
       *port = 0;
   }}
-#line 604 "mn-pi-mailbox.c"
+#line 555 "mn-pi-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 262 "mn-pi-mailbox.gob"
-void 
-mn_pi_mailbox_auth_failed (MNPIMailbox * self)
-#line 610 "mn-pi-mailbox.c"
-{
-#define __GOB_FUNCTION__ "MN:PI:Mailbox::auth_failed"
-#line 262 "mn-pi-mailbox.gob"
-	g_return_if_fail (self != NULL);
-#line 262 "mn-pi-mailbox.gob"
-	g_return_if_fail (MN_IS_PI_MAILBOX (self));
-#line 617 "mn-pi-mailbox.c"
-{
-#line 264 "mn-pi-mailbox.gob"
-	
-    MNAuthenticatedMailbox *auth_mailbox = MN_AUTHENTICATED_MAILBOX(self);
-
-    if (! auth_mailbox->password)
-      {
-	g_free(self->runtime_password);
-	self->runtime_password = NULL;
-
-	if (self->runtime_username)
-	  self_set_password(self, self->runtime_username, NULL);
-      }
-
-    if (! auth_mailbox->username)
-      {
-	g_free(self->runtime_username);
-	self->runtime_username = NULL;
-      }
-
-    selfp->auth_failed = TRUE;
-  }}
-#line 640 "mn-pi-mailbox.c"
-#undef __GOB_FUNCTION__
-
-#line 285 "mn-pi-mailbox.gob"
-gboolean 
-mn_pi_mailbox_fill_credentials (MNPIMailbox * self, gboolean need_username, gboolean need_password)
-#line 646 "mn-pi-mailbox.c"
-{
-#define __GOB_FUNCTION__ "MN:PI:Mailbox::fill_credentials"
-#line 285 "mn-pi-mailbox.gob"
-	g_return_val_if_fail (self != NULL, (gboolean )0);
-#line 285 "mn-pi-mailbox.gob"
-	g_return_val_if_fail (MN_IS_PI_MAILBOX (self), (gboolean )0);
-#line 653 "mn-pi-mailbox.c"
-{
-#line 287 "mn-pi-mailbox.gob"
-	
-    MNAuthenticatedMailbox *auth_mailbox = MN_AUTHENTICATED_MAILBOX(self);
-
-    g_return_val_if_fail(need_username || need_password, FALSE);
-
-    self->auth_cancelled = FALSE;
-
-    if (! self->runtime_username)
-      self->runtime_username = g_strdup(auth_mailbox->username);
-    if (! self->runtime_password)
-      self->runtime_password = g_strdup(auth_mailbox->password);
-
-    if (self->runtime_username && ! self->runtime_password && need_password)
-      self->runtime_password = self_get_password(self, self->runtime_username);
-
-    if (self->runtime_username)
-      need_username = FALSE;
-    if (self->runtime_password)
-      need_password = FALSE;
-
-    if (need_username || need_password)
-      {
-	char *username;
-	char *password;
-
-	GDK_THREADS_ENTER();
-
-	self->auth_prompted = TRUE;
-
-	if (self_credentials_prompt(self,
-				    need_username ? &username : NULL,
-				    need_password ? &password : NULL,
-				    selfp->auth_failed
-				    ? _("Mail Notification was unable to log into %s mailbox %s, possibly because the credentials you have entered are invalid.\n\nPlease re-enter your credentials.")
-				    : _("Enter your credentials for %s mailbox %s."),
-				    MN_MAILBOX(self)->format,
-				    MN_MAILBOX(self)->runtime_name))
-	  {
-	    if (need_username)
-	      self->runtime_username = username;
-	    if (need_password)
-	      self->runtime_password = password;
-	  }
-	else
-	  self->auth_cancelled = TRUE;
-
-	gdk_flush();
-	GDK_THREADS_LEAVE();
-      }
-
-    if (self->runtime_username && self->runtime_password)
-      self_set_password(self, self->runtime_username, self->runtime_password);
-
-    return ! self->auth_cancelled;
-  }}
-#line 711 "mn-pi-mailbox.c"
-#undef __GOB_FUNCTION__
-
-#line 343 "mn-pi-mailbox.gob"
-static gboolean 
-mn_pi_mailbox_credentials_prompt (MNPIMailbox * self, char ** username, char ** password, const char * format, ...)
-#line 717 "mn-pi-mailbox.c"
-{
-#define __GOB_FUNCTION__ "MN:PI:Mailbox::credentials_prompt"
-#line 343 "mn-pi-mailbox.gob"
-	g_return_val_if_fail (self != NULL, (gboolean )0);
-#line 343 "mn-pi-mailbox.gob"
-	g_return_val_if_fail (MN_IS_PI_MAILBOX (self), (gboolean )0);
-#line 343 "mn-pi-mailbox.gob"
-	g_return_val_if_fail (format != NULL, (gboolean )0);
-#line 726 "mn-pi-mailbox.c"
-{
-#line 349 "mn-pi-mailbox.gob"
-	
-    va_list args;
-    char *message;
-    gboolean ok;
-
-    g_return_val_if_fail(selfp->auth_dialog == NULL, FALSE);
-    g_return_val_if_fail(username != NULL || password != NULL, FALSE);
-
-    va_start(args, format);
-    message = g_strdup_vprintf(format, args);
-    va_end(args);
-
-    /* keep the title in sync with gnome-authentication-manager */
-
-    /* translators: header capitalization */
-    selfp->auth_dialog = gnome_password_dialog_new(_("Authentication Required"),
-						   message,
-						   self->runtime_username,
-						   self->runtime_password,
-						   FALSE);
-    g_free(message);
-
-    eel_add_weak_pointer(&selfp->auth_dialog);
-
-    gnome_password_dialog_set_show_userpass_buttons(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), FALSE);
-    gnome_password_dialog_set_readonly_username(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), username == NULL);
-    gnome_password_dialog_set_show_password(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), password != NULL);
-
-    ok = gnome_password_dialog_run_and_block(GNOME_PASSWORD_DIALOG(selfp->auth_dialog));
-    if (ok)
-      {
-	if (username)
-	  *username = gnome_password_dialog_get_username(GNOME_PASSWORD_DIALOG(selfp->auth_dialog));
-	if (password)
-	  *password = gnome_password_dialog_get_password(GNOME_PASSWORD_DIALOG(selfp->auth_dialog));
-      }
-
-    gtk_widget_destroy(selfp->auth_dialog);
-
-    return ok;
-  }}
-#line 770 "mn-pi-mailbox.c"
-#undef __GOB_FUNCTION__
-
-#line 391 "mn-pi-mailbox.gob"
-static char * 
-mn_pi_mailbox_build_auth_id (MNPIMailbox * self, const char * username)
-#line 776 "mn-pi-mailbox.c"
-{
-#define __GOB_FUNCTION__ "MN:PI:Mailbox::build_auth_id"
-#line 391 "mn-pi-mailbox.gob"
-	g_return_val_if_fail (self != NULL, (char * )0);
-#line 391 "mn-pi-mailbox.gob"
-	g_return_val_if_fail (MN_IS_PI_MAILBOX (self), (char * )0);
-#line 783 "mn-pi-mailbox.c"
-{
-#line 393 "mn-pi-mailbox.gob"
-	
-    return g_strdup_printf("%s:%s:%i:%i:%s",
-			   MN_MAILBOX_GET_CLASS(self)->type,
-			   self->hostname,
-			   self->runtime_port,
-			   self->connection_type,
-			   username);
-  }}
-#line 794 "mn-pi-mailbox.c"
-#undef __GOB_FUNCTION__
-
-#line 402 "mn-pi-mailbox.gob"
-static char * 
-mn_pi_mailbox_get_password (MNPIMailbox * self, const char * username)
-#line 800 "mn-pi-mailbox.c"
-{
-#define __GOB_FUNCTION__ "MN:PI:Mailbox::get_password"
-#line 402 "mn-pi-mailbox.gob"
-	g_return_val_if_fail (self != NULL, (char * )0);
-#line 402 "mn-pi-mailbox.gob"
-	g_return_val_if_fail (MN_IS_PI_MAILBOX (self), (char * )0);
-#line 402 "mn-pi-mailbox.gob"
-	g_return_val_if_fail (username != NULL, (char * )0);
-#line 809 "mn-pi-mailbox.c"
-{
-#line 404 "mn-pi-mailbox.gob"
-	
-    char *auth_id;
-    char *password;
-
-    auth_id = self_build_auth_id(self, username);
-
-    G_LOCK(password_database);
-    password = g_strdup(g_hash_table_lookup(password_database, auth_id));
-    G_UNLOCK(password_database);
-
-    g_free(auth_id);
-
-    return password;
-  }}
-#line 826 "mn-pi-mailbox.c"
-#undef __GOB_FUNCTION__
-
-#line 419 "mn-pi-mailbox.gob"
-static void 
-mn_pi_mailbox_set_password (MNPIMailbox * self, const char * username, const char * password)
-#line 832 "mn-pi-mailbox.c"
-{
-#define __GOB_FUNCTION__ "MN:PI:Mailbox::set_password"
-#line 419 "mn-pi-mailbox.gob"
-	g_return_if_fail (self != NULL);
-#line 419 "mn-pi-mailbox.gob"
-	g_return_if_fail (MN_IS_PI_MAILBOX (self));
-#line 419 "mn-pi-mailbox.gob"
-	g_return_if_fail (username != NULL);
-#line 841 "mn-pi-mailbox.c"
-{
-#line 421 "mn-pi-mailbox.gob"
-	
-    char *auth_id;
-
-    auth_id = self_build_auth_id(self, username);
-
-    G_LOCK(password_database);
-    if (password)
-      g_hash_table_insert(password_database, g_strdup(auth_id), g_strdup(password));
-    else
-      g_hash_table_remove(password_database, auth_id);
-    G_UNLOCK(password_database);
-
-    g_free(auth_id);
-  }}
-#line 858 "mn-pi-mailbox.c"
-#undef __GOB_FUNCTION__
-
-#line 436 "mn-pi-mailbox.gob"
+#line 223 "mn-pi-mailbox.gob"
 void 
 mn_pi_mailbox_session_private_init (MNPIMailbox * self, MNClientSessionPrivate * priv)
-#line 864 "mn-pi-mailbox.c"
+#line 561 "mn-pi-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox::session_private_init"
-#line 436 "mn-pi-mailbox.gob"
+#line 223 "mn-pi-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 436 "mn-pi-mailbox.gob"
+#line 223 "mn-pi-mailbox.gob"
 	g_return_if_fail (MN_IS_PI_MAILBOX (self));
-#line 436 "mn-pi-mailbox.gob"
+#line 223 "mn-pi-mailbox.gob"
 	g_return_if_fail (priv != NULL);
-#line 873 "mn-pi-mailbox.c"
+#line 570 "mn-pi-mailbox.c"
 {
-#line 438 "mn-pi-mailbox.gob"
+#line 225 "mn-pi-mailbox.gob"
 	
     priv->mailbox = MN_MAILBOX(self);
+    priv->auth_mailbox = MN_AUTHENTICATED_MAILBOX(self);
     priv->pi_mailbox = MN_PI_MAILBOX(self);
   }}
-#line 880 "mn-pi-mailbox.c"
+#line 578 "mn-pi-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 443 "mn-pi-mailbox.gob"
+#line 231 "mn-pi-mailbox.gob"
 gboolean 
 mn_pi_mailbox_sasl_get_credentials_cb (MNClientSession * session, MNClientSessionPrivate * priv, const char ** username, const char ** password)
-#line 886 "mn-pi-mailbox.c"
+#line 584 "mn-pi-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox::sasl_get_credentials_cb"
 {
-#line 448 "mn-pi-mailbox.gob"
+#line 236 "mn-pi-mailbox.gob"
 	
 #if WITH_SASL
     g_return_val_if_fail(username != NULL || password != NULL, FALSE);
 
-    if (self_fill_credentials(priv->pi_mailbox, username != NULL, password != NULL))
-      {
-	if (username)
-	  *username = priv->pi_mailbox->runtime_username;
-	if (password)
-	  *password = priv->pi_mailbox->runtime_password;
+    if (username)
+      *username = priv->auth_mailbox->username;
 
-	return TRUE;
+    if (password)
+      {
+	if (mn_authenticated_mailbox_fill_password(priv->auth_mailbox, TRUE))
+	  *password = priv->auth_mailbox->runtime_password;
+	else
+	  return FALSE;
       }
     else
-      return FALSE;
+      /*
+       * Reset auth_cancelled ourselves since we did not call
+       * mn_authenticated_mailbox_fill_password().
+       */
+      priv->auth_mailbox->auth_cancelled = FALSE;
+
+    return TRUE;
 #else
     g_assert_not_reached();
     return FALSE;
 #endif /* WITH_SASL */
   }}
-#line 911 "mn-pi-mailbox.c"
+#line 616 "mn-pi-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 469 "mn-pi-mailbox.gob"
+#line 264 "mn-pi-mailbox.gob"
+gboolean 
+mn_pi_mailbox_ssl_trust_server_cb (MNClientSession * session, const char * server, int port, const char * fingerprint, const char * verify_error, MNClientSessionPrivate * priv)
+#line 622 "mn-pi-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:PI:Mailbox::ssl_trust_server_cb"
+{
+#line 271 "mn-pi-mailbox.gob"
+	
+#if WITH_SSL
+    gboolean status = FALSE;
+
+    if (fingerprint)
+      {
+	GSList *gconf_fingerprints;
+
+	gconf_fingerprints = eel_gconf_get_string_list(MN_CONF_TRUSTED_X509_CERTIFICATES);
+
+	if (mn_g_str_slist_find(gconf_fingerprints, fingerprint))
+	  status = TRUE;
+	else
+	  if (self_run_untrusted_dialog(priv->pi_mailbox, server, verify_error, fingerprint))
+	    {
+	      status = TRUE;
+	      gconf_fingerprints = g_slist_append(gconf_fingerprints, g_strdup(fingerprint));
+	      eel_gconf_set_string_list(MN_CONF_TRUSTED_X509_CERTIFICATES, gconf_fingerprints);
+	    }
+
+	eel_g_slist_free_deep(gconf_fingerprints);
+      }
+    else
+      {
+	char *key;
+	GSList *gconf_servers = NULL;
+
+	key = g_strdup_printf("%s:%i", server, port);
+	gconf_servers = eel_gconf_get_string_list(MN_CONF_TRUSTED_SERVERS);
+
+	if (mn_g_str_slist_find(gconf_servers, key))
+	  status = TRUE;
+	else
+	  {
+	    if (self_run_untrusted_dialog(priv->pi_mailbox, server, _("missing certificate"), NULL))
+	      {
+		status = TRUE;
+		gconf_servers = g_slist_append(gconf_servers, g_strdup(key));
+		eel_gconf_set_string_list(MN_CONF_TRUSTED_SERVERS, gconf_servers);
+	      }
+	  }
+
+	g_free(key);
+	eel_g_slist_free_deep(gconf_servers);
+      }
+
+    return status;
+#else
+    g_assert_not_reached();
+    return FALSE;
+#endif /* WITH_SSL */
+  }}
+#line 679 "mn-pi-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 324 "mn-pi-mailbox.gob"
+static gboolean 
+mn_pi_mailbox_run_untrusted_dialog (MNPIMailbox * self, const char * server, const char * reason, const char * cert_fingerprint)
+#line 685 "mn-pi-mailbox.c"
+{
+#define __GOB_FUNCTION__ "MN:PI:Mailbox::run_untrusted_dialog"
+#line 324 "mn-pi-mailbox.gob"
+	g_return_val_if_fail (self != NULL, (gboolean )0);
+#line 324 "mn-pi-mailbox.gob"
+	g_return_val_if_fail (MN_IS_PI_MAILBOX (self), (gboolean )0);
+#line 324 "mn-pi-mailbox.gob"
+	g_return_val_if_fail (server != NULL, (gboolean )0);
+#line 324 "mn-pi-mailbox.gob"
+	g_return_val_if_fail (reason != NULL, (gboolean )0);
+#line 696 "mn-pi-mailbox.c"
+{
+#line 329 "mn-pi-mailbox.gob"
+	
+#if WITH_SSL
+    GString *secondary;
+    gboolean status;
+
+    g_return_val_if_fail(server != NULL, FALSE);
+    g_return_val_if_fail(reason != NULL, FALSE);
+
+    secondary = g_string_new(NULL);
+    g_string_printf(secondary,
+		    _("Mail Notification was unable to trust \"%s\" "
+		      "(%s). It is possible that someone is "
+		      "intercepting your communication to obtain "
+		      "your confidential information.\n"
+		      "\n"
+		      "You should only connect to the server if you "
+		      "are certain you are connected to \"%s\". "
+		      "If you choose to connect to the server, this "
+		      "message will not be shown again."),
+		    server, reason, server);
+
+    if (cert_fingerprint)
+      {
+	g_string_append(secondary, "\n\n");
+	g_string_append_printf(secondary, _("Certificate fingerprint: %s."), cert_fingerprint);
+      }
+
+    GDK_THREADS_ENTER();
+
+    selfp->untrusted_dialog = mn_alert_dialog_new(NULL,
+						  GTK_MESSAGE_WARNING, 0,
+						  _("Connect to untrusted server?"),
+						  secondary->str);
+    g_string_free(secondary, TRUE);
+
+    eel_add_weak_pointer(&selfp->untrusted_dialog);
+
+    gtk_dialog_add_button(GTK_DIALOG(selfp->untrusted_dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
+    gtk_dialog_add_button(GTK_DIALOG(selfp->untrusted_dialog), GTK_STOCK_CONNECT, GTK_RESPONSE_OK);
+
+    status = mn_dialog_run_nonmodal(GTK_DIALOG(selfp->untrusted_dialog)) == GTK_RESPONSE_OK;
+    gtk_widget_destroy(selfp->untrusted_dialog);
+
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+
+    return status;
+#else
+    g_assert_not_reached();
+    return FALSE;
+#endif /* WITH_SSL */
+  }}
+#line 751 "mn-pi-mailbox.c"
+#undef __GOB_FUNCTION__
+
+#line 382 "mn-pi-mailbox.gob"
 void 
 mn_pi_mailbox_notice_cb (MNClientSession * session, const char * message, MNClientSessionPrivate * priv)
-#line 917 "mn-pi-mailbox.c"
+#line 757 "mn-pi-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox::notice_cb"
 {
-#line 473 "mn-pi-mailbox.gob"
+#line 386 "mn-pi-mailbox.gob"
 	
     mn_mailbox_notice(priv->mailbox, "%s", message);
   }}
-#line 925 "mn-pi-mailbox.c"
+#line 765 "mn-pi-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 477 "mn-pi-mailbox.gob"
+#line 390 "mn-pi-mailbox.gob"
 void 
 mn_pi_mailbox_warning_cb (MNClientSession * session, const char * message, MNClientSessionPrivate * priv)
-#line 931 "mn-pi-mailbox.c"
+#line 771 "mn-pi-mailbox.c"
 {
 #define __GOB_FUNCTION__ "MN:PI:Mailbox::warning_cb"
 {
-#line 481 "mn-pi-mailbox.gob"
+#line 394 "mn-pi-mailbox.gob"
 	
     mn_mailbox_warning(priv->mailbox, "%s", message);
   }}
-#line 939 "mn-pi-mailbox.c"
+#line 779 "mn-pi-mailbox.c"
 #undef __GOB_FUNCTION__

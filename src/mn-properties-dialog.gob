@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -36,6 +36,8 @@ requires 2.0.14
 #include "mn-util.h"
 #include "mn-mailbox-view.h"
 #include "mn-shell.h"
+#include "mn-file-chooser-button.h"
+#include "mn-sound-file-chooser-dialog.h"
 #include "mn-test-mailbox.h"
 %}
 
@@ -44,27 +46,20 @@ class MN:Properties:Dialog from MN:Dialog
   private GtkWidget *notebook;
 
   /* general tab */
-  private GtkWidget *display_seen_mail_check;
+  private GtkWidget *play_sound_hbox;
+  private GtkWidget *play_sound_check;
+  private GtkWidget *play_sound_file_chooser_button;
   private GtkWidget *scrolled;
   private GtkWidget *list;
   private GtkWidget *selected_label;
   private GtkWidget *add;
   private GtkWidget *remove;
   private GtkWidget *properties;
-  private GtkWidget *command_new_mail_check;
-  private GtkWidget *command_new_mail_entry;
-  private GtkWidget *command_mail_read_check;
-  private GtkWidget *command_mail_read_entry;
 
   /* status icon tab */
-  private GtkWidget *icon_blink_check;
-  private GtkWidget *icon_always_display_check;
-  private GtkWidget *icon_tooltip_mail_summary_standard_radio;
-  private GtkWidget *icon_tooltip_mail_summary_compact_radio;
-  private GtkWidget *icon_tooltip_mail_summary_none_radio;
-  private GtkWidget *icon_action_properties_dialog_radio;
   private GtkWidget *icon_action_mail_reader_radio;
   private GtkWidget *icon_action_open_latest_message_radio;
+  private GtkWidget *icon_action_consider_new_mail_as_read_radio;
   private GtkWidget *icon_action_update_radio;
 
   /* message popups tab */
@@ -85,33 +80,24 @@ class MN:Properties:Dialog from MN:Dialog
 
   init (self)
   {
-    GtkSizeGroup *size_group;
     GtkTreeSelection *selection;
     GtkWidget *test_messages_check;
 
     mn_container_create_interface(GTK_CONTAINER(self),
-				  UIDIR G_DIR_SEPARATOR_S "properties-dialog.glade",
+				  PKGDATADIR G_DIR_SEPARATOR_S "properties-dialog.glade",
 				  "notebook",
 				  "mn_properties_dialog_",
 				  "notebook", &selfp->notebook,
-				  "display_seen_mail_check", &selfp->display_seen_mail_check,
+				  "play_sound_hbox", &selfp->play_sound_hbox,
+				  "play_sound_check", &selfp->play_sound_check,
 				  "scrolled", &selfp->scrolled,
 				  "selected_label", &selfp->selected_label,
 				  "add", &selfp->add,
 				  "remove", &selfp->remove,
 				  "properties", &selfp->properties,
-				  "command_new_mail_check", &selfp->command_new_mail_check,
-				  "command_new_mail_entry", &selfp->command_new_mail_entry,
-				  "command_mail_read_check", &selfp->command_mail_read_check,
-				  "command_mail_read_entry", &selfp->command_mail_read_entry,
-				  "icon_blink_check", &selfp->icon_blink_check,
-				  "icon_always_display_check", &selfp->icon_always_display_check,
-				  "icon_tooltip_mail_summary_standard_radio", &selfp->icon_tooltip_mail_summary_standard_radio,
-				  "icon_tooltip_mail_summary_compact_radio", &selfp->icon_tooltip_mail_summary_compact_radio,
-				  "icon_tooltip_mail_summary_none_radio", &selfp->icon_tooltip_mail_summary_none_radio,
-				  "icon_action_properties_dialog_radio", &selfp->icon_action_properties_dialog_radio,
 				  "icon_action_mail_reader_radio", &selfp->icon_action_mail_reader_radio,
 				  "icon_action_open_latest_message_radio", &selfp->icon_action_open_latest_message_radio,
+				  "icon_action_consider_new_mail_as_read_radio", &selfp->icon_action_consider_new_mail_as_read_radio,
 				  "icon_action_update_radio", &selfp->icon_action_update_radio,
 				  "popups_enable_check", &selfp->popups_enable_check,
 				  "popups_position_section_label", &selfp->popups_position_section_label,
@@ -140,6 +126,10 @@ class MN:Properties:Dialog from MN:Dialog
 
     gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
 
+    selfp->play_sound_file_chooser_button = mn_file_chooser_button_new(self_play_sound_file_chooser_create_dialog_cb, NULL);
+    gtk_box_pack_start(GTK_BOX(selfp->play_sound_hbox), selfp->play_sound_file_chooser_button, TRUE, TRUE, 0);
+    gtk_widget_show(selfp->play_sound_file_chooser_button);
+
     selfp->list = mn_mailbox_view_new();
     gtk_container_add(GTK_CONTAINER(selfp->scrolled), selfp->list);
     gtk_widget_show(selfp->list);
@@ -152,34 +142,18 @@ class MN:Properties:Dialog from MN:Dialog
 
     mn_setup_dnd(selfp->scrolled);
 
-    size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
-    gtk_size_group_add_widget(size_group, selfp->command_new_mail_check);
-    gtk_size_group_add_widget(size_group, selfp->command_mail_read_check);
-    g_object_unref(size_group);
-
     mn_conf_link(self, MN_CONF_PROPERTIES_DIALOG,
-		 selfp->display_seen_mail_check, MN_CONF_DISPLAY_SEEN_MAIL, "active",
-		 selfp->command_new_mail_check, MN_CONF_COMMANDS_NEW_MAIL_ENABLED, "active",
-		 selfp->command_new_mail_entry, MN_CONF_COMMANDS_NEW_MAIL_COMMAND, "text",
-		 selfp->command_mail_read_check, MN_CONF_COMMANDS_MAIL_READ_ENABLED, "active",
-		 selfp->command_mail_read_entry, MN_CONF_COMMANDS_MAIL_READ_COMMAND, "text",
-		 selfp->icon_blink_check, MN_CONF_BLINK_ON_ERRORS, "active",
-		 selfp->icon_always_display_check, MN_CONF_ALWAYS_DISPLAY_ICON, "active",
+		 selfp->play_sound_check, MN_CONF_SOUNDS_NEW_MAIL_ENABLED, "active",
+		 selfp->play_sound_file_chooser_button, MN_CONF_SOUNDS_NEW_MAIL_FILE, "filename",
 		 selfp->popups_enable_check, MN_CONF_POPUPS_ENABLED, "active",
 		 selfp->popups_expiration_minutes_spin, MN_CONF_POPUPS_EXPIRATION_DELAY_MINUTES,
 		 selfp->popups_expiration_seconds_spin, MN_CONF_POPUPS_EXPIRATION_DELAY_SECONDS,
 		 NULL);
-    mn_conf_link_radio_group_to_enum(MN_TYPE_SHELL_TOOLTIP_MAIL_SUMMARY,
-				     MN_CONF_TOOLTIP_MAIL_SUMMARY,
-				     selfp->icon_tooltip_mail_summary_standard_radio, MN_SHELL_TOOLTIP_MAIL_SUMMARY_STANDARD,
-				     selfp->icon_tooltip_mail_summary_compact_radio, MN_SHELL_TOOLTIP_MAIL_SUMMARY_COMPACT,
-				     selfp->icon_tooltip_mail_summary_none_radio, MN_SHELL_TOOLTIP_MAIL_SUMMARY_NONE,
-				     NULL);
     mn_conf_link_radio_group_to_enum(MN_TYPE_ACTION,
 				     MN_CONF_CLICK_ACTION,
-				     selfp->icon_action_properties_dialog_radio, MN_ACTION_DISPLAY_PROPERTIES_DIALOG,
 				     selfp->icon_action_mail_reader_radio, MN_ACTION_LAUNCH_MAIL_READER,
 				     selfp->icon_action_open_latest_message_radio, MN_ACTION_OPEN_LATEST_MESSAGE,
+				     selfp->icon_action_consider_new_mail_as_read_radio, MN_ACTION_CONSIDER_NEW_MAIL_AS_READ,
 				     selfp->icon_action_update_radio, MN_ACTION_UPDATE_MAIL_STATUS,
 				     NULL);
     mn_conf_link_radio_group_to_enum(MN_TYPE_POPUP_POSITION,
@@ -207,6 +181,12 @@ class MN:Properties:Dialog from MN:Dialog
     gtk_widget_grab_focus(selfp->add);
 
     g_signal_connect(self, "response", G_CALLBACK(self_response_h), NULL);
+  }
+
+  private GtkFileChooserDialog *
+    play_sound_file_chooser_create_dialog_cb (gpointer data)
+  {
+    return GTK_FILE_CHOOSER_DIALOG(mn_sound_file_chooser_dialog_new());
   }
 
   private void
@@ -289,18 +269,15 @@ class MN:Properties:Dialog from MN:Dialog
   private void
     update_sensitivity (self)
   {
-    gboolean command_new_mail_enabled;
-    gboolean command_mail_read_enabled;
+    gboolean play_sound_enabled;
     GtkTreeSelection *selection;
     gboolean has_selection;
     gboolean popups_enabled;
     gboolean popups_expiration_after_enabled;
 
-    command_new_mail_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->command_new_mail_check));
-    command_mail_read_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->command_mail_read_check));
+    play_sound_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->play_sound_check));
 
-    gtk_widget_set_sensitive(selfp->command_new_mail_entry, command_new_mail_enabled);
-    gtk_widget_set_sensitive(selfp->command_mail_read_entry, command_mail_read_enabled);
+    gtk_widget_set_sensitive(selfp->play_sound_file_chooser_button, play_sound_enabled);
 
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(selfp->list));
     has_selection = gtk_tree_selection_count_selected_rows(selection) > 0;

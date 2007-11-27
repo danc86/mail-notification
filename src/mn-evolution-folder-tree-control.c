@@ -24,6 +24,7 @@
 
 #include "config.h"
 #include <string.h>
+#include <glib/gi18n.h>
 #include <mail/mail-component.h>
 #include <mail/em-folder-tree.h>
 #include "mn-evolution.h"
@@ -33,7 +34,7 @@ enum
   PROP_SELECTED_URI
 };
 
-#line 37 "mn-evolution-folder-tree-control.c"
+#line 38 "mn-evolution-folder-tree-control.c"
 /* self casting macros */
 #define SELF(x) MN_EVOLUTION_FOLDER_TREE_CONTROL(x)
 #define SELF_CONST(x) MN_EVOLUTION_FOLDER_TREE_CONTROL_CONST(x)
@@ -115,9 +116,9 @@ ___dispose (GObject *obj_self)
 	MNEvolutionFolderTreeControl *self G_GNUC_UNUSED = MN_EVOLUTION_FOLDER_TREE_CONTROL (obj_self);
 	if (G_OBJECT_CLASS (parent_class)->dispose) \
 		(* G_OBJECT_CLASS (parent_class)->dispose) (obj_self);
-#line 41 "mn-evolution-folder-tree-control.gob"
+#line 42 "mn-evolution-folder-tree-control.gob"
 	if(self->_priv->pb) { bonobo_object_unref ((gpointer) self->_priv->pb); self->_priv->pb = NULL; }
-#line 121 "mn-evolution-folder-tree-control.c"
+#line 122 "mn-evolution-folder-tree-control.c"
 }
 #undef __GOB_FUNCTION__
 
@@ -150,9 +151,9 @@ mn_evolution_folder_tree_control_class_init (MNEvolutionFolderTreeControlClass *
 
 	parent_class = g_type_class_ref (BONOBO_TYPE_CONTROL);
 
-#line 44 "mn-evolution-folder-tree-control.gob"
+#line 45 "mn-evolution-folder-tree-control.gob"
 	g_object_class->constructor = ___1_mn_evolution_folder_tree_control_constructor;
-#line 156 "mn-evolution-folder-tree-control.c"
+#line 157 "mn-evolution-folder-tree-control.c"
 	g_object_class->dispose = ___dispose;
 	g_object_class->finalize = ___finalize;
 }
@@ -160,10 +161,10 @@ mn_evolution_folder_tree_control_class_init (MNEvolutionFolderTreeControlClass *
 
 
 
-#line 44 "mn-evolution-folder-tree-control.gob"
+#line 45 "mn-evolution-folder-tree-control.gob"
 static GObject * 
 ___1_mn_evolution_folder_tree_control_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_properties, GObjectConstructParam * construct_params)
-#line 167 "mn-evolution-folder-tree-control.c"
+#line 168 "mn-evolution-folder-tree-control.c"
 #define PARENT_HANDLER(___type,___n_construct_properties,___construct_params) \
 	((G_OBJECT_CLASS(parent_class)->constructor)? \
 		(* G_OBJECT_CLASS(parent_class)->constructor)(___type,___n_construct_properties,___construct_params): \
@@ -171,7 +172,7 @@ ___1_mn_evolution_folder_tree_control_constructor (GType type G_GNUC_UNUSED, uns
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Folder:Tree:Control::constructor"
 {
-#line 46 "mn-evolution-folder-tree-control.gob"
+#line 47 "mn-evolution-folder-tree-control.gob"
 	
     GObject *object;
     Self *self;
@@ -195,7 +196,7 @@ ___1_mn_evolution_folder_tree_control_constructor (GType type G_GNUC_UNUSED, uns
 			    PROP_SELECTED_URI,
 			    BONOBO_ARG_STRING,
 			    NULL,
-			    dgettext(GETTEXT_PACKAGE, "The currently selected URI"),
+			    _("The currently selected URI"),
 			    0);
     bonobo_control_set_properties(control, BONOBO_OBJREF(selfp->pb), NULL);
 
@@ -213,18 +214,18 @@ ___1_mn_evolution_folder_tree_control_constructor (GType type G_GNUC_UNUSED, uns
 
     return object;
   }}
-#line 217 "mn-evolution-folder-tree-control.c"
+#line 218 "mn-evolution-folder-tree-control.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 88 "mn-evolution-folder-tree-control.gob"
+#line 89 "mn-evolution-folder-tree-control.gob"
 static void 
 mn_evolution_folder_tree_control_get_property (BonoboPropertyBag * bag, BonoboArg * arg, unsigned int arg_id, CORBA_Environment * env, gpointer user_data)
-#line 224 "mn-evolution-folder-tree-control.c"
+#line 225 "mn-evolution-folder-tree-control.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Folder:Tree:Control::get_property"
 {
-#line 94 "mn-evolution-folder-tree-control.gob"
+#line 95 "mn-evolution-folder-tree-control.gob"
 	
     Self *self = user_data;
     EMFolderTree *tree = EM_FOLDER_TREE(bonobo_control_get_widget(BONOBO_CONTROL(self)));
@@ -246,17 +247,17 @@ mn_evolution_folder_tree_control_get_property (BonoboPropertyBag * bag, BonoboAr
 	break;
       }
   }}
-#line 250 "mn-evolution-folder-tree-control.c"
+#line 251 "mn-evolution-folder-tree-control.c"
 #undef __GOB_FUNCTION__
 
-#line 116 "mn-evolution-folder-tree-control.gob"
+#line 117 "mn-evolution-folder-tree-control.gob"
 static void 
 mn_evolution_folder_tree_control_set_property (BonoboPropertyBag * bag, const BonoboArg * arg, unsigned int arg_id, CORBA_Environment * env, gpointer user_data)
-#line 256 "mn-evolution-folder-tree-control.c"
+#line 257 "mn-evolution-folder-tree-control.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Folder:Tree:Control::set_property"
 {
-#line 122 "mn-evolution-folder-tree-control.gob"
+#line 123 "mn-evolution-folder-tree-control.gob"
 	
     Self *self = user_data;
     EMFolderTree *tree = EM_FOLDER_TREE(bonobo_control_get_widget(BONOBO_CONTROL(self)));
@@ -264,7 +265,7 @@ mn_evolution_folder_tree_control_set_property (BonoboPropertyBag * bag, const Bo
     switch (arg_id)
       {
       case PROP_SELECTED_URI:
-	em_folder_tree_set_selected(tree, BONOBO_ARG_GET_STRING(arg));
+	em_folder_tree_set_selected(tree, BONOBO_ARG_GET_STRING(arg), FALSE);
 	break;
 
       default:
@@ -272,17 +273,17 @@ mn_evolution_folder_tree_control_set_property (BonoboPropertyBag * bag, const Bo
 	break;
       }
   }}
-#line 276 "mn-evolution-folder-tree-control.c"
+#line 277 "mn-evolution-folder-tree-control.c"
 #undef __GOB_FUNCTION__
 
-#line 138 "mn-evolution-folder-tree-control.gob"
+#line 139 "mn-evolution-folder-tree-control.gob"
 static void 
 mn_evolution_folder_tree_control_selected_h (EMFolderTree * tree, const char * full_name, const char * uri, guint32 flags, gpointer user_data)
-#line 282 "mn-evolution-folder-tree-control.c"
+#line 283 "mn-evolution-folder-tree-control.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Folder:Tree:Control::selected_h"
 {
-#line 144 "mn-evolution-folder-tree-control.gob"
+#line 145 "mn-evolution-folder-tree-control.gob"
 	
     Self *self = user_data;
     BonoboArg *arg;
@@ -299,17 +300,17 @@ mn_evolution_folder_tree_control_selected_h (EMFolderTree * tree, const char * f
 
     bonobo_arg_release(arg);
   }}
-#line 303 "mn-evolution-folder-tree-control.c"
+#line 304 "mn-evolution-folder-tree-control.c"
 #undef __GOB_FUNCTION__
 
-#line 161 "mn-evolution-folder-tree-control.gob"
+#line 162 "mn-evolution-folder-tree-control.gob"
 static void 
 mn_evolution_folder_tree_control_activated_h (EMFolderTree * tree, const char * full_name, const char * uri, gpointer user_data)
-#line 309 "mn-evolution-folder-tree-control.c"
+#line 310 "mn-evolution-folder-tree-control.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Folder:Tree:Control::activated_h"
 {
-#line 166 "mn-evolution-folder-tree-control.gob"
+#line 167 "mn-evolution-folder-tree-control.gob"
 	
     Self *self = user_data;
     BonoboArg *arg;
@@ -326,19 +327,19 @@ mn_evolution_folder_tree_control_activated_h (EMFolderTree * tree, const char * 
 
     bonobo_arg_release(arg);
   }}
-#line 330 "mn-evolution-folder-tree-control.c"
+#line 331 "mn-evolution-folder-tree-control.c"
 #undef __GOB_FUNCTION__
 
-#line 183 "mn-evolution-folder-tree-control.gob"
+#line 184 "mn-evolution-folder-tree-control.gob"
 BonoboObject * 
 mn_evolution_folder_tree_control_factory_cb (BonoboGenericFactory * factory, const char * iid, gpointer closure)
-#line 336 "mn-evolution-folder-tree-control.c"
+#line 337 "mn-evolution-folder-tree-control.c"
 {
 #define __GOB_FUNCTION__ "MN:Evolution:Folder:Tree:Control::factory_cb"
 {
-#line 187 "mn-evolution-folder-tree-control.gob"
+#line 188 "mn-evolution-folder-tree-control.gob"
 	
     return BONOBO_OBJECT(GET_NEW);
   }}
-#line 344 "mn-evolution-folder-tree-control.c"
+#line 345 "mn-evolution-folder-tree-control.c"
 #undef __GOB_FUNCTION__

@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -21,7 +21,10 @@ requires 2.0.14
 
 %headertop{
 #include "mn-vfs-mailbox.h"
-#include "mn-vfs-message.h"
+%}
+
+%privateheader{
+#include "mn-locked-callback.h"
 %}
 
 %{
@@ -48,10 +51,23 @@ class MN:VFS:Mailbox:Backend from G:Object (abstract)
   protected MNVFSMailbox *mailbox;
   property POINTER mailbox (link, flags = CONSTRUCT_ONLY, type = MNVFSMailbox *);
 
+  private MNLockedGSource *queue_check_source;
+
+  /*
+   * The amount of time to wait between a queue_check() call and the
+   * actual mailbox check, in milliseconds. If 0, the check is
+   * performed immediately. Used to avoid race conditions with mailbox
+   * formats which do not support locking.
+   */
+  protected int check_latency;
+
   override (G:Object) void
     finalize (GObject *object)
   {
     Self *self = SELF(object);
+
+    if (selfp->queue_check_source)
+      mn_locked_g_source_remove(selfp->queue_check_source);
 
     /*
      * If the calling mailbox is being finalized, there is no need to
@@ -65,13 +81,13 @@ class MN:VFS:Mailbox:Backend from G:Object (abstract)
 
   protected void
     monitor (self,
-	     unsigned long check_id,
+	     int check_id,
 	     const char *uri (check null),
 	     GnomeVFSMonitorType type)
   {
-    mn_reentrant_mailbox_lock(MN_REENTRANT_MAILBOX(self->mailbox));
+    mn_vfs_mailbox_lock(self->mailbox);
     mn_vfs_mailbox_monitor(self->mailbox, uri, self, type, self_real_monitor_cb, self);
-    mn_reentrant_mailbox_unlock(MN_REENTRANT_MAILBOX(self->mailbox));
+    mn_vfs_mailbox_unlock(self->mailbox);
   }
 
   private void
@@ -92,15 +108,45 @@ class MN:VFS:Mailbox:Backend from G:Object (abstract)
     if (event_type == GNOME_VFS_MONITOR_EVENT_CHANGED
 	|| event_type == GNOME_VFS_MONITOR_EVENT_DELETED
 	|| event_type == GNOME_VFS_MONITOR_EVENT_CREATED)
+      self_queue_check(self);
+  }
+
+  /**
+   * queue_check():
+   * @self: a backend
+   *
+   * Queues a mail check on the mailbox of @self or replaces an
+   * already queued check. The check_latency member is respected.
+   *
+   * This function is not thread-safe. It is only called from main
+   * loop callbacks (hence always from the same thread).
+   **/
+  protected void
+    queue_check (self)
+  {
+    if (selfp->queue_check_source)
+      mn_locked_g_source_clear(&selfp->queue_check_source);
+
+    if (self->check_latency)
+      selfp->queue_check_source = mn_g_timeout_add_gdk_locked(self->check_latency, self_queue_check_cb, self);
+    else
       mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self->mailbox));
+  }
+
+  private gboolean
+    queue_check_cb (gpointer data)
+  {
+    Self *self = data;
+
+    mn_mailbox_check(MN_MAILBOX(self->mailbox));
+
+    selfp->queue_check_source = NULL;
+    return FALSE;		/* remove source */
   }
 
   virtual public gboolean
     is (self, MNVFSMailboxBackendClass *class, MN:VFS:Mailbox *mailbox);
 
   virtual public void
-    check (self, unsigned long check_id);
-
-  virtual public gboolean
-    mark_as_read (self, MN:VFS:Message *message, GError **err);
+    check (self, int check_id);
 }

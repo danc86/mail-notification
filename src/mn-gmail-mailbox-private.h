@@ -16,7 +16,7 @@ extern "C" {
 
 #line 18 "mn-gmail-mailbox-private.h"
 struct _MNGmailMailboxPrivate {
-#line 59 "mn-gmail-mailbox.gob"
+#line 62 "mn-gmail-mailbox.gob"
 	GnomeVFSURI * uri;
 #line 22 "mn-gmail-mailbox-private.h"
 };

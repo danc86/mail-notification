@@ -24,7 +24,9 @@ struct _MNEvolutionMailboxPrivate {
 	MNLockedBonoboListener * listener;
 #line 64 "mn-evolution-mailbox.gob"
 	time_t last_browsed;
-#line 28 "mn-evolution-mailbox-private.h"
+#line 66 "mn-evolution-mailbox.gob"
+	GMutex * mutex;
+#line 30 "mn-evolution-mailbox-private.h"
 };
 
 #ifdef __cplusplus

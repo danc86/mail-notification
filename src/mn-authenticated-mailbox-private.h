@@ -9,11 +9,30 @@
 extern "C" {
 #endif /* __cplusplus */
 
+
+#line 27 "mn-authenticated-mailbox.gob"
+
+#include <gtk/gtk.h>
+
+#line 18 "mn-authenticated-mailbox-private.h"
 struct _MNAuthenticatedMailboxPrivate {
-#line 40 "mn-authenticated-mailbox.gob"
+#line 71 "mn-authenticated-mailbox.gob"
+	gpointer get_password_request;
+#line 72 "mn-authenticated-mailbox.gob"
+	gpointer set_password_request;
+#line 79 "mn-authenticated-mailbox.gob"
 	gboolean checking;
-#line 16 "mn-authenticated-mailbox-private.h"
+#line 83 "mn-authenticated-mailbox.gob"
+	GtkWidget * auth_dialog;
+#line 88 "mn-authenticated-mailbox.gob"
+	char * prompted_password_keyring;
+#line 89 "mn-authenticated-mailbox.gob"
+	guint32 prompted_password_item_id;
+#line 32 "mn-authenticated-mailbox-private.h"
 };
+void 	mn_authenticated_mailbox_parse_username	(MNAuthenticatedMailbox * self, char ** username, char ** domain);
+gboolean 	mn_authenticated_mailbox_fill_password	(MNAuthenticatedMailbox * self, gboolean may_prompt);
+void 	mn_authenticated_mailbox_auth_failed	(MNAuthenticatedMailbox * self);
 
 #ifdef __cplusplus
 }

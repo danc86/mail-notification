@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -43,16 +43,26 @@ requires 2.0.14
 #include "mn-message.h"
 #include "mn-mailbox-private.h"
 #include "mn-test-mailbox.h"
+#include "mn-shell.h"
 %}
 
 class MN:Mailboxes from G:Object
 {
   public GList *list destroywith eel_g_object_list_free;
+
+  /* sorted by sent time, most recent first */
   public GSList *messages destroywith mn_g_object_slist_free;
 
   private GSList *add_queue destroywith mn_g_object_slist_free;
   private GSList *remove_queue destroywith mn_g_object_slist_free;
   private MNLockedGSource *queue_idle_source;
+
+  /*
+   * Can be set by mailboxes to indicate that mailboxes.xml must be
+   * saved after having been loaded. Used by MNAuthenticatedMailbox to
+   * remove the plain text passwords saved by older versions of MN.
+   */
+  public gboolean must_save_after_load;
 
   /**
    * mailbox-added:
@@ -69,7 +79,7 @@ class MN:Mailboxes from G:Object
 		     "signal::messages-changed", self_mailbox_messages_changed_h, self,
 		     "signal::notify", self_mailbox_notify_h, self,
 		     "signal::notify::error", self_mailbox_notify_error_h, self,
-		     "signal::notify::poll", self_mailbox_notify_poll_h, self,
+		     "signal::notify::manually-checkable", self_mailbox_notify_manually_checkable_h, self,
 		     NULL);
 
     /* emit the "added" signal on the mailbox */
@@ -92,7 +102,7 @@ class MN:Mailboxes from G:Object
 			"any-signal", self_mailbox_messages_changed_h, self,
 			"any-signal", self_mailbox_notify_h, self,
 			"any-signal", self_mailbox_notify_error_h, self,
-			"any-signal", self_mailbox_notify_poll_h, self,
+			"any-signal", self_mailbox_notify_manually_checkable_h, self,
 			NULL);
 
     /* emit the "removed" signal on the mailbox */
@@ -119,8 +129,8 @@ class MN:Mailboxes from G:Object
   signal first private NONE (NONE)
     void list_changed (self)
   {
-    /* poll has possibly changed */
-    g_object_notify(G_OBJECT(self), "poll");
+    /* manually-checkable has possibly changed */
+    g_object_notify(G_OBJECT(self), "manually-checkable");
   }
 
   /**
@@ -173,30 +183,32 @@ class MN:Mailboxes from G:Object
   signal private NONE (NONE)
     void error_changed (self);
 
-  property BOOLEAN poll (export)
+  property BOOLEAN manually_checkable (export)
     get
     {
-      gboolean global_poll = FALSE;
       GList *l;
+      gboolean value = FALSE;
 
       MN_LIST_FOREACH(l, self->list)
 	{
 	  MNMailbox *mailbox = l->data;
 
-	  if (mn_mailbox_get_poll(mailbox))
+	  if (mn_mailbox_get_manually_checkable(mailbox))
 	    {
-	      global_poll = TRUE;
+	      value = TRUE;
 	      break;
 	    }
 	}
 
-      g_value_set_boolean(VAL, global_poll);
+      g_value_set_boolean(VAL, value);
     };
 
   init (self)
   {
     char *filename;
     gboolean exists;
+
+    mn_shell->mailboxes = self;
 
     filename = g_build_filename(mn_conf_dot_dir, "mailboxes.xml", NULL);
     exists = g_file_test(filename, G_FILE_TEST_EXISTS);
@@ -257,7 +269,7 @@ class MN:Mailboxes from G:Object
     PARENT_HANDLER(object);
   }
 
-  public void
+  private void
     load (self)
   {
     GError *err = NULL;
@@ -267,6 +279,9 @@ class MN:Mailboxes from G:Object
 	mn_error_dialog(NULL, _("Unable to load the mailboxes configuration"), "%s", err->message);
 	g_error_free(err);
       }
+
+    if (self->must_save_after_load)
+      self_save(self);
   }
 
   private void
@@ -341,7 +356,6 @@ class MN:Mailboxes from G:Object
 		  mn_mailbox_seal(mailbox);
 		  self_add_real(self, mailbox);
 		  g_object_unref(mailbox);
-
 		  list_changed = TRUE;
 		}
 	      else
@@ -378,7 +392,7 @@ class MN:Mailboxes from G:Object
     return status;
   }
 
-  public void
+  private void
     save (self)
   {
     GError *err = NULL;
@@ -417,8 +431,11 @@ class MN:Mailboxes from G:Object
 	MNMailbox *mailbox = l->data;
 	xmlNode *node;
 
-	node = mn_mailbox_xml_node_new(mailbox);
-	xmlAddChild(root, node); /* owns node */
+	if (! MN_IS_TEST_MAILBOX(mailbox))
+	  {
+	    node = mn_mailbox_xml_node_new(mailbox);
+	    xmlAddChild(root, node); /* owns node */
+	  }
       }
 
     filename = g_build_filename(mn_conf_dot_dir, "mailboxes.xml", NULL);
@@ -540,14 +557,14 @@ class MN:Mailboxes from G:Object
   }
 
   private void
-    mailbox_notify_poll_h (GObject *object,
-			   GParamSpec *pspec,
-			   gpointer user_data)
+    mailbox_notify_manually_checkable_h (GObject *object,
+					 GParamSpec *pspec,
+					 gpointer user_data)
   {
     Self *self = user_data;
 
-    /* poll has possibly changed */
-    g_object_notify(G_OBJECT(self), "poll");
+    /* manually-checkable has possibly changed */
+    g_object_notify(G_OBJECT(self), "manually-checkable");
   }
 
   public void
@@ -559,7 +576,7 @@ class MN:Mailboxes from G:Object
       {
 	MNMailbox *mailbox = l->data;
 
-	if (mn_mailbox_get_poll(mailbox))
+	if (mn_mailbox_get_manually_checkable(mailbox))
 	  mn_mailbox_check(mailbox);
       }
   }
@@ -577,6 +594,7 @@ class MN:Mailboxes from G:Object
   {
     self_add_real(self, mailbox);
     self_list_changed(self);
+
     if (! MN_IS_TEST_MAILBOX(mailbox))
       self_save(self);
   }

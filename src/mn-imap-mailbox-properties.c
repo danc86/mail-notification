@@ -123,7 +123,7 @@ ___finalize(GObject *obj_self)
 }
 #undef __GOB_FUNCTION__
 
-#line 99 "mn-imap-mailbox-properties.gob"
+#line 93 "mn-imap-mailbox-properties.gob"
 static void 
 mn_imap_mailbox_properties_class_init (MNIMAPMailboxPropertiesClass * class G_GNUC_UNUSED)
 #line 130 "mn-imap-mailbox-properties.c"
@@ -136,9 +136,9 @@ mn_imap_mailbox_properties_class_init (MNIMAPMailboxPropertiesClass * class G_GN
 
 	parent_class = g_type_class_ref (MN_TYPE_PI_MAILBOX_PROPERTIES);
 
-#line 190 "mn-imap-mailbox-properties.gob"
+#line 184 "mn-imap-mailbox-properties.gob"
 	mn_mailbox_properties_class->set_mailbox = ___5_mn_imap_mailbox_properties_set_mailbox;
-#line 209 "mn-imap-mailbox-properties.gob"
+#line 203 "mn-imap-mailbox-properties.gob"
 	mn_mailbox_properties_class->get_mailbox = ___6_mn_imap_mailbox_properties_get_mailbox;
 #line 144 "mn-imap-mailbox-properties.c"
 	g_object_class->finalize = ___finalize;
@@ -152,7 +152,7 @@ mn_imap_mailbox_properties_class_init (MNIMAPMailboxPropertiesClass * class G_GN
 		"default_name");
     }
  {
-#line 100 "mn-imap-mailbox-properties.gob"
+#line 94 "mn-imap-mailbox-properties.gob"
 
     MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
 
@@ -163,7 +163,7 @@ mn_imap_mailbox_properties_class_init (MNIMAPMailboxPropertiesClass * class G_GN
  }
 }
 #undef __GOB_FUNCTION__
-#line 107 "mn-imap-mailbox-properties.gob"
+#line 101 "mn-imap-mailbox-properties.gob"
 static void 
 mn_imap_mailbox_properties_init (MNIMAPMailboxProperties * self G_GNUC_UNUSED)
 #line 170 "mn-imap-mailbox-properties.c"
@@ -171,7 +171,7 @@ mn_imap_mailbox_properties_init (MNIMAPMailboxProperties * self G_GNUC_UNUSED)
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox:Properties::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_IMAP_MAILBOX_PROPERTIES,MNIMAPMailboxPropertiesPrivate);
  {
-#line 108 "mn-imap-mailbox-properties.gob"
+#line 102 "mn-imap-mailbox-properties.gob"
 
     MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
     MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
@@ -185,12 +185,12 @@ mn_imap_mailbox_properties_init (MNIMAPMailboxProperties * self G_GNUC_UNUSED)
     folder_vbox = mn_mailbox_properties_add_general_section(properties, _("IMAP Mailbox"));
 
     selfp->inbox_radio = gtk_radio_button_new_with_mnemonic(NULL, _("In_box"));
-    gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->label_size_group, selfp->inbox_radio);
+    gtk_size_group_add_widget(properties->label_size_group, selfp->inbox_radio);
 
     gtk_box_pack_start(GTK_BOX(folder_vbox), selfp->inbox_radio, FALSE, FALSE, 0);
 
     selfp->other_radio = gtk_radio_button_new_with_mnemonic_from_widget(GTK_RADIO_BUTTON(selfp->inbox_radio), _("_Other:"));
-    gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->label_size_group, selfp->other_radio);
+    gtk_size_group_add_widget(properties->label_size_group, selfp->other_radio);
 
     selfp->mailbox_entry = gtk_entry_new();
     gtk_widget_set_sensitive(selfp->mailbox_entry, FALSE);
@@ -206,7 +206,7 @@ mn_imap_mailbox_properties_init (MNIMAPMailboxProperties * self G_GNUC_UNUSED)
     gtk_box_pack_start(GTK_BOX(pi->connection_page), idle_section, FALSE, FALSE, 0);
     gtk_widget_show(idle_section);
 
-    self_add_idle_usage(self, GTK_BOX(idle_vbox), MN_IMAP_MAILBOX_USE_IDLE_NEVER, _("_Never"));
+    self_add_idle_usage(self, GTK_BOX(idle_vbox), MN_IMAP_MAILBOX_USE_IDLE_NEVER, Q_("IMAP connection tab|_Never"));
     self_add_idle_usage(self, GTK_BOX(idle_vbox), MN_IMAP_MAILBOX_USE_IDLE_AUTODETECT, _("A_utodetect"));
     self_add_idle_usage(self, GTK_BOX(idle_vbox), MN_IMAP_MAILBOX_USE_IDLE_ALWAYS, _("Al_ways"));
 
@@ -249,35 +249,29 @@ ___object_get_property (GObject *object,
 		{
 #line 51 "mn-imap-mailbox-properties.gob"
 
-      MNPIMailboxProperties *pi = MN_PI_MAILBOX_PROPERTIES(self);
       gboolean complete;
-      const char *server;
-      gboolean other_active;
-      const char *mailbox;
 
-      mn_pi_mailbox_properties_get_contents(pi,
-					    NULL,
-					    NULL,
-					    &server,
-					    NULL);
-
-      other_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->other_radio));
-      mailbox = gtk_entry_get_text(GTK_ENTRY(selfp->mailbox_entry));
-
-      complete = *server && (! other_active || *mailbox);
-#if ! WITH_SSL
+      complete = mn_pi_mailbox_properties_is_complete(MN_PI_MAILBOX_PROPERTIES(self));
       if (complete)
-	complete = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL]));
-#endif /* WITH_SSL */
+	{
+	  gboolean other_active;
+	  const char *mailbox;
+
+	  other_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->other_radio));
+	  mailbox = gtk_entry_get_text(GTK_ENTRY(selfp->mailbox_entry));
+
+	  if (other_active && ! *mailbox)
+	    complete = FALSE;
+	}
 
       g_value_set_boolean(VAL, complete);
     
-#line 276 "mn-imap-mailbox-properties.c"
+#line 270 "mn-imap-mailbox-properties.c"
 		}
 		break;
 	case PROP_DEFAULT_NAME:
 		{
-#line 78 "mn-imap-mailbox-properties.gob"
+#line 72 "mn-imap-mailbox-properties.gob"
 
       const char *username;
       const char *server;
@@ -298,7 +292,7 @@ ___object_get_property (GObject *object,
 
       g_value_take_string(VAL, mn_imap_mailbox_build_name(username, server, other_active ? mailbox : NULL));
     
-#line 302 "mn-imap-mailbox-properties.c"
+#line 296 "mn-imap-mailbox-properties.c"
 		}
 		break;
 	default:
@@ -315,23 +309,23 @@ ___object_get_property (GObject *object,
 
 
 
-#line 165 "mn-imap-mailbox-properties.gob"
+#line 159 "mn-imap-mailbox-properties.gob"
 static void 
 mn_imap_mailbox_properties_add_idle_usage (MNIMAPMailboxProperties * self, GtkBox * idle_vbox, MNIMAPMailboxUseIDLE usage, const char * mnemonic)
-#line 322 "mn-imap-mailbox-properties.c"
+#line 316 "mn-imap-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox:Properties::add_idle_usage"
-#line 165 "mn-imap-mailbox-properties.gob"
+#line 159 "mn-imap-mailbox-properties.gob"
 	g_return_if_fail (self != NULL);
-#line 165 "mn-imap-mailbox-properties.gob"
+#line 159 "mn-imap-mailbox-properties.gob"
 	g_return_if_fail (MN_IS_IMAP_MAILBOX_PROPERTIES (self));
-#line 165 "mn-imap-mailbox-properties.gob"
+#line 159 "mn-imap-mailbox-properties.gob"
 	g_return_if_fail (idle_vbox != NULL);
-#line 165 "mn-imap-mailbox-properties.gob"
+#line 159 "mn-imap-mailbox-properties.gob"
 	g_return_if_fail (mnemonic != NULL);
-#line 333 "mn-imap-mailbox-properties.c"
+#line 327 "mn-imap-mailbox-properties.c"
 {
-#line 170 "mn-imap-mailbox-properties.gob"
+#line 164 "mn-imap-mailbox-properties.gob"
 	
     selfp->use_idle_radio[usage] = usage == 0
       ? gtk_radio_button_new_with_mnemonic(NULL, mnemonic)
@@ -340,17 +334,17 @@ mn_imap_mailbox_properties_add_idle_usage (MNIMAPMailboxProperties * self, GtkBo
     gtk_box_pack_start(idle_vbox, selfp->use_idle_radio[usage], TRUE, TRUE, 0);
     gtk_widget_show(selfp->use_idle_radio[usage]);
   }}
-#line 344 "mn-imap-mailbox-properties.c"
+#line 338 "mn-imap-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 179 "mn-imap-mailbox-properties.gob"
+#line 173 "mn-imap-mailbox-properties.gob"
 static void 
 mn_imap_mailbox_properties_radio_toggled_h (GtkToggleButton * togglebutton, gpointer user_data)
-#line 350 "mn-imap-mailbox-properties.c"
+#line 344 "mn-imap-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox:Properties::radio_toggled_h"
 {
-#line 181 "mn-imap-mailbox-properties.gob"
+#line 175 "mn-imap-mailbox-properties.gob"
 	
     Self *self = user_data;
 
@@ -359,20 +353,20 @@ mn_imap_mailbox_properties_radio_toggled_h (GtkToggleButton * togglebutton, gpoi
     g_object_notify(G_OBJECT(self), "complete");
     g_object_notify(G_OBJECT(self), "default-name");
   }}
-#line 363 "mn-imap-mailbox-properties.c"
+#line 357 "mn-imap-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 
-#line 190 "mn-imap-mailbox-properties.gob"
+#line 184 "mn-imap-mailbox-properties.gob"
 static void 
 ___5_mn_imap_mailbox_properties_set_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED, MNMailbox * mailbox)
-#line 369 "mn-imap-mailbox-properties.c"
+#line 363 "mn-imap-mailbox-properties.c"
 #define PARENT_HANDLER(___properties,___mailbox) \
 	{ if(MN_MAILBOX_PROPERTIES_CLASS(parent_class)->set_mailbox) \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->set_mailbox)(___properties,___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox:Properties::set_mailbox"
 {
-#line 192 "mn-imap-mailbox-properties.gob"
+#line 186 "mn-imap-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     MNIMAPMailbox *imap_mailbox = MN_IMAP_MAILBOX(mailbox);
@@ -389,14 +383,14 @@ ___5_mn_imap_mailbox_properties_set_mailbox (MNMailboxProperties * properties G_
 
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->use_idle_radio[imap_mailbox->use_idle_extension]), TRUE);
   }}
-#line 393 "mn-imap-mailbox-properties.c"
+#line 387 "mn-imap-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 209 "mn-imap-mailbox-properties.gob"
+#line 203 "mn-imap-mailbox-properties.gob"
 static MNMailbox * 
 ___6_mn_imap_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED)
-#line 400 "mn-imap-mailbox-properties.c"
+#line 394 "mn-imap-mailbox-properties.c"
 #define PARENT_HANDLER(___properties) \
 	((MN_MAILBOX_PROPERTIES_CLASS(parent_class)->get_mailbox)? \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->get_mailbox)(___properties): \
@@ -404,7 +398,7 @@ ___6_mn_imap_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_
 {
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox:Properties::get_mailbox"
 {
-#line 211 "mn-imap-mailbox-properties.gob"
+#line 205 "mn-imap-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     MNIMAPMailboxUseIDLE use_idle;
@@ -423,6 +417,6 @@ ___6_mn_imap_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_
 
     return mailbox;
   }}
-#line 427 "mn-imap-mailbox-properties.c"
+#line 421 "mn-imap-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER

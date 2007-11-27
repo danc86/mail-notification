@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -27,8 +27,13 @@ requires 2.0.14
 #include "mn-popups.h"
 %}
 
+%privateheader{
+#include "mn-sound-player.h"
+%}
+
 %{
 #include "config.h"
+#include <signal.h>
 #include <glib/gi18n.h>
 #include <eel/eel.h>
 #include <libxml/tree.h>
@@ -44,6 +49,22 @@ requires 2.0.14
 #include "mn-locked-callback.h"
 
 MNShell *mn_shell = NULL;
+
+typedef struct
+{
+  int		num;
+  const char	*name;
+} UnixSignalInfo;
+
+#define SIGNAL_INFO(name) { name, #name }
+
+static const UnixSignalInfo unix_quit_signals[] = {
+  SIGNAL_INFO(SIGHUP),
+  SIGNAL_INFO(SIGINT),
+  SIGNAL_INFO(SIGTERM),
+  SIGNAL_INFO(SIGUSR1),
+  SIGNAL_INFO(SIGUSR2)
+};
 %}
 
 enum MN_SHELL_TOOLTIP_MAIL_SUMMARY
@@ -55,9 +76,12 @@ enum MN_SHELL_TOOLTIP_MAIL_SUMMARY
 
 class MN:Shell from G:Object
 {
-  public MNMailboxes *mailboxes = {mn_mailboxes_new()} unrefwith g_object_unref;
+  public MNMailboxes *mailboxes;
+
   public MNMailIcon *icon;
   public MNPopups *popups;
+
+  private MNSoundPlayer *sound_player;
 
   private gboolean has_new;
 
@@ -67,16 +91,30 @@ class MN:Shell from G:Object
 
   init (self)
   {
+    int i;
+
     g_assert(mn_shell == NULL);
 
     mn_shell = self;
-    eel_add_weak_pointer(&mn_shell);
+    g_object_weak_ref(G_OBJECT(self), self_weak_notify_cb, NULL);
+
+    selfp->sound_player = mn_sound_player_new();
+    eel_add_weak_pointer(&selfp->sound_player);
+
+    /*
+     * self->mailboxes is assigned in MNMailboxes itself, so that
+     * mailboxes can access it even during construction of
+     * MNMailboxes.
+     */
+    mn_mailboxes_new();
+    eel_add_weak_pointer(&self->mailboxes);
 
     self_init_icon(self);
 
     mn_g_object_gconf_notifications_add_gdk_locked(self,
-						   MN_CONF_BLINK_ON_ERRORS, self_notify_blink_on_errors_cb, self,
-						   MN_CONF_ALWAYS_DISPLAY_ICON, self_notify_always_display_icon_cb, self,
+						   MN_CONF_BLINK_ON_ERRORS, self_notify_icon_cb, self,
+						   MN_CONF_ALWAYS_DISPLAY_ICON, self_notify_icon_cb, self,
+						   MN_CONF_DISPLAY_MESSAGE_COUNT, self_notify_icon_cb, self,
 						   MN_CONF_GNOME_MAIL_READER_NAMESPACE, self_notify_mail_reader_cb, self,
 						   MN_CONF_TOOLTIP_MAIL_SUMMARY, self_notify_tooltip_mail_summary_cb, self,
 						   NULL);
@@ -84,7 +122,7 @@ class MN:Shell from G:Object
     g_object_connect(self->mailboxes,
 		     "signal::messages-changed", self_messages_changed_h, self,
 		     "signal::mailbox-removed", self_mailbox_removed_h, self,
-		     "swapped-signal::notify::poll", self_update_sensitivity, self,
+		     "swapped-signal::notify::manually-checkable", self_update_sensitivity, self,
 		     "swapped-signal::list-changed", self_update_tooltip, self,
 		     "swapped-signal::list-changed", self_update_icon, self,
 		     "swapped-signal::error-changed", self_update_tooltip, self,
@@ -92,13 +130,100 @@ class MN:Shell from G:Object
 		     NULL);
 
     self->popups = mn_popups_new();
+    eel_add_weak_pointer(&self->popups);
+
+    /*
+     * Exit cleanly (by unreferencing our components) when receiving a
+     * UNIX signal.
+     */
+    for (i = 0; i < G_N_ELEMENTS(unix_quit_signals); i++)
+      signal(unix_quit_signals[i].num, self_unix_quit_signal_handler);
   }
 
   override (G:Object) void
-    finalize (GObject *object)
+    dispose (GObject *object)
+  {
+    Self *self = SELF(object);
+
+    /*
+     * We explicitly unreference or destroy each component, even
+     * though MN will exit after the shell is finalized. This is done
+     * for the sake of respecting encapsulation: we should not know
+     * whether a particular component has something to do on exit or
+     * not (for instance, MNSoundPlayer must kill the play process).
+     *
+     * Of course, the order in which we get rid of the components
+     * matters: for instance, when destroyed, MNPropertiesDialog might
+     * remove the test mailbox and thus requires a valid MNMailboxes
+     * object. We destroy the components in the inverse order of their
+     * creation.
+     *
+     * Also note that we do not need to nullify the pointers after
+     * destruction since we use eel_add_weak_pointer() at creation
+     * time.
+     */
+
+    g_slist_foreach(selfp->mailbox_properties_dialogs, (GFunc) gtk_widget_destroy, NULL);
+    /* the list is freed in mailbox_properties_dialog_weak_notify_cb() */
+
+    if (selfp->properties_dialog)
+      gtk_widget_destroy(selfp->properties_dialog);
+
+    if (selfp->about_dialog)
+      gtk_widget_destroy(selfp->about_dialog);
+
+    mn_g_object_null_unref(self->popups);
+
+    if (self->icon)
+      {
+	/* do not recreate the icon after we destroy it */
+	g_signal_handlers_disconnect_by_func(self->icon, self_icon_destroy_h, self);
+	gtk_widget_destroy(GTK_WIDGET(self->icon));
+      }
+
+    mn_g_object_null_unref(self->mailboxes);
+
+    mn_g_object_null_unref(selfp->sound_player);
+
+    PARENT_HANDLER(object);
+  }
+
+  private const UnixSignalInfo *
+    lookup_unix_quit_signal (int signum)
+  {
+    int i;
+
+    for (i = 0; i < G_N_ELEMENTS(unix_quit_signals); i++)
+      if (unix_quit_signals[i].num == signum)
+	return &unix_quit_signals[i];
+
+    g_assert_not_reached();
+    return NULL;
+  }
+
+  private void
+    unix_quit_signal_handler (int signum)
+  {
+    int i;
+    const UnixSignalInfo *info;
+
+    /*
+     * Uninstall signal handlers, in case another signal is received
+     * while we are quitting.
+     */
+    for (i = 0; i < G_N_ELEMENTS(unix_quit_signals); i++)
+      signal(unix_quit_signals[i].num, SIG_DFL);
+
+    info = self_lookup_unix_quit_signal(signum);
+
+    g_message(_("received %s signal, exiting"), info->name);
+    self_quit(mn_shell);
+  }
+
+  private void
+    weak_notify_cb (gpointer data, GObject *former_object)
   {
     gtk_main_quit();
-    PARENT_HANDLER(object);
   }
 
   private void
@@ -113,6 +238,8 @@ class MN:Shell from G:Object
 
     if (has_new)
       {
+	self_play_new_mail_sound(self);
+
 	if (mn_conf_has_command(MN_CONF_COMMANDS_NEW_MAIL_NAMESPACE))
 	  mn_conf_execute_command(MN_CONF_COMMANDS_NEW_MAIL_COMMAND);
       }
@@ -120,6 +247,22 @@ class MN:Shell from G:Object
     self_update_sensitivity(self);
     self_update_tooltip(self);
     self_update_icon(self);
+  }
+
+  private void
+    play_new_mail_sound (self)
+  {
+    char *file;
+
+    if (! eel_gconf_get_boolean(MN_CONF_SOUNDS_NEW_MAIL_ENABLED))
+      return;
+
+    file = eel_gconf_get_string(MN_CONF_SOUNDS_NEW_MAIL_FILE);
+
+    if (file && *file)
+      mn_sound_player_play(selfp->sound_player, file, NULL);
+
+    g_free(file);
   }
 
   private void
@@ -140,16 +283,18 @@ class MN:Shell from G:Object
     init_icon (self)
   {
     self->icon = MN_MAIL_ICON(mn_mail_icon_new());
+    eel_add_weak_pointer(&self->icon);
 
     g_object_connect(self->icon,
 		     "signal::activate", self_icon_activate_h, self,
 		     "signal::activate-mail-reader", self_icon_activate_mail_reader_h, self,
 		     "signal::activate-open-latest-message", self_icon_activate_open_latest_message_h, self,
-		     "signal::activate-update", self_icon_activate_update_h, self,
+		     "swapped-signal::activate-consider-new-mail-as-read", self_consider_new_mail_as_read, self,
+		     "swapped-signal::activate-update", self_update, self,
 		     "signal::activate-properties", self_icon_activate_properties_h, self,
 		     "signal::activate-help", self_icon_activate_help_h, self,
 		     "signal::activate-about", self_icon_activate_about_h, self,
-		     "signal::activate-remove", self_icon_activate_remove_h, self,
+		     "swapped-signal::activate-remove", self_quit, self,
 		     "signal::destroy", self_icon_destroy_h, self,
 		     NULL);
 
@@ -159,21 +304,10 @@ class MN:Shell from G:Object
   }
 
   private void
-    notify_blink_on_errors_cb (GConfClient *client,
-			       unsigned int cnxn_id,
-			       GConfEntry *entry,
-			       gpointer user_data)
-  {
-    Self *self = user_data;
-
-    self_update_icon(self);
-  }
-
-  private void
-    notify_always_display_icon_cb (GConfClient *client,
-				   unsigned int cnxn_id,
-				   GConfEntry *entry,
-				   gpointer user_data)
+    notify_icon_cb (GConfClient *client,
+		    unsigned int cnxn_id,
+		    GConfEntry *entry,
+		    gpointer user_data)
   {
     Self *self = user_data;
 
@@ -212,10 +346,6 @@ class MN:Shell from G:Object
 
     switch (action)
       {
-      case MN_ACTION_DISPLAY_PROPERTIES_DIALOG:
-	self_display_properties_dialog(self);
-	break;
-
       case MN_ACTION_LAUNCH_MAIL_READER:
 	if (mn_conf_has_command(MN_CONF_GNOME_MAIL_READER_NAMESPACE))
 	  mn_conf_execute_mail_reader();
@@ -243,6 +373,10 @@ class MN:Shell from G:Object
 			  _("You have no new mail."));
 	break;
 
+      case MN_ACTION_CONSIDER_NEW_MAIL_AS_READ:
+	self_consider_new_mail_as_read(self);
+	break;
+
       case MN_ACTION_UPDATE_MAIL_STATUS:
 	mn_mailboxes_check(self->mailboxes);
 	break;
@@ -266,17 +400,10 @@ class MN:Shell from G:Object
   }
 
   private void
-    icon_activate_update_h (MNMailIcon *icon, gpointer user_data)
-  {
-    Self *self = user_data;
-    mn_mailboxes_check(self->mailboxes);
-  }
-
-  private void
     icon_activate_properties_h (MNMailIcon *icon, gpointer user_data)
   {
     Self *self = user_data;
-    self_display_properties_dialog(self);
+    self_display_properties_dialog(self, gtk_get_current_event_time());
   }
 
   private void
@@ -289,14 +416,7 @@ class MN:Shell from G:Object
     icon_activate_about_h (MNMailIcon *icon, gpointer user_data)
   {
     Self *self = user_data;
-    self_display_about_dialog(self);
-  }
-
-  private void
-    icon_activate_remove_h (MNMailIcon *icon, gpointer user_data)
-  {
-    Self *self = user_data;
-    g_object_unref(self);
+    self_display_about_dialog(self, gtk_get_current_event_time());
   }
 
   private void
@@ -313,7 +433,8 @@ class MN:Shell from G:Object
   {
     gtk_widget_set_sensitive(self->icon->mail_reader_item, mn_conf_has_command(MN_CONF_GNOME_MAIL_READER_NAMESPACE));
     gtk_widget_set_sensitive(self->icon->open_latest_message_item, self->mailboxes->messages && mn_message_can_open(self->mailboxes->messages->data));
-    gtk_widget_set_sensitive(self->icon->update_item, mn_mailboxes_get_poll(self->mailboxes));
+    gtk_widget_set_sensitive(self->icon->consider_new_mail_as_read_item, self->mailboxes->messages != NULL);
+    gtk_widget_set_sensitive(self->icon->update_item, mn_mailboxes_get_manually_checkable(self->mailboxes));
   }
 
   private void
@@ -343,15 +464,23 @@ class MN:Shell from G:Object
 
     if (has_new || blink || always)
       {
-	mn_blinking_image_set_from_stock(MN_BLINKING_IMAGE(self->icon->image),
-					 has_new ? MN_STOCK_MAIL : MN_STOCK_NO_MAIL,
-					 GTK_ICON_SIZE_LARGE_TOOLBAR);
-	mn_blinking_image_set_blinking(MN_BLINKING_IMAGE(self->icon->image),
-				       blink);
+	int count;
+
+	if (eel_gconf_get_boolean(MN_CONF_DISPLAY_MESSAGE_COUNT))
+	  count = g_slist_length(self->mailboxes->messages);
+	else
+	  count = 0;
+
+	mn_mail_icon_set_from_stock(self->icon, has_new ? MN_STOCK_MAIL : MN_STOCK_NO_MAIL);
+	mn_mail_icon_set_blinking(self->icon, blink);
+	mn_mail_icon_set_count(self->icon, count);
 	gtk_widget_show(GTK_WIDGET(self->icon));
       }
     else
-      gtk_widget_hide(GTK_WIDGET(self->icon));
+      {
+	gtk_widget_hide(GTK_WIDGET(self->icon));
+	mn_mail_icon_set_blinking(self->icon, FALSE);
+      }
   }
 
   private void
@@ -385,12 +514,12 @@ class MN:Shell from G:Object
 	      {
 		MNMailbox *mailbox = lb->data;
 
+		g_assert(mailbox->n_messages > 0);
+
 		if (*string->str)
 		  g_string_append_c(string, '\n');
-		g_string_append(string, mailbox->runtime_name);
 
-		if (mailbox->n_messages > 0)
-		  g_string_append_printf(string, " (%i)", mailbox->n_messages);
+		g_string_append_printf(string, _("%s (%i)"), mailbox->runtime_name, mailbox->n_messages);
 	      }
 	    g_slist_free(new_mailboxes);
 
@@ -409,7 +538,7 @@ class MN:Shell from G:Object
 
 		if (*string->str)
 		  g_string_append_c(string, '\n');
-		g_string_append_printf(string, "%s: %s", mailbox->runtime_name, mailbox->error);
+		g_string_append_printf(string, _("%s: %s"), mailbox->runtime_name, mailbox->error);
 	      }
 	    g_slist_free(error_mailboxes);
 
@@ -543,25 +672,53 @@ class MN:Shell from G:Object
   }
 
   public void
-    display_properties_dialog (self)
+    consider_new_mail_as_read (self)
   {
-    self_display_window(self, MN_TYPE_PROPERTIES_DIALOG, &selfp->properties_dialog);
+    GList *l;
+
+    MN_LIST_FOREACH(l, self->mailboxes->list)
+      {
+	MNMailbox *mailbox = l->data;
+	mn_mailbox_consider_as_read_list(mailbox->messages);
+      }
   }
 
   public void
-    display_about_dialog (self)
+    update (self)
   {
-    self_display_window(self, MN_TYPE_ABOUT_DIALOG, &selfp->about_dialog);
+    mn_mailboxes_check(self->mailboxes);
+  }
+
+  public void
+    quit (self)
+  {
+    g_object_unref(self);
+  }
+
+  public void
+    display_properties_dialog (self, guint32 timestamp)
+  {
+    self_display_window(self, MN_TYPE_PROPERTIES_DIALOG, &selfp->properties_dialog, timestamp);
+  }
+
+  public void
+    display_about_dialog (self, guint32 timestamp)
+  {
+    self_display_window(self, MN_TYPE_ABOUT_DIALOG, &selfp->about_dialog, timestamp);
   }
 
   private void
     display_window (self,
 		    GType type (check != 0),
-		    GtkWidget **ptr (check null))
+		    GtkWidget **ptr (check null),
+		    guint32 timestamp)
   {
     if (*ptr)
       {
-	gtk_window_present(GTK_WINDOW(*ptr));
+	if (timestamp)
+	  gtk_window_present_with_time(GTK_WINDOW(*ptr), timestamp);
+	else
+	  gtk_window_present(GTK_WINDOW(*ptr));
 	return;
       }
 
@@ -654,9 +811,9 @@ extern MNShell *mn_shell;
 
 enum MN_ACTION
 {
-  DISPLAY_PROPERTIES_DIALOG,
   LAUNCH_MAIL_READER,
   OPEN_LATEST_MESSAGE,
+  CONSIDER_NEW_MAIL_AS_READ,
   UPDATE_MAIL_STATUS
 } MN:Action;
 

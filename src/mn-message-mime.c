@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -106,7 +106,7 @@ mn_message_new_from_mime_message_full (GType type,
   char *decoded_subject;
 
   g_return_val_if_fail(type != 0, NULL);
-  g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
+  g_return_val_if_fail(MN_IS_MAILBOX(mailbox), NULL);
   g_return_val_if_fail(GMIME_IS_MESSAGE(mime_message), NULL);
 
   if (mn_message_mime_is_spam(mime_message))
@@ -177,7 +177,7 @@ mn_message_new_from_mime_stream_full (GType type,
   MNMessage *message;
 
   g_return_val_if_fail(type != 0, NULL);
-  g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
+  g_return_val_if_fail(MN_IS_MAILBOX(mailbox), NULL);
   g_return_val_if_fail(GMIME_IS_STREAM(mime_stream), NULL);
 
   parser = g_mime_parser_new_with_stream(mime_stream);
@@ -219,7 +219,7 @@ mn_message_new_from_uri_full (GType type,
   GnomeVFSHandle *handle;
 
   g_return_val_if_fail(type != 0, NULL);
-  g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
+  g_return_val_if_fail(MN_IS_MAILBOX(mailbox), NULL);
   g_return_val_if_fail(uri != NULL, NULL);
 
   result = gnome_vfs_open_uri(&handle, uri, GNOME_VFS_OPEN_READ | GNOME_VFS_OPEN_RANDOM);
@@ -240,14 +240,8 @@ mn_message_new_from_uri_full (GType type,
 	  g_free(text_uri);
 	  g_object_unref(stream);
 
-	  result = gnome_vfs_close(handle);
-	  if (result == GNOME_VFS_OK)
-	    return message;
-	  else
-	    mn_g_object_null_unref(message); /* message can be null */
+	  return message;
 	}
-      else
-	gnome_vfs_close(handle);
     }
 
   return mn_message_new_from_error(mailbox, gnome_vfs_result_to_string(result), flags);
@@ -263,7 +257,7 @@ mn_message_new_from_buffer (MNMailbox *mailbox,
   GMimeStream *stream;
   MNMessage *message;
 
-  g_return_val_if_fail(mailbox == NULL || MN_IS_MAILBOX(mailbox), NULL);
+  g_return_val_if_fail(MN_IS_MAILBOX(mailbox), NULL);
   g_return_val_if_fail(buffer != NULL, NULL);
 
   stream = g_mime_stream_mem_new_with_buffer(buffer, len);

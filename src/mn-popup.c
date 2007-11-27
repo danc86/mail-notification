@@ -181,7 +181,7 @@ mn_popup_class_init (MNPopupClass * c G_GNUC_UNUSED)
 
 	parent_class = g_type_class_ref (NOTIFY_TYPE_NOTIFICATION);
 
-#line 49 "mn-popup.gob"
+#line 50 "mn-popup.gob"
 	g_object_class->constructor = ___1_mn_popup_constructor;
 #line 187 "mn-popup.c"
 	g_object_class->dispose = ___dispose;
@@ -268,7 +268,7 @@ g_value_set_object (VAL, (gpointer)self->_priv->message);
 
 
 
-#line 49 "mn-popup.gob"
+#line 50 "mn-popup.gob"
 static GObject * 
 ___1_mn_popup_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_properties, GObjectConstructParam * construct_params)
 #line 275 "mn-popup.c"
@@ -279,7 +279,7 @@ ___1_mn_popup_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_pr
 {
 #define __GOB_FUNCTION__ "MN:Popup::constructor"
 {
-#line 51 "mn-popup.gob"
+#line 52 "mn-popup.gob"
 	
     GObject *object;
     Self *self;
@@ -320,17 +320,17 @@ ___1_mn_popup_constructor (GType type G_GNUC_UNUSED, unsigned int n_construct_pr
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 88 "mn-popup.gob"
+#line 89 "mn-popup.gob"
 static ActionDefinition * 
 mn_popup_find_action (const char * id)
 #line 327 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::find_action"
-#line 88 "mn-popup.gob"
+#line 89 "mn-popup.gob"
 	g_return_val_if_fail (id != NULL, (ActionDefinition * )0);
 #line 332 "mn-popup.c"
 {
-#line 90 "mn-popup.gob"
+#line 91 "mn-popup.gob"
 	
     static ActionDefinition action_definitions[] = {
       { "open",		mn_popup_add_open_cb },
@@ -349,19 +349,19 @@ mn_popup_find_action (const char * id)
 #line 350 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 106 "mn-popup.gob"
+#line 107 "mn-popup.gob"
 static void 
 mn_popup_add_actions (MNPopup * self)
 #line 356 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::add_actions"
-#line 106 "mn-popup.gob"
+#line 107 "mn-popup.gob"
 	g_return_if_fail (self != NULL);
-#line 106 "mn-popup.gob"
+#line 107 "mn-popup.gob"
 	g_return_if_fail (MN_IS_POPUP (self));
 #line 363 "mn-popup.c"
 {
-#line 108 "mn-popup.gob"
+#line 109 "mn-popup.gob"
 	
     GSList *actions;
     GSList *l;
@@ -382,7 +382,7 @@ mn_popup_add_actions (MNPopup * self)
 	if (def)
 	  def->add(self);
 	else
-	  g_warning(_("configuration key %s: there is no action named `%s'"), MN_CONF_POPUPS_ACTIONS, id);
+	  g_warning(_("configuration key %s: there is no action named \"%s\""), MN_CONF_POPUPS_ACTIONS, id);
       }
 
     eel_g_slist_free_deep(actions);
@@ -390,19 +390,19 @@ mn_popup_add_actions (MNPopup * self)
 #line 391 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 134 "mn-popup.gob"
+#line 135 "mn-popup.gob"
 static void 
 mn_popup_add_open_cb (MNPopup * self)
 #line 397 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::add_open_cb"
-#line 134 "mn-popup.gob"
+#line 135 "mn-popup.gob"
 	g_return_if_fail (self != NULL);
-#line 134 "mn-popup.gob"
+#line 135 "mn-popup.gob"
 	g_return_if_fail (MN_IS_POPUP (self));
 #line 404 "mn-popup.c"
 {
-#line 136 "mn-popup.gob"
+#line 137 "mn-popup.gob"
 	
     if (mn_message_can_open(selfp->message))
       notify_notification_add_action(NOTIFY_NOTIFICATION(self),
@@ -416,19 +416,19 @@ mn_popup_add_open_cb (MNPopup * self)
 #line 417 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 147 "mn-popup.gob"
+#line 148 "mn-popup.gob"
 static void 
 mn_popup_add_mark_as_read_cb (MNPopup * self)
 #line 423 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::add_mark_as_read_cb"
-#line 147 "mn-popup.gob"
+#line 148 "mn-popup.gob"
 	g_return_if_fail (self != NULL);
-#line 147 "mn-popup.gob"
+#line 148 "mn-popup.gob"
 	g_return_if_fail (MN_IS_POPUP (self));
 #line 430 "mn-popup.c"
 {
-#line 149 "mn-popup.gob"
+#line 150 "mn-popup.gob"
 	
     if (mn_message_can_mark_as_read(selfp->message))
       notify_notification_add_action(NOTIFY_NOTIFICATION(self),
@@ -442,19 +442,19 @@ mn_popup_add_mark_as_read_cb (MNPopup * self)
 #line 443 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 160 "mn-popup.gob"
+#line 161 "mn-popup.gob"
 static void 
 mn_popup_add_mark_as_spam_cb (MNPopup * self)
 #line 449 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::add_mark_as_spam_cb"
-#line 160 "mn-popup.gob"
+#line 161 "mn-popup.gob"
 	g_return_if_fail (self != NULL);
-#line 160 "mn-popup.gob"
+#line 161 "mn-popup.gob"
 	g_return_if_fail (MN_IS_POPUP (self));
 #line 456 "mn-popup.c"
 {
-#line 162 "mn-popup.gob"
+#line 163 "mn-popup.gob"
 	
     if (mn_message_can_mark_as_spam(selfp->message))
       notify_notification_add_action(NOTIFY_NOTIFICATION(self),
@@ -468,19 +468,19 @@ mn_popup_add_mark_as_spam_cb (MNPopup * self)
 #line 469 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 173 "mn-popup.gob"
+#line 174 "mn-popup.gob"
 static void 
 mn_popup_add_delete_cb (MNPopup * self)
 #line 475 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::add_delete_cb"
-#line 173 "mn-popup.gob"
+#line 174 "mn-popup.gob"
 	g_return_if_fail (self != NULL);
-#line 173 "mn-popup.gob"
+#line 174 "mn-popup.gob"
 	g_return_if_fail (MN_IS_POPUP (self));
 #line 482 "mn-popup.c"
 {
-#line 175 "mn-popup.gob"
+#line 176 "mn-popup.gob"
 	
     if (mn_message_can_delete(selfp->message))
       notify_notification_add_action(NOTIFY_NOTIFICATION(self),
@@ -494,14 +494,14 @@ mn_popup_add_delete_cb (MNPopup * self)
 #line 495 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 186 "mn-popup.gob"
+#line 187 "mn-popup.gob"
 static void 
 mn_popup_open_cb (NotifyNotification * notification, char * id, gpointer user_data)
 #line 501 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::open_cb"
 {
-#line 188 "mn-popup.gob"
+#line 189 "mn-popup.gob"
 	
     Self *self = SELF(notification);
     GError *err = NULL;
@@ -519,14 +519,14 @@ mn_popup_open_cb (NotifyNotification * notification, char * id, gpointer user_da
 #line 520 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 203 "mn-popup.gob"
+#line 204 "mn-popup.gob"
 static void 
 mn_popup_mark_as_read_cb (NotifyNotification * notification, char * id, gpointer user_data)
 #line 526 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::mark_as_read_cb"
 {
-#line 205 "mn-popup.gob"
+#line 206 "mn-popup.gob"
 	
     Self *self = SELF(notification);
     GError *err = NULL;
@@ -544,14 +544,14 @@ mn_popup_mark_as_read_cb (NotifyNotification * notification, char * id, gpointer
 #line 545 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 220 "mn-popup.gob"
+#line 221 "mn-popup.gob"
 static void 
 mn_popup_mark_as_spam_cb (NotifyNotification * notification, char * id, gpointer user_data)
 #line 551 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::mark_as_spam_cb"
 {
-#line 222 "mn-popup.gob"
+#line 223 "mn-popup.gob"
 	
     Self *self = SELF(notification);
     GError *err = NULL;
@@ -569,21 +569,21 @@ mn_popup_mark_as_spam_cb (NotifyNotification * notification, char * id, gpointer
 #line 570 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 237 "mn-popup.gob"
+#line 238 "mn-popup.gob"
 static void 
 mn_popup_delete_cb (NotifyNotification * notification, char * id, gpointer user_data)
 #line 576 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::delete_cb"
 {
-#line 239 "mn-popup.gob"
+#line 240 "mn-popup.gob"
 	
     Self *self = SELF(notification);
     GError *err = NULL;
 
     GDK_THREADS_ENTER();
 
-    if (! mn_message_delete(selfp->message, &err))
+    if (! mn_message_delete(selfp->message, &err) && err != NULL)
       {
 	mn_error_dialog(NULL, _("Unable to delete message"), "%s", err->message);
 	g_error_free(err);
@@ -594,14 +594,14 @@ mn_popup_delete_cb (NotifyNotification * notification, char * id, gpointer user_
 #line 595 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 254 "mn-popup.gob"
+#line 255 "mn-popup.gob"
 static void 
 mn_popup_closed_h (NotifyNotification * notification, gpointer user_data)
 #line 601 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::closed_h"
 {
-#line 256 "mn-popup.gob"
+#line 257 "mn-popup.gob"
 	
     Self *self = SELF(notification);
     self->visible = FALSE;
@@ -609,21 +609,21 @@ mn_popup_closed_h (NotifyNotification * notification, gpointer user_data)
 #line 610 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 261 "mn-popup.gob"
+#line 262 "mn-popup.gob"
 static void 
 mn_popup_append_row (GString * body, const char * name, const char * value)
 #line 616 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::append_row"
-#line 261 "mn-popup.gob"
+#line 262 "mn-popup.gob"
 	g_return_if_fail (body != NULL);
-#line 261 "mn-popup.gob"
+#line 262 "mn-popup.gob"
 	g_return_if_fail (name != NULL);
-#line 261 "mn-popup.gob"
+#line 262 "mn-popup.gob"
 	g_return_if_fail (value != NULL);
 #line 625 "mn-popup.c"
 {
-#line 265 "mn-popup.gob"
+#line 266 "mn-popup.gob"
 	
       char *escaped;
 
@@ -639,14 +639,14 @@ mn_popup_append_row (GString * body, const char * name, const char * value)
 #line 640 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 278 "mn-popup.gob"
+#line 279 "mn-popup.gob"
 static int 
 mn_popup_get_conf_timeout (void)
 #line 646 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::get_conf_timeout"
 {
-#line 280 "mn-popup.gob"
+#line 281 "mn-popup.gob"
 	
     switch (mn_conf_get_enum_value(MN_TYPE_EXPIRATION_ENABLED, MN_CONF_POPUPS_EXPIRATION_ENABLED))
       {
@@ -668,21 +668,24 @@ mn_popup_get_conf_timeout (void)
 #line 669 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 299 "mn-popup.gob"
+#line 300 "mn-popup.gob"
 void 
 mn_popup_show (MNPopup * self)
 #line 675 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::show"
-#line 299 "mn-popup.gob"
+#line 300 "mn-popup.gob"
 	g_return_if_fail (self != NULL);
-#line 299 "mn-popup.gob"
+#line 300 "mn-popup.gob"
 	g_return_if_fail (MN_IS_POPUP (self));
 #line 682 "mn-popup.c"
 {
-#line 301 "mn-popup.gob"
+#line 302 "mn-popup.gob"
 	
     GError *err = NULL;
+
+    if (self->visible)
+      return;
 
     if (! notify_notification_show(NOTIFY_NOTIFICATION(self), &err))
       {
@@ -691,23 +694,24 @@ mn_popup_show (MNPopup * self)
       }
 
     self->visible = TRUE;
+    g_get_current_time(&self->show_timestamp);
   }}
-#line 696 "mn-popup.c"
+#line 700 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 313 "mn-popup.gob"
+#line 318 "mn-popup.gob"
 void 
 mn_popup_close (MNPopup * self)
-#line 702 "mn-popup.c"
+#line 706 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::close"
-#line 313 "mn-popup.gob"
+#line 318 "mn-popup.gob"
 	g_return_if_fail (self != NULL);
-#line 313 "mn-popup.gob"
+#line 318 "mn-popup.gob"
 	g_return_if_fail (MN_IS_POPUP (self));
-#line 709 "mn-popup.c"
+#line 713 "mn-popup.c"
 {
-#line 315 "mn-popup.gob"
+#line 320 "mn-popup.gob"
 	
     GError *err = NULL;
 
@@ -720,22 +724,22 @@ mn_popup_close (MNPopup * self)
 	g_error_free(err);
       }
   }}
-#line 724 "mn-popup.c"
+#line 728 "mn-popup.c"
 #undef __GOB_FUNCTION__
 
-#line 328 "mn-popup.gob"
+#line 333 "mn-popup.gob"
 MNPopup * 
 mn_popup_new (MNMessage * message)
-#line 730 "mn-popup.c"
+#line 734 "mn-popup.c"
 {
 #define __GOB_FUNCTION__ "MN:Popup::new"
-#line 328 "mn-popup.gob"
+#line 333 "mn-popup.gob"
 	g_return_val_if_fail (message != NULL, (MNPopup * )0);
-#line 328 "mn-popup.gob"
+#line 333 "mn-popup.gob"
 	g_return_val_if_fail (MN_IS_MESSAGE (message), (MNPopup * )0);
-#line 737 "mn-popup.c"
+#line 741 "mn-popup.c"
 {
-#line 330 "mn-popup.gob"
+#line 335 "mn-popup.gob"
 	
     /* we set the summary here because libnotify requires it */
 
@@ -744,5 +748,5 @@ mn_popup_new (MNMessage * message)
 			MN_POPUP_PROP_MESSAGE(message),
 			NULL);
   }}
-#line 748 "mn-popup.c"
+#line 752 "mn-popup.c"
 #undef __GOB_FUNCTION__

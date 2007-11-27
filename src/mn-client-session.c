@@ -20,7 +20,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -61,8 +61,6 @@
 #endif /* WITH_SASL */
 #include "mn-util.h"
 #include "mn-client-session.h"
-#include "mn-conf.h"
-#include "mn-stock.h"
 
 /*** cpp *********************************************************************/
 
@@ -124,9 +122,6 @@ static gboolean mn_client_session_ssl_check_server_name_from_list (const char *u
 static char *mn_client_session_ssl_get_verify_error (MNClientSession *session,
 						     X509 *cert);
 static gboolean mn_client_session_ssl_verify (MNClientSession *session);
-static gboolean mn_client_session_run_untrusted_dialog (const char *server,
-							const char *reason,
-							const char *cert_fingerprint);
 #endif
 
 static int mn_client_session_enter_state (MNClientSession *session, int id);
@@ -182,6 +177,9 @@ mn_client_session_run (const MNClientSessionState *states,
   g_return_val_if_fail(states != NULL, FALSE);
   g_return_val_if_fail(callbacks != NULL, FALSE);
   g_return_val_if_fail(callbacks->response_new != NULL, FALSE);
+#if WITH_SSL
+  g_return_val_if_fail(callbacks->ssl_trust_server != NULL, FALSE);
+#endif
   g_return_val_if_fail(server != NULL, FALSE);
 
   memset(&session, 0, sizeof(session));
@@ -340,7 +338,7 @@ mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo)
       if (connect(s, a->ai_addr, a->ai_addrlen) < 0)
 	{
 	  mn_client_session_notice(session, _("unable to connect: %s"), g_strerror(errno));
-	  close(s);
+	  while (close(s) < 0 && errno == EINTR);
 	}
       else
 	{
@@ -604,9 +602,10 @@ mn_client_session_ssl_get_verify_error (MNClientSession *session, X509 *cert)
 	    {
 	      char *server = l->data;
 
-	      g_string_append_printf(servers_comma_list, "\"%s\"", server);
 	      if (l->next)
-		g_string_append(servers_comma_list, ", ");
+		g_string_append_printf(servers_comma_list, _("\"%s\", "), server);
+	      else
+		g_string_append_printf(servers_comma_list, _("\"%s\""), server);
 	    }
 
 	  error = g_strdup_printf(_("user-provided server name \"%s\" matches none of the certificate-provided server names %s"),
@@ -625,7 +624,6 @@ static gboolean
 mn_client_session_ssl_verify (MNClientSession *session)
 {
   X509 *cert;
-  gboolean status = FALSE;
 
   g_return_val_if_fail(session != NULL, FALSE);
   g_return_val_if_fail(session->ssl != NULL, FALSE);
@@ -634,6 +632,7 @@ mn_client_session_ssl_verify (MNClientSession *session)
   if (cert)
     {
       char *error;
+      gboolean status = FALSE;
 
       error = mn_client_session_ssl_get_verify_error(session, cert);
       if (! error)
@@ -645,7 +644,6 @@ mn_client_session_ssl_verify (MNClientSession *session)
 	  int md5len;
 	  int i;
 	  unsigned char *f;
-	  GSList *gconf_fingerprints;
 
 	  /* calculate the MD5 hash of the raw certificate */
 	  md5len = sizeof(md5sum);
@@ -653,102 +651,28 @@ mn_client_session_ssl_verify (MNClientSession *session)
 	  for (i = 0, f = fingerprint; i < 16; i++, f += 3)
 	    sprintf(f, "%.2x%c", md5sum[i], i != 15 ? ':' : '\0');
 
-	  gconf_fingerprints = eel_gconf_get_string_list(MN_CONF_TRUSTED_X509_CERTIFICATES);
-
-	  if (mn_g_str_slist_find(gconf_fingerprints, fingerprint) != NULL)
+	  if (session->callbacks->ssl_trust_server(session,
+						   session->server,
+						   session->port,
+						   fingerprint,
+						   error,
+						   session->private))
 	    status = TRUE;
-	  else
-	    {
-	      if (mn_client_session_run_untrusted_dialog(session->server, error, fingerprint))
-		{
-		  status = TRUE;
-		  gconf_fingerprints = g_slist_append(gconf_fingerprints, g_strdup(fingerprint));
-		  eel_gconf_set_string_list(MN_CONF_TRUSTED_X509_CERTIFICATES, gconf_fingerprints);
-		}
-	    }
 
-	  eel_g_slist_free_deep(gconf_fingerprints);
 	  g_free(error);
 	}
 
       X509_free(cert);
+
+      return status;
     }
   else
-    {
-      char *server;
-      GSList *gconf_servers = NULL;
-
-      server = g_strdup_printf("%s:%i", session->server, session->port);
-      gconf_servers = eel_gconf_get_string_list(MN_CONF_TRUSTED_SERVERS);
-
-      if (mn_g_str_slist_find(gconf_servers, server) != NULL)
-	status = TRUE;
-      else
-	{
-	  if (mn_client_session_run_untrusted_dialog(session->server, _("missing certificate"), NULL))
-	    {
-	      status = TRUE;
-	      gconf_servers = g_slist_append(gconf_servers, g_strdup(server));
-	      eel_gconf_set_string_list(MN_CONF_TRUSTED_SERVERS, gconf_servers);
-	    }
-	}
-
-      g_free(server);
-      eel_g_slist_free_deep(gconf_servers);
-    }
-
-  return status;
-}
-
-static gboolean
-mn_client_session_run_untrusted_dialog (const char *server,
-					const char *reason,
-					const char *cert_fingerprint)
-{
-  GtkWidget *dialog;
-  GString *secondary;
-  gboolean status;
-
-  g_return_val_if_fail(server != NULL, FALSE);
-  g_return_val_if_fail(reason != NULL, FALSE);
-
-  secondary = g_string_new(NULL);
-  g_string_printf(secondary,
-		  _("Mail Notification was unable to trust \"%s\" "
-		    "(%s). It is possible that someone is "
-		    "intercepting your communication to obtain "
-		    "your confidential information.\n"
-		    "\n"
-		    "You should only connect to the server if you "
-		    "are certain you are connected to \"%s\". "
-		    "If you choose to connect to the server, this "
-		    "message will not be shown again."),
-		  server, reason, server);
-
-  if (cert_fingerprint)
-    {
-      g_string_append(secondary, "\n\n");
-      g_string_append_printf(secondary, _("Certificate fingerprint: %s."), cert_fingerprint);
-    }
-
-  GDK_THREADS_ENTER();
-
-  dialog = mn_alert_dialog_new(NULL,
-			       GTK_MESSAGE_WARNING, 0,
-			       _("Connect to untrusted server?"),
-			       secondary->str);
-  g_string_free(secondary, TRUE);
-
-  gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
-  gtk_dialog_add_button(GTK_DIALOG(dialog), MN_STOCK_CONNECT, GTK_RESPONSE_OK);
-
-  status = mn_dialog_run_nonmodal(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK;
-  gtk_widget_destroy(dialog);
-
-  gdk_flush();
-  GDK_THREADS_LEAVE();
-
-  return status;
+    return session->callbacks->ssl_trust_server(session,
+						session->server,
+						session->port,
+						NULL,
+						NULL,
+						session->private);
 }
 #endif /* WITH_SSL */
 
@@ -1658,7 +1582,7 @@ mn_client_session_set_error_from_response (MNClientSession *session,
   g_return_val_if_fail(session != NULL, 0);
 
   return response
-    ? mn_client_session_set_error(session, code, "\"%s\"", response)
+    ? mn_client_session_set_error(session, code, _("\"%s\""), response)
     : mn_client_session_set_error(session, code, _("unknown server error"));
 }
 

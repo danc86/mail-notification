@@ -28,13 +28,14 @@
 #include <glib/gi18n.h>
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-private.h"
+#include "mn-authenticated-mailbox-properties-private.h"
 #include "mn-util.h"
 #include "mn-properties-dialog.h"
 #include "mn-authenticated-mailbox.h"
 #include "mn-gmail-mailbox.h"
 #include "mn-stock.h"
 
-#line 38 "mn-gmail-mailbox-properties.c"
+#line 39 "mn-gmail-mailbox-properties.c"
 /* self casting macros */
 #define SELF(x) MN_GMAIL_MAILBOX_PROPERTIES(x)
 #define SELF_CONST(x) MN_GMAIL_MAILBOX_PROPERTIES_CONST(x)
@@ -52,17 +53,21 @@ typedef MNGmailMailboxPropertiesClass SelfClass;
 static void ___object_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void mn_gmail_mailbox_properties_class_init (MNGmailMailboxPropertiesClass * class) G_GNUC_UNUSED;
 static void mn_gmail_mailbox_properties_init (MNGmailMailboxProperties * self) G_GNUC_UNUSED;
-static void ___3_mn_gmail_mailbox_properties_set_mailbox (MNMailboxProperties * properties, MNMailbox * mailbox) G_GNUC_UNUSED;
-static MNMailbox * ___4_mn_gmail_mailbox_properties_get_mailbox (MNMailboxProperties * properties) G_GNUC_UNUSED;
+static void mn_gmail_mailbox_properties_check_toggled_h (GtkToggleButton * togglebutton, gpointer user_data) G_GNUC_UNUSED;
+static void ___4_mn_gmail_mailbox_properties_set_mailbox (MNMailboxProperties * properties, MNMailbox * mailbox) G_GNUC_UNUSED;
+static MNMailbox * ___5_mn_gmail_mailbox_properties_get_mailbox (MNMailboxProperties * properties) G_GNUC_UNUSED;
 
 enum {
 	PROP_0,
+	PROP_COMPLETE,
 	PROP_DEFAULT_NAME
 };
 
 /* pointer to the class of our parent */
 static MNAuthenticatedMailboxPropertiesClass *parent_class = NULL;
 
+/* Short form macros */
+#define self_check_toggled_h mn_gmail_mailbox_properties_check_toggled_h
 GType
 mn_gmail_mailbox_properties_get_type (void)
 {
@@ -114,16 +119,16 @@ ___finalize(GObject *obj_self)
 	gpointer priv G_GNUC_UNUSED = self->_priv;
 	if(G_OBJECT_CLASS(parent_class)->finalize) \
 		(* G_OBJECT_CLASS(parent_class)->finalize)(obj_self);
-#line 45 "mn-gmail-mailbox-properties.gob"
+#line 49 "mn-gmail-mailbox-properties.gob"
 	if(self->_priv->location) { g_free ((gpointer) self->_priv->location); self->_priv->location = NULL; }
-#line 120 "mn-gmail-mailbox-properties.c"
+#line 125 "mn-gmail-mailbox-properties.c"
 }
 #undef __GOB_FUNCTION__
 
-#line 57 "mn-gmail-mailbox-properties.gob"
+#line 88 "mn-gmail-mailbox-properties.gob"
 static void 
 mn_gmail_mailbox_properties_class_init (MNGmailMailboxPropertiesClass * class G_GNUC_UNUSED)
-#line 127 "mn-gmail-mailbox-properties.c"
+#line 132 "mn-gmail-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox:Properties::class_init"
 	GObjectClass *g_object_class G_GNUC_UNUSED = (GObjectClass*) class;
@@ -133,20 +138,23 @@ mn_gmail_mailbox_properties_class_init (MNGmailMailboxPropertiesClass * class G_
 
 	parent_class = g_type_class_ref (MN_TYPE_AUTHENTICATED_MAILBOX_PROPERTIES);
 
-#line 82 "mn-gmail-mailbox-properties.gob"
-	mn_mailbox_properties_class->set_mailbox = ___3_mn_gmail_mailbox_properties_set_mailbox;
-#line 93 "mn-gmail-mailbox-properties.gob"
-	mn_mailbox_properties_class->get_mailbox = ___4_mn_gmail_mailbox_properties_get_mailbox;
-#line 141 "mn-gmail-mailbox-properties.c"
+#line 152 "mn-gmail-mailbox-properties.gob"
+	mn_mailbox_properties_class->set_mailbox = ___4_mn_gmail_mailbox_properties_set_mailbox;
+#line 169 "mn-gmail-mailbox-properties.gob"
+	mn_mailbox_properties_class->get_mailbox = ___5_mn_gmail_mailbox_properties_get_mailbox;
+#line 146 "mn-gmail-mailbox-properties.c"
 	g_object_class->finalize = ___finalize;
 	g_object_class->get_property = ___object_get_property;
     {
+	g_object_class_override_property (g_object_class,
+		PROP_COMPLETE,
+		"complete");
 	g_object_class_override_property (g_object_class,
 		PROP_DEFAULT_NAME,
 		"default_name");
     }
  {
-#line 58 "mn-gmail-mailbox-properties.gob"
+#line 89 "mn-gmail-mailbox-properties.gob"
 
     MNMailboxPropertiesClass *p_class = MN_MAILBOX_PROPERTIES_CLASS(class);
 
@@ -154,34 +162,62 @@ mn_gmail_mailbox_properties_class_init (MNGmailMailboxPropertiesClass * class G_
     p_class->stock_id = MN_STOCK_GMAIL;
     p_class->combo_label = "Gmail";
   
-#line 158 "mn-gmail-mailbox-properties.c"
+#line 166 "mn-gmail-mailbox-properties.c"
  }
 }
 #undef __GOB_FUNCTION__
-#line 66 "mn-gmail-mailbox-properties.gob"
+#line 97 "mn-gmail-mailbox-properties.gob"
 static void 
 mn_gmail_mailbox_properties_init (MNGmailMailboxProperties * self G_GNUC_UNUSED)
-#line 165 "mn-gmail-mailbox-properties.c"
+#line 173 "mn-gmail-mailbox-properties.c"
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox:Properties::init"
 	self->_priv = G_TYPE_INSTANCE_GET_PRIVATE(self,MN_TYPE_GMAIL_MAILBOX_PROPERTIES,MNGmailMailboxPropertiesPrivate);
  {
-#line 67 "mn-gmail-mailbox-properties.gob"
+#line 98 "mn-gmail-mailbox-properties.gob"
 
     MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
     MNAuthenticatedMailboxProperties *auth = MN_AUTHENTICATED_MAILBOX_PROPERTIES(self);
+    GtkWidget *label_vbox;
+    GtkWidget *hbox;
 
     gtk_box_pack_start(GTK_BOX(auth->account_vbox), auth->username_vbox, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(auth->account_vbox), auth->password_vbox, FALSE, FALSE, 0);
 
+    /* translators: header capitalization */
+    label_vbox = mn_mailbox_properties_add_general_section(properties, _("Gmail Label"));
+
+    selfp->label_check = gtk_check_button_new_with_mnemonic(_("_Restrict to this label:"));
+    gtk_size_group_add_widget(properties->label_size_group, selfp->label_check);
+
+    selfp->label_entry = gtk_entry_new();
+    gtk_widget_set_sensitive(selfp->label_entry, FALSE);
+
+    hbox = gtk_hbox_new(FALSE, 12);
+    gtk_box_pack_start(GTK_BOX(hbox), selfp->label_check, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), selfp->label_entry, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(label_vbox), hbox, FALSE, FALSE, 0);
+    gtk_widget_show_all(label_vbox);
+
     properties->entries = mn_g_slist_append_elements(properties->entries,
 						     auth->username_entry,
 						     auth->password_entry,
+						     selfp->label_entry,
 						     NULL);
 
-    g_signal_connect_swapped(auth->username_entry, "changed", G_CALLBACK(mn_mailbox_properties_notify_default_name), self);
+    g_signal_connect(selfp->label_check, "toggled", G_CALLBACK(self_check_toggled_h), self);
+
+    g_object_connect(auth->username_entry,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_complete, self,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_default_name, self,
+		     NULL);
+
+    g_object_connect(selfp->label_entry,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_complete, self,
+		     "swapped-signal::changed", mn_mailbox_properties_notify_default_name, self,
+		     NULL);
   
-#line 185 "mn-gmail-mailbox-properties.c"
+#line 221 "mn-gmail-mailbox-properties.c"
  }
 }
 #undef __GOB_FUNCTION__
@@ -198,17 +234,47 @@ ___object_get_property (GObject *object,
 	self = MN_GMAIL_MAILBOX_PROPERTIES (object);
 
 	switch (property_id) {
+	case PROP_COMPLETE:
+		{
+#line 53 "mn-gmail-mailbox-properties.gob"
+
+      gboolean complete;
+
+      complete = mn_authenticated_mailbox_properties_is_complete(MN_AUTHENTICATED_MAILBOX_PROPERTIES(self));
+      if (complete)
+	{
+	  gboolean label_enabled;
+	  const char *label;
+
+	  label_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->label_check));
+	  label = gtk_entry_get_text(GTK_ENTRY(selfp->label_entry));
+
+	  if (label_enabled && ! *label)
+	    complete = FALSE;
+	}
+
+      g_value_set_boolean(VAL, complete);
+    
+#line 259 "mn-gmail-mailbox-properties.c"
+		}
+		break;
 	case PROP_DEFAULT_NAME:
 		{
-#line 49 "mn-gmail-mailbox-properties.gob"
+#line 74 "mn-gmail-mailbox-properties.gob"
 
       const char *username;
+      gboolean label_enabled;
+      const char *label;
 
       username = gtk_entry_get_text(GTK_ENTRY(MN_AUTHENTICATED_MAILBOX_PROPERTIES(self)->username_entry));
+      g_assert(*username != 0);
 
-      g_value_take_string(VAL, mn_gmail_mailbox_build_name(*username ? username : NULL));
+      label_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->label_check));
+      label = gtk_entry_get_text(GTK_ENTRY(selfp->label_entry));
+
+      g_value_take_string(VAL, mn_gmail_mailbox_build_name(username, label_enabled ? label : NULL));
     
-#line 212 "mn-gmail-mailbox-properties.c"
+#line 278 "mn-gmail-mailbox-properties.c"
 		}
 		break;
 	default:
@@ -225,17 +291,36 @@ ___object_get_property (GObject *object,
 
 
 
-#line 82 "mn-gmail-mailbox-properties.gob"
+#line 141 "mn-gmail-mailbox-properties.gob"
 static void 
-___3_mn_gmail_mailbox_properties_set_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED, MNMailbox * mailbox)
-#line 232 "mn-gmail-mailbox-properties.c"
+mn_gmail_mailbox_properties_check_toggled_h (GtkToggleButton * togglebutton, gpointer user_data)
+#line 298 "mn-gmail-mailbox-properties.c"
+{
+#define __GOB_FUNCTION__ "MN:Gmail:Mailbox:Properties::check_toggled_h"
+{
+#line 143 "mn-gmail-mailbox-properties.gob"
+	
+    Self *self = user_data;
+
+    gtk_widget_set_sensitive(selfp->label_entry, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->label_check)));
+
+    g_object_notify(G_OBJECT(self), "complete");
+    g_object_notify(G_OBJECT(self), "default-name");
+  }}
+#line 311 "mn-gmail-mailbox-properties.c"
+#undef __GOB_FUNCTION__
+
+#line 152 "mn-gmail-mailbox-properties.gob"
+static void 
+___4_mn_gmail_mailbox_properties_set_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED, MNMailbox * mailbox)
+#line 317 "mn-gmail-mailbox-properties.c"
 #define PARENT_HANDLER(___properties,___mailbox) \
 	{ if(MN_MAILBOX_PROPERTIES_CLASS(parent_class)->set_mailbox) \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->set_mailbox)(___properties,___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox:Properties::set_mailbox"
 {
-#line 84 "mn-gmail-mailbox-properties.gob"
+#line 154 "mn-gmail-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     MNGmailMailbox *gmail_mailbox = MN_GMAIL_MAILBOX(mailbox);
@@ -243,15 +328,21 @@ ___3_mn_gmail_mailbox_properties_set_mailbox (MNMailboxProperties * properties G
     PARENT_HANDLER(properties, mailbox);
 
     selfp->location = g_strdup(gmail_mailbox->location);
+
+    if (gmail_mailbox->label)
+      {
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->label_check), TRUE);
+	gtk_entry_set_text(GTK_ENTRY(selfp->label_entry), gmail_mailbox->label);
+      }
   }}
-#line 248 "mn-gmail-mailbox-properties.c"
+#line 339 "mn-gmail-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 93 "mn-gmail-mailbox-properties.gob"
+#line 169 "mn-gmail-mailbox-properties.gob"
 static MNMailbox * 
-___4_mn_gmail_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED)
-#line 255 "mn-gmail-mailbox-properties.c"
+___5_mn_gmail_mailbox_properties_get_mailbox (MNMailboxProperties * properties G_GNUC_UNUSED)
+#line 346 "mn-gmail-mailbox-properties.c"
 #define PARENT_HANDLER(___properties) \
 	((MN_MAILBOX_PROPERTIES_CLASS(parent_class)->get_mailbox)? \
 		(* MN_MAILBOX_PROPERTIES_CLASS(parent_class)->get_mailbox)(___properties): \
@@ -259,7 +350,7 @@ ___4_mn_gmail_mailbox_properties_get_mailbox (MNMailboxProperties * properties G
 {
 #define __GOB_FUNCTION__ "MN:Gmail:Mailbox:Properties::get_mailbox"
 {
-#line 95 "mn-gmail-mailbox-properties.gob"
+#line 171 "mn-gmail-mailbox-properties.gob"
 	
     Self *self = SELF(properties);
     MNMailbox *mailbox;
@@ -269,8 +360,11 @@ ___4_mn_gmail_mailbox_properties_get_mailbox (MNMailboxProperties * properties G
     if (selfp->location)
       g_object_set(mailbox, MN_GMAIL_MAILBOX_PROP_LOCATION(selfp->location), NULL);
 
+    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(selfp->label_check)))
+      g_object_set(mailbox, MN_GMAIL_MAILBOX_PROP_LABEL((char *) gtk_entry_get_text(GTK_ENTRY(selfp->label_entry))), NULL);
+
     return mailbox;
   }}
-#line 275 "mn-gmail-mailbox-properties.c"
+#line 369 "mn-gmail-mailbox-properties.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER

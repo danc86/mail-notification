@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -47,6 +47,16 @@
   MN_CONF_COMMANDS_MAIL_CHANGED_NAMESPACE "/enabled"
 #define MN_CONF_COMMANDS_MAIL_CHANGED_COMMAND \
   MN_CONF_COMMANDS_MAIL_CHANGED_NAMESPACE "/command"
+#define MN_CONF_SOUNDS_NAMESPACE \
+  MN_CONF_NAMESPACE "/sounds"
+#define MN_CONF_SOUNDS_NEW_MAIL_NAMESPACE \
+  MN_CONF_SOUNDS_NAMESPACE "/new-mail"
+#define MN_CONF_SOUNDS_NEW_MAIL_ENABLED \
+  MN_CONF_SOUNDS_NEW_MAIL_NAMESPACE "/enabled"
+#define MN_CONF_SOUNDS_NEW_MAIL_FILE \
+  MN_CONF_SOUNDS_NEW_MAIL_NAMESPACE "/file"
+#define MN_CONF_SOUNDS_PLAY_COMMAND \
+  MN_CONF_SOUNDS_NAMESPACE "/play-command"
 #define MN_CONF_UI_NAMESPACE \
   MN_CONF_NAMESPACE "/ui"
 #define MN_CONF_PROPERTIES_DIALOG \
@@ -63,8 +73,10 @@
   MN_CONF_NAMESPACE "/tooltip-mail-summary"
 #define MN_CONF_ALWAYS_DISPLAY_ICON \
   MN_CONF_NAMESPACE "/always-display-icon"
+#define MN_CONF_DISPLAY_MESSAGE_COUNT \
+  MN_CONF_NAMESPACE "/display-message-count"
 #define MN_CONF_CLICK_ACTION \
-  MN_CONF_NAMESPACE "/click-action-2"
+  MN_CONF_NAMESPACE "/click-action-3"
 #define MN_CONF_POPUPS_NAMESPACE \
   MN_CONF_NAMESPACE "/popups"
 #define MN_CONF_POPUPS_ENABLED \
@@ -83,6 +95,8 @@
   MN_CONF_POPUPS_EXPIRATION_DELAY_NAMESPACE "/seconds"
 #define MN_CONF_POPUPS_ACTIONS \
   MN_CONF_POPUPS_NAMESPACE "/actions"
+#define MN_CONF_POPUPS_LIMIT \
+  MN_CONF_POPUPS_NAMESPACE "/limit"
 
 /* obsolete keys */
 #define MN_CONF_OBSOLETE_MAILBOXES \
@@ -95,6 +109,20 @@
   MN_CONF_GNOME_MAIL_READER_NAMESPACE "/command"
 #define MN_CONF_GNOME_MAIL_READER_NEEDS_TERMINAL \
   MN_CONF_GNOME_MAIL_READER_NAMESPACE "/needs_terminal"
+#define MN_CONF_SYSTEM_HTTP_PROXY_NAMESPACE \
+  "/system/http_proxy"
+#define MN_CONF_SYSTEM_HTTP_PROXY_USE_HTTP_PROXY \
+  MN_CONF_SYSTEM_HTTP_PROXY_NAMESPACE "/use_http_proxy"
+#define MN_CONF_SYSTEM_HTTP_PROXY_HOST \
+  MN_CONF_SYSTEM_HTTP_PROXY_NAMESPACE "/host"
+#define MN_CONF_SYSTEM_HTTP_PROXY_PORT \
+  MN_CONF_SYSTEM_HTTP_PROXY_NAMESPACE "/port"
+#define MN_CONF_SYSTEM_HTTP_PROXY_USE_AUTHENTICATION \
+  MN_CONF_SYSTEM_HTTP_PROXY_NAMESPACE "/use_authentication"
+#define MN_CONF_SYSTEM_HTTP_PROXY_AUTHENTICATION_USER \
+  MN_CONF_SYSTEM_HTTP_PROXY_NAMESPACE "/authentication_user"
+#define MN_CONF_SYSTEM_HTTP_PROXY_AUTHENTICATION_PASSWORD \
+  MN_CONF_SYSTEM_HTTP_PROXY_NAMESPACE "/authentication_password"
 
 extern const char *mn_conf_dot_dir;
 

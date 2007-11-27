@@ -34,15 +34,16 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 subdir = ui
-DIST_COMMON = $(dist_ui_DATA) $(srcdir)/Makefile.am \
+DIST_COMMON = $(dist_pkgdata_DATA) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/evolution-plugin.m4 \
 	$(top_srcdir)/m4/gnome.m4 $(top_srcdir)/m4/idl.m4 \
 	$(top_srcdir)/m4/openssl.m4 \
 	$(top_srcdir)/m4/reentrant-resolver.m4 \
-	$(top_srcdir)/m4/sasl2.m4 $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/sasl2.m4 \
+	$(top_srcdir)/m4/string-arch-unaligned.m4 \
+	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -56,9 +57,9 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(uidir)"
-dist_uiDATA_INSTALL = $(INSTALL_DATA)
-DATA = $(dist_ui_DATA)
+am__installdirs = "$(DESTDIR)$(pkgdatadir)"
+dist_pkgdataDATA_INSTALL = $(INSTALL_DATA)
+DATA = $(dist_pkgdata_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALL_LINGUAS = @ALL_LINGUAS@
@@ -105,11 +106,11 @@ GMIME_LIBS = @GMIME_LIBS@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GNOME_CFLAGS = @GNOME_CFLAGS@
+GNOME_KEYRING_CFLAGS = @GNOME_KEYRING_CFLAGS@
+GNOME_KEYRING_LIBS = @GNOME_KEYRING_LIBS@
 GNOME_LIBS = @GNOME_LIBS@
 GOB2 = @GOB2@
 GREP = @GREP@
-GTK_CFLAGS = @GTK_CFLAGS@
-GTK_LIBS = @GTK_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -121,14 +122,12 @@ INTLTOOL_CAVES_RULE = @INTLTOOL_CAVES_RULE@
 INTLTOOL_DESKTOP_RULE = @INTLTOOL_DESKTOP_RULE@
 INTLTOOL_DIRECTORY_RULE = @INTLTOOL_DIRECTORY_RULE@
 INTLTOOL_EXTRACT = @INTLTOOL_EXTRACT@
-INTLTOOL_ICONV = @INTLTOOL_ICONV@
 INTLTOOL_KBD_RULE = @INTLTOOL_KBD_RULE@
 INTLTOOL_KEYS_RULE = @INTLTOOL_KEYS_RULE@
 INTLTOOL_MERGE = @INTLTOOL_MERGE@
-INTLTOOL_MSGFMT = @INTLTOOL_MSGFMT@
-INTLTOOL_MSGMERGE = @INTLTOOL_MSGMERGE@
 INTLTOOL_OAF_RULE = @INTLTOOL_OAF_RULE@
 INTLTOOL_PERL = @INTLTOOL_PERL@
+INTLTOOL_POLICY_RULE = @INTLTOOL_POLICY_RULE@
 INTLTOOL_PONG_RULE = @INTLTOOL_PONG_RULE@
 INTLTOOL_PROP_RULE = @INTLTOOL_PROP_RULE@
 INTLTOOL_SCHEMAS_RULE = @INTLTOOL_SCHEMAS_RULE@
@@ -140,7 +139,6 @@ INTLTOOL_THEME_RULE = @INTLTOOL_THEME_RULE@
 INTLTOOL_UI_RULE = @INTLTOOL_UI_RULE@
 INTLTOOL_UPDATE = @INTLTOOL_UPDATE@
 INTLTOOL_XAM_RULE = @INTLTOOL_XAM_RULE@
-INTLTOOL_XGETTEXT = @INTLTOOL_XGETTEXT@
 INTLTOOL_XML_NOMERGE_RULE = @INTLTOOL_XML_NOMERGE_RULE@
 INTLTOOL_XML_RULE = @INTLTOOL_XML_RULE@
 LDFLAGS = @LDFLAGS@
@@ -174,6 +172,7 @@ PO_IN_DATADIR_TRUE = @PO_IN_DATADIR_TRUE@
 RANLIB = @RANLIB@
 SASL_CFLAGS = @SASL_CFLAGS@
 SASL_LIBS = @SASL_LIBS@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -239,8 +238,7 @@ target_os = @target_os@
 target_vendor = @target_vendor@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-uidir = $(pkgdatadir)/ui
-dist_ui_DATA = \
+dist_pkgdata_DATA = \
 	mailbox-properties-dialog.glade		\
 	properties-dialog.glade
 
@@ -286,22 +284,22 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-dist_uiDATA: $(dist_ui_DATA)
+install-dist_pkgdataDATA: $(dist_pkgdata_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(uidir)" || $(MKDIR_P) "$(DESTDIR)$(uidir)"
-	@list='$(dist_ui_DATA)'; for p in $$list; do \
+	test -z "$(pkgdatadir)" || $(MKDIR_P) "$(DESTDIR)$(pkgdatadir)"
+	@list='$(dist_pkgdata_DATA)'; for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  f=$(am__strip_dir) \
-	  echo " $(dist_uiDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(uidir)/$$f'"; \
-	  $(dist_uiDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(uidir)/$$f"; \
+	  echo " $(dist_pkgdataDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/$$f'"; \
+	  $(dist_pkgdataDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/$$f"; \
 	done
 
-uninstall-dist_uiDATA:
+uninstall-dist_pkgdataDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dist_ui_DATA)'; for p in $$list; do \
+	@list='$(dist_pkgdata_DATA)'; for p in $$list; do \
 	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(uidir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(uidir)/$$f"; \
+	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(pkgdatadir)/$$f"; \
 	done
 tags: TAGS
 TAGS:
@@ -340,7 +338,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(uidir)"; do \
+	for dir in "$(DESTDIR)$(pkgdatadir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -385,7 +383,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dist_uiDATA
+install-data-am: install-dist_pkgdataDATA
 
 install-dvi: install-dvi-am
 
@@ -419,21 +417,21 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dist_uiDATA
+uninstall-am: uninstall-dist_pkgdataDATA
 
 .MAKE: install-am install-strip
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dist_uiDATA install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	uninstall uninstall-am uninstall-dist_uiDATA
+	install-data install-data-am install-dist_pkgdataDATA \
+	install-dvi install-dvi-am install-exec install-exec-am \
+	install-html install-html-am install-info install-info-am \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
+	ps ps-am uninstall uninstall-am uninstall-dist_pkgdataDATA
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

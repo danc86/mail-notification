@@ -8,16 +8,16 @@
     <cppflags>-DPREFIX="\"$(prefix)\""</cppflags>
     <cppflags>-DSYSCONFDIR="\"$(sysconfdir)\""</cppflags>
     <cppflags>-DDATADIR="\"$(datadir)\""</cppflags>
+    <cppflags>-DPKGDATADIR="\"$(pkgdatadir)\""</cppflags>
     <cppflags>-DLIBDIR="\"$(libdir)\""</cppflags>
     <cppflags>-DGNOMELOCALEDIR="\"$(datadir)/locale\""</cppflags>
-    <cppflags>-DUIDIR="\"$(pkgdatadir)/ui\""</cppflags>
 
     <!-- We add the -export-dynamic flag (which libtool will translate into -->
     <!-- the proper linker flag) because libglade needs to resolve symbols -->
     <!-- from our own binary in order to autoconnect signal handlers. -->
     <ldflags>-export-dynamic</ldflags>
 
-    <ldflags>$(INTLLIBS)</ldflags>
+    <ldflags>-lm $(INTLLIBS)</ldflags>
 
     <package name="gnome"/>
 
@@ -35,10 +35,11 @@
     <class name="MN:About:Dialog"/>
     <class name="MN:Autodetect:Mailbox:Properties"/>
     <class name="MN:Automation"/>
-    <class name="MN:Blinking:Image"/>
     <class name="MN:Compact:Message:View"/>
     <class name="MN:Dialog"/>
+    <class name="MN:File:Chooser:Button"/>
     <class name="MN:Mail:Icon"/>
+    <class name="MN:Mail:Icon:Widget"/>
     <class name="MN:Mailbox"/>
     <class name="MN:Mailbox:Properties"/>
     <class name="MN:Mailbox:Properties:Dialog"/>
@@ -50,6 +51,8 @@
     <class name="MN:Popups"/>
     <class name="MN:Properties:Dialog"/>
     <class name="MN:Shell"/>
+    <class name="MN:Sound:File:Chooser:Dialog"/>
+    <class name="MN:Sound:Player"/>
     <class name="MN:Standard:Message:View"/>
     <class name="MN:Test:Mailbox"/>
     <class name="MN:Text:Table"/>
@@ -75,6 +78,7 @@
 
     <if test="WITH_MAILDIR">
       <class name="MN:Maildir:Mailbox:Backend"/>
+      <class name="MN:Maildir:Message"/>
     </if>
 
     <if test="WITH_POP3">
@@ -95,18 +99,40 @@
       <class name="MN:PI:Mailbox:Properties"/>
     </if>
 
-    <if test="WITH_POP3_OR_IMAP_OR_GMAIL">
+    <if test="WITH_POP3_OR_IMAP_OR_GMAIL_OR_YAHOO_OR_HOTMAIL">
+      <package name="gnome-keyring"/>
+      <module name="mn-keyring"/>
       <class name="MN:Authenticated:Mailbox"/>
       <class name="MN:Authenticated:Mailbox:Properties"/>
     </if>
 
     <if test="WITH_SYLPHEED">
       <class name="MN:Sylpheed:Mailbox:Backend"/>
+      <class name="MN:Sylpheed:Message"/>
+    </if>
+
+    <if test="WITH_MAILDIR_OR_SYLPHEED">
+      <class name="MN:VFS:Message"/>
     </if>
 
     <if test="WITH_GMAIL">
       <class name="MN:Gmail:Mailbox"/>
       <class name="MN:Gmail:Mailbox:Properties"/>
+    </if>
+
+    <if test="WITH_YAHOO">
+      <class name="MN:Yahoo:Mailbox"/>
+      <class name="MN:Yahoo:Mailbox:Properties"/>
+    </if>
+
+    <if test="WITH_HOTMAIL">
+      <class name="MN:Hotmail:Mailbox"/>
+      <class name="MN:Hotmail:Mailbox:Properties"/>
+    </if>
+
+    <if test="WITH_YAHOO_OR_HOTMAIL">
+      <class name="MN:Webmail:Mailbox"/>
+      <class name="MN:Webmail:Mailbox:Properties"/>
     </if>
 
     <if test="WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED">
@@ -115,7 +141,6 @@
       <class name="MN:System:VFS:Mailbox:Properties"/>
       <class name="MN:VFS:Mailbox"/>
       <class name="MN:VFS:Mailbox:Backend"/>
-      <class name="MN:VFS:Message"/>
     </if>
 
     <if test="WITH_MBOX_OR_MOZILLA_OR_MH_OR_MAILDIR_OR_SYLPHEED_OR_EVOLUTION">

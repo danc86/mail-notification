@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "4.1">
-  <!ENTITY manrevision "2.19">
-  <!ENTITY date "Tuesday, June 26, 2007">
+  <!ENTITY appversion "5.0 Release Candidate 1">
+  <!ENTITY manrevision "2.20">
+  <!ENTITY date "Tuesday, November 27, 2007">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -23,11 +23,10 @@
   <!ENTITY tls "<link linkend=&#34;pop3&#34;>TLS</link>">
   <!ENTITY mozilla "<link linkend=&#34;mozilla&#34;>Mozilla</link>">
   <!ENTITY sylpheed "<link linkend=&#34;sylpheed&#34;>Sylpheed</link>">
-  <!ENTITY gmail "<link linkend=&#34;gmail&#34;>Gmail</link>">
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.152 2007-06-26 11:29:10 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.167 2007-11-27 16:30:55 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (C) 2003-2007 Jean-Yves Lefort -->
@@ -103,6 +102,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.19</revnumber>
+	<date>Tuesday, June 26, 2007</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -355,7 +365,7 @@
     </para>
     <itemizedlist>
       <listitem><para>multiple mailbox support</para></listitem>
-      <listitem><para>&mbox;, &mh;, &maildir;, &pop3;, &imap;, &gmail;, Evolution, &mozilla; products (Mozilla, SeaMonkey, Thunderbird, &hellip;) and &sylpheed; support</para></listitem>
+      <listitem><para>Evolution, Gmail, &imap;, &maildir;, &mbox;, &mh;, &mozilla; products (Mozilla, SeaMonkey, Thunderbird, &hellip;), &pop3;, &sylpheed;, Windows Live Hotmail and Yahoo! Mail support</para></listitem>
       <listitem><para>&sasl; authentication support</para></listitem>
       <listitem><para>APOP authentication support</para></listitem>
       <listitem><para>&ssl;/&tls; support</para></listitem>
@@ -433,6 +443,11 @@
 	      </varlistentry>
 
 	      <varlistentry>
+		<term>-r, --consider-new-mail-as-read</term>
+		<listitem><para>Consider new mail as read</para></listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term>-u, --update</term>
 		<listitem><para>Update the mail status</para></listitem>
 	      </varlistentry>
@@ -470,7 +485,8 @@
       </para>
       <para>
 	When new mail arrives, an icon similar to the following one is
-	displayed in the notification area (&aka; system tray):
+	displayed in the notification area (&aka; system tray). The
+	number of new messages is displayed over the icon.
       </para>
       <figure id="no-mail-fig">
 	<title>&app; when there is new mail</title>
@@ -491,9 +507,10 @@
       <itemizedlist>
 	<listitem>
 	  <para>
-	    if a command to be executed when new mail arrives is set in
-	    the <link linkend="commands">Commands</link> properties,
-	    that command is executed
+	    if the <link
+	    linkend="play-a-sound-when-new-mail-arrives">Play a sound
+	    when new mail arrives</link> setting is enabled, that sound
+	    is played
 	  </para>
 	</listitem>
 	<listitem>
@@ -505,8 +522,7 @@
 	</listitem>
       </itemizedlist>
       <para>
-	If an error is detected, the icon blinks (unless the
-	<link linkend="blink-on-errors">Blink on errors</link> setting is disabled).
+	If an error is detected, the icon blinks.
       </para>
       <para>
 	Leaving your mouse over the icon will reveal more details
@@ -543,8 +559,8 @@
     </itemizedlist>
     <para>
       In addition, at the bottom of the dialog, the <guilabel>Test
-      messages</guilabel> option can be used to test the various
-      options against test messages.
+      messages</guilabel> setting can be used to test the various
+      settings against test messages.
     </para>
 
     <sect2 id="properties-general">
@@ -554,20 +570,12 @@
 	  <term><guilabel>General</guilabel></term>
 	  <listitem>
 	    <variablelist>
-	      <varlistentry>
-		<term><guilabel>Display seen mail</guilabel></term>
+	      <varlistentry id="play-a-sound-when-new-mail-arrives">
+		<term><guilabel>Play a sound when new mail arrives</guilabel></term>
 		<listitem>
 		  <para>
-		    If this option is enabled, mail which is still
-		    marked as unread but has been seen will be
-		    displayed.
-		  </para>
-		  <para>
-		    The following mailbox types make a distinction
-		    between seen and unseen mail: &mbox;, &maildir;,
-		    &pop3;, &imap;, Evolution, &mozilla; and
-		    &sylpheed;. Other mailbox types consider all
-		    unread mail as unseen.
+		    If this setting is enabled, the selected sound
+		    will be played when new mail arrives.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -588,88 +596,6 @@
 		</para>
 	      </tip>
 	    </para>
-	    <para>
-	      Small emblems may be displayed over mailbox icons. The
-	      following table summarizes them.
-	    </para>
-	    <table>
-	      <title>Mailbox Emblems</title>
-	      <tgroup cols="2">
-		<thead>
-		  <row>
-		    <entry>Icon</entry>
-		    <entry>Signification</entry>
-		  </row>
-		</thead>
-		<tbody>
-		  <row>
-		    <entry>
-		      <screenshot>
-			<mediaobject>
-			  <imageobject>
-			    <imagedata fileref="figures/mailbox-emblem-error.png" format="PNG"/>
-			  </imageobject>
-			  <textobject>
-			    <phrase>Shows the emblem which is displayed when a mailbox has errors.</phrase>
-			  </textobject>
-			</mediaobject>
-		      </screenshot>
-		    </entry>
-		    <entry>
-		      An error has occurred while trying to access the
-		      mailbox. The mailbox is unhandled.
-		    </entry>
-		  </row>
-		  <row id="poll-emblem">
-		    <entry>
-		      <screenshot>
-			<mediaobject>
-			  <imageobject>
-			    <imagedata fileref="figures/mailbox-emblem-polled.png" format="PNG"/>
-			  </imageobject>
-			  <textobject>
-			    <phrase>Shows the emblem which is displayed when a mailbox is checked periodically.</phrase>
-			  </textobject>
-			</mediaobject>
-		      </screenshot>
-		    </entry>
-		    <entry>
-		      The mailbox does not support <link linkend="immediate-notification">immediate notification</link>,
-		      and is checked periodically according to its
-		      <link linkend="delay-between-mail-checks">Delay between mail checks</link> setting.
-		    </entry>
-		  </row>
-		  <row>
-		    <entry>
-		      <screenshot>
-			<mediaobject>
-			  <imageobject>
-			    <imagedata fileref="figures/mailbox-emblem-unknown.png" format="PNG"/>
-			  </imageobject>
-			  <textobject>
-			    <phrase>Shows the emblem which is displayed when the format of a mailbox is unknown.</phrase>
-			  </textobject>
-			</mediaobject>
-		      </screenshot>
-		    </entry>
-		    <entry>
-		      The format of the mailbox is unknown. The
-		      mailbox is unhandled.
-		    </entry>
-		  </row>
-		</tbody>
-	      </tgroup>
-	    </table>
-	  </listitem>
-	</varlistentry>
-	<varlistentry id="commands">
-	  <term><guilabel>Commands</guilabel></term>
-	  <listitem>
-	    <para>
-	      You can configure commands to be executed <guilabel>when
-	      new mail arrives</guilabel> and <guilabel>when all mail
-	      has been read</guilabel>.
-	    </para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -678,54 +604,15 @@
     <sect2 id="properties-status-icon">
       <title>Status Icon</title>
       <variablelist>
-	<varlistentry>
-	  <term><guilabel>General</guilabel></term>
-	  <listitem>
-	    <variablelist>
-	      <varlistentry id="blink-on-errors">
-		<term><guilabel>Blink on errors</guilabel></term>
-		<listitem>
-		  <para>
-		    If this option is enabled, &app; will show the status
-		    icon and make it blink on errors. Disabling this option
-		    is useful if some of your mailboxes are not permanently
-		    accessible.
-		  </para>
-		</listitem>
-	      </varlistentry>
-	      <varlistentry>
-		<term><guilabel>Always display</guilabel></term>
-		<listitem>
-		  <para>
-		    If this is option is enabled, &app; will display
-		    an icon even when there is no new mail.
-		  </para>
-		</listitem>
-	      </varlistentry>
-	    </variablelist>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term><guilabel>Tooltip Mail Summary</guilabel></term>
-	  <listitem>
-	    <para>
-	      You can choose the layout of the tooltip mail summary
-	      (<guilabel>standard</guilabel> or
-	      <guilabel>compact</guilabel>), or you can choose to
-	      disable the tooltip mail summary
-	      (<guilabel>none</guilabel>).
-	    </para>
-	  </listitem>
-	</varlistentry>
 	<varlistentry id="click-action">
 	  <term><guilabel>Click Action</guilabel></term>
 	  <listitem>
 	    <para>
 	      You can choose an action to be performed when the mail
 	      icon is clicked:
-	      <guilabel>display this dialog</guilabel>,
 	      <guilabel>launch the mail reader</guilabel>,
-	      <guilabel>open the latest message</guilabel> or
+	      <guilabel>open the latest message</guilabel>,
+	      <guilabel>consider new mail as read</guilabel> or
 	      <guilabel>update the mail status</guilabel>.
 	    </para>
 	  </listitem>
@@ -744,7 +631,7 @@
 		<term><guilabel>Enable message popups</guilabel></term>
 		<listitem>
 		  <para>
-		    If this option is enabled, an information window
+		    If this setting is enabled, an information window
 		    will be popped up on your desktop whenever a new
 		    message arrives.
 		  </para>
@@ -841,9 +728,9 @@
 		  <note>
 		    <para>
 		      The mailbox name will be modified automatically
-		      as you set some of the other options. To avoid
+		      as you set some of the other settings. To avoid
 		      losing your choice, only fill in the mailbox
-		      name after setting the other options.
+		      name after setting the other settings.
 		    </para>
 		  </note>
 		</listitem>
@@ -858,11 +745,7 @@
 			This delay is only used if the mailbox does
 			not support <link
 			linkend="immediate-notification">immediate
-			notification</link> of changes. If this is the
-			case, an <link
-			linkend="poll-emblem">emblem</link> will be
-			displayed in the <link
-			linkend="mailbox-list">mailbox list</link>.
+			notification</link> of changes.
 		      </para>
 		    </note>
 		  </para>
@@ -894,22 +777,23 @@
 
 	<varlistentry>
 	  <term>
-	    <guilabel>Account</guilabel> (<guilabel>POP3</guilabel>,
-	    <guilabel>IMAP</guilabel> and <guilabel>Gmail</guilabel>
-	    only)
+	    <guilabel>Account</guilabel> (<guilabel>Gmail</guilabel>,
+	    <guilabel>IMAP</guilabel>, <guilabel>POP3</guilabel>,
+	    <guilabel>Windows Live Hotmail</guilabel> and
+	    <guilabel>Yahoo! Mail</guilabel> only)
 	  </term>
 	  <listitem>
 	    <variablelist>
 	      <varlistentry>
 		<term>
 		  <guilabel>Server</guilabel>
-		  (<guilabel>POP3</guilabel> and
-		  <guilabel>IMAP</guilabel> only)
+		  (<guilabel>IMAP</guilabel> and
+		  <guilabel>POP3</guilabel> only)
 		</term>
 		<listitem>
 		  <para>
-		    This is the hostname or IP address of the &pop3; or
-		    &imap; server.
+		    This is the hostname or IP address of the &imap; or
+		    &pop3; server.
 		    <note>
 		      <para>
 			Symbolic names as well as IPv4 and IPv6
@@ -923,10 +807,7 @@
 		<term><guilabel>Username</guilabel></term>
 		<listitem>
 		  <para>
-		    This is your username on the &pop3;, &imap; or
-		    &gmail; server.  The username will be stored to disk
-		    unless it is left blank (in such case, a credentials
-		    prompt will appear when needed).
+		    This is your username on the mail server.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -934,13 +815,13 @@
 		<term><guilabel>Password</guilabel></term>
 		<listitem>
 		  <para>
-		    This is your password on the &pop3;, &imap; or
-		    &gmail; server.  The password will be stored to disk
-		    unless it is left blank (in such case, a credentials
-		    prompt will appear when needed).
+		    This is your password on the mail server. If the
+		    password is filled in, it will be stored to your
+		    default keyring. If it is left out, a password
+		    prompt will appear when needed.
 		  </para>
 		  <warning>
-		    <title>POP3 and IMAP Security</title>
+		    <title>IMAP and POP3 Security</title>
 		    <para>
 		      To avoid sending your password over the network in
 		      clear text, you must either use a SSL/TLS
@@ -990,7 +871,7 @@
     </sect2>
 
     <sect2 id="mailbox-properties-connection">
-      <title>Connection (<guilabel>POP3</guilabel> and <guilabel>IMAP</guilabel> only)</title>
+      <title>Connection (<guilabel>IMAP</guilabel> and <guilabel>POP3</guilabel> only)</title>
       <variablelist>
 	<varlistentry>
 	  <term><guilabel>Connection type</guilabel></term>
@@ -1002,8 +883,8 @@
 	    <para>
 	      <guilabel>In-band SSL/TLS</guilabel> refers to a
 	      &ssl;/&tls; connection negotiated inside of the
-	      protocol (using the <literal>STLS</literal> &pop3;
-	      command or the <literal>STARTTLS</literal> &imap;
+	      protocol (using the <literal>STARTTLS</literal> &imap;
+	      command or the <literal>STLS</literal> &pop3;
 	      command).
 	    </para>
 	    <para>
@@ -1035,8 +916,8 @@
 		  <para>
 		    This is the authentication mechanism to use.
 		    If you select <guilabel>autodetect</guilabel>,
-		    all the authentication mechanisms supported by the &pop3;
-		    or &imap; server will be tried, in descending order of
+		    all the authentication mechanisms supported by the &imap;
+		    or &pop3; server will be tried, in descending order of
 		    security. Otherwise, the selected mechanism (and
 		    <emphasis>only</emphasis> the selected mechanism) will
 		    be used.
@@ -1075,10 +956,10 @@
 	    <para>
 	      If <guilabel>never</guilabel> is selected, &app;
 	      will never use the IDLE extension, not even if the
-	      server supports it. Use this option if it appears
+	      server supports it. Use this setting if it appears
 	      that &app; does not detect changes to an &imap;
 	      mailbox while the IDLE extension is in use. If using
-	      this option fixes the issue, please also send the
+	      this setting fixes the issue, please also send the
 	      &imap; session transcript (obtained by running &app;
 	      using the --enable-info option) to Jean-Yves Lefort
 	      <email>jylefort@brutele.be</email>.
@@ -1096,7 +977,7 @@
 	      If <guilabel>always</guilabel> is selected, &app;
 	      will use the IDLE extension if the server supports
 	      it, regardless of the server software. Use this
-	      option if you want to force &app; to use the IDLE
+	      setting if you want to force &app; to use the IDLE
 	      extension, even if it has detected a bogus
 	      implementation.
 	    </para>
@@ -1144,6 +1025,34 @@
 	  </thead>
 	  <tbody>
 	    <row>
+	      <entry>Evolution</entry>
+	      <entry>yes</entry>
+	      <entry>yes</entry>
+	      <entry>yes</entry>
+	      <entry>yes</entry>
+	    </row>
+	    <row>
+	      <entry>Gmail</entry>
+	      <entry>yes</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	    </row>
+	    <row>
+	      <entry>&imap;</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	    </row>
+	    <row>
+	      <entry>&maildir;</entry>
+	      <entry>yes</entry>
+	      <entry>yes</entry>
+	      <entry>no</entry>
+	      <entry>yes</entry>
+	    </row>
+	    <row>
 	      <entry>&mbox;</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
@@ -1158,7 +1067,14 @@
 	      <entry>no</entry>
 	    </row>
 	    <row>
-	      <entry>&maildir;</entry>
+	      <entry>&mozilla;</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	      <entry>no</entry>
+	    </row>
+	    <row>
+	      <entry>&sylpheed;</entry>
 	      <entry>yes</entry>
 	      <entry>yes</entry>
 	      <entry>no</entry>
@@ -1172,37 +1088,16 @@
 	      <entry>no</entry>
 	    </row>
 	    <row>
-	      <entry>&imap;</entry>
+	      <entry>Windows Live Hotmail</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
 	    </row>
 	    <row>
-	      <entry>&gmail;</entry>
-	      <entry>yes</entry>
+	      <entry>Yahoo! Mail</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
-	      <entry>no</entry>
-	    </row>
-	    <row>
-	      <entry>Evolution</entry>
-	      <entry>yes</entry>
-	      <entry>yes</entry>
-	      <entry>yes</entry>
-	      <entry>yes</entry>
-	    </row>
-	    <row>
-	      <entry>&mozilla;</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	    </row>
-	    <row>
-	      <entry>&sylpheed;</entry>
-	      <entry>yes</entry>
-	      <entry>yes</entry>
 	      <entry>no</entry>
 	      <entry>no</entry>
 	    </row>
@@ -1400,7 +1295,7 @@
       </para>
       <variablelist>
 	<varlistentry>
-	  <term>&mbox;, &mh;, &maildir;, &mozilla; and &sylpheed; mailboxes:</term>
+	  <term>&maildir;, &mbox;, &mh;, &mozilla; and &sylpheed; mailboxes:</term>
 	  <listitem>
 	    <para>
 	      &gnomevfs; must support monitoring (it usually does).
@@ -1426,7 +1321,7 @@
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
-	  <term>&pop3; and &gmail; mailboxes:</term>
+	  <term>Gmail, &pop3;, Windows Live Hotmail and Yahoo! Mail mailboxes:</term>
 	  <listitem>
 	    <para>
 	      Immediate notification is not supported by these mailbox types.
@@ -1439,11 +1334,9 @@
 	  If immediate notification cannot be enabled for a mailbox
 	  (either because that type of mailbox does not support it or
 	  because the requirements are not met), the mailbox will be
-	  checked periodically according to its
-	  <link linkend="delay-between-mail-checks">Delay between mail checks</link> setting,
-	  and an <link linkend="poll-emblem">emblem</link> will be
-	  displayed in the <link linkend="mailbox-list">mailbox
-	  list</link>.
+	  checked periodically according to its <link
+	  linkend="delay-between-mail-checks">Delay between mail
+	  checks</link> setting.
 	</para>
       </note>
     </sect2>
@@ -1556,6 +1449,10 @@ if (! success) {
 	  </thead>
 	  <tbody>
 	    <row>
+	      <entry>mail icon and message count</entry>
+	      <entry>mn-mail-icon</entry>
+	    </row>
+	    <row>
 	      <entry>tooltip section title</entry>
 	      <entry>mn-tooltip-section-title</entry>
 	    </row>
@@ -1597,11 +1494,7 @@ if (! success) {
 	      <entry>mn-remote</entry>
 	    </row>
 	    <row>
-	      <entry>polled mailbox</entry>
-	      <entry>mn-polled</entry>
-	    </row>
-	    <row>
-	      <entry>unknown mailbox format</entry>
+	      <entry>autodetect (in the <guilabel>Mailbox type</guilabel> drop-down menu)</entry>
 	      <entry>mn-unknown</entry>
 	    </row>
 	    <row>
@@ -1613,16 +1506,20 @@ if (! success) {
 	      <entry>mn-gmail</entry>
 	    </row>
 	    <row>
+	      <entry>Yahoo! Mail mailbox</entry>
+	      <entry>mn-yahoo</entry>
+	    </row>
+	    <row>
+	      <entry>Windows Live Hotmail mailbox</entry>
+	      <entry>mn-hotmail</entry>
+	    </row>
+	    <row>
 	      <entry>system mailbox</entry>
 	      <entry>mn-system-mailbox</entry>
 	    </row>
 	    <row>
 	      <entry>Evolution mailbox</entry>
 	      <entry>mn-evolution-mailbox</entry>
-	    </row>
-	    <row>
-	      <entry>select all</entry>
-	      <entry>mn-select-all</entry>
 	    </row>
 	    <row>
 	      <entry>mail reader</entry>
@@ -1633,8 +1530,8 @@ if (! success) {
 	      <entry>mn-open-message</entry>
 	    </row>
 	    <row>
-	      <entry>connect (in the SSL/TLS confirmation dialog)</entry>
-	      <entry>mn-connect</entry>
+	      <entry>consider new mail as read</entry>
+	      <entry>mn-consider-new-mail-as-read</entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -1652,7 +1549,18 @@ if (! success) {
 	  <filename>~/.gtkrc-2.0</filename> file.
 	</para>
 	<para>
-	  To use a small font for the mail summary tooltip messages:
+	  To use a larger font for the message count of the mail icon,
+	  and display it on a yellow background:
+	</para>
+	<programlisting>style "mn-mail-icon"
+{
+  font_name = "Sans 12"
+  bg[NORMAL] = "#FFFF00"
+}
+
+widget "*.mn-mail-icon" style "mn-mail-icon"</programlisting>
+	<para>
+	  To use a smaller font for the mail summary tooltip messages:
 	</para>
 	<programlisting>style "mn-mail-summary-tooltip-messages"
 {
@@ -1668,13 +1576,13 @@ widget "gtk-tooltips.*.mn-message-view"
 
 style "mn-icons"
 {
-  stock["mn-local"] =
+  stock["mn-mail"] =
   {
-    { "local.png" }
+    { "my-mail-icon.png" }
   }
-  stock["mn-remote"] =
+  stock["mn-no-mail"] =
   {
-    { "remote.png" }
+    { "my-no-mail-icon.png" }
   }
 }
 
@@ -1736,7 +1644,7 @@ widget "*" style "mn-icons"</programlisting>
 	<question>
 	  <para>
 	    I need &ssl;/&tls; for connecting to my &pop3; or &imap;
-	    server, but the &ssl;/&tls; options are greyed out.
+	    server, but the &ssl;/&tls; settings are greyed out.
 	  </para>
 	</question>
 	<answer>
@@ -1826,15 +1734,15 @@ widget "*" style "mn-icons"</programlisting>
       &app; was written by Jean-Yves Lefort
       <email>jylefort@brutele.be</email>. To find more information
       about &app;, visit the
-      <ulink url="http://www.nongnu.org/mailnotify" type="http">Mail Notification web page</ulink>.
+      <ulink url="http://www.nongnu.org/mailnotify" type="http">Mail Notification web site</ulink>.
     </para>
     
     <sect2 id="problem-reports">
       <title>Reporting Bugs and Other Feedback</title>
       <para>
-	Bug reports and feedback should be filed in the <ulink
-	url="https://savannah.nongnu.org/bugs/?group=mailnotify"
-	type="http">Mail Notification bug tracker</ulink>.
+	Bug reports and feature requests should be filed in the
+	<ulink url="https://bugs.launchpad.net/mail-notification/" type="http">Mail Notification bug tracker</ulink>.
+	Other feedback can be sent to Jean-Yves Lefort <email>jylefort@brutele.be</email>.
       </para>
     </sect2>
 
@@ -1857,6 +1765,7 @@ widget "*" style "mn-icons"</programlisting>
 	<listitem><para>Vladimir Petkov</para></listitem>
 	<listitem><para>Benoît Rouits</para></listitem>
 	<listitem><para>Tomasz Sarota-Raczek</para></listitem>
+	<listitem><para>Tomasz Sałaciński</para></listitem>
 	<listitem><para>Edwin Shin</para></listitem>
 	<listitem><para>Topi</para></listitem>
 	<listitem><para>Marcel J. Zwiebel</para></listitem>
@@ -1873,16 +1782,6 @@ widget "*" style "mn-icons"</programlisting>
     <title>Glossary</title>
 
     <glossdiv><title>G</title>
-      <glossentry id="gmail">
-	<glossterm>Gmail</glossterm>
-	<glossdef>
-	  <para>
-	    A free webmail service operated by <ulink url="http://www.google.com" type="http">Google</ulink>.
-	    More information can be found on the <ulink url="http://gmail.google.com" type="http">Gmail web page</ulink>.
-	  </para>
-	</glossdef>
-      </glossentry>
-
       <glossentry id="gnomevfs">
 	<glossterm>GnomeVFS</glossterm>
 	<glossdef>

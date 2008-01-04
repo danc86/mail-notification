@@ -584,7 +584,7 @@ mn_pi_mailbox_properties_is_complete (MNPIMailboxProperties * self)
       return FALSE;
 
 #if ! WITH_SSL
-    if (! gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL])))
+    if (! gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(MN_PI_MAILBOX_PROPERTIES(self)->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL])))
       return FALSE;
 #endif /* WITH_SSL */
 

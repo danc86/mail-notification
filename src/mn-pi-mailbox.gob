@@ -1,6 +1,6 @@
 /*
  * Mail Notification
- * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2008 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -136,6 +136,10 @@ class MN:PI:Mailbox from MN:Authenticated:Mailbox (abstract)
   override (MN:Authenticated:Mailbox) void
     authenticated_check (MNAuthenticatedMailbox *mailbox)
   {
+#if ! WITH_SSL
+    Self *self = SELF(mailbox);
+#endif
+
     PARENT_HANDLER(mailbox);
 
 #if ! WITH_SSL

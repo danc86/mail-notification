@@ -127,7 +127,7 @@ mn_about_dialog_init (MNAboutDialog * self G_GNUC_UNUSED)
     GdkPixbuf *logo;
 
     gtk_about_dialog_set_version(about, VERSION);
-    gtk_about_dialog_set_copyright(about, "Copyright \302\251 2003-2007 Jean-Yves Lefort");
+    gtk_about_dialog_set_copyright(about, "Copyright \302\251 2003-2008 Jean-Yves Lefort");
     /* translators: header capitalization */
     gtk_about_dialog_set_comments(about, _("A Mail Notification Icon"));
     gtk_about_dialog_set_website(about, "http://www.nongnu.org/mailnotify");

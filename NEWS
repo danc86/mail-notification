@@ -1,3 +1,24 @@
+5.0					January 4, 2008
+
+	* Core changes:
+		* The tooltip mail summary now respects the GTK+ theme
+		  colors (#177067)
+		* The "Sent:" fields of the tooltip are now updated
+		  only once per second, when the second changes
+		  (previously, they were updated twice per second at
+		  no precise point in time, so they could lag behind
+		  the clock for as much as half a second)
+
+	* IMAP and POP3 changes:
+		* The build no longer fails when SSL/TLS is disabled
+
+	* Updated translations:
+		* Serbian (Filip Miletic)
+		* Swedish (Daniel Nylander)
+
+	* New translations:
+		* Spanish (Nacho Hermoso de Mendoza)
+
 ---
  Note: below, bug numbers refer to the old bug tracker
  (https://savannah.nongnu.org/bugs/?group=mailnotify).

@@ -1,6 +1,6 @@
 /*
  * Mail Notification
- * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2008 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -131,7 +131,7 @@ class MN:Text:Table from Gtk:Drawing:Area
     if (GTK_WIDGET_MAPPED(widget))
       {
 	self_relayout(self);
-	self_redraw(self);
+	self_redraw(self, event);
       }
 
     return FALSE;		/* propagate event */
@@ -245,7 +245,7 @@ class MN:Text:Table from Gtk:Drawing:Area
   }
 
   private void
-    redraw (self)
+    redraw (self, GdkEventExpose *event (check null))
   {
     GtkWidget *widget = GTK_WIDGET(self);
     GList *la;
@@ -265,7 +265,16 @@ class MN:Text:Table from Gtk:Drawing:Area
 	    MNTextTableCell *cell = lb->data;
 
 	    if (cell->layout)
-	      gdk_draw_layout(widget->window, widget->style->text_gc[GTK_WIDGET_STATE(widget)], x, y + row->height - cell->height, cell->layout);
+	      gtk_paint_layout(widget->style,
+			       widget->window,
+			       GTK_WIDGET_STATE(widget),
+			       FALSE,
+			       &event->area,
+			       widget,
+			       NULL,
+			       x,
+			       y + row->height - cell->height,
+			       cell->layout);
 
 	    x += COLUMN_SIZE(self, column);
 	    if (lb->next)

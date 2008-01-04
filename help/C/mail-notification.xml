@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "5.0 Release Candidate 1">
-  <!ENTITY manrevision "2.20">
-  <!ENTITY date "Tuesday, November 27, 2007">
+  <!ENTITY appversion "5.0">
+  <!ENTITY manrevision "2.21">
+  <!ENTITY date "Friday, January 4, 2008">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,10 +26,10 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.167 2007-11-27 16:30:55 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.182 2008-01-04 15:43:25 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
-<!-- Copyright (C) 2003-2007 Jean-Yves Lefort -->
+<!-- Copyright (C) 2003-2008 Jean-Yves Lefort -->
 <!-- All rights reserved. -->
 
 <!-- See documentation-license.xml for licensing information. -->
@@ -49,6 +49,7 @@
       <year>2005</year>
       <year>2006</year>
       <year>2007</year>
+      <year>2008</year>
       <holder>Jean-Yves Lefort</holder>
     </copyright>
 <!-- translators: uncomment this:
@@ -102,6 +103,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.20</revnumber>
+	<date>Tuesday, November 27, 2007</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -401,7 +413,7 @@
 	  <listitem>
 	    <para>
 	      To start &app; from a command line, type the following
-	      command, then press <keycap>Return</keycap>:
+	      command in a terminal:
 	    </para>
 	    <para>
 	      <command>mail-notification</command>
@@ -480,8 +492,8 @@
     <sect2 id="when-start">
       <title>When You Start &app;</title>
       <para>
-	When you start &app;, it stays in the background and monitors
-	the status of your mailboxes.
+	When you start &app;, it puts itself in the background and
+	monitors the status of your mailboxes.
       </para>
       <para>
 	When new mail arrives, an icon similar to the following one is
@@ -607,14 +619,59 @@
 	<varlistentry id="click-action">
 	  <term><guilabel>Click Action</guilabel></term>
 	  <listitem>
-	    <para>
-	      You can choose an action to be performed when the mail
-	      icon is clicked:
-	      <guilabel>launch the mail reader</guilabel>,
-	      <guilabel>open the latest message</guilabel>,
-	      <guilabel>consider new mail as read</guilabel> or
-	      <guilabel>update the mail status</guilabel>.
-	    </para>
+	    <variablelist>
+	      <varlistentry>
+		<term><guilabel>Launch the mail reader</guilabel></term>
+		<listitem>
+		  <para>
+		    Launches the GNOME mail reader. To specify your
+		    preferred mail reader, choose
+		    <menuchoice>
+		      <guimenu>System</guimenu>
+		      <guisubmenu>Preferences</guisubmenu>
+		      <guimenuitem>Preferred Applications</guimenuitem>
+		    </menuchoice> (this location may vary across systems).
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Open the latest message</guilabel></term>
+		<listitem>
+		  <para>
+		    Opens the most recent message, if supported.
+		  </para>
+		  <para>
+		    This is equivalent to clicking on the
+		    <guilabel>Open</guilabel> button in the message
+		    popup. See the <link
+		    linkend="message-actions">Message Actions</link>
+		    section for more details.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Consider new mail as read</guilabel></term>
+		<listitem>
+		  <para>
+		    Hides the messages received so far. This action
+		    has no permanent effects: your mailboxes will not
+		    be modified, and the messages will no longer be
+		    hidden the next time &app; is started.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><guilabel>Update the mail status</guilabel></term>
+		<listitem>
+		  <para>
+		    Checks for new mail in all mailboxes which do not
+		    support <link
+		    linkend="immediate-notification">immediate
+		    notification</link>.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -672,8 +729,8 @@
 	  <listitem>
 	    <para>
 	      You can choose to have message popups stay on the screen
-	      until you click them, or have them disappear after some
-	      time has elapsed.
+	      until you click on them, or have them disappear after a
+	      delay has elapsed.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -727,10 +784,9 @@
 		  </para>
 		  <note>
 		    <para>
-		      The mailbox name will be modified automatically
-		      as you set some of the other settings. To avoid
-		      losing your choice, only fill in the mailbox
-		      name after setting the other settings.
+		      The mailbox name is automatically updated when
+		      other settings are changed. To avoid losing your
+		      choice, fill in the other settings first.
 		    </para>
 		  </note>
 		</listitem>
@@ -740,15 +796,15 @@
 		<listitem>
 		  <para>
 		    This is the amount of time to wait between mail checks.
-		    <note>
-		      <para>
-			This delay is only used if the mailbox does
-			not support <link
+		  </para>
+		  <note>
+		    <para>
+		      This delay is only used if the mailbox does
+		      not support <link
 			linkend="immediate-notification">immediate
 			notification</link> of changes.
-		      </para>
-		    </note>
-		  </para>
+		    </para>
+		  </note>
 		</listitem>
 	      </varlistentry>
 	    </variablelist>
@@ -794,13 +850,13 @@
 		  <para>
 		    This is the hostname or IP address of the &imap; or
 		    &pop3; server.
-		    <note>
-		      <para>
-			Symbolic names as well as IPv4 and IPv6
-			addresses are supported.
-		      </para>
-		    </note>
 		  </para>
+		  <note>
+		    <para>
+		      Symbolic names as well as IPv4 and IPv6
+		      addresses are supported.
+		    </para>
+		  </note>
 		</listitem>
 	      </varlistentry>
 	      <varlistentry>
@@ -816,17 +872,19 @@
 		<listitem>
 		  <para>
 		    This is your password on the mail server. If the
-		    password is filled in, it will be stored to your
+		    password is filled in, it will be stored in your
 		    default keyring. If it is left out, a password
 		    prompt will appear when needed.
 		  </para>
 		  <warning>
 		    <title>IMAP and POP3 Security</title>
 		    <para>
-		      To avoid sending your password over the network in
-		      clear text, you must either use a SSL/TLS
+		      To avoid sending your password over the network
+		      in clear text, you must either use a SSL/TLS
 		      connection or select a secure authentication
-		      mechanism. See below for more details.
+		      mechanism. See the <link
+		      linkend="authentication-mechanism">Authentication
+		      Mechanism</link> setting for more details.
 		    </para>
 		    <!-- simplified on purpose: actually, a weak SSL/TLS -->
 		    <!-- algorithm could be used, but this is beyond the -->
@@ -892,17 +950,6 @@
 	      the most widespread method for establishing a
 	      &ssl;/&tls; connection: using a separate port.
 	    </para>
-	    <note>
-	      <para>
-		The security considerations listed below do not
-		apply if you select <guilabel>SSL/TLS</guilabel>
-		(either <guilabel>in-band</guilabel> or
-		<guilabel>on separate port</guilabel>).
-	      </para>
-	      <!-- simplified on purpose: actually, a weak SSL/TLS -->
-	      <!-- algorithm could be used, but this is beyond the -->
-	      <!-- scope of this document -->
-	    </note>
 	  </listitem>
 	</varlistentry>
 
@@ -910,7 +957,7 @@
 	  <term><guilabel>Authentication</guilabel></term>
 	  <listitem>
 	    <variablelist>
-	      <varlistentry>
+	      <varlistentry id="authentication-mechanism">
 		<term><guilabel>Mechanism</guilabel></term>
 		<listitem>
 		  <para>
@@ -987,266 +1034,272 @@
     </sect2>
   </sect1>
 
-  <sect1 id="message-actions">
-    <title>Message Actions</title>
-    <para>
-      Message popups support the following actions:
-    </para>
-    <itemizedlist>
-      <listitem><para><guilabel>Open</guilabel></para></listitem>
-      <listitem><para><guilabel>Mark as Read</guilabel></para></listitem>
-      <listitem><para><guilabel>Mark as Spam</guilabel></para></listitem>
-      <listitem><para><guilabel>Delete</guilabel></para></listitem>
-    </itemizedlist>
-    <para>
-      Note that the <guilabel>Delete</guilabel> action is disabled by
-      default. It can be enabled by modifying the <database
-      class="field">/apps/mail-notification/popups/actions</database>
-      <application>GConf</application> key.
-    </para>
+  <sect1 id="advanced-configuration">
+    <title>Advanced Configuration</title>
 
-    <sect2 id="built-in-actions">
-      <title>Built-in Actions</title>
+    <sect2 id="message-actions">
+      <title>Message Actions</title>
       <para>
-	The following table summarizes the currently implemented
-	built-in actions for each mailbox type.
+	Message popups support the following actions:
       </para>
-      <table>
+      <itemizedlist>
+	<listitem><para><guilabel>Open</guilabel></para></listitem>
+	<listitem><para><guilabel>Mark as Read</guilabel></para></listitem>
+	<listitem><para><guilabel>Mark as Spam</guilabel></para></listitem>
+	<listitem><para><guilabel>Delete</guilabel></para></listitem>
+      </itemizedlist>
+      <para>
+	Note that the <guilabel>Delete</guilabel> action is disabled
+	by default. It can be enabled by modifying the <database
+	class="field">/apps/mail-notification/popups/actions</database>
+	<application>GConf</application> key. See the <link
+	linkend="gconf-settings">GConf Settings</link> section
+	for more details about the <application>GConf</application>
+	database.
+      </para>
+
+      <sect3 id="built-in-actions">
 	<title>Built-in Actions</title>
-	<tgroup cols="4">
-	  <thead>
-	    <row>
-	      <entry>Mailbox Type</entry>
-	      <entry><guilabel>Open</guilabel></entry>
-	      <entry><guilabel>Mark as Read</guilabel></entry>
-	      <entry><guilabel>Mark as Spam</guilabel></entry>
-	      <entry><guilabel>Delete</guilabel></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry>Evolution</entry>
-	      <entry>yes</entry>
-	      <entry>yes</entry>
-	      <entry>yes</entry>
-	      <entry>yes</entry>
-	    </row>
-	    <row>
-	      <entry>Gmail</entry>
-	      <entry>yes</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	    </row>
-	    <row>
-	      <entry>&imap;</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	    </row>
-	    <row>
-	      <entry>&maildir;</entry>
-	      <entry>yes</entry>
-	      <entry>yes</entry>
-	      <entry>no</entry>
-	      <entry>yes</entry>
-	    </row>
-	    <row>
-	      <entry>&mbox;</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	    </row>
-	    <row>
-	      <entry>&mh;</entry>
-	      <entry>yes</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	    </row>
-	    <row>
-	      <entry>&mozilla;</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	    </row>
-	    <row>
-	      <entry>&sylpheed;</entry>
-	      <entry>yes</entry>
-	      <entry>yes</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	    </row>
-	    <row>
-	      <entry>&pop3;</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	    </row>
-	    <row>
-	      <entry>Windows Live Hotmail</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	    </row>
-	    <row>
-	      <entry>Yahoo! Mail</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	      <entry>no</entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-    </sect2>
-
-    <sect2 id="custom-actions">
-      <title>Custom Actions</title>
-      <para>
-	To define a custom action for a particular mailbox, edit the
-	<filename>~/.gnome2/mail-notification/mailboxes.xml</filename>
-	file and specify a command to be executed when the action
-	button is clicked.
-      </para>
-      <note>
 	<para>
-	  If both a built-in action and a custom action exists, the
-	  custom action overrides the built-in action.
+	  The following table summarizes the currently implemented
+	  built-in actions for each mailbox type.
 	</para>
-      </note>
-      <para>
-	XML attributes should be added to the
-	<sgmltag>mailbox</sgmltag> element of the mailbox you want the
-	actions to be available for. The following table specifies
-	which XML attribute should be used for a particular action.
-      </para>
-      <table>
-	<title>Action Attributes</title>
-	<tgroup cols="2">
-	  <thead>
-	    <row>
-	      <entry>Action</entry>
-	      <entry>XML Attribute</entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><guilabel>Open</guilabel></entry>
-	      <entry><parameter>open-command</parameter></entry>
-	    </row>
-	    <row>
-	      <entry><guilabel>Mark as Read</guilabel></entry>
-	      <entry><parameter>mark-as-read-command</parameter></entry>
-	    </row>
-	    <row>
-	      <entry><guilabel>Mark as Spam</guilabel></entry>
-	      <entry><parameter>mark-as-spam-command</parameter></entry>
-	    </row>
-	    <row>
-	      <entry><guilabel>Delete</guilabel></entry>
-	      <entry><parameter>delete-command</parameter></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-      <para>
-	Before executing a command, some strings will be
-	substituted. The following table summarizes the available
-	substitutions.
-      </para>
-      <table>
-	<title>Command String Substitutions</title>
-	<tgroup cols="2">
-	  <thead>
-	    <row>
-	      <entry>String</entry>
-	      <entry>Substitution</entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><literal>%%</literal></entry>
-	      <entry>a single percent character</entry>
-	    </row>
-	    <row>
-	      <entry><literal>%error</literal></entry>
-	      <entry>
-		the error message, if any
-	      </entry>
-	    </row>
-	    <row>
-	      <entry><literal>%sent-time</literal></entry>
-	      <entry>
-		the message timestamp expressed in seconds since the
-		Epoch (00:00:00 UTC, January 1, 1970)
-	      </entry>
-	    </row>
-	    <row>
-	      <entry><literal>%id</literal></entry>
-	      <entry>
-		the message unique identifier
-	      </entry>
-	    </row>
-	    <row>
-	      <entry><literal>%from</literal></entry>
-	      <entry>
-		the message sender
-	      </entry>
-	    </row>
-	    <row>
-	      <entry><literal>%subject</literal></entry>
-	      <entry>
-		the message subject, if any
-	      </entry>
-	    </row>
-	    <row>
-	      <entry><literal>%uri</literal></entry>
-	      <entry>
-		the message &uri;, if any
-	      </entry>
-	    </row>
-	    <row>
-	      <entry><literal>%filename</literal></entry>
-	      <entry>
-		if the message has an &uri; and that &uri; points to a
-		local filename, that filename
-	      </entry>
-	    </row>
-	    <row>
-	      <entry><literal>%uid</literal></entry>
-	      <entry>
-		the Evolution message UID, if any
-	      </entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-      <note>
-	<itemizedlist>
-	  <listitem>
-	    <para>
-	      Substitutions will be shell-quoted as appropriate, you
-	      therefore must not quote the percent strings.
-	    </para>
-	  </listitem>
-	  <listitem>
-	    <para>
-	      Keywords can be enclosed in braces, as in
-	      <literal>%{from}</literal>.
-	    </para>
-	  </listitem>
-	</itemizedlist>
-      </note>
-      <para>
-	Example:
-      </para>
-      <programlisting>
+	<table>
+	  <title>Built-in Actions</title>
+	  <tgroup cols="4">
+	    <thead>
+	      <row>
+		<entry>Mailbox Type</entry>
+		<entry><guilabel>Open</guilabel></entry>
+		<entry><guilabel>Mark as Read</guilabel></entry>
+		<entry><guilabel>Mark as Spam</guilabel></entry>
+		<entry><guilabel>Delete</guilabel></entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry>Evolution</entry>
+		<entry>yes</entry>
+		<entry>yes</entry>
+		<entry>yes</entry>
+		<entry>yes</entry>
+	      </row>
+	      <row>
+		<entry>Gmail</entry>
+		<entry>yes</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+	      </row>
+	      <row>
+		<entry>&imap;</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+	      </row>
+	      <row>
+		<entry>&maildir;</entry>
+		<entry>yes</entry>
+		<entry>yes</entry>
+		<entry>no</entry>
+		<entry>yes</entry>
+	      </row>
+	      <row>
+		<entry>&mbox;</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+	      </row>
+	      <row>
+		<entry>&mh;</entry>
+		<entry>yes</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+	      </row>
+	      <row>
+		<entry>&mozilla;</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+	      </row>
+	      <row>
+		<entry>&sylpheed;</entry>
+		<entry>yes</entry>
+		<entry>yes</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+	      </row>
+	      <row>
+		<entry>&pop3;</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+	      </row>
+	      <row>
+		<entry>Windows Live Hotmail</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+	      </row>
+	      <row>
+		<entry>Yahoo! Mail</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+		<entry>no</entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>
+      </sect3>
+
+      <sect3 id="custom-actions">
+	<title>Custom Actions</title>
+	<para>
+	  To define a custom action for a particular mailbox, edit the
+	  <filename>~/.gnome2/mail-notification/mailboxes.xml</filename>
+	  file and specify a command to be executed when the action
+	  button is clicked.
+	</para>
+	<note>
+	  <para>
+	    If both a built-in action and a custom action exists, the
+	    custom action overrides the built-in action.
+	  </para>
+	</note>
+	<para>
+	  XML attributes should be added to the
+	  <sgmltag>mailbox</sgmltag> element of the mailbox you want the
+	  actions to be available for. The following table specifies
+	  which XML attribute should be used for a particular action.
+	</para>
+	<table>
+	  <title>Action Attributes</title>
+	  <tgroup cols="2">
+	    <thead>
+	      <row>
+		<entry>Action</entry>
+		<entry>XML Attribute</entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><guilabel>Open</guilabel></entry>
+		<entry><parameter>open-command</parameter></entry>
+	      </row>
+	      <row>
+		<entry><guilabel>Mark as Read</guilabel></entry>
+		<entry><parameter>mark-as-read-command</parameter></entry>
+	      </row>
+	      <row>
+		<entry><guilabel>Mark as Spam</guilabel></entry>
+		<entry><parameter>mark-as-spam-command</parameter></entry>
+	      </row>
+	      <row>
+		<entry><guilabel>Delete</guilabel></entry>
+		<entry><parameter>delete-command</parameter></entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>
+	<para>
+	  Before executing a command, some strings will be
+	  substituted. The following table summarizes the available
+	  substitutions.
+	</para>
+	<table>
+	  <title>Command String Substitutions</title>
+	  <tgroup cols="2">
+	    <thead>
+	      <row>
+		<entry>String</entry>
+		<entry>Substitution</entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><literal>%%</literal></entry>
+		<entry>a single percent character</entry>
+	      </row>
+	      <row>
+		<entry><literal>%error</literal></entry>
+		<entry>
+		  the error message, if any
+		</entry>
+	      </row>
+	      <row>
+		<entry><literal>%sent-time</literal></entry>
+		<entry>
+		  the message timestamp expressed in seconds since the
+		  Epoch (00:00:00 UTC, January 1, 1970)
+		</entry>
+	      </row>
+	      <row>
+		<entry><literal>%id</literal></entry>
+		<entry>
+		  the message unique identifier
+		</entry>
+	      </row>
+	      <row>
+		<entry><literal>%from</literal></entry>
+		<entry>
+		  the message sender
+		</entry>
+	      </row>
+	      <row>
+		<entry><literal>%subject</literal></entry>
+		<entry>
+		  the message subject, if any
+		</entry>
+	      </row>
+	      <row>
+		<entry><literal>%uri</literal></entry>
+		<entry>
+		  the message &uri;, if any
+		</entry>
+	      </row>
+	      <row>
+		<entry><literal>%filename</literal></entry>
+		<entry>
+		  if the message has an &uri; and that &uri; points to a
+		  local filename, that filename
+		</entry>
+	      </row>
+	      <row>
+		<entry><literal>%uid</literal></entry>
+		<entry>
+		  the Evolution message UID, if any
+		</entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>
+	<note>
+	  <itemizedlist>
+	    <listitem>
+	      <para>
+		Substitutions will be shell-quoted as appropriate, you
+		therefore must not quote the percent strings.
+	      </para>
+	    </listitem>
+	    <listitem>
+	      <para>
+		Keywords can be enclosed in braces, as in
+		<literal>%{from}</literal>.
+	      </para>
+	    </listitem>
+	  </itemizedlist>
+	</note>
+	<para>
+	  Example:
+	</para>
+	<programlisting>
 &lt;?xml version="1.0"?&gt;
 &lt;mailboxes&gt;
   &lt;mailbox
@@ -1254,8 +1307,179 @@
     uri="file:///home/jylefort/Mail/misc"
     open-command="my-open-script %filename"
     mark-as-spam-command="my-spam-script %filename"/&gt;
-&lt;/mailboxes&gt;
-</programlisting>
+&lt;/mailboxes&gt;</programlisting>
+      </sect3>
+    </sect2>
+
+    <sect2 id="modifying-appearance">
+      <title>Modifying the Appearance of &app;</title>
+      <para>
+	&app; sets names for several widgets and icons, so that they
+	can easily be matched in a GTK+ resource file.
+      </para>
+      <para>
+	More information about GTK+ resource files, including a
+	description of their format, can be found in the <ulink	url="http://developer.gnome.org/doc/API/2.0/gtk/gtk-Resource-Files.html" type="http">Resource Files</ulink>
+	section of the GTK+ Reference Manual.
+      </para>
+
+      <table><title>Widget Names</title>
+	<tgroup cols="2">
+	  <thead>
+	    <row>
+	      <entry>Widget</entry>
+	      <entry>Name</entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry>mail icon and message count</entry>
+	      <entry>mn-mail-icon</entry>
+	    </row>
+	    <row>
+	      <entry>tooltip section title</entry>
+	      <entry>mn-tooltip-section-title</entry>
+	    </row>
+	    <row>
+	      <entry>tooltip section body (except mail summary)</entry>
+	      <entry>mn-tooltip-section-body</entry>
+	    </row>
+	    <row>
+	      <entry>tooltip mail summary</entry>
+	      <entry>mn-message-view</entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table><title>Icon Names</title>
+	<tgroup cols="2">
+	  <thead>
+	    <row>
+	      <entry>Icon</entry>
+	      <entry>Name</entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry>status icon when there is new mail</entry>
+	      <entry>mn-mail</entry>
+	    </row>
+	    <row>
+	      <entry>status icon when there is no new mail</entry>
+	      <entry>mn-no-mail</entry>
+	    </row>
+	    <row>
+	      <entry>local mailbox</entry>
+	      <entry>mn-local</entry>
+	    </row>
+	    <row>
+	      <entry>remote mailbox</entry>
+	      <entry>mn-remote</entry>
+	    </row>
+	    <row>
+	      <entry>autodetect (in the <guilabel>Mailbox type</guilabel> drop-down menu)</entry>
+	      <entry>mn-unknown</entry>
+	    </row>
+	    <row>
+	      <entry>mailbox error</entry>
+	      <entry>mn-error</entry>
+	    </row>
+	    <row>
+	      <entry>Gmail mailbox</entry>
+	      <entry>mn-gmail</entry>
+	    </row>
+	    <row>
+	      <entry>Yahoo! Mail mailbox</entry>
+	      <entry>mn-yahoo</entry>
+	    </row>
+	    <row>
+	      <entry>Windows Live Hotmail mailbox</entry>
+	      <entry>mn-hotmail</entry>
+	    </row>
+	    <row>
+	      <entry>system mailbox</entry>
+	      <entry>mn-system-mailbox</entry>
+	    </row>
+	    <row>
+	      <entry>Evolution mailbox</entry>
+	      <entry>mn-evolution-mailbox</entry>
+	    </row>
+	    <row>
+	      <entry>mail reader</entry>
+	      <entry>mn-mail-reader</entry>
+	    </row>
+	    <row>
+	      <entry>open message</entry>
+	      <entry>mn-open-message</entry>
+	    </row>
+	    <row>
+	      <entry>consider new mail as read</entry>
+	      <entry>mn-consider-new-mail-as-read</entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <sect3>
+	<title>Examples</title>
+	<para>
+	  You can modify the appearance of &app; by editing the
+	  <filename>~/.gtkrc-2.0</filename> file.
+	</para>
+	<para>
+	  To use a larger font for the message count of the mail icon,
+	  and display it on a yellow background:
+	</para>
+	<programlisting>style "mn-mail-icon"
+{
+  font_name = "Sans 12"
+  bg[NORMAL] = "#FFFF00"
+}
+
+widget "*.mn-mail-icon" style "mn-mail-icon"</programlisting>
+	<para>
+	  To use a smaller font for the mail summary tooltip messages:
+	</para>
+	<programlisting>style "mn-mail-summary-tooltip-messages"
+{
+  font_name = "Sans 8"
+}
+
+widget "gtk-tooltips.*.mn-message-view"
+  style "mn-mail-summary-tooltip-messages"</programlisting>
+	<para>
+	  To use some custom icons:
+	</para>
+	<programlisting>pixmap_path "/home/myaccount/icons"
+
+style "mn-icons"
+{
+  stock["mn-mail"] =
+  {
+    { "my-mail-icon.png" }
+  }
+  stock["mn-no-mail"] =
+  {
+    { "my-no-mail-icon.png" }
+  }
+}
+
+widget "*" style "mn-icons"</programlisting>
+      </sect3>
+    </sect2>
+
+    <sect2 id="gconf-settings">
+      <title>GConf Settings</title>
+      <para>
+	A number of advanced settings are available in the
+	<database>/apps/mail-notification</database> namespace of the
+	<application>GConf</application> database. To modify these
+	settings, type the following command in a terminal:
+      </para>
+      <para>
+	<command>gconf-editor /apps/mail-notification</command>
+      </para>
     </sect2>
   </sect1>
 
@@ -1386,8 +1610,7 @@ if (mailbox.config.authmech != autodetect) {
 
 if (! success) {
   mailbox.error = "authentication failed";
-}
-</programlisting>
+}</programlisting>
     </sect2>
 
     <sect2>
@@ -1431,164 +1654,6 @@ if (! success) {
   mailbox.error = "authentication failed";
 }</programlisting>
     </sect2>
-
-    <sect2 id="modifying-appearance">
-      <title>Modifying the Appearance of &app;</title>
-      <para>
-	&app; sets names for several widgets and icons, so that they
-	can easily be matched in a GTK+ resource file.
-      </para>
-
-      <table><title>Widget Names</title>
-	<tgroup cols="2">
-	  <thead>
-	    <row>
-	      <entry>Widget</entry>
-	      <entry>Name</entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry>mail icon and message count</entry>
-	      <entry>mn-mail-icon</entry>
-	    </row>
-	    <row>
-	      <entry>tooltip section title</entry>
-	      <entry>mn-tooltip-section-title</entry>
-	    </row>
-	    <row>
-	      <entry>tooltip section body (except mail summary)</entry>
-	      <entry>mn-tooltip-section-body</entry>
-	    </row>
-	    <row>
-	      <entry>tooltip mail summary</entry>
-	      <entry>mn-message-view</entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table><title>Icon Names</title>
-	<tgroup cols="2">
-	  <thead>
-	    <row>
-	      <entry>Icon</entry>
-	      <entry>Name</entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry>status icon when there is new mail</entry>
-	      <entry>mn-mail</entry>
-	    </row>
-	    <row>
-	      <entry>status icon when there is no new mail</entry>
-	      <entry>mn-no-mail</entry>
-	    </row>
-	    <row>
-	      <entry>local mailbox</entry>
-	      <entry>mn-local</entry>
-	    </row>
-	    <row>
-	      <entry>remote mailbox</entry>
-	      <entry>mn-remote</entry>
-	    </row>
-	    <row>
-	      <entry>autodetect (in the <guilabel>Mailbox type</guilabel> drop-down menu)</entry>
-	      <entry>mn-unknown</entry>
-	    </row>
-	    <row>
-	      <entry>mailbox error</entry>
-	      <entry>mn-error</entry>
-	    </row>
-	    <row>
-	      <entry>Gmail mailbox</entry>
-	      <entry>mn-gmail</entry>
-	    </row>
-	    <row>
-	      <entry>Yahoo! Mail mailbox</entry>
-	      <entry>mn-yahoo</entry>
-	    </row>
-	    <row>
-	      <entry>Windows Live Hotmail mailbox</entry>
-	      <entry>mn-hotmail</entry>
-	    </row>
-	    <row>
-	      <entry>system mailbox</entry>
-	      <entry>mn-system-mailbox</entry>
-	    </row>
-	    <row>
-	      <entry>Evolution mailbox</entry>
-	      <entry>mn-evolution-mailbox</entry>
-	    </row>
-	    <row>
-	      <entry>mail reader</entry>
-	      <entry>mn-mail-reader</entry>
-	    </row>
-	    <row>
-	      <entry>open message</entry>
-	      <entry>mn-open-message</entry>
-	    </row>
-	    <row>
-	      <entry>consider new mail as read</entry>
-	      <entry>mn-consider-new-mail-as-read</entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <para>
-	More information about GTK+ resource files, including a
-	description of their format, can be found in the <ulink	url="http://developer.gnome.org/doc/API/2.0/gtk/gtk-Resource-Files.html" type="http">Resource Files</ulink>
-	section of the GTK+ Reference Manual.
-      </para>
-      <sect3>
-	<title>Examples</title>
-	<para>
-	  You can modify the appearance of &app; by editing the
-	  <filename>~/.gtkrc-2.0</filename> file.
-	</para>
-	<para>
-	  To use a larger font for the message count of the mail icon,
-	  and display it on a yellow background:
-	</para>
-	<programlisting>style "mn-mail-icon"
-{
-  font_name = "Sans 12"
-  bg[NORMAL] = "#FFFF00"
-}
-
-widget "*.mn-mail-icon" style "mn-mail-icon"</programlisting>
-	<para>
-	  To use a smaller font for the mail summary tooltip messages:
-	</para>
-	<programlisting>style "mn-mail-summary-tooltip-messages"
-{
-  font_name = "Sans 8"
-}
-
-widget "gtk-tooltips.*.mn-message-view"
-  style "mn-mail-summary-tooltip-messages"</programlisting>
-	<para>
-	  To use some custom icons:
-	</para>
-	<programlisting>pixmap_path "/home/myaccount/icons"
-
-style "mn-icons"
-{
-  stock["mn-mail"] =
-  {
-    { "my-mail-icon.png" }
-  }
-  stock["mn-no-mail"] =
-  {
-    { "my-no-mail-icon.png" }
-  }
-}
-
-widget "*" style "mn-icons"</programlisting>
-      </sect3>
-    </sect2>
   </sect1>
     
   <sect1 id="faq">
@@ -1616,27 +1681,25 @@ widget "*" style "mn-icons"</programlisting>
       <qandaentry>
 	<question>
 	  <para>
-	    You say that &app; supports &lt;insert mailbox type or
-	    feature&gt;, but there is no such entry in the <link
+	    You say that &app; supports &lt;mailbox type&gt;, but
+	    there is no such entry in the <link
 	    linkend="mailbox-properties">Mailbox Properties</link>
 	    dialog.
 	  </para>
 	</question>
 	<answer>
 	  <para>
-	    &app; was built without support for &lt;insert mailbox
-	    type or feature&gt;.
+	    &app; was built without support for &lt;mailbox type&gt;.
 	  </para>
 	  <para>
 	    If you have installed &app; from a package, contact the
-	    package maintainer and ask him to enable &lt;insert
-	    mailbox type or feature&gt; support.
+	    package maintainer and ask him to enable &lt;mailbox
+	    type&gt; support.
 	  </para>
 	  <para>
-	    If you have built &app; yourself, install the &lt;insert
-	    mailbox type or feature&gt; prerequisites (they are listed
-	    in the <filename>INSTALL</filename> file), then rebuild
-	    &app;.
+	    If you have built &app; yourself, install the &lt;mailbox
+	    type&gt; prerequisites (they are listed in the
+	    <filename>INSTALL</filename> file), then rebuild &app;.
 	  </para>
 	</answer>
       </qandaentry>
@@ -1649,7 +1712,32 @@ widget "*" style "mn-icons"</programlisting>
 	</question>
 	<answer>
 	  <para>
-	    See the previous question.
+	    &app; was built without &ssl;/&tls; support.
+	  </para>
+	  <para>
+	    If you have installed &app; from a package, contact the
+	    package maintainer and ask him to enable &ssl;/&tls;
+	    support.
+	  </para>
+	  <para>
+	    If you have built &app; yourself, install the &ssl;/&tls;
+	    prerequisites (they are listed in the
+	    <filename>INSTALL</filename> file), then rebuild &app;.
+	  </para>
+	</answer>
+      </qandaentry>
+      <qandaentry>
+	<question>
+	  <para>
+	    When monitoring a &pop3; mailbox, &app; reports all
+	    messages as new.
+	  </para>
+	</question>
+	<answer>
+	  <para>
+	    This is caused by limitations in the &pop3; protocol. You
+	    should configure your mail reader so that it deletes mail
+	    from the server after downloading it.
 	  </para>
 	</answer>
       </qandaentry>
@@ -1668,16 +1756,16 @@ widget "*" style "mn-icons"</programlisting>
       <qandaentry>
 	<question>
 	  <para>
-	    Can I monitor a &lt;insert webmail provider&gt; account?
+	    Can I monitor a &lt;webmail provider&gt; account?
 	  </para>
 	</question>
 	<answer>
 	  <para>
-	    &app; has no native support for &lt;insert webmail
-	    provider&gt; mailboxes. However, &app; supports the &pop3;
-	    and &imap; protocols; you can therefore use a separate
-	    application for providing &pop3; or &imap; access to the
-	    &lt;insert webmail provider&gt; account.
+	    &app; has no native support for &lt;webmail provider&gt;
+	    mailboxes. However, &app; supports the &pop3; and &imap;
+	    protocols; you can therefore use a separate application
+	    for providing &pop3; or &imap; access to the &lt;webmail
+	    provider&gt; account.
 	  </para>
 	</answer>
       </qandaentry>
@@ -1756,6 +1844,7 @@ widget "*" style "mn-icons"</programlisting>
 	<listitem><para>Kim Briggs</para></listitem>
 	<listitem><para>Hiroshi Hasebe</para></listitem>
 	<listitem><para>Duarte Henriques</para></listitem>
+	<listitem><para>Nacho Hermoso de Mendoza</para></listitem>
 	<listitem><para>Dan Korostelev</para></listitem>
 	<listitem><para>Pav Lucistnik</para></listitem>
 	<listitem><para>Filip Miletic</para></listitem>

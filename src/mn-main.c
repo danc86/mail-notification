@@ -1,6 +1,6 @@
 /*
  * Mail Notification
- * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2008 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -144,7 +144,7 @@ mn_main_print_version (void)
   };
 
   g_print(_("%s version %s\n"), _("Mail Notification"), VERSION);
-  g_print("Copyright (C) 2003-2007 Jean-Yves Lefort.\n");
+  g_print("Copyright (C) 2003-2008 Jean-Yves Lefort.\n");
 
   g_print("\n");
 

@@ -1,6 +1,6 @@
 /*
  * Mail Notification
- * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2008 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -97,7 +97,7 @@ class MN:Message:View from MN:Text:Table (abstract)
     g_queue_push_tail_link(past_time_cells, pcell->link);
 
     if (! past_time_cells_timeout_source)
-      past_time_cells_timeout_source = mn_g_timeout_add_gdk_locked(500, self_update_past_time_cells_cb, NULL);
+      self_install_past_time_cells_timeout();
   }
 
   private void
@@ -122,6 +122,18 @@ class MN:Message:View from MN:Text:Table (abstract)
       mn_locked_g_source_clear(&past_time_cells_timeout_source);
   }
 
+  private void
+    install_past_time_cells_timeout (void)
+  {
+    GTimeVal now;
+    int timeout;
+
+    g_get_current_time(&now);
+    timeout = (G_USEC_PER_SEC - now.tv_usec) / 1000 + 1;
+
+    past_time_cells_timeout_source = mn_g_timeout_add_gdk_locked(timeout, self_update_past_time_cells_cb, NULL);
+  }
+
   private gboolean
     update_past_time_cells_cb (gpointer data)
   {
@@ -132,7 +144,8 @@ class MN:Message:View from MN:Text:Table (abstract)
     MN_QUEUE_FOREACH(l, past_time_cells)
       self_update_past_time_cell(l->data, now);
 
-    return TRUE;		/* keep source */
+    self_install_past_time_cells_timeout();
+    return FALSE;		/* remove source */
   }
 
   private void

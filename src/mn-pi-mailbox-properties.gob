@@ -1,6 +1,6 @@
 /*
  * Mail Notification
- * Copyright (C) 2003-2007 Jean-Yves Lefort <jylefort@brutele.be>
+ * Copyright (C) 2003-2008 Jean-Yves Lefort <jylefort@brutele.be>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -313,7 +313,7 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
       return FALSE;
 
 #if ! WITH_SSL
-    if (! gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pi->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL])))
+    if (! gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(MN_PI_MAILBOX_PROPERTIES(self)->conn_radio[MN_PI_MAILBOX_CONNECTION_TYPE_NORMAL])))
       return FALSE;
 #endif /* WITH_SSL */
 

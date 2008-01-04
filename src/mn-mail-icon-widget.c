@@ -61,7 +61,7 @@ static gboolean ___8_mn_mail_icon_widget_expose_event (GtkWidget * widget, GdkEv
 static GdkPixbuf * mn_mail_icon_widget_render_icon (MNMailIconWidget * self) G_GNUC_UNUSED;
 static void mn_mail_icon_widget_context_changed (MNMailIconWidget * self) G_GNUC_UNUSED;
 static void mn_mail_icon_widget_invalidate_count_layout (MNMailIconWidget * self) G_GNUC_UNUSED;
-static void mn_mail_icon_widget_redraw (MNMailIconWidget * self) G_GNUC_UNUSED;
+static void mn_mail_icon_widget_redraw (MNMailIconWidget * self, GdkEventExpose * event) G_GNUC_UNUSED;
 static gboolean mn_mail_icon_widget_blink_timeout_cb (gpointer data) G_GNUC_UNUSED;
 
 enum {
@@ -461,7 +461,7 @@ ___8_mn_mail_icon_widget_expose_event (GtkWidget * widget G_GNUC_UNUSED, GdkEven
 	
     Self *self = SELF(widget);
 
-    self_redraw(self);
+    self_redraw(self, event);
 
     return FALSE;		/* propagate event */
   }}
@@ -542,7 +542,7 @@ mn_mail_icon_widget_invalidate_count_layout (MNMailIconWidget * self)
 
 #line 183 "mn-mail-icon-widget.gob"
 static void 
-mn_mail_icon_widget_redraw (MNMailIconWidget * self)
+mn_mail_icon_widget_redraw (MNMailIconWidget * self, GdkEventExpose * event)
 #line 547 "mn-mail-icon-widget.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon:Widget::redraw"
@@ -550,7 +550,9 @@ mn_mail_icon_widget_redraw (MNMailIconWidget * self)
 	g_return_if_fail (self != NULL);
 #line 183 "mn-mail-icon-widget.gob"
 	g_return_if_fail (MN_IS_MAIL_ICON_WIDGET (self));
-#line 554 "mn-mail-icon-widget.c"
+#line 183 "mn-mail-icon-widget.gob"
+	g_return_if_fail (event != NULL);
+#line 556 "mn-mail-icon-widget.c"
 {
 #line 185 "mn-mail-icon-widget.gob"
 	
@@ -641,24 +643,29 @@ mn_mail_icon_widget_redraw (MNMailIconWidget * self)
 		      box_width,
 		      box_height);
 
-	gdk_draw_layout(widget->window,
-			widget->style->text_gc[GTK_WIDGET_STATE(widget)],
-			count_x,
-			count_y,
-			selfp->count_layout);
+	gtk_paint_layout(widget->style,
+			 widget->window,
+			 GTK_WIDGET_STATE(widget),
+			 FALSE,
+			 &event->area,
+			 widget,
+			 NULL,
+			 count_x,
+			 count_y,
+			 selfp->count_layout);
       }
   }}
-#line 652 "mn-mail-icon-widget.c"
+#line 659 "mn-mail-icon-widget.c"
 #undef __GOB_FUNCTION__
 
-#line 281 "mn-mail-icon-widget.gob"
+#line 286 "mn-mail-icon-widget.gob"
 static gboolean 
 mn_mail_icon_widget_blink_timeout_cb (gpointer data)
-#line 658 "mn-mail-icon-widget.c"
+#line 665 "mn-mail-icon-widget.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon:Widget::blink_timeout_cb"
 {
-#line 283 "mn-mail-icon-widget.gob"
+#line 288 "mn-mail-icon-widget.gob"
 	
     Self *self = data;
 
@@ -668,38 +675,38 @@ mn_mail_icon_widget_blink_timeout_cb (gpointer data)
 
     return TRUE;
   }}
-#line 672 "mn-mail-icon-widget.c"
+#line 679 "mn-mail-icon-widget.c"
 #undef __GOB_FUNCTION__
 
-#line 293 "mn-mail-icon-widget.gob"
+#line 298 "mn-mail-icon-widget.gob"
 GtkWidget * 
 mn_mail_icon_widget_new (void)
-#line 678 "mn-mail-icon-widget.c"
+#line 685 "mn-mail-icon-widget.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon:Widget::new"
 {
-#line 295 "mn-mail-icon-widget.gob"
+#line 300 "mn-mail-icon-widget.gob"
 	
     return GTK_WIDGET(GET_NEW);
   }}
-#line 686 "mn-mail-icon-widget.c"
+#line 693 "mn-mail-icon-widget.c"
 #undef __GOB_FUNCTION__
 
-#line 299 "mn-mail-icon-widget.gob"
+#line 304 "mn-mail-icon-widget.gob"
 void 
 mn_mail_icon_widget_set_from_stock (MNMailIconWidget * self, const char * stock_id, GtkIconSize icon_size)
-#line 692 "mn-mail-icon-widget.c"
+#line 699 "mn-mail-icon-widget.c"
 {
 #define __GOB_FUNCTION__ "MN:Mail:Icon:Widget::set_from_stock"
-#line 299 "mn-mail-icon-widget.gob"
+#line 304 "mn-mail-icon-widget.gob"
 	g_return_if_fail (self != NULL);
-#line 299 "mn-mail-icon-widget.gob"
+#line 304 "mn-mail-icon-widget.gob"
 	g_return_if_fail (MN_IS_MAIL_ICON_WIDGET (self));
-#line 299 "mn-mail-icon-widget.gob"
+#line 304 "mn-mail-icon-widget.gob"
 	g_return_if_fail (stock_id != NULL);
-#line 701 "mn-mail-icon-widget.c"
+#line 708 "mn-mail-icon-widget.c"
 {
-#line 303 "mn-mail-icon-widget.gob"
+#line 308 "mn-mail-icon-widget.gob"
 	
     g_free(selfp->stock_id);
     selfp->stock_id = g_strdup(stock_id);
@@ -708,5 +715,5 @@ mn_mail_icon_widget_set_from_stock (MNMailIconWidget * self, const char * stock_
     /* affects the size request: call queue_resize(), not queue_draw() */
     gtk_widget_queue_resize(GTK_WIDGET(self));
   }}
-#line 712 "mn-mail-icon-widget.c"
+#line 719 "mn-mail-icon-widget.c"
 #undef __GOB_FUNCTION__

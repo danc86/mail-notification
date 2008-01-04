@@ -1,5 +1,5 @@
 # German translations for mail-notification.
-# Copyright (C) 2003-2007 Jean-Yves Lefort.
+# Copyright (C) 2003-2008 Jean-Yves Lefort.
 #
 # This file is distributed under the same license as the
 # mail-notification package.

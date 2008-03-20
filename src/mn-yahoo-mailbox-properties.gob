@@ -17,14 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-webmail-mailbox-properties.h"
 %}
 
 %{
-#include "config.h"
 #include "mn-stock.h"
 %}
 

@@ -22,8 +22,7 @@
 
 #include <stdarg.h>
 #include <gtk/gtk.h>
-#include <eel/eel.h>
-#include "mn-util.h"
+#include <gconf/gconf-client.h>
 
 #define MN_CONF_NAMESPACE \
   "/apps/mail-notification"
@@ -71,6 +70,8 @@
   MN_CONF_NAMESPACE "/display-seen-mail"
 #define MN_CONF_TOOLTIP_MAIL_SUMMARY \
   MN_CONF_NAMESPACE "/tooltip-mail-summary"
+#define MN_CONF_TOOLTIP_MAIL_SUMMARY_LIMIT \
+  MN_CONF_NAMESPACE "/tooltip-mail-summary-limit"
 #define MN_CONF_ALWAYS_DISPLAY_ICON \
   MN_CONF_NAMESPACE "/always-display-icon"
 #define MN_CONF_DISPLAY_MESSAGE_COUNT \
@@ -87,16 +88,14 @@
   MN_CONF_POPUPS_NAMESPACE "/expiration"
 #define MN_CONF_POPUPS_EXPIRATION_ENABLED \
   MN_CONF_POPUPS_EXPIRATION_NAMESPACE "/enabled"
-#define MN_CONF_POPUPS_EXPIRATION_DELAY_NAMESPACE \
-  MN_CONF_POPUPS_EXPIRATION_NAMESPACE "/delay"
-#define MN_CONF_POPUPS_EXPIRATION_DELAY_MINUTES \
-  MN_CONF_POPUPS_EXPIRATION_DELAY_NAMESPACE "/minutes"
-#define MN_CONF_POPUPS_EXPIRATION_DELAY_SECONDS \
-  MN_CONF_POPUPS_EXPIRATION_DELAY_NAMESPACE "/seconds"
+#define MN_CONF_POPUPS_EXPIRATION_DELAY \
+  MN_CONF_POPUPS_EXPIRATION_NAMESPACE "/delay-2"
 #define MN_CONF_POPUPS_ACTIONS \
   MN_CONF_POPUPS_NAMESPACE "/actions"
 #define MN_CONF_POPUPS_LIMIT \
   MN_CONF_POPUPS_NAMESPACE "/limit"
+#define MN_CONF_FALLBACK_CHARSETS \
+  MN_CONF_NAMESPACE "/fallback-charsets"
 
 /* obsolete keys */
 #define MN_CONF_OBSOLETE_MAILBOXES \
@@ -129,33 +128,59 @@ extern const char *mn_conf_dot_dir;
 void		mn_conf_init		(void);
 void		mn_conf_unset_obsolete	(void);
 
+GConfClient	*mn_conf_get_client	(void);
+
+GConfValue	*mn_conf_get_value	(const char	*key);
+void		mn_conf_set_value	(const char	*key,
+					 const GConfValue *value);
+
+gboolean	mn_conf_get_bool	(const char	*key);
+void		mn_conf_set_bool	(const char	*key,
+					 gboolean	value);
+
+int		mn_conf_get_int		(const char	*key);
+void		mn_conf_set_int		(const char	*key,
+					 int		value);
+
+char		*mn_conf_get_string	(const char	*key);
+void		mn_conf_set_string	(const char	*key,
+					 const char	*value);
+
+GSList		*mn_conf_get_string_list	(const char	*key);
+void		mn_conf_set_string_list		(const char	*key,
+						 GSList		*list);
+
+void		mn_conf_suggest_sync	(void);
+
 void		mn_conf_recursive_unset	(const char	*key,
 					 GConfUnsetFlags flags);
 
 gboolean	mn_conf_is_set		(const char	*key);
 
-void		mn_conf_set_value	(const char	*key,
-					 const GConfValue *value);
+void		mn_conf_monitor_add	(const char	*directory);
 
-void		mn_conf_link		(gpointer	object,
-					 ...);
+unsigned int	mn_conf_notification_add	(const char		*key,
+						 GConfClientNotifyFunc	callback,
+						 gpointer		user_data,
+						 GFreeFunc		destroy_notify);
+void		mn_conf_notification_remove	(unsigned int		notification_id);
+
+void		mn_conf_link_object	(gpointer	object,
+					 const char	*key,
+					 const char	*property_name);
+void		mn_conf_link_window	(GtkWindow	*window,
+					 const char	*key);
+void		mn_conf_link_non_linear_range	(GtkRange	*range,
+						 const char	*key);
 void		mn_conf_link_radio_group_to_enum (GType		enum_type,
 						  const char	*key,
-						  ...);
+						  ...) G_GNUC_NULL_TERMINATED;
 
 int		mn_conf_get_enum_value	(GType		enum_type,
 					 const char	*key);
 
-unsigned int	mn_conf_notification_add_full	(const char		*key,
-						 GConfClientNotifyFunc	callback,
-						 gpointer		user_data,
-						 GFreeFunc		destroy_notify);
-
 gboolean	mn_conf_has_command		(const char	*namespace);
 void		mn_conf_execute_command		(const char	*conf_key);
 void		mn_conf_execute_mail_reader	(void);
-
-int		mn_conf_get_milliseconds (const char	*minutes_key,
-					  const char	*seconds_key);
 
 #endif /* _MN_CONF_H */

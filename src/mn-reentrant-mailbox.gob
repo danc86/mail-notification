@@ -17,18 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-mailbox.h"
 %}
 
-%privateheader{
-#include "mn-locked-callback.h"
-%}
-
 %{
-#include "config.h"
 #include <gtk/gtk.h>
 #include "mn-mailbox-private.h"
 #include "mn-util.h"
@@ -42,7 +35,7 @@ typedef struct
 
 class MN:Reentrant:Mailbox from MN:Mailbox (abstract)
 {
-  private MNLockedGSource *queue_check_source;
+  private unsigned int queue_check_id;
 
   private int check_id;
   private int check_unique_id;
@@ -58,15 +51,10 @@ class MN:Reentrant:Mailbox from MN:Mailbox (abstract)
     g_atomic_int_set(&selfp->check_id, 0);
   }
 
-  override (G:Object) void
-    finalize (GObject *object)
+  finalize (self)
   {
-    Self *self = SELF(object);
-
-    if (selfp->queue_check_source)
-      mn_locked_g_source_remove(selfp->queue_check_source);
-
-    PARENT_HANDLER(object);
+    if (selfp->queue_check_id)
+      g_source_remove(selfp->queue_check_id);
   }
 
   /**
@@ -81,10 +69,8 @@ class MN:Reentrant:Mailbox from MN:Mailbox (abstract)
   protected void
     queue_check (self)
   {
-    if (selfp->queue_check_source)
-      mn_locked_g_source_remove(selfp->queue_check_source);
-
-    selfp->queue_check_source = mn_g_idle_add_gdk_locked(self_queue_check_cb, self);
+    if (! selfp->queue_check_id)
+      selfp->queue_check_id = gdk_threads_add_idle(self_queue_check_cb, self);
   }
 
   private gboolean
@@ -94,7 +80,7 @@ class MN:Reentrant:Mailbox from MN:Mailbox (abstract)
 
     mn_mailbox_check(MN_MAILBOX(self));
 
-    selfp->queue_check_source = NULL;
+    selfp->queue_check_id = 0;
     return FALSE;		/* remove source */
   }
 
@@ -140,10 +126,10 @@ class MN:Reentrant:Mailbox from MN:Mailbox (abstract)
   }
 
   virtual private void
-    reentrant_check (self, int check_id);
+    reentrant_check (self, int check_id (check != 0));
 
   protected gboolean
-    check_aborted (self, int check_id)
+    check_aborted (self, int check_id (check != 0))
   {
     return g_atomic_int_get(&selfp->check_id) != check_id;
   }

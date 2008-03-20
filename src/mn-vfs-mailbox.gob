@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <libgnomevfs/gnome-vfs.h>
 #include "mn-reentrant-mailbox.h"
@@ -30,12 +28,10 @@ extern GType mn_vfs_mailbox_backend_types[MN_VFS_MAILBOX_MAX_BACKEND_TYPES + 1];
 %}
 
 %privateheader{
-#include "mn-locked-callback.h"
 #include "mn-vfs-mailbox-backend.h"
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 #include "mn-mailbox-private.h"
 #include "mn-reentrant-mailbox-private.h"
@@ -59,6 +55,7 @@ extern GType mn_vfs_mailbox_backend_types[MN_VFS_MAILBOX_MAX_BACKEND_TYPES + 1];
 #include "mn-stock.h"
 #include "mn-conf.h"
 #include "mn-util.h"
+#include "mn-locked-callback.h"
 
 GType mn_vfs_mailbox_backend_types[MN_VFS_MAILBOX_MAX_BACKEND_TYPES + 1];
 
@@ -82,7 +79,7 @@ class MN:VFS:Mailbox from MN:Reentrant:Mailbox (abstract)
 
   private GSList *monitors;
   private MNVFSMailboxBackend *backend unrefwith g_object_unref;
-  private MNLockedGSource *update_poll_source;
+  private unsigned int update_poll_id;
 
   private GMutex *mutex = {g_mutex_new()} destroywith g_mutex_free;
 
@@ -125,36 +122,20 @@ class MN:VFS:Mailbox from MN:Reentrant:Mailbox (abstract)
     MN_MAILBOX_CLASS(class)->default_check_delay = 60 * 1;
   }
 
-  override (G:Object) GObject *
-    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  constructor (self)
   {
-    GObject *object;
-    Self *self;
-    SelfClass *class;
-
-    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    self = SELF(object);
-    class = SELF_GET_CLASS(self);
-
     /* set default poll to the most likely value */
     mn_mailbox_set_poll(MN_MAILBOX(self), FALSE);
-
-    return object;
   }
 
-  override (G:Object) void
-    dispose (GObject *object)
+  dispose (self)
   {
-    Self *self = SELF(object);
-
     /*
      * We are no longer operational after dispose (see unrefwith
      * above), so we must remove our monitors.
      */
-    mn_locked_g_source_clear(&selfp->update_poll_source);
+    mn_source_clear(&selfp->update_poll_id);
     mn_g_slist_clear_deep_custom(&selfp->monitors, (GFunc) self_monitor_free, NULL);
-
-    PARENT_HANDLER(object);
   }
 
   override (MN:Mailbox) void
@@ -334,10 +315,8 @@ class MN:VFS:Mailbox from MN:Reentrant:Mailbox (abstract)
   private void
     queue_update_poll (self)
   {
-    if (selfp->update_poll_source)
-      mn_locked_g_source_remove(selfp->update_poll_source);
-
-    selfp->update_poll_source = mn_g_idle_add_gdk_locked(self_update_poll_cb, self);
+    if (! selfp->update_poll_id)
+      selfp->update_poll_id = gdk_threads_add_idle(self_update_poll_cb, self);
   }
 
   private gboolean
@@ -360,7 +339,7 @@ class MN:VFS:Mailbox from MN:Reentrant:Mailbox (abstract)
 	  }
       }
 
-    selfp->update_poll_source = NULL;
+    selfp->update_poll_id = 0;
 
     self_unlock(self);
 
@@ -494,13 +473,13 @@ class MN:VFS:Mailbox from MN:Reentrant:Mailbox (abstract)
       }
   }
 
-  protected void
+  public void
     lock (self)
   {
     g_mutex_lock(selfp->mutex);
   }
 
-  protected void
+  public void
     unlock (self)
   {
     g_mutex_unlock(selfp->mutex);

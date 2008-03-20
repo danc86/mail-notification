@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "5.0">
-  <!ENTITY manrevision "2.21">
-  <!ENTITY date "Friday, January 4, 2008">
+  <!ENTITY appversion "5.1">
+  <!ENTITY manrevision "2.22">
+  <!ENTITY date "Thursday, March 20, 2008">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,7 +26,7 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.182 2008-01-04 15:43:25 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.184 2008-03-19 23:55:47 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (C) 2003-2008 Jean-Yves Lefort -->
@@ -103,6 +103,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.21</revnumber>
+	<date>Friday, January 4, 2008</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort
@@ -570,8 +581,8 @@
       </listitem>
     </itemizedlist>
     <para>
-      In addition, at the bottom of the dialog, the <guilabel>Test
-      messages</guilabel> setting can be used to test the various
+      In addition, at the bottom of the dialog, the <guilabel>Display
+      test messages</guilabel> setting can be used to test the various
       settings against test messages.
     </para>
 
@@ -752,6 +763,9 @@
       <listitem>
 	<para><link linkend="mailbox-properties-connection">Connection</link></para>
       </listitem>
+      <listitem>
+	<para><link linkend="mailbox-properties-details">Details</link></para>
+      </listitem>
     </itemizedlist>
 
     <sect2 id="mailbox-properties-general">
@@ -770,41 +784,6 @@
 		    autodetected using the mailbox &uri; and/or
 		    contents.
 		  </para>
-		</listitem>
-	      </varlistentry>
-	      <varlistentry>
-		<term><guilabel>Mailbox name</guilabel></term>
-		<listitem>
-		  <para>
-		    You can choose to assign a custom name to the
-		    mailbox. The mailbox name has informative purposes
-		    only, and is displayed in various parts of
-		    &app;. To reset to the default name, click on the
-		    <guibutton>Use Default</guibutton> button.
-		  </para>
-		  <note>
-		    <para>
-		      The mailbox name is automatically updated when
-		      other settings are changed. To avoid losing your
-		      choice, fill in the other settings first.
-		    </para>
-		  </note>
-		</listitem>
-	      </varlistentry>
-	      <varlistentry id="delay-between-mail-checks">
-		<term><guilabel>Delay between mail checks</guilabel></term>
-		<listitem>
-		  <para>
-		    This is the amount of time to wait between mail checks.
-		  </para>
-		  <note>
-		    <para>
-		      This delay is only used if the mailbox does
-		      not support <link
-			linkend="immediate-notification">immediate
-			notification</link> of changes.
-		    </para>
-		  </note>
 		</listitem>
 	      </varlistentry>
 	    </variablelist>
@@ -1032,6 +1011,40 @@
 	</varlistentry>
       </variablelist>
     </sect2>
+
+    <sect2 id="mailbox-properties-details">
+      <title>Details</title>
+      <variablelist>
+	<varlistentry>
+	  <term><guilabel>Mailbox Name</guilabel></term>
+	  <listitem>
+	    <para>
+	      You can choose to assign a custom name to the
+	      mailbox. The mailbox name has informative purposes
+	      only, and is displayed in various parts of
+	      &app;.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry id="delay-between-mail-checks">
+	  <term><guilabel>Delay Between Mail Checks</guilabel></term>
+	  <listitem>
+	    <para>
+	      This is the amount of time to wait between mail checks.
+	    </para>
+	    <note>
+	      <para>
+		This delay is only used if the mailbox does
+		not support <link
+		  linkend="immediate-notification">immediate
+		  notification</link> of changes.
+	      </para>
+	    </note>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
   </sect1>
 
   <sect1 id="advanced-configuration">
@@ -1226,12 +1239,6 @@
 	      <row>
 		<entry><literal>%%</literal></entry>
 		<entry>a single percent character</entry>
-	      </row>
-	      <row>
-		<entry><literal>%error</literal></entry>
-		<entry>
-		  the error message, if any
-		</entry>
 	      </row>
 	      <row>
 		<entry><literal>%sent-time</literal></entry>
@@ -1559,8 +1566,8 @@ widget "*" style "mn-icons"</programlisting>
 	  (either because that type of mailbox does not support it or
 	  because the requirements are not met), the mailbox will be
 	  checked periodically according to its <link
-	  linkend="delay-between-mail-checks">Delay between mail
-	  checks</link> setting.
+	  linkend="delay-between-mail-checks">Delay Between Mail
+	  Checks</link> setting.
 	</para>
       </note>
     </sect2>
@@ -1850,6 +1857,7 @@ if (! success) {
 	<listitem><para>Filip Miletic</para></listitem>
 	<listitem><para>Phil Nelson</para></listitem>
 	<listitem><para>Daniel Nylander</para></listitem>
+	<listitem><para>Lorenzo Orlandini</para></listitem>
 	<listitem><para>Maurycy Pawłowski-Wieroński</para></listitem>
 	<listitem><para>Vladimir Petkov</para></listitem>
 	<listitem><para>Benoît Rouits</para></listitem>

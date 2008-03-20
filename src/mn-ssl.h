@@ -26,6 +26,8 @@
 G_LOCK_EXTERN(mn_ssl);
 
 SSL_CTX *mn_ssl_init (GError **err);
+
 const char *mn_ssl_get_error (void);
+const char *mn_ssl_get_io_error (const SSL *ssl, int ret);
 
 #endif /* _MN_SSL_H */

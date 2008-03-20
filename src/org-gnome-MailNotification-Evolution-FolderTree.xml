@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node name="/org/gnome/MailNotification/Evolution/FolderTree">
+  <interface name="org.gnome.MailNotification.Evolution.FolderTree">
+    <property type="s" name="uri" access="write"/>
+
+    <signal name="FolderSelected">
+      <arg type="s" name="uri"/>
+    </signal>
+    <signal name="FolderActivated"/>
+  </interface>
+</node>

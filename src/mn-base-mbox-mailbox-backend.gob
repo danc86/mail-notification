@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <gmime/gmime.h>
 #include "mn-vfs-mailbox-backend.h"
@@ -26,7 +24,6 @@ requires 2.0.14
 %}
 
 %{
-#include "config.h"
 #include <string.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
@@ -111,7 +108,7 @@ class MN:Base:Mbox:Mailbox:Backend from MN:VFS:Mailbox:Backend (abstract)
     GType type = 0;
 
     parser = self_parser_new(uri, NULL);
-    if (parser != NULL)
+    if (parser)
       {
 	if (g_mime_parser_eos(parser))
 	  /*
@@ -319,7 +316,7 @@ class MN:Base:Mbox:Mailbox:Backend from MN:VFS:Mailbox:Backend (abstract)
 	      {
 		MNMessage *message;
 
-		message = MN_BASE_MBOX_MAILBOX_BACKEND_GET_CLASS(self)->get_new_message(self, mime_message);
+		message = self_get_new_message(self, mime_message);
 		g_object_unref(mime_message);
 
 		if (message)
@@ -354,7 +351,7 @@ class MN:Base:Mbox:Mailbox:Backend from MN:VFS:Mailbox:Backend (abstract)
   }
 
   virtual private MNMessage *
-    get_new_message (self, GMimeMessage *mime_message);
+    get_new_message (self, GMime:Message *mime_message (check null type));
 
   private GnomeVFSURI *
     get_uncompressed_uri (GnomeVFSURI *uri (check null),

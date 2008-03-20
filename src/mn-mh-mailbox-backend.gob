@@ -17,16 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-vfs-mailbox-backend.h"
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
-#include <eel/eel.h>
 #include "mn-mailbox-private.h"
 #include "mn-reentrant-mailbox-private.h"
 #include "mn-vfs-mailbox-backend-private.h"
@@ -35,6 +31,7 @@ requires 2.0.14
 #include "mn-message-mime.h"
 
 #define SEQUENCES_FILE			".mh_sequences"
+#define XMH_CACHE_FILE			".xmhcache"
 %}
 
 class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
@@ -44,14 +41,9 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
     MN_VFS_MAILBOX_BACKEND_CLASS(class)->format = "MH";
   }
 
-  override (G:Object) GObject *
-    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  constructor (self)
   {
-    GObject *object;
-    MNVFSMailboxBackend *backend;
-
-    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    backend = MN_VFS_MAILBOX_BACKEND(object);
+    MNVFSMailboxBackend *backend = MN_VFS_MAILBOX_BACKEND(self);
 
     /*
      * There is no standard way of locking a MH mailbox, so avoid race
@@ -59,8 +51,6 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
      */
 
     backend->check_latency = 3000;
-
-    return object;
   }
 
   override (MN:VFS:Mailbox:Backend) void
@@ -74,7 +64,7 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
       {
 	char *filename;
 
-	filename = eel_uri_get_basename(info_uri);
+	filename = mn_vfs_uri_extract_short_name(info_uri);
 	if (filename)
 	  {
 	    if (! strcmp(filename, SEQUENCES_FILE) || mn_str_isnumeric(filename))
@@ -97,6 +87,15 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
     is = mn_vfs_test(sequences_uri, G_FILE_TEST_IS_REGULAR);
     gnome_vfs_uri_unref(sequences_uri);
 
+    if (! is)
+      {
+	GnomeVFSURI *cache_uri;
+
+	cache_uri = gnome_vfs_uri_append_file_name(mailbox->vfs_uri, XMH_CACHE_FILE);
+	is = mn_vfs_test(cache_uri, G_FILE_TEST_IS_REGULAR);
+	gnome_vfs_uri_unref(cache_uri);
+      }
+
     return is;
   }
 
@@ -118,6 +117,7 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	MNVFSReadLineContext *context = NULL;
 	const char *line;
 	GSList *messages = NULL;
+	int num_errors = 0;
 	GnomeVFSResult close_result;
 
 	while ((result = mn_vfs_read_line(&context, handle, &line)) == GNOME_VFS_OK)
@@ -146,6 +146,7 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
 			  char *filename;
 			  GnomeVFSURI *message_uri;
 			  MNMessage *message;
+			  GError *err = NULL;
 
 			  if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 			    {
@@ -166,11 +167,24 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
 			  message = mn_message_new_from_uri(MN_MAILBOX(backend->mailbox),
 							    message_uri,
 							    MN_MESSAGE_NEW,
-							    FALSE);
-			  gnome_vfs_uri_unref(message_uri);
-
+							    FALSE,
+							    &err);
 			  if (message)
 			    messages = g_slist_prepend(messages, message);
+			  else if (err)
+			    {
+			      char *message_text_uri;
+
+			      message_text_uri = gnome_vfs_uri_to_string(message_uri, GNOME_VFS_URI_HIDE_PASSWORD);
+			      mn_mailbox_warning(MN_MAILBOX(backend->mailbox), "cannot read message \"%s\": %s",
+						 message_text_uri, err->message);
+			      g_free(message_text_uri);
+			      g_error_free(err);
+
+			      num_errors++;
+			    }
+
+			  gnome_vfs_uri_unref(message_uri);
 			}
 		    }
 		}
@@ -188,7 +202,16 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	    if (result == GNOME_VFS_ERROR_EOF || result == GNOME_VFS_OK)
 	      {
 		if (close_result == GNOME_VFS_OK)
-		  mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
+		  {
+		    mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
+
+		    if (num_errors != 0)
+		      mn_mailbox_set_error(MN_MAILBOX(backend->mailbox),
+					   ngettext("cannot read %i message",
+						    "cannot read %i messages",
+						    num_errors),
+					   num_errors);
+		  }
 		else
 		  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to close %s: %s"), SEQUENCES_FILE, gnome_vfs_result_to_string(close_result));
 	      }
@@ -203,11 +226,21 @@ class MN:MH:Mailbox:Backend from MN:VFS:Mailbox:Backend
       }
     else
       {
+	GnomeVFSURI *cache_uri;
+	gboolean cache_exists;
+
+	cache_uri = gnome_vfs_uri_append_file_name(backend->mailbox->vfs_uri, XMH_CACHE_FILE);
+	cache_exists = mn_vfs_test(cache_uri, G_FILE_TEST_IS_REGULAR);
+	gnome_vfs_uri_unref(cache_uri);
+
 	if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 	  {
 	    GDK_THREADS_ENTER();
 
-	    mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open %s: %s"), SEQUENCES_FILE, gnome_vfs_result_to_string(result));
+	    if (cache_exists)
+	      mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), NULL);
+	    else
+	      mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to open %s: %s"), SEQUENCES_FILE, gnome_vfs_result_to_string(result));
 
 	    gdk_flush();
 	    GDK_THREADS_LEAVE();

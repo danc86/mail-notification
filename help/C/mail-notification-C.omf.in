@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE omf PUBLIC "-//OMF//DTD Scrollkeeper OMF Variant V1.0//EN" "http://scrollkeeper.sourceforge.net/dtds/scrollkeeper-omf-1.0/scrollkeeper-omf.dtd">
+<omf>
+  <resource>
+    <creator>
+      jylefort@brutele.be (Jean-Yves Lefort)
+    </creator>
+    <maintainer>
+      jylefort@brutele.be (Jean-Yves Lefort)
+    </maintainer>
+    <title>
+      Mail Notification Manual
+    </title>
+    <date>
+      2008-03-20
+    </date>
+    <version identifier="2.22" date="2008-03-20" description="Version 2.22"/>
+    <subject category="GNOME|Internet"/>
+    <description>
+      Mail Notification Manual
+    </description>
+    <type>
+      user's guide
+    </type>
+    <format mime="text/xml" dtd="-//OASIS//DTD DocBook XML V4.1.2//EN"/>
+    <identifier url="placeholder"/>
+    <language code="C"/>
+    <relation seriesid="01547b36-c95a-11d8-8970-90a5e458dba3"/>
+    <rights type="BSD" holder="Jean-Yves Lefort"/>
+  </resource>
+</omf>

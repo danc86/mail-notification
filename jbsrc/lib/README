@@ -1,0 +1,74 @@
+===============================================================================
+ JB, the Jean-Yves Lefort's Build System
+===============================================================================
+
+Index
+
+	0. About this document
+	1. Motivation
+	2. Dependencies
+	3. Customizing the bootstrap compilation
+	4. Log files
+	5. Redirecting the installation
+
+0. About this document
+
+	$Id: README,v 1.2 2008-02-20 04:19:11 jylefort Exp $
+
+	Copyright (C) 2008 Jean-Yves Lefort.
+
+	Permission is granted to copy, distribute and/or modify this
+	document under the terms of the GNU Free Documentation License
+	(GFDL), Version 1.2 or any later version published by the Free
+	Software Foundation with no Invariant Sections, no Front-Cover
+	Texts, and no Back-Cover Texts. You can find a copy of the
+	GFDL at http://www.gnu.org/licenses/fdl.html or in the file
+	COPYING-DOCS distributed with this manual.
+
+1. Motivation
+
+	JB is the result of my long-standing dissatisfaction with the
+	GNU Autotools. It makes my programmer's life easier, for
+	reasons that I will not bother enumerating here.
+
+2. Dependencies
+
+	Regardless of the package dependencies, JB requires a C
+	compiler and the GLib library (version 2.8 or superior).
+
+3. Customizing the bootstrap compilation
+
+	The first time ./jb is run, it bootstraps itself by compiling
+	the real JB program, which is written in C. If you need to
+	influence the way this program is compiled, you can set the
+	jb_cc, jb_cflags, jb_cppflags and jb_ldflags environment
+	variables, for instance:
+
+		jb_cc=gcc jb_cflags=-g ./jb configure
+
+	Note that these environment variables are only used to compile
+	the JB program. To specify compilation options for the
+	package, use:
+
+		./jb configure cc=gcc cflags=-g
+
+4. Log files
+
+	You can check what JB is doing by reviewing the build/*.log
+	files. Each action has its own log file (configure.log,
+	build.log, ...).
+
+5. Redirecting the installation
+
+	A number of packaging systems rely on the Automake DESTDIR
+	facility, which allows to install the package in a temporary
+	directory rather than directly in its final location.
+
+	JB supports that functionality. To redirect the installation
+	to a different directory, pass the destdir variable to the
+	configure stage, for instance:
+
+		./jb configure destdir=/my/temp/dir
+
+	As with Automake, the destdir setting does not influence the
+	idea that the package has of its installation location.

@@ -17,14 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-base-mbox-mailbox-backend.h"
 %}
 
 %{
-#include "config.h"
 #include <stdlib.h>
 #include <limits.h>
 #include "mn-base-mbox-mailbox-backend-private.h"

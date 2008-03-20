@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node name="/org/gnome/MailNotification/Evolution">
+  <interface name="org.gnome.MailNotification.Evolution">
+    <method name="GetUnseenMessages">
+      <arg type="s" name="folder_uri"/>
+      <!-- array of MessageInfo structs (see mn-evolution-mailbox.gob) -->
+      <arg type="a(suusss)" name="ret" direction="out"/>
+    </method>
+    <method name="GetFolderName">
+      <arg type="s" name="folder_uri"/>
+      <arg type="s" name="ret" direction="out"/>
+    </method>
+    <method name="OpenMessage">
+      <arg type="s" name="folder_uri"/>
+      <arg type="s" name="message_uid"/>
+    </method>
+    <method name="SetMessageFlags">
+      <arg type="s" name="folder_uri"/>
+      <arg type="s" name="message_uid"/>
+      <arg type="u" name="flags"/>
+    </method>
+    <method name="FolderTreeNew">
+      <arg type="u" name="id"/>
+    </method>
+
+    <signal name="FolderChanged">
+      <arg type="s" name="uri"/>
+    </signal>
+    <signal name="MessageReading">
+      <arg type="s" name="uri"/>
+    </signal>
+  </interface>
+</node>

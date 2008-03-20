@@ -17,55 +17,42 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-message.h"
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 #include <camel/camel-folder-summary.h>
-#include "GNOME_MailNotification_Evolution.h"
 #include "mn-evolution-mailbox.h"
 #include "mn-message-private.h"
-#include "mn-evolution-glue-client.h"
+#include "mn-evolution-client.h"
+#include "mn-evolution-client-dbus.h"
 #include "mn-util.h"
 
-#define GLUE_METHOD(invocation)						\
+#define CLIENT_METHOD(invocation)					\
   {									\
     MNEvolutionMailbox *mailbox = MN_EVOLUTION_MAILBOX(message->mailbox); \
-    MNBonoboUnknown *glue_wrapper;					\
-    GNOME_MailNotification_Evolution_Glue glue;				\
-    CORBA_Environment env;						\
-    gboolean status = TRUE;						\
+    MNEvolutionClient *client;						\
+    GError *tmp_err = NULL;						\
+    GError *err = NULL;							\
 									\
-    glue_wrapper = mn_evolution_glue_client_use();			\
+    client = mn_evolution_client_get();					\
 									\
-    glue = mn_bonobo_unknown_get_object(glue_wrapper);			\
-    if (glue == CORBA_OBJECT_NIL)					\
+    if (! client->proxy)						\
       {									\
-	g_set_error(err, 0, 0, _("Unable to contact Evolution."));	\
-	return FALSE;							\
+	g_set_error(&err, 0, 0, _("Unable to contact Evolution."));	\
+	goto end;							\
       }									\
 									\
-    invocation;								\
-    if (BONOBO_EX(&env))						\
+    if (! invocation)							\
       {									\
-	char *errmsg;							\
-									\
-	errmsg = bonobo_exception_get_text(&env);			\
-	g_set_error(err, 0, 0, _("An Evolution error has occurred: %s."), errmsg); \
-	g_free(errmsg);							\
-									\
-	status = FALSE;							\
+	g_set_error(&err, 0, 0, _("An Evolution error has occurred: %s."), tmp_err->message); \
+	g_error_free(tmp_err);						\
       }									\
-    									\
-    bonobo_object_release_unref(glue, NULL);				\
-    mn_evolution_glue_client_unuse();					\
 									\
-    return status;							\
+  end:									\
+    mn_message_action_done(request, err);				\
   }
 %}
 
@@ -94,40 +81,40 @@ class MN:Evolution:Message from MN:Message
   }
 
   override (MN:Message) gboolean
-    can_open_impl (MNMessage *message)
+    builtin_can_open (MNMessage *message)
   {
     return TRUE;
   }
 
-  override (MN:Message) gboolean
-    open_impl (MNMessage *message, GError **err)
+  override (MN:Message) void
+    builtin_open (MNMessage *message, MNMessageActionRequest *request)
   {
     Self *self = SELF(message);
-    GLUE_METHOD(GNOME_MailNotification_Evolution_Glue_openMessage(glue, mailbox->uri, selfp->uid, &env));
+    CLIENT_METHOD(org_gnome_MailNotification_Evolution_open_message(client->proxy, mailbox->uri, selfp->uid, &tmp_err));
   }
 
-  private gboolean
-    set_flags (self, guint32 flags, GError **err)
+  private void
+    set_flags (self, guint32 flags, MNMessageActionRequest *request)
   {
     MNMessage *message = MN_MESSAGE(self);
-    GLUE_METHOD(GNOME_MailNotification_Evolution_Glue_setMessageFlags(glue, mailbox->uri, selfp->uid, flags, &env));
+    CLIENT_METHOD(org_gnome_MailNotification_Evolution_set_message_flags(client->proxy, mailbox->uri, selfp->uid, flags, &tmp_err));
   }
 
-  override (MN:Message) gboolean
-    mark_as_read_impl (MNMessage *message, GError **err)
+  override (MN:Message) void
+    builtin_mark_as_read (MNMessage *message, MNMessageActionRequest *request)
   {
-    return self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN, err);
+    self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN, request);
   }
 
-  override (MN:Message) gboolean
-    mark_as_spam_impl (MNMessage *message, GError **err)
+  override (MN:Message) void
+    builtin_mark_as_spam (MNMessage *message, MNMessageActionRequest *request)
   {
-    return self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN | CAMEL_MESSAGE_JUNK | CAMEL_MESSAGE_JUNK_LEARN, err);
+    self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN | CAMEL_MESSAGE_JUNK | CAMEL_MESSAGE_JUNK_LEARN, request);
   }
 
-  override (MN:Message) gboolean
-    delete_impl (MNMessage *message, GError **err)
+  override (MN:Message) void
+    builtin_delete (MNMessage *message, MNMessageActionRequest *request)
   {
-    return self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN | CAMEL_MESSAGE_DELETED, err);
+    self_set_flags(SELF(message), CAMEL_MESSAGE_SEEN | CAMEL_MESSAGE_DELETED, request);
   }
 }

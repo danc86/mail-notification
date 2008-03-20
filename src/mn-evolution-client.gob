@@ -1,0 +1,153 @@
+/*
+ * Mail Notification
+ * Copyright (C) 2003-2008 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+%headertop{
+#include <dbus/dbus-glib.h>
+%}
+
+%{
+#include "mn-shell.h"
+#include "mn-evolution.h"
+#include "mn-util.h"
+%}
+
+/*
+ * A memory management bug in DBusGProxy
+ * (https://bugs.freedesktop.org/show_bug.cgi?id=14030) prevents us
+ * from unreferencing the proxy, so provide an eternal singleton
+ * proxy.
+ */
+class MN:Evolution:Client
+{
+  public DBusGProxy *proxy;
+  property POINTER proxy (link, export, type = DBusGProxy *);
+
+  private gboolean name_owner_signal_connected;
+
+  init (self)
+  {
+    self_connect(self);
+  }
+
+  private void
+    connect_name_owner_signal (self)
+  {
+    if (selfp->name_owner_signal_connected)
+      return;
+
+    dbus_g_proxy_connect_signal(mn_shell->session_bus_proxy,
+				"NameOwnerChanged",
+				G_CALLBACK(self_name_owner_changed_h),
+				self,
+				NULL);
+
+    selfp->name_owner_signal_connected = TRUE;
+  }
+
+  private void
+    disconnect_name_owner_signal (self)
+  {
+    if (! selfp->name_owner_signal_connected)
+      return;
+
+    dbus_g_proxy_disconnect_signal(mn_shell->session_bus_proxy,
+				   "NameOwnerChanged",
+				   G_CALLBACK(self_name_owner_changed_h),
+				   self);
+
+    selfp->name_owner_signal_connected = FALSE;
+  }
+
+  private void
+    connect (self)
+  {
+    DBusGProxy *proxy;
+
+    g_return_if_fail(self->proxy == NULL);
+
+    proxy = dbus_g_proxy_new_for_name_owner(mn_shell->session_bus,
+					    MN_EVOLUTION_SERVER_SERVICE,
+					    MN_EVOLUTION_SERVER_PATH,
+					    MN_EVOLUTION_SERVER_INTERFACE,
+					    NULL);
+    if (proxy)
+      {
+	self_disconnect_name_owner_signal(self);
+
+	dbus_g_proxy_add_signal(proxy,
+				MN_EVOLUTION_SERVER_SIGNAL_FOLDER_CHANGED,
+				G_TYPE_STRING,	/* uri */
+				G_TYPE_INVALID);
+	dbus_g_proxy_add_signal(proxy,
+				MN_EVOLUTION_SERVER_SIGNAL_MESSAGE_READING,
+				G_TYPE_STRING,	/* uri */
+				G_TYPE_INVALID);
+
+	g_signal_connect(proxy, "destroy", G_CALLBACK(self_proxy_destroy_h), self);
+
+	self_set_proxy(self, proxy);
+      }
+    else
+      self_connect_name_owner_signal(self);
+  }
+
+  private void
+    name_owner_changed_h (DBusGProxy *proxy,
+			  const char *service_name,
+			  const char *old_owner,
+			  const char *new_owner,
+			  gpointer user_data)
+  {
+    Self *self = user_data;
+
+    /* this is a main loop callback */
+    GDK_THREADS_ENTER();
+
+    if (! strcmp(service_name, MN_EVOLUTION_SERVER_SERVICE) && *new_owner)
+      self_connect(self);
+
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    proxy_destroy_h (DBusGProxy *proxy, gpointer user_data)
+  {
+    Self *self = user_data;
+
+    /* this is a main loop callback */
+    GDK_THREADS_ENTER();
+
+    self_set_proxy(self, NULL);
+    self_connect_name_owner_signal(self);
+
+    GDK_THREADS_LEAVE();
+  }
+
+  public MNEvolutionClient *
+    get (void)
+  {
+    static Self *self = NULL;
+
+    /* does not need to be thread-safe */
+    if (! self)
+      self = GET_NEW;
+
+    return self;
+  }
+}

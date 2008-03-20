@@ -17,10 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "config.h"
 #include "mn-keyring.h"
-
-/*** types *******************************************************************/
 
 typedef struct
 {
@@ -65,8 +62,6 @@ typedef struct
   GnomeKeyringResult		result;
   guint32			item_id;
 } SetPasswordInfo;
-
-/*** implementation **********************************************************/
 
 static void
 request_perform (Request *request, GSourceFunc perform_callback, gpointer data)
@@ -120,8 +115,8 @@ get_password_sync_cb (GnomeKeyringResult result,
 
   if (result == GNOME_KEYRING_RESULT_OK && list)
     {
-      GnomeKeyringNetworkPasswordData *data = list->data;
-      info->password = g_strdup(data->password);
+      GnomeKeyringNetworkPasswordData *password_data = list->data;
+      info->password = g_strdup(password_data->password);
     }
 
   request_signal(&info->request);

@@ -17,45 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "config.h"
 #include <string.h>
 #include <glib/gi18n.h>
 #include <libgnomevfs/gnome-vfs.h>
 #include "mn-message-mime.h"
 #include "mn-gmime-stream-vfs.h"
 #include "mn-util.h"
-
-/*** functions ***************************************************************/
-
-static char *mn_message_mime_header_decode_text (const char *str);
-static gboolean mn_message_mime_is_spam (GMimeMessage *mime_message);
-
-/*** implementation **********************************************************/
-
-static char *
-mn_message_mime_header_decode_text (const char *str)
-{
-  char *decoded;
-
-  g_return_val_if_fail(str != NULL, NULL);
-
-  decoded = g_mime_utils_header_decode_text(str);
-  if (g_utf8_validate(decoded, -1, NULL))
-    return decoded;
-  else
-    {
-      char *converted;
-
-      /* assume it is ISO8859-1 */
-      converted = g_convert(decoded, -1, "UTF-8", "ISO8859-1", NULL, NULL, NULL);
-      g_free(decoded);
-
-      return converted ? converted : g_strdup("");
-    }
-}
+#include "mn-vfs.h"
 
 static gboolean
-mn_message_mime_is_spam (GMimeMessage *mime_message)
+is_spam (GMimeMessage *mime_message)
 {
   const char *spam;
 
@@ -84,6 +55,7 @@ mn_message_new_from_mime_message (MNMailbox *mailbox,
   return mn_message_new_from_mime_message_full(MN_TYPE_MESSAGE,
 					       mailbox,
 					       mime_message,
+					       NULL,
 					       uri,
 					       flags,
 					       handle_status);
@@ -93,12 +65,13 @@ MNMessage *
 mn_message_new_from_mime_message_full (GType type,
 				       MNMailbox *mailbox,
 				       GMimeMessage *mime_message,
+				       const char *mid,
 				       const char *uri,
 				       MNMessageFlags flags,
 				       gboolean handle_status)
 {
   MNMessage *message;
-  const char *message_id;
+  const char *id;
   time_t sent_time;
   const char *from;
   const char *subject;
@@ -109,7 +82,7 @@ mn_message_new_from_mime_message_full (GType type,
   g_return_val_if_fail(MN_IS_MAILBOX(mailbox), NULL);
   g_return_val_if_fail(GMIME_IS_MESSAGE(mime_message), NULL);
 
-  if (mn_message_mime_is_spam(mime_message))
+  if (is_spam(mime_message))
     return NULL;
 
   if (handle_status)
@@ -125,18 +98,19 @@ mn_message_new_from_mime_message_full (GType type,
 	flags |= MN_MESSAGE_NEW;
     }
 
-  message_id = g_mime_message_get_message_id(mime_message);
+  id = g_mime_message_get_message_id(mime_message);
   g_mime_message_get_date(mime_message, &sent_time, NULL);
   from = g_mime_message_get_sender(mime_message);
   subject = g_mime_message_get_subject(mime_message);
 
-  decoded_from = from ? mn_message_mime_header_decode_text(from) : NULL;
-  decoded_subject = subject ? mn_message_mime_header_decode_text(subject) : NULL;
+  decoded_from = from ? g_mime_utils_header_decode_text(from) : NULL;
+  decoded_subject = subject ? g_mime_utils_header_decode_text(subject) : NULL;
 
   message = g_object_new(type,
 			 MN_MESSAGE_PROP_MAILBOX(mailbox),
 			 MN_MESSAGE_PROP_SENT_TIME(sent_time),
-			 MN_MESSAGE_PROP_ID((char *) message_id),
+			 MN_MESSAGE_PROP_ID((char *) id),
+			 MN_MESSAGE_PROP_MID((char *) mid),
 			 MN_MESSAGE_PROP_FROM(decoded_from),
 			 MN_MESSAGE_PROP_SUBJECT(decoded_subject),
 			 MN_MESSAGE_PROP_URI((char *) uri),
@@ -152,29 +126,35 @@ mn_message_new_from_mime_message_full (GType type,
 MNMessage *
 mn_message_new_from_mime_stream (MNMailbox *mailbox,
 				 GMimeStream *mime_stream,
+				 const char *mid,
 				 const char *uri,
 				 MNMessageFlags flags,
-				 gboolean handle_status)
+				 gboolean handle_status,
+				 GError **err)
 {
   return mn_message_new_from_mime_stream_full(MN_TYPE_MESSAGE,
 					      mailbox,
 					      mime_stream,
+					      mid,
 					      uri,
 					      flags,
-					      handle_status);
+					      handle_status,
+					      err);
 }
 
 MNMessage *
 mn_message_new_from_mime_stream_full (GType type,
 				      MNMailbox *mailbox,
 				      GMimeStream *mime_stream,
+				      const char *mid,
 				      const char *uri,
 				      MNMessageFlags flags,
-				      gboolean handle_status)
+				      gboolean handle_status,
+				      GError **err)
 {
   GMimeParser *parser;
   GMimeMessage *mime_message;
-  MNMessage *message;
+  MNMessage *message = NULL;
 
   g_return_val_if_fail(type != 0, NULL);
   g_return_val_if_fail(MN_IS_MAILBOX(mailbox), NULL);
@@ -186,11 +166,11 @@ mn_message_new_from_mime_stream_full (GType type,
 
   if (mime_message)
     {
-      message = mn_message_new_from_mime_message_full(type, mailbox, mime_message, uri, flags, handle_status);
+      message = mn_message_new_from_mime_message_full(type, mailbox, mime_message, mid, uri, flags, handle_status);
       g_object_unref(mime_message);
     }
   else
-    message = mn_message_new_from_error(mailbox, _("unable to parse MIME message"), flags);
+    g_set_error(err, 0, 0, _("unable to parse MIME message"));
 
   return message;
 }
@@ -199,21 +179,26 @@ MNMessage *
 mn_message_new_from_uri (MNMailbox *mailbox,
 			 GnomeVFSURI *uri,
 			 MNMessageFlags flags,
-			 gboolean handle_status)
+			 gboolean handle_status,
+			 GError **err)
 {
   return mn_message_new_from_uri_full(MN_TYPE_MESSAGE,
 				      mailbox,
+				      NULL,
 				      uri,
 				      flags,
-				      handle_status);
+				      handle_status,
+				      err);
 }
 
 MNMessage *
 mn_message_new_from_uri_full (GType type,
 			      MNMailbox *mailbox,
+			      const char *mid,
 			      GnomeVFSURI *uri,
 			      MNMessageFlags flags,
-			      gboolean handle_status)
+			      gboolean handle_status,
+			      GError **err)
 {
   GnomeVFSResult result;
   GnomeVFSHandle *handle;
@@ -235,7 +220,14 @@ mn_message_new_from_uri_full (GType type,
 
 	  text_uri = gnome_vfs_uri_to_string(uri, GNOME_VFS_URI_HIDE_NONE);
 
-	  message = mn_message_new_from_mime_stream_full(type, mailbox, stream, text_uri, flags, handle_status);
+	  message = mn_message_new_from_mime_stream_full(type,
+							 mailbox,
+							 stream,
+							 mid,
+							 text_uri,
+							 flags,
+							 handle_status,
+							 err);
 
 	  g_free(text_uri);
 	  g_object_unref(stream);
@@ -244,15 +236,18 @@ mn_message_new_from_uri_full (GType type,
 	}
     }
 
-  return mn_message_new_from_error(mailbox, gnome_vfs_result_to_string(result), flags);
+  mn_vfs_result_to_g_error(result, err);
+  return NULL;
 }
 
 MNMessage *
 mn_message_new_from_buffer (MNMailbox *mailbox,
 			    const char *buffer,
 			    unsigned int len,
+			    const char *mid,
 			    MNMessageFlags flags,
-			    gboolean handle_status)
+			    gboolean handle_status,
+			    GError **err)
 {
   GMimeStream *stream;
   MNMessage *message;
@@ -261,7 +256,13 @@ mn_message_new_from_buffer (MNMailbox *mailbox,
   g_return_val_if_fail(buffer != NULL, NULL);
 
   stream = g_mime_stream_mem_new_with_buffer(buffer, len);
-  message = mn_message_new_from_mime_stream(mailbox, stream, NULL, flags, handle_status);
+  message = mn_message_new_from_mime_stream(mailbox,
+					    stream,
+					    mid,
+					    NULL,
+					    flags,
+					    handle_status,
+					    err);
   g_object_unref(stream);
 
   return message;

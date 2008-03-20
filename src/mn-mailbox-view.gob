@@ -17,14 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <gtk/gtk.h>
 %}
 
 %{
-#include "config.h"
 #include <string.h>
 #include <glib/gi18n.h>
 #include <gdk/gdkkeysyms.h>
@@ -82,8 +79,9 @@ class MN:Mailbox:View from Gtk:Tree:View
   private GtkWidget *cut_item;
   private GtkWidget *copy_item;
   private GtkWidget *paste_item;
+  private GtkWidget *select_all_item;
 
-  signal (ACTION) public NONE (NONE)
+  signal (ACTION) NONE (NONE)
     void activate_update (self)
   {
     GtkTreeSelection *selection;
@@ -106,7 +104,7 @@ class MN:Mailbox:View from Gtk:Tree:View
     g_object_unref(mailbox);
   }
 
-  signal (ACTION) public NONE (NONE)
+  signal (ACTION) NONE (NONE)
     void activate_properties (self)
   {
     GtkTreeSelection *selection;
@@ -146,7 +144,7 @@ class MN:Mailbox:View from Gtk:Tree:View
     g_object_unref(mailbox);
   }
 
-  signal (ACTION) public NONE (NONE)
+  signal (ACTION) NONE (NONE)
     void activate_add (self)
   {
     GtkWidget *dialog;
@@ -161,26 +159,26 @@ class MN:Mailbox:View from Gtk:Tree:View
     gtk_widget_show(dialog);
   }
 
-  signal (ACTION) public NONE (NONE)
+  signal (ACTION) NONE (NONE)
     void activate_remove (self)
   {
     self_remove_mailbox(self);
   }
 
-  signal (ACTION) public NONE (NONE)
+  signal (ACTION) NONE (NONE)
     void activate_cut (self)
   {
     self_copy_mailbox(self);
     self_remove_mailbox(self);
   }
 
-  signal (ACTION) public NONE (NONE)
+  signal (ACTION) NONE (NONE)
     void activate_copy (self)
   {
     self_copy_mailbox(self);
   }
 
-  signal (ACTION) public NONE (NONE)
+  signal (ACTION) NONE (NONE)
     void activate_paste (self)
   {
     GtkSelectionData *data;
@@ -248,12 +246,12 @@ class MN:Mailbox:View from Gtk:Tree:View
 
 		    if (invalid_uri_list)
 		      {
-			mn_invalid_uri_list_dialog(mn_widget_get_parent_window(GTK_WIDGET(self)), _("A paste error has occurred"), invalid_uri_list);
+			mn_show_invalid_uri_list_dialog(mn_widget_get_parent_window(GTK_WIDGET(self)), _("A paste error has occurred"), invalid_uri_list);
 			g_slist_free(invalid_uri_list);
 		      }
 		  }
 
-		eel_g_slist_free_deep(uri_list);
+		mn_g_slist_free_deep(uri_list);
 	      }
 	  }
 
@@ -297,7 +295,6 @@ class MN:Mailbox:View from Gtk:Tree:View
   {
     GtkMenuShell *shell;
     GtkWidget *add_item;
-    GtkWidget *select_all_item;
     GtkListStore *store;
     GtkTreeViewColumn *column;
     GtkCellRenderer *renderer;
@@ -321,7 +318,7 @@ class MN:Mailbox:View from Gtk:Tree:View
     selfp->copy_item = mn_menu_shell_append(shell, GTK_STOCK_COPY, NULL);
     selfp->paste_item = mn_menu_shell_append(shell, GTK_STOCK_PASTE, NULL);
     mn_menu_shell_append(shell, NULL, NULL);
-    select_all_item = mn_menu_shell_append(shell, GTK_STOCK_SELECT_ALL, NULL);
+    selfp->select_all_item = mn_menu_shell_append(shell, GTK_STOCK_SELECT_ALL, NULL);
 
     g_signal_connect_swapped(selfp->properties_item, "activate", G_CALLBACK(self_activate_properties), self);
     g_signal_connect_swapped(selfp->update_item, "activate", G_CALLBACK(self_activate_update), self);
@@ -330,7 +327,7 @@ class MN:Mailbox:View from Gtk:Tree:View
     g_signal_connect_swapped(selfp->cut_item, "activate", G_CALLBACK(self_activate_cut), self);
     g_signal_connect_swapped(selfp->copy_item, "activate", G_CALLBACK(self_activate_copy), self);
     g_signal_connect_swapped(selfp->paste_item, "activate", G_CALLBACK(self_activate_paste), self);
-    g_signal_connect_swapped(select_all_item, "activate", G_CALLBACK(self_select_all), self);
+    g_signal_connect_swapped(selfp->select_all_item, "activate", G_CALLBACK(self_select_all), self);
 
     /* store */
 
@@ -351,9 +348,10 @@ class MN:Mailbox:View from Gtk:Tree:View
 					 GTK_SORT_ASCENDING);
 
     gtk_tree_view_set_model(GTK_TREE_VIEW(self), GTK_TREE_MODEL(store));
-    g_object_unref(store);
 
     column = gtk_tree_view_column_new();
+
+    gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
 
     renderer = nautilus_cell_renderer_pixbuf_emblem_new();
     g_object_set(renderer, "stock-size", GTK_ICON_SIZE_LARGE_TOOLBAR, NULL);
@@ -390,6 +388,12 @@ class MN:Mailbox:View from Gtk:Tree:View
 
     self_update_sensitivity(self);
 
+    g_object_connect(store,
+		     /* for the sensitivity of "Select All" */
+		     "swapped-signal::row-inserted", self_update_sensitivity, self,
+		     "swapped-signal::row-deleted", self_update_sensitivity, self,
+		     NULL);
+
     mn_g_object_connect(self,
 			mn_shell->mailboxes,
 			"signal::mailbox-added", self_mailbox_added_h, self,
@@ -407,6 +411,8 @@ class MN:Mailbox:View from Gtk:Tree:View
 		     "signal::button-press-event", self_button_press_event_h, NULL,
 		     "signal::row-activated", self_row_activated_h, NULL,
 		     NULL);
+
+    g_object_unref(store);
   }
 
   private int
@@ -646,15 +652,22 @@ class MN:Mailbox:View from Gtk:Tree:View
   {
     GtkTreeSelection *selection;
     SensitivityInfo info = { FALSE, FALSE };
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+    gboolean has_mailboxes;
 
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
     gtk_tree_selection_selected_foreach(selection, self_update_sensitivity_cb, &info);
+
+    model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
+    has_mailboxes = gtk_tree_model_get_iter_first(model, &iter);
 
     gtk_widget_set_sensitive(selfp->properties_item, info.has_selection);
     gtk_widget_set_sensitive(selfp->update_item, info.has_manually_checkable);
     gtk_widget_set_sensitive(selfp->remove_item, info.has_selection);
     gtk_widget_set_sensitive(selfp->cut_item, info.has_selection);
     gtk_widget_set_sensitive(selfp->copy_item, info.has_selection);
+    gtk_widget_set_sensitive(selfp->select_all_item, has_mailboxes);
   }
 
   private void
@@ -753,15 +766,15 @@ class MN:Mailbox:View from Gtk:Tree:View
 		      unsigned int info,
 		      gpointer user_data_or_owner)
   {
-    const GSList *configurations = user_data_or_owner;
-    unsigned char buf[sizeof(configurations)];
+    GSList *configurations = user_data_or_owner;
 
-    memcpy(buf, &configurations, sizeof(configurations));
+    g_assert(info == TARGET_MAILBOXES);
+
     gtk_selection_data_set(selection_data,
 			   clipboard_info[info].atom,
 			   8,
-			   buf,
-			   sizeof(buf));
+			   (unsigned char *) &configurations,
+			   sizeof(configurations));
   }
 
   private void
@@ -769,7 +782,7 @@ class MN:Mailbox:View from Gtk:Tree:View
   {
     GSList *configurations = user_data_or_owner;
 
-    eel_g_slist_free_deep_custom(configurations, (GFunc) mn_mailbox_configuration_free, NULL);
+    mn_g_slist_free_deep_custom(configurations, (GFunc) mn_mailbox_configuration_free, NULL);
   }
 
   private void
@@ -786,20 +799,26 @@ class MN:Mailbox:View from Gtk:Tree:View
 			       int response,
 			       gpointer user_data)
   {
-    if (response == GTK_RESPONSE_CANCEL)
-      gtk_widget_destroy(GTK_WIDGET(dialog));
-    else if (response == GTK_RESPONSE_ACCEPT)
+    switch (response)
       {
-	MNMailbox *mailbox;
-
-	mailbox = mn_mailbox_properties_dialog_get_current_mailbox(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
-	g_assert(MN_IS_MAILBOX(mailbox));
-
-	mn_mailbox_seal(mailbox);
-	mn_mailboxes_add(mn_shell->mailboxes, mailbox);
-	g_object_unref(mailbox);
-
+      case GTK_RESPONSE_CANCEL:
 	gtk_widget_destroy(GTK_WIDGET(dialog));
+	break;
+
+      case GTK_RESPONSE_ACCEPT:
+	{
+	  MNMailbox *mailbox;
+
+	  mailbox = mn_mailbox_properties_dialog_get_current_mailbox(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
+	  g_assert(MN_IS_MAILBOX(mailbox));
+
+	  mn_mailbox_seal(mailbox);
+	  mn_mailboxes_add(mn_shell->mailboxes, mailbox);
+	  g_object_unref(mailbox);
+
+	  gtk_widget_destroy(GTK_WIDGET(dialog));
+	}
+	break;
       }
   }
 
@@ -808,17 +827,52 @@ class MN:Mailbox:View from Gtk:Tree:View
 				int response,
 				gpointer user_data)
   {
-    if (response == GTK_RESPONSE_APPLY || response == GTK_RESPONSE_OK)
-      mn_mailbox_properties_dialog_apply(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
-    if (response == GTK_RESPONSE_CANCEL || response == GTK_RESPONSE_OK)
-      gtk_widget_destroy(GTK_WIDGET(dialog));
+    switch (response)
+      {
+      case GTK_RESPONSE_APPLY:
+	mn_mailbox_properties_dialog_apply(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
+	break;
+
+      case GTK_RESPONSE_CANCEL:
+	mn_mailbox_properties_dialog_cancel(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
+	gtk_widget_destroy(GTK_WIDGET(dialog));
+	break;
+
+      case GTK_RESPONSE_OK:
+	mn_mailbox_properties_dialog_apply(MN_MAILBOX_PROPERTIES_DIALOG(dialog));
+	gtk_widget_destroy(GTK_WIDGET(dialog));
+	break;
+      }
   }
 
   private void
     popup_menu (self, unsigned int button, guint32 activate_time)
   {
-    gtk_clipboard_request_targets(global_clipboard, self_popup_menu_targets_received_cb, self);
+    Self **self_box;
+
+    gtk_widget_set_sensitive(selfp->paste_item, FALSE);
+
+    /* do not crash if self is finalized before the request completes */
+    self_box = g_new(Self *, 1);
+    *self_box = self;
+    mn_add_weak_pointer(self_box);
+
+    gtk_clipboard_request_targets(global_clipboard, self_popup_menu_targets_received_cb, self_box);
+
     gtk_menu_popup(GTK_MENU(selfp->menu), NULL, NULL, NULL, NULL, button, activate_time);
+  }
+
+  private gboolean
+    can_paste (GdkAtom *atoms, int n_atoms)
+  {
+    int i;
+
+    for (i = 0; i < n_atoms; i++)
+      if (atoms[i] == clipboard_info[TARGET_MAILBOXES].atom
+	  || atoms[i] == clipboard_info[TARGET_GNOME_COPIED_FILES].atom)
+	return TRUE;
+
+    return FALSE;
   }
 
   private void
@@ -827,19 +881,18 @@ class MN:Mailbox:View from Gtk:Tree:View
 				    int n_atoms,
 				    gpointer data)
   {
-    Self *self = data;
-    int i;
-    gboolean can_paste = FALSE;
+    Self **self_box = data;
+    Self *self = *self_box;
 
-    for (i = 0; i < n_atoms; i++)
-      if (atoms[i] == clipboard_info[TARGET_MAILBOXES].atom
-	  || atoms[i] == clipboard_info[TARGET_GNOME_COPIED_FILES].atom)
-	{
-	  can_paste = TRUE;
-	  break;
-	}
+    if (self)
+      {
+	if (atoms)
+	  gtk_widget_set_sensitive(selfp->paste_item, self_can_paste(atoms, n_atoms));
 
-    gtk_widget_set_sensitive(selfp->paste_item, can_paste);
+	mn_remove_weak_pointer(self_box);
+      }
+
+    g_free(self_box);
   }
 
   private gboolean

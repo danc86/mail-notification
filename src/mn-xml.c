@@ -17,13 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "config.h"
 #include <string.h>
 #include <glib/gi18n.h>
 #include "mn-xml.h"
 #include "mn-util.h"
-
-/*** implementation **********************************************************/
 
 void
 mn_xml_import_properties (GObject *object, xmlNode *node)

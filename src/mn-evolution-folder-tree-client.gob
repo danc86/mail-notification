@@ -1,0 +1,361 @@
+/*
+ * Mail Notification
+ * Copyright (C) 2003-2008 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+%headertop{
+#include <gtk/gtk.h>
+%}
+
+%privateheader{
+#include "mn-evolution-client.h"
+%}
+
+%{
+#include <glib/gi18n.h>
+#include "mn-evolution-client-dbus.h"
+#include "mn-dbus-properties-client-dbus.h"
+#include "mn-evolution.h"
+#include "mn-shell.h"
+#include "mn-util.h"
+%}
+
+class MN:Evolution:Folder:Tree:Client from Gtk:HBox
+{
+  private DBusGProxy *proxy;
+  private DBusGProxy *properties_proxy;
+
+  property BOOLEAN connected (export)
+    get
+    {
+      g_value_set_boolean(VAL, selfp->proxy != NULL);
+    };
+
+  public char *selected_uri destroywith g_free;
+  property STRING selected_uri (export)
+    set
+    {
+      g_free(self->selected_uri);
+      self->selected_uri = g_value_dup_string(VAL);
+
+      if (selfp->proxy)
+	self_sync_selected_uri(self);
+    }
+    get
+    {
+      g_value_set_string(VAL, self->selected_uri);
+    };
+
+  private MNEvolutionClient *client;
+
+  private unsigned int contact_error_idle_id;
+
+  signal private NONE (NONE)
+    void folder_activated (self);
+
+  init (self)
+  {
+    selfp->client = mn_evolution_client_get();
+    g_signal_connect_swapped(selfp->client, "notify::proxy", G_CALLBACK(self_update), self);
+
+    self_update(self);
+  }
+
+  dispose (self)
+  {
+    self_clear_proxy(self);
+
+    mn_source_clear(&selfp->contact_error_idle_id);
+
+    if (selfp->client)
+      {
+	g_signal_handlers_disconnect_by_func(selfp->client, self_update, self);
+	selfp->client = NULL;
+      }
+  }
+
+  private void
+    clear_proxy (self)
+  {
+    if (selfp->proxy)
+      {
+	/*
+	 * We cannot unreference the proxy because of a memory
+	 * management bug in DBusGProxy
+	 * (https://bugs.freedesktop.org/show_bug.cgi?id=14030), so
+	 * simply disconnect the signals and nullify the proxy.
+	 */
+
+	dbus_g_proxy_disconnect_signal(selfp->proxy,
+				       MN_EVOLUTION_FOLDER_TREE_SERVER_SIGNAL_FOLDER_SELECTED,
+				       G_CALLBACK(self_folder_selected_h),
+				       self);
+	dbus_g_proxy_disconnect_signal(selfp->proxy,
+				       MN_EVOLUTION_FOLDER_TREE_SERVER_SIGNAL_FOLDER_ACTIVATED,
+				       G_CALLBACK(self_folder_activated_h),
+				       self);
+
+	mn_remove_weak_pointer(&selfp->proxy); /* also sets it to NULL */
+      }
+  }
+
+  private void
+    update (self)
+  {
+    MNEvolutionClient *client;
+
+    /*
+     * We do not unconditionally create the GtkSocket to avoid the
+     * widget change flicker that would occur if Evolution cannot be
+     * contacted.
+     */
+
+    client = mn_evolution_client_get();
+    if (client->proxy)
+      {
+	GtkWidget *sock;
+
+	sock = gtk_socket_new();
+
+	g_signal_connect(sock, "plug-removed", G_CALLBACK(self_plug_removed_h), NULL);
+
+	/*
+	 * In order to be able to call gtk_socket_get_id(), the socket
+	 * must be added to a toplevel window.
+	 */
+	g_signal_connect(sock, "realize", G_CALLBACK(self_realize_h), self);
+
+	self_set_widget(self, sock);
+      }
+    else
+      self_handle_contact_error(self);
+  }
+
+  private gboolean
+    plug_removed_h (GtkSocket *sock, gpointer user_data)
+  {
+    /*
+     * Do not destroy the socket, it will be destroyed when removed
+     * from the vbox in set_widget().
+     */
+    return TRUE;
+  }
+
+  private void
+    realize_h (GtkWidget *widget, gpointer user_data)
+  {
+    Self *self = user_data;
+    MNEvolutionClient *client;
+
+    client = mn_evolution_client_get();
+    if (client->proxy)
+      {
+	guint32 id;
+	GError *err = NULL;
+
+	id = (guint32) gtk_socket_get_id(GTK_SOCKET(widget));
+
+	if (org_gnome_MailNotification_Evolution_folder_tree_new(client->proxy, id, &err))
+	  {
+	    char *service;
+	    char *path;
+
+	    self_clear_proxy(self);
+
+	    service = g_strdup_printf(MN_EVOLUTION_FOLDER_TREE_SERVER_SERVICE, id);
+	    path = g_strdup_printf(MN_EVOLUTION_FOLDER_TREE_SERVER_PATH, id);
+
+	    selfp->proxy = dbus_g_proxy_new_for_name_owner(mn_shell->session_bus,
+							   service,
+							   path,
+							   MN_EVOLUTION_FOLDER_TREE_SERVER_INTERFACE,
+							   NULL);
+
+	    g_free(service);
+	    g_free(path);
+
+	    if (selfp->proxy)
+	      {
+		/*
+		 * We must add a weak pointer, so that if the proxy is
+		 * destroyed after Evolution exits we won't try to
+		 * clear an invalid proxy in clear_proxy().
+		 */
+		mn_add_weak_pointer(&selfp->proxy);
+
+		selfp->properties_proxy = dbus_g_proxy_new_from_proxy(selfp->proxy, DBUS_INTERFACE_PROPERTIES, NULL);
+
+		dbus_g_proxy_add_signal(selfp->proxy,
+					MN_EVOLUTION_FOLDER_TREE_SERVER_SIGNAL_FOLDER_SELECTED,
+					G_TYPE_STRING,	/* uri */
+					G_TYPE_INVALID);
+		dbus_g_proxy_add_signal(selfp->proxy,
+					MN_EVOLUTION_FOLDER_TREE_SERVER_SIGNAL_FOLDER_ACTIVATED,
+					G_TYPE_INVALID);
+
+		dbus_g_proxy_connect_signal(selfp->proxy,
+					    MN_EVOLUTION_FOLDER_TREE_SERVER_SIGNAL_FOLDER_SELECTED,
+					    G_CALLBACK(self_folder_selected_h),
+					    self,
+					    NULL);
+		dbus_g_proxy_connect_signal(selfp->proxy,
+					    MN_EVOLUTION_FOLDER_TREE_SERVER_SIGNAL_FOLDER_ACTIVATED,
+					    G_CALLBACK(self_folder_activated_h),
+					    self,
+					    NULL);
+
+		/* give the folder tree a decent height */
+		gtk_widget_set_size_request(widget, -1, 150);
+
+		self_sync_selected_uri(self);
+		g_object_notify(G_OBJECT(self), "connected");
+
+		return;		/* success */
+	      }
+	  }
+	else
+	  {
+	    /* unlikely to ever happen, not worth a translation */
+	    g_warning("cannot create folder tree: %s", err->message);
+	    g_error_free(err);
+	  }
+      }
+
+    /*
+     * Failure. We cannot call handle_contact_error() from here since
+     * it would destroy the GtkSocket that is currently being
+     * realized. Use an idle callback.
+     */
+    if (! selfp->contact_error_idle_id)
+      selfp->contact_error_idle_id = gdk_threads_add_idle(self_contact_error_cb, self);
+  }
+
+  private gboolean
+    contact_error_cb (gpointer data)
+  {
+    Self *self = data;
+
+    self_handle_contact_error(self);
+
+    selfp->contact_error_idle_id = 0;
+    return FALSE;		/* remove source */
+  }
+
+  private void
+    handle_contact_error (self)
+  {
+    GtkWidget *label;
+
+    if (selfp->proxy)
+      {
+	self_clear_proxy(self);
+	g_object_notify(G_OBJECT(self), "connected");
+      }
+
+    label = gtk_label_new(_("Mail Notification can not contact Evolution. Make sure that Evolution is running and that the Evolution Jean-Yves Lefort's Mail Notification plugin is loaded."));
+
+    gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+    gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
+    gtk_label_set_selectable(GTK_LABEL(label), TRUE);
+
+    self_set_widget(self, label);
+  }
+
+  private void
+    sync_selected_uri (self)
+  {
+    GValue value = { 0, };
+    GError *err = NULL;
+
+    g_return_if_fail(selfp->proxy != NULL);
+
+    if (! self->selected_uri)
+      return;
+
+    g_value_init(&value, G_TYPE_STRING);
+    g_value_set_string(&value, self->selected_uri);
+
+    if (! org_freedesktop_DBus_Properties_set(selfp->properties_proxy,
+					      MN_EVOLUTION_FOLDER_TREE_SERVER_INTERFACE,
+					      MN_EVOLUTION_FOLDER_TREE_SERVER_PROPERTY_URI,
+					      &value,
+					      &err))
+      {
+	g_warning("cannot set D-Bus property %s of interface %s: %s",
+		  MN_EVOLUTION_FOLDER_TREE_SERVER_PROPERTY_URI,
+		  MN_EVOLUTION_FOLDER_TREE_SERVER_INTERFACE,
+		  err->message);
+	g_error_free(err);
+      }
+
+    g_value_unset(&value);
+  }
+
+  private void
+    set_widget (self, Gtk:Widget *widget (check null type))
+  {
+    GList *children;
+
+    children = gtk_container_get_children(GTK_CONTAINER(self));
+    if (children)
+      {
+	g_assert(g_list_length(children) == 1);
+	gtk_container_remove(GTK_CONTAINER(self), children->data);
+	g_list_free(children);
+      }
+
+    gtk_box_pack_start(GTK_BOX(self), widget, TRUE, TRUE, 0);
+    gtk_widget_show(widget);
+  }
+
+  private void
+    folder_selected_h (DBusGProxy *proxy,
+		       const char *uri,
+		       gpointer user_data)
+  {
+    Self *self = user_data;
+
+    /* this is a main loop callback */
+    GDK_THREADS_ENTER();
+
+    g_free(self->selected_uri);
+    self->selected_uri = g_strdup(uri);
+
+    g_object_notify(G_OBJECT(self), "selected-uri");
+
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    folder_activated_h (DBusGProxy *proxy, gpointer user_data)
+  {
+    Self *self = user_data;
+
+    /* this is a main loop callback */
+    GDK_THREADS_ENTER();
+
+    self_folder_activated(self);
+
+    GDK_THREADS_LEAVE();
+  }
+
+  public GtkWidget *
+    new (void)
+  {
+    return GTK_WIDGET(GET_NEW);
+  }
+}

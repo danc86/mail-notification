@@ -17,14 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-webmail-mailbox.h"
 %}
 
 %{
-#include "config.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -35,6 +32,7 @@ requires 2.0.14
 #include "mn-webmail-mailbox-private.h"
 #include "mn-stock.h"
 #include "mn-conf.h"
+#include "mn-util.h"
 %}
 
 class MN:Yahoo:Mailbox from MN:Webmail:Mailbox
@@ -94,6 +92,34 @@ class MN:Yahoo:Mailbox from MN:Webmail:Mailbox
     return NULL;
   }
 
+  private gboolean
+    can_convert (const char *str (check null),
+		 const char *encoding (check null))
+  {
+    char *converted;
+    gboolean can;
+
+    converted = g_convert(str, -1, encoding, "UTF-8", NULL, NULL, NULL);
+    can = converted != NULL;
+    g_free(converted);
+
+    return can;
+  }
+
+  private const char *
+    get_config_file_encoding (const char *folder (check null))
+  {
+    /*
+     * fetchyahoo does not seem to deal with the folder name encoding
+     * at all, and Yahoo apparently uses ISO8859-1 when possible, and
+     * UTF-8 otherwise.
+     */
+    if (self_can_convert(folder, "ISO8859-1"))
+      return "ISO8859-1";
+    else
+      return "UTF-8";
+  }
+
   private char *
     create_config_file (self,
 			const char *spool_file (check null),
@@ -120,11 +146,11 @@ class MN:Yahoo:Mailbox from MN:Webmail:Mailbox
 			   spool_file,
 			   cookies_file);
 
-    if (eel_gconf_get_boolean(MN_CONF_SYSTEM_HTTP_PROXY_USE_HTTP_PROXY))
+    if (mn_conf_get_bool(MN_CONF_SYSTEM_HTTP_PROXY_USE_HTTP_PROXY))
       {
 	char *host;
 
-	host = eel_gconf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_HOST);
+	host = mn_conf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_HOST);
 	if (host && *host)
 	  {
 	    g_string_append_printf(contents,
@@ -132,15 +158,15 @@ class MN:Yahoo:Mailbox from MN:Webmail:Mailbox
 				   "proxy-host = %s\n"
 				   "proxy-port = %i\n",
 				   host,
-				   eel_gconf_get_integer(MN_CONF_SYSTEM_HTTP_PROXY_PORT));
+				   mn_conf_get_int(MN_CONF_SYSTEM_HTTP_PROXY_PORT));
 
-	    if (eel_gconf_get_boolean(MN_CONF_SYSTEM_HTTP_PROXY_USE_AUTHENTICATION))
+	    if (mn_conf_get_bool(MN_CONF_SYSTEM_HTTP_PROXY_USE_AUTHENTICATION))
 	      {
 		char *user;
 		char *password;
 
-		user = eel_gconf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_AUTHENTICATION_USER);
-		password = eel_gconf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_AUTHENTICATION_PASSWORD);
+		user = mn_conf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_AUTHENTICATION_USER);
+		password = mn_conf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_AUTHENTICATION_PASSWORD);
 
 		if (user && *user && password && *password)
 		  g_string_append_printf(contents,
@@ -156,8 +182,8 @@ class MN:Yahoo:Mailbox from MN:Webmail:Mailbox
 	g_free(host);
       }
 
-    mn_webmail_mailbox_display_config(MN_WEBMAIL_MAILBOX(self), contents->str);
-    filename = mn_webmail_mailbox_write_temporary_file(contents->str, err);
+    mn_webmail_mailbox_print_config(MN_WEBMAIL_MAILBOX(self), contents->str);
+    filename = mn_webmail_mailbox_write_temporary_file(contents->str, self_get_config_file_encoding(MN_WEBMAIL_MAILBOX(self)->folder), err);
 
     g_string_free(contents, TRUE);
 

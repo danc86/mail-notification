@@ -33,7 +33,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "config.h"
 #include <stdio.h>		/* required by stdlib.h on Darwin */
 #include <stdlib.h>		/* required by sys/socket.h on Darwin */
 #include <stdarg.h>
@@ -48,7 +47,6 @@
 #include <errno.h>
 #include <glib.h>
 #include <glib/gi18n.h>
-#include <eel/eel.h>
 #if WITH_SSL
 #include <openssl/err.h>
 #include <openssl/x509v3.h>
@@ -62,11 +60,7 @@
 #include "mn-util.h"
 #include "mn-client-session.h"
 
-/*** cpp *********************************************************************/
-
 #define READ_BUFSIZE			2048
-
-/*** types *******************************************************************/
 
 struct _MNClientSession
 {
@@ -92,8 +86,6 @@ struct _MNClientSession
 #endif /* WITH_SASL */
 };
 
-/*** variables ***************************************************************/
-
 #if WITH_SASL
 static sasl_callback_t sasl_callbacks[] = {
   { SASL_CB_USER, NULL, NULL },
@@ -108,134 +100,64 @@ static sasl_callback_t sasl_callbacks[] = {
 G_LOCK_DEFINE_STATIC(resolver);
 #endif
 
-/*** functions ***************************************************************/
-
-static struct addrinfo *mn_client_session_resolve (MNClientSession *session);
-static int mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo);
-
-#if WITH_SSL
-static GSList *mn_client_session_ssl_get_certificate_servers (X509 *cert);
-static gboolean mn_client_session_ssl_check_server_name (const char *user_name,
-							 const char *cert_name);
-static gboolean mn_client_session_ssl_check_server_name_from_list (const char *user_name,
-								   const GSList *cert_names);
-static char *mn_client_session_ssl_get_verify_error (MNClientSession *session,
-						     X509 *cert);
-static gboolean mn_client_session_ssl_verify (MNClientSession *session);
-#endif
-
-static int mn_client_session_enter_state (MNClientSession *session, int id);
-static gboolean mn_client_session_handle_input (MNClientSession *session, const char *input);
-
-static void mn_client_session_prepare_input_buffer (MNClientSession *session);
-
-#if WITH_SASL
-static int mn_client_session_write_base64 (MNClientSession *session,
-					   const char *buf,
-					   unsigned int len);
-static gboolean mn_client_session_sasl_fill_interact (MNClientSession *session,
-						      sasl_interact_t *interact,
-						      const char *unknown_warning);
-static char *mn_client_session_sasl_get_ip_port (const struct sockaddr *addr);
-#endif /* WITH_SASL */
-
-/*** implementation **********************************************************/
-
-/**
- * mn_client_session_run:
- * @states: a %MN_CLIENT_SESSION_STATES_END-terminated array of
- *          %MNClientSessionState structures. One of the states must
- *          have the %MN_CLIENT_SESSION_INITIAL_STATE id.
- * @callbacks: a pointer to a %MNClientSessionCallbacks structure
- * @use_ssl: whether to establish a SSL/TLS connection or not
- * @server: the hostname, IPv4 address or IPv6 address to connect to
- * @port: the port to connect to
- * @private: an opaque pointer which will be passed to callbacks, or %NULL
- * @err: a location to report errors, or %NULL
- *
- * Runs the client session. After connecting to the server, the
- * %MN_CLIENT_SESSION_INITIAL_STATE state is entered.
- *
- * Return value: %TRUE on success, or %FALSE on failure (in such case
- * @err is set)
- **/
-gboolean
-mn_client_session_run (const MNClientSessionState *states,
-		       const MNClientSessionCallbacks *callbacks,
-#if WITH_SSL
-		       gboolean use_ssl,
-#endif
-		       const char *server,
-		       int port,
-		       MNClientSessionPrivate *private,
-		       GError **err)
+static int
+mn_connect (int fd, const struct sockaddr *addr, socklen_t addrlen)
 {
-  MNClientSession session;
-  struct addrinfo *addrinfo;
-  const char *line;
+  int status;
 
-  g_return_val_if_fail(states != NULL, FALSE);
-  g_return_val_if_fail(callbacks != NULL, FALSE);
-  g_return_val_if_fail(callbacks->response_new != NULL, FALSE);
-#if WITH_SSL
-  g_return_val_if_fail(callbacks->ssl_trust_server != NULL, FALSE);
-#endif
-  g_return_val_if_fail(server != NULL, FALSE);
+ again:
+  status = connect(fd, addr, addrlen);
+  if (status < 0)
+    switch (errno)
+      {
+      case EINTR:
+	goto again;
 
-  memset(&session, 0, sizeof(session));
-  session.states = states;
-  session.callbacks = callbacks;
-  session.server = server;
-  session.port = port;
-  session.private = private;
+      case EISCONN:
+	return 0;
+      }
 
-  addrinfo = mn_client_session_resolve(&session);
-  if (! addrinfo)
-    goto end;
+  return status;
+}
 
-  session.s = mn_client_session_connect(&session, addrinfo);
-  freeaddrinfo(addrinfo);
-  if (session.s < 0)
-    goto end;
+static ssize_t
+mn_read (int fd, void *buf, size_t count)
+{
+  ssize_t bytes_read;
 
-#if WITH_SSL
-  if (use_ssl)
-    {
-      if (! mn_client_session_enable_ssl(&session))
-	goto end;
-    }
-#endif /* WITH_SSL */
+  do
+    bytes_read = read(fd, buf, count);
+  while (bytes_read < 0 && errno == EINTR);
 
-  mn_client_session_enter_state(&session, MN_CLIENT_SESSION_INITIAL_STATE);
+  return bytes_read;
+}
 
-  session.input_buffer = g_byte_array_new();
-  while ((line = mn_client_session_read_line(&session)))
-    if (! mn_client_session_handle_input(&session, line))
-      break;
-  g_byte_array_free(session.input_buffer, TRUE);
+static ssize_t
+mn_write (int fd, const void *buf, size_t count)
+{
+  ssize_t bytes_written;
 
- end:
-  if (session.s >= 0)
-    while (close(session.s) < 0 && errno == EINTR);
-#if WITH_SSL
-  if (session.ssl)
-    SSL_free(session.ssl);
-#endif /* WITH_SSL */
-#if WITH_SASL
-  if (session.sasl_conn)
-    sasl_dispose(&session.sasl_conn);
-#endif /* WITH_SASL */
-  if (session.error)
-    {
-      g_propagate_error(err, session.error);
-      return FALSE;
-    }
-  else
-    return TRUE;
+  do
+    bytes_written = write(fd, buf, count);
+  while (bytes_written < 0 && errno == EINTR);
+
+  return bytes_written;
+}
+
+static int
+mn_close (int fd)
+{
+  int status;
+
+  do
+    status = close(fd);
+  while (status < 0 && errno == EINTR);
+
+  return status;
 }
 
 static struct addrinfo *
-mn_client_session_resolve (MNClientSession *session)
+resolve (MNClientSession *session)
 {
   char *servname;
   struct addrinfo hints;
@@ -274,7 +196,7 @@ mn_client_session_resolve (MNClientSession *session)
 }
 
 static int
-mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo)
+client_session_connect (MNClientSession *session, struct addrinfo *addrinfo)
 {
   struct addrinfo *a;
   int n;
@@ -335,10 +257,10 @@ mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo)
 	}
 
       mn_client_session_notice(session, _("connecting to %s (%s) port %i"), session->server, ip, session->port);
-      if (connect(s, a->ai_addr, a->ai_addrlen) < 0)
+      if (mn_connect(s, a->ai_addr, a->ai_addrlen) < 0)
 	{
 	  mn_client_session_notice(session, _("unable to connect: %s"), g_strerror(errno));
-	  while (close(s) < 0 && errno == EINTR);
+	  mn_close(s);
 	}
       else
 	{
@@ -360,67 +282,186 @@ mn_client_session_connect (MNClientSession *session, struct addrinfo *addrinfo)
   return -1;
 }
 
-#if WITH_SSL
-/**
- * mn_client_session_enable_ssl:
- * @session: a #MNClientSession
- *
- * Enables in-band SSL/TLS. Must not be used if the @use_ssl
- * mn_client_session_run() argument was %TRUE. If an error occurs,
- * mn_client_session_set_error() will be called on @session.
- *
- * Return value: %TRUE on success
- **/
-gboolean
-mn_client_session_enable_ssl (MNClientSession *session)
+static int
+enter_state (MNClientSession *session, int id)
 {
-  SSL_CTX *ctx;
-  GError *err = NULL;
+  int i;
 
-  g_return_val_if_fail(session != NULL, FALSE);
-  g_return_val_if_fail(session->ssl == NULL, FALSE);
+  g_return_val_if_fail(session != NULL, 0);
 
-  ctx = mn_ssl_init(&err);
-  if (! ctx)
-    {
-      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to initialize the OpenSSL library: %s"), err->message);
-      g_error_free(err);
-      return FALSE;
-    }
+  for (i = 0; session->states[i].id; i++)
+    if (session->states[i].id == id)
+      {
+	session->state = &session->states[i];
+	return session->state->enter_cb
+	  ? session->state->enter_cb(session, session->private)
+	  : MN_CLIENT_SESSION_RESULT_CONTINUE;
+      }
 
-  session->ssl = SSL_new(ctx);
-  if (! session->ssl)
-    {
-      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to create a SSL/TLS object: %s"), mn_ssl_get_error());
-      return FALSE;
-    }
-
-  if (! SSL_set_fd(session->ssl, session->s))
-    {
-      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to set the SSL/TLS file descriptor: %s"), mn_ssl_get_error());
-      return FALSE;
-    }
-
-  if (SSL_connect(session->ssl) != 1)
-    {
-      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to perform the SSL/TLS handshake: %s"), mn_ssl_get_error());
-      return FALSE;
-    }
-
-  if (! mn_client_session_ssl_verify(session))
-    {
-      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("untrusted server"));
-      return FALSE;
-    }
-
-  mn_client_session_notice(session, _("a SSL/TLS layer is now active (%s, %s %i-bit)"),
-			   SSL_get_version(session->ssl),
-			   SSL_get_cipher(session->ssl),
-			   SSL_get_cipher_bits(session->ssl, NULL));
-
-  return TRUE;
+  g_assert_not_reached();
+  return 0;
 }
 
+static gboolean
+handle_input (MNClientSession *session, const char *input)
+{
+  MNClientSessionResponse *response;
+  gboolean cont = TRUE;
+
+  g_return_val_if_fail(session != NULL, FALSE);
+  g_return_val_if_fail(input != NULL, FALSE);
+
+  response = session->callbacks->response_new(session, input, session->private);
+  if (response)
+    {
+      int result;
+
+      g_assert(session->state->handle_cb != NULL);
+      result = session->state->handle_cb(session, response, session->private);
+
+    loop:
+      switch (result)
+	{
+	case MN_CLIENT_SESSION_RESULT_CONTINUE:
+	  break;
+
+	case MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT:
+	  {
+	    char *escaped;
+
+	    escaped = mn_utf8_escape(input);
+	    mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("response \"%s\" is not valid in current context"), escaped);
+	    g_free(escaped);
+
+	    cont = FALSE;
+	  }
+	  break;
+
+	case MN_CLIENT_SESSION_RESULT_DISCONNECT:
+	  cont = FALSE;
+	  break;
+
+	case 0:			/* assertion failed somewhere */
+	  g_assert_not_reached();
+	  break;
+
+	default:
+	  g_assert(result > 0);
+	  result = enter_state(session, result);
+	  goto loop;
+	}
+
+      if (session->callbacks->response_free)
+	session->callbacks->response_free(session, response, session->private);
+    }
+  else
+    {
+      char *escaped;
+
+      escaped = mn_utf8_escape(input);
+      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to parse response \"%s\""), escaped);
+      g_free(escaped);
+
+      cont = FALSE;
+    }
+
+  return cont;
+}
+
+/**
+ * mn_client_session_run:
+ * @states: a %MN_CLIENT_SESSION_STATES_END-terminated array of
+ *          %MNClientSessionState structures. One of the states must
+ *          have the %MN_CLIENT_SESSION_INITIAL_STATE id.
+ * @callbacks: a pointer to a %MNClientSessionCallbacks structure
+ * @use_ssl: whether to establish a SSL/TLS connection or not
+ * @server: the hostname, IPv4 address or IPv6 address to connect to
+ * @port: the port to connect to
+ * @private: an opaque pointer which will be passed to callbacks, or %NULL
+ * @err: a location to report errors, or %NULL
+ *
+ * Runs the client session. After connecting to the server, the
+ * %MN_CLIENT_SESSION_INITIAL_STATE state is entered.
+ *
+ * Return value: %TRUE on success, or %FALSE on failure (in such case
+ * @err is set)
+ **/
+gboolean
+mn_client_session_run (const MNClientSessionState *states,
+		       const MNClientSessionCallbacks *callbacks,
+#if WITH_SSL
+		       gboolean use_ssl,
+#endif
+		       const char *server,
+		       int port,
+		       MNClientSessionPrivate *private,
+		       GError **err)
+{
+  MNClientSession session;
+  struct addrinfo *addrinfo;
+  const char *line;
+
+  g_return_val_if_fail(states != NULL, FALSE);
+  g_return_val_if_fail(callbacks != NULL, FALSE);
+  g_return_val_if_fail(callbacks->response_new != NULL, FALSE);
+#if WITH_SSL
+  g_return_val_if_fail(callbacks->ssl_trust_server != NULL, FALSE);
+#endif
+  g_return_val_if_fail(server != NULL, FALSE);
+
+  memset(&session, 0, sizeof(session));
+  session.states = states;
+  session.callbacks = callbacks;
+  session.server = server;
+  session.port = port;
+  session.private = private;
+
+  addrinfo = resolve(&session);
+  if (! addrinfo)
+    goto end;
+
+  session.s = client_session_connect(&session, addrinfo);
+  freeaddrinfo(addrinfo);
+  if (session.s < 0)
+    goto end;
+
+#if WITH_SSL
+  if (use_ssl)
+    {
+      if (! mn_client_session_enable_ssl(&session))
+	goto end;
+    }
+#endif /* WITH_SSL */
+
+  enter_state(&session, MN_CLIENT_SESSION_INITIAL_STATE);
+
+  session.input_buffer = g_byte_array_new();
+  while ((line = mn_client_session_read_line(&session)))
+    if (! handle_input(&session, line))
+      break;
+  g_byte_array_free(session.input_buffer, TRUE);
+
+ end:
+  if (session.s >= 0)
+    mn_close(session.s);
+#if WITH_SSL
+  if (session.ssl)
+    SSL_free(session.ssl);
+#endif /* WITH_SSL */
+#if WITH_SASL
+  if (session.sasl_conn)
+    sasl_dispose(&session.sasl_conn);
+#endif /* WITH_SASL */
+  if (session.error)
+    {
+      g_propagate_error(err, session.error);
+      return FALSE;
+    }
+  else
+    return TRUE;
+}
+
+#if WITH_SSL
 /**
  * mn_client_session_ssl_get_certificate_servers():
  * @cert: the server certificate
@@ -429,10 +470,10 @@ mn_client_session_enable_ssl (MNClientSession *session)
  * contained in @cert.
  *
  * Return value: a newly-allocated list of UTF-8 server names. When no
- * longer used, the list must be freed with eel_g_slist_free_deep().
+ * longer used, the list must be freed with mn_g_slist_free_deep().
  **/
 static GSList *
-mn_client_session_ssl_get_certificate_servers (X509 *cert)
+get_ssl_certificate_servers (X509 *cert)
 {
   GSList *servers = NULL;
   X509_NAME *subject;
@@ -507,8 +548,7 @@ mn_client_session_ssl_get_certificate_servers (X509 *cert)
 }
 
 static gboolean
-mn_client_session_ssl_check_server_name (const char *user_name,
-					 const char *cert_name)
+check_ssl_server_name (const char *user_name, const char *cert_name)
 {
   g_return_val_if_fail(user_name != NULL, FALSE);
   g_return_val_if_fail(cert_name != NULL, FALSE);
@@ -531,10 +571,9 @@ mn_client_session_ssl_check_server_name (const char *user_name,
 }
 
 static gboolean
-mn_client_session_ssl_check_server_name_from_list (const char *user_name,
-						   const GSList *cert_names)
+check_ssl_server_name_from_list (const char *user_name, GSList *cert_names)
 {
-  const GSList *l;
+  GSList *l;
 
   g_return_val_if_fail(user_name != NULL, FALSE);
 
@@ -542,7 +581,7 @@ mn_client_session_ssl_check_server_name_from_list (const char *user_name,
     {
       const char *cert_name = l->data;
 
-      if (mn_client_session_ssl_check_server_name(user_name, cert_name))
+      if (check_ssl_server_name(user_name, cert_name))
 	return TRUE;
     }
 
@@ -550,7 +589,7 @@ mn_client_session_ssl_check_server_name_from_list (const char *user_name,
 }
 
 static char *
-mn_client_session_ssl_get_verify_error (MNClientSession *session, X509 *cert)
+get_ssl_verify_error (MNClientSession *session, X509 *cert)
 {
   long verify_result;
   GSList *servers;
@@ -582,11 +621,11 @@ mn_client_session_ssl_get_verify_error (MNClientSession *session, X509 *cert)
    * 3501 11.1) and cannot hurt for POP3.
    */
 
-  servers = mn_client_session_ssl_get_certificate_servers(cert);
+  servers = get_ssl_certificate_servers(cert);
   if (! servers)
     return g_strdup(_("server name not found in certificate"));
 
-  if (! mn_client_session_ssl_check_server_name_from_list(session->server, servers))
+  if (! check_ssl_server_name_from_list(session->server, servers))
     {
       if (g_slist_length(servers) == 1)
 	error = g_strdup_printf(_("user-provided server name \"%s\" does not match certificate-provided server name \"%s\""),
@@ -615,13 +654,13 @@ mn_client_session_ssl_get_verify_error (MNClientSession *session, X509 *cert)
 	}
     }
 
-  eel_g_slist_free_deep(servers);
+  mn_g_slist_free_deep(servers);
 
   return error;
 }
 
 static gboolean
-mn_client_session_ssl_verify (MNClientSession *session)
+verify_ssl_certificate (MNClientSession *session)
 {
   X509 *cert;
 
@@ -634,7 +673,7 @@ mn_client_session_ssl_verify (MNClientSession *session)
       char *error;
       gboolean status = FALSE;
 
-      error = mn_client_session_ssl_get_verify_error(session, cert);
+      error = get_ssl_verify_error(session, cert);
       if (! error)
 	status = TRUE;
       else
@@ -674,96 +713,72 @@ mn_client_session_ssl_verify (MNClientSession *session)
 						NULL,
 						session->private);
 }
-#endif /* WITH_SSL */
 
-static int
-mn_client_session_enter_state (MNClientSession *session, int id)
+/**
+ * mn_client_session_enable_ssl:
+ * @session: a #MNClientSession
+ *
+ * Enables in-band SSL/TLS. Must not be used if the @use_ssl
+ * mn_client_session_run() argument was %TRUE. If an error occurs,
+ * mn_client_session_set_error() will be called on @session.
+ *
+ * Return value: %TRUE on success
+ **/
+gboolean
+mn_client_session_enable_ssl (MNClientSession *session)
 {
-  int i;
-
-  g_return_val_if_fail(session != NULL, 0);
-
-  for (i = 0; session->states[i].id; i++)
-    if (session->states[i].id == id)
-      {
-	session->state = &session->states[i];
-	return session->state->enter_cb
-	  ? session->state->enter_cb(session, session->private)
-	  : MN_CLIENT_SESSION_RESULT_CONTINUE;
-      }
-
-  g_assert_not_reached();
-  return 0;
-}
-
-static gboolean
-mn_client_session_handle_input (MNClientSession *session, const char *input)
-{
-  MNClientSessionResponse *response;
-  gboolean cont = TRUE;
+  SSL_CTX *ctx;
+  GError *err = NULL;
+  int ret;
 
   g_return_val_if_fail(session != NULL, FALSE);
-  g_return_val_if_fail(input != NULL, FALSE);
+  g_return_val_if_fail(session->ssl == NULL, FALSE);
 
-  response = session->callbacks->response_new(session, input, session->private);
-  if (response)
+  ctx = mn_ssl_init(&err);
+  if (! ctx)
     {
-      int result;
-
-      g_assert(session->state->handle_cb != NULL);
-      result = session->state->handle_cb(session, response, session->private);
-
-    loop:
-      switch (result)
-	{
-	case MN_CLIENT_SESSION_RESULT_CONTINUE:
-	  break;
-
-	case MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT:
-	  {
-	    char *escaped;
-
-	    escaped = mn_utf8_escape(input);
-	    mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("response \"%s\" is not valid in current context"), escaped);
-	    g_free(escaped);
-
-	    cont = FALSE;
-	  }
-	  break;
-
-	case MN_CLIENT_SESSION_RESULT_DISCONNECT:
-	  cont = FALSE;
-	  break;
-
-	case 0:			/* assertion failed somewhere */
-	  g_assert_not_reached();
-	  break;
-
-	default:
-	  g_assert(result > 0);
-	  result = mn_client_session_enter_state(session, result);
-	  goto loop;
-	}
-
-      if (session->callbacks->response_free)
-	session->callbacks->response_free(session, response, session->private);
-    }
-  else
-    {
-      char *escaped;
-
-      escaped = mn_utf8_escape(input);
-      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to parse response \"%s\""), escaped);
-      g_free(escaped);
-
-      cont = FALSE;
+      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to initialize the OpenSSL library: %s"), err->message);
+      g_error_free(err);
+      return FALSE;
     }
 
-  return cont;
+  session->ssl = SSL_new(ctx);
+  if (! session->ssl)
+    {
+      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to create a SSL/TLS object: %s"), mn_ssl_get_error());
+      return FALSE;
+    }
+
+  if (! SSL_set_fd(session->ssl, session->s))
+    {
+      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to set the SSL/TLS file descriptor: %s"), mn_ssl_get_error());
+      return FALSE;
+    }
+
+  ret = SSL_connect(session->ssl);
+  if (ret != 1)
+    {
+      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("unable to perform the SSL/TLS handshake: %s"), mn_ssl_get_io_error(session->ssl, ret));
+      return FALSE;
+    }
+
+  if (! verify_ssl_certificate(session))
+    {
+      mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_OTHER, _("untrusted server"));
+      return FALSE;
+    }
+
+  mn_client_session_notice(session, _("a SSL/TLS layer is now active (%s, %s %i-bit)"),
+			   SSL_get_version(session->ssl),
+			   SSL_get_cipher(session->ssl),
+			   SSL_get_cipher_bits(session->ssl, NULL));
+
+  return TRUE;
 }
+#endif /* WITH_SSL */
 
 static void
-mn_client_session_prepare_input_buffer (MNClientSession *session)
+prepare_input_buffer (MNClientSession *session)
 {
   g_return_if_fail(session != NULL);
 
@@ -792,9 +807,7 @@ mn_client_session_fill_input_buffer (MNClientSession *session)
     bytes_read = SSL_read(session->ssl, buf, sizeof(buf));
   else
 #endif /* WITH_SSL */
-    do
-      bytes_read = read(session->s, buf, sizeof(buf));
-    while (bytes_read < 0 && errno == EINTR);
+    bytes_read = mn_read(session->s, buf, sizeof(buf));
 
   if (session->callbacks->post_read)
     session->callbacks->post_read(session, session->private);
@@ -803,7 +816,7 @@ mn_client_session_fill_input_buffer (MNClientSession *session)
     {
 #if WITH_SSL
       if (session->ssl)
-	mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_CONNECTION_LOST, _("unable to read from server: %s"), mn_ssl_get_error());
+	mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_CONNECTION_LOST, _("unable to read from server: %s"), mn_ssl_get_io_error(session->ssl, bytes_read));
       else
 #endif /* WITH_SSL */
 	{
@@ -857,7 +870,7 @@ mn_client_session_read (MNClientSession *session, unsigned int nbytes)
   g_return_val_if_fail(session->input_buffer != NULL, FALSE);
   g_return_val_if_fail(nbytes >= 0, FALSE);
 
-  mn_client_session_prepare_input_buffer(session);
+  prepare_input_buffer(session);
 
   while (session->input_buffer->len < nbytes)
     if (! mn_client_session_fill_input_buffer(session))
@@ -893,7 +906,7 @@ mn_client_session_read_line (MNClientSession *session)
   g_return_val_if_fail(session != NULL, NULL);
   g_return_val_if_fail(session->input_buffer != NULL, NULL);
 
-  mn_client_session_prepare_input_buffer(session);
+  prepare_input_buffer(session);
 
   while (! (session->input_buffer->data
 	    && (terminator = g_strstr_len(session->input_buffer->data,
@@ -930,7 +943,6 @@ mn_client_session_write (MNClientSession *session,
 			 const char *format,
 			 ...)
 {
-  va_list args;
   char *str;
   char *full;
   unsigned int len;
@@ -941,13 +953,13 @@ mn_client_session_write (MNClientSession *session,
   g_return_val_if_fail(session != NULL, 0);
   g_return_val_if_fail(format != NULL, 0);
 
-  va_start(args, format);
-  str = g_strdup_vprintf(format, args);
-  va_end(args);
+  MN_STRDUP_VPRINTF(str, format);
 
   mn_client_session_notice(session, "> %s", str);
+
   full = g_strconcat(str, "\r\n", NULL);
   g_free(str);
+
   len = strlen(full);
 
 #if WITH_SASL
@@ -988,15 +1000,13 @@ mn_client_session_write (MNClientSession *session,
     bytes_written = SSL_write(session->ssl, array->data, array->len);
   else
 #endif /* WITH_SSL */
-    do
-      bytes_written = write(session->s, array->data, array->len);
-    while (bytes_written < 0 && errno == EINTR);
+    bytes_written = mn_write(session->s, array->data, array->len);
 
   if (bytes_written <= 0)
     {
 #if WITH_SSL
       if (session->ssl)
-	result = mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_CONNECTION_LOST, _("unable to write to server: %s"), mn_ssl_get_error());
+	result = mn_client_session_set_error(session, MN_CLIENT_SESSION_ERROR_CONNECTION_LOST, _("unable to write to server: %s"), mn_ssl_get_io_error(session->ssl, bytes_written));
       else
 #endif /* WITH_SSL */
 	{
@@ -1018,9 +1028,7 @@ mn_client_session_write (MNClientSession *session,
 
 #if WITH_SASL
 static int
-mn_client_session_write_base64 (MNClientSession *session,
-				const char *buf,
-				unsigned int len)
+write_base64 (MNClientSession *session, const char *buf, unsigned int len)
 {
   char buf64[len * 2];		/* Base64 is 33% larger than the data it encodes */
   unsigned int outlen;
@@ -1042,9 +1050,9 @@ mn_client_session_write_base64 (MNClientSession *session,
 }
 
 static gboolean
-mn_client_session_sasl_fill_interact (MNClientSession *session,
-				      sasl_interact_t *interact,
-				      const char *unknown_warning)
+fill_sasl_interact (MNClientSession *session,
+		    sasl_interact_t *interact,
+		    const char *unknown_warning)
 {
   sasl_interact_t *i;
   gboolean need_username = FALSE;
@@ -1068,7 +1076,7 @@ mn_client_session_sasl_fill_interact (MNClientSession *session,
 	break;
 
       default:
-	mn_client_session_warning(session, unknown_warning);
+	mn_client_session_warning(session, "%s", unknown_warning);
 	return FALSE;
       };
 
@@ -1111,7 +1119,7 @@ mn_client_session_sasl_fill_interact (MNClientSession *session,
 }
 
 static char *
-mn_client_session_sasl_get_ip_port (const struct sockaddr *addr)
+get_sasl_ip_port (const struct sockaddr *addr)
 {
 #if WITH_IPV6
   char buf[INET6_ADDRSTRLEN];
@@ -1219,13 +1227,13 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
 
   namelen = sizeof(name);
   if (getsockname(session->s, &name, &namelen) >= 0)
-    local_ip_port = mn_client_session_sasl_get_ip_port(&name);
+    local_ip_port = get_sasl_ip_port(&name);
   else
     mn_client_session_warning(session, _("unable to retrieve local address of socket: %s"), g_strerror(errno));
 
   namelen = sizeof(name);
   if (getpeername(session->s, &name, &namelen) >= 0)
-    remote_ip_port = mn_client_session_sasl_get_ip_port(&name);
+    remote_ip_port = get_sasl_ip_port(&name);
   else
     mn_client_session_warning(session, _("unable to retrieve remote address of socket: %s"), g_strerror(errno));
 
@@ -1285,7 +1293,7 @@ mn_client_session_sasl_authentication_start (MNClientSession *session,
 
 	  if (result == SASL_INTERACT)
 	    {
-	      if (! mn_client_session_sasl_fill_interact(session, interact, _("unable to start SASL authentication: SASL asked for something we did not know")))
+	      if (! fill_sasl_interact(session, interact, _("unable to start SASL authentication: SASL asked for something we did not know")))
 		break;
 	    }
 	}
@@ -1355,7 +1363,7 @@ mn_client_session_sasl_authentication_step (MNClientSession *session,
 
 	    if (result == SASL_INTERACT)
 	      {
-		if (! mn_client_session_sasl_fill_interact(session, interact, _("SASL asked for something we did not know, aborting SASL authentication")))
+		if (! fill_sasl_interact(session, interact, _("SASL asked for something we did not know, aborting SASL authentication")))
 		  break;
 	      }
 	  }
@@ -1365,7 +1373,7 @@ mn_client_session_sasl_authentication_step (MNClientSession *session,
 	  {
 	  case SASL_OK:
 	  case SASL_CONTINUE:
-	    return mn_client_session_write_base64(session, clientout, clientoutlen);
+	    return write_base64(session, clientout, clientoutlen);
 
 	  case SASL_INTERACT:
 	    /* could not fill interaction, abort */
@@ -1441,7 +1449,8 @@ mn_client_session_sasl_authentication_done (MNClientSession *session)
  * will not leak the object away. However, in some situations (eg. if
  * SASL authentication fails but the session continues nevertheless)
  * it might be desirable to get rid of the object, in order to free
- * memory for the rest of the session duration.
+ * resources that would otherwise remain in use for the rest of the
+ * session.
  **/
 void
 mn_client_session_sasl_dispose (MNClientSession *session)
@@ -1494,13 +1503,9 @@ mn_client_session_notice (MNClientSession *session,
 
   if (session->callbacks->notice)
     {
-      va_list args;
       char *message;
 
-      va_start(args, format);
-      message = g_strdup_vprintf(format, args);
-      va_end(args);
-
+      MN_STRDUP_VPRINTF(message, format);
       session->callbacks->notice(session, message, session->private);
       g_free(message);
     }
@@ -1525,13 +1530,9 @@ mn_client_session_warning (MNClientSession *session,
 
   if (session->callbacks->warning)
     {
-      va_list args;
       char *message;
 
-      va_start(args, format);
-      message = g_strdup_vprintf(format, args);
-      va_end(args);
-
+      MN_STRDUP_VPRINTF(message, format);
       session->callbacks->warning(session, message, session->private);
       g_free(message);
     }
@@ -1560,13 +1561,9 @@ mn_client_session_set_error (MNClientSession *session,
 
   if (! session->error)
     {
-      va_list args;
       char *message;
 
-      va_start(args, format);
-      message = g_strdup_vprintf(format, args);
-      va_end(args);
-
+      MN_STRDUP_VPRINTF(message, format);
       session->error = g_error_new_literal(MN_CLIENT_SESSION_ERROR, code, message);
       g_free(message);
     }

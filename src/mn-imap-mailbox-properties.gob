@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-pi-mailbox-properties.h"
 %}
@@ -28,7 +26,6 @@ requires 2.0.14
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-private.h"

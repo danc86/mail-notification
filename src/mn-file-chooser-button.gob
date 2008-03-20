@@ -24,8 +24,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <gtk/gtk.h>
 %}
@@ -39,10 +37,8 @@ typedef GtkFileChooserDialog *(*MNFileChooserButtonCreateDialogFunction) (gpoint
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 #include <gnome.h>
-#include <eel/eel.h>
 #include "mn-util.h"
 %}
 
@@ -123,7 +119,7 @@ class MN:File:Chooser:Button from Gtk:HBox
 	selfp->dialog = GTK_WIDGET(selfp->create_dialog(selfp->create_dialog_data));
 	g_assert(GTK_IS_FILE_CHOOSER_DIALOG(selfp->dialog));
 
-	eel_add_weak_pointer(&selfp->dialog);
+	mn_add_weak_pointer(&selfp->dialog);
 
 	if (selfp->filename)
 	  gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(selfp->dialog), selfp->filename);

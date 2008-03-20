@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <time.h>
 #include "mn-mailbox.h"
@@ -29,6 +27,38 @@ typedef enum
 {
   MN_MESSAGE_NEW	= 1 << 0	/* unseen message */
 } MNMessageFlags;
+
+typedef struct _MNMessageAction MNMessageAction;
+
+typedef void (*MNMessageActionResultCallback) (MNMessageAction *action, GError *err, gpointer data);
+
+typedef struct
+{
+  MNMessageAction		*action;
+  MNMessage			*message;
+  MNMessageActionResultCallback	callback;
+  gpointer			data;
+} MNMessageActionRequest;
+
+struct _MNMessageAction
+{
+  const char	*name;
+  const char	*icon;
+  const char	*label;
+  const char	*error_message;
+
+  gboolean (*can_perform) (MNMessage *message);
+  void (*perform) (MNMessage *message, MNMessageActionRequest *request);
+  void (*done) (MNMessage *message, GError *err);
+};
+
+#define MN_MESSAGE_ACTION_ERROR		(mn_message_action_error_quark())
+
+typedef enum
+{
+  MN_MESSAGE_ACTION_ERROR_OTHER,
+  MN_MESSAGE_ACTION_ERROR_CANCELLED
+} MNMessageActionError;
 %}
 
 %privateheader{
@@ -39,18 +69,71 @@ typedef enum
   /* include in the XML summary and allow as a command format */
   MN_MESSAGE_PARAM_EXPORT	= MN_XML_PARAM_EXPORT,
 } MNMessageParamFlags;
+
+typedef GError *(*MNMessageActionPerformCallback) (MNMessage *message, gpointer data);
 %}
 
 %{
-#include "config.h"
 #include <errno.h>
 #include <glib/gi18n.h>
 #include <gnome.h>
 #include <libgnomevfs/gnome-vfs.h>
 #include "mn-util.h"
+
+typedef struct
+{
+  MNMessageActionRequest		*request;
+  MNMessageActionPerformCallback	callback;
+  gpointer				user_data;
+} PerformInfo;
 %}
 
-class MN:Message from G:Object
+%afterdecls{
+static const MNMessageAction message_actions[] = {
+  {
+    "open",
+    "mail-open",
+    /* translators: header capitalization */
+    N_("Open"),
+    N_("Unable to open message"),
+    self_builtin_can_open,
+    self_builtin_open,
+    self_open_done
+  },
+  {
+    "mark-as-read",
+    "mark",
+    /* translators: header capitalization */
+    N_("Mark as Read"),
+    N_("Unable to mark message as read"),
+    self_builtin_can_mark_as_read,
+    self_builtin_mark_as_read,
+    self_mark_as_read_done
+  },
+  {
+    "mark-as-spam",
+    "spam",
+    /* translators: header capitalization */
+    N_("Mark as Spam"),
+    N_("Unable to mark message as spam"),
+    self_builtin_can_mark_as_spam,
+    self_builtin_mark_as_spam,
+    self_mark_as_spam_done
+  },
+  {
+    "delete",
+    "delete",
+    /* translators: header capitalization */
+    N_("Delete"),
+    N_("Unable to mark message as spam"),
+    self_builtin_can_delete,
+    self_builtin_delete,
+    self_delete_done
+  }
+};
+%}
+
+class MN:Message
 {
   /*
    * In order to not create reference cycles, we do not hold a
@@ -62,17 +145,38 @@ class MN:Message from G:Object
   public MNMailbox *mailbox;
   property POINTER mailbox (flags = CONSTRUCT_ONLY, link, type = MNMailbox *);
 
-  /* may be NULL */
-  public char *error destroywith g_free;
-  property STRING error (link, flags = CONSTRUCT_ONLY | MN_MESSAGE_PARAM_EXPORT);
-
   /* sent time, may be 0 */
   public time_t sent_time;
   property ULONG sent_time (link, flags = CONSTRUCT_ONLY | MN_MESSAGE_PARAM_EXPORT, link, type = time_t);
 
-  /* always set */
+  /*
+   * The application-wise message identifier. It is used by various
+   * subsystems to test the equality of two messages (the MNMessage
+   * instance pointers cannot be compared since they can change across
+   * checks).
+   *
+   * Uniqueness is highly desired but not required. Nothing
+   * catastrophical will happen if an ID clash occurs.
+   *
+   * This field is never NULL.
+   */
   public char *id destroywith g_free;
   property STRING id (link, flags = CONSTRUCT_ONLY | MN_MESSAGE_PARAM_EXPORT);
+
+  /*
+   * The mailbox-wise message identifier. It is used by MNMailbox to
+   * cache the message. It is not cached using the application-wise ID
+   * because for most backends, retrieving that ID requires to read
+   * the message, which obviously defeats the purpose of caching.
+   *
+   * If set, it should be unique across all the messages of the
+   * containing mailbox, but nothing catastrophical will happen if an
+   * ID clash occurs.
+   *
+   * If NULL, the message will not be cached.
+   */
+  public char *mid destroywith g_free;
+  property STRING mid (link, flags = CONSTRUCT_ONLY);
 
   /* always set */
   public char *from destroywith g_free;
@@ -95,29 +199,37 @@ class MN:Message from G:Object
   public MNMessageFlags flags;
   property UINT flags (link, flags = CONSTRUCT_ONLY);
 
-  override (G:Object) GObject *
-    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  public MNMessageAction *
+    get_action (const char *name (check null))
   {
-    GObject *object;
-    Self *self;
+    static GHashTable *actions = NULL;
 
-    object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    self = SELF(object);
+    if (! actions)
+      {
+	int i;
 
+	actions = g_hash_table_new(g_str_hash, g_str_equal);
+
+	for (i = 0; i < G_N_ELEMENTS(message_actions); i++)
+	  {
+	    const MNMessageAction *action = &message_actions[i];
+
+	    g_hash_table_insert(actions, (gpointer) action->name, (gpointer) action);
+	  }
+      }
+
+    return g_hash_table_lookup(actions, name);
+  }
+
+  constructor (self)
+  {
     g_assert(MN_IS_MAILBOX(self->mailbox));
 
     if (! self->id)
       {
 	GString *id;
 
-	/*
-	 * An ID should (not mandatory):
-	 *
-	 *	- be unique (application-wise, because we use the ID
-	 *	  to check if a message has already been displayed in
-	 *	  the mail summary popup)
-	 *	- persist across checks if the message does not change
-	 */
+	/* no ID was provided, try to generate a persistent one */
 
 	id = g_string_new(NULL);
 
@@ -131,20 +243,24 @@ class MN:Message from G:Object
 	if (! *id->str)
 	  {
 	    static int unique = 0;
+
+	    /*
+	     * We could not generate a persistent ID. Fallback to a
+	     * non-persistent one.
+	     */
+
 	    g_string_append_printf(id, "%i", g_atomic_int_exchange_and_add(&unique, 1));
 	  }
 
 	self->id = g_string_free(id, FALSE);
       }
 
-    /* these must be filled after we have processed the id */
+    /* these fields must only be filled after we have generated an ID */
 
     if (! self->from)
-      self->from = g_strdup(_("Unknown"));
+      self->from = g_strdup("");
     if (! self->subject)
       self->subject = g_strdup("");
-
-    return object;
   }
 
   private gboolean
@@ -201,11 +317,12 @@ class MN:Message from G:Object
     return TRUE;
   }
 
+  /*
+   * Returns TRUE if a custom action was found. Sets @err is the
+   * execution of the custom action failed.
+   */
   private gboolean
-    execute_command (self,
-		     const char *id (check null),
-		     gboolean *status (check null),
-		     GError **err)
+    execute_command (self, const char *id (check null), GError **err)
   {
     char *command;
     GError *tmp_err = NULL;
@@ -214,8 +331,7 @@ class MN:Message from G:Object
     if (! command)
       return FALSE;
 
-    *status = self_execute_command_real(self, command, &tmp_err);
-    if (! *status)
+    if (! self_execute_command_real(self, command, &tmp_err))
       {
 	g_set_error(err, 0, 0, _("Unable to execute \"%s\": %s."), command, tmp_err->message);
 	g_error_free(tmp_err);
@@ -226,179 +342,190 @@ class MN:Message from G:Object
   }
 
   public gboolean
-    can_open (self)
+    can_perform_action (self, MNMessageAction *action (check null))
   {
-    return mn_mailbox_has_command(self->mailbox, "open") || self_can_open_impl(self);
+    return mn_mailbox_has_command(self->mailbox, action->name)
+      || action->can_perform(self);
+  }
+
+  public void
+    perform_action (self,
+		    MNMessageAction *action (check null),
+		    MNMessageActionResultCallback callback (check null),
+		    gpointer data)
+  {
+    GError *err = NULL;
+
+    if (self_execute_command(self, action->name, &err))
+      self_action_done_real(self, action, err, callback, data);
+    else
+      {
+	MNMessageActionRequest *request;
+
+	request = g_new0(MNMessageActionRequest, 1);
+	request->message = g_object_ref(self);
+	request->action = action;
+	request->callback = callback;
+	request->data = data;
+
+	action->perform(self, request);
+      }
+  }
+
+  protected void
+    perform_action_in_thread (MNMessageActionRequest *request (check null),
+			      MNMessageActionPerformCallback callback (check null),
+			      gpointer user_data)
+  {
+    PerformInfo *info;
+
+    info = g_new0(PerformInfo, 1);
+    info->request = request;
+    info->callback = callback;
+    info->user_data = user_data;
+
+    g_object_ref(request->message);
+    g_object_ref(request->message->mailbox);
+
+    mn_thread_create((GThreadFunc) self_perform_action_in_thread_cb, info);
+  }
+
+  private void
+    perform_action_in_thread_cb (PerformInfo *info)
+  {
+    GError *err;
+
+    err = info->callback(info->request->message, info->user_data);
+
+    GDK_THREADS_ENTER();
+
+    self_action_done(info->request, err);
+
+    g_object_unref(info->request->message->mailbox);
+    g_object_unref(info->request->message);
+
+    gdk_flush();
+    GDK_THREADS_LEAVE();
+  }
+
+  private void
+    action_done_real (self,
+		      MNMessageAction *action (check null),
+		      GError *err,
+		      MNMessageActionResultCallback callback,
+		      gpointer data)
+  {
+    action->done(self, err);
+    callback(action, err, data);
+  }
+
+  protected void
+    action_done (MNMessageActionRequest *request (check null), GError *err)
+  {
+    Self *self = request->message;
+
+    self_action_done_real(self, request->action, err, request->callback, request->data);
+
+    g_object_unref(request->message);
+    g_free(request);
+  }
+
+  public GQuark
+    action_error_quark (void)
+  {
+    return g_quark_from_static_string("mn-message-action-error");
   }
 
   virtual private gboolean
-    can_open_impl (self)
+    builtin_can_open (self)
   {
     return self->uri != NULL;
   }
 
-  public gboolean
-    open (self, GError **err)
+  virtual private void
+    builtin_open (self, MNMessageActionRequest *request)
   {
-    gboolean status;
+    GError *err = NULL;
 
-    if (self_execute_command(self, "open", &status, err))
-      {
-	mn_mailbox_consider_as_read(self);
-	return status;
-      }
-    else
-      return self_open_impl(self, err);
+    gnome_url_show(self->uri, &err);
+
+    self_action_done(request, err);
+  }
+
+  private void
+    open_done (self, GError *err)
+  {
+    if (! err)
+      mn_mailbox_consider_as_read(self);
   }
 
   virtual private gboolean
-    open_impl (self, GError **err)
+    builtin_can_mark_as_read (self)
   {
-    return gnome_url_show(self->uri, err);
+    return SELF_GET_CLASS(self)->builtin_mark_as_read != NULL;
   }
 
-  public gboolean
-    can_mark_as_read (self)
-  {
-    return mn_mailbox_has_command(self->mailbox, "mark-as-read") || self_can_mark_as_read_impl(self);
-  }
+  virtual private void
+    builtin_mark_as_read (self, MNMessageActionRequest *request);
 
-  virtual private gboolean
-    can_mark_as_read_impl (self)
+  private void
+    mark_as_read_done (self, GError *err)
   {
-    return SELF_GET_CLASS(self)->mark_as_read_impl != NULL;
-  }
-
-  private gboolean
-    mark_as_read_real (self, GError **err)
-  {
-    gboolean status;
-
-    if (self_execute_command(self, "mark-as-read", &status, err))
-      return status;
-    else
-      return self_mark_as_read_impl(self, err);
-  }
-
-  public gboolean
-    mark_as_read (self, GError **err)
-  {
-    if (self_mark_as_read_real(self, err))
-      {
-	mn_mailbox_consider_as_read(self);
-	return TRUE;
-      }
-    else
-      return FALSE;
+    if (! err)
+      mn_mailbox_consider_as_read(self);
   }
 
   virtual private gboolean
-    mark_as_read_impl (self, GError **err);
-
-  virtual public gboolean
-    can_mark_as_spam (self)
+    builtin_can_mark_as_spam (self)
   {
-    return mn_mailbox_has_command(self->mailbox, "mark-as-spam") || self_can_mark_as_spam_impl(self);
+    return SELF_GET_CLASS(self)->builtin_mark_as_spam != NULL;
+  }
+
+  virtual private void
+    builtin_mark_as_spam (self, MNMessageActionRequest *request);
+
+  private void
+    mark_as_spam_done (self, GError *err)
+  {
+    if (! err)
+      mn_mailbox_consider_as_read(self);
   }
 
   virtual private gboolean
-    can_mark_as_spam_impl (self)
+    builtin_can_delete (self)
   {
-    return SELF_GET_CLASS(self)->mark_as_spam_impl != NULL;
+    return SELF_GET_CLASS(self)->builtin_delete != NULL;
   }
 
-  private gboolean
-    mark_as_spam_real (self, GError **err)
+  virtual private void
+    builtin_delete (self, MNMessageActionRequest *request);
+
+  private void
+    delete_done (self, GError *err)
   {
-    gboolean status;
-
-    if (self_execute_command(self, "mark-as-spam", &status, err))
-      return status;
-    else
-      return self_mark_as_spam_impl(self, err);
+    if (! err)
+      mn_mailbox_consider_as_read(self);
   }
-
-  public gboolean
-    mark_as_spam (self, GError **err)
-  {
-    if (self_mark_as_spam_real(self, err))
-      {
-	mn_mailbox_consider_as_read(self);
-	return TRUE;
-      }
-    else
-      return FALSE;
-  }
-
-  virtual private gboolean
-    mark_as_spam_impl (self, GError **err);
-
-  virtual public gboolean
-    can_delete (self)
-  {
-    return mn_mailbox_has_command(self->mailbox, "delete") || self_can_delete_impl(self);
-  }
-
-  virtual private gboolean
-    can_delete_impl (self)
-  {
-    return SELF_GET_CLASS(self)->delete_impl != NULL;
-  }
-
-  private gboolean
-    delete_real (self, GError **err)
-  {
-    gboolean status;
-
-    if (self_execute_command(self, "delete", &status, err))
-      return status;
-    else
-      return self_delete_impl(self, err);
-  }
-
-  /* If cancelled by the user, returns FALSE but do not sets @err. */
-  public gboolean
-    delete (self, GError **err)
-  {
-    if (self_delete_real(self, err))
-      {
-	mn_mailbox_consider_as_read(self);
-	return TRUE;
-      }
-    else
-      return FALSE;
-  }
-
-  virtual private gboolean
-    delete_impl (self, GError **err);
 
   public MNMessage *
     new (MN:Mailbox *mailbox (check null type),
-	 const char *error,
 	 time_t sent_time,
 	 const char *id,
+	 const char *mid,
 	 const char *from,
 	 const char *subject,
 	 const char *uri,
 	 MNMessageFlags flags)
   {
     return GET_NEW_VARG(MN_MESSAGE_PROP_MAILBOX(mailbox),
-			MN_MESSAGE_PROP_ERROR((char *) error),
 			MN_MESSAGE_PROP_SENT_TIME(sent_time),
 			MN_MESSAGE_PROP_ID((char *) id),
+			MN_MESSAGE_PROP_MID((char *) mid),
 			MN_MESSAGE_PROP_FROM((char *) from),
 			MN_MESSAGE_PROP_SUBJECT((char *) subject),
 			MN_MESSAGE_PROP_URI((char *) uri),
 			MN_MESSAGE_PROP_FLAGS(flags),
 			NULL);
-  }
-
-  public MNMessage *
-    new_from_error (MN:Mailbox *mailbox (check null type),
-		    const char *error (check null),
-		    MNMessageFlags flags)
-  {
-    return self_new(mailbox, error, 0, NULL, NULL, NULL, NULL, flags);
   }
 
   public xmlNode *

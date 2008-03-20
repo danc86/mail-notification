@@ -20,7 +20,6 @@
 #ifndef _MN_CLIENT_SESSION_H
 #define _MN_CLIENT_SESSION_H
 
-#include "config.h"
 #include <glib.h>
 #if WITH_SASL
 #include <sasl/sasl.h>
@@ -235,7 +234,7 @@ void mn_client_session_notice (MNClientSession *session,
 			       ...) G_GNUC_PRINTF(2, 3);
 void mn_client_session_warning (MNClientSession *session,
 				const char *format,
-				...);
+				...) G_GNUC_PRINTF(2, 3);
 
 int mn_client_session_set_error (MNClientSession *session,
 				 int code,

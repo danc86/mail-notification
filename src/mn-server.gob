@@ -1,0 +1,148 @@
+/*
+ * Mail Notification
+ * Copyright (C) 2003-2008 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+%headertop{
+#include <dbus/dbus-glib.h>
+%}
+
+%h{
+#define MN_SERVER_SERVICE	"org.gnome.MailNotification"
+#define MN_SERVER_PATH		"/org/gnome/MailNotification"
+#define MN_SERVER_INTERFACE	"org.gnome.MailNotification"
+%}
+
+%{
+#include <glib/gi18n.h>
+#include <dbus/dbus-glib-bindings.h>
+#include "mn-shell.h"
+#include "mn-util.h"
+%}
+
+%afterdecls{
+#include "mn-server-dbus.h"
+%}
+
+/*
+ * We hold the GDK lock because D-Bus interface methods are run from a
+ * main loop callback.
+ */
+
+class MN:Server
+{
+  class_init (class)
+  {
+    dbus_g_object_type_install_info(TYPE_SELF, &dbus_glib_mn_server_object_info);
+  }
+
+  private gboolean
+    has_mailboxes (self, gboolean *ret (check null), GError **err)
+  {
+    *ret = mn_shell->mailboxes->list != NULL;
+    return TRUE;
+  }
+
+  private gboolean
+    get_summary (self, char **ret (check null), GError **err)
+  {
+    *ret = mn_shell_get_summary(mn_shell);
+    return TRUE;
+  }
+
+  private gboolean
+    consider_new_mail_as_read (self, GError **err)
+  {
+    GDK_THREADS_ENTER();
+    mn_shell_consider_new_mail_as_read(mn_shell);
+    GDK_THREADS_LEAVE();
+
+    return TRUE;
+  }
+
+  private gboolean
+    update (self, GError **err)
+  {
+    GDK_THREADS_ENTER();
+    mn_shell_update(mn_shell);
+    GDK_THREADS_LEAVE();
+
+    return TRUE;
+  }
+
+  private gboolean
+    display_properties (self, GError **err)
+  {
+    GDK_THREADS_ENTER();
+    mn_shell_show_properties_dialog(mn_shell, 0);
+    GDK_THREADS_LEAVE();
+
+    return TRUE;
+  }
+
+  private gboolean
+    display_about (self, GError **err)
+  {
+    GDK_THREADS_ENTER();
+    mn_shell_show_about_dialog(mn_shell, 0);
+    GDK_THREADS_LEAVE();
+
+    return TRUE;
+  }
+
+  private gboolean
+    quit (self, GError **err)
+  {
+    GDK_THREADS_ENTER();
+    mn_shell_quit(mn_shell);
+    GDK_THREADS_LEAVE();
+
+    return TRUE;
+  }
+
+  /* returns NULL if already registered */
+  public gboolean
+    start (DBusGConnection *bus (check null),
+	   DBus:G:Proxy *bus_proxy (check null type))
+  {
+    Self *self;
+    GError *err = NULL;
+    unsigned int name_reply;
+
+    self = GET_NEW;
+
+    dbus_g_connection_register_g_object(bus, MN_SERVER_PATH, G_OBJECT(self));
+
+    if (! org_freedesktop_DBus_request_name(bus_proxy,
+					    MN_SERVER_SERVICE,
+					    DBUS_NAME_FLAG_DO_NOT_QUEUE,
+					    &name_reply,
+					    &err))
+      {
+	mn_show_fatal_error_dialog(NULL, _("Unable to register the Mail Notification D-Bus server: %s."), err->message);
+	g_error_free(err);
+      }
+
+    if (name_reply != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
+      {
+	g_object_unref(self);
+	return FALSE;
+      }
+
+    return TRUE;
+  }
+}

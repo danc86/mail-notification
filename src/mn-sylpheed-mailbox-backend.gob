@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-vfs-mailbox-backend.h"
 %}
@@ -35,27 +33,18 @@ requires 2.0.14
 
 typedef struct
 {
-  int		num;
-  guint32	flags;
-} MarkEntry;
-
-typedef struct
-{
-  char		*data;
-  gsize		data_size;
-  GHashTable	*table;
-} Marks;
+  char	*position;
+  gsize	bytes_left;
+} ByteStream;
 %}
 
 %{
-#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <glib/gi18n.h>
-#include <eel/eel.h>
 #include "mn-mailbox-private.h"
 #include "mn-reentrant-mailbox-private.h"
 #include "mn-vfs-mailbox-private.h"
@@ -90,7 +79,7 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
       {
 	char *filename;
 
-	filename = eel_uri_get_basename(info_uri);
+	filename = mn_vfs_uri_extract_short_name(info_uri);
 	if (filename)
 	  {
 	    /*
@@ -202,14 +191,15 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
     GnomeVFSResult close_result;
     GnomeVFSDirectoryHandle *handle;
     GnomeVFSFileInfo *file_info;
-    Marks *marks;
+    GHashTable *marks;
     GSList *messages = NULL;
+    int num_errors = 0;
 
     self_update_check_latency(SELF(backend));
 
     mn_vfs_mailbox_backend_monitor(backend, check_id, backend->mailbox->uri, GNOME_VFS_MONITOR_DIRECTORY);
 
-    marks = self_marks_new(backend->mailbox->vfs_uri, &err);
+    marks = self_read_marks(backend->mailbox->vfs_uri, &err);
     if (! marks)
       {
 	if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
@@ -249,18 +239,24 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
     while ((result = gnome_vfs_directory_read_next(handle, file_info)) == GNOME_VFS_OK)
       if (mn_str_isnumeric(file_info->name))
 	{
-	  int num = atoi(file_info->name);
-	  MarkEntry *entry = g_hash_table_lookup(marks->table, GINT_TO_POINTER(num));
+	  guint32 num = atoi(file_info->name);
+	  guint32 sflags;
+	  gboolean has_mark;
+	  gpointer value;
 
-	  if (! entry || (entry->flags & (SYLPHEED_MSG_NEW | SYLPHEED_MSG_UNREAD)) != 0)
+	  has_mark = g_hash_table_lookup_extended(marks, GUINT_TO_POINTER(num), NULL, &value);
+	  if (has_mark)
+	    sflags = GPOINTER_TO_UINT(value);
+
+	  if (! has_mark || (sflags & (SYLPHEED_MSG_NEW | SYLPHEED_MSG_UNREAD)) != 0)
 	    {
 	      MNMessageFlags flags = 0;
-	      MNMessage *message;
+	      MNVFSMessage *message;
 
 	      if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 		break;
 
-	      if (! entry || (entry->flags & SYLPHEED_MSG_NEW) != 0)
+	      if (! has_mark || (sflags & SYLPHEED_MSG_NEW) != 0)
 		flags |= MN_MESSAGE_NEW;
 
 	      /*
@@ -270,12 +266,30 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	       */
 	      message = mn_vfs_message_new(MN_TYPE_SYLPHEED_MESSAGE,
 					   backend,
+					   NULL,
 					   backend->mailbox->vfs_uri,
 					   file_info->name,
 					   flags,
-					   FALSE);
+					   FALSE,
+					   &err);
 	      if (message)
 		messages = g_slist_prepend(messages, message);
+	      else if (err)
+		{
+		  GnomeVFSURI *message_uri;
+		  char *message_text_uri;
+
+		  message_uri = gnome_vfs_uri_append_file_name(backend->mailbox->vfs_uri, file_info->name);
+		  message_text_uri = gnome_vfs_uri_to_string(message_uri, GNOME_VFS_URI_HIDE_PASSWORD);
+		  gnome_vfs_uri_unref(message_uri);
+
+		  mn_mailbox_warning(MN_MAILBOX(backend->mailbox), "cannot read message \"%s\": %s",
+				     message_text_uri, err->message);
+		  g_free(message_text_uri);
+		  g_clear_error(&err);
+
+		  num_errors++;
+		}
 	    }
 	}
     gnome_vfs_file_info_unref(file_info);
@@ -289,7 +303,16 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	if (result == GNOME_VFS_ERROR_EOF || result == GNOME_VFS_OK)
 	  {
 	    if (close_result == GNOME_VFS_OK)
-	      mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
+	      {
+		mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
+
+		if (num_errors != 0)
+		  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox),
+				       ngettext("cannot read %i message",
+						"cannot read %i messages",
+						num_errors),
+				       num_errors);
+	      }
 	    else
 	      mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), _("unable to close folder: %s"), gnome_vfs_result_to_string(close_result));
 	  }
@@ -303,7 +326,7 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
     GDK_THREADS_LEAVE();
 
   end:
-    self_marks_free(marks);
+    g_hash_table_destroy(marks);
   }
 
   private gboolean
@@ -400,54 +423,65 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
     return status;
   }
 
-  protected Marks *
-    marks_new (GnomeVFSURI *mailbox_uri (check null), GError **err)
+  private gboolean
+    byte_stream_read (ByteStream *stream (check null),
+		      gpointer buf (check null),
+		      int size,
+		      GError **err)
   {
-    Marks *marks = NULL;
+    if (stream->bytes_left >= size)
+      {
+	memcpy(buf, stream->position, size);
+
+	stream->position += size;
+	stream->bytes_left -= size;
+
+	return TRUE;
+      }
+    else
+      {
+	g_set_error(err, 0, 0, _("unexpected end of file"));
+	return FALSE;
+      }
+  }
+
+  protected GHashTable *
+    read_marks (GnomeVFSURI *mailbox_uri (check null), GError **err)
+  {
+    GHashTable *marks = NULL;
     gsize bytes_left;
     char *buf;
 
     if (self_read_mark_file(mailbox_uri, &bytes_left, &buf, err))
       {
-	if (bytes_left >= sizeof(int))
-	  {
-	    int version = *((int *) buf);
+	ByteStream stream = { buf, bytes_left };
+	guint32 version;
 
+	if (self_byte_stream_read(&stream, &version, sizeof(version), err))
+	  {
 	    if (version == SYLPHEED_MARK_VERSION)
 	      {
-		MarkEntry *entry;
+		guint32 num;
 
-		marks = g_new0(Marks, 1);
-		marks->data = buf;
-		marks->data_size = bytes_left;
-		marks->table = g_hash_table_new(g_direct_hash, g_direct_equal);
+		marks = g_hash_table_new(g_direct_hash, g_direct_equal);
 
-		entry = (MarkEntry *) (buf + sizeof(int));
-		bytes_left -= sizeof(int);
-
-		buf = NULL;	/* now owned by marks */
-
-		while (bytes_left > 0)
+		while (self_byte_stream_read(&stream, &num, sizeof(num), NULL))
 		  {
-		    if (bytes_left < sizeof(MarkEntry))
+		    guint32 flags;
+
+		    if (! self_byte_stream_read(&stream, &flags, sizeof(flags), err))
 		      {
-			g_set_error(err, 0, 0, _("unexpected end of file"));
-			self_marks_free(marks);
+			g_hash_table_destroy(marks);
 			marks = NULL;
 			break;
 		      }
 
-		    g_hash_table_insert(marks->table, GINT_TO_POINTER(entry->num), entry);
-
-		    entry++;
-		    bytes_left -= sizeof(MarkEntry);
+		    g_hash_table_insert(marks, GUINT_TO_POINTER(num), GUINT_TO_POINTER(flags));
 		  }
 	      }
 	    else
 	      g_set_error(err, 0, 0, _("incompatible file version \"%i\""), version);
 	  }
-	else
-	  g_set_error(err, 0, 0, _("file version missing"));
 
 	g_free(buf);
       }
@@ -455,33 +489,55 @@ class MN:Sylpheed:Mailbox:Backend from MN:VFS:Mailbox:Backend
     return marks;
   }
 
+  private void
+    write_marks_foreach_cb (gpointer key, gpointer value, gpointer data)
+  {
+    GByteArray *array = data;
+    guint32 num;
+    guint32 flags;
+
+    num = GPOINTER_TO_UINT(key);
+    flags = GPOINTER_TO_UINT(value);
+
+    g_byte_array_append(array, (const guint8 *) &num, sizeof(num));
+    g_byte_array_append(array, (const guint8 *) &flags, sizeof(flags));
+  }
+
+  /* writes to the same mark file must be serialized (see below) */
   protected gboolean
-    marks_write (GnomeVFSURI *mailbox_uri (check null),
-		 Marks *marks (check null),
+    write_marks (GnomeVFSURI *mailbox_uri (check null),
+		 GHashTable *marks (check null),
 		 GError **err)
   {
+    GByteArray *data;
+    guint32 version;
     GnomeVFSURI *markfile_uri;
     gboolean status;
 
     /*
-     * We do not lock the mark file, since the user is normally unable
-     * to at the same time click on the "Mark as Read" button and use
-     * Sylpheed.
+     * We do not need to lock the mark file: races with Sylpheed are
+     * avoided since mn_vfs_write_entire_file_uri_safe() writes the
+     * file atomically (with a move).
+     *
+     * However, only one thread at once can write a given mark file,
+     * since mn_vfs_write_entire_file_uri_safe() is not thread-safe
+     * (it uses fixed temporary file names, foo.tmp and foo.old).
      */
+
+    data = g_byte_array_new();
+
+    version = SYLPHEED_MARK_VERSION;
+    g_byte_array_append(data, (const guint8 *) &version, sizeof(version));
+
+    g_hash_table_foreach(marks, self_write_marks_foreach_cb, data);
 
     markfile_uri = gnome_vfs_uri_append_file_name(mailbox_uri, SYLPHEED_MARK_FILE);
     /* Sylpheed uses S_IRUSR | S_IWUSR for data files */
-    status = mn_vfs_write_entire_file_uri_safe(markfile_uri, marks->data_size, marks->data, S_IRUSR | S_IWUSR, err);
+    status = mn_vfs_write_entire_file_uri_safe(markfile_uri, data->len, data->data, S_IRUSR | S_IWUSR, err);
     gnome_vfs_uri_unref(markfile_uri);
 
-    return status;
-  }
+    g_byte_array_free(data, TRUE);
 
-  protected void
-    marks_free (Marks *marks (check null))
-  {
-    g_free(marks->data);
-    g_hash_table_destroy(marks->table);
-    g_free(marks);
+    return status;
   }
 }

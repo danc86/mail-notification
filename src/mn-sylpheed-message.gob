@@ -17,61 +17,70 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-vfs-message.h"
 %}
 
 %{
-#include "config.h"
 #include <stdlib.h>
 #include <glib/gi18n.h>
 #include "mn-util.h"
 #include "mn-sylpheed-mailbox-backend-private.h"
+#include "mn-message-private.h"
 %}
 
 class MN:Sylpheed:Message from MN:VFS:Message
 {
-  override (MN:Message) gboolean
-    mark_as_read_impl (MNMessage *message, GError **err)
+  override (MN:Message) void
+    builtin_mark_as_read (MNMessage *message, MNMessageActionRequest *request)
+  {
+    mn_message_perform_action_in_thread(request, self_builtin_mark_as_read_cb, NULL);
+  }
+
+  private GError *
+    builtin_mark_as_read_cb (MNMessage *message, gpointer data)
   {
     MNVFSMessage *vmessage = MN_VFS_MESSAGE(message);
     char *filename;
-    int num;
+    guint32 num;
+    guint32 flags;
     GError *tmp_err = NULL;
-    Marks *marks;
-    MarkEntry *entry;
-    gboolean status;
+    GHashTable *marks;
+    GError *err = NULL;
 
     filename = gnome_vfs_uri_extract_short_name(vmessage->vfs_uri);
     g_assert(mn_str_isnumeric(filename));
     num = atoi(filename);
     g_free(filename);
 
-    marks = mn_sylpheed_mailbox_backend_marks_new(MN_VFS_MAILBOX(message->mailbox)->vfs_uri, &tmp_err);
+    /*
+     * We hold the mailbox lock to prevent this:
+     *
+     *	  thread A: read mark file
+     *	  thread B: read mark file
+     *    thread A: write new mark file
+     *    thread B: write new mark file, A's modifications are overwritten
+     */
+    mn_vfs_mailbox_lock(MN_VFS_MAILBOX(message->mailbox));
+
+    marks = mn_sylpheed_mailbox_backend_read_marks(MN_VFS_MAILBOX(message->mailbox)->vfs_uri, &tmp_err);
     if (! marks)
       {
-	g_set_error(err, 0, 0, _("Unable to read %s: %s."), SYLPHEED_MARK_FILE, tmp_err->message);
+	g_set_error(&err, 0, 0, _("Unable to read %s: %s."), SYLPHEED_MARK_FILE, tmp_err->message);
 	g_error_free(tmp_err);
-	return FALSE;
+	goto end;
       }
 
-    entry = g_hash_table_lookup(marks->table, GINT_TO_POINTER(num));
-    if (entry)
-      entry->flags &= ~(SYLPHEED_MSG_NEW | SYLPHEED_MSG_UNREAD);
-    else
-      {
-	marks->data_size += sizeof(MarkEntry);
-	marks->data = g_realloc(marks->data, marks->data_size);
-	entry = (MarkEntry *) (marks->data + marks->data_size - sizeof(MarkEntry));
-	entry->num = num;
-	entry->flags = 0;
-      }
+    flags = GPOINTER_TO_UINT(g_hash_table_lookup(marks, GUINT_TO_POINTER(num)));
+    flags &= ~(SYLPHEED_MSG_NEW | SYLPHEED_MSG_UNREAD);
+    g_hash_table_insert(marks, GUINT_TO_POINTER(num), GUINT_TO_POINTER(flags));
 
-    status = mn_sylpheed_mailbox_backend_marks_write(MN_VFS_MAILBOX(message->mailbox)->vfs_uri, marks, err);
-    mn_sylpheed_mailbox_backend_marks_free(marks);
+    mn_sylpheed_mailbox_backend_write_marks(MN_VFS_MAILBOX(message->mailbox)->vfs_uri, marks, &err);
+    g_hash_table_destroy(marks);
 
-    return status;
+  end:
+    mn_vfs_mailbox_unlock(MN_VFS_MAILBOX(message->mailbox));
+
+    return err;
   }
 }

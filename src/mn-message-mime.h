@@ -20,12 +20,13 @@
 #ifndef _MN_MESSAGE_MIME_H
 #define _MN_MESSAGE_MIME_H
 
+#include <libgnomevfs/gnome-vfs.h>
 #include <gmime/gmime.h>
 #include "mn-message.h"
 
 /*
- * The following functions return a NULL message if one of the
- * following conditions is true:
+ * The following functions return a NULL message but do not set @err
+ * if one of the following conditions is true:
  *
  *   - handle_status is TRUE and the message is marked as read
  *   - the message is marked as spam
@@ -39,33 +40,43 @@ MNMessage *mn_message_new_from_mime_message (MNMailbox *mailbox,
 MNMessage *mn_message_new_from_mime_message_full (GType type,
 						  MNMailbox *mailbox,
 						  GMimeMessage *mime_message,
+						  const char *mid,
 						  const char *uri,
 						  MNMessageFlags flags,
 						  gboolean handle_status);
 MNMessage *mn_message_new_from_mime_stream (MNMailbox *mailbox,
 					    GMimeStream *mime_stream,
+					    const char *mid,
 					    const char *uri,
 					    MNMessageFlags flags,
-					    gboolean handle_status);
+					    gboolean handle_status,
+					    GError **err);
 MNMessage *mn_message_new_from_mime_stream_full (GType type,
 						 MNMailbox *mailbox,
 						 GMimeStream *mime_stream,
+						 const char *mid,
 						 const char *uri,
 						 MNMessageFlags flags,
-						 gboolean handle_status);
+						 gboolean handle_status,
+						 GError **err);
 MNMessage *mn_message_new_from_uri (MNMailbox *mailbox,
 				    GnomeVFSURI *uri,
 				    MNMessageFlags flags,
-				    gboolean handle_status);
+				    gboolean handle_status,
+				    GError **err);
 MNMessage *mn_message_new_from_uri_full (GType type,
 					 MNMailbox *mailbox,
+					 const char *mid,
 					 GnomeVFSURI *uri,
 					 MNMessageFlags flags,
-					 gboolean handle_status);
+					 gboolean handle_status,
+					 GError **err);
 MNMessage *mn_message_new_from_buffer (MNMailbox *mailbox,
 				       const char *buffer,
 				       unsigned int len,
+				       const char *mid,
 				       MNMessageFlags flags,
-				       gboolean handle_status);
+				       gboolean handle_status,
+				       GError **err);
 
 #endif /* _MN_MESSAGE_MIME_H */

@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-authenticated-mailbox.h"
 %}
@@ -28,15 +26,9 @@ requires 2.0.14
 %}
 
 %{
-#include "config.h"
 #include <string.h>
-#ifdef HAVE_TIMEGM
 #include <stdlib.h>
 #include <time.h>
-#ifdef TM_IN_SYS_TIME
-#include <sys/time.h>
-#endif /* TM_IN_SYS_TIME */
-#endif /* HAVE_TIMEGM */
 #include <glib/gi18n.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
@@ -221,7 +213,7 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
       {
 	GSList *messages = NULL;
 
-	for (node = node->children; node != NULL; node = node->next)
+	for (node = node->children; node; node = node->next)
 	  if (node->type == XML_ELEMENT_NODE && ! strcmp(node->name, "entry"))
 	    {
 	      time_t sent_time;
@@ -233,9 +225,9 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 	      self_parse_entry(node, &sent_time, &id, &from, &subject, &url);
 
 	      messages = g_slist_prepend(messages, mn_message_new(MN_MAILBOX(self),
-								  NULL,
 								  sent_time,
 								  id,
+								  NULL,
 								  from,
 								  subject,
 								  url,
@@ -282,7 +274,7 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
     *subject = NULL;
     *url = NULL;
 
-    for (node = node->children; node != NULL; node = node->next)
+    for (node = node->children; node; node = node->next)
       if (node->type == XML_ELEMENT_NODE)
 	{
 	  if (! strcmp(node->name, "title"))
@@ -305,7 +297,6 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 	      g_free(*url);
 	      *url = xmlGetProp(node, "href");
 	    }
-#ifdef HAVE_TIMEGM
 	  else if (! strcmp(node->name, "issued"))
 	    {
 	      char *w3c_datetime;
@@ -317,7 +308,6 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 		  g_free(w3c_datetime);
 		}
 	    }
-#endif
 	}
   }
 
@@ -328,7 +318,7 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
     char *name = NULL;
     char *email = NULL;
 
-    for (node = node->children; node != NULL; node = node->next)
+    for (node = node->children; node; node = node->next)
       if (node->type == XML_ELEMENT_NODE)
 	{
 	  if (! strcmp(node->name, "name"))
@@ -389,7 +379,6 @@ class MN:Gmail:Mailbox from MN:Authenticated:Mailbox
 
     return t;
 #else
-    g_assert_not_reached();
     return 0;
 #endif
   }

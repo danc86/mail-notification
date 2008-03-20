@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <gnome-keyring.h>
 #include "mn-mailbox.h"
@@ -29,10 +27,8 @@ requires 2.0.14
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 #include <gnome.h>
-#include <eel/eel.h>
 #include "mn-mailbox-private.h"
 #include "mn-shell.h"
 #include "mn-util.h"
@@ -365,20 +361,19 @@ class MN:Authenticated:Mailbox from MN:Mailbox (abstract)
     self->auth_failed = TRUE;
   }
 
+  [G_GNUC_PRINTF(3, 4)]
   private gboolean
     prompt_for_password (self,
 			 char **password (check null),
-			 const char *format (check null), ...)
+			 const char *format (check null),
+			 ...)
   {
-    va_list args;
     char *message;
     gboolean ok;
 
     g_return_val_if_fail(selfp->auth_dialog == NULL, FALSE);
 
-    va_start(args, format);
-    message = g_strdup_vprintf(format, args);
-    va_end(args);
+    MN_STRDUP_VPRINTF(message, format);
 
     /* keep the title in sync with gnome-authentication-manager */
 
@@ -390,7 +385,7 @@ class MN:Authenticated:Mailbox from MN:Mailbox (abstract)
 						   FALSE);
     g_free(message);
 
-    eel_add_weak_pointer(&selfp->auth_dialog);
+    mn_add_weak_pointer(&selfp->auth_dialog);
 
     gnome_password_dialog_set_show_userpass_buttons(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), FALSE);
     gnome_password_dialog_set_readonly_username(GNOME_PASSWORD_DIALOG(selfp->auth_dialog), TRUE);
@@ -464,12 +459,12 @@ class MN:Authenticated:Mailbox from MN:Mailbox (abstract)
     handle_set_password_result (self, GnomeKeyringResult result)
   {
     if (result != GNOME_KEYRING_RESULT_OK && result != GNOME_KEYRING_RESULT_CANCELLED)
-      mn_error_dialog(NULL,
-		      _("Unable to save the mailbox password"),
-		      /* translators: the first %s is the mailbox format (eg: IMAP) and the second %s is the mailbox name (eg: john@imapserver.org) */
-		      _("The password of %s mailbox %s could not be saved to the keyring."),
-		      MN_MAILBOX(self)->format,
-		      MN_MAILBOX(self)->runtime_name);
+      mn_show_error_dialog(NULL,
+			   _("Unable to save the mailbox password"),
+			   /* translators: the first %s is the mailbox format (eg: IMAP) and the second %s is the mailbox name (eg: john@imapserver.org) */
+			   _("The password of %s mailbox %s could not be saved to the keyring."),
+			   MN_MAILBOX(self)->format,
+			   MN_MAILBOX(self)->runtime_name);
   }
 
   public gpointer
@@ -496,7 +491,7 @@ class MN:Authenticated:Mailbox from MN:Mailbox (abstract)
   {
     char *default_keyring = NULL;
 
-    if (keyring == NULL)
+    if (! keyring)
       {
 	/*
 	 * gnome_keyring_item_delete_sync() does not work if the

@@ -1,0 +1,130 @@
+/*
+ * Mail Notification
+ * Copyright (C) 2003-2008 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+%privateheader{
+#include <gtk/gtk.h>
+%}
+
+%{
+#include <dbus/dbus.h>
+#include <mail/mail-component.h>
+#include <mail/em-folder-tree.h>
+#include "mn-evolution-plugin.h"
+#include "mn-evolution.h"
+
+#include "mn-evolution-folder-tree-server-dbus.h"
+%}
+
+class MN:Evolution:Folder:Tree:Server
+{
+  /* the GdkNativeWindow, which we also use as our ID */
+  private guint32 id;
+  property UINT id (flags = CONSTRUCT_ONLY, link);
+
+  private GtkWidget *plug;
+  private GtkWidget *tree;	/* plug's child, destroyed with it */
+
+  property STRING uri
+    set
+    {
+      em_folder_tree_set_selected(EM_FOLDER_TREE(selfp->tree), g_value_get_string(VAL), FALSE);
+    };
+
+  signal private NONE (STRING)
+    void folder_selected (self, const char *uri);
+
+  signal private NONE (NONE)
+    void folder_activated (self);
+
+  class_init (class)
+  {
+    dbus_g_object_type_install_info(TYPE_SELF, &dbus_glib_mn_evolution_folder_tree_server_object_info);
+  }
+
+  constructor (self)
+  {
+    EMFolderTreeModel *model;
+
+    model = mail_component_peek_tree_model(mail_component_peek());
+    selfp->tree = em_folder_tree_new_with_model(model);
+
+    selfp->plug = gtk_plug_new((GdkNativeWindow) selfp->id);
+    gtk_container_add(GTK_CONTAINER(selfp->plug), selfp->tree);
+    gtk_widget_show_all(selfp->plug);
+
+    g_signal_connect(selfp->plug, "destroy", G_CALLBACK(self_plug_destroy_h), self);
+
+    g_object_connect(selfp->tree,
+		     "signal::folder-selected", self_selected_h, self,
+		     "signal::folder-activated", self_activated_h, self,
+		     NULL);
+  }
+
+  finalize (self)
+  {
+    g_signal_handlers_disconnect_by_func(selfp->plug, self_plug_destroy_h, self);
+  }
+
+  private void
+    plug_destroy_h (GtkObject *object, gpointer user_data)
+  {
+    Self *self = user_data;
+    char *service;
+    GError *err = NULL;
+
+    /* the MN side is gone: unregister and unreference the server */
+
+    service = g_strdup_printf(MN_EVOLUTION_FOLDER_TREE_SERVER_SERVICE, selfp->id);
+    if (! mn_evolution_plugin_unregister_server(service, &err))
+      {
+	g_warning("unable to unregister D-Bus service \"%s\": %s", service, err->message);
+	g_error_free(err);
+      }
+    g_free(service);
+
+    g_object_unref(self);
+  }
+
+  private void
+    selected_h (EMFolderTree *tree,
+		const char *full_name,
+		const char *uri,
+		guint32 flags,
+		gpointer user_data)
+  {
+    Self *self = user_data;
+    self_folder_selected(self, uri);
+  }
+
+  private void
+    activated_h (EMFolderTree *tree,
+		 const char *full_name,
+		 const char *uri,
+		 gpointer user_data)
+  {
+    Self *self = user_data;
+    self_folder_activated(self);
+  }
+
+  public MNEvolutionFolderTreeServer *
+    new (guint32 id)
+  {
+    return GET_NEW_VARG(MN_EVOLUTION_FOLDER_TREE_SERVER_PROP_ID(id), NULL);
+  }
+}

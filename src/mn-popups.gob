@@ -17,10 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %{
-#include "config.h"
 #include <libnotify/notify.h>
 #include "mn-message.h"
 #include "mn-shell.h"
@@ -31,7 +28,7 @@ requires 2.0.14
 #include "mn-properties-dialog.h"
 %}
 
-class MN:Popups from G:Object
+class MN:Popups
 {
   /*
    * Maps message IDs to popups. If a message is known but has no
@@ -65,15 +62,10 @@ class MN:Popups from G:Object
     g_hash_table_foreach(selfp->popups, (GHFunc) self_close_cb, NULL);
   }
 
-  override (G:Object) void
-    finalize (GObject *object)
+  finalize (self)
   {
-    Self *self = SELF(object);
-
     /* close popups on exit */
     self_close_popups(self);
-
-    PARENT_HANDLER(object);
   }
 
   private void
@@ -128,21 +120,25 @@ class MN:Popups from G:Object
   }
 
   private gboolean
-    close_and_remove_cb (const char *id, MNPopup *popup, gpointer user_data)
+    close_and_remove_stale_cb (const char *id, MNPopup *popup, GHashTable *messages)
   {
-    if (popup != NULL)
-      mn_popup_close(popup);
+    if (! g_hash_table_lookup(mn_shell->mailboxes->messages_hash_table, id))
+      {
+	if (popup)
+	  mn_popup_close(popup);
 
-    return TRUE;		/* remove */
+	return TRUE;		/* remove */
+      }
+    else
+      return FALSE;		/* keep */
   }
 
   private gboolean
-    close_and_remove_stale_cb (const char *id, MNPopup *popup, GHashTable *messages)
+    close_and_remove_visible_cb (const char *id, MNPopup *popup, gpointer user_data)
   {
-    if (! g_hash_table_lookup(messages, id))
+    if (popup && popup->visible)
       {
-	if (popup != NULL)
-	  mn_popup_close(popup);
+	mn_popup_close(popup);
 
 	return TRUE;		/* remove */
       }
@@ -153,29 +149,19 @@ class MN:Popups from G:Object
   private void
     update (self, gboolean reshow_current_popups)
   {
-    GSList *l;
+    int i;
+
+    /* close and remove stale popups */
+    g_hash_table_foreach_remove(selfp->popups, (GHRFunc) self_close_and_remove_stale_cb, NULL);
 
     if (reshow_current_popups)
-      /* we have to reshow the popups, so close them */
-      g_hash_table_foreach_remove(selfp->popups, (GHRFunc) self_close_and_remove_cb, NULL);
-    else
-      {
-	GHashTable *messages_hash;
+      /*
+       * We have to reshow the currently visible popups, so close and
+       * remove them.
+       */
+      g_hash_table_foreach_remove(selfp->popups, (GHRFunc) self_close_and_remove_visible_cb, NULL);
 
-	/* close and remove stale popups */
-
-	messages_hash = g_hash_table_new(g_str_hash, g_str_equal);
-	MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
-	  {
-	    MNMessage *message = l->data;
-	    g_hash_table_insert(messages_hash, message->id, message);
-	  }
-
-	g_hash_table_foreach_remove(selfp->popups, (GHRFunc) self_close_and_remove_stale_cb, messages_hash);
-	g_hash_table_destroy(messages_hash);
-      }
-
-    if (eel_gconf_get_boolean(MN_CONF_POPUPS_ENABLED))
+    if (mn_conf_get_bool(MN_CONF_POPUPS_ENABLED))
       {
 	GPtrArray *messages;	/* for O(1) length retrieval and indexing */
 	GSList *visible_popups;
@@ -183,21 +169,20 @@ class MN:Popups from G:Object
 	int popup_limit;
 	int new_popup_count;
 	int messages_to_popup;	/* the number of messages to popup */
-	int i;
 
 	if (mn_conf_get_enum_value(MN_TYPE_POPUP_POSITION, MN_CONF_POPUPS_POSITION) == MN_POPUP_POSITION_ATTACHED)
 	  /* the popup is attached to the icon: allow at most one popup */
 	  popup_limit = 1;
 	else
-	  popup_limit = eel_gconf_get_integer(MN_CONF_POPUPS_LIMIT);
+	  popup_limit = mn_conf_get_int(MN_CONF_POPUPS_LIMIT);
 
 	/* build a list of messages which are not already known */
 
 	messages = g_ptr_array_new();
 
-	MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
+	MN_ARRAY_FOREACH(i, mn_shell->mailboxes->messages)
 	  {
-	    MNMessage *message = l->data;
+	    MNMessage *message = g_ptr_array_index(mn_shell->mailboxes->messages, i);
 	    gpointer ptr;
 
 	    if (! g_hash_table_lookup_extended(selfp->popups, message->id, NULL, &ptr))
@@ -269,9 +254,9 @@ class MN:Popups from G:Object
       {
 	/* register the new messages */
 
-	MN_LIST_FOREACH(l, mn_shell->mailboxes->messages)
+	MN_ARRAY_FOREACH(i, mn_shell->mailboxes->messages)
 	  {
-	    MNMessage *message = l->data;
+	    MNMessage *message = g_ptr_array_index(mn_shell->mailboxes->messages, i);
 	    g_hash_table_replace(selfp->popups, g_strdup(message->id), NULL);
 	  }
       }

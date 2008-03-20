@@ -17,18 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-vfs-mailbox.h"
 %}
 
-%privateheader{
-#include "mn-locked-callback.h"
-%}
-
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include "mn-mailbox-private.h"
@@ -38,7 +31,7 @@ requires 2.0.14
 #include "mn-util.h"
 %}
 
-class MN:VFS:Mailbox:Backend from G:Object (abstract)
+class MN:VFS:Mailbox:Backend (abstract)
 {
   classwide const char *format;
 
@@ -51,7 +44,7 @@ class MN:VFS:Mailbox:Backend from G:Object (abstract)
   protected MNVFSMailbox *mailbox;
   property POINTER mailbox (link, flags = CONSTRUCT_ONLY, type = MNVFSMailbox *);
 
-  private MNLockedGSource *queue_check_source;
+  private unsigned int queue_check_id;
 
   /*
    * The amount of time to wait between a queue_check() call and the
@@ -61,13 +54,10 @@ class MN:VFS:Mailbox:Backend from G:Object (abstract)
    */
   protected int check_latency;
 
-  override (G:Object) void
-    finalize (GObject *object)
+  finalize (self)
   {
-    Self *self = SELF(object);
-
-    if (selfp->queue_check_source)
-      mn_locked_g_source_remove(selfp->queue_check_source);
+    if (selfp->queue_check_id)
+      g_source_remove(selfp->queue_check_id);
 
     /*
      * If the calling mailbox is being finalized, there is no need to
@@ -75,8 +65,6 @@ class MN:VFS:Mailbox:Backend from G:Object (abstract)
      * (see reentrant_check() in mn-vfs-mailbox.gob).
      */
     mn_vfs_mailbox_remove_monitors_by_owner(self->mailbox, self);
-
-    PARENT_HANDLER(object);
   }
 
   protected void
@@ -124,11 +112,11 @@ class MN:VFS:Mailbox:Backend from G:Object (abstract)
   protected void
     queue_check (self)
   {
-    if (selfp->queue_check_source)
-      mn_locked_g_source_clear(&selfp->queue_check_source);
+    if (selfp->queue_check_id)
+      mn_source_clear(&selfp->queue_check_id);
 
     if (self->check_latency)
-      selfp->queue_check_source = mn_g_timeout_add_gdk_locked(self->check_latency, self_queue_check_cb, self);
+      selfp->queue_check_id = gdk_threads_add_timeout(self->check_latency, self_queue_check_cb, self);
     else
       mn_reentrant_mailbox_queue_check(MN_REENTRANT_MAILBOX(self->mailbox));
   }
@@ -140,7 +128,7 @@ class MN:VFS:Mailbox:Backend from G:Object (abstract)
 
     mn_mailbox_check(MN_MAILBOX(self->mailbox));
 
-    selfp->queue_check_source = NULL;
+    selfp->queue_check_id = 0;
     return FALSE;		/* remove source */
   }
 
@@ -148,5 +136,5 @@ class MN:VFS:Mailbox:Backend from G:Object (abstract)
     is (self, MNVFSMailboxBackendClass *class, MN:VFS:Mailbox *mailbox);
 
   virtual public void
-    check (self, int check_id);
+    check (self, int check_id (check != 0));
 }

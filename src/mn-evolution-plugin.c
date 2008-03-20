@@ -17,36 +17,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "config.h"
 #include <stdarg.h>
 #include <string.h>
 #include <libintl.h>
 #include <gtk/gtk.h>
-#include <libbonobo.h>
+#include <dbus/dbus.h>
+#include <dbus/dbus-glib-lowlevel.h>
+#include <dbus/dbus-glib-bindings.h>
 #include <camel/camel-folder.h>
 #include <mail/em-event.h>
 #include <mail/mail-tools.h>
 #include "mn-evolution.h"
-#include "mn-evolution-glue.h"
-#include "mn-evolution-folder-tree-control.h"
+#include "mn-evolution-server.h"
+#include "mn-evolution-plugin.h"
 
-/*** cpp *********************************************************************/
+#define ENABLE_SUCCESS	0
+#define ENABLE_FAILURE	1
 
-#define FACTORY			"_Factory"
+static MNEvolutionServer *evo_server = NULL;
+static DBusGConnection *session_bus = NULL;
+static DBusGProxy *session_bus_proxy = NULL;
 
-/*** functions ***************************************************************/
-
-static void mn_evolution_plugin_error_dialog (const char *primary,
-					      const char *format,
-					      ...);
-static gboolean mn_evolution_plugin_factory_create (const char *factory_iid,
-						    BonoboFactoryCallback factory_cb,
-						    gpointer user_data);
-
-/*** implementation **********************************************************/
+static void show_error_dialog (const char *primary, const char *format, ...) G_GNUC_PRINTF(2, 3);
 
 static void
-mn_evolution_plugin_error_dialog (const char *primary, const char *format, ...)
+show_error_dialog (const char *primary, const char *format, ...)
 {
   GtkWidget *dialog;
   va_list args;
@@ -75,117 +70,189 @@ mn_evolution_plugin_error_dialog (const char *primary, const char *format, ...)
   gtk_widget_show(dialog);
 }
 
-static gboolean
-mn_evolution_plugin_factory_create (const char *factory_iid,
-				    BonoboFactoryCallback factory_cb,
-				    gpointer user_data)
+gboolean
+mn_evolution_plugin_register_server (GObject *server,
+				     const char *service,
+				     const char *path,
+				     GError **err)
 {
-  BonoboGenericFactory *factory;
-  GClosure *closure;
-  Bonobo_RegistrationResult result;
+  unsigned int name_reply;
 
-  g_return_val_if_fail(factory_iid != NULL, FALSE);
-  g_return_val_if_fail(factory_cb != NULL, FALSE);
+  g_return_val_if_fail(G_IS_OBJECT(server), FALSE);
+  g_return_val_if_fail(service != NULL, FALSE);
+  g_return_val_if_fail(path != NULL, FALSE);
 
-  factory = g_object_new(bonobo_generic_factory_get_type(), NULL);
-  closure = g_cclosure_new(G_CALLBACK(factory_cb), user_data, NULL);
-  bonobo_generic_factory_construct_noreg(factory, factory_iid, closure);
+  dbus_g_connection_register_g_object(session_bus, path, server);
 
-  result = bonobo_activation_register_active_server(factory_iid, BONOBO_OBJREF(factory), NULL);
-  switch (result)
+  if (! org_freedesktop_DBus_request_name(session_bus_proxy,
+					  service,
+					  DBUS_NAME_FLAG_DO_NOT_QUEUE,
+					  &name_reply,
+					  err))
+    return FALSE;
+
+  if (name_reply != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
     {
-    case Bonobo_ACTIVATION_REG_ALREADY_ACTIVE:
-    case Bonobo_ACTIVATION_REG_SUCCESS:
-      return TRUE;
-
-    case Bonobo_ACTIVATION_REG_NOT_LISTED:
-      mn_evolution_plugin_error_dialog(dgettext(GETTEXT_PACKAGE, "Unable to activate the Mail Notification plugin"), dgettext(GETTEXT_PACKAGE, "Bonobo could not locate the %s server. Please check your Mail Notification installation."), factory_iid);
-      return FALSE;
-
-    case Bonobo_ACTIVATION_REG_ERROR:
-      mn_evolution_plugin_error_dialog(dgettext(GETTEXT_PACKAGE, "Unable to activate the Mail Notification plugin"), dgettext(GETTEXT_PACKAGE, "Bonobo was unable to register the %s server. Please check your Mail Notification installation."), factory_iid);
-      return FALSE;
-
-    default:
-      g_assert_not_reached();
+      /* unlikely to ever happen, not worth a translation */
+      g_set_error(err, 0, 0, "cannot register name \"%s\"", service);
       return FALSE;
     }
+
+  return TRUE;
+}
+
+gboolean
+mn_evolution_plugin_unregister_server (const char *service, GError **err)
+{
+  unsigned int name_reply;
+
+  g_return_val_if_fail(service != NULL, FALSE);
+
+  if (! org_freedesktop_DBus_release_name(session_bus_proxy,
+					  service,
+					  &name_reply,
+					  err))
+    return FALSE;
+
+  if (name_reply != DBUS_RELEASE_NAME_REPLY_RELEASED)
+    {
+      /* unlikely to ever happen, not worth a translation */
+      g_set_error(err, 0, 0, "cannot unregister name \"%s\"", service);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static void
+disable_plugin (void)
+{
+  g_object_unref(evo_server);
+  evo_server = NULL;
+
+  /*
+   * Do not unref session_bus_proxy, since it might break when the
+   * DBusGProxy memory management issue is fixed
+   * (https://bugs.freedesktop.org/show_bug.cgi?id=14030).
+   */
+  session_bus_proxy = NULL;
+
+  dbus_g_connection_unref(session_bus);
+  session_bus = NULL;
+}
+
+static DBusHandlerResult
+session_bus_filter_cb (DBusConnection *conn, DBusMessage *message, void *user_data)
+{
+  if (dbus_message_is_signal(message, DBUS_INTERFACE_LOCAL, "Disconnected"))
+    {
+      GDK_THREADS_ENTER();
+
+      show_error_dialog(dgettext(GETTEXT_PACKAGE, "A fatal error has occurred in the Evolution Mail Notification plugin"),
+			dgettext(GETTEXT_PACKAGE, "The connection to the D-Bus session bus was lost."));
+
+      disable_plugin();
+
+      GDK_THREADS_LEAVE();
+
+      return DBUS_HANDLER_RESULT_HANDLED;
+    }
+
+  return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
+
+static gboolean
+connect_to_session_bus (void)
+{
+  DBusConnection *raw_bus;
+  GError *err = NULL;
+
+  g_return_val_if_fail(session_bus == NULL, FALSE);
+
+  session_bus = dbus_g_bus_get(DBUS_BUS_SESSION, &err);
+  if (! session_bus)
+    {
+      show_error_dialog(dgettext(GETTEXT_PACKAGE, "Unable to initialize the Mail Notification plugin"),
+			dgettext(GETTEXT_PACKAGE, "Unable to connect to the D-Bus session bus: %s."),
+			err->message);
+      g_error_free(err);
+      return FALSE;
+    }
+
+  raw_bus = dbus_g_connection_get_connection(session_bus);
+
+  dbus_connection_set_exit_on_disconnect(raw_bus, FALSE);
+
+  if (! dbus_connection_add_filter(raw_bus, session_bus_filter_cb, NULL, NULL))
+    {
+      show_error_dialog(dgettext(GETTEXT_PACKAGE, "Unable to initialize the Mail Notification plugin"),
+			/* too unlikely to be worth a translation */
+			"Unable to add a D-Bus filter: not enough memory.");
+
+      dbus_g_connection_unref(session_bus);
+      session_bus = NULL;
+
+      return FALSE;
+    }
+
+  session_bus_proxy = dbus_g_proxy_new_for_name(session_bus,
+						DBUS_SERVICE_DBUS,
+						DBUS_PATH_DBUS,
+						DBUS_INTERFACE_DBUS);
+
+  return TRUE;
 }
 
 int
 e_plugin_lib_enable (EPluginLib *ep, int enable)
 {
   static gboolean enabled = FALSE;
+  GError *err = NULL;
 
   if (! enable || enabled)
-    return 0;			/* success */
+    return ENABLE_SUCCESS;
 
   enabled = TRUE;
 
-  if (mn_evolution_plugin_factory_create(MN_EVOLUTION_GLUE_IID FACTORY, mn_evolution_glue_factory_cb, NULL)
-      && mn_evolution_plugin_factory_create(MN_EVOLUTION_FOLDER_TREE_CONTROL_IID FACTORY, mn_evolution_folder_tree_control_factory_cb, NULL))
-    return 0;			/* success */
-  else
+  if (! connect_to_session_bus())
+    return ENABLE_FAILURE;
+
+  evo_server = mn_evolution_server_new();
+  if (! mn_evolution_plugin_register_server(G_OBJECT(evo_server),
+					    MN_EVOLUTION_SERVER_SERVICE,
+					    MN_EVOLUTION_SERVER_PATH,
+					    &err))
     {
-      mn_evolution_glue_global_cleanup();
-      return 1;			/* failure */
+      show_error_dialog(dgettext(GETTEXT_PACKAGE, "Unable to initialize the Mail Notification plugin"),
+			dgettext(GETTEXT_PACKAGE, "Unable to register the Mail Notification Evolution D-Bus server: %s."),
+			err->message);
+      g_error_free(err);
+
+      disable_plugin();
+      return ENABLE_FAILURE;
     }
+
+  return ENABLE_SUCCESS;
 }
 
 void
 org_jylefort_mail_notification_folder_changed (EPlugin *plugin,
 					       EMEventTargetFolder *folder)
 {
-  if (mn_evolution_glues)
-    {
-      BonoboArg *arg;
-      GSList *l;
-
-      arg = bonobo_arg_new(BONOBO_ARG_STRING);
-      BONOBO_ARG_SET_STRING(arg, folder->uri);
-
-      for (l = mn_evolution_glues; l != NULL; l = l->next)
-	{
-	  MNEvolutionGlue *glue = l->data;
-	  bonobo_event_source_notify_listeners_full(glue->es,
-						    MN_EVOLUTION_GLUE_EVENT_PREFIX,
-						    MN_EVOLUTION_GLUE_EVENT_FOLDER_CHANGED,
-						    NULL,
-						    arg,
-						    NULL);
-	}
-
-      bonobo_arg_release(arg);
-    }
+  if (evo_server)
+    mn_evolution_server_folder_changed(evo_server, folder->uri);
 }
 
 void
 org_jylefort_mail_notification_message_reading (EPlugin *plugin,
 						EMEventTargetMessage *message)
 {
-  if (mn_evolution_glues)
+  if (evo_server)
     {
-      BonoboArg *arg;
       char *url;
-      GSList *l;
-
-      arg = bonobo_arg_new(BONOBO_ARG_STRING);
 
       url = mail_tools_folder_to_url(message->folder);
-      BONOBO_ARG_SET_STRING(arg, url);
+      mn_evolution_server_message_reading(evo_server, url);
       g_free(url);
-
-      for (l = mn_evolution_glues; l != NULL; l = l->next)
-	{
-	  MNEvolutionGlue *glue = l->data;
-	  bonobo_event_source_notify_listeners_full(glue->es,
-						    MN_EVOLUTION_GLUE_EVENT_PREFIX,
-						    MN_EVOLUTION_GLUE_EVENT_MESSAGE_READING,
-						    NULL,
-						    arg,
-						    NULL);
-	}
-
-      bonobo_arg_release(arg);
     }
 }

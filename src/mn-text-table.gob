@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <gtk/gtk.h>
 %}
@@ -30,7 +28,7 @@ typedef struct _MNTextTableCell MNTextTableCell;
 %privateheader{
 typedef struct
 {
-  GQueue	*cells;
+  GPtrArray	*cells;
   int		height;
 } Row;
 %}
@@ -59,25 +57,15 @@ struct _MNTextTableCell
  * We do not use a GtkBox (or GtkTable) containing labels because it
  * is extremely slow when we add a few hundred labels.
  *
- * An alternate solution would be to use a GtkTextView, which provides
- * acceptable performance, but:
- *
- *   - creating a table using a GtkTextView is extremely cumbersome
- *   - a GtkTextView uses the GLib main loop in a thread-unsafe manner
- *     (http://bugzilla.gnome.org/show_bug.cgi?id=321886); if we destroy
- *     it from a thread, we may crash the application
- *
- * We therefore implement MNTextTable, which:
- *
- *   - is fast (at least as fast as a GtkTextView, probably faster)
- *   - is thread-safe
- *   - allows to easily align labels horizontally
+ * A possible alternative would be to use a GtkTextView, which
+ * provides acceptable performance. However, creating a table using a
+ * GtkTextView is extremely cumbersome.
  */
 
-class MN:Text:Table from Gtk:Drawing:Area
+class MN:Text:Table from Gtk:Widget
 {
-  private GQueue *rows = {g_queue_new()}
-    destroy { mn_g_queue_free_deep_custom(VAR, (GFunc) self_row_free, NULL); };
+  private GPtrArray *rows = {g_ptr_array_new()}
+    destroy { mn_g_ptr_array_free_deep_custom(VAR, (GFunc) self_row_free, NULL); };
 
   private GArray *column_sizes = {g_array_new(FALSE, TRUE, sizeof(int))}
     destroy { g_array_free(VAR, TRUE); };
@@ -90,8 +78,7 @@ class MN:Text:Table from Gtk:Drawing:Area
 
   init (self)
   {
-    /* allow consumers to receive button-press-event */
-    gtk_widget_add_events(GTK_WIDGET(self), GDK_BUTTON_PRESS_MASK);
+    GTK_WIDGET_SET_FLAGS(self, GTK_NO_WINDOW);
 
     g_object_connect(self,
 		     "swapped-signal::style-set", self_context_changed, self,
@@ -102,7 +89,7 @@ class MN:Text:Table from Gtk:Drawing:Area
   private void
     row_free (Row *row (check null))
   {
-    mn_g_queue_free_deep_custom(row->cells, (GFunc) self_cell_free, NULL);
+    mn_g_ptr_array_free_deep_custom(row->cells, (GFunc) self_cell_free, NULL);
     g_free(row);
   }
 
@@ -115,29 +102,6 @@ class MN:Text:Table from Gtk:Drawing:Area
   }
 
   override (Gtk:Widget) void
-    realize (GtkWidget *widget)
-  {
-    PARENT_HANDLER(widget);
-
-    /* set a transparent background */
-    gdk_window_set_back_pixmap(widget->window, NULL, TRUE);
-  }
-
-  override (Gtk:Widget) gboolean
-    expose_event (GtkWidget *widget, GdkEventExpose *event)
-  {
-    Self *self = SELF(widget);
-
-    if (GTK_WIDGET_MAPPED(widget))
-      {
-	self_relayout(self);
-	self_redraw(self, event);
-      }
-
-    return FALSE;		/* propagate event */
-  }
-
-  override (Gtk:Widget) void
     size_request (GtkWidget *widget, GtkRequisition *requisition)
   {
     Self *self = SELF(widget);
@@ -146,6 +110,56 @@ class MN:Text:Table from Gtk:Drawing:Area
 
     requisition->width = selfp->width;
     requisition->height = selfp->height;
+  }
+
+  override (Gtk:Widget) gboolean
+    expose_event (GtkWidget *widget, GdkEventExpose *event)
+  {
+    Self *self = SELF(widget);
+    int i;
+    int y = widget->allocation.y;
+
+    if (! GTK_WIDGET_DRAWABLE(widget))
+      return FALSE;
+
+    self_relayout(self);
+
+    MN_ARRAY_FOREACH(i, selfp->rows)
+      {
+	Row *row = g_ptr_array_index(selfp->rows, i);
+	int j;
+	int x = widget->allocation.x;
+	int column = 0;
+
+	MN_ARRAY_FOREACH(j, row->cells)
+	  {
+	    MNTextTableCell *cell = g_ptr_array_index(row->cells, j);
+
+	    if (cell->layout)
+	      gtk_paint_layout(widget->style,
+			       widget->window,
+			       GTK_WIDGET_STATE(widget),
+			       FALSE,
+			       &event->area,
+			       widget,
+			       NULL,
+			       x,
+			       y + row->height - cell->height,
+			       cell->layout);
+
+	    x += COLUMN_SIZE(self, column);
+	    if (j < row->cells->len - 1)
+	      x += HORIZONTAL_SPACING;
+
+	    column++;
+	  }
+
+	y += row->height;
+	if (i < selfp->rows->len - 1)
+	  y += VERTICAL_SPACING;
+      }
+
+    return FALSE;
   }
 
   private void
@@ -161,16 +175,16 @@ class MN:Text:Table from Gtk:Drawing:Area
   private void
     context_changed (self)
   {
-    GList *la;
+    int i;
 
-    MN_QUEUE_FOREACH(la, selfp->rows)
+    MN_ARRAY_FOREACH(i, selfp->rows)
       {
-	Row *row = la->data;
-	GList *lb;
+	Row *row = g_ptr_array_index(selfp->rows, i);
+	int j;
 
-	MN_QUEUE_FOREACH(lb, row->cells)
+	MN_ARRAY_FOREACH(j, row->cells)
 	  {
-	    MNTextTableCell *cell = lb->data;
+	    MNTextTableCell *cell = g_ptr_array_index(row->cells, j);
 
 	    if (cell->layout)
 	      {
@@ -187,7 +201,6 @@ class MN:Text:Table from Gtk:Drawing:Area
     relayout (self)
   {
     int i;
-    GList *la;
 
     if (! selfp->dirty)
       return;
@@ -195,21 +208,20 @@ class MN:Text:Table from Gtk:Drawing:Area
     selfp->width = 0;
     selfp->height = 0;
 
-    for (i = 0; i < selfp->column_sizes->len; i++)
+    MN_ARRAY_FOREACH(i, selfp->column_sizes)
       COLUMN_SIZE(self, i) = 0;
 
-    MN_QUEUE_FOREACH(la, selfp->rows)
+    MN_ARRAY_FOREACH(i, selfp->rows)
       {
-	Row *row = la->data;
-	int column = 0;
-	GList *lb;
+	Row *row = g_ptr_array_index(selfp->rows, i);
+	int j;
 
 	row->height = 0;
 
-	MN_QUEUE_FOREACH(lb, row->cells)
+	MN_ARRAY_FOREACH(j, row->cells)
 	  {
-	    MNTextTableCell *cell = lb->data;
-	    int n_columns = column + 1;
+	    MNTextTableCell *cell = g_ptr_array_index(row->cells, j);
+	    int n_columns = j + 1;
 
 	    if (cell->dirty)
 	      {
@@ -222,80 +234,31 @@ class MN:Text:Table from Gtk:Drawing:Area
 	    if (n_columns > selfp->column_sizes->len)
 	      g_array_set_size(selfp->column_sizes, n_columns);
 
-	    if (cell->width > COLUMN_SIZE(self, column))
-	      COLUMN_SIZE(self, column) = cell->width;
+	    if (cell->width > COLUMN_SIZE(self, j))
+	      COLUMN_SIZE(self, j) = cell->width;
 	    if (cell->height > row->height)
 	      row->height = cell->height;
-
-	    column++;
 	  }
 
 	selfp->height += row->height;
       }
 
-    for (i = 0; i < selfp->column_sizes->len; i++)
+    MN_ARRAY_FOREACH(i, selfp->column_sizes)
       selfp->width += COLUMN_SIZE(self, i);
 
     if (selfp->column_sizes->len > 1)
       selfp->width += HORIZONTAL_SPACING * (selfp->column_sizes->len - 1);
-    if (selfp->rows->length > 1)
-      selfp->height += VERTICAL_SPACING * (selfp->rows->length - 1);
+    if (selfp->rows->len > 1)
+      selfp->height += VERTICAL_SPACING * (selfp->rows->len - 1);
 
     selfp->dirty = FALSE;
-  }
-
-  private void
-    redraw (self, GdkEventExpose *event (check null))
-  {
-    GtkWidget *widget = GTK_WIDGET(self);
-    GList *la;
-    int y = 0;
-
-    g_return_if_fail(selfp->dirty == FALSE);
-
-    MN_QUEUE_FOREACH(la, selfp->rows)
-      {
-	Row *row = la->data;
-	GList *lb;
-	int x = 0;
-	int column = 0;
-
-	MN_QUEUE_FOREACH(lb, row->cells)
-	  {
-	    MNTextTableCell *cell = lb->data;
-
-	    if (cell->layout)
-	      gtk_paint_layout(widget->style,
-			       widget->window,
-			       GTK_WIDGET_STATE(widget),
-			       FALSE,
-			       &event->area,
-			       widget,
-			       NULL,
-			       x,
-			       y + row->height - cell->height,
-			       cell->layout);
-
-	    x += COLUMN_SIZE(self, column);
-	    if (lb->next)
-	      x += HORIZONTAL_SPACING;
-
-	    column++;
-	  }
-
-	y += row->height;
-	if (la->next)
-	  y += VERTICAL_SPACING;
-      }
   }
 
   virtual public void
     clear (self)
   {
-    Row *row;
-
-    while ((row = g_queue_pop_head(selfp->rows)))
-      self_row_free(row);
+    mn_g_ptr_array_free_deep_custom(selfp->rows, (GFunc) self_row_free, NULL);
+    selfp->rows = g_ptr_array_new();
 
     g_array_set_size(selfp->column_sizes, 0);
 
@@ -357,12 +320,12 @@ class MN:Text:Table from Gtk:Drawing:Area
     if (! selfp->row)
       {
 	selfp->row = g_new(Row, 1);
-	selfp->row->cells = g_queue_new();
+	selfp->row->cells = g_ptr_array_new();
 
-	g_queue_push_tail(selfp->rows, selfp->row);
+	g_ptr_array_add(selfp->rows, selfp->row);
       }
 
-    g_queue_push_tail(selfp->row->cells, cell);
+    g_ptr_array_add(selfp->row->cells, cell);
 
     self_set_dirty(self);
   }

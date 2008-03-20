@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-vfs-message.h"
 %}
@@ -28,21 +26,18 @@ requires 2.0.14
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
-#include <eel/eel.h>
 #include "mn-vfs-mailbox.h"
 #include "mn-vfs.h"
 #include "mn-util.h"
+#include "mn-message-private.h"
+#include "mn-shell.h"
+
+#define DELETE_DIALOG_MESSAGE	"mn-maildir-message-delete-dialog-message"
 %}
 
 class MN:Maildir:Message from MN:VFS:Message
 {
-  private GtkWidget *delete_dialog unref {
-    if (VAR != NULL)
-      gtk_dialog_response(GTK_DIALOG(VAR), GTK_RESPONSE_CANCEL);
-  };
-
   private int
     flags_sort_cb (const void *a, const void *b)
   {
@@ -54,8 +49,14 @@ class MN:Maildir:Message from MN:VFS:Message
     return ca - cb;
   }
 
-  override (MN:Message) gboolean
-    mark_as_read_impl (MNMessage *message, GError **err)
+  override (MN:Message) void
+    builtin_mark_as_read (MNMessage *message, MNMessageActionRequest *request)
+  {
+    mn_message_perform_action_in_thread(request, self_builtin_mark_as_read_cb, NULL);
+  }
+
+  private GError *
+    builtin_mark_as_read_cb (MNMessage *message, gpointer data)
   {
     MNVFSMessage *vmessage = MN_VFS_MESSAGE(message);
     char *old_flags;
@@ -63,7 +64,7 @@ class MN:Maildir:Message from MN:VFS:Message
     char *new_filename;
     GnomeVFSURI *dir_uri;
     GnomeVFSURI *new_uri;
-    gboolean status;
+    GError *err = NULL;
 
     /* http://cr.yp.to/proto/maildir.html */
 
@@ -98,15 +99,15 @@ class MN:Maildir:Message from MN:VFS:Message
 
     g_free(old_filename);
 
-    dir_uri = gnome_vfs_uri_append_path(MN_VFS_MAILBOX(MN_MESSAGE(message)->mailbox)->vfs_uri, "cur");
+    dir_uri = gnome_vfs_uri_append_path(MN_VFS_MAILBOX(message->mailbox)->vfs_uri, "cur");
     new_uri = gnome_vfs_uri_append_file_name(dir_uri, new_filename);
     gnome_vfs_uri_unref(dir_uri);
     g_free(new_filename);
 
-    status = mn_vfs_result_to_g_error(gnome_vfs_move_uri(vmessage->vfs_uri, new_uri, TRUE), err);
+    mn_vfs_result_to_g_error(gnome_vfs_move_uri(vmessage->vfs_uri, new_uri, TRUE), &err);
     gnome_vfs_uri_unref(new_uri);
 
-    return status;
+    return err;
   }
 
   /* returns NULL if not supported for the volume where the file resides */
@@ -140,55 +141,77 @@ class MN:Maildir:Message from MN:VFS:Message
     return NULL;
   }
 
-  /* If the users selects Cancel, returns FALSE without setting @err. */
-  private gboolean
-    delete_with_prompt (self, GError **err, const char *format, ...)
+  [G_GNUC_PRINTF(2, 3)]
+  private GError *
+    delete_with_prompt (self, const char *format (check null), ...)
   {
-    MNVFSMessage *vmessage = MN_VFS_MESSAGE(self);
     GtkWidget *dialog;
-    va_list args;
     char *prompt;
-    gboolean status;
+    int response;
 
-    g_assert(selfp->delete_dialog == NULL);
+    MN_STRDUP_VPRINTF(prompt, format);
 
-    va_start(args, format);
-    prompt = g_strdup_vprintf(format, args);
-    va_end(args);
+    GDK_THREADS_ENTER();
 
-    selfp->delete_dialog = dialog = mn_alert_dialog_new(NULL,
-							GTK_MESSAGE_WARNING,
-							0,
-							_("Delete message?"),
-							prompt);
+    dialog = mn_alert_dialog_new(NULL,
+				 GTK_MESSAGE_WARNING,
+				 0,
+				 _("Delete message?"),
+				 prompt);
     g_free(prompt);
 
-    eel_add_weak_pointer(&dialog);
-    eel_add_weak_pointer(&selfp->delete_dialog);
+    gtk_dialog_add_buttons(GTK_DIALOG(dialog),
+			   GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			   GTK_STOCK_DELETE, GTK_RESPONSE_OK,
+			   NULL);
 
-    gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
-    gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_DELETE, GTK_RESPONSE_OK);
+    g_object_set_data(G_OBJECT(dialog), DELETE_DIALOG_MESSAGE, self);
 
-    status = mn_dialog_run_nonmodal(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK;
+    mn_g_object_connect(dialog, mn_shell->mailboxes,
+			"signal::messages-changed", self_delete_messages_changed_h, dialog,
+			NULL);
 
-    /*
-     * At this point @self is no longer valid since it might have been
-     * finalized while the recursive main loop ran in
-     * mn_dialog_run_nonmodal().
-     */
+    response = mn_dialog_run_nonmodal(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
 
-    /* can have been nullified by the weak pointer set above */
-    if (dialog != NULL)
-      gtk_widget_destroy(dialog);
+    gdk_flush();
+    GDK_THREADS_LEAVE();
 
-    if (! status)
-      return FALSE;
+    if (response == GTK_RESPONSE_OK)
+      {
+	GError *err = NULL;
 
-    return mn_vfs_result_to_g_error(gnome_vfs_unlink_from_uri(vmessage->vfs_uri), err);
+	mn_vfs_result_to_g_error(gnome_vfs_unlink_from_uri(MN_VFS_MESSAGE(self)->vfs_uri), &err);
+
+	return err;
+      }
+    else
+      return g_error_new(MN_MESSAGE_ACTION_ERROR, MN_MESSAGE_ACTION_ERROR_CANCELLED, "cancelled");
   }
 
-  override (MN:Message) gboolean
-    delete_impl (MNMessage *message, GError **err)
+  private void
+    delete_messages_changed_h (MNMailboxes *mailboxes,
+			       gboolean has_new,
+			       gpointer user_data)
+  {
+    GtkWidget *dialog = user_data;
+    Self *self;
+
+    self = g_object_get_data(G_OBJECT(dialog), DELETE_DIALOG_MESSAGE);
+
+    /* if the message was removed, close the dialog */
+    if (! g_hash_table_lookup(mn_shell->mailboxes->messages_hash_table, MN_MESSAGE(self)->id))
+      gtk_dialog_response(GTK_DIALOG(dialog), GTK_RESPONSE_CANCEL);
+  }
+
+  override (MN:Message) void
+    builtin_delete (MNMessage *message, MNMessageActionRequest *request)
+  {
+    mn_message_perform_action_in_thread(request, self_builtin_delete_cb, NULL);
+  }
+
+  private GError *
+    builtin_delete_cb (MNMessage *message, gpointer data)
   {
     Self *self = SELF(message);
     MNVFSMessage *vmessage = MN_VFS_MESSAGE(message);
@@ -198,8 +221,8 @@ class MN:Maildir:Message from MN:VFS:Message
     GnomeVFSResult result;
 
     trash_uri = self_get_trash_uri(self);
-    if (trash_uri == NULL)
-      return self_delete_with_prompt(self, err, _("The message cannot be moved to the trash. Permanently delete it?"));
+    if (! trash_uri)
+      return self_delete_with_prompt(self, _("The message cannot be moved to the trash. Permanently delete it?"));
 
     filename = gnome_vfs_uri_extract_short_name(vmessage->vfs_uri);
     dest_uri = gnome_vfs_uri_append_file_name(trash_uri, filename);
@@ -221,9 +244,9 @@ class MN:Maildir:Message from MN:VFS:Message
 				NULL);
     gnome_vfs_uri_unref(dest_uri);
 
-    if (result != GNOME_VFS_OK)
-      return self_delete_with_prompt(self, err, _("The message could not be moved to the trash (%s). Permanently delete it?"), gnome_vfs_result_to_string(result));
-
-    return TRUE;
+    if (result == GNOME_VFS_OK)
+      return NULL;
+    else
+      return self_delete_with_prompt(self, _("The message could not be moved to the trash (%s). Permanently delete it?"), gnome_vfs_result_to_string(result));
   }
 }

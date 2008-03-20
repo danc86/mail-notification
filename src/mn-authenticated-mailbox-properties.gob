@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <gtk/gtk.h>
 #include "mn-mailbox-properties.h"
@@ -29,7 +27,6 @@ requires 2.0.14
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 #include "mn-mailbox-properties-private.h"
 #include "mn-util.h"
@@ -74,8 +71,8 @@ class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties (abstract)
      * These two widgets will alternate in their parent container so
      * we need to reference them.
      */
-    mn_gtk_object_ref_and_sink(GTK_OBJECT(self->password_entry));
-    mn_gtk_object_ref_and_sink(GTK_OBJECT(selfp->password_operation_label));
+    g_object_ref_sink(self->password_entry);
+    g_object_ref_sink(selfp->password_operation_label);
 
     selfp->password_widget = self->password_entry;
 
@@ -88,14 +85,9 @@ class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties (abstract)
   }
 
   /* dispose and not finalize because we use unrefwith above */
-  override (G:Object) void
-    dispose (GObject *object)
+  dispose (self)
   {
-    Self *self = SELF(object);
-
     self_clear_mailbox_callbacks(self);
-
-    PARENT_HANDLER(object);
   }
 
   protected GtkWidget *
@@ -216,8 +208,8 @@ class MN:Authenticated:Mailbox:Properties from MN:Mailbox:Properties (abstract)
 
     if (result == GNOME_KEYRING_RESULT_OK && list)
       {
-	GnomeKeyringNetworkPasswordData *data = list->data;
-	password = data->password;
+	GnomeKeyringNetworkPasswordData *password_data = list->data;
+	password = password_data->password;
       }
 
     GDK_THREADS_ENTER();

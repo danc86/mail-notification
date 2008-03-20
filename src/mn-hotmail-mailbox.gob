@@ -17,19 +17,41 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-webmail-mailbox.h"
 %}
 
 %{
-#include "config.h"
 #include <unistd.h>
 #include <glib/gi18n.h>
 #include "mn-conf.h"
 #include "mn-webmail-mailbox-private.h"
 #include "mn-stock.h"
+#include "mn-util.h"
+
+typedef struct
+{
+  const char	*code;
+  const char	*folder;
+} InboxMapping;
+
+/* this list is not exhaustive */
+static const InboxMapping inbox_mappings_array[] = {
+  { "da",	"Indbakke"		},
+  { "de",	"Posteingang"		},
+  { "es",	"Band. entrada"		},
+  { "fi",	"Saapuneet"		},
+  { "fr",	"Boîte de réception"	},
+  { "it",	"Posta in arrivo"	},
+  { "nl",	"Postvak IN"		},
+  { "no",	"Innboks"		},
+  { "pl",	"Skrzynka odbiorcza"	},
+  { "pt_BR",	"Caixa de Entrada"	},
+  { "pt_PT",	"A Receber"		},
+  { "sv",	"Inkorgen"		},
+};
+
+static GHashTable *inbox_mappings;
 %}
 
 class MN:Hotmail:Mailbox from MN:Webmail:Mailbox
@@ -42,6 +64,23 @@ class MN:Hotmail:Mailbox from MN:Webmail:Mailbox
     MN_MAILBOX_CLASS(class)->default_check_delay = 60 * 5;
 
     MN_WEBMAIL_MAILBOX_CLASS(class)->default_domain = "hotmail.com";
+
+    self_init_inbox_mappings();
+  }
+
+  private void
+    init_inbox_mappings (void)
+  {
+    int i;
+
+    inbox_mappings = g_hash_table_new(g_str_hash, g_str_equal);
+
+    for (i = 0; i < G_N_ELEMENTS(inbox_mappings_array); i++)
+      {
+	const InboxMapping *mapping = &inbox_mappings_array[i];
+
+	g_hash_table_insert(inbox_mappings, (gpointer) mapping->code, (gpointer) mapping->folder);
+      }
   }
 
   init (self)
@@ -50,19 +89,123 @@ class MN:Hotmail:Mailbox from MN:Webmail:Mailbox
     mn_mailbox_set_stock_id(MN_MAILBOX(self), MN_STOCK_HOTMAIL);
   }
 
+  private void
+    parse_language (const char *code (check null),
+		    char **language,
+		    char **country)
+  {
+    char *stripped = NULL;
+    char *sep;
+
+    /* strip the charset if any */
+    sep = strchr(code, '.');
+    if (sep)
+      {
+	stripped = g_strndup(code, sep - code);
+	code = stripped;
+      }
+
+    sep = strchr(code, '_');
+    if (sep)
+      {
+	*language = g_strndup(code, sep - code);
+	*country = g_strdup(sep + 1);
+      }
+    else
+      {
+	*language = g_strdup(code);
+	*country = NULL;
+      }
+
+    g_free(stripped);
+  }
+
+  private const char *
+    get_localized_folder (const char *folder (check null))
+  {
+    if (! strcmp(folder, "Inbox"))
+      {
+	int i;
+	const char* const *language_codes;
+
+	language_codes = g_get_language_names();
+
+	for (i = 0; language_codes[i]; i++)
+	  {
+	    const char *code = language_codes[i];
+	    char *language;
+	    char *country;
+	    const char *mapping = NULL;
+
+	    self_parse_language(code, &language, &country);
+
+	    if (country)
+	      {
+		char *full;
+
+		full = g_strdup_printf("%s_%s", language, country);
+		mapping = g_hash_table_lookup(inbox_mappings, full);
+		g_free(full);
+	      }
+
+	    if (! mapping)
+	      mapping = g_hash_table_lookup(inbox_mappings, language);
+
+	    g_free(language);
+	    g_free(country);
+
+	    if (mapping)
+	      return mapping;
+	  }
+      }
+
+    return folder;
+  }
+
+  private char *
+    encode_with_character_references (const char *str (check null))
+  {
+    GString *encoded;
+    const char *p;
+
+    encoded = g_string_new(NULL);
+    for (p = str; *p; p = g_utf8_next_char(p))
+      {
+	gunichar c = g_utf8_get_char(p);
+
+	if (c < 128 && (g_ascii_isalnum(c) || g_ascii_isspace(c)))
+	  g_string_append_c(encoded, c);
+	else
+	  g_string_append_printf(encoded, "&#%i;", (int) c);
+      }
+
+    return g_string_free(encoded, FALSE);
+  }
+
   private char *
     create_config_file (self,
 			const char *spool_file (check null),
+			gboolean getlive_pre_1_40,
 			GError **err)
   {
     char *username;
     char *domain;
+    const char *localized_folder;
+    char *folder;
     GString *contents;
     char *filename;
+    const char *charset;
 
     mn_webmail_mailbox_parse_username(MN_WEBMAIL_MAILBOX(self), &username, &domain);
 
     contents = g_string_new(NULL);
+
+    localized_folder = self_get_localized_folder(MN_WEBMAIL_MAILBOX(self)->folder);
+
+    if (getlive_pre_1_40)
+      folder = self_encode_with_character_references(localized_folder);
+    else
+      folder = g_strdup(localized_folder);
 
     g_string_append_printf(contents,
 			   "UserName = %s\n"
@@ -75,28 +218,29 @@ class MN:Hotmail:Mailbox from MN:Webmail:Mailbox
 			   username,
 			   domain,
 			   MN_AUTHENTICATED_MAILBOX(self)->runtime_password,
-			   MN_WEBMAIL_MAILBOX(self)->folder,
+			   folder,
 			   spool_file);
 
     g_free(username);
     g_free(domain);
+    g_free(folder);
 
-    if (eel_gconf_get_boolean(MN_CONF_SYSTEM_HTTP_PROXY_USE_HTTP_PROXY))
+    if (mn_conf_get_bool(MN_CONF_SYSTEM_HTTP_PROXY_USE_HTTP_PROXY))
       {
 	char *host;
 
-	host = eel_gconf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_HOST);
+	host = mn_conf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_HOST);
 	if (host && *host)
 	  {
-	    g_string_append_printf(contents, "Proxy = %s:%i\n", host, eel_gconf_get_integer(MN_CONF_SYSTEM_HTTP_PROXY_PORT));
+	    g_string_append_printf(contents, "Proxy = %s:%i\n", host, mn_conf_get_int(MN_CONF_SYSTEM_HTTP_PROXY_PORT));
 
-	    if (eel_gconf_get_boolean(MN_CONF_SYSTEM_HTTP_PROXY_USE_AUTHENTICATION))
+	    if (mn_conf_get_bool(MN_CONF_SYSTEM_HTTP_PROXY_USE_AUTHENTICATION))
 	      {
 		char *user;
 		char *password;
 
-		user = eel_gconf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_AUTHENTICATION_USER);
-		password = eel_gconf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_AUTHENTICATION_PASSWORD);
+		user = mn_conf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_AUTHENTICATION_USER);
+		password = mn_conf_get_string(MN_CONF_SYSTEM_HTTP_PROXY_AUTHENTICATION_PASSWORD);
 
 		if (user && *user && password && *password)
 		  g_string_append_printf(contents, "ProxyAuth = %s:%s\n", user, password);
@@ -108,8 +252,22 @@ class MN:Hotmail:Mailbox from MN:Webmail:Mailbox
 	g_free(host);
       }
 
-    mn_webmail_mailbox_display_config(MN_WEBMAIL_MAILBOX(self), contents->str);
-    filename = mn_webmail_mailbox_write_temporary_file(contents->str, err);
+    mn_webmail_mailbox_print_config(MN_WEBMAIL_MAILBOX(self), contents->str);
+
+    /*
+     * As of this commit:
+     *
+     *   http://getlive.cvs.sourceforge.net/getlive/GetLive/GetLive.pl?r1=1.39&r2=1.40
+     *
+     * GetLive expects the config file to be encoded in the charset of
+     * the user's locale.
+     */
+    if (getlive_pre_1_40)
+      charset = "UTF-8";
+    else
+      g_get_charset(&charset);
+
+    filename = mn_webmail_mailbox_write_temporary_file(contents->str, charset, err);
 
     g_string_free(contents, TRUE);
 
@@ -143,13 +301,76 @@ class MN:Hotmail:Mailbox from MN:Webmail:Mailbox
     return status;
   }
 
+  private gboolean
+    get_getlive_cvs_revision (int *major (check null), int *minor (check null))
+  {
+    char *getlive_stderr;
+    char **lines;
+    int i;
+
+    if (! g_spawn_command_line_sync("GetLive --version", NULL, &getlive_stderr, NULL, NULL))
+      return FALSE;
+
+    lines = g_strsplit(getlive_stderr, "\n", 0);
+    g_free(getlive_stderr);
+
+    for (i = 0; lines[i]; i++)
+      {
+	char *str;
+
+	str = mn_strstr_span(lines[i], "GetLive $Revision: ");
+	if (str)
+	  {
+	    char *end;
+
+	    end = strchr(str, ' ');
+	    if (end)
+	      {
+		char *rev;
+		char **versions;
+
+		rev = g_strndup(str, end - str);
+		versions = g_strsplit(rev, ".", 0);
+		g_free(rev);
+
+		if (g_strv_length(versions) >= 2
+		    && mn_str_isnumeric(versions[0])
+		    && mn_str_isnumeric(versions[1]))
+		  {
+		    *major = atoi(versions[0]);
+		    *minor = atoi(versions[1]);
+
+		    g_strfreev(versions);
+		    g_strfreev(lines);
+
+		    return TRUE;
+		  }
+
+		g_strfreev(versions);
+	      }
+	  }
+      }
+
+    g_strfreev(lines);
+
+    return FALSE;
+  }
+
   override (MN:Webmail:Mailbox) gboolean
     webmail_check (MNWebmailMailbox *mailbox, GError **err)
   {
     Self *self = SELF(mailbox);
+    int getlive_major;
+    int getlive_minor;
+    gboolean getlive_pre_1_40;
     char *spool_file;
     char *config_file = NULL;
     gboolean status = FALSE;
+
+    /* see https://sourceforge.net/tracker/?func=detail&atid=948290&aid=1881842&group_id=194154 */
+    getlive_pre_1_40 = ! self_get_getlive_cvs_revision(&getlive_major, &getlive_minor)
+      || getlive_major < 1
+      || (getlive_major == 1 && getlive_minor < 40);
 
     /*
      * We create an empty spool file beforehand to make sure it is not
@@ -159,7 +380,7 @@ class MN:Hotmail:Mailbox from MN:Webmail:Mailbox
     if (! spool_file)
       return FALSE;
 
-    config_file = self_create_config_file(self, spool_file, err);
+    config_file = self_create_config_file(self, spool_file, getlive_pre_1_40, err);
     if (! config_file)
       goto end;
 

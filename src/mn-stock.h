@@ -20,8 +20,6 @@
 #ifndef _MN_STOCK_H
 #define _MN_STOCK_H
 
-#include "config.h"
-
 #define MN_STOCK_MAIL			"mn-mail"
 #define MN_STOCK_NO_MAIL		"mn-no-mail"
 #define MN_STOCK_LOCAL			"mn-local"

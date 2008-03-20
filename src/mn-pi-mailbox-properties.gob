@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <gtk/gtk.h>
 #include "mn-authenticated-mailbox-properties.h"
@@ -26,7 +24,6 @@ requires 2.0.14
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 #include "mn-mailbox-properties-dialog.h"
 #include "mn-mailbox-properties-dialog-private.h"
@@ -96,7 +93,7 @@ class MN:PI:Mailbox:Properties from MN:Authenticated:Mailbox:Properties (abstrac
     self->connection_page = gtk_vbox_new(FALSE, 18);
     gtk_container_set_border_width(GTK_CONTAINER(self->connection_page), 12);
     mn_mailbox_properties_dialog_set_help_section(self->connection_page, "mailbox-properties-connection");
-    mn_gtk_object_ref_and_sink(GTK_OBJECT(self->connection_page));
+    g_object_ref_sink(self->connection_page);
 
     /* translators: header capitalization */
     type_section = mn_hig_section_new_with_box(_("Connection Type"), NULL, &type_vbox);

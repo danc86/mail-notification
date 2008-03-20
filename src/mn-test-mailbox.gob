@@ -17,15 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-mailbox.h"
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
+#include "mn-mailbox-private.h"
 #include "mn-message.h"
 #include "mn-util.h"
 %}
@@ -58,8 +56,8 @@ class MN:Test:Mailbox from MN:Mailbox
 
 	subject = g_strdup_printf(_("Test message #%i"), i);
 	message = mn_message_new(mailbox,
-				 NULL,
 				 now,
+				 NULL,
 				 NULL,
 				 /* translators: header capitalization */
 				 _("Mail Notification Properties Dialog"),

@@ -17,20 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "config.h"
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <sasl/sasl.h>
-
-/*** variables ***************************************************************/
 
 static gboolean attempted = FALSE;
 static gboolean initialized = FALSE;
 static char *init_error = NULL;
 
 G_LOCK_DEFINE_STATIC(init);
-
-/*** implementation **********************************************************/
 
 gboolean
 mn_sasl_init (GError **err)

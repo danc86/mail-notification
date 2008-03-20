@@ -1,0 +1,122 @@
+#!/bin/sh
+#
+# JB, the Jean-Yves Lefort's Build System
+# Copyright (C) 2008 Jean-Yves Lefort <jylefort@brutele.be>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+maintainer_cflags="-g -fstrict-aliasing -Wall -Werror \
+-Wformat-y2k \
+-Wformat-security \
+-Wno-format-zero-length \
+-Wno-unused-parameter \
+-Wfloat-equal \
+-Wdeclaration-after-statement \
+-Wendif-labels \
+-Wpointer-arith \
+-Wcast-align \
+-Waggregate-return \
+-Wmissing-noreturn \
+-Wmissing-format-attribute \
+-Wpacked \
+-Wredundant-decls \
+-Wnested-externs \
+-Winline \
+-Wno-pointer-sign \
+-Wshadow"
+
+if test -z $jb_cc; then
+	jb_cc=cc
+fi
+
+if test -n $enable_maintainer_mode; then
+	jb_cflags="$jb_cflags $maintainer_cflags"
+fi
+
+if test -f jbsrc/jb.c; then
+	build=false
+
+	jb_c_sources=
+	for f in jb-action.c jb-compile-options.c jb-config.c jb-feature.c jb-group.c jb-install-options.c jb-main.c jb-resource.c jb-tests.c jb-util.c jb-variable.c; do
+		jb_c_sources="$jb_c_sources jbsrc/lib/src/core/$f"
+	done
+
+	jb_h_sources=
+	for f in jb-action.h jb-compile-options.h jb-config.h jb-decls.h jb-feature.h jb-group.h jb-install-options.h jb-main.h jb-resource.h jb-tests.h jb.h jb-util.h jb-variable.h; do
+		jb_h_sources="$jb_h_sources jbsrc/lib/src/core/$f"
+	done
+
+	jb_c_package_sources=
+	jb_h_package_sources=
+
+	# core includes
+	for f in `grep "^#jb_include <.*>" jbsrc/jb.c | sed -e 's|^#jb_include <\(.*\)>|\1|'`; do
+		jb_c_package_sources="$jb_c_package_sources jbsrc/lib/src/extras/$f.c"
+		jb_h_package_sources="$jb_h_package_sources jbsrc/lib/src/extras/$f.h"
+	done
+
+	# package includes
+	for f in `grep "^#jb_include \".*\"" jbsrc/jb.c | sed -e 's|^#jb_include "\(.*\)"|\1|'`; do
+		jb_c_package_sources="$jb_c_package_sources jbsrc/$f.c"
+		jb_h_package_sources="$jb_h_package_sources jbsrc/$f.h"
+	done
+
+	if test -f build/jbsrc/jb; then
+		for f in jbsrc/jb.c $jb_c_sources $jb_h_sources $jb_c_package_sources $jb_h_package_sources; do
+			if test $f -nt build/jbsrc/jb; then
+				build=true
+				break
+			fi
+		done
+	else
+		build=true
+	fi
+
+	if test $build = true; then
+		echo "building jb..."
+
+		mkdir -p build/jbsrc || exit 1
+
+		if ! gobject_cflags_ldflags=`pkg-config --cflags --libs 'gobject-2.0 >= 2.8.0' 2>/dev/null`; then
+			echo "ERROR: the GLib library was not found" >&2
+			exit 1
+		fi
+
+		sed -e 's|^#jb_include ["<]\(.*\)[">]|#include "\1.h"|' \
+			jbsrc/jb.c > build/jbsrc/jb.c || exit 1
+
+		if ! $jb_cc \
+			-Ijbsrc/lib/src/core -Ijbsrc/lib/src/extras -Ijbsrc \
+			-DG_LOG_DOMAIN="\"jb\"" \
+			-DJB_SOURCES="\"$jb_c_sources $jb_h_sources\"" \
+			-DJB_PACKAGE_SOURCES="\"$jb_c_package_sources $jb_h_package_sources\"" \
+			$gobject_cflags_ldflags \
+			$jb_cflags \
+			$jb_cppflags \
+			$jb_ldflags \
+			-o build/jbsrc/jb \
+			build/jbsrc/jb.c \
+			$jb_c_sources \
+			$jb_c_package_sources; then
+			echo "ERROR: cannot build jb" >&2
+			exit 1
+		fi
+	fi
+
+	exec build/jbsrc/jb "$@"
+else
+	echo "ERROR: jb must be run from the toplevel directory" >&2
+	exit 1
+fi

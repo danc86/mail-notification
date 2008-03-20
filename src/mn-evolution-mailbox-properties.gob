@@ -17,47 +17,37 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-mailbox-properties.h"
 %}
 
 %privateheader{
-#include "GNOME_MailNotification_Evolution.h"
-#include "mn-bonobo-unknown.h"
+#include "mn-evolution-client.h"
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
-#include <libbonoboui.h>
-#include "mn-evolution.h"
 #include "mn-evolution-mailbox.h"
-#include "mn-evolution-glue-client.h"
 #include "mn-stock.h"
 #include "mn-mailbox-properties-private.h"
+#include "mn-shell.h"
+#include "mn-evolution-client-dbus.h"
+#include "mn-util.h"
+#include "mn-evolution-folder-tree-client.h"
 %}
 
 class MN:Evolution:Mailbox:Properties from MN:Mailbox:Properties
 {
-  private GtkWidget *folder_vbox;
-  private GtkWidget *child;
   private GtkWidget *tree;
 
-  private char *uri destroywith g_free;
   private char *name destroywith g_free;
 
-  private MNBonoboUnknown *glue;
-  private MNBonoboUnknown *control unrefwith g_object_unref;
-
-  private Bonobo_PropertyBag pbag = CORBA_OBJECT_NIL
-    unref { bonobo_object_release_unref(VAR, NULL); };
-  private Bonobo_Listener selected_uri_listener = CORBA_OBJECT_NIL;
-  private Bonobo_Listener activated_listener = CORBA_OBJECT_NIL;
-
   property BOOLEAN complete (override)
-    get { g_value_set_boolean(VAL, selfp->tree != NULL && selfp->uri != NULL); };
+    get
+    {
+      MNEvolutionFolderTreeClient *tree = MN_EVOLUTION_FOLDER_TREE_CLIENT(selfp->tree);
+      g_value_set_boolean(VAL, mn_evolution_folder_tree_client_get_connected(tree) && tree->selected_uri != NULL);
+    };
 
   property STRING default_name (override)
     get { g_value_set_string(VAL, selfp->name); };
@@ -69,229 +59,52 @@ class MN:Evolution:Mailbox:Properties from MN:Mailbox:Properties
     p_class->type = "evolution";
     p_class->stock_id = MN_STOCK_EVOLUTION_MAILBOX;
     p_class->combo_label = "Evolution";
+    p_class->enable_check_delay = FALSE;
   }
 
   init (self)
   {
     MNMailboxProperties *properties = MN_MAILBOX_PROPERTIES(self);
+    GtkWidget *vbox;
 
     /* translators: header capitalization */
-    selfp->folder_vbox = mn_mailbox_properties_add_general_section(properties, _("Folder"));
+    vbox = mn_mailbox_properties_add_general_section(properties, _("Folder"));
 
-    selfp->glue = mn_evolution_glue_client_use();
-    g_signal_connect_swapped(selfp->glue, "notify::object", G_CALLBACK(self_update_contents), self);
+    selfp->tree = mn_evolution_folder_tree_client_new();
+    gtk_box_pack_start(GTK_BOX(vbox), selfp->tree, TRUE, TRUE, 0);
+    gtk_widget_show(selfp->tree);
 
-    selfp->control = mn_bonobo_unknown_new(MN_EVOLUTION_FOLDER_TREE_CONTROL_IID);
-    g_signal_connect_swapped(selfp->control, "notify::object", G_CALLBACK(self_update_contents), self);
-
-    self_update_contents(self);
-  }
-
-  override (G:Object) void
-    dispose (GObject *object)
-  {
-    Self *self = SELF(object);
-
-    /*
-     * We are no longer operational after dispose (see unrefwith
-     * above), so we must remove our listeners.
-     */
-    if (selfp->selected_uri_listener != CORBA_OBJECT_NIL)
-      {
-	g_assert(selfp->pbag != CORBA_OBJECT_NIL);
-
-	bonobo_event_source_client_remove_listener(selfp->pbag, selfp->selected_uri_listener, NULL);
-	selfp->selected_uri_listener = bonobo_object_release_unref(selfp->selected_uri_listener, NULL);
-      }
-    if (selfp->activated_listener != CORBA_OBJECT_NIL)
-      {
-	Bonobo_Control control;
-
-	control = mn_bonobo_unknown_get_object(selfp->control);
-	g_assert(control != CORBA_OBJECT_NIL);
-
-	bonobo_event_source_client_remove_listener(control, selfp->activated_listener, NULL);
-	selfp->activated_listener = bonobo_object_release_unref(selfp->activated_listener, NULL);
-
-	bonobo_object_release_unref(control, NULL);
-      }
-
-    if (selfp->glue)
-      {
-	g_signal_handlers_disconnect_by_func(selfp->glue, self_update_contents, self);
-	mn_evolution_glue_client_unuse();
-	selfp->glue = NULL;
-      }
-
-    PARENT_HANDLER(object);
-  }
-
-  private gboolean
-    install_listeners (self)
-  {
-    Bonobo_Control control;
-
-    selfp->selected_uri_listener = bonobo_event_source_client_add_listener_full(selfp->pbag,
-										g_cclosure_new(G_CALLBACK(self_selected_uri_changed_cb), self, NULL),
-										"Bonobo/Property:change:selected-uri",
-										NULL);
-    if (selfp->selected_uri_listener == CORBA_OBJECT_NIL)
-      return FALSE;
-
-    control = mn_bonobo_unknown_get_object(selfp->control);
-    g_assert(control != CORBA_OBJECT_NIL);
-
-    selfp->activated_listener = bonobo_event_source_client_add_listener_full(control,
-									     g_cclosure_new(G_CALLBACK(self_folder_activated_cb), self, NULL),
-									     MN_EVOLUTION_FOLDER_TREE_CONTROL_EVENT_PREFIX ":" MN_EVOLUTION_FOLDER_TREE_CONTROL_EVENT_ACTIVATED,
-									     NULL);
-    bonobo_object_release_unref(control, NULL);
-
-    return selfp->activated_listener != CORBA_OBJECT_NIL;
+    g_object_connect(selfp->tree,
+		     "swapped-signal::notify::connected", mn_mailbox_properties_notify_complete, self,
+		     "signal::notify::selected-uri", self_notify_selected_uri_h, self,
+		     "signal::folder-activated", self_folder_activated_h, self,
+		     NULL);
   }
 
   private void
-    update_contents (self)
-  {
-    GNOME_MailNotification_Evolution_Glue glue;
-    Bonobo_Control control;
-    GtkWidget *tree = NULL;
-
-    glue = mn_bonobo_unknown_get_object(selfp->glue);
-    control = mn_bonobo_unknown_get_object(selfp->control);
-
-    if (glue != CORBA_OBJECT_NIL && control != CORBA_OBJECT_NIL)
-      {
-	BonoboControlFrame *frame;
-
-	tree = bonobo_widget_new_control_from_objref(control, CORBA_OBJECT_NIL);
-
-	frame = bonobo_widget_get_control_frame(BONOBO_WIDGET(tree));
-
-	selfp->pbag = bonobo_control_frame_get_control_property_bag(frame, NULL);
-	if (selfp->pbag != CORBA_OBJECT_NIL && self_install_listeners(self))
-	  {
-	    /* give the folder tree a decent height */
-	    gtk_widget_set_size_request(tree, -1, 150);
-
-	    self_set_widget(self, selfp->tree = tree);
-	    self_sync(self);
-
-	    goto end;	/* success */
-	  }
-      }
-
-    /* failure */
-
-    if (tree)
-      gtk_widget_destroy(tree);
-    self_contact_error(self);
-
-  end:
-    bonobo_object_release_unref(glue, NULL);
-    bonobo_object_release_unref(control, NULL);
-  }
-
-  private void
-    contact_error (self)
-  {
-    GtkWidget *label;
-
-    selfp->pbag = bonobo_object_release_unref(selfp->pbag, NULL);
-    selfp->selected_uri_listener = bonobo_object_release_unref(selfp->selected_uri_listener, NULL);
-    selfp->activated_listener = bonobo_object_release_unref(selfp->activated_listener, NULL);
-
-    label = gtk_label_new(_("Mail Notification can not contact Evolution. Make sure that Evolution is running and that the Evolution Jean-Yves Lefort's Mail Notification plugin is loaded."));
-
-    gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-    gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
-    gtk_label_set_selectable(GTK_LABEL(label), TRUE);
-
-    self_set_widget(self, label);
-    selfp->tree = NULL;
-
-    g_object_notify(G_OBJECT(self), "complete");
-  }
-
-  private void
-    set_widget (self, Gtk:Widget *widget (check null type))
-  {
-    if (selfp->child)
-      gtk_widget_destroy(selfp->child);
-
-    gtk_widget_show(widget);
-    gtk_box_pack_start(GTK_BOX(selfp->folder_vbox), widget, TRUE, TRUE, 0);
-
-    selfp->child = widget;
-  }
-
-  private void
-    selected_uri_changed_cb (BonoboListener *listener,
-			     const char *event_name,
-			     const CORBA_any *any,
-			     CORBA_Environment *env,
-			     gpointer user_data)
+    notify_selected_uri_h (GObject *object, GParamSpec *pspec, gpointer user_data)
   {
     Self *self = user_data;
-    const char *uri;
-    CORBA_string name = NULL;
+    MNEvolutionClient *client;
+    char *name = NULL;
 
-    uri = BONOBO_ARG_GET_STRING(any);
-
-    if (uri && *uri)
-      {
-	GNOME_MailNotification_Evolution_Glue glue;
-	CORBA_Environment name_env;
-
-	glue = mn_bonobo_unknown_get_object(selfp->glue);
-	if (glue != CORBA_OBJECT_NIL)
-	  {
-	    CORBA_exception_init(&name_env);
-
-	    name = GNOME_MailNotification_Evolution_Glue_getFolderName(glue, uri, &name_env);
-	    if (BONOBO_EX(&name_env))
-	      name = NULL;
-
-	    CORBA_exception_free(&name_env);
-
-	    bonobo_object_release_unref(glue, NULL);
-	  }
-
-	if (! name)
-	  uri = NULL;
-      }
-
-    g_free(selfp->uri);
-    selfp->uri = g_strdup(uri);
+    client = mn_evolution_client_get();
+    if (client->proxy)
+      org_gnome_MailNotification_Evolution_get_folder_name(client->proxy, MN_EVOLUTION_FOLDER_TREE_CLIENT(selfp->tree)->selected_uri, &name, NULL);
 
     g_free(selfp->name);
-    selfp->name = g_strdup(name);
-
-    CORBA_free(name);
+    selfp->name = name;
 
     g_object_notify(G_OBJECT(self), "complete");
     g_object_notify(G_OBJECT(self), "default-name");
   }
 
   private void
-    folder_activated_cb (BonoboListener *listener,
-			 const char *event_name,
-			 const CORBA_any *any,
-			 CORBA_Environment *env,
-			 gpointer user_data)
+    folder_activated_h (MNEvolutionFolderTreeClient *client, gpointer user_data)
   {
     Self *self = user_data;
 
     gtk_window_activate_default(GTK_WINDOW(MN_MAILBOX_PROPERTIES(self)->dialog));
-  }
-
-  private void
-    sync (self)
-  {
-    g_return_if_fail(selfp->tree != NULL);
-
-    if (selfp->uri)
-      bonobo_widget_set_property(BONOBO_WIDGET(selfp->tree), "selected-uri", BONOBO_ARG_STRING, selfp->uri, NULL);
   }
 
   override (MN:Mailbox:Properties) void
@@ -300,14 +113,10 @@ class MN:Evolution:Mailbox:Properties from MN:Mailbox:Properties
     Self *self = SELF(properties);
     MNEvolutionMailbox *evolution_mailbox = MN_EVOLUTION_MAILBOX(mailbox);
 
-    g_free(selfp->uri);
-    selfp->uri = g_strdup(evolution_mailbox->uri);
+    mn_evolution_folder_tree_client_set_selected_uri(MN_EVOLUTION_FOLDER_TREE_CLIENT(selfp->tree), evolution_mailbox->uri);
 
     g_free(selfp->name);
     selfp->name = g_strdup(evolution_mailbox->folder_name);
-
-    if (selfp->tree)
-      self_sync(self);
   }
 
   override (MN:Mailbox:Properties) MNMailbox *
@@ -319,7 +128,7 @@ class MN:Evolution:Mailbox:Properties from MN:Mailbox:Properties
     mailbox = PARENT_HANDLER(properties);
 
     g_object_set(mailbox,
-		 MN_EVOLUTION_MAILBOX_PROP_URI(selfp->uri),
+		 MN_EVOLUTION_MAILBOX_PROP_URI(MN_EVOLUTION_FOLDER_TREE_CLIENT(selfp->tree)->selected_uri),
 		 MN_EVOLUTION_MAILBOX_PROP_FOLDER_NAME(selfp->name),
 		 NULL);
 

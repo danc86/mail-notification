@@ -17,10 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-text-table.h"
+#include "mn-message.h"
 %}
 
 %privateheader{
@@ -28,8 +27,8 @@ requires 2.0.14
 %}
 
 %{
-#include "mn-locked-callback.h"
 #include "mn-util.h"
+#include <glib/gi18n.h>
 
 typedef struct
 {
@@ -39,37 +38,19 @@ typedef struct
   time_t		past_time;
 } PastTimeCell;
 
-static GQueue *past_time_cells;
-static MNLockedGSource *past_time_cells_timeout_source = NULL;
+/* use a GQueue for O(1) append and removal */
+static GQueue past_time_cells = G_QUEUE_INIT;
+static unsigned int past_time_cells_timeout_id = 0;
 %}
 
 class MN:Message:View from MN:Text:Table (abstract)
 {
   private GSList *past_time_cells;
 
-  property POINTER messages (export)
-    set
-    {
-      self_update(self, g_value_get_pointer(VAL));
-    };
-
-  class_init (class)
+  finalize (self)
   {
-    past_time_cells = g_queue_new();
-  }
-
-  override (G:Object) void
-    finalize (GObject *object)
-  {
-    Self *self = SELF(object);
-
     self_clear_past_time_cells(self);
-
-    PARENT_HANDLER(object);
   }
-
-  virtual private void
-    update (self, GSList *messages);
 
   override (MN:Text:Table) void
     clear (MNTextTable *table)
@@ -78,6 +59,37 @@ class MN:Message:View from MN:Text:Table (abstract)
 
     PARENT_HANDLER(table);
   }
+
+  public void
+    set_messages (self, GSList *messages)
+  {
+    time_t now;
+    GSList *l;
+
+    mn_text_table_clear(MN_TEXT_TABLE(self));
+
+    self_append_header(self);
+
+    now = mn_time();
+
+    MN_LIST_FOREACH(l, messages)
+      {
+	MNMessage *message = l->data;
+
+	self_append_message(self, message, now);
+	if (l->next)
+	  self_append_message_separator(self);
+      }
+  }
+
+  virtual private void
+    append_header (self);
+
+  virtual private void
+    append_message (self, MN:Message *message (check null type), time_t now);
+
+  virtual private void
+    append_message_separator (self);
 
   protected void
     append_past_time_cell (self, time_t past_time, time_t now)
@@ -94,9 +106,9 @@ class MN:Message:View from MN:Text:Table (abstract)
     self_update_past_time_cell(pcell, now);
 
     selfp->past_time_cells = g_slist_prepend(selfp->past_time_cells, pcell);
-    g_queue_push_tail_link(past_time_cells, pcell->link);
+    g_queue_push_tail_link(&past_time_cells, pcell->link);
 
-    if (! past_time_cells_timeout_source)
+    if (! past_time_cells_timeout_id)
       self_install_past_time_cells_timeout();
   }
 
@@ -112,14 +124,14 @@ class MN:Message:View from MN:Text:Table (abstract)
       {
 	PastTimeCell *pcell = l->data;
 
-	g_queue_delete_link(past_time_cells, pcell->link);
+	g_queue_delete_link(&past_time_cells, pcell->link);
 	g_free(pcell);
       }
 
     mn_g_slist_clear(&selfp->past_time_cells);
 
-    if (g_queue_is_empty(past_time_cells))
-      mn_locked_g_source_clear(&past_time_cells_timeout_source);
+    if (g_queue_is_empty(&past_time_cells))
+      mn_source_clear(&past_time_cells_timeout_id);
   }
 
   private void
@@ -131,7 +143,7 @@ class MN:Message:View from MN:Text:Table (abstract)
     g_get_current_time(&now);
     timeout = (G_USEC_PER_SEC - now.tv_usec) / 1000 + 1;
 
-    past_time_cells_timeout_source = mn_g_timeout_add_gdk_locked(timeout, self_update_past_time_cells_cb, NULL);
+    past_time_cells_timeout_id = gdk_threads_add_timeout(timeout, self_update_past_time_cells_cb, NULL);
   }
 
   private gboolean
@@ -141,7 +153,7 @@ class MN:Message:View from MN:Text:Table (abstract)
     GList *l;
 
     now = mn_time();
-    MN_QUEUE_FOREACH(l, past_time_cells)
+    MN_QUEUE_FOREACH(l, &past_time_cells)
       self_update_past_time_cell(l->data, now);
 
     self_install_past_time_cells_timeout();

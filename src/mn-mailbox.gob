@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
-#include "config.h"
 #include <stdarg.h>
 #include <time.h>
 #include <libxml/tree.h>
+#include "mn-decls.h"
 %}
 
 %h{
@@ -34,7 +32,6 @@ typedef struct _MNMailboxConfiguration MNMailboxConfiguration;
 %}
 
 %privateheader{
-#include "mn-locked-callback.h"
 #include "mn-xml.h"
 
 typedef enum
@@ -57,9 +54,7 @@ typedef enum
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
-#include <eel/eel.h>
 #include <libgnomevfs/gnome-vfs.h>
 #if WITH_MBOX || WITH_MOZILLA || WITH_MH || WITH_MAILDIR || WITH_SYLPHEED
 #include "mn-system-vfs-mailbox.h"
@@ -86,6 +81,7 @@ typedef enum
 #include "mn-util.h"
 #include "mn-message.h"
 #include "mn-conf.h"
+#include "mn-locked-callback.h"
 
 struct _MNMailboxConfiguration
 {
@@ -103,7 +99,7 @@ typedef struct
 } CompareMessagesInfo;
 %}
 
-class MN:Mailbox from G:Object (abstract)
+class MN:Mailbox (abstract)
 {
   classwide const char *type;
   classwide int default_check_delay = -1;
@@ -165,7 +161,7 @@ class MN:Mailbox from G:Object (abstract)
   {
     self_set_active(self, FALSE);
 
-    mn_locked_g_source_clear(&selfp->check_timeout_source);
+    mn_source_clear(&selfp->check_timeout_id);
   }
 
   public char *runtime_name destroywith g_free;
@@ -191,7 +187,7 @@ class MN:Mailbox from G:Object (abstract)
   public char *format destroywith g_free;
   property STRING format (link, export);
 
-  private MNLockedGSource *check_timeout_source;
+  private unsigned int check_timeout_id;
 
   public int runtime_check_delay;
 
@@ -241,96 +237,103 @@ class MN:Mailbox from G:Object (abstract)
     g_assert(self_get_active(self) == TRUE);
     g_assert(selfp->checking_enabled == TRUE);
 
-    mn_locked_g_source_clear(&selfp->check_timeout_source);
+    mn_source_clear(&selfp->check_timeout_id);
     if (selfp->poll && self->runtime_check_delay > 0)
-      selfp->check_timeout_source = mn_g_timeout_add_gdk_locked(self->runtime_check_delay * 1000, self_check_timeout_cb, self);
+      selfp->check_timeout_id = gdk_threads_add_timeout(self->runtime_check_delay * 1000, self_check_timeout_cb, self);
   }
 
   /* all unread (unseen and seen) messages */
-  private GSList *unfiltered_messages destroywith mn_g_object_slist_free;
+  private GSList *all_messages destroywith mn_g_object_slist_free;
 
-  private GHashTable *messages_considered_as_read = {g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref)} destroywith g_hash_table_destroy;
+  /* all_messages, indexed by mid */
+  private GHashTable *all_messages_mid_hash_table = {g_hash_table_new(g_str_hash, g_str_equal)} destroywith g_hash_table_destroy;
 
-  /* unfiltered_messages after applying the "seen messages" filter */
-  public GSList *messages destroywith mn_g_object_slist_free;
+  /*
+   * These messages are not necessarily the same instances as in
+   * all_messages (they might have been marked as read previously), so
+   * the hash table holds a reference to each message.
+   */
+  private GHashTable *all_messages_considered_as_read = {g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref)} destroywith g_hash_table_destroy;
 
-  /* for performance: */
-  public unsigned int n_messages;	/* number of messages */
-  public time_t timestamp;		/* timestamp of most recent message */
+  /* all_messages after applying the "seen messages" filter */
+  public GPtrArray *messages = {g_ptr_array_new()} destroywith mn_g_object_ptr_array_free;
 
-  property POINTER messages (export, type = const GSList *)
-    set
-    {
-      mn_g_object_slist_free(selfp->unfiltered_messages);
-      selfp->unfiltered_messages = mn_g_object_slist_copy(g_value_get_pointer(VAL));
+  /* self->messages, indexed by id */
+  private GHashTable *messages_hash_table = {g_hash_table_new(g_str_hash, g_str_equal)} destroywith g_hash_table_destroy;
 
-      self_filter_messages(self);
-    }
+  /* for performance */
+  public time_t timestamp; /* timestamp of most recent message in self->messages */
+
+  property POINTER messages (type = GPtrArray *)
     get
     {
       g_value_set_pointer(VAL, self->messages);
     };
 
-  private GHashTable *messages_hash_table destroywith g_hash_table_destroy;
+  protected void
+    set_messages (self, GSList *messages)
+  {
+    mn_g_object_slist_free(selfp->all_messages);
+    selfp->all_messages = mn_g_object_slist_copy(messages);
+
+    self_filter_messages(self);
+  }
 
   /**
    * filter_messages:
    * @self: the mailbox to act upon
    *
-   * Filters @self->unfiltered_messages with the "seen mail" filter
-   * and @selfp->messages_considered_as_read, and stores the resulting
+   * Filters @self->all_messages with the "seen mail" filter and
+   * @selfp->all_messages_considered_as_read, and stores the resulting
    * list in @self->messages. Additionally, if @self->messages has
    * changed, emits the "messages-changed" signal.
    **/
   private void
     filter_messages (self)
   {
-    gboolean display_seen_mail;
-    GSList *messages = NULL;
+    GPtrArray *messages;
     GHashTable *all_messages_hash_table;
     GHashTable *messages_hash_table;
+    gboolean display_seen_mail;
     GSList *l;
     gboolean changed = FALSE;
     gboolean has_new = FALSE;
 
     /* filter messages */
 
-    self->n_messages = 0;
+    messages = g_ptr_array_new();
     self->timestamp = 0;
 
     all_messages_hash_table = g_hash_table_new(g_str_hash, g_str_equal);
     messages_hash_table = g_hash_table_new(g_str_hash, g_str_equal);
-    display_seen_mail = eel_gconf_get_boolean(MN_CONF_DISPLAY_SEEN_MAIL);
 
-    MN_LIST_FOREACH(l, selfp->unfiltered_messages)
+    display_seen_mail = mn_conf_get_bool(MN_CONF_DISPLAY_SEEN_MAIL);
+
+    MN_LIST_FOREACH(l, selfp->all_messages)
       {
 	MNMessage *message = l->data;
 
 	g_hash_table_replace(all_messages_hash_table, message->id, message);
 
-	if ((display_seen_mail
-	     || message->error
-	     || (message->flags & MN_MESSAGE_NEW) != 0)
-	    && ! g_hash_table_lookup(selfp->messages_considered_as_read, message->id))
+	if (message->mid)
+	  g_hash_table_replace(selfp->all_messages_mid_hash_table, message->mid, message);
+
+	if ((display_seen_mail || (message->flags & MN_MESSAGE_NEW) != 0)
+	    && ! g_hash_table_lookup(selfp->all_messages_considered_as_read, message->id))
 	  {
-	    self->n_messages++;
 	    if (message->sent_time > self->timestamp)
 	      self->timestamp = message->sent_time;
 
-	    messages = g_slist_prepend(messages, g_object_ref(message));
+	    g_ptr_array_add(messages, g_object_ref(message));
 	    g_hash_table_replace(messages_hash_table, message->id, message);
 	  }
       }
 
-    /* remove stale messages from messages_considered_as_read */
-    g_hash_table_foreach_remove(selfp->messages_considered_as_read, (GHRFunc) self_clean_messages_considered_as_read_cb, all_messages_hash_table);
-    g_hash_table_destroy(all_messages_hash_table);
+    /* remove stale messages */
+    g_hash_table_foreach_remove(selfp->all_messages_mid_hash_table, (GHRFunc) self_remove_stale_messages_cb, all_messages_hash_table);
+    g_hash_table_foreach_remove(selfp->all_messages_considered_as_read, (GHRFunc) self_remove_stale_messages_cb, all_messages_hash_table);
 
-    if (! messages)
-      {
-	g_hash_table_destroy(messages_hash_table);
-	messages_hash_table = NULL;
-      }
+    g_hash_table_destroy(all_messages_hash_table);
 
     /* detect changes */
 
@@ -339,25 +342,24 @@ class MN:Mailbox from G:Object (abstract)
     if (self_compare_messages(messages_hash_table, selfp->messages_hash_table))
       changed = has_new = TRUE;
 
-    if (self->messages)
-      {
-	mn_g_object_slist_free(self->messages);
-	g_hash_table_destroy(selfp->messages_hash_table);
-      }
-
+    mn_g_object_ptr_array_free(self->messages);
     self->messages = messages;
+
+    g_hash_table_destroy(selfp->messages_hash_table);
     selfp->messages_hash_table = messages_hash_table;
+
+    g_object_notify(G_OBJECT(self), "messages");
 
     if (changed)
       self_messages_changed(self, has_new);
   }
 
   private gboolean
-    clean_messages_considered_as_read_cb (const char *id,
-					  MNMessage *message,
-					  GHashTable *messages)
+    remove_stale_messages_cb (gpointer key,
+			      MNMessage *message,
+			      GHashTable *messages)
   {
-    return g_hash_table_lookup(messages, id) == NULL;
+    return g_hash_table_lookup(messages, message->id) == NULL;
   }
 
   /**
@@ -373,23 +375,13 @@ class MN:Mailbox from G:Object (abstract)
   private gboolean
     compare_messages (GHashTable *messages1, GHashTable *messages2)
   {
-    if (messages1)
-      {
-	if (messages2)
-	  {
-	    CompareMessagesInfo info;
+    CompareMessagesInfo info;
 
-	    info.other = messages2;
-	    info.changed = FALSE;
-	    g_hash_table_foreach(messages1, (GHFunc) self_compare_messages_cb, &info);
+    info.other = messages2;
+    info.changed = FALSE;
+    g_hash_table_foreach(messages1, (GHFunc) self_compare_messages_cb, &info);
 
-	    return info.changed;
-	  }
-	else
-	  return TRUE;
-      }
-    else
-      return FALSE;
+    return info.changed;
   }
 
   private void
@@ -420,18 +412,14 @@ class MN:Mailbox from G:Object (abstract)
   public char *error destroywith g_free;
   property STRING error (link);
 
+  [G_GNUC_PRINTF(2, 3)]
   protected void
     set_error (self, const char *format, ...)
   {
-    va_list args;
     char *error = NULL;
 
     if (format)
-      {
-	va_start(args, format);
-	error = g_strdup_vprintf(format, args);
-	va_end(args);
-      }
+      MN_STRDUP_VPRINTF(error, format);
 
     g_object_set(G_OBJECT(self), MN_MAILBOX_PROP_ERROR(error), NULL);
     g_free(error);
@@ -474,7 +462,7 @@ class MN:Mailbox from G:Object (abstract)
 
   /* references the returned class */
   public MNMailboxClass *
-    get_class_from_name (const char *type)
+    get_class_from_name (const char *type (check null))
   {
     int i;
 
@@ -493,19 +481,19 @@ class MN:Mailbox from G:Object (abstract)
   }
 
   public GType
-    get_type_from_name (const char *type)
+    get_type_from_name (const char *type (check null))
   {
     SelfClass *class;
 
     class = self_get_class_from_name(type);
     if (class)
       {
-	GType type;
+	GType gtype;
 
-	type = G_OBJECT_CLASS_TYPE(class);
+	gtype = G_OBJECT_CLASS_TYPE(class);
 	g_type_class_unref(class);
 
-	return type;
+	return gtype;
       }
 
     return 0;
@@ -516,20 +504,15 @@ class MN:Mailbox from G:Object (abstract)
     mn_g_object_gconf_notification_add_gdk_locked(self, MN_CONF_DISPLAY_SEEN_MAIL, self_notify_display_seen_messages_cb, self);
   }
 
-  override (G:Object) void
-    finalize (GObject *object)
+  finalize (self)
   {
-    Self *self = SELF(object);
-
     /*
      * Even though we clear the source in removed(), it might have
      * been reinstalled afterwards (by a mn_mailbox_set_poll() call
      * from a check thread, etc).
      */
-    if (selfp->check_timeout_source)
-      mn_locked_g_source_remove(selfp->check_timeout_source);
-
-    PARENT_HANDLER(object);
+    if (selfp->check_timeout_id)
+      g_source_remove(selfp->check_timeout_id);
   }
 
   private void
@@ -543,19 +526,22 @@ class MN:Mailbox from G:Object (abstract)
     self_filter_messages(self);
   }
 
+  [G_GNUC_NULL_TERMINATED]
   public MNMailbox *
-    new (const char *type (check null), const char *first, ...)
+    new (const char *type (check null), ...)
   {
     va_list args;
     GType type_id;
+    const char *first_property_name;
     GObject *object;
 
     type_id = self_get_type_from_name(type);
     if (! type_id)
       return NULL;
 
-    va_start(args, first);
-    object = g_object_new_valist(type_id, first, args);
+    va_start(args, type);
+    first_property_name = va_arg(args, const char *);
+    object = g_object_new_valist(type_id, first_property_name, args);
     va_end(args);
 
     return SELF(object);
@@ -872,7 +858,7 @@ class MN:Mailbox from G:Object (abstract)
 #if WITH_POP3
 	MNPIMailboxConnectionType connection_type;
 
-	if (queries && eel_g_strv_find(queries, "STLS") != -1)
+	if (queries && mn_strv_find(queries, "STLS") != -1)
 	  connection_type = MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL;
 	else
 	  connection_type = ! strcmp(scheme, "pops")
@@ -894,7 +880,7 @@ class MN:Mailbox from G:Object (abstract)
 #if WITH_IMAP
 	MNPIMailboxConnectionType connection_type;
 
-	if (queries && eel_g_strv_find(queries, "STARTTLS") != -1)
+	if (queries && mn_strv_find(queries, "STARTTLS") != -1)
 	  connection_type = MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL;
 	else
 	  connection_type = ! strcmp(scheme, "imaps")
@@ -913,7 +899,7 @@ class MN:Mailbox from G:Object (abstract)
 	if (path)
 	  g_object_set(self, MN_IMAP_MAILBOX_PROP_MAILBOX(path), NULL);
 
-	if (queries && eel_g_strv_find(queries, "noidle") != -1)
+	if (queries && mn_strv_find(queries, "noidle") != -1)
 	  g_object_set(G_OBJECT(self), MN_IMAP_MAILBOX_PROP_USE_IDLE_EXTENSION(MN_IMAP_MAILBOX_USE_IDLE_NEVER), NULL);
 #endif
       }
@@ -1011,8 +997,9 @@ class MN:Mailbox from G:Object (abstract)
       : SELF_GET_CLASS(self)->default_check_delay;
   }
 
+  [G_GNUC_UNUSED]		/* invoked via the class pointer */
   virtual private MNMailbox *
-    parse_uri (self, const char *uri);
+    parse_uri (self, const char *uri (check null));
 
   virtual public void
     check (self)
@@ -1040,10 +1027,10 @@ class MN:Mailbox from G:Object (abstract)
     self_check(self);
   }
 
+  [G_GNUC_PRINTF(2, 3)]
   protected void
     notice (self, const char *format (check null), ...)
   {
-    va_list args;
     char *message;
 
     /*
@@ -1053,18 +1040,15 @@ class MN:Mailbox from G:Object (abstract)
     if (! self_get_active(self))
       return;
 
-    va_start(args, format);
-    message = g_strdup_vprintf(format, args);
-    va_end(args);
-
+    MN_STRDUP_VPRINTF(message, format);
     mn_info(_("%s: %s"), self->runtime_name, message);
     g_free(message);
   }
 
+  [G_GNUC_PRINTF(2, 3)]
   protected void
     warning (self, const char *format (check null), ...)
   {
-    va_list args;
     char *message;
 
     /*
@@ -1074,18 +1058,21 @@ class MN:Mailbox from G:Object (abstract)
     if (! self_get_active(self))
       return;
 
-    va_start(args, format);
-    message = g_strdup_vprintf(format, args);
-    va_end(args);
-
+    MN_STRDUP_VPRINTF(message, format);
     g_warning(_("%s: %s"), self->runtime_name, message);
     g_free(message);
+  }
+
+  protected MNMessage *
+    get_message_from_mid (self, const char *mid (check null))
+  {
+    return g_hash_table_lookup(selfp->all_messages_mid_hash_table, mid);
   }
 
   private void
     consider_as_read_real (self, MN:Message *message (check null type))
   {
-    g_hash_table_replace(selfp->messages_considered_as_read, message->id, g_object_ref(message));
+    g_hash_table_replace(selfp->all_messages_considered_as_read, message->id, g_object_ref(message));
   }
 
   /*
@@ -1099,9 +1086,8 @@ class MN:Mailbox from G:Object (abstract)
    *     chooses the "Consider new mail as read" action
    */
   public void
-    consider_as_read (gpointer _message) /* cannot include mn-message.h */
+    consider_as_read (MN:Message *message (check null type))
   {
-    MNMessage *message = MN_MESSAGE(_message);
     Self *self;
 
     self = message->mailbox;
@@ -1118,10 +1104,10 @@ class MN:Mailbox from G:Object (abstract)
    * Each message in the list must belong to the same mailbox.
    */
   public void
-    consider_as_read_list (const GSList *messages)
+    consider_as_read_list (GSList *messages)
   {
     Self *self = NULL;
-    const GSList *l;
+    GSList *l;
 
     MN_LIST_FOREACH(l, messages)
       {

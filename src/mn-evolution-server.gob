@@ -1,0 +1,379 @@
+/*
+ * Mail Notification
+ * Copyright (C) 2003-2008 Jean-Yves Lefort <jylefort@brutele.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+%headertop{
+#include <dbus/dbus-glib.h>
+%}
+
+%{
+#include <stdio.h>
+#include <libintl.h>
+#include <gobject/gvaluecollector.h>
+#include <camel/camel-folder.h>
+#include <mail/em-folder-view.h>
+#include <mail/em-format.h>
+#include <mail/em-message-browser.h>
+#include <mail/em-utils.h>
+#include <mail/mail-session.h>
+#include <mail/mail-tools.h>
+#include "mn-evolution.h"
+#include "mn-evolution-folder-tree-server.h"
+#include "mn-evolution-plugin.h"
+
+/* see https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=208774 */
+static GHashTable *folders = NULL;
+
+typedef struct
+{
+  char		*uri;
+  CamelFolder	*folder;
+} FolderInfo;
+
+#define MN_EVOLUTION_SERVER_ERROR	(mn_evolution_server_error_quark())
+
+typedef enum
+{
+  MN_EVOLUTION_SERVER_ERROR_FOLDER_NOT_FOUND,
+  MN_EVOLUTION_SERVER_ERROR_MESSAGE_NOT_FOUND,
+  MN_EVOLUTION_SERVER_ERROR_FOLDER_TREE_REGISTRATION_FAILED,
+} MNEvolutionServerError;
+%}
+
+%afterdecls{
+#include "mn-evolution-server-dbus.h"
+%}
+
+/*
+ * We hold the GDK lock because Evolution is multi-threaded and D-Bus
+ * interface methods are run from a main loop callback.
+ */
+
+class MN:Evolution:Server
+{
+  signal NONE (STRING)
+    void folder_changed (self, const char *uri (check null));
+
+  signal NONE (STRING)
+    void message_reading (self, const char *uri (check null));
+
+  class_init (class)
+  {
+    dbus_g_object_type_install_info(TYPE_SELF, &dbus_glib_mn_evolution_server_object_info);
+  }
+
+  private GQuark
+    error_quark (void)
+  {
+    return g_quark_from_static_string("mn-evolution-server-error");
+  }
+
+  private void
+    cache_folder (const char *uri (check null),
+		  CamelFolder *folder (check null))
+  {
+    FolderInfo *info;
+
+    info = g_new0(FolderInfo, 1);
+    info->uri = g_strdup(uri);
+    info->folder = folder;
+    camel_object_ref(folder);
+
+    /* uncache the folder when it is deleted */
+    camel_object_hook_event(folder, "deleted", self_folder_deleted_cb, info);
+
+    g_hash_table_replace(folders, info->uri, info);
+  }
+
+  private void
+    folder_info_free (FolderInfo *info (check null))
+  {
+    camel_object_unhook_event(info->folder, "deleted", self_folder_deleted_cb, info);
+    camel_object_unref(info->folder);
+    g_free(info->uri);
+    g_free(info);
+  }
+
+  private void
+    folder_deleted_cb (CamelObject *object,
+		       gpointer event_data,
+		       gpointer user_data)
+  {
+    FolderInfo *info = user_data;
+    gboolean status;
+
+    status = g_hash_table_remove(folders, info->uri);
+    g_assert(status == TRUE);
+  }
+
+  private CamelFolder *
+    lookup_folder (const char *uri (check null), GError **err)
+  {
+    CamelFolder *folder = NULL;
+
+    if (folders)
+      {
+	FolderInfo *info;
+
+	info = g_hash_table_lookup(folders, uri);
+	if (info)
+	  {
+	    folder = info->folder;
+	    camel_object_ref(folder);
+	  }
+      }
+    else
+      folders = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) self_folder_info_free);
+
+    if (! folder)
+      {
+	folder = mail_tool_uri_to_folder(uri, 0, NULL);
+	if (folder)
+	  self_cache_folder(uri, folder);
+	else
+	  g_set_error(err,
+		      MN_EVOLUTION_SERVER_ERROR,
+		      MN_EVOLUTION_SERVER_ERROR_FOLDER_NOT_FOUND,
+		      dgettext(GETTEXT_PACKAGE, "folder not found"));
+      }
+
+    return folder;
+  }
+
+  private GValueArray *
+    value_array_new (GType type, ...)
+  {
+    GValueArray *value_array;
+    va_list args;
+
+    value_array = g_value_array_new(0);
+
+    va_start(args, type);
+
+    while (type)
+      {
+	GValue value = { 0, };
+	char *error = NULL;
+
+	g_value_init(&value, type);
+	G_VALUE_COLLECT(&value, args, 0, &error);
+	g_assert(error == NULL);
+
+	g_value_array_append(value_array, &value);
+	g_value_unset(&value);
+
+	type = va_arg(args, GType);
+      }
+
+    va_end(args);
+
+    return value_array;
+  }
+
+  private GValueArray *
+    camel_message_info_to_dbus_struct (CamelMessageInfo *info (check null))
+  {
+    const CamelSummaryMessageID *id;
+    char hexhash[sizeof(CamelSummaryMessageID) * 2 + 1];
+    int i;
+
+    id = camel_message_info_message_id(info);
+    for (i = 0; i < sizeof(id->id.hash); i++)
+      sprintf(hexhash + i * 2, "%.2x", id->id.hash[i]);
+
+    g_assert(camel_message_info_uid(info) != NULL);
+
+    return self_value_array_new(/* char *uid */
+				G_TYPE_STRING, camel_message_info_uid(info),
+				/* unsigned int sent_time */
+				G_TYPE_UINT, (unsigned int) camel_message_info_date_sent(info),
+				/* unsigned int received_time */
+				G_TYPE_UINT, (unsigned int) camel_message_info_date_received(info),
+				/* char *id */
+				G_TYPE_STRING, hexhash,
+				/* char *from */
+				G_TYPE_STRING, camel_message_info_from(info),
+				/* char *subject */
+				G_TYPE_STRING, camel_message_info_subject(info),
+				0);
+  }
+
+  private gboolean
+    get_unseen_messages (self,
+			      const char *folder_uri (check null),
+			      GPtrArray **ret (check null),
+			      GError **err)
+  {
+    CamelFolder *folder;
+
+    GDK_THREADS_ENTER();
+
+    folder = self_lookup_folder(folder_uri, err);
+    if (folder)
+      {
+	GPtrArray *summary;
+	int i;
+
+	*ret = g_ptr_array_new();
+
+	summary = camel_folder_get_summary(folder);
+
+	for (i = 0; i < summary->len; i++)
+	  {
+	    CamelMessageInfo *info = summary->pdata[i];
+
+	    if ((camel_message_info_flags(info) & CAMEL_MESSAGE_SEEN) == 0)
+	      g_ptr_array_add(*ret, self_camel_message_info_to_dbus_struct(info));
+	  }
+
+	camel_folder_free_summary(folder, summary);
+	camel_object_unref(folder);
+      }
+
+    GDK_THREADS_LEAVE();
+
+    return folder != NULL;
+  }
+
+  private gboolean
+    get_folder_name (self,
+		     const char *folder_uri (check null),
+		     char **ret (check null),
+		     GError **err)
+  {
+    CamelFolder *folder;
+
+    GDK_THREADS_ENTER();
+
+    folder = self_lookup_folder(folder_uri, err);
+    if (folder)
+      {
+	*ret = g_strdup(camel_folder_get_name(folder));
+	camel_object_unref(folder);
+      }
+
+    GDK_THREADS_LEAVE();
+
+    return folder != NULL;
+  }
+
+  private gboolean
+    open_message (self,
+		  const char *folder_uri (check null),
+		  const char *message_uid (check null),
+		  GError **err)
+  {
+    CamelFolder *folder;
+
+    GDK_THREADS_ENTER();
+
+    folder = self_lookup_folder(folder_uri, err);
+    if (folder)
+      {
+	GtkWidget *browser;
+
+	/* modelled after Evolution's handleuri_got_folder() */
+
+	browser = em_message_browser_window_new();
+
+	em_format_set_session((EMFormat *) ((EMFolderView *) browser)->preview, session);
+	em_folder_view_set_folder((EMFolderView *) browser, folder, folder_uri);
+	em_folder_view_set_message((EMFolderView *) browser, message_uid, FALSE);
+	gtk_widget_show(((EMMessageBrowser *) browser)->window);
+
+	camel_object_unref(folder);
+      }
+
+    GDK_THREADS_LEAVE();
+
+    return folder != NULL;
+  }
+
+  private gboolean
+    set_message_flags (self,
+		       const char *folder_uri (check null),
+		       const char *message_uid (check null),
+		       unsigned int flags,
+		       GError **err)
+  {
+    CamelFolder *folder;
+    gboolean status = FALSE;
+
+    GDK_THREADS_ENTER();
+
+    folder = self_lookup_folder(folder_uri, err);
+    if (folder)
+      {
+	status = camel_folder_set_message_flags(folder, message_uid, flags, flags);
+	camel_object_unref(folder);
+
+	if (! status)
+	  g_set_error(err,
+		      MN_EVOLUTION_SERVER_ERROR,
+		      MN_EVOLUTION_SERVER_ERROR_MESSAGE_NOT_FOUND,
+		      dgettext(GETTEXT_PACKAGE, "message not found"));
+      }
+
+    GDK_THREADS_LEAVE();
+
+    return status;
+  }
+
+  private gboolean
+    folder_tree_new (self, guint32 id, GError **err)
+  {
+    MNEvolutionFolderTreeServer *tree;
+    char *service;
+    char *path;
+    GError *tmp_err = NULL;
+    gboolean status;
+
+    GDK_THREADS_ENTER();
+
+    tree = mn_evolution_folder_tree_server_new(id);
+
+    service = g_strdup_printf(MN_EVOLUTION_FOLDER_TREE_SERVER_SERVICE, id);
+    path = g_strdup_printf(MN_EVOLUTION_FOLDER_TREE_SERVER_PATH, id);
+
+    status = mn_evolution_plugin_register_server(G_OBJECT(tree), service, path, &tmp_err);
+
+    g_free(service);
+    g_free(path);
+
+    if (! status)
+      {
+	/* unlikely to ever happen, not worth a translation */
+	g_set_error(err,
+		    MN_EVOLUTION_SERVER_ERROR,
+		    MN_EVOLUTION_SERVER_ERROR_FOLDER_TREE_REGISTRATION_FAILED,
+		    "cannot register folder tree server: %s", tmp_err->message);
+	g_error_free(tmp_err);
+	g_object_unref(tree);
+      }
+
+    GDK_THREADS_LEAVE();
+
+    return status;
+  }
+
+  public MNEvolutionServer *
+    new (void)
+  {
+    return GET_NEW;
+  }
+}

@@ -17,32 +17,27 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <gtk/gtk.h>
 #include "mn-mailbox.h"
 %}
 
 %{
-#include "config.h"
 #include "mn-util.h"
 #include "mn-mailbox-properties-dialog.h"
 %}
 
-class MN:Mailbox:Properties from G:Object (abstract)
+class MN:Mailbox:Properties (abstract)
 {
   classwide const char *type;
   classwide const char *stock_id;
   classwide const char *combo_label;
-  classwide gboolean no_check_delay_unless_complete;
+  classwide gboolean enable_check_delay = TRUE;
 
   protected GtkWidget *dialog;
   property POINTER dialog (flags = CONSTRUCT_ONLY, link, type = GtkWidget *);
 
   protected GtkSizeGroup *label_size_group = {gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL)} unrefwith g_object_unref;
-  protected GtkSizeGroup *entry_size_group = {gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL)} unrefwith g_object_unref;
-  protected GtkSizeGroup *entry_button_size_group = {gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL)} unrefwith g_object_unref;
 
   protected GSList *entries destroywith g_slist_free;
 
@@ -71,7 +66,7 @@ class MN:Mailbox:Properties from G:Object (abstract)
     deactivate (self);
 
   virtual public void
-    set_mailbox (self, MNMailbox *mailbox);
+    set_mailbox (self, MN:Mailbox *mailbox (check null type));
 
   virtual public MNMailbox *
     get_mailbox (self)
@@ -86,7 +81,7 @@ class MN:Mailbox:Properties from G:Object (abstract)
     GtkWidget *vbox;
 
     section = mn_hig_section_new_with_box(title, NULL, &vbox);
-    mn_gtk_object_ref_and_sink(GTK_OBJECT(section));
+    g_object_ref_sink(section);
     gtk_widget_show(section);
 
     selfp->general_sections = g_slist_append(selfp->general_sections, section);

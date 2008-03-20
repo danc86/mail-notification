@@ -17,23 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %h{
 #include <gtk/gtk.h>
 %}
 
 %{
-#include "config.h"
 #include <sys/types.h>
 #include <signal.h>
 #include <glib/gi18n.h>
 #include <gnome.h>
 #include "mn-conf.h"
 #include "mn-locked-callback.h"
+#include "mn-util.h"
 %}
 
-class MN:Sound:Player from G:Object
+class MN:Sound:Player
 {
   private gboolean can_play;
   property BOOLEAN can_play (export)
@@ -61,15 +59,10 @@ class MN:Sound:Player from G:Object
 						  self);
   }
 
-  override (G:Object) void
-    dispose (GObject *object)
+  dispose (self)
   {
-    Self *self = SELF(object);
-
     /* do not emit notify::can-stop at finalization time (pass FALSE) */
     self_stop_real(self, FALSE);
-
-    PARENT_HANDLER(object);
   }
 
   private void
@@ -95,7 +88,7 @@ class MN:Sound:Player from G:Object
     char *command;
     gboolean can;
 
-    command = eel_gconf_get_string(MN_CONF_SOUNDS_PLAY_COMMAND);
+    command = mn_conf_get_string(MN_CONF_SOUNDS_PLAY_COMMAND);
     can = command && *command;
     g_free(command);
 
@@ -128,18 +121,18 @@ class MN:Sound:Player from G:Object
     else
       error_message = N_("A command error has occurred in Mail Notification");
 
-    command = eel_gconf_get_string(MN_CONF_SOUNDS_PLAY_COMMAND);
+    command = mn_conf_get_string(MN_CONF_SOUNDS_PLAY_COMMAND);
     if (! command || ! *command)
       goto end;
 
     subst_command = mn_subst_command(command, self_subst_cb, (gpointer) filename, &err);
     if (! subst_command)
       {
-	mn_error_dialog(parent,
-			_(error_message),
-			_("Unable to execute \"%s\": %s."),
-			command,
-			err->message);
+	mn_show_error_dialog(parent,
+			     _(error_message),
+			     _("Unable to execute \"%s\": %s."),
+			     command,
+			     err->message);
 	g_error_free(err);
 	goto end;
       }
@@ -171,11 +164,11 @@ class MN:Sound:Player from G:Object
       }
     else
       {
-	mn_error_dialog(parent,
-			_(error_message),
-			_("Unable to execute \"%s\": %s."),
-			command,
-			err->message);
+	mn_show_error_dialog(parent,
+			     _(error_message),
+			     _("Unable to execute \"%s\": %s."),
+			     command,
+			     err->message);
 	g_error_free(err);
       }
 

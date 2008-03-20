@@ -17,13 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "config.h"
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include "mn-stock.h"
 #include "mn-util.h"
-
-/*** implementation **********************************************************/
 
 void
 mn_stock_init (void)

@@ -17,18 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "config.h"
 #include <string.h>
 #include <glib/gi18n.h>
 #include "mn-vfs.h"
 
-/*** cpp *********************************************************************/
-
 #ifndef MN_REGRESSION_TEST
 #define READ_LINE_BLOCK_SIZE		16384
 #endif
-
-/*** types *******************************************************************/
 
 struct _MNVFSReadLineContext
 {
@@ -38,8 +33,6 @@ struct _MNVFSReadLineContext
   GnomeVFSResult	last_result;
   gboolean		eof;
 };
-
-/*** implementation **********************************************************/
 
 /* FIXME: must also handle \r and \r\n terminators */
 GnomeVFSResult
@@ -309,6 +302,24 @@ mn_vfs_uri_append_file_suffix (GnomeVFSURI *uri, const char *suffix)
     result->text = g_strdup(suffix);
 
   return result;
+}
+
+char *
+mn_vfs_uri_extract_short_name (const char *text_uri)
+{
+  GnomeVFSURI *uri;
+  char *name;
+
+  g_return_val_if_fail(text_uri != NULL, NULL);
+
+  uri = gnome_vfs_uri_new(text_uri);
+  if (! uri)
+    return NULL;
+
+  name = gnome_vfs_uri_extract_short_name(uri);
+  gnome_vfs_uri_unref(uri);
+
+  return name;
 }
 
 char *

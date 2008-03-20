@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node name="/org/gnome/MailNotification">
+  <interface name="org.gnome.MailNotification">
+    <method name="HasMailboxes">
+      <arg type="b" name="ret" direction="out"/>
+    </method>
+    <method name="GetSummary">
+      <arg type="s" name="ret" direction="out"/>
+    </method>
+    <method name="ConsiderNewMailAsRead"/>
+    <method name="Update"/>
+    <method name="DisplayProperties"/>
+    <method name="DisplayAbout"/>
+    <method name="Quit"/>
+  </interface>
+</node>

@@ -17,15 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <libgnomevfs/gnome-vfs.h>
 #include <gmime/gmime.h>
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 #include "mn-vfs.h"
 
@@ -67,15 +64,10 @@ class MN:GMime:Stream:VFS from GMime:Stream
   private char *uri destroywith g_free; /* used in error messages only */
   private gboolean eof;
 
-  override (G:Object) void
-    finalize (GObject *object)
+  finalize (self)
   {
-    Self *self = SELF(object);
-
     if (selfp->handle_owned)
-      g_mime_stream_close(GMIME_STREAM(object));
-
-    PARENT_HANDLER(object);
+      g_mime_stream_close(GMIME_STREAM(self));
   }
 
   override (GMime:Stream) ssize_t

@@ -17,14 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-message-view.h"
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 #include "mn-message-view-private.h"
 #include "mn-message.h"
@@ -35,41 +32,28 @@ requires 2.0.14
 class MN:Compact:Message:View from MN:Message:View
 {
   override (MN:Message:View) void
-    update (MNMessageView *view, GSList *messages)
+    append_header (MNMessageView *view)
   {
     Self *self = SELF(view);
-    time_t now;
-    GSList *l;
-
-    mn_text_table_clear(MN_TEXT_TABLE(view));
 
     self_append_header(self, _("Mailbox"));
     self_append_header(self, _("From"));
     self_append_header(self, _("Subject"));
     self_append_header(self, _("Sent"));
     mn_text_table_line_break(MN_TEXT_TABLE(self));
-
-    now = mn_time();
-    MN_LIST_FOREACH(l, messages)
-      self_append_message(self, now, l->data);
-
-    PARENT_HANDLER(view, messages);
   }
 
-  private void
-    append_message (self, time_t now, MN:Message *message (check null type))
+  override (MN:Message:View) void
+    append_message (MNMessageView *view, MNMessage *message, time_t now)
   {
-    self_append_cell(self, message->mailbox->runtime_name);
-    if (message->error)
-      self_append_cell(self, message->error);
-    else
-      {
-	self_append_cell(self, message->from);
-	self_append_cell(self, message->subject);
+    Self *self = SELF(view);
 
-	if (message->sent_time > 0)
-	  mn_message_view_append_past_time_cell(MN_MESSAGE_VIEW(self), message->sent_time, now);
-      }
+    self_append_cell(self, message->mailbox->runtime_name);
+    self_append_cell(self, message->from);
+    self_append_cell(self, message->subject);
+
+    if (message->sent_time > 0)
+      mn_message_view_append_past_time_cell(MN_MESSAGE_VIEW(self), message->sent_time, now);
 
     mn_text_table_line_break(MN_TEXT_TABLE(self));
   }

@@ -248,29 +248,16 @@
       </locale>
     </schema>
     <schema>
-      <key>/schemas/apps/mail-notification/popups/expiration/delay/minutes</key>
-      <applyto>/apps/mail-notification/popups/expiration/delay/minutes</applyto>
-      <owner>mail-notification</owner>
-      <type>int</type>
-      <default>0</default>
-      <locale name="C">
-        <short>Minutes to wait before expiring message popups</short>
-        <long>If /apps/mail-notification/popups/expiration/enabled is
-        set to "true", the amount of time to wait before expiring
-        message popups (minutes part).</long>
-      </locale>
-    </schema>
-    <schema>
-      <key>/schemas/apps/mail-notification/popups/expiration/delay/seconds</key>
-      <applyto>/apps/mail-notification/popups/expiration/delay/seconds</applyto>
+      <key>/schemas/apps/mail-notification/popups/expiration/delay-2</key>
+      <applyto>/apps/mail-notification/popups/expiration/delay-2</applyto>
       <owner>mail-notification</owner>
       <type>int</type>
       <default>10</default>
       <locale name="C">
         <short>Seconds to wait before expiring message popups</short>
         <long>If /apps/mail-notification/popups/expiration/enabled is
-        set to "true", the amount of time to wait before expiring
-        message popups (seconds part).</long>
+        set to "true", the number of seconds to wait before expiring
+        message popups.</long>
       </locale>
     </schema>
     <schema>
@@ -306,6 +293,36 @@
       <locale name="C">
         <short>New mail sound</short>
 	<long>The sound file to play when new mail arrives.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/fallback-charsets</key>
+      <applyto>/apps/mail-notification/fallback-charsets</applyto>
+      <owner>mail-notification</owner>
+      <type>list</type>
+      <list_type>string</list_type>
+      <default>[user,ISO8859-15]</default>
+      <locale name="C">
+        <short>Fallback character sets</short>
+	<long>The list of character sets to attempt conversion from
+	when uncompliant 8-bit data is encountered in message headers.
+	The first character set allowing a successful conversion will
+	be used. The special name "user" will be replaced with the
+	character set of the user's locale. Note that Mail
+	Notification must be restarted for changes to take
+	effect.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/tooltip-mail-summary-limit</key>
+      <applyto>/apps/mail-notification/tooltip-mail-summary-limit</applyto>
+      <owner>mail-notification</owner>
+      <type>int</type>
+      <default>10</default>
+      <locale name="C">
+        <short>Maximum number of messages in the tooltip mail summary</short>
+	<long>The maximum number of messages to display in the tooltip
+	mail summary.</long>
       </locale>
     </schema>
   </schemalist>

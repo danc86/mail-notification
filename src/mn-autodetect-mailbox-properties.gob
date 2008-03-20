@@ -17,17 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <gtk/gtk.h>
 #include "mn-mailbox-properties.h"
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
-#include <eel/eel.h>
 #include "mn-mailbox-properties.h"
 #include "mn-mailbox-properties-private.h"
 #include "mn-util.h"
@@ -108,7 +104,6 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
     p_class->type = "custom-vfs";
     p_class->stock_id = MN_STOCK_UNKNOWN;
     p_class->combo_label = _("Autodetect");
-    p_class->no_check_delay_unless_complete = TRUE;
   }
 
   init (self)
@@ -146,8 +141,6 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
     gtk_widget_show_all(outer_hbox);
 
     gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->label_size_group, label);
-    gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->entry_size_group, selfp->location_entry);
-    gtk_size_group_add_widget(MN_MAILBOX_PROPERTIES(self)->entry_button_size_group, button);
 
     g_object_connect(selfp->location_entry,
 		     "swapped-signal::changed", mn_mailbox_properties_notify_complete, self,
@@ -180,7 +173,7 @@ class MN:Autodetect:Mailbox:Properties from MN:Mailbox:Properties
 							      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 							      GTK_STOCK_OPEN, 1,
 							      NULL);
-    eel_add_weak_pointer(&selfp->chooser);
+    mn_add_weak_pointer(&selfp->chooser);
 
     gtk_window_set_destroy_with_parent(GTK_WINDOW(selfp->chooser), TRUE);
     gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(selfp->chooser), FALSE);

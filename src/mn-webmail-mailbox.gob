@@ -17,14 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-authenticated-mailbox.h"
 %}
 
 %{
-#include "config.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -117,7 +114,9 @@ class MN:Webmail:Mailbox from MN:Authenticated:Mailbox (abstract)
   }
 
   protected char *
-    write_temporary_file (const char *contents (check null), GError **err)
+    write_temporary_file (const char *contents (check null),
+			  const char *encoding (check null),
+			  GError **err)
   {
     int fd;
     GError *tmp_err = NULL;
@@ -130,6 +129,12 @@ class MN:Webmail:Mailbox from MN:Authenticated:Mailbox (abstract)
       return NULL;
 
     channel = g_io_channel_unix_new(fd);
+
+    if (g_io_channel_set_encoding(channel, encoding, &tmp_err) != G_IO_STATUS_NORMAL)
+      {
+	g_set_error(err, 0, 0, _("unable to set encoding of %s: %s"), filename, tmp_err->message);
+	goto error;
+      }
 
     if (g_io_channel_write_chars(channel, contents, -1, &bytes_written, &tmp_err) != G_IO_STATUS_NORMAL)
       {
@@ -159,12 +164,12 @@ class MN:Webmail:Mailbox from MN:Authenticated:Mailbox (abstract)
     get_error_message (self,
 		       const char *helper_stdout,
 		       const char *helper_stderr,
-		       gboolean *is_auth_failure);
+		       gboolean *is_auth_failure (check null));
 
   private void
-    display_multiline_text (self,
-			    const char *text (check null),
-			    const char *line_prefix (check null))
+    print_multiline_text (self,
+			  const char *text (check null),
+			  const char *line_prefix (check null))
   {
     char **lines;
     int i;
@@ -172,7 +177,7 @@ class MN:Webmail:Mailbox from MN:Authenticated:Mailbox (abstract)
     lines = g_strsplit(text, "\n", 0);
     for (i = 0; lines[i]; i++)
       {
-	// do not display the empty last line
+	// do not print the empty last line
 	if (! lines[i + 1] && ! lines[i][0])
 	  break;
 
@@ -182,22 +187,22 @@ class MN:Webmail:Mailbox from MN:Authenticated:Mailbox (abstract)
   }
 
   protected void
-    display_config (self, const char *config (check null))
+    print_config (self, const char *config (check null))
   {
     mn_mailbox_notice(MN_MAILBOX(self), _("configuration:"));
-    self_display_multiline_text(self, config, "> ");
+    self_print_multiline_text(self, config, "> ");
   }
 
   private void
-    display_output (self,
-		    const char *header (check null),
-		    const char *contents)
+    print_output (self,
+		  const char *header (check null),
+		  const char *contents)
   {
     if (! contents || ! *contents)
       return;
 
     mn_mailbox_notice(MN_MAILBOX(self), "%s", header);
-    self_display_multiline_text(self, contents, "< ");
+    self_print_multiline_text(self, contents, "< ");
   }
 
   protected gboolean
@@ -221,8 +226,8 @@ class MN:Webmail:Mailbox from MN:Authenticated:Mailbox (abstract)
 	return FALSE;
       }
 
-    self_display_output(self, _("standard output:"), helper_stdout);
-    self_display_output(self, _("standard error output:"), helper_stderr);
+    self_print_output(self, _("standard output:"), helper_stdout);
+    self_print_output(self, _("standard error output:"), helper_stderr);
 
     if (WEXITSTATUS(exit_status) != 0)
       {

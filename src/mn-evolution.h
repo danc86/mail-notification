@@ -20,15 +20,20 @@
 #ifndef _MN_EVOLUTION_H
 #define _MN_EVOLUTION_H
 
-#define MN_EVOLUTION_EVENT_PREFIX		"GNOME/MailNotification/Evolution"
+#define MN_EVOLUTION_SERVER_SERVICE	"org.gnome.MailNotification.Evolution"
+#define MN_EVOLUTION_SERVER_PATH	"/org/gnome/MailNotification/Evolution"
+#define MN_EVOLUTION_SERVER_INTERFACE	"org.gnome.MailNotification.Evolution"
 
-#define MN_EVOLUTION_GLUE_IID			"OAFIID:GNOME_MailNotification_Evolution_Glue"
-#define MN_EVOLUTION_GLUE_EVENT_PREFIX		MN_EVOLUTION_EVENT_PREFIX "/Glue"
-#define MN_EVOLUTION_GLUE_EVENT_FOLDER_CHANGED	"folder-changed"
-#define MN_EVOLUTION_GLUE_EVENT_MESSAGE_READING	"message-reading"
+#define MN_EVOLUTION_SERVER_SIGNAL_FOLDER_CHANGED	"FolderChanged"
+#define MN_EVOLUTION_SERVER_SIGNAL_MESSAGE_READING	"MessageReading"
 
-#define MN_EVOLUTION_FOLDER_TREE_CONTROL_IID			"OAFIID:GNOME_MailNotification_Evolution_FolderTree_Control"
-#define MN_EVOLUTION_FOLDER_TREE_CONTROL_EVENT_PREFIX		MN_EVOLUTION_EVENT_PREFIX "/FolderTreeControl"
-#define MN_EVOLUTION_FOLDER_TREE_CONTROL_EVENT_ACTIVATED	"activated"
+#define MN_EVOLUTION_FOLDER_TREE_SERVER_SERVICE		"org.gnome.MailNotification.Evolution.FolderTree%u"
+#define MN_EVOLUTION_FOLDER_TREE_SERVER_PATH		"/org/gnome/MailNotification/Evolution/FolderTree%u"
+#define MN_EVOLUTION_FOLDER_TREE_SERVER_INTERFACE	"org.gnome.MailNotification.Evolution.FolderTree"
+
+#define MN_EVOLUTION_FOLDER_TREE_SERVER_PROPERTY_URI	"uri"
+
+#define MN_EVOLUTION_FOLDER_TREE_SERVER_SIGNAL_FOLDER_SELECTED	"FolderSelected"
+#define MN_EVOLUTION_FOLDER_TREE_SERVER_SIGNAL_FOLDER_ACTIVATED	"FolderActivated"
 
 #endif /* _MN_EVOLUTION_H */

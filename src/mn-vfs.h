@@ -20,7 +20,6 @@
 #ifndef _MN_VFS_H
 #define _MN_VFS_H
 
-#include "config.h"
 #include <glib.h>
 #include <libgnomevfs/gnome-vfs.h>
 
@@ -49,6 +48,8 @@ gboolean mn_vfs_write_entire_file_uri_safe (GnomeVFSURI *uri,
 
 GnomeVFSURI *mn_vfs_uri_append_file_suffix (GnomeVFSURI *uri,
 					    const char *suffix);
+
+char *mn_vfs_uri_extract_short_name (const char *text_uri);
 
 char *mn_vfs_get_local_path (GnomeVFSURI *uri);
 

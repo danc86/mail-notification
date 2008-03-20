@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "config.h"
+#include <errno.h>
 #include <glib.h>
 #include <glib/gi18n.h>
 
@@ -27,8 +27,6 @@ typedef GMutex CRYPTO_dynlock_value;
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include "mn-ssl.h"
-
-/*** variables ***************************************************************/
 
 static gboolean attempted = FALSE;
 static SSL_CTX *ctx = NULL;
@@ -40,17 +38,8 @@ static GMutex **locks;
 /* a general purpose global SSL lock */
 G_LOCK_DEFINE(mn_ssl);
 
-/*** functions ***************************************************************/
-
-static void mn_ssl_locking_cb (int mode, int n, const char *file, int line);
-static unsigned long mn_ssl_id_cb (void);
-
-static void mn_ssl_init_threading (void);
-
-/*** implementation **********************************************************/
-
 static void
-mn_ssl_locking_cb (int mode, int n, const char *file, int line)
+locking_cb (int mode, int n, const char *file, int line)
 {
   g_assert(n >= 0 && n < num_locks);
 
@@ -61,22 +50,22 @@ mn_ssl_locking_cb (int mode, int n, const char *file, int line)
 }
 
 static unsigned long
-mn_ssl_id_cb (void)
+id_cb (void)
 {
   return (unsigned long) g_thread_self();
 }
 
 static struct CRYPTO_dynlock_value *
-mn_ssl_dynlock_create_cb (const char *file, int line)
+dynlock_create_cb (const char *file, int line)
 {
   return (struct CRYPTO_dynlock_value *) g_mutex_new();
 }
 
 static void
-mn_ssl_dynlock_locking_cb (int mode,
-			   struct CRYPTO_dynlock_value *lock,
-			   const char *file,
-			   int line)
+dynlock_locking_cb (int mode,
+		    struct CRYPTO_dynlock_value *lock,
+		    const char *file,
+		    int line)
 {
   if ((mode & CRYPTO_LOCK) != 0)
     g_mutex_lock((GMutex *) lock);
@@ -85,15 +74,15 @@ mn_ssl_dynlock_locking_cb (int mode,
 }
 
 static void
-mn_ssl_dynlock_destroy_cb (struct CRYPTO_dynlock_value *lock,
-			   const char *file,
-			   int line)
+dynlock_destroy_cb (struct CRYPTO_dynlock_value *lock,
+		    const char *file,
+		    int line)
 {
   g_mutex_free((GMutex *) lock);
 }
 
 static void
-mn_ssl_init_threading (void)
+init_threading (void)
 {
   int i;
 
@@ -103,12 +92,12 @@ mn_ssl_init_threading (void)
   for (i = 0; i < num_locks; i++)
     locks[i] = g_mutex_new();
 
-  CRYPTO_set_locking_callback(mn_ssl_locking_cb);
-  CRYPTO_set_id_callback(mn_ssl_id_cb);
+  CRYPTO_set_locking_callback(locking_cb);
+  CRYPTO_set_id_callback(id_cb);
 
-  CRYPTO_set_dynlock_create_callback(mn_ssl_dynlock_create_cb);
-  CRYPTO_set_dynlock_lock_callback(mn_ssl_dynlock_locking_cb);
-  CRYPTO_set_dynlock_destroy_callback(mn_ssl_dynlock_destroy_cb);
+  CRYPTO_set_dynlock_create_callback(dynlock_create_cb);
+  CRYPTO_set_dynlock_lock_callback(dynlock_locking_cb);
+  CRYPTO_set_dynlock_destroy_callback(dynlock_destroy_cb);
 }
 
 SSL_CTX *
@@ -125,7 +114,7 @@ mn_ssl_init (GError **err)
       SSL_library_init();
       SSL_load_error_strings();
 
-      mn_ssl_init_threading();
+      init_threading();
 
       ctx = SSL_CTX_new(SSLv23_client_method());
       if (ctx)
@@ -152,11 +141,52 @@ mn_ssl_init (GError **err)
 const char *
 mn_ssl_get_error (void)
 {
-  const char *error;
+  static GStaticPrivate buf_key = G_STATIC_PRIVATE_INIT;
+  char *buf;
 
-  error = ERR_reason_error_string(ERR_get_error());
-  if (! error)
-    error = _("unknown SSL/TLS error");
+  /*
+   * We use a per-thread buffer so that the caller does not have to
+   * free the returned string.
+   */
 
-  return error;
+  buf = g_static_private_get(&buf_key);
+  if (! buf)
+    {
+      buf = g_new(char, 120);	/* the size is specified by the manpage */
+      g_static_private_set(&buf_key, buf, g_free);
+    }
+
+  return ERR_error_string(ERR_get_error(), buf);
+}
+
+const char *
+mn_ssl_get_io_error (const SSL *ssl, int ret)
+{
+  g_return_val_if_fail(ssl != NULL, NULL);
+
+  switch (SSL_get_error(ssl, ret))
+    {
+    case SSL_ERROR_SYSCALL:
+      if (ERR_peek_error() == 0)
+	switch (ret)
+	  {
+	  case 0:
+	    return "EOF";
+
+	  case -1:
+	    /*
+	     * This assumes that a UNIX BIO is in use (it is always
+	     * the case in MN).
+	     */
+	    return g_strerror(errno);
+	  }
+      else
+	return mn_ssl_get_error();
+      break;
+
+    case SSL_ERROR_SSL:
+      return mn_ssl_get_error();
+    }
+
+  return _("unknown SSL/TLS error");
 }

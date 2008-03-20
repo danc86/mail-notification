@@ -6,12 +6,13 @@ Index
 
 	0. About this document
 	1. About Mail Notification
-	2. Issues in third-party software affecting Mail Notification
+	2. Dependencies
 	3. Installation instructions
+	4. Issues in third-party software affecting Mail Notification
 
 0. About this document
 
-	$Id: README,v 1.41 2008-01-04 15:38:21 jylefort Exp $
+	$Id: README,v 1.45 2008-03-19 23:22:09 jylefort Exp $
 
 	Copyright (C) 2003-2008 Jean-Yves Lefort.
 
@@ -50,7 +51,76 @@ Index
 		* message popups
 		* HIG 2.0 compliance
 
-2. Issues in third-party software affecting Mail Notification
+2. Dependencies
+
+	Mandatory:
+
+		* GNOME (version 2.14.0 or superior)
+		  http://www.gnome.org/
+
+		* libnotify (version 0.4.1 or superior)
+		  http://www.galago-project.org/
+
+	Optional:
+
+		* for IMAP, Maildir, mbox, MH, Mozilla, POP3,
+		  Sylpheed, Windows Live Hotmail and Yahoo! Mail
+		  support:
+
+		  GMime (version 2.2.7 or superior)
+		  http://spruce.sourceforge.net/gmime/
+
+		* for Windows Live Hotmail support:
+
+		  GetLive
+		  http://sourceforge.net/projects/getlive/
+
+		* for Yahoo! Mail support:
+
+		  FetchYahoo
+		  http://fetchyahoo.twizzler.org/
+
+		* for SSL/TLS support:
+
+		  OpenSSL (version 0.9.6 or superior)
+		  http://www.openssl.org/
+
+		* for SASL authentication support:
+
+		  Cyrus SASL (version 2.0 or superior)
+		  http://asg.web.cmu.edu/sasl/sasl-library.html
+
+		* for Evolution support:
+
+		  Evolution (version 2.12 or superior)
+		  http://www.gnome.org/projects/evolution/
+
+3. Installation instructions
+
+	To configure, build and install Mail Notification, use the
+	following commands:
+
+		./jb configure
+		./jb build
+		sudo ./jb install
+
+	Note that a number of settings can be passed to the configure
+	stage, for instance:
+
+		./jb configure prefix=/opt cflags=-O3 pop3=no
+
+	For details, use:
+
+		./jb help
+
+	For more informations about JB (the Jean-Yves Lefort's Build
+	System), read jbsrc/lib/README.
+
+	Note to Sylpheed users: if you want more responsive
+	notifications, apply the patch data/sylpheed-locking.diff to
+	Sylpheed and recompile it.
+
+4. Issues in third-party software affecting Mail Notification
 
 	* Thread-safety bugs in libgnomeui may cause Mail Notification
 	  (and other multi-threaded GNOME applications) to crash or
@@ -90,16 +160,6 @@ Index
 		- GnomeVFS CVS >= 20050411
 		- GnomeVFS >= 2.11.1
 
-	* When Mail Notification is trying to contact Evolution, a
-	  file descriptor leak in bonobo-activation causes the
-	  bonobo-activation-server process to leak one file descriptor
-	  per second.
-
-	  http://bugzilla.gnome.org/show_bug.cgi?id=315650
-	  fixed:
-		- FreeBSD port devel/libbonobo >= 2.10.1_1
-		- libbonobo >= 2.15.3
-
 	* An infinite loop in GnomeVFS may affect mailboxes which use
 	  the GnomeVFS bzip2 method.
 
@@ -137,7 +197,3 @@ Index
 	  http://bugzilla.gnome.org/show_bug.cgi?id=500307
 	  http://bugzilla.gnome.org/show_bug.cgi?id=500533
 	  http://bugzilla.gnome.org/show_bug.cgi?id=500538
-
-3. Installation instructions
-
-	See the INSTALL file.

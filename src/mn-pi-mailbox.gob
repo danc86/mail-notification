@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-authenticated-mailbox.h"
 %}
@@ -39,9 +37,7 @@ requires 2.0.14
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
-#include <eel/eel.h>
 #include "mn-authenticated-mailbox-private.h"
 #include "mn-mailbox-private.h"
 #include "mn-util.h"
@@ -280,7 +276,7 @@ class MN:PI:Mailbox from MN:Authenticated:Mailbox (abstract)
       {
 	GSList *gconf_fingerprints;
 
-	gconf_fingerprints = eel_gconf_get_string_list(MN_CONF_TRUSTED_X509_CERTIFICATES);
+	gconf_fingerprints = mn_conf_get_string_list(MN_CONF_TRUSTED_X509_CERTIFICATES);
 
 	if (mn_g_str_slist_find(gconf_fingerprints, fingerprint))
 	  status = TRUE;
@@ -289,10 +285,10 @@ class MN:PI:Mailbox from MN:Authenticated:Mailbox (abstract)
 	    {
 	      status = TRUE;
 	      gconf_fingerprints = g_slist_append(gconf_fingerprints, g_strdup(fingerprint));
-	      eel_gconf_set_string_list(MN_CONF_TRUSTED_X509_CERTIFICATES, gconf_fingerprints);
+	      mn_conf_set_string_list(MN_CONF_TRUSTED_X509_CERTIFICATES, gconf_fingerprints);
 	    }
 
-	eel_g_slist_free_deep(gconf_fingerprints);
+	mn_g_slist_free_deep(gconf_fingerprints);
       }
     else
       {
@@ -300,7 +296,7 @@ class MN:PI:Mailbox from MN:Authenticated:Mailbox (abstract)
 	GSList *gconf_servers = NULL;
 
 	key = g_strdup_printf("%s:%i", server, port);
-	gconf_servers = eel_gconf_get_string_list(MN_CONF_TRUSTED_SERVERS);
+	gconf_servers = mn_conf_get_string_list(MN_CONF_TRUSTED_SERVERS);
 
 	if (mn_g_str_slist_find(gconf_servers, key))
 	  status = TRUE;
@@ -310,12 +306,12 @@ class MN:PI:Mailbox from MN:Authenticated:Mailbox (abstract)
 	      {
 		status = TRUE;
 		gconf_servers = g_slist_append(gconf_servers, g_strdup(key));
-		eel_gconf_set_string_list(MN_CONF_TRUSTED_SERVERS, gconf_servers);
+		mn_conf_set_string_list(MN_CONF_TRUSTED_SERVERS, gconf_servers);
 	      }
 	  }
 
 	g_free(key);
-	eel_g_slist_free_deep(gconf_servers);
+	mn_g_slist_free_deep(gconf_servers);
       }
 
     return status;
@@ -365,10 +361,12 @@ class MN:PI:Mailbox from MN:Authenticated:Mailbox (abstract)
 						  secondary->str);
     g_string_free(secondary, TRUE);
 
-    eel_add_weak_pointer(&selfp->untrusted_dialog);
+    mn_add_weak_pointer(&selfp->untrusted_dialog);
 
-    gtk_dialog_add_button(GTK_DIALOG(selfp->untrusted_dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
-    gtk_dialog_add_button(GTK_DIALOG(selfp->untrusted_dialog), GTK_STOCK_CONNECT, GTK_RESPONSE_OK);
+    gtk_dialog_add_buttons(GTK_DIALOG(selfp->untrusted_dialog),
+			   GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			   GTK_STOCK_CONNECT, GTK_RESPONSE_OK,
+			   NULL);
 
     status = mn_dialog_run_nonmodal(GTK_DIALOG(selfp->untrusted_dialog)) == GTK_RESPONSE_OK;
     gtk_widget_destroy(selfp->untrusted_dialog);

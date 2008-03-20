@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <gtk/gtk.h>
 %}
@@ -28,7 +26,6 @@ requires 2.0.14
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 
 enum
@@ -42,11 +39,8 @@ class MN:Sound:File:Chooser:Dialog from Gtk:File:Chooser:Dialog
 {
   private MNSoundPlayer *sound_player unrefwith g_object_unref;
 
-  override (G:Object) GObject *
-    constructor (GType type, unsigned int n_construct_properties, GObjectConstructParam *construct_params)
+  constructor (self)
   {
-    GObject *object = PARENT_HANDLER(type, n_construct_properties, construct_params);
-    Self *self = SELF(object);
     GtkFileFilter *filter;
 
     selfp->sound_player = mn_sound_player_new();
@@ -82,8 +76,6 @@ class MN:Sound:File:Chooser:Dialog from Gtk:File:Chooser:Dialog
 		     NULL);
 
     self_update_sensitivity(self);
-
-    return object;
   }
 
   private void

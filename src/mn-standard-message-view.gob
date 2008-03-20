@@ -17,14 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-message-view.h"
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 #include "mn-message-view-private.h"
 #include "mn-message.h"
@@ -35,46 +32,27 @@ requires 2.0.14
 class MN:Standard:Message:View from MN:Message:View
 {
   override (MN:Message:View) void
-    update (MNMessageView *view, GSList *messages)
+    append_message (MNMessageView *view, MNMessage *message, time_t now)
   {
     Self *self = SELF(view);
-    time_t now;
-    GSList *l;
 
-    mn_text_table_clear(MN_TEXT_TABLE(view));
+    self_append_row(self, _("Mailbox:"), message->mailbox->runtime_name);
+    self_append_row(self, _("From:"), message->from);
+    self_append_row(self, _("Subject:"), message->subject);
 
-    now = mn_time();
-    MN_LIST_FOREACH(l, messages)
+    if (message->sent_time > 0)
       {
-	self_append_message(self, now, l->data);
-	if (l->next)
-	  {
-	    mn_text_table_append_blank_cell(MN_TEXT_TABLE(self), 0, 12);
-	    mn_text_table_line_break(MN_TEXT_TABLE(self));
-	  }
+	self_append_header(self, _("Sent:"));
+	mn_message_view_append_past_time_cell(MN_MESSAGE_VIEW(self), message->sent_time, now);
+	mn_text_table_line_break(MN_TEXT_TABLE(self));
       }
-
-    PARENT_HANDLER(view, messages);
   }
 
-  private void
-    append_message (self, time_t now, MN:Message *message (check null type))
+  override (MN:Message:View) void
+    append_message_separator (MNMessageView *view)
   {
-    self_append_row(self, _("Mailbox:"), message->mailbox->runtime_name);
-    if (message->error)
-      self_append_row(self, _("Unreadable message:"), message->error);
-    else
-      {
-	self_append_row(self, _("From:"), message->from);
-	self_append_row(self, _("Subject:"), message->subject);
-
-	if (message->sent_time > 0)
-	  {
-	    self_append_header(self, _("Sent:"));
-	    mn_message_view_append_past_time_cell(MN_MESSAGE_VIEW(self), message->sent_time, now);
-	    mn_text_table_line_break(MN_TEXT_TABLE(self));
-	  }
-      }
+    mn_text_table_append_blank_cell(MN_TEXT_TABLE(view), 0, 12);
+    mn_text_table_line_break(MN_TEXT_TABLE(view));
   }
 
   private void

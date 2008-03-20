@@ -1,6 +1,8 @@
 /*
  * MNTooltips - a tooltips implementation allowing to use an arbitrary
- * widget as tooltip
+ * widget as tooltip. Update: this functionality is now supported by
+ * GTK+ (as of version 2.12), but unfortunately it is broken
+ * (http://bugzilla.gnome.org/show_bug.cgi?id=504087).
  *
  * Heavily based on GtkTooltips,
  * Copyright (C) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald
@@ -23,15 +25,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include <gtk/gtk.h>
 %}
 
 %privateheader{
-#include "mn-locked-callback.h"
-
 typedef struct
 {
   MNTooltips	*self;
@@ -41,7 +39,6 @@ typedef struct
 %}
 
 %{
-#include <eel/eel.h>
 #include "mn-util.h"
 
 #define TOOLTIPS_DATA			"mn-tooltips-data"
@@ -74,7 +71,7 @@ typedef enum
 #define GTK_PRIVATE_SET_FLAG(wid,flag)    G_STMT_START{ (GTK_PRIVATE_FLAGS (wid) |= (PRIVATE_ ## flag)); }G_STMT_END
 %}
 
-class MN:Tooltips from G:Object
+class MN:Tooltips
 {
   private GtkWidget *window;
   private TooltipsData *active_data;
@@ -82,18 +79,16 @@ class MN:Tooltips from G:Object
 
   private gboolean use_sticky_delay;
   private GTimeVal last_popdown;
-  private MNLockedGSource *timeout_source;
+  private unsigned int timeout_id;
 
   private int border_width = 4;
 
-  override (G:Object) void
-    finalize (GObject *object)
+  finalize (self)
   {
-    Self *self = SELF(object);
     GSList *l;
 
-    if (selfp->timeout_source)
-      mn_locked_g_source_remove(selfp->timeout_source);
+    if (selfp->timeout_id)
+      g_source_remove(selfp->timeout_id);
 
     MN_LIST_FOREACH(l, selfp->data_list)
       {
@@ -102,8 +97,6 @@ class MN:Tooltips from G:Object
       }
 
     self_unset_window(self);
-
-    PARENT_HANDLER(object);
   }
 
   private void
@@ -192,7 +185,7 @@ class MN:Tooltips from G:Object
 				 G_CALLBACK(self_paint_window),
 				 self);
 
-	eel_add_weak_pointer(&selfp->window);
+	mn_add_weak_pointer(&selfp->window);
       }
   }
 
@@ -229,7 +222,7 @@ class MN:Tooltips from G:Object
 	data->tip_widget = tip_widget;
 
 	if (data->tip_widget)
-	  mn_gtk_object_ref_and_sink(GTK_OBJECT(data->tip_widget));
+	  g_object_ref_sink(data->tip_widget);
 
 	self_draw_tips(self);
       }
@@ -246,7 +239,7 @@ class MN:Tooltips from G:Object
 	data->tip_widget = tip_widget;
 
 	if (data->tip_widget)
-	  mn_gtk_object_ref_and_sink(GTK_OBJECT(data->tip_widget));
+	  g_object_ref_sink(data->tip_widget);
 
 	selfp->data_list = g_slist_append(selfp->data_list, data);
 	g_signal_connect_after(widget, "event-after", G_CALLBACK(self_event_after_h), data);
@@ -427,10 +420,10 @@ class MN:Tooltips from G:Object
   {
     Self *self = SELF(data);
 
-    if (selfp->active_data != NULL && GTK_WIDGET_DRAWABLE(selfp->active_data->widget))
+    if (selfp->active_data && GTK_WIDGET_DRAWABLE(selfp->active_data->widget))
       self_draw_tips(self);
 
-    selfp->timeout_source = NULL;
+    selfp->timeout_id = 0;
     return FALSE;		/* remove timeout */
   }
 
@@ -444,7 +437,7 @@ class MN:Tooltips from G:Object
 	gtk_widget_hide(selfp->window);
       }
 
-    mn_locked_g_source_clear(&selfp->timeout_source);
+    mn_source_clear(&selfp->timeout_id);
 
     selfp->active_data = NULL;
 
@@ -560,9 +553,9 @@ class MN:Tooltips from G:Object
     if (! old_data || old_data->widget != widget)
       {
 	self_set_active_widget(self, widget);
-	selfp->timeout_source = mn_g_timeout_add_gdk_locked((selfp->use_sticky_delay && self_recently_shown(self)) ? STICKY_DELAY : DELAY,
-							    self_timeout_cb,
-							    self);
+	selfp->timeout_id = gdk_threads_add_timeout((selfp->use_sticky_delay && self_recently_shown(self)) ? STICKY_DELAY : DELAY,
+						    self_timeout_cb,
+						    self);
       }
   }
 

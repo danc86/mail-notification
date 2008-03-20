@@ -17,18 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-vfs-mailbox-backend.h"
 %}
 
 %{
-#include "config.h"
 #include <string.h>
 #include <stdlib.h>
 #include <glib/gi18n.h>
-#include <eel/eel.h>
 #include "mn-mailbox-private.h"
 #include "mn-reentrant-mailbox-private.h"
 #include "mn-vfs-mailbox-backend-private.h"
@@ -56,7 +52,7 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
       {
 	char *filename;
 
-	filename = eel_uri_get_basename(info_uri);
+	filename = mn_vfs_uri_extract_short_name(info_uri);
 	if (filename)
 	  {
 	    if (filename[0] != '.')
@@ -112,6 +108,7 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
 		    const char *dir (check null),
 		    gboolean new,
 		    GSList **messages (check null),
+		    int *num_errors (check null),
 		    GError **err)
   {
     MNVFSMailboxBackend *backend = MN_VFS_MAILBOX_BACKEND(self);
@@ -136,8 +133,9 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
     while ((result = gnome_vfs_directory_read_next(handle, file_info)) == GNOME_VFS_OK)
       if (file_info->name[0] != '.')
 	{
+	  char *mid;
 	  MNMessageFlags flags = 0;
-	  MNMessage *message;
+	  MNVFSMessage *message;
 
 	  if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 	    {
@@ -146,7 +144,10 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	    }
 
 	  if (new)
-	    flags |= MN_MESSAGE_NEW;
+	    {
+	      mid = g_strdup(file_info->name);
+	      flags |= MN_MESSAGE_NEW;
+	    }
 	  else
 	    {
 	      char *info;
@@ -158,14 +159,49 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
 		  || ! g_str_has_prefix(info + 1, "2,")
 		  || strpbrk(info + 3, "ST"))
 		continue; /* no info, or message seen/trashed: ignore it */
+
+	      mid = g_strndup(file_info->name, info - file_info->name);
 	    }
 
-	  message = mn_vfs_message_new(MN_TYPE_MAILDIR_MESSAGE,
-				       backend,
-				       uri,
-				       file_info->name,
-				       flags,
-				       FALSE);
+	  message = MN_VFS_MESSAGE(mn_mailbox_get_message_from_mid(MN_MAILBOX(backend->mailbox), mid));
+	  if (message)
+	    message = mn_vfs_message_new_from_message(message,
+						      uri,
+						      file_info->name,
+						      flags);
+	  else
+	    {
+	      GError *tmp_err = NULL;
+
+	      message = mn_vfs_message_new(MN_TYPE_MAILDIR_MESSAGE,
+					   backend,
+					   mid,
+					   uri,
+					   file_info->name,
+					   flags,
+					   FALSE,
+					   &tmp_err);
+
+	      if (tmp_err)
+		{
+		  GnomeVFSURI *message_uri;
+		  char *message_text_uri;
+
+		  message_uri = gnome_vfs_uri_append_file_name(uri, file_info->name);
+		  message_text_uri = gnome_vfs_uri_to_string(message_uri, GNOME_VFS_URI_HIDE_PASSWORD);
+		  gnome_vfs_uri_unref(message_uri);
+
+		  mn_mailbox_warning(MN_MAILBOX(backend->mailbox), "cannot read message \"%s\": %s",
+				     message_text_uri, tmp_err->message);
+		  g_free(message_text_uri);
+		  g_error_free(tmp_err);
+
+		  (*num_errors)++;
+		}
+	    }
+
+	  g_free(mid);
+
 	  if (message)
 	    *messages = g_slist_prepend(*messages, message);
 	}
@@ -195,20 +231,30 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
     Self *self = SELF(backend);
     GSList *messages = NULL;
     GError *err = NULL;
+    int num_errors = 0;
     gboolean status;
 
     self_monitor_directory(self, check_id, "cur");
     self_monitor_directory(self, check_id, "new");
 
-    status = self_scan_directory(self, check_id, "cur", FALSE, &messages, &err)
-      && self_scan_directory(self, check_id, "new", TRUE, &messages, &err);
+    status = self_scan_directory(self, check_id, "cur", FALSE, &messages, &num_errors, &err)
+      && self_scan_directory(self, check_id, "new", TRUE, &messages, &num_errors, &err);
 
     GDK_THREADS_ENTER();
 
     if (! mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
       {
 	if (status)
-	  mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
+	  {
+	    mn_mailbox_set_messages(MN_MAILBOX(backend->mailbox), messages);
+
+	    if (num_errors != 0)
+	      mn_mailbox_set_error(MN_MAILBOX(backend->mailbox),
+				   ngettext("cannot read %i message",
+					    "cannot read %i messages",
+					    num_errors),
+				   num_errors);
+	  }
 	else
 	  mn_mailbox_set_error(MN_MAILBOX(backend->mailbox), "%s", err->message);
       }

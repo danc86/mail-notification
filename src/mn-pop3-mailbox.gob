@@ -27,8 +27,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-pi-mailbox.h"
 %}
@@ -38,7 +36,6 @@ extern int mn_pop3_mailbox_default_ports[MN_PI_MAILBOX_N_CONNECTION_TYPES];
 %}
 
 %{
-#include "config.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -46,7 +43,6 @@ extern int mn_pop3_mailbox_default_ports[MN_PI_MAILBOX_N_CONNECTION_TYPES];
 #include <unistd.h>
 #include <glib/gi18n.h>
 #include <libgnomevfs/gnome-vfs-utils.h>
-#include <eel/eel.h>
 #if WITH_SASL
 #include <sasl/saslutil.h>
 #endif /* WITH_SASL */
@@ -72,6 +68,7 @@ enum
   STATE_USER,
   STATE_PASS,
   STATE_LIST,
+  STATE_UIDL,
   STATE_RETR_TOP,
   STATE_QUIT
 };
@@ -80,26 +77,35 @@ struct _MNClientSessionPrivate
 {
   MN_PI_MAILBOX_SESSION_PRIVATE;
   MNPOP3Mailbox			*self;
+
   gboolean			in_list;
   gboolean			in_retr_top;
+
   char				*apop_timestamp;
   GSList			*auth_mechanisms;
+
   gboolean			top_supported;
+  gboolean			uidl_supported;
+
 #if WITH_SSL
   gboolean			stls_supported;
   gboolean			stls_completed;
 #endif
+
 #if WITH_SASL
   GSList			*sasl_remaining_mechanisms;
   const char			*sasl_mechanism;
   gboolean			sasl_had_clientout;
 #endif
+
   gboolean			authenticated;
+
   gboolean			login_delay_user;
-  GSList			*message_numbers;
-  GSList			*current_message_number;
+
+  int				num_errors;
   GSList			*messages;
-  GString			*current_message;
+  GSList			*message_iter;
+  GString			*message_buffer;
 };
 
 typedef enum
@@ -116,6 +122,13 @@ struct _MNClientSessionResponse
   ResponseType	type;
   char		*arguments;
 };
+
+typedef struct
+{
+  MNMessage	*message;
+  char		*mid;
+  int		number;
+} MessageInfo;
 
 int mn_pop3_mailbox_default_ports[MN_PI_MAILBOX_N_CONNECTION_TYPES] = { 110, 110, 995 };
 %}
@@ -261,7 +274,7 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 		    MNClientSessionResponse *response,
 		    MNClientSessionPrivate *priv)
   {
-    self_handle_list_response(priv, response, FALSE);
+    self_session_handle_list_response(priv, response, FALSE);
 
     switch (response->type)
       {
@@ -271,6 +284,7 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 	mn_g_slist_clear(&priv->sasl_remaining_mechanisms);
 #endif
 	priv->top_supported = FALSE;
+	priv->uidl_supported = FALSE;
 	priv->self->_priv->login_delay = 0;
 	priv->login_delay_user = FALSE;
 #if WITH_SSL
@@ -282,7 +296,7 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
       case RESPONSE_ERR:
       case RESPONSE_LIST_END:
 	if (priv->authenticated)
-	  return STATE_LIST;
+	  return self_session_enter_list_or_uidl(priv);
 
 #if WITH_SSL
 	if (priv->pi_mailbox->connection_type == MN_PI_MAILBOX_CONNECTION_TYPE_INBAND_SSL
@@ -317,6 +331,8 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 		}
 	      else if (! strcmp(tokens[0], "TOP"))
 		priv->top_supported = TRUE;
+	      else if (! strcmp(tokens[0], "UIDL"))
+		priv->uidl_supported = TRUE;
 #if WITH_SSL
 	      else if (! strcmp(tokens[0], "STLS"))
 		priv->stls_supported = TRUE;
@@ -606,7 +622,7 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 		    MNClientSessionResponse *response,
 		    MNClientSessionPrivate *priv)
   {
-    self_handle_list_response(priv, response, FALSE);
+    self_session_handle_list_response(priv, response, FALSE);
 
     switch (response->type)
       {
@@ -614,8 +630,7 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 	return MN_CLIENT_SESSION_RESULT_CONTINUE;
 
       case RESPONSE_LIST_END:
-	priv->current_message_number = priv->message_numbers;
-	return STATE_RETR_TOP;
+	return self_session_enter_retr_top(priv);
 
       case RESPONSE_ERR:
 	return mn_client_session_set_error_from_response(session, MN_CLIENT_SESSION_ERROR_OTHER, response->arguments);
@@ -626,7 +641,7 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 	  int size;
 
 	  if (sscanf(response->arguments, "%d %d", &num, &size) == 2)
-	    priv->message_numbers = g_slist_prepend(priv->message_numbers, GINT_TO_POINTER(num));
+	    priv->messages = g_slist_prepend(priv->messages, self_message_info_new(num));
 	  else			/* compliance error */
 	    return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
 	}
@@ -638,27 +653,111 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
   }
 
   private int
+    enter_uidl_cb (MNClientSession *session,
+		   MNClientSessionPrivate *priv)
+  {
+    return mn_client_session_write(session, "UIDL");
+  }
+
+  private int
+    handle_uidl_cb (MNClientSession *session,
+		    MNClientSessionResponse *response,
+		    MNClientSessionPrivate *priv)
+  {
+    self_session_handle_list_response(priv, response, FALSE);
+
+    switch (response->type)
+      {
+      case RESPONSE_OK:
+	return MN_CLIENT_SESSION_RESULT_CONTINUE;
+
+      case RESPONSE_LIST_END:
+	return self_session_enter_retr_top(priv);
+
+      case RESPONSE_ERR:
+	/*
+	 * The server advertised UIDL but does not support it,
+	 * fallback to LIST.
+	 */
+	return STATE_LIST;
+
+      case RESPONSE_LIST_ITEM:
+	{
+	  int num;
+	  char *uid;
+
+	  if (self_parse_uidl_list_item(response->arguments, &num, &uid))
+	    {
+	      MessageInfo *info;
+	      MNMessage *message;
+
+	      info = self_message_info_new(num);
+	      info->mid = uid;
+
+	      message = mn_mailbox_get_message_from_mid(priv->mailbox, info->mid);
+	      if (message)
+		info->message = g_object_ref(message);
+
+	      priv->messages = g_slist_prepend(priv->messages, info);
+
+	      return MN_CLIENT_SESSION_RESULT_CONTINUE;
+	    }
+	  else
+	    /* compliance error */
+	    return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+	}
+
+      default:
+	return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
+      }
+  }
+
+  private int
     enter_retr_top_cb (MNClientSession *session,
 		       MNClientSessionPrivate *priv)
   {
-    if (priv->current_message_number)
-      return mn_client_session_write(session, priv->top_supported ? "TOP %i 0" : "RETR %i", GPOINTER_TO_INT(priv->current_message_number->data));
+    MessageInfo *info;
+
+    info = self_session_message_iter_get_message_info(priv);
+
+    if (info)
+      return mn_client_session_write(session, priv->top_supported ? "TOP %i 0" : "RETR %i", info->number);
     else
       {
+	GSList *messages = NULL;
+	GSList *l;
+
+	MN_LIST_FOREACH(l, priv->messages)
+	  {
+	    info = l->data;
+
+	    if (info->message)
+	      messages = g_slist_prepend(messages, info->message);
+	  }
+
 	GDK_THREADS_ENTER();
 
-	mn_mailbox_set_messages(priv->mailbox, priv->messages);
+	mn_mailbox_set_messages(priv->mailbox, messages);
+
+	if (priv->num_errors != 0)
+	  mn_mailbox_set_error(priv->mailbox,
+			       ngettext("cannot retrieve %i message",
+					"cannot retrieve %i messages",
+					priv->num_errors),
+			       priv->num_errors);
 
 	/*
 	 * In authenticated_check(), we do not hold the GDK lock while
-	 * unreffing the message list. We have just exposed the list
+	 * unreffing the messages. We have just exposed the messages
 	 * to other threads through our mn_mailbox_set_messages()
-	 * call, so unref it here, while we hold the GDK lock.
+	 * call, so unref them here, while we hold the GDK lock.
 	 */
-	mn_g_object_slist_clear(&priv->messages);
+	mn_g_slist_clear_deep_custom(&priv->messages, (GFunc) self_message_info_free, NULL);
 
 	gdk_flush();
 	GDK_THREADS_LEAVE();
+
+	g_slist_free(messages);
 
 	return STATE_QUIT;
       }
@@ -669,42 +768,63 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 			MNClientSessionResponse *response,
 			MNClientSessionPrivate *priv)
   {
-    self_handle_list_response(priv, response, TRUE);
+    self_session_handle_list_response(priv, response, TRUE);
 
     switch (response->type)
       {
       case RESPONSE_OK:
-	if (priv->current_message)
-	  g_string_free(priv->current_message, TRUE);
-	priv->current_message = g_string_new(NULL);
+	if (priv->message_buffer)
+	  g_string_free(priv->message_buffer, TRUE);
+	priv->message_buffer = g_string_new(NULL);
 	return MN_CLIENT_SESSION_RESULT_CONTINUE;
 
       case RESPONSE_LIST_END:
 	{
-	  MNMessage *message;
+	  MessageInfo *info = priv->message_iter->data;
+	  GError *err = NULL;
 
-	  message = mn_message_new_from_buffer(priv->mailbox,
-					       priv->current_message->str,
-					       priv->current_message->len,
-					       0,
-					       TRUE);
-	  if (message)
-	    priv->messages = g_slist_prepend(priv->messages, message);
+	  g_assert(info->message == NULL);
 
-	  priv->current_message_number = priv->current_message_number->next;
+	  info->message = mn_message_new_from_buffer(priv->mailbox,
+						     priv->message_buffer->str,
+						     priv->message_buffer->len,
+						     info->mid,
+						     0,
+						     TRUE,
+						     &err);
+	  if (err)
+	    {
+	      mn_client_session_warning(session,
+					"cannot read message %i: %s",
+					info->number,
+					err->message);
+	      g_error_free(err);
+
+	      priv->num_errors++;
+	    }
+
+	  priv->message_iter = priv->message_iter->next;
 	  return STATE_RETR_TOP;
 	}
 
       case RESPONSE_ERR:
-	priv->messages = g_slist_prepend(priv->messages,
-					 mn_message_new_from_error(priv->mailbox,
-								   response->arguments ? response->arguments : _("unknown error"),
-								   MN_MESSAGE_NEW));
-	priv->current_message_number = priv->current_message_number->next;
-	return STATE_RETR_TOP;
+	{
+	  MessageInfo *info = priv->message_iter->data;
+
+	  g_assert(info->message == NULL);
+
+	  mn_client_session_warning(session,
+				    "cannot retrieve message %i: %s",
+				    info->number,
+				    response->arguments ? response->arguments : "unknown error");
+	  priv->num_errors++;
+
+	  priv->message_iter = priv->message_iter->next;
+	  return STATE_RETR_TOP;
+	}
 
       case RESPONSE_LIST_ITEM:
-	g_string_append_printf(priv->current_message, "%s\n", response->arguments);
+	g_string_append_printf(priv->message_buffer, "%s\n", response->arguments);
 	return MN_CLIENT_SESSION_RESULT_CONTINUE;
 
       default:
@@ -754,6 +874,7 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
       { STATE_USER,		self_enter_user_cb,	self_handle_user_cb },
       { STATE_PASS,		self_enter_pass_cb,	self_handle_pass_cb },
       { STATE_LIST,		self_enter_list_cb,	self_handle_list_cb },
+      { STATE_UIDL,		self_enter_uidl_cb,	self_handle_uidl_cb },
       { STATE_RETR_TOP,		self_enter_retr_top_cb,	self_handle_retr_top_cb },
       { STATE_QUIT,		self_enter_quit_cb,	self_handle_quit_cb },
 
@@ -836,14 +957,16 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
       }
 
     g_free(priv.apop_timestamp);
-    eel_g_slist_free_deep(priv.auth_mechanisms);
+    mn_g_slist_free_deep(priv.auth_mechanisms);
+
 #if WITH_SASL
     g_slist_free(priv.sasl_remaining_mechanisms);
 #endif
-    g_slist_free(priv.message_numbers);
-    mn_g_object_slist_free(priv.messages);
-    if (priv.current_message)
-      g_string_free(priv.current_message, TRUE);
+
+    mn_g_slist_free_deep_custom(priv.messages, (GFunc) self_message_info_free, NULL);
+
+    if (priv.message_buffer)
+      g_string_free(priv.message_buffer, TRUE);
   }
 
   private MNClientSessionResponse *
@@ -1070,13 +1193,13 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
      */
     return priv->login_delay_user || ! priv->top_supported
       ? STATE_CAPA
-      : STATE_LIST;
+      : self_session_enter_list_or_uidl(priv);
   }
 
   private void
-    handle_list_response (MNClientSessionPrivate *priv (check null),
-			  MNClientSessionResponse *response (check null),
-			  gboolean in_retr_top)
+    session_handle_list_response (MNClientSessionPrivate *priv (check null),
+				  MNClientSessionResponse *response (check null),
+				  gboolean in_retr_top)
   {
     switch (response->type)
       {
@@ -1093,6 +1216,77 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 	priv->in_retr_top = FALSE;
 	break;
       }
+  }
+
+  private int
+    session_enter_list_or_uidl (MNClientSessionPrivate *priv (check null))
+  {
+    if (priv->uidl_supported)
+      return STATE_UIDL;
+    else
+      return STATE_LIST;
+  }
+
+  private int
+    session_enter_retr_top (MNClientSessionPrivate *priv (check null))
+  {
+    priv->message_iter = priv->messages;
+
+    return STATE_RETR_TOP;
+  }
+
+  private MessageInfo *
+    session_message_iter_get_message_info (MNClientSessionPrivate *priv (check null))
+  {
+    for (; priv->message_iter; priv->message_iter = priv->message_iter->next)
+      {
+	MessageInfo *info = priv->message_iter->data;
+
+	if (! info->message)
+	  return info;
+      }
+
+    return NULL;
+  }
+
+  private gboolean
+    parse_uidl_list_item (const char *item (check null),
+			  int *number (check null),
+			  char **uid (check null))
+  {
+    char **fields;
+    gboolean status = FALSE;
+
+    fields = g_strsplit(item, " ", 2);
+    if (g_strv_length(fields) == 2 && mn_str_isnumeric(fields[0]))
+      {
+	*number = atoi(fields[0]);
+	*uid = g_strdup(fields[1]);
+	status = TRUE;
+      }
+    g_strfreev(fields);
+
+    return status;
+  }
+
+  private MessageInfo *
+    message_info_new (int number)
+  {
+    MessageInfo *info;
+
+    info = g_new0(MessageInfo, 1);
+    info->number = number;
+
+    return info;
+  }
+
+  private void
+    message_info_free (MessageInfo *info (check null))
+  {
+    if (info->message)
+      g_object_unref(info->message);
+    g_free(info->mid);
+    g_free(info);
   }
 
   public char *

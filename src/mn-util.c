@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
@@ -26,15 +25,13 @@
 #include <errno.h>
 #include <gmodule.h>
 #include <glib/gi18n.h>
+#include <gobject/gvaluecollector.h>
 #include <gnome.h>
 #include <glade/glade.h>
-#include <eel/eel.h>
 #include "mn-util.h"
 #include "mn-mailboxes.h"
 #include "mn-shell.h"
 #include "mn-conf.h"
-
-/*** types *******************************************************************/
 
 typedef struct
 {
@@ -61,72 +58,6 @@ typedef struct
   gboolean	destroyed;
 } RunNonmodalInfo;
 
-/*** functions ***************************************************************/
-
-static GladeXML *mn_glade_xml_new (const char *filename,
-				   const char *root,
-				   const char *domain);
-static GtkWidget *mn_glade_xml_get_widget (GladeXML *xml,
-					   const char *widget_name);
-
-static void mn_container_create_interface_connect_cb (const char *handler_name,
-						      GObject *object,
-						      const char *signal_name,
-						      const char *signal_data,
-						      GObject *connect_object,
-						      gboolean after,
-						      gpointer user_data);
-
-static int mn_g_str_slist_compare_func (gconstpointer a, gconstpointer b);
-
-static void mn_file_chooser_dialog_file_activated_h (GtkFileChooser *chooser,
-						     gpointer user_data);
-static void mn_file_chooser_dialog_response_h (GtkDialog *dialog,
-					       int response_id,
-					       gpointer user_data);
-
-static gboolean mn_scrolled_window_drag_motion_h (GtkWidget *widget,
-						  GdkDragContext *drag_context,
-						  int x,
-						  int y,
-						  unsigned int time,
-						  gpointer user_data);
-static void mn_drag_data_received_h (GtkWidget *widget,
-				     GdkDragContext *drag_context,
-				     int x,
-				     int y,
-				     GtkSelectionData *selection_data,
-				     unsigned int info,
-				     unsigned int time,
-				     gpointer user_data);
-
-static GtkWidget *mn_menu_item_new (const char *stock_id, const char *mnemonic);
-
-static void mn_error_dialog_real (GtkWindow *parent,
-				  MNDialogFlags flags,
-				  const char *primary,
-				  const char *format,
-				  va_list args);
-
-static void mn_g_object_connect_weak_notify_cb (gpointer data,
-						GObject *former_object);
-
-static void mn_dialog_run_nonmodal_destroy_h (GtkObject *object,
-					      gpointer user_data);
-static void mn_dialog_run_nonmodal_unmap_h (GtkWidget *widget,
-					    gpointer user_data);
-static void mn_dialog_run_nonmodal_response_h (GtkDialog *dialog,
-					       int response,
-					       gpointer user_data);
-static gboolean mn_dialog_run_nonmodal_delete_event_h (GtkWidget *widget,
-						       GdkEvent *event,
-						       gpointer user_data);
-static void mn_dialog_run_nonmodal_shutdown_loop (RunNonmodalInfo *info);
-
-static void mn_handle_execute_result (int status, const char *command);
-
-/*** implementation **********************************************************/
-
 void
 mn_info (const char *format, ...)
 {
@@ -135,8 +66,17 @@ mn_info (const char *format, ...)
   g_return_if_fail(format != NULL);
 
   va_start(args, format);
-  g_logv(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, format, args);
+  g_logv(NULL, G_LOG_LEVEL_INFO, format, args);
   va_end(args);
+}
+
+void
+mn_g_list_free_deep_custom (GList *list,
+			    GFunc element_free_func,
+			    gpointer user_data)
+{
+  g_list_foreach(list, element_free_func, user_data);
+  g_list_free(list);
 }
 
 GSList *
@@ -145,14 +85,31 @@ mn_g_slist_append_elements (GSList *list, gpointer data, ...)
   va_list args;
 
   va_start(args, data);
+
   while (data)
     {
       list = g_slist_append(list, data);
       data = va_arg(args, gpointer);
     }
+
   va_end(args);
 
   return list;
+}
+
+void
+mn_g_slist_free_deep (GSList *list)
+{
+  mn_g_slist_free_deep_custom(list, (GFunc) g_free, NULL);
+}
+
+void
+mn_g_slist_free_deep_custom (GSList *list,
+			     GFunc element_free_func,
+			     gpointer user_data)
+{
+  g_slist_foreach(list, element_free_func, user_data);
+  g_slist_free(list);
 }
 
 void
@@ -169,7 +126,7 @@ mn_g_slist_clear_deep (GSList **list)
 {
   g_return_if_fail(list != NULL);
 
-  eel_g_slist_free_deep(*list);
+  mn_g_slist_free_deep(*list);
   *list = NULL;
 }
 
@@ -181,7 +138,7 @@ mn_g_slist_clear_deep_custom (GSList **list,
   g_return_if_fail(list != NULL);
   g_return_if_fail(element_free_func != NULL);
 
-  eel_g_slist_free_deep_custom(*list, element_free_func, user_data);
+  mn_g_slist_free_deep_custom(*list, element_free_func, user_data);
   *list = NULL;
 }
 
@@ -211,18 +168,24 @@ mn_g_slist_delete_link_deep_custom (GSList *list,
   return g_slist_delete_link(list, link_);
 }
 
+static int
+str_slist_compare_func (gconstpointer a, gconstpointer b)
+{
+  return strcmp(a, b);
+}
+
 GSList *
 mn_g_str_slist_find (GSList *list, const char *str)
 {
   g_return_val_if_fail(str != NULL, NULL);
 
-  return g_slist_find_custom(list, str, mn_g_str_slist_compare_func);
+  return g_slist_find_custom(list, str, str_slist_compare_func);
 }
 
-static int
-mn_g_str_slist_compare_func (gconstpointer a, gconstpointer b)
+void
+mn_g_object_list_free (GList *list)
 {
-  return strcmp(a, b);
+  mn_g_list_free_deep_custom(list, (GFunc) g_object_unref, NULL);
 }
 
 GSList *
@@ -242,12 +205,12 @@ mn_g_object_slist_copy (GSList *list)
  * mn_g_object_slist_free:
  * @list: a #GSList of #GObject instances
  *
- * Equivalent of eel_g_object_list_free() for a singly-linked list.
+ * Equivalent of mn_g_object_list_free() for a singly-linked list.
  **/
 void
 mn_g_object_slist_free (GSList *list)
 {
-  eel_g_slist_free_deep_custom(list, (GFunc) g_object_unref, NULL);
+  mn_g_slist_free_deep_custom(list, (GFunc) g_object_unref, NULL);
 }
 
 void
@@ -257,22 +220,6 @@ mn_g_object_slist_clear (GSList **list)
 
   mn_g_object_slist_free(*list);
   *list = NULL;
-}
-
-void
-mn_g_queue_free_deep_custom (GQueue *queue,
-			     GFunc element_free_func,
-			     gpointer user_data)
-{
-  gpointer data;
-
-  g_return_if_fail(queue != NULL);
-  g_return_if_fail(element_free_func != NULL);
-
-  while ((data = g_queue_pop_head(queue)))
-    element_free_func(data, user_data);
-
-  g_queue_free(queue);
 }
 
 /**
@@ -349,7 +296,7 @@ mn_pixbuf_new (const char *filename)
   pixbuf = gdk_pixbuf_new_from_file(filename, &err);
   if (! pixbuf)
     {
-      mn_fatal_error_dialog(NULL, _("Unable to load image \"%s\" (%s). Please check your Mail Notification installation."), filename, err->message);
+      mn_show_fatal_error_dialog(NULL, "Unable to load image \"%s\" (%s).", filename, err->message);
       g_error_free(err);
     }
 
@@ -365,7 +312,7 @@ mn_glade_xml_new (const char *filename, const char *root, const char *domain)
 
   xml = glade_xml_new(filename, root, domain);
   if (! xml)
-    mn_fatal_error_dialog(NULL, _("Unable to load interface \"%s\". Please check your Mail Notification installation."), filename);
+    mn_show_fatal_error_dialog(NULL, "Unable to load interface \"%s\".", filename);
 
   return xml;
 }
@@ -380,9 +327,43 @@ mn_glade_xml_get_widget (GladeXML *xml, const char *widget_name)
 
   widget = glade_xml_get_widget(xml, widget_name);
   if (! widget)
-    mn_fatal_error_dialog(NULL, _("Widget \"%s\" not found in interface \"%s\". Please check your Mail Notification installation."), widget_name, xml->filename);
+    mn_show_fatal_error_dialog(NULL, "Widget \"%s\" not found in interface \"%s\".", widget_name, xml->filename);
 
   return widget;
+}
+
+static void
+create_interface_connect_cb (const char *handler_name,
+			     GObject *object,
+			     const char *signal_name,
+			     const char *signal_data,
+			     GObject *connect_object,
+			     gboolean after,
+			     gpointer user_data)
+{
+  static GModule *module = NULL;
+  ContainerCreateInterfaceConnectInfo *info = user_data;
+  char *cb_name;
+  GCallback cb;
+  GConnectFlags flags;
+
+  if (! module)
+    {
+      module = g_module_open(NULL, 0);
+      if (! module)
+	mn_show_fatal_error_dialog(NULL, "Unable to open the program as a module (%s).", g_module_error());
+    }
+
+  cb_name = g_strconcat(info->callback_prefix, handler_name, NULL);
+  if (! g_module_symbol(module, cb_name, (gpointer) &cb))
+    mn_show_fatal_error_dialog(NULL, "Signal handler \"%s\" not found.", cb_name);
+  g_free(cb_name);
+
+  flags = G_CONNECT_SWAPPED;
+  if (after)
+    flags |= G_CONNECT_AFTER;
+
+  g_signal_connect_data(object, signal_name, cb, info->container, NULL, flags);
 }
 
 void
@@ -413,9 +394,10 @@ mn_container_create_interface (GtkContainer *container,
 
   info.container = container;
   info.callback_prefix = callback_prefix;
-  glade_xml_signal_autoconnect_full(xml, mn_container_create_interface_connect_cb, &info);
+  glade_xml_signal_autoconnect_full(xml, create_interface_connect_cb, &info);
 
   va_start(args, callback_prefix);
+
   while ((widget_name = va_arg(args, const char *)))
     {
       GtkWidget **widget;
@@ -425,43 +407,10 @@ mn_container_create_interface (GtkContainer *container,
 
       *widget = mn_glade_xml_get_widget(xml, widget_name);
     }
+
   va_end(args);
 
   g_object_unref(xml);
-}
-
-static void
-mn_container_create_interface_connect_cb (const char *handler_name,
-					  GObject *object,
-					  const char *signal_name,
-					  const char *signal_data,
-					  GObject *connect_object,
-					  gboolean after,
-					  gpointer user_data)
-{
-  static GModule *module = NULL;
-  ContainerCreateInterfaceConnectInfo *info = user_data;
-  char *cb_name;
-  GCallback cb;
-  GConnectFlags flags;
-
-  if (! module)
-    {
-      module = g_module_open(NULL, 0);
-      if (! module)
-	mn_fatal_error_dialog(NULL, _("Unable to open self as a module (%s)."), g_module_error());
-    }
-
-  cb_name = g_strconcat(info->callback_prefix, handler_name, NULL);
-  if (! g_module_symbol(module, cb_name, (gpointer) &cb))
-    mn_fatal_error_dialog(NULL, _("Signal handler \"%s\" not found. Please check your Mail Notification installation."), cb_name);
-  g_free(cb_name);
-
-  flags = G_CONNECT_SWAPPED;
-  if (after)
-    flags |= G_CONNECT_AFTER;
-
-  g_signal_connect_data(object, signal_name, cb, info->container, NULL, flags);
 }
 
 GtkWindow *
@@ -474,6 +423,34 @@ mn_widget_get_parent_window (GtkWidget *widget)
   toplevel = gtk_widget_get_toplevel(widget);
 
   return GTK_WIDGET_TOPLEVEL(toplevel) ? GTK_WINDOW(toplevel) : NULL;
+}
+
+static void
+file_chooser_dialog_file_activated_h (GtkFileChooser *chooser,
+				      gpointer user_data)
+{
+  int accept_id = GPOINTER_TO_INT(user_data);
+
+  gtk_dialog_response(GTK_DIALOG(chooser), accept_id);
+}
+
+static void
+file_chooser_dialog_response_h (GtkDialog *dialog,
+				int response_id,
+				gpointer user_data)
+{
+  int accept_id = GPOINTER_TO_INT(user_data);
+
+  if (response_id == accept_id)
+    {
+      char *uri;
+
+      uri = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(dialog));
+      if (uri)
+	g_free(uri);
+      else
+	g_signal_stop_emission_by_name(dialog, "response");
+    }
 }
 
 /**
@@ -502,36 +479,119 @@ mn_file_chooser_dialog_allow_select_folder (GtkFileChooserDialog *dialog,
 		      || accept_id == GTK_RESPONSE_APPLY));
 
   g_object_connect(dialog,
-		   "signal::file-activated", mn_file_chooser_dialog_file_activated_h, GINT_TO_POINTER(accept_id),
-		   "signal::response", mn_file_chooser_dialog_response_h, GINT_TO_POINTER(accept_id),
+		   "signal::file-activated", file_chooser_dialog_file_activated_h, GINT_TO_POINTER(accept_id),
+		   "signal::response", file_chooser_dialog_response_h, GINT_TO_POINTER(accept_id),
 		   NULL);
 }
 
-static void
-mn_file_chooser_dialog_file_activated_h (GtkFileChooser *chooser,
-					 gpointer user_data)
+static gboolean
+scrolled_window_drag_motion_h (GtkWidget *widget,
+			       GdkDragContext *drag_context,
+			       int x,
+			       int y,
+			       unsigned int time_,
+			       gpointer user_data)
 {
-  int accept_id = GPOINTER_TO_INT(user_data);
+  GtkAdjustment *adjustment;
 
-  gtk_dialog_response(GTK_DIALOG(chooser), accept_id);
+  adjustment = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(widget));
+  gtk_adjustment_set_value(adjustment, (double) y / (widget->allocation.height - 2) * (adjustment->upper - adjustment->page_size));
+
+  return TRUE;			/* we're forcibly in a drop zone */
 }
 
 static void
-mn_file_chooser_dialog_response_h (GtkDialog *dialog,
-				   int response_id,
-				   gpointer user_data)
+drag_data_received_h (GtkWidget *widget,
+		      GdkDragContext *drag_context,
+		      int x,
+		      int y,
+		      GtkSelectionData *selection_data,
+		      unsigned int info,
+		      unsigned int time_,
+		      gpointer user_data)
 {
-  int accept_id = GPOINTER_TO_INT(user_data);
-
-  if (response_id == accept_id)
+  switch (info)
     {
-      char *uri;
+    case TARGET_URI_LIST:
+      {
+	char **uriv;
+	int i;
+	GSList *invalid_uri_list = NULL;
 
-      uri = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(dialog));
-      if (uri)
-	g_free(uri);
-      else
-	g_signal_stop_emission_by_name(dialog, "response");
+	uriv = gtk_selection_data_get_uris(selection_data);
+	if (! uriv)
+	  {
+	    mn_show_error_dialog(mn_widget_get_parent_window(widget),
+				 _("A drag and drop error has occurred"),
+				 _("An invalid location list has been received."));
+	    return;
+	  }
+
+	for (i = 0; uriv[i]; i++)
+	  if (*uriv[i])
+	    {
+	      MNMailbox *mailbox;
+
+	      mailbox = mn_mailbox_new_from_uri(uriv[i]);
+	      if (mailbox)
+		{
+		  mn_mailbox_seal(mailbox);
+		  mn_mailboxes_queue_add(mn_shell->mailboxes, mailbox);
+		  g_object_unref(mailbox);
+		}
+	      else
+		invalid_uri_list = g_slist_append(invalid_uri_list, uriv[i]);
+	    }
+
+	if (invalid_uri_list)
+	  {
+	    mn_show_invalid_uri_list_dialog(mn_widget_get_parent_window(widget), _("A drag and drop error has occurred"), invalid_uri_list);
+	    g_slist_free(invalid_uri_list);
+	  }
+
+	g_strfreev(uriv);
+      }
+      break;
+
+    case TARGET_MOZ_URL:
+      {
+	GString *url;
+	const guint16 *char_data;
+	int char_len;
+	int i;
+	MNMailbox *mailbox;
+
+	/* text/x-moz-url is encoded in UCS-2 but in format 8: broken */
+	if (selection_data->format != 8 || selection_data->length <= 0 || (selection_data->length % 2) != 0)
+	  {
+	    mn_show_error_dialog(mn_widget_get_parent_window(widget),
+				 _("A drag and drop error has occurred"),
+				 _("An invalid Mozilla location has been received."));
+	    return;
+	  }
+
+	char_data = (const guint16 *) selection_data->data;
+	char_len = selection_data->length / 2;
+
+	url = g_string_new(NULL);
+	for (i = 0; i < char_len && char_data[i] != '\n'; i++)
+	  g_string_append_unichar(url, char_data[i]);
+
+	g_assert(mn_shell != NULL);
+
+	mailbox = mn_mailbox_new_from_uri(url->str);
+	if (mailbox)
+	  {
+	    mn_mailbox_seal(mailbox);
+	    mn_mailboxes_queue_add(mn_shell->mailboxes, mailbox);
+	    g_object_unref(mailbox);
+	  }
+	else
+	  mn_show_invalid_uri_dialog(mn_widget_get_parent_window(widget), _("A drag and drop error has occurred"), url->str);
+
+	g_string_free(url, TRUE);
+      }
+      break;
     }
 }
 
@@ -561,124 +621,13 @@ mn_setup_dnd (GtkWidget *widget)
   if (GTK_IS_SCROLLED_WINDOW(widget))
     g_signal_connect(widget,
 		     "drag-motion",
-		     G_CALLBACK(mn_scrolled_window_drag_motion_h),
+		     G_CALLBACK(scrolled_window_drag_motion_h),
 		     NULL);
 
   g_signal_connect(widget,
 		   "drag-data-received",
-		   G_CALLBACK(mn_drag_data_received_h),
+		   G_CALLBACK(drag_data_received_h),
 		   NULL);
-}
-
-static gboolean
-mn_scrolled_window_drag_motion_h (GtkWidget *widget,
-				  GdkDragContext *drag_context,
-				  int x,
-				  int y,
-				  unsigned int time,
-				  gpointer user_data)
-{
-  GtkAdjustment *adjustment;
-
-  adjustment = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(widget));
-  gtk_adjustment_set_value(adjustment, (double) y / (widget->allocation.height - 2) * (adjustment->upper - adjustment->page_size));
-
-  return TRUE;			/* we're forcibly in a drop zone */
-}
-
-static void
-mn_drag_data_received_h (GtkWidget *widget,
-			 GdkDragContext *drag_context,
-			 int x,
-			 int y,
-			 GtkSelectionData *selection_data,
-			 unsigned int info,
-			 unsigned int time,
-			 gpointer user_data)
-{
-  switch (info)
-    {
-    case TARGET_URI_LIST:
-      {
-	char **uriv;
-	int i;
-	GSList *invalid_uri_list = NULL;
-
-	uriv = gtk_selection_data_get_uris(selection_data);
-	if (! uriv)
-	  {
-	    mn_error_dialog(mn_widget_get_parent_window(widget),
-			    _("A drag and drop error has occurred"),
-			    _("An invalid location list has been received."));
-	    return;
-	  }
-
-	for (i = 0; uriv[i]; i++)
-	  if (*uriv[i])
-	    {
-	      MNMailbox *mailbox;
-
-	      mailbox = mn_mailbox_new_from_uri(uriv[i]);
-	      if (mailbox)
-		{
-		  mn_mailbox_seal(mailbox);
-		  mn_mailboxes_queue_add(mn_shell->mailboxes, mailbox);
-		  g_object_unref(mailbox);
-		}
-	      else
-		invalid_uri_list = g_slist_append(invalid_uri_list, uriv[i]);
-	    }
-
-	if (invalid_uri_list)
-	  {
-	    mn_invalid_uri_list_dialog(mn_widget_get_parent_window(widget), _("A drag and drop error has occurred"), invalid_uri_list);
-	    g_slist_free(invalid_uri_list);
-	  }
-
-	g_strfreev(uriv);
-      }
-      break;
-
-    case TARGET_MOZ_URL:
-      {
-	GString *url;
-	const guint16 *char_data;
-	int char_len;
-	int i;
-	MNMailbox *mailbox;
-
-	/* text/x-moz-url is encoded in UCS-2 but in format 8: broken */
-	if (selection_data->format != 8 || selection_data->length <= 0 || (selection_data->length % 2) != 0)
-	  {
-	    mn_error_dialog(mn_widget_get_parent_window(widget),
-			    _("A drag and drop error has occurred"),
-			    _("An invalid Mozilla location has been received."));
-	    return;
-	  }
-
-	char_data = (const guint16 *) selection_data->data;
-	char_len = selection_data->length / 2;
-
-	url = g_string_new(NULL);
-	for (i = 0; i < char_len && char_data[i] != '\n'; i++)
-	  g_string_append_unichar(url, char_data[i]);
-
-	g_assert(mn_shell != NULL);
-
-	mailbox = mn_mailbox_new_from_uri(url->str);
-	if (mailbox)
-	  {
-	    mn_mailbox_seal(mailbox);
-	    mn_mailboxes_queue_add(mn_shell->mailboxes, mailbox);
-	    g_object_unref(mailbox);
-	  }
-	else
-	  mn_invalid_uri_dialog(mn_widget_get_parent_window(widget), _("A drag and drop error has occurred"), url->str);
-
-	g_string_free(url, TRUE);
-      }
-      break;
-    }
 }
 
 gboolean
@@ -722,13 +671,13 @@ mn_parse_gnome_copied_files (const char *gnome_copied_files,
 }
 
 void
-mn_display_help (GtkWindow *parent, const char *link_id)
+mn_show_help (GtkWindow *parent, const char *link_id)
 {
   GError *err = NULL;
 
   if (! gnome_help_display("mail-notification.xml", link_id, &err))
     {
-      mn_error_dialog(parent, _("Unable to display help"), "%s", err->message);
+      mn_show_error_dialog(parent, _("Unable to display help"), "%s", err->message);
       g_error_free(err);
     }
 }
@@ -740,7 +689,7 @@ mn_open_link (GtkWindow *parent, const char *url)
 
   if (! gnome_url_show(url, &err))
     {
-      mn_error_dialog(parent, _("Unable to open link"), "%s", err->message);
+      mn_show_error_dialog(parent, _("Unable to open link"), "%s", err->message);
       g_error_free(err);
     }
 }
@@ -754,9 +703,34 @@ mn_thread_create (GThreadFunc func, gpointer data)
 
   if (! g_thread_create(func, data, FALSE, &err))
     {
-      mn_fatal_error_dialog(NULL, _("Unable to create a thread: %s."), err->message);
+      mn_show_fatal_error_dialog(NULL, "Unable to create a thread: %s.", err->message);
       g_error_free(err);
     }
+}
+
+static GtkWidget *
+menu_item_new (const char *stock_id, const char *mnemonic)
+{
+  GtkWidget *item;
+
+  if (stock_id && mnemonic)
+    {
+      GtkWidget *image;
+
+      item = gtk_image_menu_item_new_with_mnemonic(mnemonic);
+
+      image = gtk_image_new_from_stock(stock_id, GTK_ICON_SIZE_MENU);
+      gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), image);
+      gtk_widget_show(image);
+    }
+  else if (stock_id)
+    item = gtk_image_menu_item_new_from_stock(stock_id, NULL);
+  else if (mnemonic)
+    item = gtk_menu_item_new_with_mnemonic(mnemonic);
+  else
+    item = gtk_separator_menu_item_new();
+
+  return item;
 }
 
 /**
@@ -791,44 +765,19 @@ mn_menu_shell_append (GtkMenuShell *shell,
 
   g_return_val_if_fail(GTK_IS_MENU_SHELL(shell), NULL);
 
-  item = mn_menu_item_new(stock_id, mnemonic);
+  item = menu_item_new(stock_id, mnemonic);
   gtk_menu_shell_append(shell, item);
   gtk_widget_show(item);
 
   return item;
 }
 
-static GtkWidget *
-mn_menu_item_new (const char *stock_id, const char *mnemonic)
-{
-  GtkWidget *item;
-
-  if (stock_id && mnemonic)
-    {
-      GtkWidget *image;
-
-      item = gtk_image_menu_item_new_with_mnemonic(mnemonic);
-
-      image = gtk_image_new_from_stock(stock_id, GTK_ICON_SIZE_MENU);
-      gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), image);
-      gtk_widget_show(image);
-    }
-  else if (stock_id)
-    item = gtk_image_menu_item_new_from_stock(stock_id, NULL);
-  else if (mnemonic)
-    item = gtk_menu_item_new_with_mnemonic(mnemonic);
-  else
-    item = gtk_separator_menu_item_new();
-
-  return item;
-}
-
 static void
-mn_error_dialog_real (GtkWindow *parent,
-		      MNDialogFlags flags,
-		      const char *primary,
-		      const char *format,
-		      va_list args)
+show_error_dialog_real (GtkWindow *parent,
+			MNDialogFlags flags,
+			const char *primary,
+			const char *format,
+			va_list args)
 {
   char *secondary;
   GtkWidget *dialog;
@@ -860,10 +809,10 @@ mn_error_dialog_real (GtkWindow *parent,
 }
 
 void
-mn_error_dialog (GtkWindow *parent,
-		 const char *primary,
-		 const char *format,
-		 ...)
+mn_show_error_dialog (GtkWindow *parent,
+		      const char *primary,
+		      const char *format,
+		      ...)
 {
   va_list args;
 
@@ -871,16 +820,16 @@ mn_error_dialog (GtkWindow *parent,
   g_return_if_fail(format != NULL);
 
   va_start(args, format);
-  mn_error_dialog_real(parent, 0, primary, format, args);
+  show_error_dialog_real(parent, 0, primary, format, args);
   va_end(args);
 }
 
 /* only the secondary text can have markup */
 void
-mn_error_dialog_with_markup (GtkWindow *parent,
-			     const char *primary,
-			     const char *format,
-			     ...)
+mn_show_error_dialog_with_markup (GtkWindow *parent,
+				  const char *primary,
+				  const char *format,
+				  ...)
 {
   va_list args;
 
@@ -888,14 +837,14 @@ mn_error_dialog_with_markup (GtkWindow *parent,
   g_return_if_fail(format != NULL);
 
   va_start(args, format);
-  mn_error_dialog_real(parent, MN_DIALOG_MARKUP, primary, format, args);
+  show_error_dialog_real(parent, MN_DIALOG_MARKUP, primary, format, args);
   va_end(args);
 }
 
 void
-mn_invalid_uri_dialog (GtkWindow *parent,
-		       const char *primary,
-		       const char *invalid_uri)
+mn_show_invalid_uri_dialog (GtkWindow *parent,
+			    const char *primary,
+			    const char *invalid_uri)
 {
   GSList *list = NULL;
 
@@ -903,17 +852,17 @@ mn_invalid_uri_dialog (GtkWindow *parent,
   g_return_if_fail(invalid_uri != NULL);
 
   list = g_slist_append(list, (gpointer) invalid_uri);
-  mn_invalid_uri_list_dialog(parent, primary, list);
+  mn_show_invalid_uri_list_dialog(parent, primary, list);
   g_slist_free(list);
 }
 
 void
-mn_invalid_uri_list_dialog (GtkWindow *parent,
-			    const char *primary,
-			    const GSList *invalid_uri_list)
+mn_show_invalid_uri_list_dialog (GtkWindow *parent,
+				 const char *primary,
+				 GSList *invalid_uri_list)
 {
   GString *string;
-  const GSList *l;
+  GSList *l;
 
   g_return_if_fail(primary != NULL);
   g_return_if_fail(invalid_uri_list != NULL);
@@ -929,25 +878,25 @@ mn_invalid_uri_list_dialog (GtkWindow *parent,
 	g_string_append_c(string, '\n');
     }
 
-  mn_error_dialog(parent,
-		  primary,
-		  ngettext("The following location is invalid:\n\n%s",
-			   "The following locations are invalid:\n\n%s",
-			   g_slist_length((GSList *) invalid_uri_list)),
-		  string->str);
+  mn_show_error_dialog(parent,
+		       primary,
+		       ngettext("The following location is invalid:\n\n%s",
+				"The following locations are invalid:\n\n%s",
+				g_slist_length((GSList *) invalid_uri_list)),
+		       string->str);
 
   g_string_free(string, TRUE);
 }
 
 void
-mn_fatal_error_dialog (GtkWindow *parent, const char *format, ...)
+mn_show_fatal_error_dialog (GtkWindow *parent, const char *format, ...)
 {
   va_list args;
 
   g_assert(format != NULL);
 
   va_start(args, format);
-  mn_error_dialog_real(parent, MN_DIALOG_BLOCKING, _("A fatal error has occurred in Mail Notification"), format, args);
+  show_error_dialog_real(parent, MN_DIALOG_BLOCKING, _("A fatal error has occurred in Mail Notification"), format, args);
   va_end(args);
 
   exit(1);
@@ -991,10 +940,95 @@ mn_time (void)
   if (t < 0)
     {
       t = 0;
-      g_warning(_("unable to get current time: %s"), g_strerror(errno));
+      g_warning("unable to get current time: %s", g_strerror(errno));
     }
 
   return t;
+}
+
+char *
+mn_strftime (const char *format, const struct tm *timeptr)
+{
+  char *buf;
+  size_t bufsize = 64;
+
+  g_return_val_if_fail(format != NULL, NULL);
+  g_return_val_if_fail(timeptr != NULL, NULL);
+
+  buf = g_malloc(bufsize);
+  while (strftime(buf, bufsize, format, timeptr) == 0)
+    {
+      bufsize *= 2;
+      buf = g_realloc(buf, bufsize);
+    }
+
+  return buf;
+}
+
+char *
+mn_format_past_time (time_t past_time, time_t now)
+{
+  time_t diff;
+
+  g_return_val_if_fail(past_time > 0, NULL);
+
+  diff = now - past_time;
+  if (diff >= 0)
+    {
+      if (diff < 60)
+	return g_strdup_printf(ngettext("%i second ago", "%i seconds ago", (int) diff), (int) diff);
+      else if (diff < 60 * 60)
+	{
+	  int minutes = diff / 60;
+	  return g_strdup_printf(ngettext("about %i minute ago", "about %i minutes ago", minutes), minutes);
+	}
+      else if (diff < 60 * 60 * 24)
+	{
+	  int hours = diff / (60 * 60);
+	  return g_strdup_printf(ngettext("about %i hour ago", "about %i hours ago", hours), hours);
+	}
+      else if (diff < 60 * 60 * 24 * 7)
+	{
+	  int days = diff / (60 * 60 * 24);
+	  return g_strdup_printf(ngettext("about %i day ago", "about %i days ago", days), days);
+	}
+      else
+	{
+	  int weeks = diff / (60 * 60 * 24 * 7);
+	  return g_strdup_printf(ngettext("about %i week ago", "about %i weeks ago", weeks), weeks);
+	}
+    }
+  else				/* future time: simply format it */
+    {
+      struct tm *tm;
+
+      tm = localtime(&past_time);
+      g_assert(tm != NULL);
+
+      return mn_strftime("%c", tm);
+    }
+}
+
+char *
+mn_format_seconds (int seconds)
+{
+  if (seconds < MN_MINS(1))
+    return g_strdup_printf(ngettext("%i second", "%i seconds", seconds), seconds);
+  else if (seconds < MN_HOURS(1))
+    {
+      int mins = seconds / MN_MINS(1);
+      return g_strdup_printf(ngettext("%i minute", "%i minutes", mins), mins);
+    }
+  else if (seconds < MN_DAYS(1))
+    {
+      int hours = seconds / MN_HOURS(1);
+      return g_strdup_printf(ngettext("%i hour", "%i hours", hours), hours);
+    }
+  else
+    {
+      g_return_val_if_fail(seconds == MN_DAYS(1), NULL);
+      return g_strdup(_("1 day"));
+    }
 }
 
 void
@@ -1002,6 +1036,19 @@ mn_g_object_null_unref (gpointer object)
 {
   if (object)
     g_object_unref(object);
+}
+
+static void
+object_connect_weak_notify_cb (gpointer data, GObject *former_object)
+{
+  SignalHandler *handler = data;
+
+  if (handler->instance)
+    {
+      g_signal_handler_disconnect(handler->instance, handler->id);
+      mn_remove_weak_pointer(&handler->instance);
+    }
+  g_free(handler);
 }
 
 /**
@@ -1025,6 +1072,11 @@ mn_g_object_null_unref (gpointer object)
  * swapped-object-signal, object-signal-after and
  * swapped-object-signal-after are not accepted.
  *
+ * Note that this function is only useful because of
+ * http://bugzilla.gnome.org/show_bug.cgi?id=118536, otherwise
+ * g_signal_connect_object() and the object specs of
+ * g_object_connect() could be used.
+ *
  * Return value: @object
  **/
 gpointer
@@ -1039,6 +1091,7 @@ mn_g_object_connect (gpointer object,
   g_return_val_if_fail(G_IS_OBJECT(instance), NULL);
 
   va_start(args, signal_spec);
+
   while (signal_spec)
     {
       GCallback callback = va_arg(args, GCallback);
@@ -1050,8 +1103,8 @@ mn_g_object_connect (gpointer object,
 
       if (g_str_has_prefix(signal_spec, "signal::"))
 	handler->id = g_signal_connect(instance, signal_spec + 8, callback, data);
-      else if (g_str_has_prefix(signal_spec, "swapped_signal")
-	       || g_str_has_prefix(signal_spec, "swapped-signal"))
+      else if (g_str_has_prefix(signal_spec, "swapped_signal::")
+	       || g_str_has_prefix(signal_spec, "swapped-signal::"))
 	handler->id = g_signal_connect_swapped(instance, signal_spec + 16, callback, data);
       else if (g_str_has_prefix(signal_spec, "signal_after::")
 	       || g_str_has_prefix(signal_spec, "signal-after::"))
@@ -1062,57 +1115,112 @@ mn_g_object_connect (gpointer object,
       else
 	g_critical("invalid signal specification \"%s\"", signal_spec);
 
-      eel_add_weak_pointer(&handler->instance);
-      g_object_weak_ref(object, mn_g_object_connect_weak_notify_cb, handler);
+      mn_add_weak_pointer(&handler->instance);
+      g_object_weak_ref(object, object_connect_weak_notify_cb, handler);
 
       signal_spec = va_arg(args, const char *);
     }
+
   va_end(args);
 
   return object;
 }
 
 static void
-mn_g_object_connect_weak_notify_cb (gpointer data, GObject *former_object)
+object_clone_parameter_free (GParameter *parameter)
 {
-  SignalHandler *handler = data;
+  g_return_if_fail(parameter != NULL);
 
-  if (handler->instance)
+  g_value_unset(&parameter->value);
+  g_free(parameter);
+}
+
+static void
+object_clone_parameters_foreach_cb (gpointer key,
+				    GParameter *parameter,
+				    gpointer user_data)
+{
+  GArray *parameters = user_data;
+
+  g_array_append_val(parameters, *parameter);
+}
+
+gpointer
+mn_g_object_clone (gpointer object, const char *property_name, ...)
+{
+  GHashTable *parameters;
+  va_list args;
+  GParamSpec **properties;
+  unsigned int n_properties;
+  int i;
+  GArray *parameters_array;
+  GObject *new_object;
+
+  g_return_val_if_fail(G_IS_OBJECT(object), NULL);
+
+  parameters = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) object_clone_parameter_free);
+
+  /* add provided properties */
+
+  va_start(args, property_name);
+
+  while (property_name)
     {
-      g_signal_handler_disconnect(handler->instance, handler->id);
-      eel_remove_weak_pointer(&handler->instance);
+      GParamSpec *pspec;
+      GParameter *parameter;
+      char *error = NULL;
+
+      pspec = g_object_class_find_property(G_OBJECT_GET_CLASS(object), property_name);
+      g_assert(pspec != NULL);
+
+      parameter = g_new0(GParameter, 1);
+      parameter->name = g_param_spec_get_name(pspec);
+
+      g_value_init(&parameter->value, G_PARAM_SPEC_VALUE_TYPE(pspec));
+      G_VALUE_COLLECT(&parameter->value, args, 0, &error);
+      g_assert(error == NULL);
+
+      g_hash_table_replace(parameters, (gpointer) parameter->name, parameter);
+
+      property_name = va_arg(args, const char *);
     }
-  g_free(handler);
-}
 
-void
-mn_gtk_object_ref_and_sink (GtkObject *object)
-{
-  g_return_if_fail(GTK_IS_OBJECT(object));
+  va_end(args);
 
-  g_object_ref(object);
-  gtk_object_sink(object);
-}
+  /* clone existing properties */
 
-int
-mn_utf8_strcmp (const char *s1, const char *s2)
-{
-  char *normalized_s1;
-  char *normalized_s2;
-  int cmp;
+  properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(object), &n_properties);
+  for (i = 0; i < n_properties; i++)
+    if ((properties[i]->flags & G_PARAM_READWRITE) == G_PARAM_READWRITE)
+      {
+	const char *name;
 
-  g_return_val_if_fail(s1 != NULL, 0);
-  g_return_val_if_fail(s2 != NULL, 0);
+	name = g_param_spec_get_name(properties[i]);
+	if (! g_hash_table_lookup(parameters, name))
+	  {
+	    GParameter *parameter;
 
-  normalized_s1 = g_utf8_normalize(s1, -1, G_NORMALIZE_ALL);
-  normalized_s2 = g_utf8_normalize(s2, -1, G_NORMALIZE_ALL);
+	    parameter = g_new0(GParameter, 1);
+	    parameter->name = name;
 
-  cmp = strcmp(normalized_s1, normalized_s2);
+	    g_value_init(&parameter->value, G_PARAM_SPEC_VALUE_TYPE(properties[i]));
+	    g_object_get_property(object, parameter->name, &parameter->value);
 
-  g_free(normalized_s1);
-  g_free(normalized_s2);
+	    g_hash_table_insert(parameters, (gpointer) parameter->name, parameter);
+	  }
+      }
+  g_free(properties);
 
-  return cmp;
+  parameters_array = g_array_new(FALSE, FALSE, sizeof(GParameter));
+
+  g_hash_table_foreach(parameters, (GHFunc) object_clone_parameters_foreach_cb, parameters_array);
+
+  new_object = g_object_newv(G_OBJECT_TYPE(object), parameters_array->len, (GParameter *) parameters_array->data);
+
+  g_hash_table_destroy(parameters);
+  g_array_free(parameters_array, TRUE);
+
+  return new_object;
 }
 
 int
@@ -1204,6 +1312,60 @@ mn_utf8_escape (const char *str)
   return g_string_free(escaped, FALSE);
 }
 
+static void
+dialog_run_nonmodal_shutdown_loop (RunNonmodalInfo *info)
+{
+  g_return_if_fail(info != NULL);
+
+  if (g_main_loop_is_running(info->loop))
+    g_main_loop_quit(info->loop);
+}
+
+static void
+dialog_run_nonmodal_destroy_h (GtkObject *object, gpointer user_data)
+{
+  RunNonmodalInfo *info = user_data;
+
+  info->destroyed = TRUE;
+
+  /*
+   * mn_dialog_run_nonmodal_shutdown_loop() will be called by
+   * mn_dialog_run_nonmodal_unmap_h()
+   */
+}
+
+static void
+dialog_run_nonmodal_unmap_h (GtkWidget *widget, gpointer user_data)
+{
+  RunNonmodalInfo *info = user_data;
+
+  dialog_run_nonmodal_shutdown_loop(info);
+}
+
+static void
+dialog_run_nonmodal_response_h (GtkDialog *dialog,
+				int response,
+				gpointer user_data)
+{
+  RunNonmodalInfo *info = user_data;
+
+  info->response = response;
+
+  dialog_run_nonmodal_shutdown_loop(info);
+}
+
+static gboolean
+dialog_run_nonmodal_delete_event_h (GtkWidget *widget,
+				    GdkEvent *event,
+				    gpointer user_data)
+{
+  RunNonmodalInfo *info = user_data;
+
+  dialog_run_nonmodal_shutdown_loop(info);
+
+  return TRUE;			/* do not destroy */
+}
+
 int
 mn_dialog_run_nonmodal (GtkDialog *dialog)
 {
@@ -1217,10 +1379,10 @@ mn_dialog_run_nonmodal (GtkDialog *dialog)
     gtk_widget_show(GTK_WIDGET(dialog));
 
   g_object_connect(dialog,
-		   "signal::destroy", mn_dialog_run_nonmodal_destroy_h, &info,
-		   "signal::unmap", mn_dialog_run_nonmodal_unmap_h, &info,
-		   "signal::response", mn_dialog_run_nonmodal_response_h, &info,
-		   "signal::delete-event", mn_dialog_run_nonmodal_delete_event_h, &info,
+		   "signal::destroy", dialog_run_nonmodal_destroy_h, &info,
+		   "signal::unmap", dialog_run_nonmodal_unmap_h, &info,
+		   "signal::response", dialog_run_nonmodal_response_h, &info,
+		   "signal::delete-event", dialog_run_nonmodal_delete_event_h, &info,
 		   NULL);
 
   info.loop = g_main_loop_new(NULL, FALSE);
@@ -1233,69 +1395,15 @@ mn_dialog_run_nonmodal (GtkDialog *dialog)
 
   if (! info.destroyed)
     g_object_disconnect(dialog,
-			"any-signal", mn_dialog_run_nonmodal_destroy_h, &info,
-			"any-signal", mn_dialog_run_nonmodal_unmap_h, &info,
-			"any-signal", mn_dialog_run_nonmodal_response_h, &info,
-			"any-signal", mn_dialog_run_nonmodal_delete_event_h, &info,
+			"any-signal", dialog_run_nonmodal_destroy_h, &info,
+			"any-signal", dialog_run_nonmodal_unmap_h, &info,
+			"any-signal", dialog_run_nonmodal_response_h, &info,
+			"any-signal", dialog_run_nonmodal_delete_event_h, &info,
 			NULL);
 
   g_object_unref(dialog);
 
   return info.response;
-}
-
-static void
-mn_dialog_run_nonmodal_destroy_h (GtkObject *object, gpointer user_data)
-{
-  RunNonmodalInfo *info = user_data;
-
-  info->destroyed = TRUE;
-
-  /*
-   * mn_dialog_run_nonmodal_shutdown_loop() will be called by
-   * mn_dialog_run_nonmodal_unmap_h()
-   */
-}
-
-static void
-mn_dialog_run_nonmodal_unmap_h (GtkWidget *widget, gpointer user_data)
-{
-  RunNonmodalInfo *info = user_data;
-
-  mn_dialog_run_nonmodal_shutdown_loop(info);
-}
-
-static void
-mn_dialog_run_nonmodal_response_h (GtkDialog *dialog,
-				   int response,
-				   gpointer user_data)
-{
-  RunNonmodalInfo *info = user_data;
-
-  info->response = response;
-
-  mn_dialog_run_nonmodal_shutdown_loop(info);
-}
-
-static gboolean
-mn_dialog_run_nonmodal_delete_event_h (GtkWidget *widget,
-				       GdkEvent *event,
-				       gpointer user_data)
-{
-  RunNonmodalInfo *info = user_data;
-
-  mn_dialog_run_nonmodal_shutdown_loop(info);
-
-  return TRUE;			/* do not destroy */
-}
-
-static void
-mn_dialog_run_nonmodal_shutdown_loop (RunNonmodalInfo *info)
-{
-  g_return_if_fail(info != NULL);
-
-  if (g_main_loop_is_running(info->loop))
-    g_main_loop_quit(info->loop);
 }
 
 void
@@ -1350,76 +1458,18 @@ mn_ascii_strcasestr (const char *big, const char *little)
 }
 
 char *
-mn_format_past_time (time_t past_time, time_t now)
+mn_ascii_strcasestr_span (const char *big, const char *little)
 {
-  time_t diff;
+  char *s;
 
-  g_return_val_if_fail(past_time > 0, NULL);
+  g_return_val_if_fail(big != NULL, NULL);
+  g_return_val_if_fail(little != NULL, NULL);
 
-  diff = now - past_time;
-  if (diff >= 0)
-    {
-      if (diff < 60)
-	return g_strdup_printf(ngettext("%i second ago", "%i seconds ago", (int) diff), (int) diff);
-      else if (diff < 60 * 60)
-	{
-	  int minutes = diff / 60;
-	  return g_strdup_printf(ngettext("about %i minute ago", "about %i minutes ago", minutes), minutes);
-	}
-      else if (diff < 60 * 60 * 24)
-	{
-	  int hours = diff / (60 * 60);
-	  return g_strdup_printf(ngettext("about %i hour ago", "about %i hours ago", hours), hours);
-	}
-      else if (diff < 60 * 60 * 24 * 7)
-	{
-	  int days = diff / (60 * 60 * 24);
-	  return g_strdup_printf(ngettext("about %i day ago", "about %i days ago", days), days);
-	}
-      else
-	{
-	  int weeks = diff / (60 * 60 * 24 * 7);
-	  return g_strdup_printf(ngettext("about %i week ago", "about %i weeks ago", weeks), weeks);
-	}
-    }
-  else				/* future time: simply format it */
-    {
-      struct tm *tm;
-      char *formatted;
+  s = mn_ascii_strcasestr(big, little);
+  if (s)
+    s += strlen(little);
 
-      tm = localtime(&past_time);
-      g_assert(tm != NULL);
-
-      formatted = eel_strdup_strftime("%c", tm);
-      if (! formatted)
-	formatted = g_strdup(_("unknown date"));
-
-      return formatted;
-    }
-}
-
-void
-mn_gdk_threads_enter (void)
-{
-  GDK_THREADS_ENTER();
-}
-
-void
-mn_gdk_threads_leave (void)
-{
-  GDK_THREADS_LEAVE();
-}
-
-void
-mn_g_static_mutex_lock (GStaticMutex *mutex)
-{
-  g_static_mutex_lock(mutex);
-}
-
-void
-mn_g_static_mutex_unlock (GStaticMutex *mutex)
-{
-  g_static_mutex_unlock(mutex);
+  return s;
 }
 
 char *
@@ -1519,14 +1569,14 @@ mn_subst_command (const char *command,
 }
 
 static void
-mn_handle_execute_result (int status, const char *command)
+handle_execute_result (int status, const char *command)
 {
   if (status < 0)
-    mn_error_dialog(NULL,
-		    _("A command error has occurred in Mail Notification"),
-		    _("Unable to execute \"%s\": %s."),
-		    command,
-		    g_strerror(errno));
+    mn_show_error_dialog(NULL,
+			 _("A command error has occurred in Mail Notification"),
+			 _("Unable to execute \"%s\": %s."),
+			 command,
+			 g_strerror(errno));
 }
 
 void
@@ -1534,7 +1584,7 @@ mn_execute_command (const char *command)
 {
   g_return_if_fail(command != NULL);
 
-  mn_handle_execute_result(gnome_execute_shell(NULL, command), command);
+  handle_execute_result(gnome_execute_shell(NULL, command), command);
 }
 
 void
@@ -1542,7 +1592,7 @@ mn_execute_command_in_terminal (const char *command)
 {
   g_return_if_fail(command != NULL);
 
-  mn_handle_execute_result(gnome_execute_terminal_shell(NULL, command), command);
+  handle_execute_result(gnome_execute_terminal_shell(NULL, command), command);
 }
 
 /**
@@ -1732,4 +1782,99 @@ mn_window_present_from_event (GtkWindow *window)
   g_return_if_fail(GTK_IS_WINDOW(window));
 
   gtk_window_present_with_time(window, gtk_get_current_event_time());
+}
+
+void
+mn_add_weak_pointer (gpointer object_location)
+{
+  gpointer *p;
+
+  g_return_if_fail(object_location != NULL);
+
+  p = (gpointer *) object_location;
+  g_return_if_fail(G_IS_OBJECT(*p));
+
+  g_object_add_weak_pointer(G_OBJECT(*p), p);
+}
+
+void
+mn_remove_weak_pointer (gpointer object_location)
+{
+  gpointer *p;
+
+  g_return_if_fail(object_location != NULL);
+
+  p = (gpointer *) object_location;
+  g_return_if_fail(G_IS_OBJECT(*p));
+
+  g_object_remove_weak_pointer(G_OBJECT(*p), p);
+  *p = NULL;
+}
+
+int
+mn_strv_find (char **strv, const char *elem)
+{
+  int i;
+
+  g_return_val_if_fail(strv != NULL, -1);
+  g_return_val_if_fail(elem != NULL, -1);
+
+  for (i = 0; strv[i]; i++)
+    if (! strcmp(strv[i], elem))
+      return i;
+
+  return -1;
+}
+
+GSList *
+mn_g_ptr_array_to_slist (GPtrArray *array)
+{
+  GSList *list = NULL;
+  int i;
+
+  g_return_val_if_fail(array != NULL, NULL);
+
+  for (i = array->len - 1; i >= 0; i--)
+    list = g_slist_prepend(list, g_ptr_array_index(array, i));
+
+  return list;
+}
+
+void
+mn_g_ptr_array_free_deep_custom (GPtrArray *array,
+				 GFunc element_free_func,
+				 gpointer user_data)
+{
+  g_return_if_fail(array != NULL);
+  g_return_if_fail(element_free_func != NULL);
+
+  g_ptr_array_foreach(array, element_free_func, user_data);
+  g_ptr_array_free(array, TRUE);
+}
+
+void
+mn_g_object_ptr_array_free (GPtrArray *array)
+{
+  g_return_if_fail(array != NULL);
+
+  mn_g_ptr_array_free_deep_custom(array, (GFunc) g_object_unref, NULL);
+}
+
+const char *
+mn_enum_get_value_nick (GType type, int value)
+{
+  GEnumClass *enum_class;
+  GEnumValue *enum_value;
+
+  g_return_val_if_fail(G_TYPE_IS_ENUM(type), NULL);
+
+  enum_class = g_type_class_ref(type);
+  g_return_val_if_fail(G_IS_ENUM_CLASS(enum_class), NULL);
+
+  enum_value = g_enum_get_value(enum_class, value);
+  g_return_val_if_fail(enum_value != NULL, NULL);
+
+  g_type_class_unref(enum_class);
+
+  return enum_value->value_nick;
 }

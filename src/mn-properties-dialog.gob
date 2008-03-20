@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-requires 2.0.14
-
 %headertop{
 #include "mn-dialog.h"
 %}
@@ -28,10 +26,8 @@ requires 2.0.14
 %}
 
 %{
-#include "config.h"
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <eel/eel.h>
 #include "mn-conf.h"
 #include "mn-util.h"
 #include "mn-mailbox-view.h"
@@ -39,6 +35,14 @@ requires 2.0.14
 #include "mn-file-chooser-button.h"
 #include "mn-sound-file-chooser-dialog.h"
 #include "mn-test-mailbox.h"
+#include "mn-non-linear-range.h"
+
+static const MNNonLinearRangeBlock expiration_blocks[] = {
+  { MN_SECS(1),		MN_SECS(10),	MN_SECS(1)	},
+  { MN_SECS(15),	MN_SECS(60),	MN_SECS(5)	},
+  { MN_MINS(2),		MN_MINS(10),	MN_MINS(1)	},
+  { MN_MINS(15),	MN_MINS(60),	MN_MINS(5)	}
+};
 %}
 
 class MN:Properties:Dialog from MN:Dialog
@@ -71,21 +75,17 @@ class MN:Properties:Dialog from MN:Dialog
   private GtkWidget *popups_expiration_default_radio;
   private GtkWidget *popups_expiration_never_radio;
   private GtkWidget *popups_expiration_after_radio;
-  private GtkWidget *popups_expiration_minutes_spin;
-  private GtkWidget *popups_expiration_minutes_label;
-  private GtkWidget *popups_expiration_seconds_spin;
-  private GtkWidget *popups_expiration_seconds_label;
+  private GtkWidget *popups_expiration_scale;
 
   private MNMailbox *test_mailbox destroy { self_remove_test_mailbox(self); };
 
   init (self)
   {
     GtkTreeSelection *selection;
-    GtkWidget *test_messages_check;
 
     mn_container_create_interface(GTK_CONTAINER(self),
 				  PKGDATADIR G_DIR_SEPARATOR_S "properties-dialog.glade",
-				  "notebook",
+				  "main_vbox",
 				  "mn_properties_dialog_",
 				  "notebook", &selfp->notebook,
 				  "play_sound_hbox", &selfp->play_sound_hbox,
@@ -107,24 +107,16 @@ class MN:Properties:Dialog from MN:Dialog
 				  "popups_expiration_default_radio", &selfp->popups_expiration_default_radio,
 				  "popups_expiration_never_radio", &selfp->popups_expiration_never_radio,
 				  "popups_expiration_after_radio", &selfp->popups_expiration_after_radio,
-				  "popups_expiration_minutes_spin", &selfp->popups_expiration_minutes_spin,
-				  "popups_expiration_minutes_label", &selfp->popups_expiration_minutes_label,
-				  "popups_expiration_seconds_spin", &selfp->popups_expiration_seconds_spin,
-				  "popups_expiration_seconds_label", &selfp->popups_expiration_seconds_label,
+				  "popups_expiration_scale", &selfp->popups_expiration_scale,
 				  NULL);
 
     /* translators: header capitalization */
     gtk_window_set_title(GTK_WINDOW(self), _("Mail Notification Properties"));
 
-    gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_HELP, GTK_RESPONSE_HELP);
-
-    /* translators: "test" is an adjective, not a verb */
-    test_messages_check = gtk_check_button_new_with_mnemonic(_("_Test messages"));
-    gtk_box_pack_start(GTK_BOX(GTK_DIALOG(self)->action_area), test_messages_check, FALSE, FALSE, 0);
-    gtk_widget_show(test_messages_check);
-    g_signal_connect_swapped(test_messages_check, "toggled", G_CALLBACK(self_test_messages_toggled_h), self);
-
-    gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
+    gtk_dialog_add_buttons(GTK_DIALOG(self),
+			   GTK_STOCK_HELP, GTK_RESPONSE_HELP,
+			   GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
+			   NULL);
 
     selfp->play_sound_file_chooser_button = mn_file_chooser_button_new(self_play_sound_file_chooser_create_dialog_cb, NULL);
     gtk_box_pack_start(GTK_BOX(selfp->play_sound_hbox), selfp->play_sound_file_chooser_button, TRUE, TRUE, 0);
@@ -142,13 +134,13 @@ class MN:Properties:Dialog from MN:Dialog
 
     mn_setup_dnd(selfp->scrolled);
 
-    mn_conf_link(self, MN_CONF_PROPERTIES_DIALOG,
-		 selfp->play_sound_check, MN_CONF_SOUNDS_NEW_MAIL_ENABLED, "active",
-		 selfp->play_sound_file_chooser_button, MN_CONF_SOUNDS_NEW_MAIL_FILE, "filename",
-		 selfp->popups_enable_check, MN_CONF_POPUPS_ENABLED, "active",
-		 selfp->popups_expiration_minutes_spin, MN_CONF_POPUPS_EXPIRATION_DELAY_MINUTES,
-		 selfp->popups_expiration_seconds_spin, MN_CONF_POPUPS_EXPIRATION_DELAY_SECONDS,
-		 NULL);
+    mn_non_linear_range_setup_static(GTK_RANGE(selfp->popups_expiration_scale), expiration_blocks, G_N_ELEMENTS(expiration_blocks));
+
+    mn_conf_link_window(GTK_WINDOW(self), MN_CONF_PROPERTIES_DIALOG);
+    mn_conf_link_object(selfp->play_sound_check, MN_CONF_SOUNDS_NEW_MAIL_ENABLED, "active");
+    mn_conf_link_object(selfp->play_sound_file_chooser_button, MN_CONF_SOUNDS_NEW_MAIL_FILE, "filename");
+    mn_conf_link_object(selfp->popups_enable_check, MN_CONF_POPUPS_ENABLED, "active");
+    mn_conf_link_non_linear_range(GTK_RANGE(selfp->popups_expiration_scale), MN_CONF_POPUPS_EXPIRATION_DELAY);
     mn_conf_link_radio_group_to_enum(MN_TYPE_ACTION,
 				     MN_CONF_CLICK_ACTION,
 				     selfp->icon_action_mail_reader_radio, MN_ACTION_LAUNCH_MAIL_READER,
@@ -190,22 +182,6 @@ class MN:Properties:Dialog from MN:Dialog
   }
 
   private void
-    test_messages_toggled_h (self, GtkToggleButton *button)
-  {
-    if (gtk_toggle_button_get_active(button))
-      {
-	if (! selfp->test_mailbox)
-	  {
-	    selfp->test_mailbox = mn_test_mailbox_new();
-	    mn_mailbox_seal(selfp->test_mailbox);
-	    mn_mailboxes_add(mn_shell->mailboxes, selfp->test_mailbox);
-	  }
-      }
-    else
-      self_remove_test_mailbox(self);
-  }
-
-  private void
     remove_test_mailbox (self)
   {
     if (selfp->test_mailbox)
@@ -233,7 +209,7 @@ class MN:Properties:Dialog from MN:Dialog
 	  current_page = gtk_notebook_get_current_page(GTK_NOTEBOOK(selfp->notebook));
 	  g_assert(current_page >= 0 && current_page < G_N_ELEMENTS(sections));
 
-	  mn_display_help(GTK_WINDOW(self), sections[current_page]);
+	  mn_show_help(GTK_WINDOW(self), sections[current_page]);
 	  break;
 	}
 
@@ -295,10 +271,7 @@ class MN:Properties:Dialog from MN:Dialog
     gtk_widget_set_sensitive(selfp->popups_expiration_default_radio, popups_enabled);
     gtk_widget_set_sensitive(selfp->popups_expiration_never_radio, popups_enabled);
     gtk_widget_set_sensitive(selfp->popups_expiration_after_radio, popups_enabled);
-    gtk_widget_set_sensitive(selfp->popups_expiration_minutes_spin, popups_enabled && popups_expiration_after_enabled);
-    gtk_widget_set_sensitive(selfp->popups_expiration_minutes_label, popups_enabled && popups_expiration_after_enabled);
-    gtk_widget_set_sensitive(selfp->popups_expiration_seconds_spin, popups_enabled && popups_expiration_after_enabled);
-    gtk_widget_set_sensitive(selfp->popups_expiration_seconds_label, popups_enabled && popups_expiration_after_enabled);
+    gtk_widget_set_sensitive(selfp->popups_expiration_scale, popups_enabled && popups_expiration_after_enabled);
   }
 
   /* libglade callbacks */
@@ -325,5 +298,27 @@ class MN:Properties:Dialog from MN:Dialog
     properties_clicked_h (self, GtkButton *button)
   {
     mn_mailbox_view_activate_properties(MN_MAILBOX_VIEW(selfp->list));
+  }
+
+  protected char *
+    popups_expiration_format_value_h (self, double arg, GtkScale *scale)
+  {
+    return mn_format_seconds(mn_non_linear_range_get_value(GTK_RANGE(scale)));
+  }
+
+  protected void
+    test_messages_toggled_h (self, GtkToggleButton *button)
+  {
+    if (gtk_toggle_button_get_active(button))
+      {
+	if (! selfp->test_mailbox)
+	  {
+	    selfp->test_mailbox = mn_test_mailbox_new();
+	    mn_mailbox_seal(selfp->test_mailbox);
+	    mn_mailboxes_add(mn_shell->mailboxes, selfp->test_mailbox);
+	  }
+      }
+    else
+      self_remove_test_mailbox(self);
   }
 }

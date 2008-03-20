@@ -1,3 +1,97 @@
+5.1					March 20, 2008
+
+	* Core changes:
+		* The message count of the status icon was sometimes
+		  not properly redrawn: fixed (#185999)
+		* Time settings are now entered using sliders; these
+		  sliders are non-linear and allow to easily choose an
+		  appropriate value without having to use the keyboard
+		* The "mailbox name" and "delay between mail checks"
+		  mailbox settings have been moved to a separate tab,
+		  and are no longer modified as a side effect of
+		  modifying other settings (it could be confusing)
+		* The cancel button of the mailbox properties dialog
+		  now works in a standard way: if the apply button was
+		  used, these changes are undone
+		* The number of messages of the tooltip mail summary
+		  is now limited, via the
+		  /apps/mail-notification/popups/limit GConf key
+		  (#184487)
+		* The transparency issue of the tooltip mail summary
+		  (https://savannah.nongnu.org/bugs/?19104) was still
+		  present: fixed
+		* The interprocess communication code now uses D-Bus
+		  rather than Bonobo. This move was made because
+		  Bonobo suffers from a number of bugs and
+		  limitations, and is deprecated.
+		* libeel is no longer used since its API is not stable
+		  (#180400)
+		* The build system has been changed from the GNU
+		  Autotools to JB (the Jean-Yves Lefort's Build
+		  System)
+
+	* IMAP, Maildir, mbox, MH, Mozilla, POP3, Sylpheed, Windows
+	  Live Hotmail and Yahoo! Mail changes:
+
+		* The GConf setting
+		  /apps/mail-notification/fallback-charsets has been
+		  added. This setting is used when attempting to
+		  convert invalidly encoded message headers to
+		  UTF-8. Previously, the hardcoded fallback encoding
+		  was ISO8859-1, but changes in GMime 2.2.7 broke the
+		  fallback code.
+
+	* IMAP, Maildir and POP3 changes:
+		* Bandwidth usage has been reduced (message headers
+		  are now cached)
+
+	* IMAP and POP3 changes:
+		* SSL/TLS error messages are now more detailed
+
+	* Sylpheed and Maildir changes:
+		* Message popup actions are now executed in a separate
+		  thread, to avoid blocking the user interface
+
+	* Maildir changes:
+		* The "delete message" dialog (which is displayed when
+		  a message cannot be moved to the trash) could
+		  disappear if the mailbox changed: fixed
+
+	* MH changes:
+		* xmh mailboxes containing no new mail are now
+		  properly detected as MH mailboxes (#196929, patch by
+		  Peter Kjellerstedt)
+
+	* Windows Live Hotmail changes:
+
+		* Account languages other than English are now
+		  supported. Support was added for Brazilian
+		  Portuguese, Danish, Dutch, Finnish, French, German,
+		  Italian, Norwegian, Polish, Portuguese, Spanish,
+		  Swedish (#185993).
+		* Folder names containing non-ASCII characters are now
+		  handled properly
+
+	* Yahoo! Mail changes:
+		* Folder names containing ISO8859-1 characters in the
+		  range 128-255 are now handled properly
+
+	* Evolution changes:
+		* When Evolution is not running, it is now monitored
+		  passively rather than checked every second. This
+		  change was made possible by the switch from Bonobo
+		  to D-Bus.
+		* The "delay between mail checks" option is no longer
+		  used (previously, it was only used when the
+		  Evolution folder was not found, but not even that is
+		  necessary)
+
+	* Updated translations:
+		* French
+		* Serbian (Filip Miletic)
+		* Spanish (Nacho Hermoso de Mendoza)
+		* Swedish (Daniel Nylander)
+
 5.0					January 4, 2008
 
 	* Core changes:

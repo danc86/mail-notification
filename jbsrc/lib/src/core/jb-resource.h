@@ -214,6 +214,24 @@ JBIntltoolFile *jb_intltool_file_new (const char *type,
 				      const char *filename,
 				      const char *merge_flags);
 
+#define JB_TYPE_GCONF_SCHEMAS		(jb_gconf_schemas_get_type())
+#define JB_GCONF_SCHEMAS(obj)		(G_TYPE_CHECK_INSTANCE_CAST((obj), JB_TYPE_GCONF_SCHEMAS, JBGConfSchemas))
+#define JB_IS_GCONF_SCHEMAS(obj)	(G_TYPE_CHECK_INSTANCE_TYPE((obj), JB_TYPE_GCONF_SCHEMAS))
+
+typedef struct
+{
+  JBIntltoolFile	parent;
+} JBGConfSchemas;
+
+typedef struct
+{
+  JBIntltoolFileClass	parent;
+} JBGConfSchemasClass;
+
+GType jb_gconf_schemas_get_type (void);
+
+JBGConfSchemas *jb_gconf_schemas_new (const char *filename);
+
 #define JB_TYPE_GNOME_HELP		(jb_gnome_help_get_type())
 #define JB_GNOME_HELP(obj)		(G_TYPE_CHECK_INSTANCE_CAST((obj), JB_TYPE_GNOME_HELP, JBGnomeHelp))
 #define JB_IS_GNOME_HELP(obj)		(G_TYPE_CHECK_INSTANCE_TYPE((obj), JB_TYPE_GNOME_HELP))

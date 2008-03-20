@@ -227,7 +227,7 @@ check_schemas (void)
   GConfClient *client;
   gboolean schema_missing = FALSE;
 
-  client = mn_conf_client_get_global();
+  client = mn_conf_get_client();
   g_assert(client != NULL);
 
   for (i = 0; i < G_N_ELEMENTS(keys); i++)
@@ -251,7 +251,7 @@ check_schemas (void)
     }
 
   if (schema_missing)
-    mn_fatal_error_dialog(NULL, _("The default configuration has not been installed properly. Please check your Mail Notification installation."));
+    mn_show_fatal_error_dialog(NULL, _("The default configuration has not been installed properly. Please check your Mail Notification installation."));
 }
 #endif /* WITH_GCONF_SANITY_CHECK */
 

@@ -1106,6 +1106,67 @@ jb_intltool_file_class_init (JBIntltoolFileClass *class)
   rclass->maintainerclean = intltool_file_maintainerclean;
 }
 
+G_DEFINE_TYPE(JBGConfSchemas, jb_gconf_schemas, JB_TYPE_INTLTOOL_FILE)
+
+JBGConfSchemas *
+jb_gconf_schemas_new (const char *filename)
+{
+  JBGConfSchemas *self;
+  JBIntltoolFile *intltool_file;
+
+  self = g_object_new(JB_TYPE_GCONF_SCHEMAS, NULL);
+
+  intltool_file = JB_INTLTOOL_FILE(self);
+
+  intltool_file->type = g_strdup("GConf schemas");
+  intltool_file->filename = g_strdup(filename);
+  intltool_file->merge_flags = g_strdup("-s");
+
+  return self;
+}
+
+static void
+gconf_schemas_install (JBResource *res)
+{
+  JBIntltoolFile *intltool_file = JB_INTLTOOL_FILE(res);
+
+  JB_RESOURCE_CLASS(jb_gconf_schemas_parent_class)->install(res);
+
+  if (jb_variable_get_bool("install-gconf-schemas"))
+    {
+      char *outfile;
+      char *filename;
+
+      intltool_file_get_files(intltool_file, NULL, &outfile);
+
+      filename = g_path_get_basename(outfile);
+      jb_message("installing GConf schemas %s", filename);
+      g_free(filename);
+
+      jb_action_exec("GCONF_CONFIG_SOURCE=$gconf-config-source $gconftool-2 --makefile-install-rule $outfile",
+		     "outfile", outfile,
+		     NULL);
+
+      g_free(outfile);
+    }
+}
+
+static void
+jb_gconf_schemas_init (JBGConfSchemas *self)
+{
+  JBIntltoolFile *intltool_file = JB_INTLTOOL_FILE(self);
+
+  jb_install_options_set_installdir(intltool_file->install_options, "$gconf-schemas-dir");
+}
+
+static void
+jb_gconf_schemas_class_init (JBGConfSchemasClass *class)
+{
+  JBResourceClass *rclass = JB_RESOURCE_CLASS(class);
+
+  rclass->install = gconf_schemas_install;
+}
+
 G_DEFINE_TYPE(JBGnomeHelp, jb_gnome_help, JB_TYPE_GROUP_RESOURCE)
 
 JBGnomeHelp *

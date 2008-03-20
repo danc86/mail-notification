@@ -8,10 +8,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mail-notification 5.1\n"
+"Project-Id-Version: mail-notification 5.2\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-02-28 10:06+0100\n"
-"PO-Revision-Date: 2008-03-20 00:46+0100\n"
+"PO-Revision-Date: 2008-03-20 16:52+0100\n"
 "Last-Translator: Nacho Hermoso de Mendoza <gnacho@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"

@@ -153,7 +153,7 @@ jb_package_init (void)
   jb_variable_add_bool("compile-warnings", NULL, NULL, 0, FALSE);
   jb_variable_add_bool("debug", NULL, NULL, 0, FALSE);
   jb_variable_add_bool("regression-tests", NULL, NULL, 0, FALSE);
-  jb_variable_add_bool("gconf-sanity-check", NULL, NULL, 0, TRUE);
+  jb_variable_add_bool("gconf-sanity-check", NULL, NULL, JB_VARIABLE_C_DEFINE, TRUE);
 }
 
 void
@@ -424,7 +424,7 @@ jb_package_add_resources (void)
     }
 
   jb_compile_options_add_string_defines(object->compile_options,
-					"PACKAGE", "$package", 
+					"PACKAGE", "$package",
 					"VERSION", "$version",
 					"PREFIX", "$prefix",
 					"SYSCONFDIR", "$sysconfdir",
@@ -503,7 +503,7 @@ jb_package_add_resources (void)
 
   if (jb_variable_get_bool("mh"))
     jb_object_add_source(object, "MN:MH:Mailbox:Backend");
-    
+
   if (jb_variable_get_bool("maildir"))
     jb_object_add_sources(object,
 			  "MN:Maildir:Mailbox:Backend",
@@ -615,7 +615,7 @@ jb_package_add_resources (void)
       jb_compile_options_add_package(object->compile_options, "openssl");
       jb_object_add_source(object, "mn-ssl");
     }
-    
+
   if (jb_variable_get_bool("sasl"))
     {
       jb_compile_options_add_package(object->compile_options, "sasl2");
@@ -692,7 +692,7 @@ jb_package_add_resources (void)
 			  "mailbox-properties-dialog.glade", "$pkgdatadir",
 			  "properties-dialog.glade", "$pkgdatadir",
 			  NULL);
-  
+
   jb_group_add(group);
 
   if (jb_variable_get_bool("regression-tests"))
@@ -706,4 +706,4 @@ jb_package_add_resources (void)
     }
 }
 
-JB_MAIN("mail-notification", "5.1", "Mail Notification")
+JB_MAIN("mail-notification", "5.2", "Mail Notification")

@@ -1,3 +1,12 @@
+5.2					March 20, 2008
+
+	* Core changes:
+		* GConf default values were no longer registered:
+		  fixed
+		* The GConf sanity check code (which caused MN to
+		  refuse to run if some GConf default values are
+		  missing) was no longer compiled in: fixed
+
 5.1					March 20, 2008
 
 	* Core changes:

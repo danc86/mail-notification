@@ -275,17 +275,17 @@ jb_group_add_desktop_file (JBGroup *self,
 void
 jb_group_add_gconf_schemas (JBGroup *self, const char *filename)
 {
+  JBGConfSchemas *schemas;
+
   g_return_if_fail(JB_IS_GROUP(self));
   g_return_if_fail(filename != NULL);
   g_return_if_fail(jb_feature_is_enabled(&jb_gconf_feature));
   g_return_if_fail(jb_feature_is_enabled(&jb_intltool_feature));
   g_return_if_fail(jb_intltool_use_xml);
 
-  add_intltool_file(self,
-		    "GConf schemas",
-		    filename,
-		    "-s",
-		    "$gconf-schemas-dir");
+  schemas = jb_gconf_schemas_new(filename);
+
+  jb_group_add_resource(self, JB_GROUP_RESOURCE(schemas));
 }
 
 void

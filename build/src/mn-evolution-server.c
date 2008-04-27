@@ -556,7 +556,7 @@ mn_evolution_server_camel_message_info_to_dbus_struct (CamelMessageInfo * info)
 				G_TYPE_STRING, camel_message_info_from(info),
 				/* char *subject */
 				G_TYPE_STRING, camel_message_info_subject(info),
-				0);
+				(GType) 0);
   }}
 #line 562 "mn-evolution-server.c"
 #undef __GOB_FUNCTION__

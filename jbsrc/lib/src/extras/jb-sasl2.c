@@ -24,7 +24,8 @@
 
 #define JB_SASL2_CFLAGS		NULL
 #define JB_SASL2_CPPFLAGS	NULL
-#define JB_SASL2_LDFLAGS	"-lsasl2"
+#define JB_SASL2_LDFLAGS	NULL
+#define JB_SASL2_LIBS		"-lsasl2"
 
 gboolean
 jb_sasl2_check (const char *minversion)
@@ -58,7 +59,8 @@ jb_sasl2_check (const char *minversion)
 			      "}\n",
 			      JB_SASL2_CFLAGS,
 			      cppflags,
-			      JB_SASL2_LDFLAGS);
+			      JB_SASL2_LDFLAGS,
+			      JB_SASL2_LIBS);
 
   g_free(cppflags);
 
@@ -68,7 +70,8 @@ jb_sasl2_check (const char *minversion)
     jb_variable_set_package_flags("sasl2",
 				  JB_SASL2_CFLAGS,
 				  JB_SASL2_CPPFLAGS,
-				  JB_SASL2_LDFLAGS);
+				  JB_SASL2_LDFLAGS,
+				  JB_SASL2_LIBS);
 
   return result;
 }

@@ -342,6 +342,7 @@ typedef struct
   const char		*stock_cflags;
   const char		*stock_cppflags;
   const char		*stock_ldflags;
+  const char		*stock_libs;
 
   char *		(*get_output_file) (JBObject *self);
 } JBObjectClass;

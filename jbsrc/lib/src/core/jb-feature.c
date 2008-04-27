@@ -106,9 +106,9 @@ gettext_configure (void)
   static const char *functions = "ngettext dgettext bind_textdomain_codeset";
 
   if (jb_check_functions(functions, NULL))
-    jb_variable_set_package_flags("gettext", NULL, "-DENABLE_NLS", NULL);
+    jb_variable_set_package_flags("gettext", NULL, "-DENABLE_NLS", NULL, NULL);
   else if (jb_check_functions(functions, "intl"))
-    jb_variable_set_package_flags("gettext", NULL, "-DENABLE_NLS", "-lintl");
+    jb_variable_set_package_flags("gettext", NULL, "-DENABLE_NLS", NULL, "-lintl");
   else
     jb_error("gettext found neither in libc nor in libintl");
 

@@ -3,7 +3,7 @@
     id="org.jylefort.evolution.mail-notification"
     type="shlib"
     name="Jean-Yves Lefort's Mail Notification"
-    location="@evolution-plugindir@/liborg-jylefort-mail-notification.so">
+    location="@evolution-plugin-dir@/liborg-jylefort-mail-notification.so">
 
     <description>Provides Evolution mailbox support for Mail Notification.</description>
     <author name="Jean-Yves Lefort" email="jylefort@brutele.be"/>

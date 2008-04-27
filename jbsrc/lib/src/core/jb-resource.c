@@ -489,15 +489,16 @@ parse_depsfile (const char *depsfile)
 
       for (j = 0; files[j] != NULL; j++)
 	{
+	  char *work;
 	  char *file;
 
-	  file = g_strdup(files[j]);
-	  file = g_strstrip(file);
+	  work = g_strdup(files[j]);
+	  file = g_strstrip(work);
 
 	  if (*file != '\0' && *file != '\\')
 	    deps = g_slist_prepend(deps, g_strdup(file));
 
-	  g_free(file);
+	  g_free(work);
 	}
 
       g_strfreev(files);
@@ -562,9 +563,10 @@ object_file_build (JBObject *object, const char *ofile, const char *cfile)
 
   jb_mkdir_of_file(ofile);
 
-  jb_action_exec("$cc $package-cflags $group-cflags $object-cflags $stock-cflags $cflags"
+  jb_action_exec("$cc -c -o $ofile"
+		 " $package-cflags $group-cflags $object-cflags $stock-cflags $cflags"
 		 " $package-cppflags $group-cppflags $object-cppflags $stock-cppflags $cppflags"
-		 " $depsflags -c -o $ofile $cfile",
+		 " $depsflags $cfile",
 		 "package-cflags", jb_compile_options_get_cflags(jb_compile_options),
 		 "group-cflags", jb_compile_options_get_cflags(gres->group->compile_options),
 		 "object-cflags", jb_compile_options_get_cflags(object->compile_options),
@@ -1803,16 +1805,23 @@ object_build (JBResource *res)
 
       jb_mkdir(gres->group->builddir);
 
-      jb_action_exec("$cc $package-cflags $group-cflags $object-cflags $cflags"
+      jb_action_exec("$cc -o $outfile"
+		     " $package-cflags $group-cflags $object-cflags $stock-cflags $cflags"
 		     " $package-ldflags $group-ldflags $object-ldflags $stock-ldflags $ldflags"
-		     " -o $outfile $object-files",
+		     " $object-files"
+		     " $package-libs $group-libs $object-libs $stock-libs $libs",
 		     "package-cflags", jb_compile_options_get_cflags(jb_compile_options),
 		     "group-cflags", jb_compile_options_get_cflags(gres->group->compile_options),
 		     "object-cflags", jb_compile_options_get_cflags(self->compile_options),
+		     "stock-cflags", object_class->stock_cflags,
 		     "package-ldflags", jb_compile_options_get_ldflags(jb_compile_options),
 		     "group-ldflags", jb_compile_options_get_ldflags(gres->group->compile_options),
 		     "object-ldflags", jb_compile_options_get_ldflags(self->compile_options),
 		     "stock-ldflags", object_class->stock_ldflags,
+		     "package-libs", jb_compile_options_get_libs(jb_compile_options),
+		     "group-libs", jb_compile_options_get_libs(gres->group->compile_options),
+		     "object-libs", jb_compile_options_get_libs(self->compile_options),
+		     "stock-libs", object_class->stock_libs,
 		     "outfile", outfile,
 		     "object-files", object_files,
 		     NULL);
@@ -2080,6 +2089,6 @@ jb_module_class_init (JBModuleClass *class)
   oclass->type = "module";
   oclass->stock_cflags = "-fPIC";
   oclass->stock_cppflags = "-DPIC";
-  oclass->stock_ldflags = "-shared -fPIC";
+  oclass->stock_ldflags = "-shared";
   oclass->get_output_file = module_get_output_file;
 }

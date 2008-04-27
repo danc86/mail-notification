@@ -343,7 +343,7 @@ mn_hotmail_mailbox_encode_with_character_references (const char * str)
       {
 	gunichar c = g_utf8_get_char(p);
 
-	if (c < 128 && (g_ascii_isalnum(c) || g_ascii_isspace(c)))
+	if (c < 128 && (g_ascii_isalnum(c) || g_ascii_isspace(c) || c == '.'))
 	  g_string_append_c(encoded, c);
 	else
 	  g_string_append_printf(encoded, "&#%i;", (int) c);

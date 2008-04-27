@@ -63,6 +63,10 @@ typedef struct
 
 static gboolean arg_enable_info = FALSE;
 
+static unsigned int bus_disconnected_timeout_id = 0;
+
+static gboolean bus_disconnected_cb (gpointer data) G_GNUC_NORETURN;
+
 static void
 print_components (const Component *components, int n_components)
 {
@@ -240,16 +244,25 @@ report_option_ignored (const char *option_name)
   g_message(_("%s option ignored since Mail Notification is not already running"), option_name);
 }
 
+static gboolean
+bus_disconnected_cb (gpointer data)
+{
+  mn_show_fatal_error_dialog(NULL, _("The connection to the D-Bus session bus was lost."));
+}
+
 static DBusHandlerResult
 session_bus_filter_cb (DBusConnection *conn, DBusMessage *message, void *user_data)
 {
   if (dbus_message_is_signal(message, DBUS_INTERFACE_LOCAL, "Disconnected"))
     {
-      GDK_THREADS_ENTER();
+      /*
+       * If the user is logging out there is no reason to display the
+       * error dialog, so wait a bit, hoping that we will be killed
+       * before the timeout triggers.
+       */
 
-      mn_show_fatal_error_dialog(NULL, _("The connection to the D-Bus session bus was lost."));
-
-      GDK_THREADS_LEAVE();
+      if (bus_disconnected_timeout_id == 0)
+	bus_disconnected_timeout_id = gdk_threads_add_timeout(5000, bus_disconnected_cb, NULL);
 
       return DBUS_HANDLER_RESULT_HANDLED;
     }

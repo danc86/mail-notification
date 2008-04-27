@@ -40,20 +40,24 @@ gboolean jb_test_compile_string (const char *str,
 gboolean jb_test_link (const char *filename,
 		       const char *cflags,
 		       const char *cppflags,
-		       const char *ldflags);
+		       const char *ldflags,
+		       const char *libs);
 gboolean jb_test_link_string (const char *str,
 			      const char *cflags,
 			      const char *cppflags,
-			      const char *ldflags);
+			      const char *ldflags,
+			      const char *libs);
 
 gboolean jb_test_run (const char *filename,
 		      const char *cflags,
 		      const char *cppflags,
-		      const char *ldflags);
+		      const char *ldflags,
+		      const char *libs);
 gboolean jb_test_run_string (const char *str,
 			     const char *cflags,
 			     const char *cppflags,
-			     const char *ldflags);
+			     const char *ldflags,
+			     const char *libs);
 
 gboolean jb_check_functions (const char *functions, const char *libname);
 

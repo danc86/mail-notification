@@ -24,7 +24,8 @@
 
 #define JB_OPENSSL_CFLAGS	NULL
 #define JB_OPENSSL_CPPFLAGS	NULL
-#define JB_OPENSSL_LDFLAGS	"-lssl -lcrypto"
+#define JB_OPENSSL_LDFLAGS	NULL
+#define JB_OPENSSL_LIBS		"-lssl -lcrypto"
 
 gboolean
 jb_openssl_check (const char *minversion)
@@ -63,7 +64,8 @@ jb_openssl_check (const char *minversion)
 			      "}\n",
 			      JB_OPENSSL_CFLAGS,
 			      cppflags,
-			      JB_OPENSSL_LDFLAGS);
+			      JB_OPENSSL_LDFLAGS,
+			      JB_OPENSSL_LIBS);
 
   g_free(cppflags);
 
@@ -73,7 +75,8 @@ jb_openssl_check (const char *minversion)
     jb_variable_set_package_flags("openssl",
 				  JB_OPENSSL_CFLAGS,
 				  JB_OPENSSL_CPPFLAGS,
-				  JB_OPENSSL_LDFLAGS);
+				  JB_OPENSSL_LDFLAGS,
+				  JB_OPENSSL_LIBS);
 
   return result;
 }

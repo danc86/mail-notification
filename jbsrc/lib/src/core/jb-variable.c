@@ -415,11 +415,13 @@ void
 jb_variable_set_package_flags (const char *name,
 			       const char *cflags,
 			       const char *cppflags,
-			       const char *ldflags)
+			       const char *ldflags,
+			       const char *libs)
 {
   char *cflags_var;
   char *cppflags_var;
   char *ldflags_var;
+  char *libs_var;
 
   g_return_if_fail(name != NULL);
 
@@ -434,6 +436,10 @@ jb_variable_set_package_flags (const char *name,
   ldflags_var = g_strdup_printf("%s-ldflags", name);
   jb_variable_set_string(ldflags_var, ldflags);
   g_free(ldflags_var);
+
+  libs_var = g_strdup_printf("%s-libs", name);
+  jb_variable_set_string(libs_var, libs);
+  g_free(libs_var);
 }
 
 gboolean

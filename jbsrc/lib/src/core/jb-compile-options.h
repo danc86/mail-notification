@@ -42,6 +42,9 @@ const char *jb_compile_options_get_cppflags (JBCompileOptions *self);
 void jb_compile_options_add_ldflags (JBCompileOptions *self, const char *ldflags);
 const char *jb_compile_options_get_ldflags (JBCompileOptions *self);
 
+void jb_compile_options_add_libs (JBCompileOptions *self, const char *libs);
+const char *jb_compile_options_get_libs (JBCompileOptions *self);
+
 void jb_compile_options_add_gob2flags (JBCompileOptions *self, const char *gob2flags);
 const char *jb_compile_options_get_gob2flags (JBCompileOptions *self);
 

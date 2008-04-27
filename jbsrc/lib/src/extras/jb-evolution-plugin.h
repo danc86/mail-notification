@@ -22,6 +22,7 @@
 
 #include <glib.h>
 
+void jb_evolution_plugin_init (void);
 gboolean jb_evolution_plugin_check (const char *minversion);
 
 #endif /* _JB_EVOLUTION_PLUGIN_H */

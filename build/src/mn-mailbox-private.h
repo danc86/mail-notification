@@ -42,32 +42,32 @@ struct _MNMailboxPrivate {
 	gboolean poll;
 #line 246 "src/mn-mailbox.gob"
 	GSList * all_messages;
-#line 249 "src/mn-mailbox.gob"
+#line 255 "src/mn-mailbox.gob"
 	GHashTable * all_messages_mid_hash_table;
-#line 256 "src/mn-mailbox.gob"
-	GHashTable * all_messages_considered_as_read;
 #line 262 "src/mn-mailbox.gob"
+	GHashTable * all_messages_considered_as_read;
+#line 268 "src/mn-mailbox.gob"
 	GHashTable * messages_hash_table;
-#line 1018 "src/mn-mailbox.gob"
+#line 1024 "src/mn-mailbox.gob"
 	gboolean checking_enabled;
 #line 54 "mn-mailbox-private.h"
 };
-#line 273 "src/mn-mailbox.gob"
+#line 279 "src/mn-mailbox.gob"
 void 	mn_mailbox_set_messages	(MNMailbox * self, GSList * messages);
 #line 58 "mn-mailbox-private.h"
-#line 416 "src/mn-mailbox.gob"
+#line 422 "src/mn-mailbox.gob"
 void 	mn_mailbox_set_error	(MNMailbox * self, const char * format, ...) G_GNUC_PRINTF(2, 3);
 #line 61 "mn-mailbox-private.h"
-#line 1020 "src/mn-mailbox.gob"
+#line 1026 "src/mn-mailbox.gob"
 void 	mn_mailbox_enable_checking	(MNMailbox * self);
 #line 64 "mn-mailbox-private.h"
-#line 1031 "src/mn-mailbox.gob"
+#line 1037 "src/mn-mailbox.gob"
 void 	mn_mailbox_notice	(MNMailbox * self, const char * format, ...) G_GNUC_PRINTF(2, 3);
 #line 67 "mn-mailbox-private.h"
-#line 1049 "src/mn-mailbox.gob"
+#line 1055 "src/mn-mailbox.gob"
 void 	mn_mailbox_warning	(MNMailbox * self, const char * format, ...) G_GNUC_PRINTF(2, 3);
 #line 70 "mn-mailbox-private.h"
-#line 1066 "src/mn-mailbox.gob"
+#line 1072 "src/mn-mailbox.gob"
 MNMessage * 	mn_mailbox_get_message_from_mid	(MNMailbox * self, const char * mid);
 #line 73 "mn-mailbox-private.h"
 

@@ -17,16 +17,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <string.h>
 #include "jb-tests.h"
 #include "jb-util.h"
 #include "jb-variable.h"
+
+void
+jb_evolution_plugin_init (void)
+{
+  jb_variable_add_string("evolution-plugin-dir",
+			 "Evolution plugin installation directory",
+			 jb_variable_group_installation_options,
+			 0,
+			 "autodetect");
+}
 
 gboolean
 jb_evolution_plugin_check (const char *minversion)
 {
   char *packages;
   gboolean result;
-  char *plugindir;
 
   if (! minversion)
     minversion = "2.12";
@@ -38,15 +48,20 @@ jb_evolution_plugin_check (const char *minversion)
   if (! result)
     return FALSE;
 
-  jb_message_checking("for the Evolution plugin directory");
-  plugindir = jb_get_package_variable("evolution-plugin", "plugindir");
-  jb_message_result_string(plugindir ? plugindir : "not found");
+  if (! strcmp(jb_variable_get_string("evolution-plugin-dir"), "autodetect"))
+    {
+      char *plugindir;
 
-  if (! plugindir)
-    return FALSE;
+      jb_message_checking("for the Evolution plugin directory");
+      plugindir = jb_get_package_variable("evolution-plugin", "plugindir");
+      jb_message_result_string(plugindir ? plugindir : "not found");
 
-  jb_variable_set_string("evolution-plugindir", plugindir);
-  g_free(plugindir);
+      if (! plugindir)
+	return FALSE;
+
+      jb_variable_set_string("evolution-plugin-dir", plugindir);
+      g_free(plugindir);
+    }
 
   return TRUE;
 }

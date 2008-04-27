@@ -208,9 +208,10 @@ jb_test_compile (const char *filename,
   log_c_test(filename, "compile");
 
   return jb_exec_expand(NULL, NULL,
-			"$cc $cflags $extra-cflags"
+			"$cc -c -o build/test.o"
+			" $cflags $extra-cflags"
 			" $cppflags $extra-cppflags"
-			" -o build/test.o -c $filename",
+			" $filename",
 			"extra-cflags", cflags,
 			"extra-cppflags", cppflags,
 			"filename", filename,
@@ -233,21 +234,25 @@ gboolean
 jb_test_link (const char *filename,
 	      const char *cflags,
 	      const char *cppflags,
-	      const char *ldflags)
+	      const char *ldflags,
+	      const char *libs)
 {
   g_return_val_if_fail(filename != NULL, FALSE);
 
   log_c_test(filename, "link");
 
   return jb_exec_expand(NULL, NULL,
-			"$cc $cflags $extra-cflags"
+			"$cc -o build/test"
+			" $cflags $extra-cflags"
 			" $cppflags $extra-cppflags"
 			" $ldflags $extra-ldflags"
-			" -o build/test $filename",
+			" $filename"
+			" $libs $extra-libs",
+			"filename", filename,
 			"extra-cflags", cflags,
 			"extra-cppflags", cppflags,
 			"extra-ldflags", ldflags,
-			"filename", filename,
+			"extra-libs", libs,
 			NULL);
 }
 
@@ -255,24 +260,26 @@ gboolean
 jb_test_link_string (const char *str,
 		     const char *cflags,
 		     const char *cppflags,
-		     const char *ldflags)
+		     const char *ldflags,
+		     const char *libs)
 {
   g_return_val_if_fail(str != NULL, FALSE);
 
   jb_write_file_or_exit("build/test.c", str);
 
-  return jb_test_link("build/test.c", cflags, cppflags, ldflags);
+  return jb_test_link("build/test.c", cflags, cppflags, ldflags, libs);
 }
 
 gboolean
 jb_test_run (const char *filename,
 	     const char *cflags,
 	     const char *cppflags,
-	     const char *ldflags)
+	     const char *ldflags,
+	     const char *libs)
 {
   g_return_val_if_fail(filename != NULL, FALSE);
 
-  if (! jb_test_link(filename, cflags, cppflags, ldflags))
+  if (! jb_test_link(filename, cflags, cppflags, ldflags, libs))
     return FALSE;
 
   return jb_exec(NULL, NULL, "build/test");
@@ -282,13 +289,14 @@ gboolean
 jb_test_run_string (const char *str,
 		    const char *cflags,
 		    const char *cppflags,
-		    const char *ldflags)
+		    const char *ldflags,
+		    const char *libs)
 {
   g_return_val_if_fail(str != NULL, FALSE);
 
   jb_write_file_or_exit("build/test.c", str);
 
-  return jb_test_run("build/test.c", cflags, cppflags, ldflags);
+  return jb_test_run("build/test.c", cflags, cppflags, ldflags, libs);
 }
 
 gboolean
@@ -298,7 +306,7 @@ jb_check_functions (const char *functions, const char *libname)
   int i;
   GString *checking_message;
   GString *program;
-  char *ldflags = NULL;
+  char *libs = NULL;
   gboolean result;
 
   g_return_val_if_fail(functions != NULL, FALSE);
@@ -342,12 +350,12 @@ jb_check_functions (const char *functions, const char *libname)
   g_string_append(program, " }\n");
 
   if (libname)
-    ldflags = g_strdup_printf("-l%s", libname);
+    libs = g_strdup_printf("-l%s", libname);
 
-  result = jb_test_link_string(program->str, NULL, NULL, ldflags);
+  result = jb_test_link_string(program->str, NULL, NULL, NULL, libs);
 
   g_string_free(program, TRUE);
-  g_free(ldflags);
+  g_free(libs);
 
   jb_message_result_bool(result);
 
@@ -361,7 +369,7 @@ jb_check_packages (const char *group_name,
 {
   char *quoted_packages;
   char *cflags = NULL;
-  char *ldflags = NULL;
+  char *libs = NULL;
   char *error = NULL;
   gboolean status;
 
@@ -379,15 +387,12 @@ jb_check_packages (const char *group_name,
   status = jb_exec_expand(&cflags, NULL, "$pkg-config --cflags $packages",
 			  "packages", quoted_packages,
 			  NULL)
-    && jb_exec_expand(&ldflags, NULL, "$pkg-config --libs $packages",
+    && jb_exec_expand(&libs, NULL, "$pkg-config --libs $packages",
 		      "packages", quoted_packages,
 		      NULL);
 
   if (status)
-    jb_variable_set_package_flags(varprefix,
-				  cflags,
-				  NULL,
-				  ldflags);
+    jb_variable_set_package_flags(varprefix, cflags, NULL, NULL, libs);
   else
     jb_exec_expand(NULL, &error, "$pkg-config --print-errors $packages",
 		   "packages", quoted_packages,
@@ -395,7 +400,7 @@ jb_check_packages (const char *group_name,
 
   g_free(quoted_packages);
   g_free(cflags);
-  g_free(ldflags);
+  g_free(libs);
 
   jb_message_result_bool(status);
 

@@ -120,58 +120,58 @@ void 	mn_mailbox_set_poll	(MNMailbox * self,
 #line 230 "src/mn-mailbox.gob"
 gboolean 	mn_mailbox_get_manually_checkable	(MNMailbox * self);
 #line 123 "mn-mailbox.h"
-#line 428 "src/mn-mailbox.gob"
+#line 434 "src/mn-mailbox.gob"
 void 	mn_mailbox_init_types	(void);
 #line 126 "mn-mailbox.h"
-#line 464 "src/mn-mailbox.gob"
+#line 470 "src/mn-mailbox.gob"
 MNMailboxClass * 	mn_mailbox_get_class_from_name	(const char * type);
 #line 129 "mn-mailbox.h"
-#line 483 "src/mn-mailbox.gob"
+#line 489 "src/mn-mailbox.gob"
 GType 	mn_mailbox_get_type_from_name	(const char * type);
 #line 132 "mn-mailbox.h"
-#line 530 "src/mn-mailbox.gob"
+#line 536 "src/mn-mailbox.gob"
 MNMailbox * 	mn_mailbox_new	(const char * type,
 					...) G_GNUC_NULL_TERMINATED;
 #line 136 "mn-mailbox.h"
-#line 550 "src/mn-mailbox.gob"
+#line 556 "src/mn-mailbox.gob"
 MNMailbox * 	mn_mailbox_new_from_xml_node	(xmlNode * node,
 					GError ** err);
 #line 140 "mn-mailbox.h"
-#line 583 "src/mn-mailbox.gob"
+#line 589 "src/mn-mailbox.gob"
 xmlNode * 	mn_mailbox_xml_node_new	(MNMailbox * self);
 #line 143 "mn-mailbox.h"
-#line 595 "src/mn-mailbox.gob"
+#line 601 "src/mn-mailbox.gob"
 MNMailbox * 	mn_mailbox_new_from_uri	(const char * uri);
 #line 146 "mn-mailbox.h"
-#line 616 "src/mn-mailbox.gob"
+#line 622 "src/mn-mailbox.gob"
 MNMailbox * 	mn_mailbox_new_from_configuration	(MNMailboxConfiguration * config);
 #line 149 "mn-mailbox.h"
-#line 622 "src/mn-mailbox.gob"
+#line 628 "src/mn-mailbox.gob"
 MNMailboxConfiguration * 	mn_mailbox_get_configuration	(MNMailbox * self);
 #line 152 "mn-mailbox.h"
-#line 657 "src/mn-mailbox.gob"
+#line 663 "src/mn-mailbox.gob"
 void 	mn_mailbox_configuration_free	(MNMailboxConfiguration * config);
 #line 155 "mn-mailbox.h"
-#line 669 "src/mn-mailbox.gob"
+#line 675 "src/mn-mailbox.gob"
 MNMailbox * 	mn_mailbox_new_from_obsolete_uri	(const char * uri);
 #line 158 "mn-mailbox.h"
-#line 986 "src/mn-mailbox.gob"
+#line 992 "src/mn-mailbox.gob"
 void 	mn_mailbox_seal	(MNMailbox * self);
 #line 161 "mn-mailbox.h"
-#line 1004 "src/mn-mailbox.gob"
+#line 1010 "src/mn-mailbox.gob"
 void 	mn_mailbox_check	(MNMailbox * self);
 #line 164 "mn-mailbox.h"
-#line 1088 "src/mn-mailbox.gob"
+#line 1094 "src/mn-mailbox.gob"
 void 	mn_mailbox_consider_as_read	(MNMessage * message);
 #line 167 "mn-mailbox.h"
-#line 1106 "src/mn-mailbox.gob"
+#line 1112 "src/mn-mailbox.gob"
 void 	mn_mailbox_consider_as_read_list	(GSList * messages);
 #line 170 "mn-mailbox.h"
-#line 1131 "src/mn-mailbox.gob"
+#line 1137 "src/mn-mailbox.gob"
 char * 	mn_mailbox_get_command	(MNMailbox * self,
 					const char * id);
 #line 174 "mn-mailbox.h"
-#line 1150 "src/mn-mailbox.gob"
+#line 1156 "src/mn-mailbox.gob"
 gboolean 	mn_mailbox_has_command	(MNMailbox * self,
 					const char * id);
 #line 178 "mn-mailbox.h"

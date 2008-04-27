@@ -94,6 +94,7 @@ jb_compile_options_new (const char *name)
   init_variable(self, "cflags");
   init_variable(self, "cppflags");
   init_variable(self, "ldflags");
+  init_variable(self, "libs");
   init_variable(self, "gob2flags");
 
   return self;
@@ -181,6 +182,23 @@ jb_compile_options_get_ldflags (JBCompileOptions *self)
 }
 
 void
+jb_compile_options_add_libs (JBCompileOptions *self, const char *libs)
+{
+  g_return_if_fail(self != NULL);
+  g_return_if_fail(libs != NULL);
+
+  add_to_variable(self, "libs", libs);
+}
+
+const char *
+jb_compile_options_get_libs (JBCompileOptions *self)
+{
+  g_return_val_if_fail(self != NULL, NULL);
+
+  return get_variable(self, "libs");
+}
+
+void
 jb_compile_options_add_gob2flags (JBCompileOptions *self, const char *gob2flags)
 {
   g_return_if_fail(self != NULL);
@@ -216,6 +234,10 @@ jb_compile_options_add_package (JBCompileOptions *self, const char *name)
 
   value = g_strdup_printf("$%s-ldflags", name);
   jb_compile_options_add_ldflags(self, value);
+  g_free(value);
+
+  value = g_strdup_printf("$%s-libs", name);
+  jb_compile_options_add_libs(self, value);
   g_free(value);
 }
 

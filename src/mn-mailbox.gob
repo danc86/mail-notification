@@ -245,13 +245,19 @@ class MN:Mailbox (abstract)
   /* all unread (unseen and seen) messages */
   private GSList *all_messages destroywith mn_g_object_slist_free;
 
-  /* all_messages, indexed by mid */
-  private GHashTable *all_messages_mid_hash_table = {g_hash_table_new(g_str_hash, g_str_equal)} destroywith g_hash_table_destroy;
+  /* all_messages, indexed by mid
+   *
+   * These messages are not necessarily present in all_messages (a
+   * seen or considered as read message might not be added to
+   * all_messages), so the hash table holds a reference to each
+   * message.
+   */
+  private GHashTable *all_messages_mid_hash_table = {g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref)} destroywith g_hash_table_destroy;
 
   /*
-   * These messages are not necessarily the same instances as in
-   * all_messages (they might have been marked as read previously), so
-   * the hash table holds a reference to each message.
+   * These messages are not necessarily present in all_messages (they
+   * might have been marked as read previously), so the hash table
+   * holds a reference to each message.
    */
   private GHashTable *all_messages_considered_as_read = {g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref)} destroywith g_hash_table_destroy;
 
@@ -316,7 +322,7 @@ class MN:Mailbox (abstract)
 	g_hash_table_replace(all_messages_hash_table, message->id, message);
 
 	if (message->mid)
-	  g_hash_table_replace(selfp->all_messages_mid_hash_table, message->mid, message);
+	  g_hash_table_replace(selfp->all_messages_mid_hash_table, message->mid, g_object_ref(message));
 
 	if ((display_seen_mail || (message->flags & MN_MESSAGE_NEW) != 0)
 	    && ! g_hash_table_lookup(selfp->all_messages_considered_as_read, message->id))

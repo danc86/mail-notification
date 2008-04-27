@@ -72,6 +72,8 @@ jb_package_init (void)
    */
   jb_variable_set_string("gob2-minversion", "2.0.16");
 
+  jb_evolution_plugin_init();
+
   backends_group = jb_variable_add_group("Mailbox backends");
   pi_group = jb_variable_add_group("IMAP and POP3 features");
 
@@ -420,7 +422,7 @@ jb_package_add_resources (void)
        */
       jb_compile_options_add_cflags(object->compile_options, "-std=c99");
       jb_compile_options_add_cppflags(object->compile_options, "-D_BSD_SOURCE -D_POSIX_C_SOURCE=199309L");
-      jb_compile_options_add_ldflags(object->compile_options, "-lbsd-compat");
+      jb_compile_options_add_libs(object->compile_options, "-lbsd-compat");
     }
 
   jb_compile_options_add_string_defines(object->compile_options,
@@ -441,7 +443,7 @@ jb_package_add_resources (void)
    */
   jb_compile_options_add_ldflags(object->compile_options, "-Wl,--export-dynamic");
 
-  jb_compile_options_add_ldflags(object->compile_options, "-lm");
+  jb_compile_options_add_libs(object->compile_options, "-lm");
 
   jb_compile_options_add_package(object->compile_options, "gettext");
   jb_compile_options_add_package(object->compile_options, "gnome");
@@ -627,7 +629,7 @@ jb_package_add_resources (void)
       JBObject *plugin;
 
       jb_group_add_resource(group, JB_GROUP_RESOURCE(jb_template_new("org-jylefort-mail-notification.eplug.in")));
-      jb_group_add_data_file(group, "org-jylefort-mail-notification.eplug", "$evolution-plugindir");
+      jb_group_add_data_file(group, "org-jylefort-mail-notification.eplug", "$evolution-plugin-dir");
 
       jb_compile_options_add_cflags(object->compile_options, "$evolution-plugin-cflags");
 
@@ -653,7 +655,7 @@ jb_package_add_resources (void)
 
       plugin = JB_OBJECT(jb_module_new("liborg-jylefort-mail-notification"));
 
-      jb_install_options_set_installdir(plugin->install_options, "$evolution-plugindir");
+      jb_install_options_set_installdir(plugin->install_options, "$evolution-plugin-dir");
 
       jb_compile_options_add_package(plugin->compile_options, "gettext");
       jb_compile_options_add_package(plugin->compile_options, "evolution-plugin");
@@ -706,4 +708,4 @@ jb_package_add_resources (void)
     }
 }
 
-JB_MAIN("mail-notification", "5.2", "Mail Notification")
+JB_MAIN("mail-notification", "5.3", "Mail Notification")

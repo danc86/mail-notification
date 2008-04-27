@@ -8,10 +8,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mail-notification 5.2\n"
+"Project-Id-Version: mail-notification 5.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-02-28 08:21+0100\n"
-"PO-Revision-Date: 2008-03-20 16:52+0100\n"
+"POT-Creation-Date: 2008-04-27 16:50+0200\n"
+"PO-Revision-Date: 2008-04-27 16:51+0200\n"
 "Last-Translator: Jean-Yves Lefort <jylefort@brutele.be>\n"
 "Language-Team: Jean-Yves Lefort <jylefort@brutele.be>\n"
 "MIME-Version: 1.0\n"
@@ -25,8 +25,8 @@ msgstr "Configurer l'avertisseur de courrier"
 
 #: ../data/mail-notification-properties.desktop.in.h:2
 #: ../data/mail-notification.desktop.in.h:2 ../src/mn-mail-icon.gob:296
-#: ../src/mn-main.c:103 ../src/mn-main.c:424 ../src/mn-main.c:445
-#: ../src/mn-main.c:496
+#: ../src/mn-main.c:107 ../src/mn-main.c:437 ../src/mn-main.c:458
+#: ../src/mn-main.c:509
 msgid "Mail Notification"
 msgstr "Avertisseur de courrier"
 
@@ -78,7 +78,9 @@ msgstr "Hauteur de la boîte de dialogue contenant les propriétés"
 msgid ""
 "If /apps/mail-notification/popups/expiration/enabled is set to \"true\", the "
 "number of seconds to wait before expiring message popups."
-msgstr "Si /apps/mail-notification/popups/expiration/enabled est « true », le délai d'expiration des popups, en secondes."
+msgstr ""
+"Si /apps/mail-notification/popups/expiration/enabled est « true », le délai "
+"d'expiration des popups, en secondes."
 
 #: ../data/mail-notification.schemas.in.in.h:12
 msgid "Mail changed command"
@@ -163,7 +165,9 @@ msgstr "La commande à exécuter lorsque la liste des messages change."
 msgid ""
 "The command to use to play a sound file. The string %file will be "
 "substituted with the filename of the sound to play."
-msgstr "La commande à utiliser pour lire un fichier son. La chaîne de caractères %file sera remplacée par le nom du fichier son à jouer."
+msgstr ""
+"La commande à utiliser pour lire un fichier son. La chaîne de caractères %"
+"file sera remplacée par le nom du fichier son à jouer."
 
 #: ../data/mail-notification.schemas.in.in.h:32
 msgid "The height of the properties dialog in pixels."
@@ -179,10 +183,10 @@ msgid ""
 msgstr ""
 "La liste des jeux de caractères à essayer lorsque des données 8-bit "
 "invalides sont trouvées dans un en-tête de message. Le premier de ces jeux "
-"qui permet de convertir les données 8-bit sera utilisé. Le nom spécial « "
-"user » sera remplacé par le jeu de caractère de l'utilisateur. Veuillez "
-"noter que l'avertisseur de courrier doit être relancé pour que les "
-"changements prennent effet."
+"qui permet de convertir les données 8-bit sera utilisé. Le nom spécial « user "
+"» sera remplacé par le jeu de caractère de l'utilisateur. Veuillez noter que "
+"l'avertisseur de courrier doit être relancé pour que les changements "
+"prennent effet."
 
 #: ../data/mail-notification.schemas.in.in.h:34
 msgid ""
@@ -286,8 +290,8 @@ msgid ""
 "Whether to expire message popups or not. Must be \"default\", \"false\" or "
 "\"true\"."
 msgstr ""
-"Si l'expiration des popups doit être activée ou pas. Doit être « default », "
-"« false » ou « true »."
+"Si l'expiration des popups doit être activée ou pas. Doit être « default », « "
+"false » ou « true »."
 
 #: ../data/mail-notification.schemas.in.in.h:51
 msgid "Whether to play a sound when new mail arrives or not."
@@ -496,8 +500,8 @@ msgid ""
 "user-provided server name \"%s\" does not match certificate-provided server "
 "name \"%s\""
 msgstr ""
-"le nom de serveur « %s » fourni par l'utilisateur ne correspond pas au nom "
-"de serveur « %s » fourni par le certificat"
+"le nom de serveur « %s » fourni par l'utilisateur ne correspond pas au nom de "
+"serveur « %s » fourni par le certificat"
 
 #: ../src/mn-client-session.c:645
 #, c-format
@@ -734,7 +738,9 @@ msgstr "impossible de contacter Evolution"
 
 #: ../src/mn-evolution-plugin.c:151
 msgid "A fatal error has occurred in the Evolution Mail Notification plugin"
-msgstr "Une erreur fatale s'est produite dans l'extension Evolution « Avertisseur de courrier »"
+msgstr ""
+"Une erreur fatale s'est produite dans l'extension Evolution « Avertisseur de "
+"courrier »"
 
 #: ../src/mn-evolution-plugin.c:152 ../src/mn-main.c:250
 msgid "The connection to the D-Bus session bus was lost."
@@ -745,7 +751,7 @@ msgstr "La connexion à la session D-Bus a été perdue."
 msgid "Unable to initialize the Mail Notification plugin"
 msgstr "Impossible d'initialiser l'extension « Avertisseur de courrier »"
 
-#: ../src/mn-evolution-plugin.c:176 ../src/mn-main.c:270
+#: ../src/mn-evolution-plugin.c:176 ../src/mn-main.c:283
 #, c-format
 msgid "Unable to connect to the D-Bus session bus: %s."
 msgstr "Impossible de se connecter au bus session D-Bus : %s."
@@ -753,7 +759,9 @@ msgstr "Impossible de se connecter au bus session D-Bus : %s."
 #: ../src/mn-evolution-plugin.c:227
 #, c-format
 msgid "Unable to register the Mail Notification Evolution D-Bus server: %s."
-msgstr "Impossible d'enregistrer le serveur D-Bus de l'avertisseur de courrier Evolution : %s."
+msgstr ""
+"Impossible d'enregistrer le serveur D-Bus de l'avertisseur de courrier "
+"Evolution : %s."
 
 #: ../src/mn-evolution-server.gob:152
 #, c-format
@@ -828,7 +836,7 @@ msgstr "impossible de chercher dans %s : %s"
 msgid "unable to tell position of %s: %s"
 msgstr "impossible de dire la position de %s : %s"
 
-#: ../src/mn-gmime-stream-vfs.gob:56 ../src/mn-mh-mailbox-backend.gob:206
+#: ../src/mn-gmime-stream-vfs.gob:56 ../src/mn-mh-mailbox-backend.gob:216
 #: ../src/mn-webmail-mailbox.gob:147
 #, c-format
 msgid "unable to close %s: %s"
@@ -891,8 +899,8 @@ msgid ""
 "\"Use the IDLE extension\" set to \"never\" in the mailbox properties, "
 "logging out"
 msgstr ""
-"la valeur de l'option « Utiliser l'extension IDLE » dans les propriétés de "
-"la boîte aux lettres est « jamais », fermeture de session"
+"la valeur de l'option « Utiliser l'extension IDLE » dans les propriétés de la "
+"boîte aux lettres est « jamais », fermeture de session"
 
 #: ../src/mn-imap-mailbox.gob:1074
 #, c-format
@@ -979,24 +987,24 @@ msgid "%s Properties"
 msgstr "Propriétés de %s"
 
 #. translators: header capitalization
-#: ../src/mn-mailbox-properties-dialog.gob:208
+#: ../src/mn-mailbox-properties-dialog.gob:210
 msgid "Add a Mailbox"
 msgstr "Ajouter une boîte aux lettres"
 
-#: ../src/mn-mailbox-properties-dialog.gob:583
+#: ../src/mn-mailbox-properties-dialog.gob:585
 msgid "_Default:"
 msgstr "_Valeur par défaut :"
 
-#: ../src/mn-mailbox-properties-dialog.gob:585
+#: ../src/mn-mailbox-properties-dialog.gob:587
 #: ../ui/mailbox-properties-dialog.glade.h:9
 msgid "_Default"
 msgstr "_Valeur par défaut"
 
-#: ../src/mn-mailbox-properties-dialog.gob:612
+#: ../src/mn-mailbox-properties-dialog.gob:614
 msgid "D_efault:"
 msgstr "Valeur par _défaut :"
 
-#: ../src/mn-mailbox-properties-dialog.gob:616
+#: ../src/mn-mailbox-properties-dialog.gob:618
 #: ../ui/mailbox-properties-dialog.glade.h:4
 msgid "D_efault"
 msgstr "Valeur par _défaut"
@@ -1019,22 +1027,22 @@ msgstr "boîte aux lettres %s"
 msgid "detecting mailbox type..."
 msgstr "détection du type de boîte aux lettres en cours..."
 
-#: ../src/mn-mailbox.gob:559
+#: ../src/mn-mailbox.gob:565
 #, c-format
 msgid "\"type\" attribute missing"
 msgstr "attribut « type » manquant"
 
-#: ../src/mn-mailbox.gob:566
+#: ../src/mn-mailbox.gob:572
 #, c-format
 msgid "unknown mailbox type \"%s\""
 msgstr "type de boîte aux lettres « %s » inconnu"
 
-#: ../src/mn-mailbox.gob:965
+#: ../src/mn-mailbox.gob:971
 #, c-format
 msgid "property \"%s\" has no value"
 msgstr "la propriété « %s » n'a pas de valeur"
 
-#: ../src/mn-mailbox.gob:1044 ../src/mn-mailbox.gob:1062
+#: ../src/mn-mailbox.gob:1050 ../src/mn-mailbox.gob:1068
 #: ../src/mn-shell.gob:624
 #, c-format
 msgid "%s: %s"
@@ -1154,7 +1162,7 @@ msgid "error while reading folder \"%s\": %s"
 msgstr "erreur lors de la lecture du dossier « %s » : %s"
 
 #: ../src/mn-maildir-mailbox-backend.gob:253
-#: ../src/mn-mh-mailbox-backend.gob:200
+#: ../src/mn-mh-mailbox-backend.gob:210
 #: ../src/mn-sylpheed-mailbox-backend.gob:311
 #, c-format
 msgid "cannot read %i message"
@@ -1180,74 +1188,75 @@ msgstr ""
 "Le message n'a pu être déplacé vers la corbeille (%s). Le supprimer de "
 "manière permanente ?"
 
-#: ../src/mn-main.c:72
+#: ../src/mn-main.c:76
 msgid "yes"
 msgstr "oui"
 
-#: ../src/mn-main.c:72
+#: ../src/mn-main.c:76
 msgid "no"
 msgstr "non"
 
-#: ../src/mn-main.c:103
+#: ../src/mn-main.c:107
 #, c-format
 msgid "%s version %s\n"
 msgstr "%s version %s\n"
 
-#: ../src/mn-main.c:108
+#: ../src/mn-main.c:112
 #, c-format
 msgid "Mailbox backends:\n"
 msgstr "Prises en charge de boîtes aux lettres :\n"
 
-#: ../src/mn-main.c:113
+#: ../src/mn-main.c:117
 #, c-format
 msgid "IMAP and POP3 features:\n"
 msgstr "Fonctionnalités IMAP et POP3 :\n"
 
-#: ../src/mn-main.c:200
+#: ../src/mn-main.c:204
 #, c-format
 msgid "Unable to contact the running Mail Notification instance: %s."
-msgstr "Impossible de contacter l'avertisseur de courrier en cours d'exécution : %s."
+msgstr ""
+"Impossible de contacter l'avertisseur de courrier en cours d'exécution : %s."
 
-#: ../src/mn-main.c:240
+#: ../src/mn-main.c:244
 #, c-format
 msgid "%s option ignored since Mail Notification is not already running"
 msgstr ""
 "option %s ignorée puisque l'avertisseur de courrier n'est pas déjà en cours "
 "d'exécution"
 
-#: ../src/mn-main.c:334
+#: ../src/mn-main.c:347
 msgid "Show version information"
 msgstr "Afficher les informations de version"
 
-#: ../src/mn-main.c:343
+#: ../src/mn-main.c:356
 msgid "Enable informational output"
 msgstr "Activer la sortie informationnelle"
 
-#: ../src/mn-main.c:352
+#: ../src/mn-main.c:365
 msgid "Display the properties dialog"
 msgstr "Afficher la boîte de dialogue contenant les propriétés"
 
-#: ../src/mn-main.c:361
+#: ../src/mn-main.c:374
 msgid "Display the about dialog"
 msgstr "Afficher la boîte de dialogue « à propos »"
 
-#: ../src/mn-main.c:370
+#: ../src/mn-main.c:383
 msgid "Consider new mail as read"
 msgstr "Considérer le nouveau courrier comme lu"
 
-#: ../src/mn-main.c:379
+#: ../src/mn-main.c:392
 msgid "Update the mail status"
 msgstr "Mettre à jour le statut du courrier"
 
-#: ../src/mn-main.c:388
+#: ../src/mn-main.c:401
 msgid "Print a XML mail summary"
 msgstr "Afficher un aperçu XML du courrier"
 
-#: ../src/mn-main.c:397
+#: ../src/mn-main.c:410
 msgid "Unset obsolete GConf configuration"
 msgstr "Supprimer la configuration GConf obsolète"
 
-#: ../src/mn-main.c:406
+#: ../src/mn-main.c:419
 msgid "Quit Mail Notification"
 msgstr "Quitter l'avertisseur de courrier"
 
@@ -1255,24 +1264,24 @@ msgstr "Quitter l'avertisseur de courrier"
 #. * We cannot use mn_fatal_error_dialog() because gtk_init() has
 #. * not been called yet.
 #.
-#: ../src/mn-main.c:432
+#: ../src/mn-main.c:445
 msgid "multi-threading is not available"
 msgstr "le multi-threading n'est pas disponible"
 
-#: ../src/mn-main.c:473
+#: ../src/mn-main.c:486
 msgid "Mail Notification is not running"
 msgstr "L'avertisseur de courrier n'est pas en cours d'exécution"
 
-#: ../src/mn-main.c:485
+#: ../src/mn-main.c:498
 msgid "Unable to initialize the GnomeVFS library."
 msgstr "Impossible d'initialiser la bibliothèque GnomeVFS."
 
-#: ../src/mn-main.c:498
+#: ../src/mn-main.c:511
 msgid "An initialization error has occurred in Mail Notification"
 msgstr ""
 "Une erreur d'initialisation s'est produite dans l'avertisseur de courrier"
 
-#: ../src/mn-main.c:499
+#: ../src/mn-main.c:512
 msgid ""
 "Unable to initialize the notification library. Message popups will not be "
 "displayed."
@@ -1280,19 +1289,19 @@ msgstr ""
 "Impossible d'initialiser la bibliothèque d'avertissement. Les popups ne "
 "seront pas affichés."
 
-#: ../src/mn-main.c:544
+#: ../src/mn-main.c:557
 msgid "quitting Mail Notification"
 msgstr "en train de quitter l'avertisseur de courrier"
 
-#: ../src/mn-main.c:563
+#: ../src/mn-main.c:576
 msgid "considering new mail as read"
 msgstr "considération du nouveau courrier comme étant lu"
 
-#: ../src/mn-main.c:568
+#: ../src/mn-main.c:581
 msgid "updating the mail status"
 msgstr "mise à jour du statut du courrier"
 
-#: ../src/mn-main.c:585
+#: ../src/mn-main.c:598
 msgid "Mail Notification is already running"
 msgstr "L'avertisseur de courrier est déjà en cours d'exécution"
 
@@ -1334,17 +1343,17 @@ msgid "Delete"
 msgstr "Supprimer"
 
 #: ../src/mn-message.gob:336 ../src/mn-sound-player.gob:133
-#: ../src/mn-sound-player.gob:169 ../src/mn-util.c:1636
+#: ../src/mn-sound-player.gob:169 ../src/mn-util.c:1577
 #, c-format
 msgid "Unable to execute \"%s\": %s."
 msgstr "Impossible d'exécuter « %s » : %s"
 
-#: ../src/mn-mh-mailbox-backend.gob:209
+#: ../src/mn-mh-mailbox-backend.gob:219
 #, c-format
 msgid "error while reading %s: %s"
 msgstr "erreur lors de la lecture de %s : %s"
 
-#: ../src/mn-mh-mailbox-backend.gob:223 ../src/mn-webmail-mailbox.gob:276
+#: ../src/mn-mh-mailbox-backend.gob:243 ../src/mn-webmail-mailbox.gob:276
 #, c-format
 msgid "unable to open %s: %s"
 msgstr "impossible d'ouvrir %s : %s"
@@ -1406,13 +1415,13 @@ msgid ""
 "to \"%s\". If you choose to connect to the server, this message will not be "
 "shown again."
 msgstr ""
-"L'avertisseur de courrier n'a pas été en mesure de faire confiance à « %s "
-"» (%s). Il est possible que quelqu'un soit en train d'intercepter votre "
+"L'avertisseur de courrier n'a pas été en mesure de faire confiance à « %s » (%"
+"s). Il est possible que quelqu'un soit en train d'intercepter votre "
 "communication afin d'obtenir vos informations confidentielles.\n"
 "\n"
 "Vous devriez vous connecter au serveur uniquement si vous êtes certain que "
-"vous êtes connecté à « %s ». Si vous choisissez de vous connecter au "
-"serveur, ce message ne sera plus affiché."
+"vous êtes connecté à « %s ». Si vous choisissez de vous connecter au serveur, "
+"ce message ne sera plus affiché."
 
 #: ../src/mn-pi-mailbox.gob:353
 #, c-format
@@ -1512,7 +1521,8 @@ msgstr[1] "%i boîtes aux lettres sélectionnées."
 #: ../src/mn-server.gob:136
 #, c-format
 msgid "Unable to register the Mail Notification D-Bus server: %s."
-msgstr "Impossible d'enregistrer le serveur D-Bus de l'avertisseur de courrier : %s."
+msgstr ""
+"Impossible d'enregistrer le serveur D-Bus de l'avertisseur de courrier : %s."
 
 #: ../src/mn-shell.gob:290
 #, c-format
@@ -1587,7 +1597,7 @@ msgstr "Fichiers audio"
 msgid "Unable to play sound"
 msgstr "Impossible de lire le son"
 
-#: ../src/mn-sound-player.gob:122 ../src/mn-util.c:1635
+#: ../src/mn-sound-player.gob:122 ../src/mn-util.c:1576
 msgid "A command error has occurred in Mail Notification"
 msgstr "Une erreur de commande s'est produite dans l'avertisseur de courrier"
 
@@ -1672,28 +1682,28 @@ msgid "Mail Notification Properties Dialog"
 msgstr ""
 "Boîte de dialogue contenant les propriétés de l'avertisseur de courrier"
 
-#: ../src/mn-util.c:539 ../src/mn-util.c:562 ../src/mn-util.c:582
-#: ../src/mn-util.c:604
+#: ../src/mn-util.c:525 ../src/mn-util.c:548 ../src/mn-util.c:568
+#: ../src/mn-util.c:590
 msgid "A drag and drop error has occurred"
 msgstr "Une erreur de glisser-déposer s'est produite"
 
-#: ../src/mn-util.c:540
+#: ../src/mn-util.c:526
 msgid "An invalid location list has been received."
 msgstr "Une liste d'emplacements non valide a été reçue."
 
-#: ../src/mn-util.c:583
+#: ../src/mn-util.c:569
 msgid "An invalid Mozilla location has been received."
 msgstr "Un emplacement Mozilla non valide a été reçu."
 
-#: ../src/mn-util.c:694
+#: ../src/mn-util.c:680
 msgid "Unable to display help"
 msgstr "Impossible d'afficher l'aide"
 
-#: ../src/mn-util.c:706
+#: ../src/mn-util.c:692
 msgid "Unable to open link"
 msgstr "Impossible d'ouvrir le lien"
 
-#: ../src/mn-util.c:897
+#: ../src/mn-util.c:883
 #, c-format
 msgid ""
 "The following location is invalid:\n"
@@ -1712,81 +1722,81 @@ msgstr[1] ""
 "\n"
 "%s"
 
-#: ../src/mn-util.c:913
+#: ../src/mn-util.c:899
 msgid "A fatal error has occurred in Mail Notification"
 msgstr "Une erreur fatale s'est produite dans l'avertisseur de courrier"
 
-#: ../src/mn-util.c:993
+#: ../src/mn-util.c:979
 #, c-format
 msgid "%i second ago"
 msgid_plural "%i seconds ago"
 msgstr[0] "il y a %i seconde"
 msgstr[1] "il y a %i secondes"
 
-#: ../src/mn-util.c:997
+#: ../src/mn-util.c:983
 #, c-format
 msgid "about %i minute ago"
 msgid_plural "about %i minutes ago"
 msgstr[0] "il y a approximativement %i minute"
 msgstr[1] "il y a approximativement %i minutes"
 
-#: ../src/mn-util.c:1002
+#: ../src/mn-util.c:988
 #, c-format
 msgid "about %i hour ago"
 msgid_plural "about %i hours ago"
 msgstr[0] "il y a approximativement %i heure"
 msgstr[1] "il y a approximativement %i heures"
 
-#: ../src/mn-util.c:1007
+#: ../src/mn-util.c:993
 #, c-format
 msgid "about %i day ago"
 msgid_plural "about %i days ago"
 msgstr[0] "il y a approximativement %i jour"
 msgstr[1] "il y a approximativement %i jours"
 
-#: ../src/mn-util.c:1012
+#: ../src/mn-util.c:998
 #, c-format
 msgid "about %i week ago"
 msgid_plural "about %i weeks ago"
 msgstr[0] "il y a approximativement %i semaine"
 msgstr[1] "il y a approximativement %i semaines"
 
-#: ../src/mn-util.c:1030
+#: ../src/mn-util.c:1016
 #, c-format
 msgid "%i second"
 msgid_plural "%i seconds"
 msgstr[0] "%i seconde"
 msgstr[1] "%i secondes"
 
-#: ../src/mn-util.c:1034
+#: ../src/mn-util.c:1020
 #, c-format
 msgid "%i minute"
 msgid_plural "%i minutes"
 msgstr[0] "%i minute"
 msgstr[1] "%i minutes"
 
-#: ../src/mn-util.c:1039
+#: ../src/mn-util.c:1025
 #, c-format
 msgid "%i hour"
 msgid_plural "%i hours"
 msgstr[0] "%i heure"
 msgstr[1] "%i heures"
 
-#: ../src/mn-util.c:1044
+#: ../src/mn-util.c:1030
 msgid "1 day"
 msgstr "1 jour"
 
-#: ../src/mn-util.c:1565
+#: ../src/mn-util.c:1506
 #, c-format
 msgid "unterminated substitution"
 msgstr "substitution non terminée"
 
-#: ../src/mn-util.c:1604
+#: ../src/mn-util.c:1545
 #, c-format
 msgid "unknown substitution \"%s\""
 msgstr "substitution « %s » inconnue"
 
-#: ../src/mn-util.c:1607
+#: ../src/mn-util.c:1548
 #, c-format
 msgid "empty substitution"
 msgstr "substitution vide"
@@ -1858,8 +1868,8 @@ msgid ""
 "property \"%s\": unable to transform string \"%s\" into a value of type \"%s"
 "\""
 msgstr ""
-"propriété « %s » : impossible de transformer la chaîne de caractères « %s » "
-"en une valeur de type « %s »"
+"propriété « %s » : impossible de transformer la chaîne de caractères « %s » en "
+"une valeur de type « %s »"
 
 #: ../src/mn-yahoo-mailbox.gob:71
 #, c-format
@@ -2083,8 +2093,8 @@ msgstr "Ja_mais"
 #~ "Widget \"%s\" not found in interface \"%s\". Please check your Mail "
 #~ "Notification installation."
 #~ msgstr ""
-#~ "Elément « %s » non trouvé dans l'interface « %s ». Veuillez vérifier "
-#~ "votre installation de l'avertisseur de courrier."
+#~ "Elément « %s » non trouvé dans l'interface « %s ». Veuillez vérifier votre "
+#~ "installation de l'avertisseur de courrier."
 
 #~ msgid "Unable to open self as a module (%s)."
 #~ msgstr "Impossible de s'auto-ouvrir en tant que module (%s)."

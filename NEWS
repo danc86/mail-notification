@@ -1,3 +1,27 @@
+5.3					April 27, 2008
+
+	* Core changes:
+		* Compile options are now passed to the C compiler in
+		  the appropriate order, fixing the build with options
+		  such as -Wl,--as-needed (#214450)
+		* The "connection to the D-Bus session was lost" error
+		  dialog is no longer displayed on logout
+		* The .desktop files have been improved (#204466)
+
+	* IMAP, Maildir and POP3 changes:
+		* The message caching code introduced in 5.1 sometimes
+		  caused a crash: fixed (#210915)
+
+	* Evolution changes:
+		* A regression introduced in 5.1 caused a crash on
+		  64-bit systems: fixed (#208149)
+
+	* Windows Live Hotmail changes:
+		* Spanish inbox support has been fixed (#214986)
+
+	* Updated translations:
+		* Spanish (Nacho Hermoso de Mendoza)
+
 5.2					March 20, 2008
 
 	* Core changes:
@@ -41,7 +65,6 @@
 
 	* IMAP, Maildir, mbox, MH, Mozilla, POP3, Sylpheed, Windows
 	  Live Hotmail and Yahoo! Mail changes:
-
 		* The GConf setting
 		  /apps/mail-notification/fallback-charsets has been
 		  added. This setting is used when attempting to
@@ -72,7 +95,6 @@
 		  Peter Kjellerstedt)
 
 	* Windows Live Hotmail changes:
-
 		* Account languages other than English are now
 		  supported. Support was added for Brazilian
 		  Portuguese, Danish, Dutch, Finnish, French, German,

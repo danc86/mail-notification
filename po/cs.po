@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: mail-notification 4.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2007-06-19 08:41+0200\n"
-"PO-Revision-Date: 2007-06-26 12:06+0200\n"
+"PO-Revision-Date: 2008-04-27 16:45+0200\n"
 "Last-Translator: Pav Lucistnik <pav@FreeBSD.org>\n"
 "Language-Team: Pav Lucistnik <pav@FreeBSD.org>\n"
 "MIME-Version: 1.0\n"
@@ -1782,11 +1782,11 @@ msgstr "_Aktualizovat stav pošty"
 
 #: ../ui/properties-dialog.glade.h:39
 msgid "icon tooltip's mail summary layout|Co_mpact"
-msgstr "rozložení souhrnu pošty v tooltipu ikony|_Kompaktní"
+msgstr "_Kompaktní"
 
 #: ../ui/properties-dialog.glade.h:40
 msgid "icon tooltip's mail summary layout|_Standard"
-msgstr "rozložení souhrnu pošty v tooltipu ikony|_Standardní"
+msgstr "_Standardní"
 
 #~ msgid "server did not send all the messages we requested"
 #~ msgstr "server neposlal všechny zprávy, které jsme vyžádali"

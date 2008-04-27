@@ -11,10 +11,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mail-notification 5.2\n"
+"Project-Id-Version: mail-notification 5.3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-02-28 10:07+0100\n"
-"PO-Revision-Date: 2008-03-20 16:52+0100\n"
+"PO-Revision-Date: 2008-04-27 16:51+0200\n"
 "Last-Translator: Филип Милетић <filmil@gmail.com>\n"
 "Language-Team: Serbian (sr) <gnu@prevod.org>\n"
 "MIME-Version: 1.0\n"
@@ -844,7 +844,7 @@ msgstr "Користи продужетак IDLE"
 
 #: ../src/mn-imap-mailbox-properties.gob:133
 msgid "IMAP connection tab|_Never"
-msgstr "IMAP connection tab|_Никад"
+msgstr "_Никад"
 
 #: ../src/mn-imap-mailbox-properties.gob:134
 msgid "A_utodetect"

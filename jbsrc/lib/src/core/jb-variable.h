@@ -126,7 +126,8 @@ void jb_variable_set_mode (const char *name, mode_t value);
 void jb_variable_set_package_flags (const char *name,
 				    const char *cflags,
 				    const char *cppflags,
-				    const char *ldflags);
+				    const char *ldflags,
+				    const char *libs);
 
 gboolean jb_variable_set_from_string (JBVariable *self,
 				      const char *value,

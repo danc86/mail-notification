@@ -210,7 +210,7 @@ class MN:Evolution:Server
 				G_TYPE_STRING, camel_message_info_from(info),
 				/* char *subject */
 				G_TYPE_STRING, camel_message_info_subject(info),
-				0);
+				(GType) 0);
   }
 
   private gboolean

@@ -200,6 +200,11 @@ jb_main (int argc,
 			 jb_variable_group_compiler_options,
 			 0,
 			 NULL);
+  jb_variable_add_string("libs",
+			 "C -l flags",
+			 jb_variable_group_compiler_options,
+			 0,
+			 NULL);
   jb_variable_add_bool("cc-dependency-tracking",
 		       "enable C compiler dependency tracking",
 		       jb_variable_group_compiler_options,

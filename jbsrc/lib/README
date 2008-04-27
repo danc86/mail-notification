@@ -13,7 +13,7 @@ Index
 
 0. About this document
 
-	$Id: README,v 1.2 2008-02-20 04:19:11 jylefort Exp $
+	$Id: README,v 1.3 2008-04-25 22:58:19 jylefort Exp $
 
 	Copyright (C) 2008 Jean-Yves Lefort.
 
@@ -41,8 +41,8 @@ Index
 	The first time ./jb is run, it bootstraps itself by compiling
 	the real JB program, which is written in C. If you need to
 	influence the way this program is compiled, you can set the
-	jb_cc, jb_cflags, jb_cppflags and jb_ldflags environment
-	variables, for instance:
+	jb_cc, jb_cflags, jb_cppflags, jb_ldflags and jb_libs
+	environment variables, for instance:
 
 		jb_cc=gcc jb_cflags=-g ./jb configure
 

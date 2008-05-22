@@ -145,18 +145,20 @@ class MN:Mailboxes
     MN_LIST_FOREACH(l, self->list)
       {
 	MNMailbox *mailbox = l->data;
-	int i;
 
-	MN_ARRAY_FOREACH(i, mailbox->messages)
-	  {
-	    MNMessage *message = g_ptr_array_index(mailbox->messages, i);
-
-	    g_ptr_array_add(self->messages, g_object_ref(message));
-	    g_hash_table_insert(self->messages_hash_table, message->id, message);
-	  }
+	g_hash_table_foreach(mailbox->messages, (GHFunc) self_messages_changed_cb, self);
       }
 
     g_ptr_array_sort(self->messages, (GCompareFunc) self_messages_sort_cb);
+  }
+
+  private void
+    messages_changed_cb (const char *id,
+			 MNMessage *message,
+			 Self *self)
+  {
+    g_ptr_array_add(self->messages, g_object_ref(message));
+    g_hash_table_insert(self->messages_hash_table, message->id, message);
   }
 
   private int
@@ -546,9 +548,12 @@ class MN:Mailboxes
 				gpointer user_data)
   {
     Self *self = user_data;
+    int num_messages;
 
-    mn_info(ngettext("%s has %i new message", "%s has %i new messages", mailbox->messages->len),
-	    mailbox->runtime_name, mailbox->messages->len);
+    num_messages = g_hash_table_size(mailbox->messages);
+
+    mn_info(ngettext("%s has %i new message", "%s has %i new messages", num_messages),
+	    mailbox->runtime_name, num_messages);
 
     self_messages_changed(self, has_new);
   }

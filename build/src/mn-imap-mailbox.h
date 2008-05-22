@@ -72,7 +72,7 @@ struct _MNIMAPMailboxClass {
  * Public methods
  */
 GType	mn_imap_mailbox_get_type	(void) G_GNUC_CONST;
-#line 1911 "src/mn-imap-mailbox.gob"
+#line 1915 "src/mn-imap-mailbox.gob"
 char * 	mn_imap_mailbox_build_name	(const char * username,
 					const char * server,
 					const char * mailbox);

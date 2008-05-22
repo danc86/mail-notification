@@ -82,6 +82,7 @@ typedef enum
 #include "mn-message.h"
 #include "mn-conf.h"
 #include "mn-locked-callback.h"
+#include "mn-shell.h"
 
 struct _MNMailboxConfiguration
 {
@@ -94,9 +95,19 @@ GType mn_mailbox_types[MN_MAILBOX_MAX_TYPES + 1];
 
 typedef struct
 {
+  MNMailbox	*self;
+  GHashTable	*messages;
+  GHashTable	*messages_considered_as_read;
+  gboolean	display_seen_mail;
+} FilterMessagesInfo;
+
+typedef struct
+{
   GHashTable	*other;
   gboolean	changed;
 } CompareMessagesInfo;
+
+static unsigned int cleanup_messages_considered_as_read_idle_id = 0;
 %}
 
 class MN:Mailbox (abstract)
@@ -162,6 +173,20 @@ class MN:Mailbox (abstract)
     self_set_active(self, FALSE);
 
     mn_source_clear(&selfp->check_timeout_id);
+
+    /*
+     * Do not queue a cleanup of the messages-considered-as-read GConf
+     * setting: it should not be done if the mailbox is only being
+     * replaced (eg. from mn_mailbox_properties_dialog_apply()).
+     *
+     * If however the mailbox is being permanently removed, its
+     * messages considered as read will be cleaned up the next time
+     * another mailbox is checked, which is good enough.
+     *
+     * Note that we could queue a cleanup from here by adding and
+     * testing a "gboolean replacing" signal parameter, but it is not
+     * worth the effort.
+     */
   }
 
   public char *runtime_name destroywith g_free;
@@ -242,35 +267,22 @@ class MN:Mailbox (abstract)
       selfp->check_timeout_id = gdk_threads_add_timeout(self->runtime_check_delay * 1000, self_check_timeout_cb, self);
   }
 
-  /* all unread (unseen and seen) messages */
-  private GSList *all_messages destroywith mn_g_object_slist_free;
+  /* whether set_messages() has ever been called */
+  private gboolean all_messages_set;
 
-  /* all_messages, indexed by mid
-   *
-   * These messages are not necessarily present in all_messages (a
-   * seen or considered as read message might not be added to
-   * all_messages), so the hash table holds a reference to each
-   * message.
-   */
-  private GHashTable *all_messages_mid_hash_table = {g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref)} destroywith g_hash_table_destroy;
+  /* all unread (unseen and seen) messages, indexed by id */
+  private GHashTable *all_messages = {g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref)} destroywith g_hash_table_destroy;
 
-  /*
-   * These messages are not necessarily present in all_messages (they
-   * might have been marked as read previously), so the hash table
-   * holds a reference to each message.
-   */
-  private GHashTable *all_messages_considered_as_read = {g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref)} destroywith g_hash_table_destroy;
+  /* all_messages, indexed by mid (message references held by all_message) */
+  private GHashTable *all_messages_by_mid = {g_hash_table_new(g_str_hash, g_str_equal)} destroywith g_hash_table_destroy;
 
-  /* all_messages after applying the "seen messages" filter */
-  public GPtrArray *messages = {g_ptr_array_new()} destroywith mn_g_object_ptr_array_free;
-
-  /* self->messages, indexed by id */
-  private GHashTable *messages_hash_table = {g_hash_table_new(g_str_hash, g_str_equal)} destroywith g_hash_table_destroy;
+  /* all_messages after applying the "seen messages" filter, indexed by id */
+  public GHashTable *messages = {g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref)} destroywith g_hash_table_destroy;
 
   /* for performance */
   public time_t timestamp; /* timestamp of most recent message in self->messages */
 
-  property POINTER messages (type = GPtrArray *)
+  property POINTER messages (type = GHashTable *)
     get
     {
       g_value_set_pointer(VAL, self->messages);
@@ -279,8 +291,29 @@ class MN:Mailbox (abstract)
   protected void
     set_messages (self, GSList *messages)
   {
-    mn_g_object_slist_free(selfp->all_messages);
-    selfp->all_messages = mn_g_object_slist_copy(messages);
+    GSList *l;
+
+    selfp->all_messages_set = TRUE;
+
+    g_hash_table_remove_all(selfp->all_messages);
+    g_hash_table_remove_all(selfp->all_messages_by_mid);
+
+    MN_LIST_FOREACH(l, messages)
+      {
+	MNMessage *message = l->data;
+
+	g_hash_table_replace(selfp->all_messages, message->id, g_object_ref(message));
+
+	if (message->mid)
+	  /* do not ref message, it is owned by all_messages */
+	  g_hash_table_replace(selfp->all_messages_by_mid, message->mid, message);
+      }
+
+    /*
+     * Some messages might be gone, queue a cleanup of the
+     * considered-as-read GConf setting.
+     */
+    self_queue_cleanup_messages_considered_as_read();
 
     self_filter_messages(self);
   }
@@ -289,70 +322,40 @@ class MN:Mailbox (abstract)
    * filter_messages:
    * @self: the mailbox to act upon
    *
-   * Filters @self->all_messages with the "seen mail" filter and
-   * @selfp->all_messages_considered_as_read, and stores the resulting
-   * list in @self->messages. Additionally, if @self->messages has
-   * changed, emits the "messages-changed" signal.
+   * Filters @self->all_messages with the "seen mail" filter and the
+   * considered-as-read GConf list, and stores the resulting set in
+   * @self->messages. Additionally, if @self->messages has changed,
+   * emits the "messages-changed" signal.
    **/
   private void
     filter_messages (self)
   {
-    GPtrArray *messages;
-    GHashTable *all_messages_hash_table;
-    GHashTable *messages_hash_table;
-    gboolean display_seen_mail;
-    GSList *l;
+    FilterMessagesInfo info;
     gboolean changed = FALSE;
     gboolean has_new = FALSE;
 
     /* filter messages */
 
-    messages = g_ptr_array_new();
     self->timestamp = 0;
 
-    all_messages_hash_table = g_hash_table_new(g_str_hash, g_str_equal);
-    messages_hash_table = g_hash_table_new(g_str_hash, g_str_equal);
+    info.self = self;
+    info.messages = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_object_unref);
+    info.messages_considered_as_read = mn_conf_get_string_hash_set(MN_CONF_MESSAGES_CONSIDERED_AS_READ);
+    info.display_seen_mail = mn_conf_get_bool(MN_CONF_DISPLAY_SEEN_MAIL);
 
-    display_seen_mail = mn_conf_get_bool(MN_CONF_DISPLAY_SEEN_MAIL);
+    g_hash_table_foreach(selfp->all_messages, (GHFunc) self_filter_messages_cb, &info);
 
-    MN_LIST_FOREACH(l, selfp->all_messages)
-      {
-	MNMessage *message = l->data;
-
-	g_hash_table_replace(all_messages_hash_table, message->id, message);
-
-	if (message->mid)
-	  g_hash_table_replace(selfp->all_messages_mid_hash_table, message->mid, g_object_ref(message));
-
-	if ((display_seen_mail || (message->flags & MN_MESSAGE_NEW) != 0)
-	    && ! g_hash_table_lookup(selfp->all_messages_considered_as_read, message->id))
-	  {
-	    if (message->sent_time > self->timestamp)
-	      self->timestamp = message->sent_time;
-
-	    g_ptr_array_add(messages, g_object_ref(message));
-	    g_hash_table_replace(messages_hash_table, message->id, message);
-	  }
-      }
-
-    /* remove stale messages */
-    g_hash_table_foreach_remove(selfp->all_messages_mid_hash_table, (GHRFunc) self_remove_stale_messages_cb, all_messages_hash_table);
-    g_hash_table_foreach_remove(selfp->all_messages_considered_as_read, (GHRFunc) self_remove_stale_messages_cb, all_messages_hash_table);
-
-    g_hash_table_destroy(all_messages_hash_table);
+    g_hash_table_destroy(info.messages_considered_as_read);
 
     /* detect changes */
 
-    if (self_compare_messages(selfp->messages_hash_table, messages_hash_table))
+    if (self_compare_messages(self->messages, info.messages))
       changed = TRUE;
-    if (self_compare_messages(messages_hash_table, selfp->messages_hash_table))
+    if (self_compare_messages(info.messages, self->messages))
       changed = has_new = TRUE;
 
-    mn_g_object_ptr_array_free(self->messages);
-    self->messages = messages;
-
-    g_hash_table_destroy(selfp->messages_hash_table);
-    selfp->messages_hash_table = messages_hash_table;
+    g_hash_table_destroy(self->messages);
+    self->messages = info.messages;
 
     g_object_notify(G_OBJECT(self), "messages");
 
@@ -360,12 +363,23 @@ class MN:Mailbox (abstract)
       self_messages_changed(self, has_new);
   }
 
-  private gboolean
-    remove_stale_messages_cb (gpointer key,
-			      MNMessage *message,
-			      GHashTable *messages)
+  private void
+    filter_messages_cb (const char *id,
+			MNMessage *message,
+			FilterMessagesInfo *info)
   {
-    return g_hash_table_lookup(messages, message->id) == NULL;
+    Self *self = info->self;
+
+    if (! info->display_seen_mail && (message->flags & MN_MESSAGE_NEW) == 0)
+      return;
+
+    if (g_hash_table_lookup(info->messages_considered_as_read, message->id))
+      return;
+
+    if (message->sent_time > self->timestamp)
+      self->timestamp = message->sent_time;
+
+    g_hash_table_replace(info->messages, message->id, g_object_ref(message));
   }
 
   /**
@@ -397,6 +411,80 @@ class MN:Mailbox (abstract)
   {
     if (! info->changed && ! g_hash_table_lookup(info->other, id))
       info->changed = TRUE;
+  }
+
+  private void
+    queue_cleanup_messages_considered_as_read (void)
+  {
+    if (! cleanup_messages_considered_as_read_idle_id)
+      cleanup_messages_considered_as_read_idle_id = gdk_threads_add_idle(self_cleanup_messages_considered_as_read_cb, NULL);
+  }
+
+  private gboolean
+    cleanup_messages_considered_as_read_cb (gpointer data)
+  {
+    self_cleanup_messages_considered_as_read();
+
+    cleanup_messages_considered_as_read_idle_id = 0;
+    return FALSE;		/* remove source */
+  }
+
+  /*
+   * Remove messages which no longer exist from the considered-as-read
+   * GConf list.
+   *
+   * The primary goal is to ensure that a message which has been
+   * opened or marked as read (these functions implicitly add the
+   * message to the considered-as-read list) and then marked back as
+   * unread in the mail reader will reappear in MN.
+   *
+   * The secondary goal is to ensure that the considered-as-list will
+   * not grow forever.
+   */
+  private void
+    cleanup_messages_considered_as_read (void)
+  {
+    GList *l;
+    GHashTable *set;
+
+    /*
+     * If there is a mailbox which has not been successfully checked
+     * yet, abort. Otherwise, the messages of that mailbox could be
+     * mistakenly cleaned up.
+     */
+    MN_LIST_FOREACH(l, mn_shell->mailboxes->list)
+      {
+	MNMailbox *mailbox = l->data;
+
+	if (! mailbox->_priv->all_messages_set)
+	  return;
+      }
+
+    set = mn_conf_get_string_hash_set(MN_CONF_MESSAGES_CONSIDERED_AS_READ);
+
+    if (g_hash_table_foreach_remove(set, (GHRFunc) self_cleanup_messages_considered_as_read_remove_cb, NULL))
+      /* one or more messages were removed, reflect the changes */
+      mn_conf_set_string_hash_set(MN_CONF_MESSAGES_CONSIDERED_AS_READ, set);
+
+    g_hash_table_destroy(set);
+  }
+
+  private gboolean
+    cleanup_messages_considered_as_read_remove_cb (const char *id,
+						   gpointer value,
+						   gpointer user_data)
+  {
+    GList *l;
+
+    MN_LIST_FOREACH(l, mn_shell->mailboxes->list)
+      {
+	MNMailbox *mailbox = l->data;
+
+	if (g_hash_table_lookup(mailbox->_priv->all_messages, id))
+	  return FALSE;		/* message still exists, do not remove it */
+      }
+
+    return TRUE;		/* message no longer exists, remove it */
   }
 
   /**
@@ -507,7 +595,10 @@ class MN:Mailbox (abstract)
 
   init (self)
   {
-    mn_g_object_gconf_notification_add_gdk_locked(self, MN_CONF_DISPLAY_SEEN_MAIL, self_notify_display_seen_messages_cb, self);
+    mn_g_object_gconf_notifications_add_gdk_locked(self,
+						   MN_CONF_DISPLAY_SEEN_MAIL, self_notify_display_seen_messages_cb, self,
+						   MN_CONF_MESSAGES_CONSIDERED_AS_READ, self_notify_messages_considered_as_read_cb, self,
+						   NULL);
   }
 
   finalize (self)
@@ -526,6 +617,17 @@ class MN:Mailbox (abstract)
 				     unsigned int cnxn_id,
 				     GConfEntry *entry,
 				     gpointer user_data)
+  {
+    Self *self = user_data;
+
+    self_filter_messages(self);
+  }
+
+  private void
+    notify_messages_considered_as_read_cb (GConfClient *client,
+					   unsigned int cnxn_id,
+					   GConfEntry *entry,
+					   gpointer user_data)
   {
     Self *self = user_data;
 
@@ -1072,66 +1174,7 @@ class MN:Mailbox (abstract)
   protected MNMessage *
     get_message_from_mid (self, const char *mid (check null))
   {
-    return g_hash_table_lookup(selfp->all_messages_mid_hash_table, mid);
-  }
-
-  private void
-    consider_as_read_real (self, MN:Message *message (check null type))
-  {
-    g_hash_table_replace(selfp->all_messages_considered_as_read, message->id, g_object_ref(message));
-  }
-
-  /*
-   * This function serves two purposes:
-   *
-   *   - there can be a slight (or large if polling is in effect)
-   *     delay between marking a message as read and having the next
-   *     mail check catch the change. This function is used to conceal
-   *     the delay from the user.
-   *   - this function is called on each new message when the user
-   *     chooses the "Consider new mail as read" action
-   */
-  public void
-    consider_as_read (MN:Message *message (check null type))
-  {
-    Self *self;
-
-    self = message->mailbox;
-    g_assert(self != NULL);
-
-    self_consider_as_read_real(self, message);
-
-    self_filter_messages(self);
-  }
-
-  /*
-   * Atomically considers a list of messages as read (updates the
-   * mailbox message list only once rather than for each message).
-   * Each message in the list must belong to the same mailbox.
-   */
-  public void
-    consider_as_read_list (GSList *messages)
-  {
-    Self *self = NULL;
-    GSList *l;
-
-    MN_LIST_FOREACH(l, messages)
-      {
-	MNMessage *message = l->data;
-
-	if (self)
-	  g_assert(self == message->mailbox);
-	else
-	  {
-	    self = message->mailbox;
-	    g_assert(self != NULL);
-	  }
-
-	self_consider_as_read_real(self, message);
-      }
-
-    if (self)			/* non empty list */
-      self_filter_messages(self);
+    return g_hash_table_lookup(selfp->all_messages_by_mid, mid);
   }
 
   public char *

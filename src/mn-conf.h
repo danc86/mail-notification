@@ -96,6 +96,8 @@
   MN_CONF_POPUPS_NAMESPACE "/limit"
 #define MN_CONF_FALLBACK_CHARSETS \
   MN_CONF_NAMESPACE "/fallback-charsets"
+#define MN_CONF_MESSAGES_CONSIDERED_AS_READ \
+  MN_CONF_NAMESPACE "/messages-considered-as-read"
 
 /* obsolete keys */
 #define MN_CONF_OBSOLETE_MAILBOXES \
@@ -149,6 +151,10 @@ void		mn_conf_set_string	(const char	*key,
 GSList		*mn_conf_get_string_list	(const char	*key);
 void		mn_conf_set_string_list		(const char	*key,
 						 GSList		*list);
+
+GHashTable	*mn_conf_get_string_hash_set	(const char	*key);
+void		mn_conf_set_string_hash_set	(const char	*key,
+						 GHashTable	*set);
 
 void		mn_conf_suggest_sync	(void);
 

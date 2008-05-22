@@ -106,23 +106,29 @@ struct _MNMessageClass {
  * Public methods
  */
 GType	mn_message_get_type	(void) G_GNUC_CONST;
-#line 202 "src/mn-message.gob"
+#line 203 "src/mn-message.gob"
 MNMessageAction * 	mn_message_get_action	(const char * name);
 #line 112 "mn-message.h"
-#line 344 "src/mn-message.gob"
+#line 345 "src/mn-message.gob"
 gboolean 	mn_message_can_perform_action	(MNMessage * self,
 					MNMessageAction * action);
 #line 116 "mn-message.h"
-#line 351 "src/mn-message.gob"
+#line 352 "src/mn-message.gob"
 void 	mn_message_perform_action	(MNMessage * self,
 					MNMessageAction * action,
 					MNMessageActionResultCallback callback,
 					gpointer data);
 #line 122 "mn-message.h"
-#line 433 "src/mn-message.gob"
+#line 434 "src/mn-message.gob"
 GQuark 	mn_message_action_error_quark	(void);
 #line 125 "mn-message.h"
-#line 510 "src/mn-message.gob"
+#line 511 "src/mn-message.gob"
+void 	mn_message_consider_as_read	(MNMessage * self);
+#line 128 "mn-message.h"
+#line 545 "src/mn-message.gob"
+void 	mn_message_consider_as_read_list	(GList * messages);
+#line 131 "mn-message.h"
+#line 569 "src/mn-message.gob"
 MNMessage * 	mn_message_new	(MNMailbox * mailbox,
 					time_t sent_time,
 					const char * id,
@@ -131,10 +137,10 @@ MNMessage * 	mn_message_new	(MNMailbox * mailbox,
 					const char * subject,
 					const char * uri,
 					MNMessageFlags flags);
-#line 135 "mn-message.h"
-#line 531 "src/mn-message.gob"
+#line 141 "mn-message.h"
+#line 590 "src/mn-message.gob"
 xmlNode * 	mn_message_xml_node_new	(MNMessage * self);
-#line 138 "mn-message.h"
+#line 144 "mn-message.h"
 
 /*
  * Argument wrapping macros

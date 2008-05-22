@@ -78,6 +78,7 @@ typedef GError *(*MNMessageActionPerformCallback) (MNMessage *message, gpointer 
 #include <glib/gi18n.h>
 #include <gnome.h>
 #include <libgnomevfs/gnome-vfs.h>
+#include "mn-conf.h"
 #include "mn-util.h"
 
 typedef struct
@@ -456,7 +457,7 @@ class MN:Message
     open_done (self, GError *err)
   {
     if (! err)
-      mn_mailbox_consider_as_read(self);
+      self_consider_as_read(self); /* [1] */
   }
 
   virtual private gboolean
@@ -472,7 +473,7 @@ class MN:Message
     mark_as_read_done (self, GError *err)
   {
     if (! err)
-      mn_mailbox_consider_as_read(self);
+      self_consider_as_read(self); /* [1] */
   }
 
   virtual private gboolean
@@ -488,7 +489,7 @@ class MN:Message
     mark_as_spam_done (self, GError *err)
   {
     if (! err)
-      mn_mailbox_consider_as_read(self);
+      self_consider_as_read(self); /* [1] */
   }
 
   virtual private gboolean
@@ -504,7 +505,65 @@ class MN:Message
     delete_done (self, GError *err)
   {
     if (! err)
-      mn_mailbox_consider_as_read(self);
+      self_consider_as_read(self); /* [1] */
+  }
+
+  public void
+    consider_as_read (self)
+  {
+    GSList *list;
+    GSList *l;
+    gboolean exists = FALSE;
+
+    list = mn_conf_get_string_list(MN_CONF_MESSAGES_CONSIDERED_AS_READ);
+
+    MN_LIST_FOREACH(l, list)
+      {
+	const char *id = l->data;
+
+	if (! strcmp(id, self->id))
+	  {
+	    exists = TRUE;
+	    break;
+	  }
+      }
+
+    if (! exists)
+      {
+	list = g_slist_prepend(list, g_strdup(self->id));
+
+	mn_conf_set_string_list(MN_CONF_MESSAGES_CONSIDERED_AS_READ, list);
+      }
+
+    mn_g_slist_free_deep(list);
+  }
+
+  /*
+   * Atomically considers a list of messages as read, setting the
+   * GConf list only once rather than for each message.
+   */
+  public void
+    consider_as_read_list (GList *messages)
+  {
+    GHashTable *set;
+    unsigned int old_size;
+    GList *l;
+
+    set = mn_conf_get_string_hash_set(MN_CONF_MESSAGES_CONSIDERED_AS_READ);
+
+    old_size = g_hash_table_size(set);
+
+    MN_LIST_FOREACH(l, messages)
+      {
+	MNMessage *message = l->data;
+
+	g_hash_table_replace(set, g_strdup(message->id), GINT_TO_POINTER(TRUE));
+      }
+
+    if (g_hash_table_size(set) != old_size)
+      mn_conf_set_string_hash_set(MN_CONF_MESSAGES_CONSIDERED_AS_READ, set);
+
+    g_hash_table_destroy(set);
   }
 
   public MNMessage *
@@ -545,3 +604,12 @@ class MN:Message
     return node;
   }
 }
+
+/*
+ * [1]: there can be a slight (or large if polling is in effect) delay
+ * between executing an action which should cause a message to
+ * disappear from MN (open it, mark it as read, etc) and having the
+ * next mail check catch the change. By adding the message to the
+ * considered-as-read GConf list, this delay is concealed from the
+ * user.
+ */

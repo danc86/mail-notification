@@ -2,9 +2,9 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
   <!ENTITY app "<application>Mail Notification</application>">
-  <!ENTITY appversion "5.3">
-  <!ENTITY manrevision "2.24">
-  <!ENTITY date "Sunday, April 27, 2008">
+  <!ENTITY appversion "5.4">
+  <!ENTITY manrevision "2.25">
+  <!ENTITY date "Thursday, May 22, 2008">
 
   <!ENTITY project "The Mail Notification Project">
 
@@ -26,7 +26,7 @@
   <!ENTITY gnomevfs "<link linkend=&#34;gnomevfs&#34;>GnomeVFS</link>">
 ]>
 
-<!-- $Id: mail-notification.xml,v 1.186 2008-04-27 14:49:32 jylefort Exp $ -->
+<!-- $Id: mail-notification.xml,v 1.187 2008-05-22 15:44:32 jylefort Exp $ -->
 <!-- Mail Notification Manual -->
 
 <!-- Copyright (C) 2003-2008 Jean-Yves Lefort -->
@@ -103,6 +103,17 @@
       <revision>
 	<revnumber>Mail Notification Manual V&manrevision;</revnumber>
 	<date>&date;</date>
+	<revdescription>
+	  <para role="author">
+	    Jean-Yves Lefort
+	    <email>jylefort@brutele.be</email>
+	  </para>
+	  <para role="publisher">&project;</para>
+	</revdescription>
+      </revision>
+      <revision>
+	<revnumber>Mail Notification Manual V2.24</revnumber>
+	<date>Sunday, April 27, 2008</date>
 	<revdescription>
 	  <para role="author">
 	    Jean-Yves Lefort

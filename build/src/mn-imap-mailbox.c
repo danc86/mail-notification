@@ -225,115 +225,115 @@ static int mn_imap_mailbox_enter_search_recent_cb (MNClientSession * session, MN
 #line 740 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_handle_search_recent_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv);
 #line 228 "mn-imap-mailbox.c"
-#line 796 "src/mn-imap-mailbox.gob"
+#line 800 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_enter_fetch_uid_cb (MNClientSession * session, MNClientSessionPrivate * priv);
 #line 231 "mn-imap-mailbox.c"
-#line 816 "src/mn-imap-mailbox.gob"
+#line 820 "src/mn-imap-mailbox.gob"
 static void mn_imap_mailbox_build_fetch_uid_set_cb (gpointer key, gpointer value, gpointer user_data);
 #line 234 "mn-imap-mailbox.c"
-#line 828 "src/mn-imap-mailbox.gob"
+#line 832 "src/mn-imap-mailbox.gob"
 static char * mn_imap_mailbox_parse_fetch_uid_response (const char * response);
 #line 237 "mn-imap-mailbox.c"
-#line 851 "src/mn-imap-mailbox.gob"
+#line 855 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_handle_fetch_uid_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv);
 #line 240 "mn-imap-mailbox.c"
-#line 921 "src/mn-imap-mailbox.gob"
+#line 925 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_enter_fetch_cb (MNClientSession * session, MNClientSessionPrivate * priv);
 #line 243 "mn-imap-mailbox.c"
-#line 945 "src/mn-imap-mailbox.gob"
+#line 949 "src/mn-imap-mailbox.gob"
 static void mn_imap_mailbox_build_fetch_set_cb (gpointer key, gpointer value, gpointer user_data);
 #line 246 "mn-imap-mailbox.c"
-#line 960 "src/mn-imap-mailbox.gob"
+#line 964 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_handle_fetch_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv);
 #line 249 "mn-imap-mailbox.c"
-#line 1056 "src/mn-imap-mailbox.gob"
+#line 1060 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_enter_idle_cb (MNClientSession * session, MNClientSessionPrivate * priv);
 #line 252 "mn-imap-mailbox.c"
-#line 1099 "src/mn-imap-mailbox.gob"
+#line 1103 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_handle_idle_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv);
 #line 255 "mn-imap-mailbox.c"
-#line 1197 "src/mn-imap-mailbox.gob"
+#line 1201 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_enter_logout_cb (MNClientSession * session, MNClientSessionPrivate * priv);
 #line 258 "mn-imap-mailbox.c"
-#line 1204 "src/mn-imap-mailbox.gob"
+#line 1208 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_handle_logout_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv);
 #line 261 "mn-imap-mailbox.c"
-#line 1224 "src/mn-imap-mailbox.gob"
+#line 1228 "src/mn-imap-mailbox.gob"
 static void ___21_mn_imap_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox);
 #line 264 "mn-imap-mailbox.c"
-#line 1333 "src/mn-imap-mailbox.gob"
+#line 1337 "src/mn-imap-mailbox.gob"
 static MNClientSessionResponse * mn_imap_mailbox_response_new_cb (MNClientSession * session, const char * input, MNClientSessionPrivate * priv);
 #line 267 "mn-imap-mailbox.c"
-#line 1409 "src/mn-imap-mailbox.gob"
+#line 1413 "src/mn-imap-mailbox.gob"
 static void mn_imap_mailbox_response_free_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv);
 #line 270 "mn-imap-mailbox.c"
-#line 1422 "src/mn-imap-mailbox.gob"
+#line 1426 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_default_handler (MNClientSessionResponse * response, MNClientSessionPrivate * priv, int error_code_when_bye);
 #line 273 "mn-imap-mailbox.c"
-#line 1433 "src/mn-imap-mailbox.gob"
+#line 1437 "src/mn-imap-mailbox.gob"
 static void mn_imap_mailbox_pre_read_cb (MNClientSession * session, MNClientSessionPrivate * priv);
 #line 276 "mn-imap-mailbox.c"
-#line 1454 "src/mn-imap-mailbox.gob"
+#line 1458 "src/mn-imap-mailbox.gob"
 static void mn_imap_mailbox_post_read_cb (MNClientSession * session, MNClientSessionPrivate * priv);
 #line 279 "mn-imap-mailbox.c"
-#line 1471 "src/mn-imap-mailbox.gob"
+#line 1475 "src/mn-imap-mailbox.gob"
 static gboolean mn_imap_mailbox_idle_inactivity_timeout_cb (gpointer data);
 #line 282 "mn-imap-mailbox.c"
-#line 1492 "src/mn-imap-mailbox.gob"
+#line 1496 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_session_write (MNClientSessionPrivate * priv, const char * format, ...) G_GNUC_PRINTF(2, 3);
 #line 285 "mn-imap-mailbox.c"
-#line 1512 "src/mn-imap-mailbox.gob"
+#line 1516 "src/mn-imap-mailbox.gob"
 static gboolean mn_imap_mailbox_session_handle_capability_code (MNClientSessionPrivate * priv, MNClientSessionResponse * response);
 #line 288 "mn-imap-mailbox.c"
-#line 1533 "src/mn-imap-mailbox.gob"
+#line 1537 "src/mn-imap-mailbox.gob"
 static void mn_imap_mailbox_session_parse_capabilities (MNClientSessionPrivate * priv, const char * capabilities);
 #line 291 "mn-imap-mailbox.c"
-#line 1560 "src/mn-imap-mailbox.gob"
+#line 1564 "src/mn-imap-mailbox.gob"
 static gboolean mn_imap_mailbox_session_has_capability (MNClientSessionPrivate * priv, const char * capability);
 #line 294 "mn-imap-mailbox.c"
-#line 1575 "src/mn-imap-mailbox.gob"
+#line 1579 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_session_after_capability (MNClientSessionPrivate * priv);
 #line 297 "mn-imap-mailbox.c"
-#line 1599 "src/mn-imap-mailbox.gob"
+#line 1603 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_session_authenticate (MNClientSessionPrivate * priv);
 #line 300 "mn-imap-mailbox.c"
-#line 1639 "src/mn-imap-mailbox.gob"
+#line 1643 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_session_authenticate_fallback (MNClientSessionPrivate * priv, gboolean tried_login);
 #line 303 "mn-imap-mailbox.c"
-#line 1685 "src/mn-imap-mailbox.gob"
+#line 1689 "src/mn-imap-mailbox.gob"
 static void mn_imap_mailbox_session_detect_imapd (MNClientSession * session, MNClientSessionResponse * greeting_response, MNClientSessionPrivate * priv);
 #line 306 "mn-imap-mailbox.c"
-#line 1709 "src/mn-imap-mailbox.gob"
+#line 1713 "src/mn-imap-mailbox.gob"
 static int mn_imap_mailbox_session_got_messages (MNClientSessionPrivate * priv);
 #line 309 "mn-imap-mailbox.c"
-#line 1747 "src/mn-imap-mailbox.gob"
+#line 1751 "src/mn-imap-mailbox.gob"
 static void mn_imap_mailbox_get_messages_list_cb (gpointer key, gpointer value, gpointer user_data);
 #line 312 "mn-imap-mailbox.c"
-#line 1757 "src/mn-imap-mailbox.gob"
+#line 1761 "src/mn-imap-mailbox.gob"
 static MessageInfo * mn_imap_mailbox_session_get_message_info (MNClientSessionPrivate * priv, int number);
 #line 315 "mn-imap-mailbox.c"
-#line 1764 "src/mn-imap-mailbox.gob"
+#line 1768 "src/mn-imap-mailbox.gob"
 static MessageInfo * mn_imap_mailbox_session_ensure_message_info (MNClientSessionPrivate * priv, int number);
 #line 318 "mn-imap-mailbox.c"
-#line 1780 "src/mn-imap-mailbox.gob"
+#line 1784 "src/mn-imap-mailbox.gob"
 static MessageInfo * mn_imap_mailbox_message_info_new (int number);
 #line 321 "mn-imap-mailbox.c"
-#line 1791 "src/mn-imap-mailbox.gob"
+#line 1795 "src/mn-imap-mailbox.gob"
 static void mn_imap_mailbox_message_info_free (MessageInfo * info);
 #line 324 "mn-imap-mailbox.c"
-#line 1808 "src/mn-imap-mailbox.gob"
+#line 1812 "src/mn-imap-mailbox.gob"
 static char * mn_imap_mailbox_quote (const char * str);
 #line 327 "mn-imap-mailbox.c"
-#line 1833 "src/mn-imap-mailbox.gob"
+#line 1837 "src/mn-imap-mailbox.gob"
 static char * mn_imap_mailbox_utf8_to_imap_utf7 (const char * str);
 #line 330 "mn-imap-mailbox.c"
-#line 1892 "src/mn-imap-mailbox.gob"
+#line 1896 "src/mn-imap-mailbox.gob"
 static void mn_imap_mailbox_imap_utf7_closeb64 (GString * out, guint32 v, guint32 i);
 #line 333 "mn-imap-mailbox.c"
-#line 1928 "src/mn-imap-mailbox.gob"
+#line 1932 "src/mn-imap-mailbox.gob"
 static void mn_imap_mailbox_lock (MNIMAPMailbox * self);
 #line 336 "mn-imap-mailbox.c"
-#line 1934 "src/mn-imap-mailbox.gob"
+#line 1938 "src/mn-imap-mailbox.gob"
 static void mn_imap_mailbox_unlock (MNIMAPMailbox * self);
 #line 339 "mn-imap-mailbox.c"
 
@@ -480,7 +480,7 @@ mn_imap_mailbox_class_init (MNIMAPMailboxClass * class G_GNUC_UNUSED)
 	mn_mailbox_class->parse_uri = ___4_mn_imap_mailbox_parse_uri;
 #line 316 "src/mn-imap-mailbox.gob"
 	mn_mailbox_class->removed = ___6_mn_imap_mailbox_removed;
-#line 1224 "src/mn-imap-mailbox.gob"
+#line 1228 "src/mn-imap-mailbox.gob"
 	mn_authenticated_mailbox_class->authenticated_check = ___21_mn_imap_mailbox_authenticated_check;
 #line 486 "mn-imap-mailbox.c"
 	g_object_class->finalize = ___finalize;
@@ -1346,9 +1346,13 @@ mn_imap_mailbox_handle_search_recent_cb (MNClientSession * session, MNClientSess
 		  int n = atoi(strings[i]);
 		  MessageInfo *info;
 
-		  info = self_session_ensure_message_info(priv, n);
-
-		  info->flags |= MN_MESSAGE_NEW;
+		  info = self_session_get_message_info(priv, n);
+		  if (info)
+		    info->flags |= MN_MESSAGE_NEW;
+		  /*
+		   * Otherwise the message is recent but not unseen,
+		   * and we must ignore it (fixes #230425).
+		   */
 		}
 
 	    g_strfreev(strings);
@@ -1359,17 +1363,17 @@ mn_imap_mailbox_handle_search_recent_cb (MNClientSession * session, MNClientSess
 
     return self_default_handler(response, priv, MN_CLIENT_SESSION_ERROR_OTHER);
   }}
-#line 1363 "mn-imap-mailbox.c"
+#line 1367 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 796 "src/mn-imap-mailbox.gob"
+#line 800 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_enter_fetch_uid_cb (MNClientSession * session, MNClientSessionPrivate * priv)
 {
-#line 1370 "mn-imap-mailbox.c"
+#line 1374 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::enter_fetch_uid_cb"
 {
-#line 798 "src/mn-imap-mailbox.gob"
+#line 802 "src/mn-imap-mailbox.gob"
 	
     GString *set;
     int result;
@@ -1387,17 +1391,17 @@ mn_imap_mailbox_enter_fetch_uid_cb (MNClientSession * session, MNClientSessionPr
 
     return result;
   }}
-#line 1391 "mn-imap-mailbox.c"
+#line 1395 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 816 "src/mn-imap-mailbox.gob"
+#line 820 "src/mn-imap-mailbox.gob"
 static void 
 mn_imap_mailbox_build_fetch_uid_set_cb (gpointer key, gpointer value, gpointer user_data)
 {
-#line 1398 "mn-imap-mailbox.c"
+#line 1402 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::build_fetch_uid_set_cb"
 {
-#line 818 "src/mn-imap-mailbox.gob"
+#line 822 "src/mn-imap-mailbox.gob"
 	
     MessageInfo *info = value;
     GString *set = user_data;
@@ -1407,20 +1411,20 @@ mn_imap_mailbox_build_fetch_uid_set_cb (gpointer key, gpointer value, gpointer u
 
     g_string_append_printf(set, "%i", info->number);
   }}
-#line 1411 "mn-imap-mailbox.c"
+#line 1415 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 828 "src/mn-imap-mailbox.gob"
+#line 832 "src/mn-imap-mailbox.gob"
 static char * 
 mn_imap_mailbox_parse_fetch_uid_response (const char * response)
 {
-#line 1418 "mn-imap-mailbox.c"
-#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::parse_fetch_uid_response"
-#line 828 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (response != NULL, (char * )0);
 #line 1422 "mn-imap-mailbox.c"
+#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::parse_fetch_uid_response"
+#line 832 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (response != NULL, (char * )0);
+#line 1426 "mn-imap-mailbox.c"
 {
-#line 830 "src/mn-imap-mailbox.gob"
+#line 834 "src/mn-imap-mailbox.gob"
 	
     char *start;
     char *end;
@@ -1441,17 +1445,17 @@ mn_imap_mailbox_parse_fetch_uid_response (const char * response)
 
     return g_strndup(start, end - start);
   }}
-#line 1445 "mn-imap-mailbox.c"
+#line 1449 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 851 "src/mn-imap-mailbox.gob"
+#line 855 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_handle_fetch_uid_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
 {
-#line 1452 "mn-imap-mailbox.c"
+#line 1456 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::handle_fetch_uid_cb"
 {
-#line 855 "src/mn-imap-mailbox.gob"
+#line 859 "src/mn-imap-mailbox.gob"
 	
     if (response->continuation)
       return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
@@ -1517,17 +1521,17 @@ mn_imap_mailbox_handle_fetch_uid_cb (MNClientSession * session, MNClientSessionR
 
     return self_default_handler(response, priv, MN_CLIENT_SESSION_ERROR_OTHER);
   }}
-#line 1521 "mn-imap-mailbox.c"
+#line 1525 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 921 "src/mn-imap-mailbox.gob"
+#line 925 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_enter_fetch_cb (MNClientSession * session, MNClientSessionPrivate * priv)
 {
-#line 1528 "mn-imap-mailbox.c"
+#line 1532 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::enter_fetch_cb"
 {
-#line 923 "src/mn-imap-mailbox.gob"
+#line 927 "src/mn-imap-mailbox.gob"
 	
     GString *set;
     int result;
@@ -1549,17 +1553,17 @@ mn_imap_mailbox_enter_fetch_cb (MNClientSession * session, MNClientSessionPrivat
 
     return result;
   }}
-#line 1553 "mn-imap-mailbox.c"
+#line 1557 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 945 "src/mn-imap-mailbox.gob"
+#line 949 "src/mn-imap-mailbox.gob"
 static void 
 mn_imap_mailbox_build_fetch_set_cb (gpointer key, gpointer value, gpointer user_data)
 {
-#line 1560 "mn-imap-mailbox.c"
+#line 1564 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::build_fetch_set_cb"
 {
-#line 947 "src/mn-imap-mailbox.gob"
+#line 951 "src/mn-imap-mailbox.gob"
 	
     MessageInfo *info = value;
     GString *set = user_data;
@@ -1572,17 +1576,17 @@ mn_imap_mailbox_build_fetch_set_cb (gpointer key, gpointer value, gpointer user_
 	g_string_append_printf(set, "%i", info->number);
       }
   }}
-#line 1576 "mn-imap-mailbox.c"
+#line 1580 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 960 "src/mn-imap-mailbox.gob"
+#line 964 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_handle_fetch_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
 {
-#line 1583 "mn-imap-mailbox.c"
+#line 1587 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::handle_fetch_cb"
 {
-#line 964 "src/mn-imap-mailbox.gob"
+#line 968 "src/mn-imap-mailbox.gob"
 	
     if (response->continuation)
       return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
@@ -1674,17 +1678,17 @@ mn_imap_mailbox_handle_fetch_cb (MNClientSession * session, MNClientSessionRespo
 
     return self_default_handler(response, priv, MN_CLIENT_SESSION_ERROR_OTHER);
   }}
-#line 1678 "mn-imap-mailbox.c"
+#line 1682 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1056 "src/mn-imap-mailbox.gob"
+#line 1060 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_enter_idle_cb (MNClientSession * session, MNClientSessionPrivate * priv)
 {
-#line 1685 "mn-imap-mailbox.c"
+#line 1689 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::enter_idle_cb"
 {
-#line 1059 "src/mn-imap-mailbox.gob"
+#line 1063 "src/mn-imap-mailbox.gob"
 	
     if (mn_mailbox_get_active(priv->mailbox))
       {
@@ -1724,17 +1728,17 @@ mn_imap_mailbox_enter_idle_cb (MNClientSession * session, MNClientSessionPrivate
     priv->idle_state = IDLE_STATE_PRE_IDLE;
     return self_session_write(priv, "IDLE");
   }}
-#line 1728 "mn-imap-mailbox.c"
+#line 1732 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1099 "src/mn-imap-mailbox.gob"
+#line 1103 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_handle_idle_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
 {
-#line 1735 "mn-imap-mailbox.c"
+#line 1739 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::handle_idle_cb"
 {
-#line 1103 "src/mn-imap-mailbox.gob"
+#line 1107 "src/mn-imap-mailbox.gob"
 	
     switch (priv->idle_state)
       {
@@ -1828,31 +1832,31 @@ mn_imap_mailbox_handle_idle_cb (MNClientSession * session, MNClientSessionRespon
 
     return self_default_handler(response, priv, MN_CLIENT_SESSION_ERROR_OTHER);
   }}
-#line 1832 "mn-imap-mailbox.c"
+#line 1836 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1197 "src/mn-imap-mailbox.gob"
+#line 1201 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_enter_logout_cb (MNClientSession * session, MNClientSessionPrivate * priv)
 {
-#line 1839 "mn-imap-mailbox.c"
+#line 1843 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::enter_logout_cb"
 {
-#line 1200 "src/mn-imap-mailbox.gob"
+#line 1204 "src/mn-imap-mailbox.gob"
 	
     return self_session_write(priv, "LOGOUT");
   }}
-#line 1846 "mn-imap-mailbox.c"
+#line 1850 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1204 "src/mn-imap-mailbox.gob"
+#line 1208 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_handle_logout_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
 {
-#line 1853 "mn-imap-mailbox.c"
+#line 1857 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::handle_logout_cb"
 {
-#line 1208 "src/mn-imap-mailbox.gob"
+#line 1212 "src/mn-imap-mailbox.gob"
 	
     if (response->continuation)
       return MN_CLIENT_SESSION_RESULT_BAD_RESPONSE_FOR_CONTEXT;
@@ -1868,20 +1872,20 @@ mn_imap_mailbox_handle_logout_cb (MNClientSession * session, MNClientSessionResp
     else
       return MN_CLIENT_SESSION_RESULT_CONTINUE;
   }}
-#line 1872 "mn-imap-mailbox.c"
+#line 1876 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1224 "src/mn-imap-mailbox.gob"
+#line 1228 "src/mn-imap-mailbox.gob"
 static void 
 ___21_mn_imap_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GNUC_UNUSED)
-#line 1878 "mn-imap-mailbox.c"
+#line 1882 "mn-imap-mailbox.c"
 #define PARENT_HANDLER(___mailbox) \
 	{ if(MN_AUTHENTICATED_MAILBOX_CLASS(parent_class)->authenticated_check) \
 		(* MN_AUTHENTICATED_MAILBOX_CLASS(parent_class)->authenticated_check)(___mailbox); }
 {
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::authenticated_check"
 {
-#line 1226 "src/mn-imap-mailbox.gob"
+#line 1230 "src/mn-imap-mailbox.gob"
 	
     Self *self = SELF(mailbox);
     static const MNClientSessionState states[] = {
@@ -1988,18 +1992,18 @@ ___21_mn_imap_mailbox_authenticated_check (MNAuthenticatedMailbox * mailbox G_GN
     gdk_flush();
     GDK_THREADS_LEAVE();
   }}
-#line 1992 "mn-imap-mailbox.c"
+#line 1996 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER
 
-#line 1333 "src/mn-imap-mailbox.gob"
+#line 1337 "src/mn-imap-mailbox.gob"
 static MNClientSessionResponse * 
 mn_imap_mailbox_response_new_cb (MNClientSession * session, const char * input, MNClientSessionPrivate * priv)
 {
-#line 2000 "mn-imap-mailbox.c"
+#line 2004 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::response_new_cb"
 {
-#line 1337 "src/mn-imap-mailbox.gob"
+#line 1341 "src/mn-imap-mailbox.gob"
 	
     MNClientSessionResponse *response = NULL;
 
@@ -2071,17 +2075,17 @@ mn_imap_mailbox_response_new_cb (MNClientSession * session, const char * input, 
 
     return response;
   }}
-#line 2075 "mn-imap-mailbox.c"
+#line 2079 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1409 "src/mn-imap-mailbox.gob"
+#line 1413 "src/mn-imap-mailbox.gob"
 static void 
 mn_imap_mailbox_response_free_cb (MNClientSession * session, MNClientSessionResponse * response, MNClientSessionPrivate * priv)
 {
-#line 2082 "mn-imap-mailbox.c"
+#line 2086 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::response_free_cb"
 {
-#line 1413 "src/mn-imap-mailbox.gob"
+#line 1417 "src/mn-imap-mailbox.gob"
 	
     g_free(response->continuation);
     g_free(response->tag);
@@ -2090,39 +2094,39 @@ mn_imap_mailbox_response_free_cb (MNClientSession * session, MNClientSessionResp
     g_free(response->arguments);
     g_free(response);
   }}
-#line 2094 "mn-imap-mailbox.c"
+#line 2098 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1422 "src/mn-imap-mailbox.gob"
+#line 1426 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_default_handler (MNClientSessionResponse * response, MNClientSessionPrivate * priv, int error_code_when_bye)
 {
-#line 2101 "mn-imap-mailbox.c"
+#line 2105 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::default_handler"
-#line 1422 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (response != NULL, (int )0);
-#line 1422 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (priv != NULL, (int )0);
-#line 2107 "mn-imap-mailbox.c"
-{
 #line 1426 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (response != NULL, (int )0);
+#line 1426 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (priv != NULL, (int )0);
+#line 2111 "mn-imap-mailbox.c"
+{
+#line 1430 "src/mn-imap-mailbox.gob"
 	
     if (! response->tag && IS_BYE(response))
       return mn_client_session_set_error_from_response(priv->session, error_code_when_bye, response->arguments);
     else
       return MN_CLIENT_SESSION_RESULT_CONTINUE;
   }}
-#line 2116 "mn-imap-mailbox.c"
+#line 2120 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1433 "src/mn-imap-mailbox.gob"
+#line 1437 "src/mn-imap-mailbox.gob"
 static void 
 mn_imap_mailbox_pre_read_cb (MNClientSession * session, MNClientSessionPrivate * priv)
 {
-#line 2123 "mn-imap-mailbox.c"
+#line 2127 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::pre_read_cb"
 {
-#line 1436 "src/mn-imap-mailbox.gob"
+#line 1440 "src/mn-imap-mailbox.gob"
 	
     if (priv->idle_state == IDLE_STATE_IDLE)
       {
@@ -2140,17 +2144,17 @@ mn_imap_mailbox_pre_read_cb (MNClientSession * session, MNClientSessionPrivate *
 	self_unlock(self);
       }
   }}
-#line 2144 "mn-imap-mailbox.c"
+#line 2148 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1454 "src/mn-imap-mailbox.gob"
+#line 1458 "src/mn-imap-mailbox.gob"
 static void 
 mn_imap_mailbox_post_read_cb (MNClientSession * session, MNClientSessionPrivate * priv)
 {
-#line 2151 "mn-imap-mailbox.c"
+#line 2155 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::post_read_cb"
 {
-#line 1457 "src/mn-imap-mailbox.gob"
+#line 1461 "src/mn-imap-mailbox.gob"
 	
     Self *self = priv->self;
 
@@ -2164,17 +2168,17 @@ mn_imap_mailbox_post_read_cb (MNClientSession * session, MNClientSessionPrivate 
 
     self_unlock(self);
   }}
-#line 2168 "mn-imap-mailbox.c"
+#line 2172 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1471 "src/mn-imap-mailbox.gob"
+#line 1475 "src/mn-imap-mailbox.gob"
 static gboolean 
 mn_imap_mailbox_idle_inactivity_timeout_cb (gpointer data)
 {
-#line 2175 "mn-imap-mailbox.c"
+#line 2179 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::idle_inactivity_timeout_cb"
 {
-#line 1473 "src/mn-imap-mailbox.gob"
+#line 1477 "src/mn-imap-mailbox.gob"
 	
     Self *self = data;
 
@@ -2192,22 +2196,22 @@ mn_imap_mailbox_idle_inactivity_timeout_cb (gpointer data)
 
     return FALSE;
   }}
-#line 2196 "mn-imap-mailbox.c"
+#line 2200 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1492 "src/mn-imap-mailbox.gob"
+#line 1496 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_session_write (MNClientSessionPrivate * priv, const char * format, ...)
 {
-#line 2203 "mn-imap-mailbox.c"
+#line 2207 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_write"
-#line 1492 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (priv != NULL, (int )0);
-#line 1492 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (format != NULL, (int )0);
-#line 2209 "mn-imap-mailbox.c"
-{
 #line 1496 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (priv != NULL, (int )0);
+#line 1496 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (format != NULL, (int )0);
+#line 2213 "mn-imap-mailbox.c"
+{
+#line 1500 "src/mn-imap-mailbox.gob"
 	
     char *command;
     int result;
@@ -2223,22 +2227,22 @@ mn_imap_mailbox_session_write (MNClientSessionPrivate * priv, const char * forma
 
     return result;
   }}
-#line 2227 "mn-imap-mailbox.c"
+#line 2231 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1512 "src/mn-imap-mailbox.gob"
+#line 1516 "src/mn-imap-mailbox.gob"
 static gboolean 
 mn_imap_mailbox_session_handle_capability_code (MNClientSessionPrivate * priv, MNClientSessionResponse * response)
 {
-#line 2234 "mn-imap-mailbox.c"
+#line 2238 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_handle_capability_code"
-#line 1512 "src/mn-imap-mailbox.gob"
+#line 1516 "src/mn-imap-mailbox.gob"
 	g_return_val_if_fail (priv != NULL, (gboolean )0);
-#line 1512 "src/mn-imap-mailbox.gob"
+#line 1516 "src/mn-imap-mailbox.gob"
 	g_return_val_if_fail (response != NULL, (gboolean )0);
-#line 2240 "mn-imap-mailbox.c"
+#line 2244 "mn-imap-mailbox.c"
 {
-#line 1515 "src/mn-imap-mailbox.gob"
+#line 1519 "src/mn-imap-mailbox.gob"
 	
     if (response->code)
       {
@@ -2256,20 +2260,20 @@ mn_imap_mailbox_session_handle_capability_code (MNClientSessionPrivate * priv, M
 
     return FALSE;
   }}
-#line 2260 "mn-imap-mailbox.c"
+#line 2264 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1533 "src/mn-imap-mailbox.gob"
+#line 1537 "src/mn-imap-mailbox.gob"
 static void 
 mn_imap_mailbox_session_parse_capabilities (MNClientSessionPrivate * priv, const char * capabilities)
 {
-#line 2267 "mn-imap-mailbox.c"
-#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_parse_capabilities"
-#line 1533 "src/mn-imap-mailbox.gob"
-	g_return_if_fail (priv != NULL);
 #line 2271 "mn-imap-mailbox.c"
+#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_parse_capabilities"
+#line 1537 "src/mn-imap-mailbox.gob"
+	g_return_if_fail (priv != NULL);
+#line 2275 "mn-imap-mailbox.c"
 {
-#line 1536 "src/mn-imap-mailbox.gob"
+#line 1540 "src/mn-imap-mailbox.gob"
 	
     g_strfreev(priv->capabilities);
     priv->capabilities = NULL;
@@ -2293,22 +2297,22 @@ mn_imap_mailbox_session_parse_capabilities (MNClientSessionPrivate * priv, const
     else
       priv->capabilities = g_new0(char *, 1);
   }}
-#line 2297 "mn-imap-mailbox.c"
+#line 2301 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1560 "src/mn-imap-mailbox.gob"
+#line 1564 "src/mn-imap-mailbox.gob"
 static gboolean 
 mn_imap_mailbox_session_has_capability (MNClientSessionPrivate * priv, const char * capability)
 {
-#line 2304 "mn-imap-mailbox.c"
+#line 2308 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_has_capability"
-#line 1560 "src/mn-imap-mailbox.gob"
+#line 1564 "src/mn-imap-mailbox.gob"
 	g_return_val_if_fail (priv != NULL, (gboolean )0);
-#line 1560 "src/mn-imap-mailbox.gob"
+#line 1564 "src/mn-imap-mailbox.gob"
 	g_return_val_if_fail (capability != NULL, (gboolean )0);
-#line 2310 "mn-imap-mailbox.c"
+#line 2314 "mn-imap-mailbox.c"
 {
-#line 1563 "src/mn-imap-mailbox.gob"
+#line 1567 "src/mn-imap-mailbox.gob"
 	
     int i;
 
@@ -2320,20 +2324,20 @@ mn_imap_mailbox_session_has_capability (MNClientSessionPrivate * priv, const cha
 
     return FALSE;
   }}
-#line 2324 "mn-imap-mailbox.c"
+#line 2328 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1575 "src/mn-imap-mailbox.gob"
+#line 1579 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_session_after_capability (MNClientSessionPrivate * priv)
 {
-#line 2331 "mn-imap-mailbox.c"
-#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_after_capability"
-#line 1575 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (priv != NULL, (int )0);
 #line 2335 "mn-imap-mailbox.c"
+#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_after_capability"
+#line 1579 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (priv != NULL, (int )0);
+#line 2339 "mn-imap-mailbox.c"
 {
-#line 1577 "src/mn-imap-mailbox.gob"
+#line 1581 "src/mn-imap-mailbox.gob"
 	
     if (priv->authenticated)
       return STATE_EXAMINE;
@@ -2355,20 +2359,20 @@ mn_imap_mailbox_session_after_capability (MNClientSessionPrivate * priv)
 	return self_session_authenticate(priv);
       }
   }}
-#line 2359 "mn-imap-mailbox.c"
+#line 2363 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1599 "src/mn-imap-mailbox.gob"
+#line 1603 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_session_authenticate (MNClientSessionPrivate * priv)
 {
-#line 2366 "mn-imap-mailbox.c"
-#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_authenticate"
-#line 1599 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (priv != NULL, (int )0);
 #line 2370 "mn-imap-mailbox.c"
+#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_authenticate"
+#line 1603 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (priv != NULL, (int )0);
+#line 2374 "mn-imap-mailbox.c"
 {
-#line 1601 "src/mn-imap-mailbox.gob"
+#line 1605 "src/mn-imap-mailbox.gob"
 	
 #if WITH_SASL
     g_slist_free(priv->sasl_remaining_mechanisms);
@@ -2406,20 +2410,20 @@ mn_imap_mailbox_session_authenticate (MNClientSessionPrivate * priv)
 	return STATE_LOGIN;
       }
   }}
-#line 2410 "mn-imap-mailbox.c"
+#line 2414 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1639 "src/mn-imap-mailbox.gob"
+#line 1643 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_session_authenticate_fallback (MNClientSessionPrivate * priv, gboolean tried_login)
 {
-#line 2417 "mn-imap-mailbox.c"
-#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_authenticate_fallback"
-#line 1639 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (priv != NULL, (int )0);
 #line 2421 "mn-imap-mailbox.c"
+#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_authenticate_fallback"
+#line 1643 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (priv != NULL, (int )0);
+#line 2425 "mn-imap-mailbox.c"
 {
-#line 1642 "src/mn-imap-mailbox.gob"
+#line 1646 "src/mn-imap-mailbox.gob"
 	
     if (! priv->pi_mailbox->authmech)
       {
@@ -2462,24 +2466,24 @@ mn_imap_mailbox_session_authenticate_fallback (MNClientSessionPrivate * priv, gb
 	return STATE_LOGOUT;
       }
   }}
-#line 2466 "mn-imap-mailbox.c"
+#line 2470 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1685 "src/mn-imap-mailbox.gob"
+#line 1689 "src/mn-imap-mailbox.gob"
 static void 
 mn_imap_mailbox_session_detect_imapd (MNClientSession * session, MNClientSessionResponse * greeting_response, MNClientSessionPrivate * priv)
 {
-#line 2473 "mn-imap-mailbox.c"
+#line 2477 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_detect_imapd"
-#line 1685 "src/mn-imap-mailbox.gob"
-	g_return_if_fail (session != NULL);
-#line 1685 "src/mn-imap-mailbox.gob"
-	g_return_if_fail (greeting_response != NULL);
-#line 1685 "src/mn-imap-mailbox.gob"
-	g_return_if_fail (priv != NULL);
-#line 2481 "mn-imap-mailbox.c"
-{
 #line 1689 "src/mn-imap-mailbox.gob"
+	g_return_if_fail (session != NULL);
+#line 1689 "src/mn-imap-mailbox.gob"
+	g_return_if_fail (greeting_response != NULL);
+#line 1689 "src/mn-imap-mailbox.gob"
+	g_return_if_fail (priv != NULL);
+#line 2485 "mn-imap-mailbox.c"
+{
+#line 1693 "src/mn-imap-mailbox.gob"
 	
     if (greeting_response->arguments)
       {
@@ -2499,20 +2503,20 @@ mn_imap_mailbox_session_detect_imapd (MNClientSession * session, MNClientSession
 	  }
       }
   }}
-#line 2503 "mn-imap-mailbox.c"
+#line 2507 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1709 "src/mn-imap-mailbox.gob"
+#line 1713 "src/mn-imap-mailbox.gob"
 static int 
 mn_imap_mailbox_session_got_messages (MNClientSessionPrivate * priv)
 {
-#line 2510 "mn-imap-mailbox.c"
-#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_got_messages"
-#line 1709 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (priv != NULL, (int )0);
 #line 2514 "mn-imap-mailbox.c"
+#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_got_messages"
+#line 1713 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (priv != NULL, (int )0);
+#line 2518 "mn-imap-mailbox.c"
 {
-#line 1711 "src/mn-imap-mailbox.gob"
+#line 1715 "src/mn-imap-mailbox.gob"
 	
     GSList *messages = NULL;
 
@@ -2548,17 +2552,17 @@ mn_imap_mailbox_session_got_messages (MNClientSessionPrivate * priv)
 
     return STATE_IDLE;
   }}
-#line 2552 "mn-imap-mailbox.c"
+#line 2556 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1747 "src/mn-imap-mailbox.gob"
+#line 1751 "src/mn-imap-mailbox.gob"
 static void 
 mn_imap_mailbox_get_messages_list_cb (gpointer key, gpointer value, gpointer user_data)
 {
-#line 2559 "mn-imap-mailbox.c"
+#line 2563 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::get_messages_list_cb"
 {
-#line 1749 "src/mn-imap-mailbox.gob"
+#line 1753 "src/mn-imap-mailbox.gob"
 	
     MessageInfo *info = value;
     GSList **list = user_data;
@@ -2566,37 +2570,37 @@ mn_imap_mailbox_get_messages_list_cb (gpointer key, gpointer value, gpointer use
     if (info->message)
       *list = g_slist_prepend(*list, info->message);
   }}
-#line 2570 "mn-imap-mailbox.c"
+#line 2574 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1757 "src/mn-imap-mailbox.gob"
+#line 1761 "src/mn-imap-mailbox.gob"
 static MessageInfo * 
 mn_imap_mailbox_session_get_message_info (MNClientSessionPrivate * priv, int number)
 {
-#line 2577 "mn-imap-mailbox.c"
-#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_get_message_info"
-#line 1757 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (priv != NULL, (MessageInfo * )0);
 #line 2581 "mn-imap-mailbox.c"
+#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_get_message_info"
+#line 1761 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (priv != NULL, (MessageInfo * )0);
+#line 2585 "mn-imap-mailbox.c"
 {
-#line 1760 "src/mn-imap-mailbox.gob"
+#line 1764 "src/mn-imap-mailbox.gob"
 	
     return g_hash_table_lookup(priv->messages, GINT_TO_POINTER(number));
   }}
-#line 2587 "mn-imap-mailbox.c"
+#line 2591 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1764 "src/mn-imap-mailbox.gob"
+#line 1768 "src/mn-imap-mailbox.gob"
 static MessageInfo * 
 mn_imap_mailbox_session_ensure_message_info (MNClientSessionPrivate * priv, int number)
 {
-#line 2594 "mn-imap-mailbox.c"
-#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_ensure_message_info"
-#line 1764 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (priv != NULL, (MessageInfo * )0);
 #line 2598 "mn-imap-mailbox.c"
+#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::session_ensure_message_info"
+#line 1768 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (priv != NULL, (MessageInfo * )0);
+#line 2602 "mn-imap-mailbox.c"
 {
-#line 1767 "src/mn-imap-mailbox.gob"
+#line 1771 "src/mn-imap-mailbox.gob"
 	
     MessageInfo *info;
 
@@ -2609,17 +2613,17 @@ mn_imap_mailbox_session_ensure_message_info (MNClientSessionPrivate * priv, int 
 
     return info;
   }}
-#line 2613 "mn-imap-mailbox.c"
+#line 2617 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1780 "src/mn-imap-mailbox.gob"
+#line 1784 "src/mn-imap-mailbox.gob"
 static MessageInfo * 
 mn_imap_mailbox_message_info_new (int number)
 {
-#line 2620 "mn-imap-mailbox.c"
+#line 2624 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::message_info_new"
 {
-#line 1782 "src/mn-imap-mailbox.gob"
+#line 1786 "src/mn-imap-mailbox.gob"
 	
     MessageInfo *info;
 
@@ -2628,27 +2632,27 @@ mn_imap_mailbox_message_info_new (int number)
 
     return info;
   }}
-#line 2632 "mn-imap-mailbox.c"
+#line 2636 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1791 "src/mn-imap-mailbox.gob"
+#line 1795 "src/mn-imap-mailbox.gob"
 static void 
 mn_imap_mailbox_message_info_free (MessageInfo * info)
 {
-#line 2639 "mn-imap-mailbox.c"
-#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::message_info_free"
-#line 1791 "src/mn-imap-mailbox.gob"
-	g_return_if_fail (info != NULL);
 #line 2643 "mn-imap-mailbox.c"
+#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::message_info_free"
+#line 1795 "src/mn-imap-mailbox.gob"
+	g_return_if_fail (info != NULL);
+#line 2647 "mn-imap-mailbox.c"
 {
-#line 1793 "src/mn-imap-mailbox.gob"
+#line 1797 "src/mn-imap-mailbox.gob"
 	
     if (info->message)
       g_object_unref(info->message);
     g_free(info->mid);
     g_free(info);
   }}
-#line 2652 "mn-imap-mailbox.c"
+#line 2656 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
 /**
@@ -2659,17 +2663,17 @@ mn_imap_mailbox_message_info_free (MessageInfo * info)
  *
  * Return value: the quoted string.
  **/
-#line 1808 "src/mn-imap-mailbox.gob"
+#line 1812 "src/mn-imap-mailbox.gob"
 static char * 
 mn_imap_mailbox_quote (const char * str)
 {
-#line 2667 "mn-imap-mailbox.c"
-#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::quote"
-#line 1808 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (str != NULL, (char * )0);
 #line 2671 "mn-imap-mailbox.c"
+#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::quote"
+#line 1812 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (str != NULL, (char * )0);
+#line 2675 "mn-imap-mailbox.c"
 {
-#line 1810 "src/mn-imap-mailbox.gob"
+#line 1814 "src/mn-imap-mailbox.gob"
 	
     GString *quoted;
     int i;
@@ -2684,7 +2688,7 @@ mn_imap_mailbox_quote (const char * str)
 
     return g_string_free(quoted, FALSE);
   }}
-#line 2688 "mn-imap-mailbox.c"
+#line 2692 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
 /**
@@ -2695,17 +2699,17 @@ mn_imap_mailbox_quote (const char * str)
  *
  * Return value: the string converted to modified UTF-7.
  **/
-#line 1833 "src/mn-imap-mailbox.gob"
+#line 1837 "src/mn-imap-mailbox.gob"
 static char * 
 mn_imap_mailbox_utf8_to_imap_utf7 (const char * str)
 {
-#line 2703 "mn-imap-mailbox.c"
-#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::utf8_to_imap_utf7"
-#line 1833 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (str != NULL, (char * )0);
 #line 2707 "mn-imap-mailbox.c"
+#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::utf8_to_imap_utf7"
+#line 1837 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (str != NULL, (char * )0);
+#line 2711 "mn-imap-mailbox.c"
 {
-#line 1835 "src/mn-imap-mailbox.gob"
+#line 1839 "src/mn-imap-mailbox.gob"
 	
     gunichar c;
     guint32 x, v = 0;
@@ -2762,20 +2766,20 @@ mn_imap_mailbox_utf8_to_imap_utf7 (const char * str)
 
     return g_string_free(out, FALSE);
   }}
-#line 2766 "mn-imap-mailbox.c"
+#line 2770 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1892 "src/mn-imap-mailbox.gob"
+#line 1896 "src/mn-imap-mailbox.gob"
 static void 
 mn_imap_mailbox_imap_utf7_closeb64 (GString * out, guint32 v, guint32 i)
 {
-#line 2773 "mn-imap-mailbox.c"
-#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::imap_utf7_closeb64"
-#line 1892 "src/mn-imap-mailbox.gob"
-	g_return_if_fail (out != NULL);
 #line 2777 "mn-imap-mailbox.c"
+#define __GOB_FUNCTION__ "MN:IMAP:Mailbox::imap_utf7_closeb64"
+#line 1896 "src/mn-imap-mailbox.gob"
+	g_return_if_fail (out != NULL);
+#line 2781 "mn-imap-mailbox.c"
 {
-#line 1894 "src/mn-imap-mailbox.gob"
+#line 1898 "src/mn-imap-mailbox.gob"
 	
     /*
      * Taken from the Ximian Evolution sources (camel-utf8.c) and
@@ -2792,22 +2796,22 @@ mn_imap_mailbox_imap_utf7_closeb64 (GString * out, guint32 v, guint32 i)
 
     g_string_append_c(out, '-');
   }}
-#line 2796 "mn-imap-mailbox.c"
+#line 2800 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1911 "src/mn-imap-mailbox.gob"
+#line 1915 "src/mn-imap-mailbox.gob"
 char * 
 mn_imap_mailbox_build_name (const char * username, const char * server, const char * mailbox)
 {
-#line 2803 "mn-imap-mailbox.c"
+#line 2807 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::build_name"
-#line 1911 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (username != NULL, (char * )0);
-#line 1911 "src/mn-imap-mailbox.gob"
-	g_return_val_if_fail (server != NULL, (char * )0);
-#line 2809 "mn-imap-mailbox.c"
-{
 #line 1915 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (username != NULL, (char * )0);
+#line 1915 "src/mn-imap-mailbox.gob"
+	g_return_val_if_fail (server != NULL, (char * )0);
+#line 2813 "mn-imap-mailbox.c"
+{
+#line 1919 "src/mn-imap-mailbox.gob"
 	
     GString *name;
 
@@ -2820,43 +2824,43 @@ mn_imap_mailbox_build_name (const char * username, const char * server, const ch
 
     return g_string_free(name, FALSE);
   }}
-#line 2824 "mn-imap-mailbox.c"
+#line 2828 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1928 "src/mn-imap-mailbox.gob"
+#line 1932 "src/mn-imap-mailbox.gob"
 static void 
 mn_imap_mailbox_lock (MNIMAPMailbox * self)
 {
-#line 2831 "mn-imap-mailbox.c"
+#line 2835 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::lock"
-#line 1928 "src/mn-imap-mailbox.gob"
+#line 1932 "src/mn-imap-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 1928 "src/mn-imap-mailbox.gob"
+#line 1932 "src/mn-imap-mailbox.gob"
 	g_return_if_fail (MN_IS_IMAP_MAILBOX (self));
-#line 2837 "mn-imap-mailbox.c"
+#line 2841 "mn-imap-mailbox.c"
 {
-#line 1930 "src/mn-imap-mailbox.gob"
+#line 1934 "src/mn-imap-mailbox.gob"
 	
     g_mutex_lock(selfp->mutex);
   }}
-#line 2843 "mn-imap-mailbox.c"
+#line 2847 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__
 
-#line 1934 "src/mn-imap-mailbox.gob"
+#line 1938 "src/mn-imap-mailbox.gob"
 static void 
 mn_imap_mailbox_unlock (MNIMAPMailbox * self)
 {
-#line 2850 "mn-imap-mailbox.c"
+#line 2854 "mn-imap-mailbox.c"
 #define __GOB_FUNCTION__ "MN:IMAP:Mailbox::unlock"
-#line 1934 "src/mn-imap-mailbox.gob"
+#line 1938 "src/mn-imap-mailbox.gob"
 	g_return_if_fail (self != NULL);
-#line 1934 "src/mn-imap-mailbox.gob"
+#line 1938 "src/mn-imap-mailbox.gob"
 	g_return_if_fail (MN_IS_IMAP_MAILBOX (self));
-#line 2856 "mn-imap-mailbox.c"
+#line 2860 "mn-imap-mailbox.c"
 {
-#line 1936 "src/mn-imap-mailbox.gob"
+#line 1940 "src/mn-imap-mailbox.gob"
 	
     g_mutex_unlock(selfp->mutex);
   }}
-#line 2862 "mn-imap-mailbox.c"
+#line 2866 "mn-imap-mailbox.c"
 #undef __GOB_FUNCTION__

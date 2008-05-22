@@ -58,7 +58,7 @@ struct _MNMailbox {
 	char * format;
 	int runtime_check_delay;
 	int check_delay;
-	GPtrArray * messages;
+	GHashTable * messages;
 	time_t timestamp;
 	char * error;
 	/*< private >*/
@@ -87,94 +87,88 @@ struct _MNMailboxClass {
  * Public methods
  */
 GType	mn_mailbox_get_type	(void) G_GNUC_CONST;
-#line 124 "src/mn-mailbox.gob"
+#line 135 "src/mn-mailbox.gob"
 gboolean 	mn_mailbox_get_active	(MNMailbox * self);
 #line 93 "mn-mailbox.h"
-#line 143 "src/mn-mailbox.gob"
+#line 154 "src/mn-mailbox.gob"
 void 	mn_mailbox_added	(MNMailbox * self);
 #line 96 "mn-mailbox.h"
-#line 159 "src/mn-mailbox.gob"
+#line 170 "src/mn-mailbox.gob"
 void 	mn_mailbox_removed	(MNMailbox * self);
 #line 99 "mn-mailbox.h"
-#line 185 "src/mn-mailbox.gob"
+#line 210 "src/mn-mailbox.gob"
 gchar * 	mn_mailbox_get_stock_id	(MNMailbox * self);
 #line 102 "mn-mailbox.h"
-#line 185 "src/mn-mailbox.gob"
+#line 210 "src/mn-mailbox.gob"
 void 	mn_mailbox_set_stock_id	(MNMailbox * self,
 					gchar * val);
 #line 106 "mn-mailbox.h"
-#line 188 "src/mn-mailbox.gob"
+#line 213 "src/mn-mailbox.gob"
 gchar * 	mn_mailbox_get_format	(MNMailbox * self);
 #line 109 "mn-mailbox.h"
-#line 188 "src/mn-mailbox.gob"
+#line 213 "src/mn-mailbox.gob"
 void 	mn_mailbox_set_format	(MNMailbox * self,
 					gchar * val);
 #line 113 "mn-mailbox.h"
-#line 219 "src/mn-mailbox.gob"
+#line 244 "src/mn-mailbox.gob"
 gboolean 	mn_mailbox_get_poll	(MNMailbox * self);
 #line 116 "mn-mailbox.h"
-#line 202 "src/mn-mailbox.gob"
+#line 227 "src/mn-mailbox.gob"
 void 	mn_mailbox_set_poll	(MNMailbox * self,
 					gboolean val);
 #line 120 "mn-mailbox.h"
-#line 230 "src/mn-mailbox.gob"
+#line 255 "src/mn-mailbox.gob"
 gboolean 	mn_mailbox_get_manually_checkable	(MNMailbox * self);
 #line 123 "mn-mailbox.h"
-#line 434 "src/mn-mailbox.gob"
+#line 522 "src/mn-mailbox.gob"
 void 	mn_mailbox_init_types	(void);
 #line 126 "mn-mailbox.h"
-#line 470 "src/mn-mailbox.gob"
+#line 558 "src/mn-mailbox.gob"
 MNMailboxClass * 	mn_mailbox_get_class_from_name	(const char * type);
 #line 129 "mn-mailbox.h"
-#line 489 "src/mn-mailbox.gob"
+#line 577 "src/mn-mailbox.gob"
 GType 	mn_mailbox_get_type_from_name	(const char * type);
 #line 132 "mn-mailbox.h"
-#line 536 "src/mn-mailbox.gob"
+#line 638 "src/mn-mailbox.gob"
 MNMailbox * 	mn_mailbox_new	(const char * type,
 					...) G_GNUC_NULL_TERMINATED;
 #line 136 "mn-mailbox.h"
-#line 556 "src/mn-mailbox.gob"
+#line 658 "src/mn-mailbox.gob"
 MNMailbox * 	mn_mailbox_new_from_xml_node	(xmlNode * node,
 					GError ** err);
 #line 140 "mn-mailbox.h"
-#line 589 "src/mn-mailbox.gob"
+#line 691 "src/mn-mailbox.gob"
 xmlNode * 	mn_mailbox_xml_node_new	(MNMailbox * self);
 #line 143 "mn-mailbox.h"
-#line 601 "src/mn-mailbox.gob"
+#line 703 "src/mn-mailbox.gob"
 MNMailbox * 	mn_mailbox_new_from_uri	(const char * uri);
 #line 146 "mn-mailbox.h"
-#line 622 "src/mn-mailbox.gob"
+#line 724 "src/mn-mailbox.gob"
 MNMailbox * 	mn_mailbox_new_from_configuration	(MNMailboxConfiguration * config);
 #line 149 "mn-mailbox.h"
-#line 628 "src/mn-mailbox.gob"
+#line 730 "src/mn-mailbox.gob"
 MNMailboxConfiguration * 	mn_mailbox_get_configuration	(MNMailbox * self);
 #line 152 "mn-mailbox.h"
-#line 663 "src/mn-mailbox.gob"
+#line 765 "src/mn-mailbox.gob"
 void 	mn_mailbox_configuration_free	(MNMailboxConfiguration * config);
 #line 155 "mn-mailbox.h"
-#line 675 "src/mn-mailbox.gob"
+#line 777 "src/mn-mailbox.gob"
 MNMailbox * 	mn_mailbox_new_from_obsolete_uri	(const char * uri);
 #line 158 "mn-mailbox.h"
-#line 992 "src/mn-mailbox.gob"
+#line 1094 "src/mn-mailbox.gob"
 void 	mn_mailbox_seal	(MNMailbox * self);
 #line 161 "mn-mailbox.h"
-#line 1010 "src/mn-mailbox.gob"
+#line 1112 "src/mn-mailbox.gob"
 void 	mn_mailbox_check	(MNMailbox * self);
 #line 164 "mn-mailbox.h"
-#line 1094 "src/mn-mailbox.gob"
-void 	mn_mailbox_consider_as_read	(MNMessage * message);
-#line 167 "mn-mailbox.h"
-#line 1112 "src/mn-mailbox.gob"
-void 	mn_mailbox_consider_as_read_list	(GSList * messages);
-#line 170 "mn-mailbox.h"
-#line 1137 "src/mn-mailbox.gob"
+#line 1180 "src/mn-mailbox.gob"
 char * 	mn_mailbox_get_command	(MNMailbox * self,
 					const char * id);
-#line 174 "mn-mailbox.h"
-#line 1156 "src/mn-mailbox.gob"
+#line 168 "mn-mailbox.h"
+#line 1199 "src/mn-mailbox.gob"
 gboolean 	mn_mailbox_has_command	(MNMailbox * self,
 					const char * id);
-#line 178 "mn-mailbox.h"
+#line 172 "mn-mailbox.h"
 
 /*
  * Signal connection wrapper macros
@@ -225,7 +219,7 @@ gboolean 	mn_mailbox_has_command	(MNMailbox * self,
 #define MN_MAILBOX_PROP_POLL(arg)    	"poll", __extension__ ({gboolean z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_POLL(arg)	"poll", __extension__ ({gboolean *z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_MANUALLY_CHECKABLE(arg)	"manually_checkable", __extension__ ({gboolean *z = (arg); z;})
-#define MN_MAILBOX_GET_PROP_MESSAGES(arg)	"messages", __extension__ ({GPtrArray * *z = (arg); z;})
+#define MN_MAILBOX_GET_PROP_MESSAGES(arg)	"messages", __extension__ ({GHashTable * *z = (arg); z;})
 #define MN_MAILBOX_PROP_ERROR(arg)    	"error", __extension__ ({gchar *z = (arg); z;})
 #define MN_MAILBOX_GET_PROP_ERROR(arg)	"error", __extension__ ({gchar **z = (arg); z;})
 #else /* __GNUC__ && !__STRICT_ANSI__ */
@@ -248,7 +242,7 @@ gboolean 	mn_mailbox_has_command	(MNMailbox * self,
 #define MN_MAILBOX_PROP_POLL(arg)    	"poll",(gboolean )(arg)
 #define MN_MAILBOX_GET_PROP_POLL(arg)	"poll",(gboolean *)(arg)
 #define MN_MAILBOX_GET_PROP_MANUALLY_CHECKABLE(arg)	"manually_checkable",(gboolean *)(arg)
-#define MN_MAILBOX_GET_PROP_MESSAGES(arg)	"messages",(GPtrArray * *)(arg)
+#define MN_MAILBOX_GET_PROP_MESSAGES(arg)	"messages",(GHashTable * *)(arg)
 #define MN_MAILBOX_PROP_ERROR(arg)    	"error",(gchar *)(arg)
 #define MN_MAILBOX_GET_PROP_ERROR(arg)	"error",(gchar **)(arg)
 #endif /* __GNUC__ && !__STRICT_ANSI__ */

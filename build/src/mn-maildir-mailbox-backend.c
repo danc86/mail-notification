@@ -69,7 +69,7 @@ static void mn_maildir_mailbox_backend_monitor_directory (MNMaildirMailboxBacken
 #line 105 "src/mn-maildir-mailbox-backend.gob"
 static gboolean mn_maildir_mailbox_backend_scan_directory (MNMaildirMailboxBackend * self, int check_id, const char * dir, gboolean new, GSList ** messages, int * num_errors, GError ** err);
 #line 72 "mn-maildir-mailbox-backend.c"
-#line 228 "src/mn-maildir-mailbox-backend.gob"
+#line 240 "src/mn-maildir-mailbox-backend.gob"
 static void ___7_mn_maildir_mailbox_backend_check (MNVFSMailboxBackend * backend, int check_id);
 #line 75 "mn-maildir-mailbox-backend.c"
 
@@ -142,7 +142,7 @@ mn_maildir_mailbox_backend_class_init (MNMaildirMailboxBackendClass * class G_GN
 	mn_vfs_mailbox_backend_class->monitor_cb = ___2_mn_maildir_mailbox_backend_monitor_cb;
 #line 80 "src/mn-maildir-mailbox-backend.gob"
 	mn_vfs_mailbox_backend_class->is = ___4_mn_maildir_mailbox_backend_is;
-#line 228 "src/mn-maildir-mailbox-backend.gob"
+#line 240 "src/mn-maildir-mailbox-backend.gob"
 	mn_vfs_mailbox_backend_class->check = ___7_mn_maildir_mailbox_backend_check;
 #line 148 "mn-maildir-mailbox-backend.c"
  {
@@ -312,7 +312,7 @@ mn_maildir_mailbox_backend_scan_directory (MNMaildirMailboxBackend * self, int c
 	{
 	  char *mid;
 	  MNMessageFlags flags = 0;
-	  MNVFSMessage *message;
+	  MNVFSMessage *message = NULL;
 
 	  if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 	    {
@@ -340,13 +340,25 @@ mn_maildir_mailbox_backend_scan_directory (MNMaildirMailboxBackend * self, int c
 	      mid = g_strndup(file_info->name, info - file_info->name);
 	    }
 
+	  /*
+	   * Hold the GDK lock while using
+	   * mn_mailbox_get_message_from_mid(), since for
+	   * MNReentrantMailbox, mail checks can run concurrently, so
+	   * another check could be modifying the MID hash table.
+	   */
+	  GDK_THREADS_ENTER();
+
 	  message = MN_VFS_MESSAGE(mn_mailbox_get_message_from_mid(MN_MAILBOX(backend->mailbox), mid));
 	  if (message)
 	    message = mn_vfs_message_new_from_message(message,
 						      uri,
 						      file_info->name,
 						      flags);
-	  else
+
+	  gdk_flush();
+	  GDK_THREADS_LEAVE();
+
+	  if (! message)
 	    {
 	      GError *tmp_err = NULL;
 
@@ -401,20 +413,20 @@ mn_maildir_mailbox_backend_scan_directory (MNMaildirMailboxBackend * self, int c
 
     return FALSE;
   }}
-#line 405 "mn-maildir-mailbox-backend.c"
+#line 417 "mn-maildir-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 
-#line 228 "src/mn-maildir-mailbox-backend.gob"
+#line 240 "src/mn-maildir-mailbox-backend.gob"
 static void 
 ___7_mn_maildir_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUSED, int check_id)
-#line 411 "mn-maildir-mailbox-backend.c"
+#line 423 "mn-maildir-mailbox-backend.c"
 #define PARENT_HANDLER(___backend,___check_id) \
 	{ if(MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->check) \
 		(* MN_VFS_MAILBOX_BACKEND_CLASS(parent_class)->check)(___backend,___check_id); }
 {
 #define __GOB_FUNCTION__ "MN:Maildir:Mailbox:Backend::check"
 {
-#line 230 "src/mn-maildir-mailbox-backend.gob"
+#line 242 "src/mn-maildir-mailbox-backend.gob"
 	
     Self *self = SELF(backend);
     GSList *messages = NULL;
@@ -455,6 +467,6 @@ ___7_mn_maildir_mailbox_backend_check (MNVFSMailboxBackend * backend G_GNUC_UNUS
     if (err)
       g_error_free(err);
   }}
-#line 459 "mn-maildir-mailbox-backend.c"
+#line 471 "mn-maildir-mailbox-backend.c"
 #undef __GOB_FUNCTION__
 #undef PARENT_HANDLER

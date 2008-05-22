@@ -74,36 +74,36 @@ struct _MNShellClass {
  * Public methods
  */
 GType	mn_shell_get_type	(void) G_GNUC_CONST;
-#line 797 "src/mn-shell.gob"
+#line 799 "src/mn-shell.gob"
 MNShell * 	mn_shell_new	(DBusGConnection * session_bus,
 					DBusGProxy * session_bus_proxy);
 #line 81 "mn-shell.h"
-#line 806 "src/mn-shell.gob"
+#line 808 "src/mn-shell.gob"
 void 	mn_shell_consider_new_mail_as_read	(MNShell * self);
 #line 84 "mn-shell.h"
-#line 822 "src/mn-shell.gob"
+#line 824 "src/mn-shell.gob"
 void 	mn_shell_update	(MNShell * self);
 #line 87 "mn-shell.h"
-#line 828 "src/mn-shell.gob"
+#line 830 "src/mn-shell.gob"
 void 	mn_shell_quit	(MNShell * self);
 #line 90 "mn-shell.h"
-#line 834 "src/mn-shell.gob"
+#line 836 "src/mn-shell.gob"
 void 	mn_shell_show_properties_dialog	(MNShell * self,
 					guint32 timestamp);
 #line 94 "mn-shell.h"
-#line 840 "src/mn-shell.gob"
+#line 842 "src/mn-shell.gob"
 void 	mn_shell_show_about_dialog	(MNShell * self,
 					guint32 timestamp);
 #line 98 "mn-shell.h"
-#line 867 "src/mn-shell.gob"
+#line 869 "src/mn-shell.gob"
 void 	mn_shell_add_mailbox_properties_dialog	(MNShell * self,
 					MNMailboxPropertiesDialog * dialog);
 #line 102 "mn-shell.h"
-#line 883 "src/mn-shell.gob"
+#line 885 "src/mn-shell.gob"
 MNMailboxPropertiesDialog * 	mn_shell_get_mailbox_properties_dialog	(MNShell * self,
 					MNMailbox * mailbox);
 #line 106 "mn-shell.h"
-#line 905 "src/mn-shell.gob"
+#line 907 "src/mn-shell.gob"
 char * 	mn_shell_get_summary	(MNShell * self);
 #line 109 "mn-shell.h"
 

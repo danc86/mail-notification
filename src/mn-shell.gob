@@ -532,7 +532,7 @@ class MN:Shell
       {
 	MNMailbox *mailbox = l->data;
 
-	if (mailbox->messages->len != 0)
+	if (g_hash_table_size(mailbox->messages) != 0)
 	  has_new = TRUE;
 	if (mailbox->error)
 	  blink = TRUE;
@@ -582,7 +582,7 @@ class MN:Shell
           {
 	    MNMailbox *mailbox = la->data;
 
-	    if (mailbox->messages->len != 0)
+	    if (g_hash_table_size(mailbox->messages) != 0)
 	      new_mailboxes = g_slist_insert_sorted(new_mailboxes, mailbox, (GCompareFunc) self_new_mailboxes_compare_cb);
 
 	    if (mailbox->error)
@@ -597,12 +597,14 @@ class MN:Shell
 	      {
 		MNMailbox *mailbox = lb->data;
 
-		g_assert(mailbox->messages->len != 0);
+		g_assert(g_hash_table_size(mailbox->messages) != 0);
 
 		if (*string->str)
 		  g_string_append_c(string, '\n');
 
-		g_string_append_printf(string, _("%s (%i)"), mailbox->runtime_name, mailbox->messages->len);
+		g_string_append_printf(string, _("%s (%i)"),
+				       mailbox->runtime_name,
+				       (int) g_hash_table_size(mailbox->messages));
 	      }
 	    g_slist_free(new_mailboxes);
 
@@ -725,7 +727,7 @@ class MN:Shell
       return cmp;
 
     /* sort by number of messages (descending order) */
-    cmp = b->messages->len - a->messages->len;
+    cmp = (int) g_hash_table_size(b->messages) - g_hash_table_size(a->messages);
     if (cmp != 0)
       return cmp;
 
@@ -811,11 +813,11 @@ class MN:Shell
     MN_LIST_FOREACH(l, self->mailboxes->list)
       {
 	MNMailbox *mailbox = l->data;
-	GSList *list;
+	GList *list;
 
-	list = mn_g_ptr_array_to_slist(mailbox->messages);
-	mn_mailbox_consider_as_read_list(list);
-	g_slist_free(list);
+	list = g_hash_table_get_values(mailbox->messages);
+	mn_message_consider_as_read_list(list);
+	g_list_free(list);
       }
   }
 

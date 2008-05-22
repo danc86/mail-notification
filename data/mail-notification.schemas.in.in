@@ -325,5 +325,16 @@
 	mail summary.</long>
       </locale>
     </schema>
+    <schema>
+      <key>/schemas/apps/mail-notification/messages-considered-as-read</key>
+      <applyto>/apps/mail-notification/messages-considered-as-read</applyto>
+      <owner>mail-notification</owner>
+      <type>list</type>
+      <list_type>string</list_type>
+      <locale name="C">
+        <short>Messages to consider as read</short>
+	<long>The list of messages to consider as read and ignore.</long>
+      </locale>
+    </schema>
   </schemalist>
 </gconfschemafile>

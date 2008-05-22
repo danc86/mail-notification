@@ -221,7 +221,8 @@ check_schemas (void)
     MN_CONF_POPUPS_ACTIONS,
     MN_CONF_POPUPS_LIMIT,
     MN_CONF_FALLBACK_CHARSETS,
-    MN_CONF_POPUPS_EXPIRATION_DELAY
+    MN_CONF_POPUPS_EXPIRATION_DELAY,
+    MN_CONF_MESSAGES_CONSIDERED_AS_READ
   };
   int i;
   GConfClient *client;
@@ -478,6 +479,54 @@ mn_conf_set_string_list (const char *key, GSList *list)
 
   gconf_client_set_list(mn_conf_get_client(), key, GCONF_VALUE_STRING, list, &err);
   handle_error(&err);
+}
+
+GHashTable *
+mn_conf_get_string_hash_set (const char *key)
+{
+  GSList *list;
+  GSList *l;
+  GHashTable *set;
+
+  g_return_val_if_fail(key != NULL, NULL);
+
+  list = mn_conf_get_string_list(key);
+
+  set = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+
+  MN_LIST_FOREACH(l, list)
+    {
+      const char *str = l->data;
+
+      g_hash_table_replace(set, g_strdup(str), GINT_TO_POINTER(TRUE));
+    }
+
+  mn_g_slist_free_deep(list);
+
+  return set;
+}
+
+static void
+set_string_hash_set_cb (const char *str,
+			gpointer value,
+			GSList **list)
+{
+  *list = g_slist_prepend(*list, (gpointer) str);
+}
+
+void
+mn_conf_set_string_hash_set (const char *key, GHashTable *set)
+{
+  GSList *list = NULL;
+
+  g_return_if_fail(key != NULL);
+  g_return_if_fail(set != NULL);
+
+  g_hash_table_foreach(set, (GHFunc) set_string_hash_set_cb, &list);
+
+  mn_conf_set_string_list(key, list);
+
+  g_slist_free(list);
 }
 
 void

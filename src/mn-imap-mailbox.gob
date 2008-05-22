@@ -779,9 +779,13 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
 		  int n = atoi(strings[i]);
 		  MessageInfo *info;
 
-		  info = self_session_ensure_message_info(priv, n);
-
-		  info->flags |= MN_MESSAGE_NEW;
+		  info = self_session_get_message_info(priv, n);
+		  if (info)
+		    info->flags |= MN_MESSAGE_NEW;
+		  /*
+		   * Otherwise the message is recent but not unseen,
+		   * and we must ignore it (fixes #230425).
+		   */
 		}
 
 	    g_strfreev(strings);

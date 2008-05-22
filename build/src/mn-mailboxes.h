@@ -65,33 +65,33 @@ struct _MNMailboxesClass {
  * Public methods
  */
 GType	mn_mailboxes_get_type	(void) G_GNUC_CONST;
-#line 183 "src/mn-mailboxes.gob"
+#line 185 "src/mn-mailboxes.gob"
 gboolean 	mn_mailboxes_get_manually_checkable	(MNMailboxes * self);
 #line 71 "mn-mailboxes.h"
-#line 592 "src/mn-mailboxes.gob"
+#line 597 "src/mn-mailboxes.gob"
 void 	mn_mailboxes_check	(MNMailboxes * self);
 #line 74 "mn-mailboxes.h"
-#line 614 "src/mn-mailboxes.gob"
+#line 619 "src/mn-mailboxes.gob"
 void 	mn_mailboxes_add	(MNMailboxes * self,
 					MNMailbox * mailbox);
 #line 78 "mn-mailboxes.h"
-#line 624 "src/mn-mailboxes.gob"
+#line 629 "src/mn-mailboxes.gob"
 void 	mn_mailboxes_queue_add	(MNMailboxes * self,
 					MNMailbox * mailbox);
 #line 82 "mn-mailboxes.h"
-#line 642 "src/mn-mailboxes.gob"
+#line 647 "src/mn-mailboxes.gob"
 void 	mn_mailboxes_remove	(MNMailboxes * self,
 					MNMailbox * mailbox);
 #line 86 "mn-mailboxes.h"
-#line 651 "src/mn-mailboxes.gob"
+#line 656 "src/mn-mailboxes.gob"
 void 	mn_mailboxes_queue_remove	(MNMailboxes * self,
 					MNMailbox * mailbox);
 #line 90 "mn-mailboxes.h"
-#line 684 "src/mn-mailboxes.gob"
+#line 689 "src/mn-mailboxes.gob"
 int 	mn_mailboxes_compare_by_name_func	(gconstpointer a,
 					gconstpointer b);
 #line 94 "mn-mailboxes.h"
-#line 693 "src/mn-mailboxes.gob"
+#line 698 "src/mn-mailboxes.gob"
 MNMailboxes * 	mn_mailboxes_new	(void);
 #line 97 "mn-mailboxes.h"
 

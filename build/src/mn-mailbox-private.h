@@ -34,42 +34,40 @@ typedef enum
 
 #line 36 "mn-mailbox-private.h"
 struct _MNMailboxPrivate {
-#line 122 "src/mn-mailbox.gob"
+#line 133 "src/mn-mailbox.gob"
 	gboolean _active;
-#line 190 "src/mn-mailbox.gob"
+#line 215 "src/mn-mailbox.gob"
 	unsigned int check_timeout_id;
-#line 199 "src/mn-mailbox.gob"
+#line 224 "src/mn-mailbox.gob"
 	gboolean poll;
-#line 246 "src/mn-mailbox.gob"
-	GSList * all_messages;
-#line 255 "src/mn-mailbox.gob"
-	GHashTable * all_messages_mid_hash_table;
-#line 262 "src/mn-mailbox.gob"
-	GHashTable * all_messages_considered_as_read;
-#line 268 "src/mn-mailbox.gob"
-	GHashTable * messages_hash_table;
-#line 1024 "src/mn-mailbox.gob"
+#line 271 "src/mn-mailbox.gob"
+	gboolean all_messages_set;
+#line 274 "src/mn-mailbox.gob"
+	GHashTable * all_messages;
+#line 277 "src/mn-mailbox.gob"
+	GHashTable * all_messages_by_mid;
+#line 1126 "src/mn-mailbox.gob"
 	gboolean checking_enabled;
-#line 54 "mn-mailbox-private.h"
+#line 52 "mn-mailbox-private.h"
 };
-#line 279 "src/mn-mailbox.gob"
+#line 291 "src/mn-mailbox.gob"
 void 	mn_mailbox_set_messages	(MNMailbox * self, GSList * messages);
-#line 58 "mn-mailbox-private.h"
-#line 422 "src/mn-mailbox.gob"
+#line 56 "mn-mailbox-private.h"
+#line 510 "src/mn-mailbox.gob"
 void 	mn_mailbox_set_error	(MNMailbox * self, const char * format, ...) G_GNUC_PRINTF(2, 3);
-#line 61 "mn-mailbox-private.h"
-#line 1026 "src/mn-mailbox.gob"
+#line 59 "mn-mailbox-private.h"
+#line 1128 "src/mn-mailbox.gob"
 void 	mn_mailbox_enable_checking	(MNMailbox * self);
-#line 64 "mn-mailbox-private.h"
-#line 1037 "src/mn-mailbox.gob"
+#line 62 "mn-mailbox-private.h"
+#line 1139 "src/mn-mailbox.gob"
 void 	mn_mailbox_notice	(MNMailbox * self, const char * format, ...) G_GNUC_PRINTF(2, 3);
-#line 67 "mn-mailbox-private.h"
-#line 1055 "src/mn-mailbox.gob"
+#line 65 "mn-mailbox-private.h"
+#line 1157 "src/mn-mailbox.gob"
 void 	mn_mailbox_warning	(MNMailbox * self, const char * format, ...) G_GNUC_PRINTF(2, 3);
-#line 70 "mn-mailbox-private.h"
-#line 1072 "src/mn-mailbox.gob"
+#line 68 "mn-mailbox-private.h"
+#line 1174 "src/mn-mailbox.gob"
 MNMessage * 	mn_mailbox_get_message_from_mid	(MNMailbox * self, const char * mid);
-#line 73 "mn-mailbox-private.h"
+#line 71 "mn-mailbox-private.h"
 
 #ifdef __cplusplus
 }

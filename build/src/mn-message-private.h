@@ -23,10 +23,10 @@ typedef enum
 typedef GError *(*MNMessageActionPerformCallback) (MNMessage *message, gpointer data);
 
 #line 26 "mn-message-private.h"
-#line 375 "src/mn-message.gob"
+#line 376 "src/mn-message.gob"
 void 	mn_message_perform_action_in_thread	(MNMessageActionRequest * request, MNMessageActionPerformCallback callback, gpointer user_data);
 #line 29 "mn-message-private.h"
-#line 422 "src/mn-message.gob"
+#line 423 "src/mn-message.gob"
 void 	mn_message_action_done	(MNMessageActionRequest * request, GError * err);
 #line 32 "mn-message-private.h"
 

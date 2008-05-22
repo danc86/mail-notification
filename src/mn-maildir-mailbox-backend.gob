@@ -135,7 +135,7 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	{
 	  char *mid;
 	  MNMessageFlags flags = 0;
-	  MNVFSMessage *message;
+	  MNVFSMessage *message = NULL;
 
 	  if (mn_reentrant_mailbox_check_aborted(MN_REENTRANT_MAILBOX(backend->mailbox), check_id))
 	    {
@@ -163,13 +163,25 @@ class MN:Maildir:Mailbox:Backend from MN:VFS:Mailbox:Backend
 	      mid = g_strndup(file_info->name, info - file_info->name);
 	    }
 
+	  /*
+	   * Hold the GDK lock while using
+	   * mn_mailbox_get_message_from_mid(), since for
+	   * MNReentrantMailbox, mail checks can run concurrently, so
+	   * another check could be modifying the MID hash table.
+	   */
+	  GDK_THREADS_ENTER();
+
 	  message = MN_VFS_MESSAGE(mn_mailbox_get_message_from_mid(MN_MAILBOX(backend->mailbox), mid));
 	  if (message)
 	    message = mn_vfs_message_new_from_message(message,
 						      uri,
 						      file_info->name,
 						      flags);
-	  else
+
+	  gdk_flush();
+	  GDK_THREADS_LEAVE();
+
+	  if (! message)
 	    {
 	      GError *tmp_err = NULL;
 

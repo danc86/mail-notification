@@ -215,9 +215,9 @@ class MN:Evolution:Server
 
   private gboolean
     get_unseen_messages (self,
-			      const char *folder_uri (check null),
-			      GPtrArray **ret (check null),
-			      GError **err)
+			 const char *folder_uri (check null),
+			 GPtrArray **ret (check null),
+			 GError **err)
   {
     CamelFolder *folder;
 

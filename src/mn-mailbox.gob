@@ -110,7 +110,7 @@ typedef struct
 static unsigned int cleanup_messages_considered_as_read_idle_id = 0;
 %}
 
-class MN:Mailbox (abstract)
+class MN:Mailbox from G:Object (abstract)
 {
   classwide const char *type;
   classwide int default_check_delay = -1;
@@ -506,9 +506,9 @@ class MN:Mailbox (abstract)
   public char *error destroywith g_free;
   property STRING error (link);
 
-  [G_GNUC_PRINTF(2, 3)]
   protected void
     set_error (self, const char *format, ...)
+    attr {G_GNUC_PRINTF(2, 3)}
   {
     char *error = NULL;
 
@@ -634,9 +634,9 @@ class MN:Mailbox (abstract)
     self_filter_messages(self);
   }
 
-  [G_GNUC_NULL_TERMINATED]
   public MNMailbox *
     new (const char *type (check null), ...)
+    attr {G_GNUC_NULL_TERMINATED}
   {
     va_list args;
     GType type_id;
@@ -1105,7 +1105,7 @@ class MN:Mailbox (abstract)
       : SELF_GET_CLASS(self)->default_check_delay;
   }
 
-  [G_GNUC_UNUSED]		/* invoked via the class pointer */
+  //[G_GNUC_UNUSED]              /* invoked via the class pointer */
   virtual private MNMailbox *
     parse_uri (self, const char *uri (check null));
 
@@ -1135,9 +1135,9 @@ class MN:Mailbox (abstract)
     self_check(self);
   }
 
-  [G_GNUC_PRINTF(2, 3)]
   protected void
     notice (self, const char *format (check null), ...)
+    attr {G_GNUC_PRINTF(2, 3)}
   {
     char *message;
 
@@ -1153,9 +1153,9 @@ class MN:Mailbox (abstract)
     g_free(message);
   }
 
-  [G_GNUC_PRINTF(2, 3)]
   protected void
     warning (self, const char *format (check null), ...)
+    attr {G_GNUC_PRINTF(2, 3)}
   {
     char *message;
 

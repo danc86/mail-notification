@@ -1492,11 +1492,11 @@ class MN:IMAP:Mailbox from MN:PI:Mailbox
     return FALSE;
   }
 
-  [G_GNUC_PRINTF(2, 3)]
   private int
     session_write (MNClientSessionPrivate *priv (check null),
 		   const char *format (check null),
 		   ...)
+    attr {G_GNUC_PRINTF(2, 3)}
   {
     char *command;
     int result;

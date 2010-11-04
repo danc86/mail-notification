@@ -134,7 +134,7 @@ static const MNMessageAction message_actions[] = {
 };
 %}
 
-class MN:Message
+class MN:Message from G:Object
 {
   /*
    * In order to not create reference cycles, we do not hold a

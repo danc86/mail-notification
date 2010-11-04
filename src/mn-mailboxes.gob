@@ -39,7 +39,7 @@
 #include "mn-util.h"
 %}
 
-class MN:Mailboxes
+class MN:Mailboxes from G:Object
 {
   public GList *list;		/* freed in finalize */
 
@@ -97,7 +97,7 @@ class MN:Mailboxes
     self_error_changed(self);
   }
 
-  [G_GNUC_UNUSED] /* we use g_signal_emit_by_name(), for passing a detail */
+  //[G_GNUC_UNUSED] /* we use g_signal_emit_by_name(), for passing a detail */
   signal (DETAILED) private NONE (OBJECT, POINTER)
     void mailbox_notify (self,
 			 MN:Mailbox *mailbox (check null type),
@@ -310,12 +310,12 @@ class MN:Mailboxes
       self_save(self);
   }
 
-  [G_GNUC_PRINTF(3, 4)]
   private void
     add_error (GString **errors (check null),
 	       int *n_errors (check null),
 	       const char *format,
 	       ...)
+    attr {G_GNUC_PRINTF(3, 4)}
   {
     char *message;
 

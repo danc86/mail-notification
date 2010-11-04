@@ -27,7 +27,7 @@
 #include "mn-mailbox-properties-dialog.h"
 %}
 
-class MN:Mailbox:Properties (abstract)
+class MN:Mailbox:Properties from G:Object (abstract)
 {
   classwide const char *type;
   classwide const char *stock_id;

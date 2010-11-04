@@ -31,7 +31,7 @@
 #include "mn-util.h"
 %}
 
-class MN:VFS:Mailbox:Backend (abstract)
+class MN:VFS:Mailbox:Backend from G:Object (abstract)
 {
   classwide const char *format;
 

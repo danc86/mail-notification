@@ -71,7 +71,7 @@ typedef enum
 #define GTK_PRIVATE_SET_FLAG(wid,flag)    G_STMT_START{ (GTK_PRIVATE_FLAGS (wid) |= (PRIVATE_ ## flag)); }G_STMT_END
 %}
 
-class MN:Tooltips
+class MN:Tooltips from G:Object
 {
   private GtkWidget *window;
   private TooltipsData *active_data;

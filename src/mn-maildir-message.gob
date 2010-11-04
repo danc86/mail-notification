@@ -141,9 +141,9 @@ class MN:Maildir:Message from MN:VFS:Message
     return NULL;
   }
 
-  [G_GNUC_PRINTF(2, 3)]
   private GError *
     delete_with_prompt (self, const char *format (check null), ...)
+    attr {G_GNUC_PRINTF(2, 3)}
   {
     GtkWidget *dialog;
     char *prompt;

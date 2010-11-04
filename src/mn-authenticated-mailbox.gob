@@ -361,12 +361,12 @@ class MN:Authenticated:Mailbox from MN:Mailbox (abstract)
     self->auth_failed = TRUE;
   }
 
-  [G_GNUC_PRINTF(3, 4)]
   private gboolean
     prompt_for_password (self,
 			 char **password (check null),
 			 const char *format (check null),
 			 ...)
+    attr {G_GNUC_PRINTF(3, 4)}
   {
     char *message;
     gboolean ok;

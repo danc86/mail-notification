@@ -73,7 +73,7 @@ enum MN_SHELL_TOOLTIP_MAIL_SUMMARY
   NONE
 } MN:Shell:Tooltip:Mail:Summary;
 
-class MN:Shell
+class MN:Shell from G:Object
 {
   public MNMailboxes *mailboxes;
 

@@ -28,7 +28,7 @@
 #include "mn-properties-dialog.h"
 %}
 
-class MN:Popups
+class MN:Popups from G:Object
 {
   /*
    * Maps message IDs to popups. If a message is known but has no

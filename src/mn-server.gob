@@ -43,7 +43,7 @@
  * main loop callback.
  */
 
-class MN:Server
+class MN:Server from G:Object
 {
   class_init (class)
   {

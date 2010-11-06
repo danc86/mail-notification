@@ -70,7 +70,7 @@ jb_package_init (void)
    * released. What is required is gob2 2.0.15 + my patches (see the
    * gob mailing list), which should eventually become gob2 2.0.16.
    */
-  jb_variable_set_string("gob2-minversion", "2.0.16");
+  jb_variable_set_string("gob2-minversion", "2.0.17");
 
   jb_evolution_plugin_init();
 

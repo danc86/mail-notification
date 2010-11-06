@@ -502,6 +502,7 @@ class MN:Shell from G:Object
     Self *self = user_data;
 
     /* The Notification Area applet has been terminated. Recreate the icon. */
+    mn_remove_weak_pointer(&self->icon);
     self_init_icon(self);
   }
 

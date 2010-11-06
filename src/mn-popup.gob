@@ -51,8 +51,10 @@ class MN:Popup from Notify:Notification
 		 "icon-name", "stock_mail",
 		 NULL);
 
-    if (mn_conf_get_enum_value(MN_TYPE_POPUP_POSITION, MN_CONF_POPUPS_POSITION) == MN_POPUP_POSITION_ATTACHED)
+    if (mn_conf_get_enum_value(MN_TYPE_POPUP_POSITION, MN_CONF_POPUPS_POSITION) == MN_POPUP_POSITION_ATTACHED) {
+      self_wait_for_icon_to_become_ready(self);
       g_object_set(self, "attach-widget", mn_shell->icon, NULL);
+    }
 
     g_string_free(body, TRUE);
 
@@ -61,6 +63,26 @@ class MN:Popup from Notify:Notification
     notify_notification_set_timeout(NOTIFY_NOTIFICATION(self), self_get_conf_timeout());
 
     g_signal_connect(self, "closed", G_CALLBACK(self_closed_h), NULL);
+  }
+
+  private void wait_for_icon_to_become_ready(self) {
+    int x, y;
+    int count = 0;
+
+    /* When the tray icon is created, it can still take some time before
+     * it has arrived at the correct position. This is especially the case
+     * on KDE environments. To work around this, add a little delay of at
+     * most 2 seconds before showing a popup which is attached to the notification */
+    do {
+        gdk_window_get_origin (gtk_widget_get_window (mn_shell->icon), &x, &y);
+
+        if (x != 0 || y != 0) {
+            break;
+        }
+
+        g_usleep(G_USEC_PER_SEC / 10);
+        count++;
+    } while (count < 20);
   }
 
   private void

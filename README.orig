@@ -1,0 +1,199 @@
+===============================================================================
+ Mail Notification overview
+===============================================================================
+
+Index
+
+	0. About this document
+	1. About Mail Notification
+	2. Dependencies
+	3. Installation instructions
+	4. Issues in third-party software affecting Mail Notification
+
+0. About this document
+
+	$Id: README,v 1.45 2008-03-19 23:22:09 jylefort Exp $
+
+	Copyright (C) 2003-2008 Jean-Yves Lefort.
+
+	Permission is granted to copy, distribute and/or modify this
+	document under the terms of the GNU Free Documentation License
+	(GFDL), Version 1.2 or any later version published by the Free
+	Software Foundation with no Invariant Sections, no Front-Cover
+	Texts, and no Back-Cover Texts. You can find a copy of the
+	GFDL at http://www.gnu.org/licenses/fdl.html or in the file
+	COPYING-DOCS distributed with this manual.
+
+1. About Mail Notification
+
+	Mail Notification is a status icon (aka tray icon) that
+	informs you if you have new mail.
+
+	It works with system trays implementing the freedesktop.org
+	System Tray Specification, such as the GNOME Panel
+	Notification Area, the Xfce Notification Area and the KDE
+	System Tray.
+
+	Mail Notification features include:
+
+		* multiple mailbox support
+		* Evolution, Gmail, IMAP, Maildir, mbox, MH, Mozilla
+		  products (Mozilla, SeaMonkey, Thunderbird, ...),
+		  POP3, Sylpheed, Windows Live Hotmail and Yahoo! Mail
+		  support
+		* SASL authentication support
+		* APOP authentication support
+		* SSL/TLS support
+		* automatic detection of mailbox format
+		* immediate notification (the status icon is updated
+		  immediately or within seconds after a mailbox
+		  changes)
+		* message popups
+		* HIG 2.0 compliance
+
+2. Dependencies
+
+	Mandatory:
+
+		* GNOME (version 2.14.0 or superior)
+		  http://www.gnome.org/
+
+		* libnotify (version 0.4.1 or superior)
+		  http://www.galago-project.org/
+
+	Optional:
+
+		* for IMAP, Maildir, mbox, MH, Mozilla, POP3,
+		  Sylpheed, Windows Live Hotmail and Yahoo! Mail
+		  support:
+
+		  GMime (version 2.2.7 or superior)
+		  http://spruce.sourceforge.net/gmime/
+
+		* for Windows Live Hotmail support:
+
+		  GetLive
+		  http://sourceforge.net/projects/getlive/
+
+		* for Yahoo! Mail support:
+
+		  FetchYahoo
+		  http://fetchyahoo.twizzler.org/
+
+		* for SSL/TLS support:
+
+		  OpenSSL (version 0.9.6 or superior)
+		  http://www.openssl.org/
+
+		* for SASL authentication support:
+
+		  Cyrus SASL (version 2.0 or superior)
+		  http://asg.web.cmu.edu/sasl/sasl-library.html
+
+		* for Evolution support:
+
+		  Evolution (version 2.12 or superior)
+		  http://www.gnome.org/projects/evolution/
+
+3. Installation instructions
+
+	To configure, build and install Mail Notification, use the
+	following commands:
+
+		./jb configure
+		./jb build
+		sudo ./jb install
+
+	Note that a number of settings can be passed to the configure
+	stage, for instance:
+
+		./jb configure prefix=/opt cflags=-O3 pop3=no
+
+	For details, use:
+
+		./jb help
+
+	For more informations about JB (the Jean-Yves Lefort's Build
+	System), read jbsrc/lib/README.
+
+	Note to Sylpheed users: if you want more responsive
+	notifications, apply the patch data/sylpheed-locking.diff to
+	Sylpheed and recompile it.
+
+4. Issues in third-party software affecting Mail Notification
+
+	* Thread-safety bugs in libgnomeui may cause Mail Notification
+	  (and other multi-threaded GNOME applications) to crash or
+	  hang.
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=152023
+	  fixed:
+		- FreeBSD port x11-toolkits/libgnomeui >= 2.10.0_1
+		- libgnomeui CVS >= 20060102
+		- libgnomeui >= 2.13.2
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=312180
+	  fixed:
+		- FreeBSD port x11-toolkits/libgnomeui >= 2.10.1_1
+		- libgnomeui CVS >= 20060208
+		- libgnomeui >= 2.15.90
+
+	* An infinite loop in GnomeVFS may affect mailboxes which use
+	  HTTP authentication (for instance, Gmail mailboxes).
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=310596
+	  fixed:
+		- GnomeVFS CVS >= 20050724
+		- GnomeVFS >= 2.11.90
+
+	* If GnomeVFS was built with GnuTLS support, a GnomeVFS bug
+	  may cause Mail Notification to crash when accessing a
+	  mailbox over SSL (for instance, a Gmail mailbox) with
+	  GnomeVFS. The crash is accompanied by an error message
+	  similar to the following:
+
+		mail-notification: ath.c:181: _gcry_ath_mutex_lock: Assertion `*lock == ((ath_mutex_t) 0)' failed.
+		Xlib: unexpected async reply (sequence 0x2cc0)!
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=172813
+	  fixed:
+		- GnomeVFS CVS >= 20050411
+		- GnomeVFS >= 2.11.1
+
+	* An infinite loop in GnomeVFS may affect mailboxes which use
+	  the GnomeVFS bzip2 method.
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=322652
+	  fixed:
+		- FreeBSD port devel/gnomevfs2 >= 2.12.1.1_4
+		- GnomeVFS CVS >= 20051201
+		- GnomeVFS >= 2.13.2
+
+	* A bug in GnomeVFS may prevent successful authentication if
+	  an username or password contains special characters such as
+	  '@'.
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=89106
+	  fixed:
+		- GnomeVFS CVS >= 20050716
+		- GnomeVFS >= 2.11.90
+
+	* A bug in GnomeVFS may occasionally cause mbox, MH, Maildir
+	  and Sylpheed mailbox changes to stay undetected.
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=341585
+	  fixed:
+		- FreeBSD port devel/gnomevfs2 >= 2.14.1_2
+		- GnomeVFS >= 2.15.90
+
+	* A bug in GnomeVFS causes intermittent Gmail errors when the
+	  delay between mail checks is set to a small value.
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=455972
+
+	* Bugs in GnomeVFS may cause various problems with mailboxes
+	  accessed through ssh/sftp.
+
+	  http://bugzilla.gnome.org/show_bug.cgi?id=500307
+	  http://bugzilla.gnome.org/show_bug.cgi?id=500533
+	  http://bugzilla.gnome.org/show_bug.cgi?id=500538

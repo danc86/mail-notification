@@ -438,7 +438,7 @@ class MN:POP3:Mailbox from MN:PI:Mailbox
 
 	if (initial_clientoutlen > 0)
 	  {
-	    char buf64[initial_clientoutlen * 2]; /* Base64 is 33% larger than the data it encodes */
+	    char buf64[initial_clientoutlen * 2 + 1]; /* Base64 is 33% larger than the data it encodes */
 	    unsigned int outlen;
 	    int result;
 	    char *str;

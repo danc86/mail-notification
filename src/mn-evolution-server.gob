@@ -25,10 +25,16 @@
 #include <stdio.h>
 #include <libintl.h>
 #include <gobject/gvaluecollector.h>
+#include <libedataserver/eds-version.h>
 #include <camel/camel-folder.h>
+#if EDS_CHECK_VERSION(2,29,0)
+#include <shell/e-shell.h>
+#include <mail/e-mail-browser.h>
+#else
 #include <mail/em-folder-view.h>
 #include <mail/em-format.h>
 #include <mail/em-message-browser.h>
+#endif
 #include <mail/em-utils.h>
 #include <mail/mail-session.h>
 #include <mail/mail-tools.h>
@@ -64,7 +70,7 @@ typedef enum
  * interface methods are run from a main loop callback.
  */
 
-class MN:Evolution:Server
+class MN:Evolution:Server from G:Object
 {
   signal NONE (STRING)
     void folder_changed (self, const char *uri (check null));
@@ -92,10 +98,18 @@ class MN:Evolution:Server
     info = g_new0(FolderInfo, 1);
     info->uri = g_strdup(uri);
     info->folder = folder;
+#if EDS_CHECK_VERSION(2,31,0)
+    g_object_ref(folder);
+#else
     camel_object_ref(folder);
+#endif
 
     /* uncache the folder when it is deleted */
+#if EDS_CHECK_VERSION(2,31,0)
+    g_signal_connect(folder, "deleted", G_CALLBACK(self_folder_deleted_cb), info);
+#else
     camel_object_hook_event(folder, "deleted", self_folder_deleted_cb, info);
+#endif
 
     g_hash_table_replace(folders, info->uri, info);
   }
@@ -103,8 +117,13 @@ class MN:Evolution:Server
   private void
     folder_info_free (FolderInfo *info (check null))
   {
+#if EDS_CHECK_VERSION(2,31,0)
+    g_signal_handlers_disconnect_by_func(info->folder, self_folder_deleted_cb, info);
+    g_object_unref(info->folder);
+#else
     camel_object_unhook_event(info->folder, "deleted", self_folder_deleted_cb, info);
     camel_object_unref(info->folder);
+#endif
     g_free(info->uri);
     g_free(info);
   }
@@ -134,7 +153,11 @@ class MN:Evolution:Server
 	if (info)
 	  {
 	    folder = info->folder;
+#if EDS_CHECK_VERSION(2,31,0)
+            g_object_ref(folder);
+#else
 	    camel_object_ref(folder);
+#endif
 	  }
       }
     else
@@ -142,7 +165,11 @@ class MN:Evolution:Server
 
     if (! folder)
       {
-	folder = mail_tool_uri_to_folder(uri, 0, NULL);
+	folder = mail_tool_uri_to_folder(uri, 0,
+#if EDS_CHECK_VERSION(2,91,0)
+                NULL,
+#endif
+                NULL);
 	if (folder)
 	  self_cache_folder(uri, folder);
 	else
@@ -235,14 +262,23 @@ class MN:Evolution:Server
 
 	for (i = 0; i < summary->len; i++)
 	  {
+#if EDS_CHECK_VERSION(2,23,5)
+            char *uid = summary->pdata[i];
+            CamelMessageInfo *info = camel_folder_get_message_info(folder, uid);
+#else
 	    CamelMessageInfo *info = summary->pdata[i];
+#endif
 
 	    if ((camel_message_info_flags(info) & CAMEL_MESSAGE_SEEN) == 0)
 	      g_ptr_array_add(*ret, self_camel_message_info_to_dbus_struct(info));
 	  }
 
 	camel_folder_free_summary(folder, summary);
+#if EDS_CHECK_VERSION(2,31,0)
+        g_object_unref(folder);
+#else
 	camel_object_unref(folder);
+#endif
       }
 
     GDK_THREADS_LEAVE();
@@ -264,7 +300,11 @@ class MN:Evolution:Server
     if (folder)
       {
 	*ret = g_strdup(camel_folder_get_name(folder));
+#if EDS_CHECK_VERSION(2,31,0)
+        g_object_unref(folder);
+#else
 	camel_object_unref(folder);
+#endif
       }
 
     GDK_THREADS_LEAVE();
@@ -285,6 +325,19 @@ class MN:Evolution:Server
     folder = self_lookup_folder(folder_uri, err);
     if (folder)
       {
+#if EDS_CHECK_VERSION(2,29,0)
+        EShell *shell;
+        EShellBackend *shell_backend;
+        GtkWidget *browser;
+
+        shell = e_shell_get_default ();
+        shell_backend = e_shell_get_backend_by_name (shell, "mail");
+
+        browser = e_mail_browser_new (shell_backend);
+        e_mail_reader_set_folder (E_MAIL_READER (browser), folder, folder_uri);
+        e_mail_reader_set_message (E_MAIL_READER (browser), message_uid);
+        gtk_widget_show (browser);
+#else
 	GtkWidget *browser;
 
 	/* modelled after Evolution's handleuri_got_folder() */
@@ -295,8 +348,13 @@ class MN:Evolution:Server
 	em_folder_view_set_folder((EMFolderView *) browser, folder, folder_uri);
 	em_folder_view_set_message((EMFolderView *) browser, message_uid, FALSE);
 	gtk_widget_show(((EMMessageBrowser *) browser)->window);
+#endif
 
+#if EDS_CHECK_VERSION(2,31,0)
+        g_object_unref(folder);
+#else
 	camel_object_unref(folder);
+#endif
       }
 
     GDK_THREADS_LEAVE();
@@ -320,7 +378,11 @@ class MN:Evolution:Server
     if (folder)
       {
 	status = camel_folder_set_message_flags(folder, message_uid, flags, flags);
+#if EDS_CHECK_VERSION(2,31,0)
+        g_object_unref(folder);
+#else
 	camel_object_unref(folder);
+#endif
 
 	if (! status)
 	  g_set_error(err,

@@ -204,7 +204,7 @@ connect_to_session_bus (void)
 }
 
 int
-e_plugin_lib_enable (EPluginLib *ep, int enable)
+e_plugin_lib_enable (EPlugin *ep, int enable)
 {
   static gboolean enabled = FALSE;
   GError *err = NULL;

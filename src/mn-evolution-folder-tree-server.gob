@@ -23,7 +23,10 @@
 
 %{
 #include <dbus/dbus.h>
+#include <libedataserver/eds-version.h>
+#if !EDS_CHECK_VERSION(2,29,0)
 #include <mail/mail-component.h>
+#endif
 #include <mail/em-folder-tree.h>
 #include "mn-evolution-plugin.h"
 #include "mn-evolution.h"
@@ -31,7 +34,7 @@
 #include "mn-evolution-folder-tree-server-dbus.h"
 %}
 
-class MN:Evolution:Folder:Tree:Server
+class MN:Evolution:Folder:Tree:Server from G:Object
 {
   /* the GdkNativeWindow, which we also use as our ID */
   private guint32 id;
@@ -59,10 +62,14 @@ class MN:Evolution:Folder:Tree:Server
 
   constructor (self)
   {
+#if EDS_CHECK_VERSION(2,29,0)
+    selfp->tree = em_folder_tree_new();
+#else
     EMFolderTreeModel *model;
 
     model = mail_component_peek_tree_model(mail_component_peek());
     selfp->tree = em_folder_tree_new_with_model(model);
+#endif
 
     selfp->plug = gtk_plug_new((GdkNativeWindow) selfp->id);
     gtk_container_add(GTK_CONTAINER(selfp->plug), selfp->tree);

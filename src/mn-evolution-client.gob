@@ -33,7 +33,7 @@
  * from unreferencing the proxy, so provide an eternal singleton
  * proxy.
  */
-class MN:Evolution:Client
+class MN:Evolution:Client from G:Object
 {
   public DBusGProxy *proxy;
   property POINTER proxy (link, export, type = DBusGProxy *);

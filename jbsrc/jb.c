@@ -156,6 +156,7 @@ jb_package_init (void)
   jb_variable_add_bool("debug", NULL, NULL, 0, FALSE);
   jb_variable_add_bool("regression-tests", NULL, NULL, 0, FALSE);
   jb_variable_add_bool("gconf-sanity-check", NULL, NULL, JB_VARIABLE_C_DEFINE, TRUE);
+  jb_variable_add_bool("update-gtk-icon-cache", NULL, NULL, 0, TRUE);
 }
 
 void
@@ -364,10 +365,12 @@ jb_package_add_resources (void)
   if (jb_variable_get_bool("hotmail"))
     jb_group_add_data_file(group, "hotmail.png", "$pkgdatadir");
 
-  rule = jb_rule_new();
-  jb_rule_set_install_message(rule, "updating the GTK+ icon cache");
-  jb_rule_add_install_command(rule, "-gtk-update-icon-cache -f -t $datadir/icons/hicolor");
-  jb_group_add_resource(group, JB_GROUP_RESOURCE(rule));
+  if (jb_variable_get_bool("update-gtk-icon-cache")) {
+    rule = jb_rule_new();
+    jb_rule_set_install_message(rule, "updating the GTK+ icon cache");
+    jb_rule_add_install_command(rule, "-gtk-update-icon-cache -f -t $datadir/icons/hicolor");
+    jb_group_add_resource(group, JB_GROUP_RESOURCE(rule));
+  }
 
   jb_group_add(group);
 
